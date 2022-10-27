@@ -1,0 +1,35 @@
+#ifndef __INDEXLIB_VARNUMATTRIBUTEFORMATTERTEST_H
+#define __INDEXLIB_VARNUMATTRIBUTEFORMATTERTEST_H
+
+#include "indexlib/common_define.h"
+
+#include "indexlib/test/test.h"
+#include "indexlib/test/unittest.h"
+#include "indexlib/common/field_format/attribute/var_num_attribute_formatter.h"
+
+IE_NAMESPACE_BEGIN(common);
+
+class VarNumAttributeFormatterTest : public INDEXLIB_TESTBASE
+{
+public:
+    VarNumAttributeFormatterTest();
+    ~VarNumAttributeFormatterTest();
+
+    DECLARE_CLASS_NAME(VarNumAttributeFormatterTest);
+public:
+    void CaseSetUp() override;
+    void CaseTearDown() override;
+    void TestSimpleProcess();
+
+private:
+    void InnerTestEncodeAndDecodeCount(uint32_t countValue);
+
+private:
+    IE_LOG_DECLARE();
+};
+
+INDEXLIB_UNIT_TEST_CASE(VarNumAttributeFormatterTest, TestSimpleProcess);
+
+IE_NAMESPACE_END(common);
+
+#endif //__INDEXLIB_VARNUMATTRIBUTEFORMATTERTEST_H

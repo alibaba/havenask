@@ -1,0 +1,16 @@
+CMD=add
+id=3
+company_id=1
+subject=Mobile OPPO Mp3
+keywords=Mp3
+cat_id=1
+
+CMD=add
+id=4
+company_id=1
+subject=Mobile OPPO Mp3
+keywords=Mp3
+cat_id=2
+
+
+

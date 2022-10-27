@@ -1,0 +1,25 @@
+CMD=add
+id=0
+company_id=1
+keywords=test for ha3 admin
+
+CMD=add
+id=1
+company_id=2
+keywords=test for ha3 admin
+
+CMD=add
+id=2
+company_id=3
+keywords=test for ha3 admin
+
+CMD=add
+id=3
+company_id=4
+keywords=test for ha3 admin
+
+CMD=add
+id=4
+company_id=5
+keywords=test for ha3 admin
+

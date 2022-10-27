@@ -1,0 +1,12 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+env.aDirs('test')
+
+cache=Glob('*.cpp')
+
+#env.aLibrary(target='util_cache', source=cache)
+
+Return(['cache'])

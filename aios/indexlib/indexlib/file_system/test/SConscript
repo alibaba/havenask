@@ -1,0 +1,111 @@
+# -*- mode: python -*-
+import platform
+Import('env')
+env = env.Clone();
+
+file_system_test_libs = [
+#    'indexlib_file_system',
+    'indexlib_file_system_test_common',
+    'indexlib_basic',
+    'autil',
+    'gmock',
+    'gtest',
+    'pthread'
+]
+
+file_system_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'slice_file_node_unittest.cpp',
+    'file_system_intetest.cpp',
+    'in_mem_file_unittest.cpp',
+    'in_mem_storage_unittest.cpp',
+    'in_mem_file_writer_unittest.cpp',
+    'file_node_cache_unittest.cpp',
+    'flush_operation_queue_unittest.cpp',
+    'disk_storage_unittest.cpp',
+    'indexlib_file_system_unittest.cpp',
+    'mmap_file_node_unittest.cpp',
+    'in_mem_file_node_unittest.cpp',
+    'block_byte_slice_list_unittest.cpp',
+    'block_file_node_unittest.cpp',
+    'block_file_node_creator_unittest.cpp',
+    'buffered_file_reader_unittest.cpp',
+    'storage_metrics_unittest.cpp',
+    'buffered_file_node_unittest.cpp',
+    'directory_unittest.cpp',
+    'slice_file_unittest.cpp',
+    'var_param_unittest.cpp',
+    #'file_system_file_unittest.cpp',
+    #'file_system_storage_unittest.cpp',
+    'mount_table_unittest.cpp',
+    #'file_system_list_file_unittest.cpp',
+    #'file_system_remove_unittest.cpp',
+    'load_config_list_unittest.cpp',
+    'async_dump_scheduler_unittest.cpp',
+    'dir_operation_cache_unittest.cpp',
+    'in_mem_directory_unittest.cpp',
+    'in_mem_package_file_writer_unittest.cpp',
+    'package_file_flush_operation_unittest.cpp',
+    'local_directory_unittest.cpp',
+    'file_node_creator_unittest.cpp',
+    'pack_directory_unittest.cpp',
+    'package_file_meta_unittest.cpp',
+    'package_file_mount_table_unittest.cpp',
+    'munmap_perf_unittest.cpp',
+    'buffered_file_writer_unittest.cpp',
+    'indexlib_file_system_perf_test_unittest.cpp',
+    'compress_file_writer_unittest.cpp',
+    'file_block_cache_unittest.cpp',
+    'swap_mmap_file_unittest.cpp',
+    'hybrid_storage_unittest.cpp',
+    'block_prefetcher_unittest.cpp',
+    'path_meta_container_unittest.cpp',
+    'package_storage_unittest.cpp',
+    'lifecycle_table_unittest.cpp',
+    'versioned_package_file_meta_unittest.cpp',
+    'buffered_file_output_stream_unittest.cpp',
+]
+
+file_system_test_common_sources= [
+    'file_system_creator.cpp',
+    'test_file_creator.cpp',
+    'load_config_list_creator.cpp',
+    'file_system_test_util.cpp',
+    'fake_file_node.cpp',
+]
+
+env.aSharedLibrary(target='indexlib_file_system_test_common',
+                   source=file_system_test_common_sources)
+
+env.aTest(target = 'ie_file_system_unittest',
+          source = file_system_test_sources,
+          LIBS= ['fslib-framework'] + file_system_test_libs)
+
+
+
+session_file_cache_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'session_file_cache_unittest.cpp',
+]
+
+env.aTest(target = 'ie_file_system_session_file_cache_unittest',
+          source = session_file_cache_test_sources,
+          LIBS = ['fake_fslib'] + file_system_test_libs)
+
+###################### dependency check #######################
+file_system_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+file_system_minimal_dependency_libs = [
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+]
+
+env.aTest(target = 'indexlib_file_system_dependency_unittest',
+          source = file_system_minimal_dependency_sources,
+          LIBS = file_system_minimal_dependency_libs)
+
+env.aDirs('mockstorage')

@@ -1,0 +1,24 @@
+# -*- mode: python -*-
+import platform
+Import('env')
+env = env.Clone();
+
+counter_ut_libs = [
+    'indexlib_basic',
+    'fslib-framework',
+    'autil',
+    'gmock',
+    'gtest',
+    'pthread'
+]
+
+counter_case_cpps=Glob('*_unittest.cpp')
+counter_ut_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    counter_case_cpps,
+]
+
+env.aTest(target = 'ie_counter_unittest',
+          source = counter_ut_test_sources,
+          LIBS= counter_ut_libs)
+

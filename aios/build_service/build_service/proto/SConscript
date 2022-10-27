@@ -1,0 +1,37 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+pb_python_BasicDefs = env.aCompileProto('BasicDefs.proto', 'python')
+pb_BasicDefs = env.aCompileProto('BasicDefs.proto')
+
+pb_python_Heartbeat = env.aCompileProto('Heartbeat.proto', 'python')
+pb_Heartbeat = env.aCompileProto('Heartbeat.proto')
+Depends(pb_Heartbeat, pb_BasicDefs)
+
+pb_python_Admin = env.aCompileProto('Admin.proto', 'python')
+pb_Admin = env.aCompileProto('Admin.proto')
+Depends(pb_Admin, pb_Heartbeat)
+
+pb_source = pb_BasicDefs + pb_Heartbeat + pb_Admin
+
+cpp_source = [
+    'ProtoUtil.cpp',
+    'ProtoComparator.cpp',
+    'ErrorCollector.cpp',
+    'DataDescriptions.cpp',
+    'DataDescription.cpp',    
+    'ProtoJsonizer.cpp',
+    ]
+
+proto_sources = map(os.path.abspath, map(str, pb_source + cpp_source))
+
+env.aLibrary(target = 'bs_proto',
+             source = proto_sources)
+
+env.aDirs('test')
+
+Return(['proto_sources'])

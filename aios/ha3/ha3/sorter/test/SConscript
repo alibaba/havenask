@@ -1,0 +1,33 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+env['auto_version'] = False
+
+fake_sorter_sources = [
+    'SorterModuleFactoryForTest.cpp',
+    ]
+
+libfakesorter = env.aSharedLibrary(target = 'fakesorter',
+                                   source = fake_sorter_sources,
+                                   LIBS=[])
+
+libfakesorter_installed = env.aCopy('#testdata/sorter_config_test/plugins/', libfakesorter)
+
+sorter_test_sources=  [
+    'SorterProviderTest.cpp',
+    'DefaultSorterTest.cpp',
+    ]
+
+libsname = ['ha3sdk_testlib', 'ha3_fakesearch']
+
+env.aTest(target = 'sorter_test',
+          source = sorter_test_sources,
+          LIBS = libsname + env['ha3_test_depend_lib']
+          )
+
+env.Requires('sorter_test', libfakesorter_installed)
+

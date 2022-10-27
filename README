@@ -1,0 +1,28 @@
+编译环境
+1. 请确保编译的机器内存在15G以上，mac编译时需调整Docker容器资源上限（包括CPU、Memory、Swap等），具体路径：Docker Desktop->setting->Resources。
+2. 请确保cpu位8core以上，不然编译比较慢。
+
+linux环境编译步骤
+1. 启动容器，cd docker; sudo ./create_container.sh DOCKER_NAME, DOCKER_NAME为容器名称，自己指定。
+2. 进入容器，DOCKER_NAME/sshme，DOCKER_NAME为上面指定的容器名
+3. ./configure
+4. ./build
+
+mac环境编译步骤
+1. 环境准备：
+ a. 确保mac中已经安装docker服务，如未安装请参考https://docs.docker.com/desktop/install/mac-install/。
+ b. 代码下载的目录绝对路径中不能出现中文。错误示例：/Users/xxx/Desktop/代码/ha3
+2. 启动容器，cd docker; ./create_container_mac.sh DOCKER_NAME, DOCKER_NAME为容器名称，自己指定。
+3. 进入容器，DOCKER_NAME/sshme，DOCKER_NAME为上面指定的容器名
+4. 进入代码目录
+ a. 根据代码在mac上的绝对路径直接进入
+ b. 如果代码在自己的账号下（比如账号为xiaoming），也可以cd /home/xiaoming/ 然后进入代码目录
+4. ./configure
+5. ./build，如果报"fatal error: Killed signal terminated program cc1plus"错误，是由于编译机器内存不足导致的，请build时减少线程数（比如：./build 5）
+
+单独编译子项目方法,以indexlib为例，-j为线程数
+1. cd aios/indexlib
+2. scons install -j30
+3. 执行ut，进入指定的目录：scons . -u -j20
+
+编译成功之后，进入example目录使用demo数据进行测试，执行测试的方法请参考example下的README。

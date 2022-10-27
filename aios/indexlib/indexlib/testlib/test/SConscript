@@ -1,0 +1,44 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+testlib_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'fake_index_partition_unittest.cpp',
+]
+
+testlib_libs = [
+    'indexlib',
+    'gmock',
+    'gtest',
+]
+
+env.aTest(target = 'ie_testlib_unittest', 
+          source = testlib_test_sources, LIBS = testlib_libs)
+
+######################## dependency check ##########################
+testlib_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+testlib_minimal_dependency_libs = [
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+]
+
+env.aTest(target = 'indexlib_testlib_dependency_unittest',
+          source = testlib_minimal_dependency_sources,
+          LIBS = testlib_minimal_dependency_libs)

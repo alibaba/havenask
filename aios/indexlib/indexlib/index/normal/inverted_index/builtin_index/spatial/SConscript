@@ -1,0 +1,13 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+spatial=Glob('*.cpp')
+#env.aLibrary(target='indexlib_spatial', source=spatial)
+
+env.aDirs('test')
+
+#env.aDirs('perf_test')
+
+Return(['spatial'] )

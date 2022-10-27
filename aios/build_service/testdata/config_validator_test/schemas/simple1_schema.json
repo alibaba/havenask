@@ -1,0 +1,18 @@
+{
+    "table_name": "simple1",
+    "fields":
+    [
+        {"field_name":"price2",       "field_type":"INT64"},
+        {"field_name":"id1",       "field_type":"INT64"}
+    ],
+
+    "indexs":
+    [
+	{
+	    "index_name": "pk",
+	    "index_type": "PRIMARYKEY64",
+	    "index_fields": "id1"
+	}
+    ],
+    "attributes": ["price2"]
+}

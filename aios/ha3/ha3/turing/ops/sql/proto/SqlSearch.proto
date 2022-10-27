@@ -1,0 +1,34 @@
+syntax = "proto3";
+import "navi/proto/GraphDef.proto";
+import "tensorflow/core/framework/tensor.proto";
+
+package isearch.sql;
+
+option cc_enable_arenas = true;
+
+message NamedTensorProto {
+    string name = 1;
+    string port = 2;
+    tensorflow.TensorProto data = 3;
+}
+
+message Target {
+    string name = 1;
+    string port = 2;
+}
+
+message GraphInfo {
+    repeated NamedTensorProto inputs = 1;
+    repeated Target targets = 2;
+    navi.GraphDef graphDef = 3;
+    map<string, string> runGraphParams = 4;
+}
+
+message SqlGraphRequest {
+    GraphInfo graphInfo = 1;
+}
+
+message SqlGraphResponse {
+    repeated NamedTensorProto outputs = 1;
+}
+

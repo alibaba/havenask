@@ -1,0 +1,32 @@
+{
+    "final_sorter_config" : {
+        "modules" : [
+            {
+                "module_name" : "test_module1",
+                "module_path" : "test_module1.so",
+                "pararmeters" : {
+                }
+            },
+            {
+                "module_name" : "test_module2",
+                "module_path" : "test_module2.so",
+                "pararmeters" : {
+                }
+            }
+        ],
+        "sorters" : [
+            {
+                "module_name" : "test_module1",
+                "pararmeters" : {
+                },
+                "sorter_name" : "test_sorter1"
+            },
+            {
+                "module_name" : "test_module2",
+                "pararmeters" : {
+                },
+                "sorter_name" : "test_sorter1"
+            }
+        ]
+    }
+}

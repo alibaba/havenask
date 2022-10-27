@@ -1,0 +1,46 @@
+package build_service.proto;
+
+enum TestEnum {
+    ENUM_VALUE0 = 0;
+    ENUM_VALUE1 = 1;
+    ENUM_VALUE2 = 2;
+}
+
+message TestSimpleMessage {
+    optional bool boolValue = 1;
+    optional int32 int32Value = 2;
+    optional uint32 uint32Value = 3;
+    optional int64 int64Value = 4;
+    optional uint64 uint64Value = 5;
+    optional float floatValue = 6;
+    optional double doubleValue = 7;
+    optional string stringValue = 8;
+    optional bytes bytesValue = 9;
+    optional TestEnum enumValue = 10;
+}
+
+message TestMessageMember1 {
+    optional TestSimpleMessage simpleMessages = 1;
+}
+
+message TestMessageMember2 {
+    optional TestMessageMember1 testMessageMember1 = 1;
+}
+
+message TestRepeatedMessage {
+    repeated bool boolValue = 1;
+    repeated int32 int32Value = 2;
+    repeated uint32 uint32Value = 3;
+    repeated int64 int64Value = 4;
+    repeated uint64 uint64Value = 5;
+    repeated float floatValue = 6;
+    repeated double doubleValue = 7;
+    repeated string stringValue = 8;
+    repeated bytes bytesValue = 9;
+    repeated TestEnum enumValue = 10;
+}
+
+message TestRepeatedMessageMember {
+    repeated TestRepeatedMessage repeatedMessages = 1;
+}
+

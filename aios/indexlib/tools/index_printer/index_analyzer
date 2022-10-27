@@ -1,0 +1,491 @@
+#!/usr/bin/env python
+# -*- coding:utf-8 -*-
+import os,sys,traceback,time,tempfile,json
+
+class FileSystem:
+    def __init__(self, hadoopHome, debug = False):
+        self.debug = debug
+        if hadoopHome:
+	    self.hadoopBin = hadoopHome.rstrip("/") + "/bin/hadoop"
+
+    def execute(self, cmd):
+        if self.debug:
+            print cmd
+        stdoutFile = tempfile.NamedTemporaryFile()
+        stderrFile = tempfile.NamedTemporaryFile()
+        cmd = "%s 1>>%s 2>>%s" % (cmd, stdoutFile.name, stderrFile.name)
+        returnCode = os.system(cmd)
+        stdout = stdoutFile.read()
+        stderr = stderrFile.read()
+        stdoutFile.close()
+        stderrFile.close()
+        return stdout, stderr, returnCode
+
+    def exists(self, path):
+        if path.startswith("hdfs://"):
+            cachePath = os.path.join('./tmp.index_parser', path[len('hdfs://'):])
+            if os.path.exists(cachePath):
+                return True
+            cmd = "%s fs -stat %s" % (self.hadoopBin, path)
+            stdout, stderr, code = self.execute(cmd)
+            if code == 0:
+                return True
+            elif code == 1:
+                print stdout
+                return False
+            elif "No such file or directory" in stderr:
+                return False
+            else:
+                print "[%s], [%s], [%s]" % (stdout, stderr, code)
+                exit(-1)
+        return os.path.exists(path)
+
+    def ls(self, path):
+        if path.startswith("hdfs://"):
+            cmd = "%s fs -ls %s" % (self.hadoopBin, path)
+            stdout, stderr, code = self.execute(cmd)
+            if code == 0:
+                dirList = []
+                lines = stdout.split('\n')
+                for line in lines:
+                    items = line.split()
+                    if len(items) == 8:
+                        dirList.append(items[7].split('/')[-1])
+                return dirList
+            else:
+                print stdout, stderr, code
+                exit(-1)
+        return os.listdir(path)
+
+    def cat(self, path):
+        if path.startswith("hdfs://"):
+            cachePath = os.path.join('./tmp.index_parser', path[len('hdfs://'):])
+            if not os.path.exists(os.path.dirname(cachePath)):
+                os.makedirs(os.path.dirname(cachePath))
+            if not os.path.exists(cachePath):
+                cmd = "%s fs -cp %s %s" % (self.hadoopBin, path, cachePath)
+                stdout, stderr, code = self.execute(cmd)
+                if code != 0:
+                    print stdout, stderr, code
+                    exit(-1)
+            path = cachePath
+        try:
+            return file(path, "r").read()
+        except Exception, e:
+            return ""
+
+    def du(self, root):
+        res = []
+        if root.startswith("hdfs://"):
+            cmd = "%s fs -du -s %s" % (self.hadoopBin, root)
+            stdout, stderr, code = self.execute(cmd)
+            if code != 0:
+                return 0
+            for line in stdout.splitlines():
+                size, _, path = line.split()
+                return int(size)
+        else:
+            cmd = "du -sb %s" % (root)
+            stdout, stderr, code = self.execute(cmd)
+            if code != 0:
+                return 0
+            return int(stdout.split()[0])
+
+class IndexAnalyzer(object):
+    '''%(prog)s [options]
+options:
+    -h, --help                          : output help info
+    -D, --disk_usage                    : optional, print disk usage, [False]
+    -p PATH, --index_path=PATH          : required, set index path, should be generation_*/partition_*_*
+    -v ID, --version=ID                 : optional, set print version id, default print last version
+    -s ID, --segment=ID                 : optional, set print segment id, default no
+    -i NAME, --index=NAME               : optional, set print index name
+    -S NAME, --sort=NAME                : optional, sort by [name|size], default[size]
+    -r, --raw_number                    : optional, show raw nuber, default [False]
+    -H PATH, --hadoop_home=PATH         : optional, set hadoop home.
+    --debug                             : optional, output debug log [False]
+
+examples:
+    %(prog)s -p ./generation_0/partition_0_65535
+    %(prog)s -p ./generation_0/partition_0_16383/ -v 0
+    %(prog)s -H ./usr/local/hadoop/hadoop/ -p hdfs://HDFS/table/generation_0/partition_0_16383/ -s 0
+    %(prog)s -H ./usr/local/hadoop/hadoop/ -p hdfs://HDFS/table/generation_0/partition_0_16383/ -s 0 -i nid
+    '''
+
+    def __init__(self):
+        pass
+    
+    def __initMember(self, options, args):
+        self.fileSystem = FileSystem(options.hadoop_home, options.debug)
+        self.versions = {}
+        self.deployMeta = {}
+        self.segmentInfos = {}
+        self.indexFiles = {}
+        self.segmentCounter = {}
+        self.intermediateVersion = []
+        self.releaseVersion = []
+        self.intermediateSegment = []
+        self.releaseSegment = []
+        self.size = {}
+        return True
+
+    def usage(self):
+        return self.__doc__ % {'prog' : sys.argv[0]}
+
+    def parseParams(self, optionList):
+        from optparse import OptionParser
+        parser = OptionParser(usage=self.usage())
+        parser.add_option('', '--debug', action='store_true', dest='debug', default=False)
+        parser.add_option('-p', '--partition', action='store', dest='indexPath', default=None)
+        parser.add_option('-D', '--disk_usage', action='store_true', dest='disk_usage', default=False)
+        parser.add_option('-v', '--version', action='store', type='int', dest='version', default=None)
+        parser.add_option('-s', '--segment', action='store', type='int', dest='segment', default=None)
+        parser.add_option('-i', '--index', action='store', dest='indexName', default=None)
+        parser.add_option('-S', '--sort', action='store', dest='sort', default='size')
+        parser.add_option('-r', '--raw_number', action='store_true', dest='raw_number', default=False)
+        parser.add_option('-H', '--hadoop_home', action='store', dest='hadoop_home', default=None)
+        parser.add_option('', '--clear', action='store_true', dest='clear', default=False)
+        (self.options, args) = parser.parse_args(optionList)
+
+        if len(args) != 1:
+            parser.error("incorrect number of arguments %s" % (str(args)))
+        if not self.options.indexPath:
+            parser.error("need -p")
+        if self.options.debug:
+            print self.options, args
+        if not self.__initMember(self.options, args):
+            return False
+        return True
+
+    def __jsonLoad(self, path, mayNonExist = False):
+        if mayNonExist and not self.filesystem.exists(path):
+            return None
+        jsonStr = self.fileSystem.cat(path)
+        return json.loads(jsonStr)
+
+    def hr_size(self, plain_size):
+        plain_size = float(plain_size)
+        if plain_size <= 1024:
+            return str( round(plain_size, 2)) + ' B'
+        if plain_size <= 1024 * 1024:
+            return str( round(plain_size / 1024, 2)) + ' K'
+        if plain_size <= 1024 * 1024 * 1024:
+            return str( round(plain_size / 1024 / 1024, 2)) + ' M'
+        if plain_size <= 1024 * 1024 * 1024 *1024:
+            return str( round(plain_size / 1024 / 1024 / 1024, 2)) + ' G'
+
+    def loadVersion(self, versionFile):
+        # {u'timestamp': 1389155100000000, u'segments': [9, 13, 17, 27, 29, 31, 33], u'versionid': 25}
+        if self.options.debug:
+            print "load version: %s" % (versionFile)
+        versionId = int(versionFile.split(".")[-1])
+        jsonStr = self.fileSystem.cat(versionFile)
+        versionObj = json.loads(jsonStr)
+        self.versions[versionId] = versionObj
+        deployMetaFile = "%s/deploy_meta.%s" % (os.path.dirname(versionFile), versionId)
+        jsonStr = self.fileSystem.cat(deployMetaFile)
+        if jsonStr:
+            versionObj = json.loads(jsonStr)
+        else:
+            versionObj = {'deploy_file_metas': [], 'final_deploy_file_metas': []}
+        self.deployMeta[versionId] = versionObj
+
+    def parseVersions(self):
+        # self.versions is sorted by versionId
+        usedVersionIds = {}
+        segments = set()
+        for versionId in self.versions:
+            timestamp = int(self.versions[versionId]['timestamp'])
+            if timestamp in usedVersionIds:
+                self.intermediateVersion.append(usedVersionIds[timestamp])
+            usedVersionIds[timestamp] = versionId
+            segments = segments | set(self.versions[versionId]['segments'])
+        self.releaseVersion = [i for i in self.versions.keys() if i not in self.intermediateVersion]
+        releaseSegments = set()
+        for versionId in self.releaseVersion:
+            releaseSegments = releaseSegments | set(self.versions[versionId]['segments'])
+        self.releaseSegment = list(releaseSegments)
+        self.releaseSegment.sort()
+        self.intermediateSegment = [s for s in segments if s not in self.releaseSegment]
+
+    def loadVersions(self, partitionFileList):
+        for path in partitionFileList:
+            if path.startswith('version.') and len(path.split('.')) == 2:
+                versionId = int(path.split('.')[-1])
+                if self.options.version != None and versionId != self.options.version:
+                    continue
+                versionFile = os.path.join(self.options.indexPath, path)
+                self.loadVersion(versionFile)
+        self.parseVersions()
+
+    def loadSegmentInfo(self, segmentId, segmentDir):
+        # {u'Locator': u'400000000000000062e52f370100000000000000', u'IsMergedSegment': True, u'Timestamp': 1399135260000000, u'DocCount': 55054308}
+        segmentInfoFile = "%s/segment_info" % segmentDir
+        self.segmentInfos[segmentId] = self.__jsonLoad(segmentInfoFile)
+        
+    def loadSegmentFileList(self, segmentId, segmentDir):
+        segmentFileListFile = "%s/segment_file_list" % segmentDir
+        if not self.fileSystem.exists(segmentFileListFile):
+            segmentFileListFile = "%s/deploy_index" % segmentDir
+        segmentFileLists = {}
+        segmentFileLists = self.__jsonLoad(segmentFileListFile)
+        self.indexFiles[segmentId] = {}
+        physicalFileCount, physicalFileLength, physicalDirCount = 0, 0, 0
+        for meta in segmentFileLists['deploy_file_metas']:
+            path, length = meta['path'], meta['file_length']
+            if path[-1] == '/':
+                self.indexFiles[segmentId][path] = [0, 'physical_dir']
+                physicalDirCount += 1
+                continue
+            elif length < 0:
+                length = 0
+                print meta
+            physicalFileCount += 1
+            physicalFileLength += length
+            self.indexFiles[segmentId][path] = [length, 'physical']
+        self.segmentCounter[segmentId]['physicalFileCount'] = physicalFileCount
+        self.segmentCounter[segmentId]['physicalFileLength'] = physicalFileLength
+        self.segmentCounter[segmentId]['physicalDirCount'] = physicalDirCount
+
+    def loadSegmentPackage(self, segmentId, segmentDir):
+        packageFileMetaFile = "%s/package_file.__meta__" % segmentDir
+        segmentPackages = {}
+        if not self.fileSystem.exists(packageFileMetaFile):
+            segmentPackages[segmentId] = {'inner_files': {}}
+        else:
+            segmentPackages[segmentId] = self.__jsonLoad(packageFileMetaFile)
+        logicalFileCount, logicalFileLength, logicalDirCount = 0, 0, 0
+        for meta in segmentPackages[segmentId]['inner_files']:
+            path, length = meta['path'], meta['length']
+            if meta['isDir']:
+                self.indexFiles[segmentId][path + '/'] = [0, 'logical_dir']
+                logicalDirCount += 1
+                continue
+            logicalFileLength += length
+            logicalFileCount += 1
+            self.indexFiles[segmentId][path] = [length, 'logical']
+        self.segmentCounter[segmentId]['logicalFileCount'] = logicalFileCount
+        self.segmentCounter[segmentId]['logicalFileLength'] = logicalFileLength
+        self.segmentCounter[segmentId]['logicalDirCount'] = logicalDirCount
+
+    def loadSegmentSize(self, segmentId, segmentDir):
+        sizeMap = {'segment': 0, 'index': 0, 'attribute': 0, 'summary': 0}
+        if self.options.disk_usage:
+            sizeMap['segment'] = self.fileSystem.du(segmentDir)
+            sizeMap['index'] = self.fileSystem.du(os.path.join(segmentDir, 'index'))
+            sizeMap['attribute'] = self.fileSystem.du(os.path.join(segmentDir, 'attribute'))
+            sizeMap['summary'] = self.fileSystem.du(os.path.join(segmentDir, 'summary'))
+            self.size[segmentId] = sizeMap
+            return
+        for path, desc in self.indexFiles[segmentId].items():
+            length = desc[0]
+            if path.startswith('summary'):
+                sizeMap['segment'] += length
+            elif path.startswith('attribute'):
+                sizeMap['attribute'] += length
+            elif path.startswith('index'):
+                sizeMap['index'] += length
+            where = desc[1]
+            if 'logical' not in where:
+                sizeMap['segment'] += length
+            self.size[segmentId] = sizeMap
+
+    def getSegmentDir(self, segmentId):
+        for i in xrange(0, 3):
+            segemntName = "segment_%d_level_%d" % (segmentId, i)
+            segmentDir = os.path.join(self.options.indexPath, segemntName)
+            if self.fileSystem.exists(segmentDir):
+                return segmentDir
+        fileList = self.fileSystem.ls(self.options.indexPath)
+        for path in fileList:
+            if not path.startswith('segment_'):
+                continue
+            curSegmentId = int(path.split("/")[-1].split("_")[1])
+            if curSegmentId == segmentId:
+                return os.path.join(self.options.indexPath, path)
+        return None
+
+    def loadSegment(self, segmentId, segmentDir):
+        if self.options.debug:
+            print "load segment: %s" % (segmentDir)
+        self.segmentCounter[segmentId] = {}
+        self.loadSegmentInfo(segmentId, segmentDir)
+        self.loadSegmentFileList(segmentId, segmentDir)
+        self.loadSegmentPackage(segmentId, segmentDir)
+        self.loadSegmentSize(segmentId, segmentDir)
+
+    def loadSegments(self, partitionFileList):
+        segmentList = None
+        if self.options.version != None:
+            segmentList = self.versions[self.options.version]["segments"]
+
+        for path in partitionFileList:
+            if not path.startswith('segment_'):
+                continue
+            segmentId = int(path.split("/")[-1].split("_")[1])
+            if segmentList != None and segmentId not in segmentList:
+                continue
+            segmentDir = os.path.join(self.options.indexPath, path)
+            self.loadSegment(segmentId, segmentDir)
+        if self.options.debug:
+            print self.size
+
+    def timestampToString(self, timestamp, full = False):
+        timeDesc = time.localtime(timestamp)
+        if not full:
+            return time.strftime('%H:%M:%S',timeDesc)
+        else:
+            return time.strftime('%y-%m-%d %H:%M:%S',timeDesc)
+
+    def printSegment(self, segmentId):
+        result = ""
+        docCount = self.segmentInfos[segmentId]['DocCount']
+        timestamp = self.segmentInfos[segmentId]['Timestamp']
+        locator = self.segmentInfos[segmentId]['Locator']
+        mergeFlag = "M" if self.segmentInfos[segmentId]["IsMergedSegment"] else "B"
+        pFileLength = self.hr_size(self.segmentCounter[segmentId]['physicalFileLength'])
+        pFileCount = self.segmentCounter[segmentId]['physicalFileCount']
+        pDirCount = self.segmentCounter[segmentId]['physicalDirCount']
+        lFileLength = self.hr_size(self.segmentCounter[segmentId]['logicalFileLength'])
+        lFileCount = self.segmentCounter[segmentId]['logicalFileCount']
+        lDirCount = self.segmentCounter[segmentId]['logicalDirCount']
+        result += "[%d]: %s docCount[%s], Time[%s], Timestamp[%s] Locator[%s]\n" % (
+            segmentId, mergeFlag, docCount,
+            self.timestampToString(timestamp / 1000000), timestamp, locator)
+        result += "  physical[%s, %d + %d], logical[%s, %d + %d]\r\n" % (
+            pFileLength, pFileCount, pDirCount, lFileLength, lFileCount, lDirCount)
+        # counter[type][index] = (length, fileCount, dirCount)
+        counter = {'other': {}, 'index': {}, 'attribute': {}, 'summary': {}}
+        indexResult = "INDEX[%s]\n" % (self.options.indexName) if self.options.indexName else ""
+        for path, param in self.indexFiles[segmentId].items():
+            length, where = param
+            whereId = 2 if '_dir' in where else 1
+            sp = path.split('/')
+            if len(sp) == 2 and sp[1] == "":
+                continue
+            if len(sp) > 2 and sp[1] == self.options.indexName:
+                indexResult += "  %-60s %15s %s\n" % (path, length, where)
+            if sp[0].startswith('package_file'):
+                counter['other'].setdefault('package_file', [0, 0, 0])
+                counter['other']['package_file'][0] += length
+                counter['other']['package_file'][whereId] += 1
+            elif sp[0] in ['index', 'attribute', 'summary']:
+                counter[sp[0]].setdefault(sp[1], [0, 0, 0])
+                counter[sp[0]][sp[1]][0] += length
+                counter[sp[0]][sp[1]][whereId] += 1
+            else:
+                counter['other'].setdefault(sp[0], [0, 0, 0])
+                counter['other'][sp[0]][0] += length
+                counter['other'][sp[0]][whereId] += 1
+        for indexType, indexDetal in counter.items():
+            tmpResult = ""
+            idx, totalLength, totalCount = 0, 0, 0
+            sortId = 1 if self.options.sort == 'size' else 0
+            for name, detail in sorted(indexDetal.items(), key=lambda d: d[sortId]):
+                fileLength, fileCount, dirCount = detail
+                fileLengthStr = fileLength
+                if not self.options.raw_number:
+                    fileLengthStr = self.hr_size(fileLength)
+                tmpResult += "  %-60s %15s %5s + %5sD\n" % (name, fileLengthStr, fileCount, dirCount)
+                idx += 1
+                totalLength += fileLength
+                totalCount += fileCount
+            result += "%s: count[%d] fileCount[%d] fileSize[%s]\n" % (
+                indexType, idx, totalCount, self.hr_size(totalLength))
+            result += tmpResult
+        result += indexResult
+        print result
+
+    def printVersions(self):
+        print "Version Summary:"
+        id = 0
+        pattern = "%-3s %-7s %-8s[%-16s]\t%8s\t%s"
+        print pattern % ('#', 'Version', 'time', 'timestamp', 'size', 'segments')
+        for versionId in self.versions:
+            timestamp = self.versions[versionId]["timestamp"]
+            segments = self.versions[versionId]["segments"]
+            timeStr = self.timestampToString(timestamp / 1000000)
+            size = 0
+            for segmentId in segments:
+                size += self.size[segmentId]['segment']
+            print pattern % (id, versionId, timeStr, timestamp,
+                             self.hr_size(size), segments)
+            id += 1
+        print "  intermediateVersion:", self.intermediateVersion
+        print "  intermediateSegment:", self.intermediateSegment
+        print "  releaseVersion:", self.releaseVersion
+        print "  releaseSegment:", self.releaseSegment
+
+    def printSegments(self):
+        print "Segments: "
+        segmentInfoStrList = []
+        for segmentId in sorted(self.segmentInfos):
+            docCount = self.segmentInfos[segmentId]['DocCount']
+            timestamp = self.segmentInfos[segmentId]['Timestamp'] / 1000000
+            mergeFlag = ""
+            if self.segmentInfos[segmentId]["IsMergedSegment"]:
+                mergeFlag = "M"
+            segmentInfoStrList.append("%d[%s,%d,%s]" % (segmentId, mergeFlag, docCount, self.timestampToString(timestamp)))
+        print ", ".join(segmentInfoStrList)
+
+
+    def printVersionDetail(self):
+        versionId = sorted(self.versions)[-1]
+        if self.options.version != None:
+            versionId = self.options.version
+        print "DeployMeta [%s + %s]: " % (len(self.deployMeta[versionId]['deploy_file_metas']), len(self.deployMeta[versionId]['final_deploy_file_metas'])),
+        print "Version [%s]: " % versionId
+        pattern = "%-2s %7s %9s %10s %10s %10s %10s %10s %10s %17s %2s"
+        print pattern % ('#', 'segID', 'BaseDocID', 'DocCount', 'Size', 'Attribute', 'Index', 'Summary', 'Other', 'timestamp', 'Merged')
+        baseDocId = 0
+        totalSize, totalAttribute, totalIndex, totalSummary, totalOther = (0, 0, 0, 0, 0)
+        idx= 0
+        for segmentId in self.versions[versionId]["segments"]:
+            docCount = self.segmentInfos[segmentId]['DocCount']
+            segment = self.size[segmentId]['segment']
+            attribute = self.size[segmentId]['attribute']
+            index = self.size[segmentId]['index']
+            summary = self.size[segmentId]['summary']
+            other = segment - attribute - index - summary
+            timestamp = self.segmentInfos[segmentId]['Timestamp'] / 1000000
+            mergeFlag = "M" if self.segmentInfos[segmentId]["IsMergedSegment"] else ""
+            print pattern % (idx, segmentId, baseDocId, docCount,
+                             self.hr_size(segment), self.hr_size(attribute),
+                             self.hr_size(index), self.hr_size(summary), self.hr_size(other),
+                             self.timestampToString(timestamp, True), mergeFlag)
+            baseDocId += docCount
+            totalSize += segment
+            totalAttribute += attribute
+            totalIndex += index
+            totalSummary += summary
+            totalOther += other
+            idx += 1
+
+        print pattern % (idx, 'TOTAL', baseDocId, '',
+            self.hr_size(totalSize), self.hr_size(totalAttribute),
+            self.hr_size(totalIndex), self.hr_size(totalSummary), self.hr_size(totalOther), '', '')
+
+    def run(self):
+        segmentId = self.options.segment
+        if segmentId != None:
+            self.loadSegment(segmentId, self.getSegmentDir(segmentId))
+            return self.printSegment(segmentId)
+
+        partitionFileList = self.fileSystem.ls(self.options.indexPath)        
+        self.loadVersions(partitionFileList)
+        self.loadSegments(partitionFileList)
+        self.printVersions()
+        self.printSegments()
+        self.printVersionDetail()
+
+def main():
+    analyzer = IndexAnalyzer()
+    if not analyzer.parseParams(sys.argv):
+        sys.exit(-1)
+    if not analyzer.run():
+        sys.exit(-1)
+    sys.exit(0)
+
+if __name__ == "__main__":
+    main()
+

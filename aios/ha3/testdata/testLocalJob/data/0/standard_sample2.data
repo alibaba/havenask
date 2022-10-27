@@ -1,0 +1,28 @@
+CMD=add
+id=10
+company_id=5
+subject=Mobile 商务笔记本
+keywords=笔记本
+cat_id=5
+
+CMD=add
+id=6
+company_id=6
+subject=Mobile Phone
+keywords=智能手机
+cat_id=6
+
+CMD=add
+id=11
+company_id=7
+subject=Mobile OPPO Mp3
+keywords=Mp3
+cat_id=7
+
+CMD=add
+id=11
+company_id=8
+subject=Mobile 诺基亚_5320
+keywords=Nokia手机
+cat_id=8
+

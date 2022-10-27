@@ -1,0 +1,10 @@
+{
+    "offline_index_options" : {
+        "full" : {
+            "inherit_from": "inherit.json",
+            "index_option_config" : {
+                "MergeThreadCount": 4
+            }
+        }
+    }
+}

@@ -1,0 +1,15 @@
+syntax = "proto3";
+package isearch.sql;
+
+option cc_enable_arenas = true;
+
+message KhronosDataScanInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    string metricName = 3;
+    int64 callNextCount = 4;
+    int64 pointScanCount = 5;
+    int64 seriesOutputCount = 6;
+    int64 lookupTime = 7;
+}

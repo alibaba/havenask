@@ -1,0 +1,24 @@
+{
+    "qrs_rule" : {
+	"connection_timeout": 70
+    },
+    "qrs_result_compress":{
+	"compress_type":"z_default_compress"	
+    },
+    "modules" : [
+    ],
+    "processors": [
+    ],  
+    "chains": 
+    [
+        { 
+            "chain_name":"DEFAULT",          
+	    "plugin_points": 
+            {
+		"BEFORE_PARSER_POINT" : [],
+		"BEFORE_VALIDATE_POINT" : [] ,
+		"BEFORE_SEARCH_POINT" : []
+	    }
+	}
+    ]
+}

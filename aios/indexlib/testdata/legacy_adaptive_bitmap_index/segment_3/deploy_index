@@ -1,0 +1,29 @@
+{
+    "deploy_file_metas": 
+    [
+	{"path" : "segment_info"},
+	{"path" : "attribute/"},
+	{"path" : "index/"},
+	{"path" : "deletionmap/"},
+	{"path" : "attribute/price/"},
+	{"path" : "attribute/string1/"},
+	{"path" : "index/pk/"},
+	{"path" : "index/strIndex/"},
+	{"path" : "index/numIndex/"},
+	{"path" : "attribute/price/data"},
+	{"path" : "attribute/string1/offset"},
+	{"path" : "attribute/string1/data"},
+	{"path" : "index/pk/data"},
+	{"path" : "index/pk/attribute_string1/"},
+	{"path" : "index/strIndex/posting"},
+	{"path" : "index/strIndex/dictionary"},
+	{"path" : "index/strIndex/bitmap_posting"},
+	{"path" : "index/strIndex/bitmap_dictionary"},
+	{"path" : "index/numIndex/posting"},
+	{"path" : "index/numIndex/dictionary"},
+	{"path" : "index/numIndex/bitmap_posting"},
+	{"path" : "index/numIndex/bitmap_dictionary"},
+	{"path" : "index/pk/attribute_string1/data"}
+    ]
+}
+

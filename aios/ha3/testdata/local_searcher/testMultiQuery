@@ -1,0 +1,3 @@
+config=cluster:daogou&&query=default:Mp3
+config=cluster:daogou&&query=default:Mobile
+config=cluster:daogou&&query=default:Phone

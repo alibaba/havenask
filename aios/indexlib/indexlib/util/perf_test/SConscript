@@ -1,0 +1,16 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+util_ut_perftest_sources = [
+    '#indexlib/test/dotest.cpp',
+    'hash_map_multi_thread_unittest.cpp',
+    'ex_hash_map_perf_unittest.cpp',
+]
+
+env.aTest(target = 'ie_util_perftest',
+          source = util_ut_perftest_sources,
+          LIBS= ['indexlib_basic', 'gmock', 'gtest'])
+
+

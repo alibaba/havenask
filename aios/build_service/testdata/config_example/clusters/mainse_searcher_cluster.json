@@ -1,0 +1,377 @@
+{
+    "aggregate_sampler_config" : {
+        "aggBatchMode" : true,
+        "aggThreshold" : 2000,
+        "batchSampleMaxCount" : 1000,
+        "maxSortCount" : 10001,
+        "sampleStep" : 100000
+    },
+    "cluster_config" : {
+	"table_name" : "mainse_searcher",
+	"hash_mode" : {
+            "hash_field" : "nid",
+            "hash_function" : "KINGSO_HASH#720"
+	},
+        "cluster_name" : "mainse_searcher",
+        "cluster_type" : "inc_with_realtime",
+        "deploy_config" : {
+            "sync_interval" : 20,
+            "sync_size_limit" : 1048576
+        },
+        "dispatch_config" : {
+            "free_worker_use_count_hint" : 0,
+            "high_capability_worker_priority" : true,
+            "min_searcher_replica" : 8,
+            "min_searcher_replica_for_inc_update" : 14,
+            "only_use_free_worker" : false,
+            "switch_by_replica" : true
+        },
+        "proxy_rule" : {
+            "partition_count" : 0,
+            "partition_resource" : 0,
+            "replica_count" : 0
+        },
+        "query_config" : {
+            "default_index" : "phrase",
+            "default_operator" : "AND"
+        },
+        "searcher_rule" : {
+            "partition_resource" : 100,
+            "replica_count" : 16,
+            "specified_machine_type" : "searcher_a5,searcher_a7,searcher_b2"
+        },
+	"builder_rule_config" : {
+            "partition_count" : 5,
+            "build_parallel_num" : 1,
+            "merge_parallel_num" : 1,
+            "map_reduce_ratio" : 1,
+            "need_partition" : true
+	},
+        "swift_config" : {
+            "topic": {
+                "partition_count" : 10,
+                "partition_min_buffer_size" : 10,
+                "partition_max_buffer_size" : 1000,
+                "partition_limit" : 10,
+                "partition_file_buffer_size" : 100,
+                "partition_resource" : 100,
+                "obsolete_file_interval" : 3600,
+                "reserved_file_count" : 10,
+            },
+            "reader_config" : "oneRequestReadCount=100;readBufferSize=10240;compress=true"
+        }
+    },
+    "function_config" : {
+        "functions" : [
+            {
+                "name" : "expiretime",
+                "parameters" : {
+                }
+            },
+            {
+                "name" : "incity",
+                "parameters" : {
+                    "ProvCityPath" : "provcity.txt"
+                }
+            },
+            {
+                "name" : "parentcat",
+                "parameters" : {
+                    "CatRelateTablePath" : "/home/admin/isearch5_data/taobao_data/catrelatetable.dat"
+                }
+            },
+            {
+                "name" : "subcat",
+                "parameters" : {
+                    "SubCatPath" : "/home/admin/isearch5_data/taobao_data/catrelatetable.dat",
+                    "SubCatPath_Bak" : "/home/admin/isearch5_data/taobao_data/catrelatetable.dat.bak"
+                }
+            },
+            {
+                "name" : "olu",
+                "parameters" : {
+                    "hash_type" : "probing",
+                    "join" : "nick",
+                    "swap_dir" : "/dev/shm/",
+                    "table_name" : "online"
+                }
+            },
+            {
+                "name" : "get_value_by_id",
+                "parameters" : {
+                    "DefaultValueOfId" : "0"
+                }
+            }
+        ],
+        "modules" : [
+            {
+                "module_name" : "MainseFunction",
+                "module_path" : "libMainseFunction.so",
+                "parameters" : {
+                }
+            },
+            {
+                "module_name" : "CommonFunction",
+                "module_path" : "libCommonFunctions.so",
+                "parameters" : {
+                }
+            }
+        ]
+    },
+    "build_option_config" : {
+        "sort_build" : true,
+        "sort_queue_size" : 100000,
+	"sort_descriptions" : [
+	    {
+		"sort_field" : "category",
+		"sort_pattern" : "desc"
+	    },
+	    {
+		"sort_field" : "ends",
+		"sort_pattern" : "desc"
+	    }
+	]
+    },
+    "online_index_config" : {
+        "online_keep_version_count" : 10,
+        "max_reopen_memory_use" : 3072
+    },
+    "offline_index_config" : {
+        "merge_config" : {
+            "merge_strategy" : "realtime",
+            "merge_strategy_param" : "max-small-segment-count=5;merge-size-upperbound=128;merge-size-lowerbound=128",
+            "merge_thread_count" : 1,
+            "TruncateStrategy" : [
+                {
+                    "DiversityConstrain" : {
+                        "FilterByMeta" : true,
+                        "FilterField" : "static_trans_score"
+                    },
+                    "Limit" : 20000,
+                    "StrategyName" : "static_trans_score_filter_by_meta",
+                    "StrategyType" : "truncate_meta"
+                },
+                {
+                    "DiversityConstrain" : {
+                        "FilterByMeta" : true,
+                        "FilterField" : "tk_trans_score"
+                    },
+                    "Limit" : 20000,
+                    "StrategyName" : "tk_trans_score_filter_by_meta",
+                    "StrategyType" : "truncate_meta"
+                },
+                {
+                    "DiversityConstrain" : {
+                        "FilterByMeta" : true,
+                        "FilterField" : "biz30day"
+                    },
+                    "Limit" : 20000,
+                    "StrategyName" : "biz30day_filter_by_meta",
+                    "StrategyType" : "truncate_meta"
+                },
+                {
+                    "DiversityConstrain" : {
+                        "FilterByMeta" : true,
+                        "FilterField" : "tk_total_sales"
+                    },
+                    "Limit" : 20000,
+                    "StrategyName" : "tk_total_sales_filter_by_meta",
+                    "StrategyType" : "truncate_meta"
+                },
+                {
+                    "DiversityConstrain" : {
+                        "FilterByMeta" : true,
+                        "FilterField" : "uvsum"
+                    },
+                    "Limit" : 20000,
+                    "StrategyName" : "uvsum_filter_by_meta",
+                    "StrategyType" : "truncate_meta"
+                },
+                {
+                    "DiversityConstrain" : {
+                        "FilterByMeta" : true,
+                        "FilterField" : "uvsum_suc"
+                    },
+                    "Limit" : 20000,
+                    "StrategyName" : "uvsum_suc_filter_by_meta",
+                    "StrategyType" : "truncate_meta"
+                },
+                {
+                    "DiversityConstrain" : {
+                        "FilterParameter" : "fieldName=ends_1;beginTime=now;adviseEndTime=23:59:59;minInterval=24",
+                        "FilterType" : "FilterByTimeStamp"
+                    },
+                    "StrategyName" : "ends_filter_by_timestamp",
+                    "StrategyType" : "truncate_meta"
+                }
+            ]
+        },
+        "customized_merge_config" : {
+	    "full" : {
+	        "merge_config" : {
+		    "keep_version_count": 100,
+		    "merge_strategy" : "optimize",
+		    "merge_strategy_param": "",
+		    "merge_thread_count" : 4,
+		    "truncate_strategy" : [
+			{
+			    "strategy_name" : "distinct_sort",
+			    "threshold" : 100000,
+			    "limit" : 50000,
+			    "diversity_constrain": {
+				"distinct_field" : "user_id",
+				"distinct_count" : 20000,
+				"distinct_expand_limit" : 150000
+			    },
+                            "truncate_profiles" : [
+                                "desc_static_trans_score"
+                            ]
+			},
+			{
+			    "strategy_name" : "distinct_sort_for_ends",
+			    "threshold" : 120000,
+			    "limit" : 80000,
+			    "diversity_constrain": {
+				"distinct_field" : "user_id",
+				"distinct_count" : 32000,
+				"distinct_expand_limit" : 180000
+			    }
+			}
+		    ]
+	        },
+	        "merge_parallel_num" : 5
+	    },
+	    "inc" : {
+	        "merge_config" : {},
+	        "period" : "period=1800",
+	        "merge_parallel_num" : 1
+	    },
+	    "inc_merge" : {
+	        "merge_config" : {},
+	        "period" : "daytime=17:30",
+	        "merge_parallel_num" : 3
+	    }
+        }
+    },
+    "rankprofile_config" : {
+        "modules" : [
+            {
+                "module_name" : "AuditionModule",
+                "module_path" : "libScorerAudition.so",
+                "parameters" : {
+                }
+            },
+            {
+                "module_name" : "smurfscorer",
+                "module_path" : "libUPRanking.so",
+                "parameters" : {
+                }
+            }
+        ],
+        "rankprofiles" : [
+            {
+                "field_boost" : {
+                },
+                "rank_profile_name" : "DefaultProfile",
+                "scorers" : [
+                    {
+                        "module_name" : "",
+                        "parameters" : {
+                        },
+                        "rank_size" : "500000",
+                        "scorer_name" : "DefaultScorer"
+                    }
+                ]
+            },
+            {
+                "field_boost" : {
+                },
+                "rank_profile_name" : "ScorerAudition",
+                "scorers" : [
+                    {
+                        "module_name" : "AuditionModule",
+                        "parameters" : {
+                            "MLRWeight" : "1",
+                            "MinDocs" : "3000"
+                        },
+                        "rank_size" : "500000",
+                        "scorer_name" : "ScorerAudition"
+                    }
+                ]
+            },
+            {
+                "field_boost" : {
+                },
+                "rank_profile_name" : "ScorerRank",
+                "scorers" : [
+                    {
+                        "module_name" : "AuditionModule",
+                        "parameters" : {
+                            "MLRWeight" : "1",
+                            "MinDocs" : "3000"
+                        },
+                        "rank_size" : "500000",
+                        "scorer_name" : "ScorerAudition"
+                    },
+                    {
+                        "module_name" : "smurfscorer",
+                        "parameters" : {
+                            "cluster" : "c2c",
+                            "config_path" : "UP.xml"
+                        },
+                        "rank_size" : "3000",
+                        "scorer_name" : "TBRelevanceSecondScorer"
+                    }
+                ]
+            },
+            {
+                "field_boost" : {
+                },
+                "rank_profile_name" : "SearcherCacheProfile",
+                "scorers" : [
+                    {
+                        "module_name" : "AuditionModule",
+                        "parameters" : {
+                            "MLRWeight" : "1",
+                            "MinDocs" : "3000",
+                            "cache_tag" : "10"
+                        },
+                        "rank_size" : "UNLIMITED",
+                        "scorer_name" : "SearcherCacheScorer"
+                    }
+                ]
+            }
+        ]
+    },
+    "searcher_cache_config" : {
+        "inc_deletion_percent" : 100,
+        "inc_doc_limit" : 1000,
+        "latency_limit" : 1,
+        "max_item_num" : 200000,
+        "max_size" : 1024
+    },
+    "summary_profile_config" : {
+        "modules" : [
+            {
+                "module_name" : "MainseSummary",
+                "module_path" : "libMainseSummary.so",
+                "parameters" : {
+                }
+            }
+        ],
+        "summary_profiles" : [
+            {
+                "extractor" : {
+                    "extractor_name" : "MainseSummaryExtractor",
+                    "module_name" : "MainseSummary",
+                    "parameters" : {
+                        "config_path" : "searcher_summary.json"
+                    }
+                },
+                "field_configs" : {
+                },
+                "summary_profile_name" : "DefaultProfile"
+            }
+        ]
+    }
+}

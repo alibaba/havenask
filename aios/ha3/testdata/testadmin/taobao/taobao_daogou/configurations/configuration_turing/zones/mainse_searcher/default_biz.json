@@ -1,0 +1,77 @@
+{
+    "cluster_config" : {
+        "deploy_config" : {
+            "block_size" : 1048576,
+            "job_option" : "useDirectIO:true",
+            "sync_interval" : 20,
+            "sync_size_limit" : 1048576
+        },
+        "hash_mode" : {
+            "hash_field" : "nid",
+            "hash_function" : "KINGSO_HASH#720"
+        },
+        "query_config" : {
+            "default_index" : "phrase",
+            "default_operator" : "AND"
+        },
+        "swift_config" : {
+            "need_field_filter" : true,
+            "swift_filter_mode" : "normal_mode",
+            "swift_message_mask" : 2,
+            "swift_message_mask_result" : 2,
+            "swift_reader_config" : "oneRequestReadCount=100;readBufferSize=10240;compress=true",
+            "swift_topic_name" : "mainse",
+            "swift_zookeeper_root" : "zfs://10.246.9.194:12181,10.246.22.4:12181,10.234.9.126:12181,10.234.9.44:12181,10.234.9.49:12181/swift_mainse_pre"
+        },
+        "table_name" : "auction"
+    },
+    "doc_process_chain_config" : {
+        "document_processor_chain" : [
+            {
+                "class_name" : "ModifiedFieldsDocumentProcessor",
+                "module_name" : "",
+                "parameters" : {
+                    "derivative_relationship" : "nick:DUP_nick;pidvid:DUP_pidvid;ends:ends_1,ends_2;zk_rate:zk_time,zk_rate_single;zk_time:zk_rate,zk_rate_single;dna_id:DUP_dna_id"
+                }
+            },
+            {
+                "class_name" : "TokenizeDocumentProcessor",
+                "module_name" : "",
+                "parameters" : {
+                }
+            }
+        ],
+        "modules" : [
+            {
+                "module_name" : "MainseOfflineBuild",
+                "module_path" : "libMainseOfflineBuild.so",
+                "parameters" : {
+                }
+            }
+        ]
+    },
+    "summary_profile_config" : {
+        "modules" : [
+            {
+                "module_name" : "MainseSummary",
+                "module_path" : "libMainseSummary.so",
+                "parameters" : {
+                }
+            }
+        ],
+        "summary_profiles" : [
+            {
+                "extractor" : {
+                    "extractor_name" : "MainseSummaryExtractor",
+                    "module_name" : "MainseSummary",
+                    "parameters" : {
+                        "config_path" : "searcher_summary.json"
+                    }
+                },
+                "field_configs" : {
+                },
+                "summary_profile_name" : "DefaultProfile"
+            }
+        ]
+    }
+}

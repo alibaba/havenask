@@ -1,0 +1,21 @@
+{
+    "cluster_config" : {
+	"table_name" : ""
+    },
+    "build_option_config" : {
+    },
+    "offline_index_config" : {
+        "customized_merge_config" : {
+	    "full" : {
+	        "merge_config" : {
+		    invalid config
+	        }
+	    },
+	    "inc" : {
+	        "merge_config" : {},
+	        "period" : "period=1800"
+	    }
+            
+        }
+    }
+}

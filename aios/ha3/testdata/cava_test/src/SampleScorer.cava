@@ -1,0 +1,16 @@
+
+import ha3.*;
+class SampleScorer {
+    Int32Ref ref;
+    boolean init(ScorerProvider provider) {
+        IRefManager refManger = provider.getRefManager();
+        ref = refManger.requireInt32("id");
+        return true;
+    }
+    double process(MatchDoc doc) {
+        return ref.get(doc) + 1;
+    }
+    static SampleScorer create() {
+	return new SampleScorer();
+    }
+}

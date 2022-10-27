@@ -1,0 +1,9 @@
+{
+    "dispatch_config" : {
+	"switch_by_replica" : false
+    },
+    "proxy_rule" : {
+	"replica_count" : 1,
+	"partition_resource" : 100
+    }
+}

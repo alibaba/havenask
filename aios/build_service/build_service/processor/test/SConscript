@@ -1,0 +1,87 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+env['auto_version'] = False
+
+fake_document_processorsources = ['SimpleDocumentProcessor.cpp',
+                                  'EraseFieldProcessor.cpp',
+                                  'ReusedDocumentProcessor.cpp',
+                                  'SimpleDocumentProcessorFactory.cpp']
+
+libfake_document_prcessor = env.aSharedLibrary(target  = 'simple_document_processor',
+                                               source = fake_document_processorsources);
+
+libfakeso = env['LIB_DIR'] + '/' + 'libsimple_document_processor.so'
+libfakeso_installed1 = env.aCopy('#testdata/document_processor_chain_creator_test/create_success/plugins', libfakeso)
+libfakeso_installed2 = env.aCopy('#testdata/processor_work_item_test/config/plugins', libfakeso)
+libfakeso_installed3 = env.aCopy('#testdata/processor_work_item_test/config_with_chain_selector/plugins', libfakeso)
+libfakeso_installed4 = env.aCopy('#testdata/processor_test/config/plugins', libfakeso)
+libfakeso_installed5 = env.aCopy('#testdata/processor_test/main_sub_config/plugins', libfakeso)
+
+customized_doc_parser_sources = ['CustomizedDocParser.cpp']
+libcustomized_doc_parser = env.aSharedLibrary(target  = 'customized_doc_parser',
+                                              source = customized_doc_parser_sources);
+
+libcustomized_doc_parser_path = env['LIB_DIR'] + '/' + 'libcustomized_doc_parser.so'
+libcustomized_doc_parser_install = env.aCopy('#testdata/processor_test/customized_doc_parser_config/plugins', libcustomized_doc_parser_path)
+
+
+processor_test_sources=  [
+    '#build_service/test/dotest.cpp',
+    'DocumentProcessorChainCreatorTest.cpp',
+    'BinaryDocumentProcessorTest.cpp',
+    'ModifiedFieldsDocumentProcessorTest.cpp',
+    'TokenizeDocumentProcessorTest.cpp',
+    'TokenCombinedDocumentProcessorTest.cpp',
+    'DocumentProcessorChainTest.cpp',
+    'SingleDocProcessorChainTest.cpp',
+    'MainSubDocProcessorChainTest.cpp',
+    'ProcessorWorkItemTest.cpp',
+    'SubDocumentExtractorProcessorTest.cpp',
+    'SubDocumentExtractorTest.cpp',
+    'ProcessorTest.cpp',
+    'ProcessorConfigTest.cpp',
+    'HashDocumentProcessorTest.cpp',
+    'DistributeDocumentProcessorTest.cpp',
+    'SelectBuildTypeProcessorTest.cpp',
+    'DocTTLProcessorTest.cpp',
+    'DupFieldProcessorTest.cpp',
+    'SingleThreadProcessorWorkItemExecutorTest.cpp',
+    'MultiValueFieldProcessorTest.cpp',
+    'RegionDocumentProcessorTest.cpp',
+    'ProcessorTestUtil.cpp',
+    'DocumentClusterFilterProcessorTest.cpp',
+    'CustomizedDocParser.cpp',
+    'ProcessorChainSelectorTest.cpp',
+    'BatchProcessorTest.cpp',
+    'SlowUpdateProcessorTest.cpp',
+    'DocTraceProcessorTest.cpp',
+    'DefaultValueProcessorTest.cpp',
+    ]
+
+processor_test_sources2 = ['#build_service/test/dotest.cpp',
+                           'MultiRegionTest.cpp',
+                           'ProcessorTestUtil.cpp',]
+
+env.checkAllCppFileContained(Glob('*.cpp'), fake_document_processorsources + processor_test_sources)
+
+libs = ['bs_processor', 'bs_document', 'document_fake', 'bs_analyzer', 'bs_builder', 'bs_plugin', 'bs_config','indexlib', 'indexlib_test_tool'] + env['bs_test_common_lib'] + env['bs_worker_lib']
+
+processortest = env.aTest(target = 'processor_test',
+                          source = processor_test_sources,
+                          LIBS = libs)
+
+env.Depends(processortest, [libfakeso_installed1,
+                            libfakeso_installed2,
+                            libfakeso_installed3,
+                            libfakeso_installed4,
+                            libfakeso_installed5,
+                            libcustomized_doc_parser_install])
+
+processortest2 = env.aTest(target = 'processor_test2',
+                           source = processor_test_sources2,
+                           LIBS = libs)

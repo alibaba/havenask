@@ -1,0 +1,5 @@
+{
+    "qrs_rule" : {
+	"replica_count": 2
+    }
+}

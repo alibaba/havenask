@@ -1,0 +1,8 @@
+Import('env')
+env = env.Clone()
+
+number=Glob('*.cpp')
+
+env.aDirs('test')
+
+Return(['number'] )

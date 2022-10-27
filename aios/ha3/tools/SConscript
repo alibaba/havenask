@@ -1,0 +1,50 @@
+# -*- mode: python -*-
+
+import os
+Import('env')
+env = env.Clone()
+
+DEFAULT_TOOLS_CONF_CONTENT = '''import os
+
+curPath = os.path.split(os.path.realpath(__file__))[0]
+install_prefix = os.path.realpath(curPath + '/../../')
+
+lib_path = install_prefix + "/lib64/:" + install_prefix + "/lib/:" \\
+           + install_prefix + "/../lib64/:" + install_prefix + "/../lib/:" \\
+           + install_prefix + "/../../home/admin/eagleeye-core/lib/:" \\
+           + install_prefix + "/../../home/admin/diamond-client4cpp/lib/:" \\
+           + "/usr/local/lib64:/usr/local/lib:/usr/lib64:/usr/lib/"
+
+python_path = [install_prefix + "/../ali/lib/python2.5/site-packages/",
+               install_prefix + "/lib/python/site-packages/",
+               "/usr/ali/lib/python2.5/site-packages/",
+               "/usr/local/lib/python/site-packages/"]
+
+java_home = "/usr/ali/java"
+
+# local_agent_client_exe = install_prefix + "/bin/local_agent_client"
+
+###fs_util
+# fs_util_exe = install_prefix + "/bin/fs_util"
+# retry_duration = 0
+# retry_interval = 0
+# retry_times = 1
+
+# default_conf_path = install_prefix + "/var/ha_tools/"
+
+###hadoop job:
+hadoop_home = "/path/to/hadoop-0.20.2/"
+hadoop_user = "hadoop.devel"
+hadoop_groups = "supergroup"
+hadoop_replica = "3"
+'''
+
+toolConfigFile=env['TOP_DIR'] + "/tools/etc/ha_tools/tools_conf.py"
+if not os.path.exists(toolConfigFile):
+    outfile = open(toolConfigFile, 'w')
+    outfile.write(DEFAULT_TOOLS_CONF_CONTENT)
+    outfile.close()
+
+env.aDirs('ha_tools')
+
+

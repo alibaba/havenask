@@ -1,0 +1,99 @@
+{
+    "table_name": "simple_table",
+    "fields": 
+    [
+        {
+            "field_name":"id",
+            "field_type":"INTEGER"
+        },
+        {
+            "field_name":"company_id",
+            "field_type":"INTEGER"
+        },
+        {
+            "field_name":"title",
+            "field_type":"TEXT",
+            "analyzer":"internet_analyzer"
+        },
+        {
+            "field_name":"keywords",
+            "field_type":"STRING"
+        },
+        {
+            "field_name":"body",
+            "field_type":"TEXT",
+            "analyzer":"internet_analyzer"
+        },
+        {
+            "field_name":"extend",
+            "field_type":"STRING"
+        },
+        {
+            "field_name":"extend_int",
+            "field_type":"INTEGER"
+        },
+        {
+            "field_name":"price",
+            "field_type":"INTEGER"
+        },
+        {
+            "field_name":"cat_id",
+            "field_type":"INTEGER"
+        }
+
+    ],
+    "indexs":
+    [
+        {
+            "index_name": "pack_index",
+            "index_type" : "PACK",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "position_payload_flag" :  1 ,
+            "index_fields": 
+            [
+                {
+                    "field_name":"title",
+                    "boost":100
+                },
+                {
+                    "field_name":"body",
+                    "boost":200
+                }
+            ]
+        },
+        {
+            "index_name" : "text_index",
+            "index_type" : "TEXT",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "position_payload_flag" :  1 ,
+            "index_fields" : "title"
+        },
+        {
+            "index_name" : "primarykey_index",
+            "index_type" : "PRIMARYKEY64",
+            "index_fields" : "id",
+            "has_primary_key_attribute" : true
+        },
+        {
+            "index_name" : "keywords",
+            "index_type" : "STRING",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "index_fields" : "keywords"
+        },
+        {
+            "index_name" : "catid_index",
+            "index_type" : "NUMBER",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "index_fields" : "cat_id"
+        }
+    ],
+     "attributes": [ "id", "company_id", "keywords", "extend", "extend_int", "price", "cat_id"],
+     "summarys": {
+                    "summary_fields": ["id", "company_id", "title", "keywords", "body", "extend", "extend_int", "price", "cat_id"],
+                    "compress":true
+                 }
+}

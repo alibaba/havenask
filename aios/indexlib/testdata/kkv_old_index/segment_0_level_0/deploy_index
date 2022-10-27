@@ -1,0 +1,40 @@
+{
+"deploy_file_metas":
+  [
+    {
+    "file_length":
+      309,
+    "modify_time":
+      18446744073709551615,
+    "path":
+      "counter"
+    },
+    {
+    "file_length":
+      -1,
+    "modify_time":
+      18446744073709551615,
+    "path":
+      "package_file.__data__0"
+    },
+    {
+    "file_length":
+      -1,
+    "modify_time":
+      18446744073709551615,
+    "path":
+      "package_file.__meta__"
+    },
+    {
+    "file_length":
+      -1,
+    "modify_time":
+      18446744073709551615,
+    "path":
+      "segment_info"
+    }
+  ],
+"final_deploy_file_metas":
+  [
+  ]
+}

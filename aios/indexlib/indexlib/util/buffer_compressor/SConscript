@@ -1,0 +1,10 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+env.aDirs('test')
+
+util_buffer_compress=Glob('*.cpp')
+
+Return(['util_buffer_compress'])

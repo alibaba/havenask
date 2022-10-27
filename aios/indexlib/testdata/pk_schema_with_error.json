@@ -1,0 +1,207 @@
+{
+    "table_name": "daogou_zixun",
+    "fields": 
+    [
+	{
+	    "field_name":"url",
+	    "field_type":"STRING"
+	},
+	{
+	    "field_name":"title",
+	    "field_type":"TEXT",
+            "analyzer":"daogou_analyzer"
+	},
+        {
+            "field_name":"post_cnt",
+            "field_type":"INTEGER"
+        },
+	{
+	    "field_name":"content",
+	    "field_type":"TEXT",
+            "analyzer":"daogou_analyzer"
+	},
+	{
+	    "field_name":"cat_id",
+	    "field_type":"INTEGER"
+	},
+	{
+	    "field_name":"dedup_num",
+	    "field_type":"LONG"
+	},
+        {
+	    "field_name":"article_id",
+	    "field_type":"INTEGER"
+	},
+	{
+	    "field_name":"spuid0",
+	    "field_type":"LONG"
+	},
+	{
+	    "field_name":"price0",
+	    "field_type":"FLOAT"
+	},
+	{
+	    "field_name":"soldNum0",
+	    "field_type":"TIME"
+	},
+	{
+	    "field_name":"categoryId0",
+	    "field_type":"INTEGER"
+	},
+	{
+	    "field_name":"spuid1",
+	    "field_type":"INTEGER"
+	},
+	{
+	    "field_name":"price1",
+	    "field_type":"FLOAT"
+	},
+	{
+	    "field_name":"soldNum1",
+	    "field_type":"INTEGER"
+	},
+	{
+	    "field_name":"categoryId1",
+	    "field_type":"INTEGER"
+	},
+	{
+	    "field_name":"spuid2",
+	    "field_type":"INTEGER"
+	},
+	{
+	    "field_name":"price2",
+	    "field_type":"FLOAT"
+	},
+	{
+	    "field_name":"soldNum2",
+	    "field_type":"INTEGER"
+	},
+	{
+	    "field_name":"categoryId2",
+	    "field_type":"INTEGER"
+	},
+	{
+	    "field_name":"string1",
+	    "field_type":"STRING",
+	    "multi_value":true
+	},
+	{
+	    "field_name":"string2",
+	    "field_type":"STRING"
+	},
+	{
+	    "field_name":"int1",
+	    "field_type":"INTEGER",
+	    "multi_value":false
+	},
+	{
+	    "field_name":"int2",
+	    "field_type":"INTEGER"
+	},
+	{
+	    "field_name":"summary",
+	    "field_type":"TEXT",
+	    "analyzer":"daogou_analyzer"
+	}
+    ],
+
+    "indexs": 
+    [
+	{
+	    "index_name": "phrase",
+            "index_type": "PACK",
+	    "term_payload_flag" :  1 ,
+	    "doc_payload_flag" :  1 ,
+	    "position_payload_flag" :  0 ,
+	    "index_fields": 
+	    [
+		{
+		    "field_name":"title",
+		    "boost":0
+		},
+		{
+		    "field_name":"content",
+		    "boost":0
+                }
+
+	    ]
+	},
+	{
+            "index_name": "phrase2",
+            "index_type": "EXPACK",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "position_payload_flag" :  0 ,
+            "index_fields":
+            [
+                {
+                    "field_name":"title",
+                    "boost":0
+                },
+                {
+                    "field_name":"content",
+                    "boost":0
+                }
+            ]
+        },
+
+        {
+	    "index_name" : "title",
+            "index_type" : "TEXT",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "position_payload_flag" :  1 ,
+            "index_fields" : "title",  
+            "analyzer":"daogou_analyzer"
+        },
+        {
+            "index_name" : "post_cnt",
+            "index_type" : "NUMBER",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "index_fields" : "post_cnt"
+        },
+	{
+            "index_name": "pk",
+	    "index_type": "PRIMARYKEY64",
+            "index_fields": "url",
+            "has_dict_inline_compress":true
+        },
+	{
+	    "index_name":"multistring1",
+	    "index_type":"STRING",
+	    "index_fields":"string1"
+	},
+        {
+	    "index_name":"multistring2",
+	    "index_type":"STRING",
+	    "index_fields":"string2"
+        },
+        {
+            "index_name":"multiInt1",
+            "index_type":"NUMBER",
+            "index_fields":"int1"
+        },
+        {
+            "index_name":"Int2",
+            "index_type":"NUMBER",
+            "index_fields":"int2"
+        }
+    ],
+
+    "attributes": 
+    [ 
+        "post_cnt", "url","dedup_num",
+        "spuid0","price0","categoryId0",
+        "spuid1","price1","soldNum1","categoryId1",
+        "spuid2","price2","soldNum2","categoryId2",
+        "string1","string2","int1"
+	
+    ],
+
+    "summarys":{
+        "summary_fields":  ["url","title","post_cnt","dedup_num","price0","soldNum0","spuid0","string1","string2", "int1", "int2", "summary"],
+        "compress":false
+    }
+
+}

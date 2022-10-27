@@ -1,0 +1,10 @@
+Import('env')
+env = env.Clone()
+
+pack=Glob('*.cpp')
+
+#env.aLibrary(target='indexlib_pack', source=pack)
+
+env.aDirs('test')
+
+Return(['pack'] )

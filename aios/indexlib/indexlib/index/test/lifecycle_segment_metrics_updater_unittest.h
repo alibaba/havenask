@@ -1,0 +1,30 @@
+#ifndef __INDEXLIB_LIFECYCLESEGMENTMETRICSUPDATERTEST_H
+#define __INDEXLIB_LIFECYCLESEGMENTMETRICSUPDATERTEST_H
+
+#include "indexlib/common_define.h"
+#include "indexlib/test/test.h"
+#include "indexlib/test/unittest.h"
+#include "indexlib/index/lifecycle_segment_metrics_updater.h"
+
+IE_NAMESPACE_BEGIN(index);
+
+class LifecycleSegmentMetricsUpdaterTest : public INDEXLIB_TESTBASE
+{
+public:
+    LifecycleSegmentMetricsUpdaterTest();
+    ~LifecycleSegmentMetricsUpdaterTest();
+
+    DECLARE_CLASS_NAME(LifecycleSegmentMetricsUpdaterTest);
+public:
+    void CaseSetUp() override;
+    void CaseTearDown() override;
+    void TestSimpleProcess();
+private:
+    IE_LOG_DECLARE();
+};
+
+INDEXLIB_UNIT_TEST_CASE(LifecycleSegmentMetricsUpdaterTest, TestSimpleProcess);
+
+IE_NAMESPACE_END(index);
+
+#endif //__INDEXLIB_LIFECYCLESEGMENTMETRICSUPDATERTEST_H

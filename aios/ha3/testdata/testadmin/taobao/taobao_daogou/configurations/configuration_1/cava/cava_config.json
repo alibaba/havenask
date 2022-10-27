@@ -1,0 +1,16 @@
+{
+    "pluginConf": {
+	"modules" : [
+	],
+	"ASTRewriters": [
+	],
+	"TypeExtenders": [
+	],
+	"SemaCheckers": [
+	]
+    },
+    "cavaPreLoads": [
+        "./lang"
+    ],
+    "debugIR": false
+}

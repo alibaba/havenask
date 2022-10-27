@@ -1,0 +1,21 @@
+{
+  "build_option_config": {
+    "max_recover_time" : 1
+  },
+  "hash_mode": {
+    "hash_field": "id",
+    "hash_function": "HASH"
+  },
+  "offline_index_config": {
+    "build_config": {
+      "keep_version_count": 2,
+      "max_memory_use": 256
+    },
+    "merge_config": {
+      "keep_version_count": 2,
+      "merge_strategy": "optimize",
+      "merge_strategy_param": ""
+    }
+  },
+  "table_name": "sample"
+}

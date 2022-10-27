@@ -1,0 +1,26 @@
+{
+    "data_descriptions" : [
+        {
+            "src" : "file",
+            "type" : "file"
+        },
+        {
+            "reader_config" : "reader_config",
+            "src" : "swift",
+            "swift_root" : "zfs://root",
+            "topic_name" : "",
+            "type" : "swift"
+        }
+    ],
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "cluster1",
+                "cluster2"
+            ]
+        }
+    ],
+    "processor_rule_config" : {
+        "partition_count" : 2
+    }
+}

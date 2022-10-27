@@ -1,0 +1,21 @@
+import mock.*;
+
+class testLocation {
+    TraceApi t1 = null;
+    testLocation() {
+       t1 = new TraceApi();
+    }
+    void testTrace(TraceApi t3) {
+      t3.queryTrace("t3");
+      t1.queryTrace("t1");
+    }
+    
+    static boolean test() {
+        testLocation test = new testLocation();
+        TraceApi t2 = new TraceApi();
+        t2.queryTrace("t2");
+        test.testTrace(t2);
+
+	return true;
+    }
+}

@@ -1,0 +1,38 @@
+# -*- mode: python -*-
+import platform
+Import('env')
+env = env.Clone();
+
+misc_ut_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'error_log_collector_unittest.cpp',
+    'indexlib_metric_control_unittest.cpp',
+    'regular_expression_unittest.cpp',
+    'devirtual_unittest.cpp',
+    'base_class.cpp',
+    'pool_util_unittest.cpp',
+]
+
+env.aTest(target = 'indexlib_misc_unittest',
+          source = misc_ut_test_sources,
+          LIBS=[
+          'indexlib_basic',
+          'fslib-framework',
+          'gmock',
+          'gtest',
+          ])
+
+###################### dependency check #######################3
+misc_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+misc_minimal_dependency_libs = [
+    'indexlib_misc',
+]
+
+env.aTest(target = 'indexlib_misc_dependency_unittest',
+          source = misc_minimal_dependency_sources,
+          LIBS = misc_minimal_dependency_libs)
+
+

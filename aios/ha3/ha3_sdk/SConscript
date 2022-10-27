@@ -1,0 +1,12 @@
+# -*- mode: python -*-
+
+import sys, os, os.path, platform, re
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+env.aDirs("example")
+env.aDirs("testlib")

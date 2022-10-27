@@ -1,0 +1,13 @@
+{
+    "service_degradation_config" : {
+        "condition" : {
+            "duration" : 1000,
+            "worker_queue_size_degrade_threshold" : 100,
+            "worker_queue_size_recover_threshold" : 10
+        },
+        "request" : {
+            "rank_size" : 5000,
+            "rerank_size" : 200
+        }
+    }
+}

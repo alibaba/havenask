@@ -1,0 +1,38 @@
+# -*- mode: python -*-
+import platform
+Import('env')
+env = env.Clone();
+
+index_normal_ut_libs = [
+    'indexlib_testlib',
+    'indexlib_indextest_common',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_common',
+    'indexlib_document',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'fslib-framework',
+    'autil',
+    'gmock',
+    'gtest',
+    'pthread'
+]
+
+index_normal_case_cpps=Glob('*_unittest.cpp')
+index_normal_ut_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    index_normal_case_cpps,
+]
+
+env.aTest(target = 'ie_index_normal_unittest',
+          source = index_normal_ut_test_sources,
+          LIBS= index_normal_ut_libs)
+

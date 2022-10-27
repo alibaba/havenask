@@ -1,0 +1,43 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+document_rewriter_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'document_rewriter_chain_unittest.cpp',
+    'add_to_update_document_rewriter_unittest.cpp',
+    'document_rewriter_creator_unittest.cpp',
+    'timestamp_document_rewriter_unittest.cpp',
+    'sub_doc_add_to_update_document_rewriter_unittest.cpp',
+    'section_attribute_appender_unittest.cpp',
+    'section_attribute_rewriter_unittest.cpp',
+    'pack_attribute_appender_unittest.cpp',
+    'pack_attribute_rewriter_unittest.cpp',
+]
+
+document_rewriter_libs = [
+    'indexlib_testlib',
+    'indexlib_indextest_common',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_common',
+    'indexlib_document',
+    'indexlib_plugin',
+    'indexlib_configtest',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest',
+]
+
+env.aTest(target = 'indexlib_document_rewriter_unittest', 
+          source = document_rewriter_test_sources, LIBS = document_rewriter_libs)
+
+

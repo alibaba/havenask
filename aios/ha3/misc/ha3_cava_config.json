@@ -1,0 +1,51 @@
+{
+    "pluginConf": {
+	"modules" : [
+            {
+                "name" :"default",
+                "path" : ""
+            }
+	],
+	"ASTRewriters": [
+            {
+                "module" : "default",
+                "class"  : "AddDefaultCreate",
+                "parameters" : {}
+            },
+            {
+                "module" : "default",
+                "class"  : "AddBatchScore",
+                "parameters" : {}
+            },
+            {
+                "module" : "default",
+                "class"  : "AddLocation",
+                "parameters" : {}
+            },
+            {
+                "module" : "default",
+                "class"  : "FunctionRewrite",
+                "parameters" : {}
+            },
+            {
+                "module" : "default",
+                "class"  : "ModifyImportName",
+                "parameters" : {
+                    "modify_field" : "java|cava"
+                }
+            }
+	],
+	"TypeExtenders": [
+	],
+	"SemaCheckers": [
+	]
+    },
+    "cavaPreLoads": [
+        "../binary/usr/local/share/cava/cava",
+        "../binary/usr/local/share/cava/unsafe",
+        "../binary/usr/local/share/cava/ha3",
+        "../binary/usr/local/share/cava/suez"
+    ],
+    "bitCodeFile": "../binary/usr/local/share/bc/ha3_cava.bc",
+    "debugIR": false
+}

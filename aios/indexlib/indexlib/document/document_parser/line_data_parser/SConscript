@@ -1,0 +1,9 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+linedataparser=Glob('*.cpp')
+
+#env.aDirs('test')
+Return(['linedataparser'])

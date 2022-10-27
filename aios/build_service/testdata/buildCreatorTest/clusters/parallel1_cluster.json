@@ -1,0 +1,19 @@
+{
+    "cluster_config" : {
+	"table_name" : "simple",
+	"builder_rule_config": {
+	    "inc_build_parallel_num" : 2,
+            "partition_count" : 2
+	}
+    },
+    "build_option_config" : {
+	"sort_build" : true,
+	"async_build" : false,
+	"sort_descriptions" : [
+	    {
+		"sort_field" : "id",
+		"sort_pattern" : "desc"
+	    }
+	]
+    }
+}

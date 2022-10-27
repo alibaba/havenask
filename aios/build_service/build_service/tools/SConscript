@@ -1,0 +1,14 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+#config_validator = env.aDirs('config_validator')
+generation_scanner = env.aDirs('generation_scanner')
+partition_split_merger = env.aDirs('partition_split_merger')
+#analyzer_tool = env.aDirs('analyzer_tool')
+
+#env.aDirs('simple_realtime_builder')
+Return(['generation_scanner'])

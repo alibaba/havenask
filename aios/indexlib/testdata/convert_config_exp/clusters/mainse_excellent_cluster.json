@@ -1,0 +1,41 @@
+{
+  "build_option_config": {
+    "async_build": true,
+    "async_queue_size": 10000,
+    "max_recover_time": 10,
+    "sort_build": true,
+    "sort_queue_mem": 5000,
+    "sort_queue_size": 5000000
+  },
+  "cluster_config": {
+    "cluster_name": "mainse_excellent",
+    "cluster_type": "inc_with_realtime",
+    "table_name": "mainse_searcher"
+  },
+  "offline_index_config": {
+        "build_config": {
+          "enable_package_file": true,
+          "max_memory_use": 4096,
+          "speedup_primary_key_reader": true
+        },
+        "merge_config": {
+            "merge_strategy" : "optimize"
+        },
+    "customized_merge_config": {
+      "inc_merge": {
+        "merge_config": {
+          "merge_strategy": "optimize",
+          "merge_strategy_param": "max-doc-count=10000000"
+        },
+        "period": "daytime=17:30"
+      }
+    }
+  },
+  "online_index_config": {
+    "build_config": {
+      "max_memory_use": 512
+    },
+    "max_reopen_memory_use": 30720,
+    "speedup_primary_key_reader": true
+  }
+}

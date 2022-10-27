@@ -1,0 +1,83 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment,
+#so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+env.Append(ACSUBST = {'BUILDDIR': env['RELATIVE_BUILD_DIR']})
+env.Append(ACSUBST = {'TOP_BUILDDIR': env['RELATIVE_BUILD_DIR']})
+env.Append(ACSUBST = {'TOP_SRCDIR': env['TOP_DIR']})
+
+env.aACSubst(target = ['indexlib/test/test.h'],
+             source = ['indexlib/test/test.h.in'])
+
+if env['hadoop'] == 'yes':
+    env.Append(LIBPATH=[env['JAVA_SDK_PATH'] + '/jre/lib/amd64/server'])
+    env.Append(CPPPATH=[env['JAVA_SDK_PATH'] + '/include'])
+    env.Append(CPPPATH=[env['JAVA_SDK_PATH'] + '/include/linux'])
+    env.AppendENVPath('LD_LIBRARY_PATH', env['JAVA_SDK_PATH'] + '/jre/lib/amd64/server')
+    env.aCheckLibraryNotAutoAdd('hdfs')
+
+if env['valgrind_check'] == 'yes':
+    env.MergeFlags('-DVALGRIND_CHECK')
+
+if env['indexlib_profile'] == 'basic':
+    env.MergeFlags('-DINDEXLIB_PROFILE_BASIC')
+
+if env['indexlib_profile'] == 'trace':
+    env.MergeFlags('-DINDEXLIB_PROFILE_TRACE')
+
+if env['indexlib_perftest'] == 'true':
+    env.MergeFlags('-DINDEXLIB_COMMON_PERFTEST')
+
+if env['default_disable_package_file'] == 'true':
+    env.MergeFlags('-DDEFAULT_DISABLE_PACKAGE_FILE')
+
+if env['enable_internal_executor'] == 'yes':
+    env['ENV']['INDEXLIB_INTERNAL_THREADNUM'] = '5'
+
+# Test Library
+if env['heapchecktype'] == 'asan' and 'clang' in env['CXX']:
+    env.AppendUnique(CCFLAGS='-fsanitize=address')
+    env.AppendUnique(CXXFLAGS='-fsanitize=address')
+    env.AppendUnique(LINKFLAGS = '-fsanitize=address')
+
+env.aCheckLibraryPrependLib('pthread')
+env.aCheckLibraryPrependLib('dl')
+env.aCheckLibraryPrependLib('rt')
+env.aCheckLibraryPrependLib('alog')
+env.aCheckLibraryPrependLib('protobuf')
+env.aCheckLibraryPrependLib('anet')
+env.aCheckLibraryPrependLib('arpc')
+env.aCheckLibraryPrependLib('autil')
+env.aCheckLibraryPrependLib('snappy')
+env.aCheckLibraryPrependLib('lz4')
+env.aCheckLibraryPrependLib('z')
+env.aCheckLibraryPrependLib('zstd')
+env.aCheckLibraryPrependLib('fslib-framework')
+env.aCheckLibraryPrependLib('future_lite')
+env.aCheckLibraryPrependLib('kmonitor_adapter')
+env.aCheckLibraryPrependLib('kmonitor_client')
+env.aCheckLibraryPrependLib('beeper-framework')
+
+if env['heapchecktype'] == 'tcmalloc':
+    env.aCheckLibraryNotAutoAdd('tcmalloc')
+
+env.Append(CCFLAGS='-D_GLIBCXX_USE_CXX11_ABI=0')
+env.Append(CXXFLAGS='-std=c++14')
+
+if 'clang' not in env['CXX']:
+    env.Append(CCFLAGS='-mavx2')
+else:
+    env.Append(CCFLAGS='-mavx')
+    if '-export-dynamic' in env['LINKFLAGS']:
+        env['LINKFLAGS'].remove('-export-dynamic')
+    if '-Wl,-export-dynamic' in env['LINKFLAGS']:
+        env['LINKFLAGS'].remove('-Wl,-export-dynamic')
+
+# List my sub-directories.
+env.aDirs('indexlib')
+env.aDirs('tools')

@@ -1,0 +1,72 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+env['auto_version'] = False
+
+fake_scorer_sources = ['FakeScorerModuleFactory.cpp',
+                       'MatchDocCreator.cpp',
+                       'HitCollectorCaseHelper.cpp',
+                       'StringAttributeScorer.cpp']
+
+libfakescore = env.aSharedLibrary(target = 'fakescorer',
+                                  source = fake_scorer_sources,
+                                  LIBS=[])
+
+libfakescore_installed = env.aCopy('#testdata/testadmin/taobao/taobao_daogou/configurations/configuration_1/plugins/', libfakescore)
+
+env.aCopy('#tools/share/ha_tools/example/full_config/plugins/', libfakescore)
+
+fakeranklib_sources = [ 'TrivialScorer.cpp',
+                        'FakeRankExpression.cpp',
+                        'FakeExpression.cpp',
+                        'FakeTreeMaker.cpp',
+                        ]
+
+fakeranklib = env.aLibrary(target = 'ha3_fakerank',
+                           source = fakeranklib_sources, LIBS = [])
+
+rank_test_sources=  [
+    'SimpleDistinctBoostScorerTest.cpp',
+    'RankProfileTest.cpp',
+    'RankProfileManagerTest.cpp',
+    'ScoringProviderTest.cpp',
+    'TrivialScorerTest.cpp',
+    'DistinctComparatorTest.cpp',
+    'DistinctMapTest.cpp',
+    'DistinctHitCollectorTest.cpp',
+    'ReferenceComparatorTest.cpp',
+    'ComboComparatorTest.cpp',
+    'MatchDocPriorityQueueTest.cpp',
+    'HitCollectorTest.cpp',
+    'RankProfileManagerCreatorTest.cpp',
+    'GeneralScorerTest.cpp',
+    'GradeCalculatorTest.cpp',
+    'PersonalScorer.cpp',
+    'ComparatorCreatorTest.cpp',
+    'MultiHitCollectorTest.cpp',
+    'ScorerWrapperTest.cpp',
+    'SimpleMatchDataTest.cpp',
+    'CavaScorerAdapterTest.cpp',
+    ]
+
+libsname = ['ha3sdk_testlib', 'ha3_fakerank', 'ha3_fakesearch',
+            'fakescorer','ha3_fakequeryparser']
+
+linkflags = []
+linkflags.append('-Wl,--whole-archive')
+linkflags.append('-lha3_cava')
+linkflags.append('-Wl,--no-whole-archive')
+env.Append(LINKFLAGS=linkflags)
+
+rank_test = env.aTest(target = 'rank_test',
+                      source = rank_test_sources,
+                      LIBS = libsname + env['ha3_test_depend_lib'])
+
+env.Depends(rank_test, env['cava_copy'])
+env.Depends(rank_test, env['test_conf_depend'])
+
+env.Requires('rank_test', libfakescore_installed)

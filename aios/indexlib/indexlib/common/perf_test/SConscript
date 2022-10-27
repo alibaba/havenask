@@ -1,0 +1,26 @@
+# -*- mode: python -*-
+import platform
+Import('env')
+env = env.Clone();
+
+env.aTest(target = 'compress_perftest',
+          source = ['compress_perftest.cpp'],
+          LIBS=['indexlib_basic', 'autil'])
+
+env.aTest(target = 'new_pfordelta_perftest',
+          source = ['new_pfordelta_perftest.cpp'],
+          LIBS=['indexlib_basic', 'autil'])
+
+################## for gtest #################
+common_ut_perftest_sources = [
+    '#indexlib/test/dotest.cpp',
+    'radix_tree_perftest.cpp',
+    '#indexlib/index/normal/inverted_index/perf_test/suspendable_thread.cpp',
+]
+
+env.aTest(target = 'indexlib_common_perftest',
+          source = common_ut_perftest_sources,
+          LIBS= ['indexlib_basic', 'autil', 'gmock', 'gtest'])
+
+
+Return([])

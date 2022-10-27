@@ -1,0 +1,94 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+
+fakecommonlib_sources = [
+    'FakeClass4VSAllocator.cpp',
+    'ResultConstructor.cpp',
+    ]
+
+env.Append(CPPPATH=[env['install_root'] + '/usr/include/libxml2/'])
+fakecommon = env.aLibrary(target = 'ha3_fakecommon',
+                          source = fakecommonlib_sources,
+                          LIBS = [])
+
+common_test_sources = [
+    'ResultTest.cpp',
+    'AggregateResultTest.cpp',
+    'DistinctClauseTest.cpp',
+    'DistinctDescriptionTest.cpp',
+    'ConfigClauseTest.cpp',
+    'AggregateDescriptionTest.cpp',
+    'AggregateClauseTest.cpp',
+    'TermQueryTest.cpp',
+    'TermTest.cpp',
+    'QueryConstructor.cpp',
+    'NumberQueryTest.cpp',
+    'MultiTermQueryTest.cpp',
+    'QueryClauseTest.cpp',
+    'SortClauseTest.cpp',
+    'RankClauseTest.cpp',
+    'RequestTest.cpp',
+    'HitTest.cpp',
+    'HitsTest.cpp',
+    'MatchDocsTest.cpp',
+    'DocIdClauseTest.cpp',
+    'XMLResultFormatterTest.cpp',
+    'FilterClauseTest.cpp',
+    'AggFunDescriptionTest.cpp',
+    'QueryTermVisitorTest.cpp',
+    'AccessLogTest.cpp',
+    'SqlAccessLogTest.cpp',
+    'MultiErrorResultTest.cpp',
+    'TracerTest.cpp',
+    'ErrorResultTest.cpp',
+    'AttributeItemTest.cpp',
+    'VariableTypeTraitsTest.cpp',
+    'ClusterClauseTest.cpp',
+    'PKFilterClauseTest.cpp',
+    'AttributeClauseTest.cpp',
+    'PBResultFormatterTest.cpp',
+    'IndexScannerTest.cpp',
+    'WorkerAddressTest.cpp',
+    'AggResultReaderTest.cpp',
+    'ResultFormatterTest.cpp',
+    'MultiLevelRangeSetTest.cpp',
+    'RangeSetTest.cpp',
+    'GlobalIdentifierTest.cpp',
+    'SwiftPartitionUtilTest.cpp',
+    'VirtualAttributeClauseTest.cpp',
+    'QueryLayerClauseTest.cpp',
+    'SearcherCacheClauseTest.cpp',
+    'FinalSortClauseTest.cpp',
+    'RequestCacheKeyGeneratorTest.cpp',
+    'RankSortClauseTest.cpp',
+    'OptimizerClauseTest.cpp',
+    'PhaseOneSearchInfoTest.cpp',
+    'QueryTerminatorTest.cpp',
+    'TimeoutTerminatorTest.cpp',
+    'ReturnInfoTest.cpp',
+    'ReferenceIdManagerTest.cpp',
+    'QueryTest.cpp',
+    'HaPathDefsTest.cpp',
+    'LayerDescriptionTest.cpp',
+    'DenseMapTest.cpp',
+    'VersionCalculatorTest.cpp',
+    'PhraseQueryTest.cpp',
+    'AndQueryTest.cpp',
+    'OrQueryTest.cpp',
+    'RankQueryTest.cpp',
+    'AndNotQueryTest.cpp',
+    'ColumnTermTest.cpp',
+    'FBResultFormatterTest.cpp',
+    ]
+
+libsname = [ 'ha3_fakesearch', 'ha3sdk_testlib', 'ha3_fakecommon', 'flatbuffers']
+
+env.aTest(target = 'common_test',
+          source = common_test_sources,
+          LIBS = libsname + env['ha3_test_depend_lib']);

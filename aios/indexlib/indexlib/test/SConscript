@@ -1,0 +1,35 @@
+# -*- mode: python -*-
+import os
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+test_sources = Glob('*.cpp') 
+test_sources.remove(Glob('dotest.cpp')[0])
+test_sources.remove(Glob('do_dependency_test.cpp')[0])
+
+# test_common = [
+#     'raw_document.cpp',
+#     'schema_maker.cpp',
+#     'document_parser.cpp',
+#     'document_creator.cpp',
+#     'ExtendDocField2IndexDocField.cpp',
+#     'result.cpp',
+#     'tokenize_section.cpp',
+#     'sub_document_extractor.cpp',
+#     ]
+env.aLibrary(target='indexlib_test', source=test_sources, LIBS=['simpleTable'])
+
+env.aDirs('test')
+
+env.aDuplicate('apsara_log_conf.json')
+
+# absTestCommon = []
+# for cpp in test_common:
+#     absTestCommon.append(os.path.join('test', cpp))
+
+# Return(['absTestCommon'])
+Return(['test_sources'])

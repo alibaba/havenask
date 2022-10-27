@@ -1,0 +1,32 @@
+{
+  "cluster_config": {
+    "cluster_name": "mainse_excellent",
+    "cluster_type": "inc_with_realtime",
+    "table_name": "mainse_searcher"
+  },
+  "offline_index_config": {
+    "offline_build_config": {
+      "default": {
+        "build_config": {
+          "inherit_from": "clusters/build/mainse_excellent_build_config.json",
+          "enable_package_file": true,
+          "speedup_primary_key_reader": true
+        }
+      }
+    },
+    "offline_merge_config": {
+      "full": {
+        "merge_config": {
+            "merge_strategy" : "optimize"
+        }
+      }
+    }
+  },
+  "online_index_config": {
+    "build_config": {
+       "inherit_from": "clusters/build/mainse_excellent_build_config.json"
+    },
+    "max_reopen_memory_use": 30720,
+    "speedup_primary_key_reader": true
+  }
+}

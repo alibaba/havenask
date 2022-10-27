@@ -1,0 +1,35 @@
+{
+    "inherit_from" : "base.json",
+    "root_str_key" : "root_str_value",
+    "root_int_key" : 10,
+    "root_bool_key" : false,
+    "root_vec_key1" : ["str1", 100, true],
+    "root_vec_key2" : [
+        {
+            "child_map_key1" : "child_map_value1",
+            "child_vec_key1" : ["child_vec_value1", "child_vec_value2"]
+        }
+    ],
+    "root_vec_key3" : [10, 20, 30],
+    "root_map_key" : {
+        "child_map_key1" : {
+            "child_map_key2" : {
+                "child_map_key3" : "child_map_value3",
+                "child_map_key4" : "child_map_value4"
+            },
+            "child_int_key" : 100000,
+            "child_bool_key": true,
+            "child_vec_key" : ["str2", 1000, false]
+        },
+        "child_vec_key" : [
+            [
+                ["abc1", "bcd1"],
+                ["abc2", "bcd2"]
+            ]
+        ],
+        "user_define_struct" : {
+            "my_value1" : 1,
+            "my_value2" : "aaa"
+        }
+    }
+}

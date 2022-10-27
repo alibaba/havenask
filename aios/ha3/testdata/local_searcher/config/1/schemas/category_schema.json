@@ -1,0 +1,34 @@
+{
+    "attributes" : [
+        "cat_id",
+        "category_name",
+        "category_description",
+        "auction_count"
+    ],
+    "fields" : [
+        {
+            "field_name" : "cat_id",
+            "field_type" : "INTEGER"
+        },
+        {
+            "field_name" : "category_name",
+            "field_type" : "STRING"
+        },
+        {
+            "field_name" : "category_description",
+            "field_type" : "STRING"
+        },
+        {
+            "field_name" : "auction_count",
+            "field_type" : "UINT32"
+        }
+    ],
+    "indexs" : [
+        {
+            "index_fields" : "category_name",
+            "index_name" : "category_name",
+            "index_type" : "PRIMARYKEY64"
+        }
+    ],
+    "table_name" : "category"
+}

@@ -1,0 +1,42 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "RealtimeAndSkip",
+                "IncWithRealtimeAndNoSkip",
+                "daogou",
+                "simple",
+                "IncWithRealtimeAndSkip"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                        "key" : "value"
+                    }
+                }
+            ],
+            "modules" : [
+            ],
+            "sub_document_processor_chain" : [
+                {
+                    "class_name" : "TokenizeDocumentProcessor"
+                }
+            ],
+            "table_name" : "sample"
+        }
+    ],
+    "raw_data_swift_config" : {
+        "topic" : {
+            "partition_buffer_size" : 1,
+            "partition_resource" : 1
+        }
+    },
+    "reader_config" : {
+        "file" : {
+        },
+        "swift" : {
+        }
+    }
+}

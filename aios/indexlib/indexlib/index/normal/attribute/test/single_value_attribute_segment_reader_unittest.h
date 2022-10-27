@@ -1,0 +1,424 @@
+#include <stdlib.h>
+#include <autil/mem_pool/Pool.h>
+#include <autil/mem_pool/SimpleAllocator.h>
+#include <autil/LongHashValue.h>
+#include "indexlib/common_define.h"
+#include "indexlib/test/unittest.h"
+#include "indexlib/index/test/index_test_util.h"
+#include "indexlib/index/normal/attribute/test/attribute_test_util.h"
+#include "indexlib/index/normal/attribute/test/attribute_writer_helper.h"
+#include "indexlib/index/normal/attribute/accessor/single_value_attribute_segment_reader.h"
+#include "indexlib/index/normal/attribute/accessor/single_value_attribute_writer.h"
+#include "indexlib/common/field_format/attribute/attribute_convertor_factory.h"
+#include "indexlib/index/normal/attribute/accessor/single_value_attribute_patch_reader.h"
+#include "indexlib/storage/file_system_wrapper.h"
+#include "fslib/fs/FileSystem.h"
+#include "fslib/fs/File.h"
+
+IE_NAMESPACE_BEGIN(index);
+
+class SingleValueAttributeSegmentReaderTest : public INDEXLIB_TESTBASE
+{
+public:
+    enum ValueMode {VM_NORMAL, VM_ASC, VM_DESC};
+    enum SearchType { ST_LOWERBOUND, ST_UPPERBOUND };
+
+public:
+    SingleValueAttributeSegmentReaderTest() {}
+    ~SingleValueAttributeSegmentReaderTest() {}
+
+    DECLARE_CLASS_NAME(SingleValueAttributeSegmentReaderTest);
+public:
+    void CaseSetUp() override;
+    void CaseTearDown() override;
+
+    void TestIsInMemory();
+    void TestGetDataLength();
+    void TestCaseForUInt32NoPatch();
+    void TestCaseForInt32NoPatch();
+    void TestCaseForUInt32Patch();
+    void TestCaseForInt32Patch();
+    void TestCaseForUInt64NoPatch();
+    void TestCaseForInt64NoPatch();
+    void TestCaseForUInt64Patch();
+    void TestCaseForInt64Patch();
+    void TestCaseForUInt8NoPatch();
+    void TestCaseForInt8NoPatch();
+    void TestCaseForUInt8Patch();
+    void TestCaseForInt8Patch();
+    void TestCaseForUInt16NoPatch();
+    void TestCaseForInt16NoPatch();
+    void TestCaseForUInt16Patch();
+    void TestCaseForInt16Patch();
+    void TestCaseForUpdateFieldWithoutPatch();
+    void TestCaseForUpdateFieldWithPatch();
+
+    void TestCaseForSearch();
+    void TestCaseDoOpenWithoutPatch();
+
+protected:
+    virtual merger::SegmentDirectoryPtr CreateSegmentDirectory(
+            const std::string& dir, uint32_t segCount)
+    { return IndexTestUtil::CreateSegmentDirectory(dir, segCount); }
+    
+    template<typename T>
+    void TestUpdateFieldWithoutPatch(bool needCompress);
+        
+    template<typename T>
+    void TestUpdateFieldWithPatch(bool needCompress);
+
+    template<typename T>
+    void UpdateAndCheck(uint32_t segCount, std::vector<T>& expectedData);
+
+    template<typename T>
+    void MakeUpdateData(std::map<docid_t, T>& toUpdateDocs);
+
+    template<typename T>
+    void TestOpenForNoPatch();
+
+    template<typename T>
+    void TestOpenForPatch();
+
+    template<typename T>
+    void TestSearch(bool compress = false);
+    
+    template<typename T>
+    void FullBuild(std::vector<T>& expectedData, ValueMode valueMode = VM_NORMAL,
+                   bool needCompress = false);
+
+    template<typename T>
+    void BuildIndex(const std::vector<T>& data, bool needCompress = false);
+
+    template<typename T, typename Comp>
+    void CheckSearch(const std::vector<T>& expectedData, uint32_t segmentCount,
+                     ValueMode mode, SearchType type);
+
+    template<typename T>
+    void CheckOpen(const std::vector<T>& expectedData, uint32_t segmentCount,
+                   bool bWithPatch);
+
+    template<typename T>
+    T GetValueByMode(uint32_t i, ValueMode mode);
+
+    template<typename T>
+    void CheckRead(const std::vector<T>& expectedData, 
+                   const SingleValueAttributeSegmentReader<T>& segReader);
+    template<typename T>
+    void CreatePatches(std::vector<T>& expectedData, uint32_t patchCount);
+
+    template<typename T>
+    void CreateOnePatch(std::vector<T>& expectedData, segmentid_t outputSegId);
+
+protected:
+    std::string mRoot;
+    config::AttributeConfigPtr mAttrConfig;
+    file_system::DirectoryPtr mSeg0Directory;
+
+    static const uint32_t DOC_NUM = 100;
+    static const uint32_t UPDATE_DOC_NUM = 20;
+};
+
+//////////////////////////////////////////////////////////////////////
+template<typename T>
+void SingleValueAttributeSegmentReaderTest::TestUpdateFieldWithoutPatch(
+        bool needCompress)
+{
+    std::vector<T> expectedData;
+    for (uint32_t i = 0; i < DOC_NUM; i++)
+    {
+        expectedData.push_back(i);
+    }
+        
+    BuildIndex(expectedData, needCompress);
+    UpdateAndCheck(1, expectedData);
+}
+
+template<typename T>
+void SingleValueAttributeSegmentReaderTest::TestUpdateFieldWithPatch(
+        bool needCompress)
+{
+    std::vector<T> expectedData;
+    for (uint32_t i = 0; i < DOC_NUM; i++)
+    {
+        expectedData.push_back(i);
+    }
+    BuildIndex(expectedData, needCompress);
+    uint32_t patchCount = 3;
+    CreatePatches(expectedData, patchCount);
+    UpdateAndCheck(patchCount + 1, expectedData);
+}
+
+template<typename T>
+void SingleValueAttributeSegmentReaderTest::UpdateAndCheck(uint32_t segCount, 
+        std::vector<T>& expectedData)
+{
+    index_base::PartitionDataPtr partData = IndexTestUtil::CreatePartitionData(
+            GET_FILE_SYSTEM(), segCount);
+    index_base::SegmentData segData = partData->GetSegmentData(0);
+
+    AttributeSegmentPatchIteratorPtr attrPatchIterator(
+            new SingleValueAttributePatchReader<T>(mAttrConfig));
+    attrPatchIterator->Init(partData, 0);
+    SingleValueAttributeSegmentReader<T> segReader(mAttrConfig);
+    segReader.Open(segData, file_system::DirectoryPtr(), attrPatchIterator);
+
+    std::map<docid_t, T> toUpdateDocs;
+    MakeUpdateData(toUpdateDocs);
+
+    // update field
+    typename std::map<docid_t, T>::iterator it = toUpdateDocs.begin();
+    for (; it != toUpdateDocs.end(); it++)
+    {
+        docid_t docId = it->first;
+        T value = it->second;
+        segReader.UpdateField(docId, (uint8_t *)&value, sizeof(value));
+        expectedData[docId] = value;
+    }
+
+    CheckRead(expectedData, segReader);
+}
+
+template<typename T>
+void SingleValueAttributeSegmentReaderTest::MakeUpdateData(
+        std::map<docid_t, T>& toUpdateDocs)
+{
+    for (uint32_t i = 0; i < UPDATE_DOC_NUM; i++)
+    {
+        docid_t docId = rand() % DOC_NUM;
+        toUpdateDocs[docId] = docId + 20;
+    }
+}
+
+template<typename T>
+void SingleValueAttributeSegmentReaderTest::TestOpenForNoPatch()
+{
+    std::vector<T> expectedData;
+    FullBuild(expectedData);
+    CheckOpen(expectedData, 1, false);
+}
+
+template<typename T>
+void SingleValueAttributeSegmentReaderTest::TestOpenForPatch()
+{
+    std::vector<T> expectedData;
+    FullBuild(expectedData);
+    CreatePatches(expectedData, 3);
+    CheckOpen(expectedData, 4, true);
+}
+
+template<typename T>
+void SingleValueAttributeSegmentReaderTest::TestSearch(bool compress)
+{
+    std::vector<T> expectedData;
+    FullBuild(expectedData, VM_DESC, compress);
+    CheckSearch<T, std::less<T> >(expectedData, 1, VM_DESC, ST_LOWERBOUND);
+    FullBuild(expectedData, VM_DESC, compress);
+    CheckSearch<T, std::less_equal<T> >(expectedData, 1, VM_DESC, ST_UPPERBOUND);
+    FullBuild(expectedData, VM_ASC, compress);
+    CheckSearch<T, std::greater<T> >(expectedData, 1, VM_ASC, ST_LOWERBOUND);
+    FullBuild(expectedData, VM_ASC, compress);
+    CheckSearch<T, std::greater_equal<T> >(expectedData, 1, VM_ASC, ST_UPPERBOUND);
+}
+    
+template<typename T>
+void SingleValueAttributeSegmentReaderTest::FullBuild(std::vector<T>& expectedData,
+        ValueMode valueMode, bool needCompress)
+{
+    TearDown();
+    SetUp();
+
+    expectedData.clear();
+    mAttrConfig = AttributeTestUtil::CreateAttrConfig<T>();
+    if (needCompress)
+    {
+        config::FieldConfigPtr fieldConfig = mAttrConfig->GetFieldConfig();
+        fieldConfig->SetCompressType("equal");
+    }
+    SingleValueAttributeWriter<T> writer(mAttrConfig);
+    common::AttributeConvertorFactory* factory = common::AttributeConvertorFactory::GetInstance();
+    common::AttributeConvertorPtr convertor(factory->CreateAttrConvertor(
+                    mAttrConfig->GetFieldConfig()));
+    writer.SetAttrConvertor(convertor);
+    writer.Init(FSWriterParamDeciderPtr(), NULL);
+    autil::mem_pool::Pool pool;
+    for (uint32_t i = 0; i < DOC_NUM; ++i)
+    {
+        T value = GetValueByMode<T>(i, valueMode);
+        expectedData.push_back(value);
+
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%d", (int32_t)value);
+        autil::ConstString encodeValue = convertor->Encode(
+                autil::ConstString(buf), &pool);
+        writer.AddField((docid_t)i, encodeValue);
+    }
+
+    file_system::DirectoryPtr attrDirectory = 
+        mSeg0Directory->MakeDirectory(ATTRIBUTE_DIR_NAME);
+    util::SimplePool dumpPool;
+    writer.Dump(attrDirectory, &dumpPool);
+
+    index_base::SegmentInfo segmentInfo;
+    segmentInfo.docCount = DOC_NUM;
+    segmentInfo.Store(mSeg0Directory);
+}
+
+template<typename T>
+void SingleValueAttributeSegmentReaderTest::BuildIndex(
+        const std::vector<T>& data, bool needCompress)
+{
+    TearDown();
+    SetUp();
+    mAttrConfig = AttributeTestUtil::CreateAttrConfig<T>();
+    if (needCompress)
+    {
+        config::FieldConfigPtr fieldConfig = mAttrConfig->GetFieldConfig();
+        fieldConfig->SetCompressType("equal");
+    }
+    SingleValueAttributeWriter<T> writer(mAttrConfig);
+    common::AttributeConvertorFactory* factory = common::AttributeConvertorFactory::GetInstance();
+    common::AttributeConvertorPtr convertor(factory->CreateAttrConvertor(
+                    mAttrConfig->GetFieldConfig()));
+    writer.SetAttrConvertor(convertor);
+    writer.Init(FSWriterParamDeciderPtr(), NULL);
+    autil::mem_pool::Pool pool;
+    for (size_t i = 0; i < data.size(); i++)
+    {
+        std::string attrValue = autil::StringUtil::toString<T>(data[i]);
+        autil::ConstString encodeValue = convertor->Encode(autil::ConstString(attrValue), &pool);
+        writer.AddField((docid_t)i, encodeValue);
+    }
+
+    file_system::DirectoryPtr attrDirectory = 
+        mSeg0Directory->MakeDirectory(ATTRIBUTE_DIR_NAME);
+    util::SimplePool dumpPool;
+    writer.Dump(attrDirectory, &dumpPool);
+    
+    index_base::SegmentInfo segInfo;
+    segInfo.docCount = data.size();
+    segInfo.Store(mSeg0Directory);
+}
+
+template<typename T, typename Comp>
+void SingleValueAttributeSegmentReaderTest::CheckSearch(
+        const std::vector<T>& expectedData, uint32_t segmentCount,
+        ValueMode mode, SearchType type)
+{
+    index_base::PartitionDataPtr partData = IndexTestUtil::CreatePartitionData(
+            GET_FILE_SYSTEM(), segmentCount);
+    index_base::SegmentData segData = partData->GetSegmentData(0);
+
+    SingleValueAttributeSegmentReader<T> segReader(mAttrConfig);
+    segReader.Open(segData);
+    CheckRead(expectedData, segReader);
+
+    docid_t docCount = segData.GetSegmentInfo().docCount;
+    DocIdRange rangeLimit(0, docCount);
+    for (uint32_t i = 0; i < (uint32_t)docCount; ++i) {
+        T value = expectedData[i];
+        docid_t docid = INVALID_DOCID;
+        segReader.template Search< Comp >(value, rangeLimit, docid);
+        if (type == ST_UPPERBOUND) {
+            INDEXLIB_TEST_EQUAL((docid_t)i/2 * 2 + 2, docid);
+        }
+        if (type == ST_LOWERBOUND) {
+            INDEXLIB_TEST_EQUAL((docid_t)i/2 * 2, docid);
+        }
+    }
+}
+
+template<typename T>
+void SingleValueAttributeSegmentReaderTest::CheckOpen(
+        const std::vector<T>& expectedData, uint32_t segmentCount, 
+        bool bWithPatch)
+{
+    index_base::PartitionDataPtr partData = IndexTestUtil::CreatePartitionData(
+            GET_FILE_SYSTEM(), segmentCount);
+    index_base::SegmentData segData = partData->GetSegmentData(0);
+
+    AttributeSegmentPatchIteratorPtr attrPatchIterator;    
+    if (bWithPatch)
+    {
+        attrPatchIterator.reset(new SingleValueAttributePatchReader<T>(mAttrConfig));
+        attrPatchIterator->Init(partData, 0);
+    }
+
+    SingleValueAttributeSegmentReader<T> segReader(mAttrConfig);
+    segReader.Open(segData, file_system::DirectoryPtr(), attrPatchIterator);
+    CheckRead(expectedData, segReader);
+}
+
+template<typename T>
+T SingleValueAttributeSegmentReaderTest::GetValueByMode(uint32_t i, ValueMode mode)
+{
+    T value;
+    switch (mode) {
+    case VM_ASC:
+        value = i/2 * 2;
+        break;
+    case VM_DESC:
+        value = (DOC_NUM - i - 1)/2 * 2;
+        break;
+    case VM_NORMAL:    
+    default:
+        value = i * 3 % 10;
+        break;
+    }
+    return value;
+}
+    
+template<typename T>
+void SingleValueAttributeSegmentReaderTest::CheckRead(const std::vector<T>& expectedData, 
+               const SingleValueAttributeSegmentReader<T>& segReader)
+{
+    for (size_t i = 0; i < expectedData.size(); i++)
+    {
+        T value;
+        segReader.Read(i, value);
+        INDEXLIB_TEST_EQUAL(expectedData[i], value);
+    }
+}
+
+template<typename T>
+void SingleValueAttributeSegmentReaderTest::CreatePatches(
+        std::vector<T>& expectedData, uint32_t patchCount)
+{
+    for (uint32_t i = 1; i <= patchCount; i++)
+    {
+        CreateOnePatch(expectedData, i);
+    }
+}
+
+template<typename T>
+void SingleValueAttributeSegmentReaderTest::CreateOnePatch(
+        std::vector<T>& expectedData, segmentid_t outputSegId)
+{
+    std::stringstream ss;
+    ss << mRoot << SEGMENT_FILE_NAME_PREFIX << "_" << outputSegId << "_level_0/";
+    IndexTestUtil::ResetDir(ss.str());
+    index_base::SegmentInfo segmentInfo;
+    segmentInfo.Store(ss.str() + SEGMENT_INFO_FILE_NAME);
+
+    ss << ATTRIBUTE_DIR_NAME << "/";
+    IndexTestUtil::ResetDir(ss.str());
+    ss << mAttrConfig->GetAttrName() << "/";
+    IndexTestUtil::ResetDir(ss.str());
+    std::string patchFile = ss.str() + autil::StringUtil::toString<segmentid_t>(outputSegId) 
+                            + "_0." + ATTRIBUTE_PATCH_FILE_NAME;
+    std::unique_ptr<fslib::fs::File> file(fslib::fs::FileSystem::openFile(
+                    patchFile.c_str(), fslib::WRITE)); 
+
+    for (uint32_t j = 0; j < DOC_NUM; j++)
+    {
+        if ((outputSegId + j) % 10 == 1)
+        {
+            T value = (outputSegId + j) % 23;
+            expectedData[j] = value;
+            file->write((void*)(&j), sizeof(docid_t));
+            file->write((void*)(&value), sizeof(T));
+        }
+    }
+    file->close();
+}
+
+IE_NAMESPACE_END(index);

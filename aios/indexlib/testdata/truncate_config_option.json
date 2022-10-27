@@ -1,0 +1,39 @@
+{
+    "truncate_strategy" : [
+        {
+            "strategy_name" : "distinct_sort",
+            "threshold" : 100000,
+            "limit" : 50000,
+            "diversity_constrain": {
+                "distinct_field" : "user_id",
+                "distinct_count" : 20000,
+                "distinct_expand_limit" : 150000
+            },
+	    "truncate_profiles" :
+	    [
+		"desc_price",
+		"desc_biz30day",
+		"desc_sales"
+	    ]
+        },
+        {
+            "strategy_name" : "default_filter",
+	        "strategy_type" : "truncate_meta",
+            "threshold" : 0,
+            "limit" : 9999999999,
+            "diversity_constrain": {
+                "filter_field" : "DOC_PAYLOAD",
+                "filter_mask" : "0xFFFF",
+                "filter_max_value" : 100,
+                "filter_min_value" : 1,
+                "filter_by_meta" : false,
+                "filter_by_time_stamp" : true
+            },
+	    "truncate_profiles" :
+	    [
+		"galaxy_weight"
+	    ]
+        }
+    ]
+}
+

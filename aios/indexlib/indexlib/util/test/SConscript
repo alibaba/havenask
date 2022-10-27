@@ -1,0 +1,62 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+util_ut_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'matrix_unittest.cpp',
+    "expandable_bitmap_unittest.cpp",
+    "numeric_util_unittest.cpp",
+    "object_pool_unittest.cpp",
+    "class_typed_factory_unittest.cpp",
+    "metrics_center_unittest.cpp",
+    "metrics_unittest.cpp",
+    "vector_typed_unittest.cpp",
+    "typed_metrics_map_unittest.cpp",
+    "bitmap_unittest.cpp",
+    "typed_proxy_metrics_unittest.cpp",
+    "unittest_unittest.cpp",
+    "fixed_size_object_slab_unittest.cpp",
+    "hash_map_unittest.cpp",
+    "priority_queue_unittest.cpp",
+    "vector_metrics_unittest.cpp",
+    "path_util_unittest.cpp",
+    'mmap_pool_unittest.cpp',
+    'prime_number_table_unittest.cpp',
+    'mmap_vector_unittest.cpp',
+    'simple_pool_unittest.cpp',
+    'resource_control_thread_pool_unittest.cpp',
+    'thread_pool_unittest.cpp',
+    'atomic_counter_unittest.cpp',
+    'latency_stat_unittest.cpp',
+    'timestamp_util_unittest.cpp',
+    'block_fp_encoder_unittest.cpp',
+    'fp16_encoder_unittest.cpp',
+    'key_hasher_typed_unittest.cpp',
+    'task_scheduler_unittest.cpp',
+    'task_group_unittest.cpp',
+    'float_int8_encoder_unittest.cpp',
+    'net_util_unittest.cpp',
+    'tc_delegation_unittest.cpp',
+]
+
+env.aTest(target = 'indexlib_util_unittest',
+          source = util_ut_test_sources,
+          LIBS= ['indexlib_basic', 'autil', 'gmock', 'gtest'])
+
+
+###################### dependency check #######################
+util_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+util_minimal_dependency_libs = [
+    'indexlib_util',
+    'indexlib_misc',
+]
+
+env.aTest(target = 'indexlib_util_dependency_unittest',
+          source = util_minimal_dependency_sources,
+          LIBS = util_minimal_dependency_libs)
+

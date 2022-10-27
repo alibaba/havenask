@@ -1,0 +1,14 @@
+Import('env')
+env = env.Clone()
+
+lib_names = [
+    'indexlib',
+    'fslib-framework']
+
+local_merger_exe = env.aProgramAndInstall(target="local_merger",
+					source = Glob('*.cpp'),
+			  		LIBS = lib_names)
+
+env.Alias('tools', local_merger_exe)
+env.Default(local_merger_exe)
+

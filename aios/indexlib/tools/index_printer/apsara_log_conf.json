@@ -1,0 +1,74 @@
+{
+    "Loggers":
+    {
+        "/heavenask":{
+            "MyFileSink":"ALL"
+        },
+
+        "/apsara/youchao":{
+            "MyFileSink2":"ALL"
+        },
+
+	"/heavenask/index_engine/storage":{
+            "MyFileSink3":"ALL"
+        },
+
+	"/heavenask/index_engine/index":{
+            "MyFileSink4":"ALL"
+        },
+
+	"/":{
+            "DefaultFileSink":"INFO"
+        }
+
+    },
+    "Sinks":{
+        "MyFileSink":{
+            "Type":"File",
+            "MaxLogFileNum":50,
+            "MaxLogFileSize":20000000,
+            "MaxDaysFromModify":3,
+            "LogFilePath":"index_printer.LOG",
+            "ColumnNames":"__LOGGER__,__TIME__"
+
+        },
+        "MyFileSink2":{
+            "Type":"File",
+            "MaxLogFileNum":10,
+            "MaxLogFileSize":20000000,
+            "MaxDaysFromModify":3,
+            "LogFilePath":"index_printer_youchao.LOG",
+            "ColumnNames":"__LOGGER__,__TIME__"
+
+        },
+         "MyFileSink3":{
+            "Type":"File",
+            "MaxLogFileNum":50,
+            "MaxLogFileSize":200000000,
+            "MaxDaysFromModify":3,
+            "LogFilePath":"index_printer_storage.LOG",
+            "ColumnNames":"__LOGGER__,__TIME__"
+
+        },
+          "MyFileSink4":{
+            "Type":"File",
+            "MaxLogFileNum":50,
+            "MaxLogFileSize":200000000,
+            "MaxDaysFromModify":3,
+            "LogFilePath":"index_printer_index.LOG",
+            "ColumnNames":"__LOGGER__,__TIME__"
+
+        },
+ 
+        "DefaultFileSink":{
+            "Type":"File",
+            "MaxLogFileNum":10,
+            "MaxLogFileSize":20000000,
+            "MaxDaysFromModify":3,
+            "LogFilePath":"index_printer_apsara.LOG",
+            "ColumnNames":"__LOGGER__,__TIME__"
+
+        }
+    }
+}
+

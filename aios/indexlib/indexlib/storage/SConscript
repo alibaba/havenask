@@ -1,0 +1,13 @@
+
+Import('env')
+env = env.Clone()
+
+storage = Glob('*.cpp')
+env.aSharedLibrary(target = 'indexlib_storage',
+                   source = storage)
+
+env.aDirs('test')
+
+Return(['storage'] )
+
+

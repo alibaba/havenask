@@ -1,0 +1,98 @@
+{
+    "aggregate_sampler_config" : {
+        "aggThreshold" : 100000,
+        "sampleStep" : 30
+    },
+    "dependency_table": [
+        "in0"
+    ],
+    "biz_name": "in0",
+    "arpc_timeout": 650,
+    "anomaly_process_config" : {
+        "detection" : {
+            "early_termination_trigger_result_percent" : 0.700000,
+            "early_termination_wait_time_factor" : 1,
+            "retry_query_trigger_result_percent" : 0.800000,
+            "retry_query_wait_time_factor" : 1
+        },
+        "earlyTerminationEnabled" : false,
+        "flowControl" : {
+            "heavy_load_arpc_error_ratio" : 0.200000,
+            "light_load_arpc_error_ratio" : 0,
+            "max_flow_redirect" : 0,
+            "min_sample_count" : 20,
+            "queue_size_threshold" : 5,
+            "sample_interval" : 100
+        },
+        "flowControlEnabled" : false,
+        "retryQueryEnabled" : false
+    },
+    "cluster_config" : {
+        "hash_mode" : {
+            "hash_field" : "docid",
+            "hash_function" : "HASH"
+        },
+        "query_config" : {
+            "default_index" : "title",
+            "default_operator" : "AND"
+        },
+        "table_name" : "in0"
+    },
+    "function_config" : {
+        "functions" : [
+        ],
+        "modules" : [
+        ]
+    },
+    "rankprofile_config" : {
+        "modules" : [
+        ],
+        "rankprofiles" : [
+            {
+                "rank_profile_name" : "DefaultProfile",
+                "scorers" : [
+                    {
+                        "module_name" : "",
+                        "parameters" : {
+                        },
+                        "rank_size" : "10000",
+                        "scorer_name" : "DefaultScorer"
+                    }
+                ]
+            }
+        ]
+    },
+    "searcher_cache_config" : {
+        "inc_deletion_percent" : 1,
+        "inc_doc_limit" : 1000,
+        "latency_limit" : 30,
+        "max_item_num" : 2000000,
+        "max_size" : 20480
+    },
+    "service_degradation_config" : {
+        "condition" : {
+            "duration" : 1000,
+            "worker_queue_size_degrade_threshold" : 100,
+            "worker_queue_size_recover_threshold" : 10
+        },
+        "request" : {
+            "rank_size" : 10000,
+            "rerank_size" : 200
+        }
+    },
+    "summary_profile_config" : {
+        "modules" : [
+        ],
+        "summary_profiles" : [
+            {
+                "extractor" : {
+                    "extractor_name" : "DefaultSummaryExtractor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                },
+                "summary_profile_name" : "DefaultProfile"
+            }
+        ]
+    }
+}

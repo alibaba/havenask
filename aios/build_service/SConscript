@@ -1,0 +1,86 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+def checkAllCppFileContained(self, globFile, compiledFile):
+    for f in globFile:
+        if str(f) not in compiledFile:
+            print "Warning : file[%s] is not compiled!!!!!!!!!!!!!!!!!" % str(f)
+
+def getGccVersion():
+    import subprocess
+    output = subprocess.check_output(['gcc', '--version'])
+    return output.split('\n')[0].split('GCC) ')[-1]
+
+env.AddMethod(checkAllCppFileContained)
+
+env.Append(ACSUBST = {'TOP_BUILDDIR': env['RELATIVE_BUILD_DIR']})
+env.Append(ACSUBST = {'TOP_SRCDIR': env['TOP_DIR']})
+env.Append(ACSUBST = {'VERSION': 'build_service-%s-%s-%s' % (env['mode'], env['version'], env['release_str'])})
+
+env.aACSubst(target = ['build_service/test/test.h'],
+             source = ['build_service/test/test.h.in'])
+env.aACSubst(target = ['#tools/bs_tools/version.py'],
+             source = ['#tools/bs_tools/version.py.in'])
+
+
+if env['heapchecktype'] == 'tcmalloc':
+    env.aCheckLibraryNotAutoAdd('tcmalloc')
+
+if env['use_tcmalloc'] == 'yes':
+    env.aCheckLibraryPrependLib('tcmalloc')
+
+env.aCheckLibrary('pthread')
+env.aCheckLibrary('dl')
+
+env.aCheckLibrary('alog')
+env.aCheckLibrary('autil')
+env.aCheckLibrary('beeper-framework')
+env.aCheckLibrary('anet')
+env.aCheckLibrary('protobuf')
+env.aCheckLibrary('arpc')
+env.aCheckLibrary('fslib-framework')
+env.aCheckLibrary('snappy')
+env.aCheckLibrary('indexlib')
+
+env.aCheckLibraryNotAutoAdd('swift_client_minimal')
+#env.aCheckLibraryNotAutoAdd('AliWS')
+env['not_prepend_lib'] = ['swift_client_minimal', 'hiredis',
+                          'z']
+
+env['bs_worker_lib'] = ['worker_framework', 'cm_basic', 'mxml', 'zookeeper_mt', 'hippo']
+env.aCheckLibraryNotAutoAdd(*env['bs_worker_lib'])
+
+env["bs_test_common_lib"] = ['swift_client_minimal', 'http_arpc', 'gmock', 'gtest', 'bs_plugin', 'bs_config', 'bs_proto', 'bs_util', 'bs_common', 'z']
+
+shareLibNames = ['libindexlib.so',
+                 'libautil.so', 'libautil.so.11', 'libautil.so.11.1',
+                 'libbeeper-framework.so', 'libbeeper-framework.so.1', 'libbeeper-framework.so.1.0',
+                 'libfslib-framework.so', 'libfslib-framework.so.5', 'libfslib-framework.so.5.0',
+                 'libswift_client_minimal.so', 'libswift_client_minimal.so.105', 'libswift_client_minimal.so.105.0',
+                 'libworker_framework.so', 'libworker_framework.so.14', 'libworker_framework.so.14.0',
+                 'libhttp_arpc.so', 'libhttp_arpc.so.5', 'libhttp_arpc.so.5.0',
+                 'libarpc.so.13', 'liberpc.so.16', 'libhdfs.so.0.0.0',
+                 'libprotobuf.so.7', 'libanet.so.13','libalog.so.13',
+                 'libzookeeper_mt.so', 'libzookeeper_mt.so.2', 'libcm_basic.so',
+                 'libcm_basic.so.0', 'libmxml.so', 'libmxml.so.1',
+                 'liblz4.so', 'liblz4.so.1.7.3',
+                 'liblz4.so.1', 'libzstd.so','libzstd.so.1','libzstd.so.1.1.3',
+                 'libsnappy.so.1']
+shareLibNames.append('libtcmalloc.so.4')
+
+env.Append(CCFLAGS='-D_GLIBCXX_USE_CXX11_ABI=0')
+env.Append(CCFLAGS='-Wno-unused-variable')
+if getGccVersion() == '8.3.0':
+    env.Append(CCFLAGS='-Wno-format-truncation')
+env.Append(CXXFLAGS = '-std=c++14')
+
+env["LEXFLAGS"] = '-8 -Cfa'
+
+# List my sub-directories.
+build_service = env.aDirs('build_service')
+#bs_tools = env.aDirs('tools')
+#env.Depends(bs_tools, build_service)

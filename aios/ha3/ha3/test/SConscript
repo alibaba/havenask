@@ -1,0 +1,8 @@
+# -*- mode: python -*-
+import os
+
+Import('env')
+
+env = env.Clone()
+
+env.aDuplicate('ha3_alog.conf')

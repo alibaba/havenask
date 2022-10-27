@@ -1,0 +1,32 @@
+{
+    "Loggers":{
+        "/":{
+	    "Console": "ERROR"
+	},
+        "/isearch":{
+	    "Console": "ERROR"
+	},
+        "/isearch/common/AccessLog":{
+	    "AccessFileSink": "INFO"
+	},
+	"/isearch/util/LogTest":{
+	    "TestFileSink": "ERROR"
+	}
+    },
+    "Sinks":{
+        "Console":{
+            "Type":"Screen",
+            "ColumnNames":"__FUNCTION__,__LINE__"
+        },
+	"AccessFileSink":{
+            "Type":"Screen",
+            "ColumnNames":"__FILE__,__FUNCTION__,__LINE__"
+        },
+	"TestFileSink":{
+            "Type":"File",
+	    "LogFilePath":"TestLog.log",
+            "MaxLogFileNum":1,
+            "ColumnNames":"__FILE__"
+        }
+    }
+}

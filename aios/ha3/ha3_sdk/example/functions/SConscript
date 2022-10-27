@@ -1,0 +1,17 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+libfunction_sources = [
+    'PostageFunction.cpp',
+    'PostageFunctionFactory.cpp',
+    'MultiValueFunction.cpp',
+    ]
+
+libfunction = env.aSharedLibrary(target = 'function_example', source = libfunction_sources)
+
+env.aDirs('test')

@@ -1,0 +1,20 @@
+# -*- mode: python -*-
+Import('env')
+env = env.Clone()
+
+util_compress_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'snappy_compressor_unittest.cpp',
+    'lz4_compressor_unittest.cpp',
+    'buffer_compressor_unittest.cpp',
+    'lz4_hc_compressor_unittest.cpp',
+    'zstd_compressor_unittest.cpp',
+    'zlib_compressor_unittest.cpp',
+    'zlib_default_compressor_unittest.cpp',
+    ]
+
+env.aTest(target = 'ie_util_buffered_compress_unittest',
+          source = util_compress_test_sources,
+          LIBS= ['indexlib_basic', 'autil', 'gmock', 'gtest'])
+
+Return([])

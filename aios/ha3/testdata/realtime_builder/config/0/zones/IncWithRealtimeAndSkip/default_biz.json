@@ -1,0 +1,73 @@
+{
+    "aggregate_sampler_config" : {
+        "aggThreshold" : 0,
+        "sampleStep" : 1
+    },
+    "cluster_config" : {
+        "hash_mode" : {
+            "hash_field" : "id",
+            "hash_function" : "HASH"
+        },
+        "query_config" : {
+            "default_index" : "phrase",
+            "default_operator" : "AND"
+        },
+        "swift_config" : {
+            "need_field_filter" : true,
+            "required_field_names" : [
+                "Field1",
+                "Field2"
+            ],
+            "swift_topic_name" : "cnzz",
+            "swift_zookeeper_root" : "zfs://11:1/path/"
+        },
+        "table_name" : "sample"
+    },
+    "rankprofile_config" : {
+        "modules" : [
+        ],
+        "rankprofiles" : [
+            {
+                "field_boost" : {
+                    "default.BODY" : 100,
+                    "default.TITLE" : 1000
+                },
+                "rank_profile_name" : "DefaultProfile",
+                "scorers" : [
+                    {
+                        "module_name" : "",
+                        "parameters" : {
+                        },
+                        "rank_size" : "UNLIMITED",
+                        "scorer_name" : "DefaultScorer"
+                    }
+                ]
+            }
+        ]
+    },
+    "summary_profile_config" : {
+        "modules" : [
+        ],
+        "summary_profiles" : [
+            {
+                "extractor" : {
+                    "extractor_name" : "DefaultSummaryExtractor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                },
+                "field_configs" : {
+                    "subject" : {
+                        "abstract" : true,
+                        "highlight_prefix" : "<font color=red>",
+                        "highlight_suffix" : "</font>",
+                        "max_snippet" : 2,
+                        "max_summary_length" : 100,
+                        "snippet_delimiter" : "..."
+                    }
+                },
+                "summary_profile_name" : "DefaultProfile"
+            }
+        ]
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "table_name": "company",
+    "fields": 
+    [
+	{"field_name":"company_id", "field_type":"INTEGER"},
+	{"field_name":"company_name", "field_type":"STRING"},
+	{"field_name":"company_description", "field_type":"STRING"}
+    ],
+    "indexs": 
+    [
+	{
+	    "index_name": "pk",
+            "index_type" : "PRIMARYKEY64",
+	    "index_fields": "company_id"
+	}
+    ],
+    "attributes": ["company_id", "company_name", "company_description"]
+}

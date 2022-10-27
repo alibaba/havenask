@@ -1,0 +1,35 @@
+{
+    "cluster_config": {
+        "cluster_type" : "inc_with_realtime",
+        "cluster_name" : "mainse_excellent",
+        "table_name" : "mainse_searcher"
+    },
+    "index_option_config" : {
+        "MaxReopenMemoryUse": 30720,
+        "MaxMemoryUse": 4096,
+        "EnablePackageFile" : true,
+        "SpeedUpPrimaryKeyReader" : true,
+        "MergeStrategy": "optimize",
+        "RtOptions" :
+        {
+            "MaxMemoryUse": 512
+        }
+    },
+    "offline_index_options" : {
+        "inc_merge" : {
+            "period" : "daytime=17:30",
+            "index_option_config" : {
+                "MergeStrategy": "optimize",
+                "MergeStrategyParam": "max-doc-count=10000000"
+            }
+        }
+    },
+    "build_option_config" : {
+        "max_recover_time" : 10,
+        "sort_queue_size" : 5000000,
+        "sort_queue_mem" : 5000,
+        "sort_build" : true,
+        "async_build" : true,
+        "async_queue_size" : 10000
+    }
+}

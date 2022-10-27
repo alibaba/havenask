@@ -1,0 +1,7 @@
+{
+    "cluster_type" : "section replaced",
+    "hash_mode" : {
+        "hash_function" : "section replaced"
+    },
+    "inherit_from" : "deep_inherit/subsection_inherit.json"
+}

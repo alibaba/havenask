@@ -1,0 +1,24 @@
+{
+    "swift_config" : {
+            "topic_full" : {
+            "partition_count" : 40,
+            "partition_resource" : 40,
+            "partition_buffer_size" : 1000,
+            "partition_file_buf_size" : 1000,
+            "obsolete_file_interval" : 3600,
+            "reserved_file_count" : 10
+        },
+        "topic_inc" : {
+            "partition_count" : 4,
+            "partition_resource" : 2,
+            "partition_buffer_size" : 1000,
+            "partition_file_buf_size" : 1000,
+            "obsolete_file_interval" : 3600,
+            "reserved_file_count" : 10,
+            "delete_topic_data" : true
+        }
+    },
+    "cluster_config" : {
+	    "table_name" : "simple"
+	}
+}

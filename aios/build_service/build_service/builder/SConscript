@@ -1,0 +1,30 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+builder_sources = [
+    'Builder.cpp',
+    'SortedBuilder.cpp',
+    'SortDocumentContainer.cpp',
+    'BuilderMetrics.cpp',
+    'BuilderCreator.cpp',
+    'SortDocumentConverter.cpp',
+    'AsyncBuilder.cpp',
+    'LineDataBuilder.cpp',
+    'NormalSortDocConvertor.cpp',
+    'NormalSortDocSorter.cpp',
+    'BuildSpeedLimiter.cpp',
+    ]
+
+env.checkAllCppFileContained(Glob('*.cpp'), builder_sources)
+builder_sources = map(os.path.abspath, builder_sources)
+
+env.aLibrary(target = 'bs_builder',
+             source = builder_sources)
+
+env.aDirs('test')
+
+Return(['builder_sources'])

@@ -1,0 +1,68 @@
+#!/bin/env python
+
+import os
+import sys
+
+HERE = os.path.split(os.path.realpath(__file__))[0]
+
+def executCmd(cmd):
+    print (cmd)
+    os.system(cmd)
+
+def doPrepareBuildConfig(code, installDir):
+    subPath = os.path.join(HERE, 'aios', code)
+    buildOptions = os.path.join(subPath, 'build_options.py')
+    cmd = 'cp %s/build_options.tpl %s' % (subPath, buildOptions)
+    executCmd(cmd)
+
+    cmd = "sed -i s#%{install_root}#" + installDir + "#g " + buildOptions
+    executCmd(cmd)
+
+    if not os.path.exists(buildOptions):
+        print ('prepare build config for %s failed.' % code)
+        return False
+    else:
+        return True
+
+def prepareBuildConfig(installDir):
+    if not doPrepareBuildConfig('indexlib', installDir) or \
+       not doPrepareBuildConfig('build_service', installDir) or \
+       not doPrepareBuildConfig('ha3', installDir):
+        return False
+    return True
+
+def initInstallDir(installDir):
+    if os.path.exists(installDir):
+        cmd = 'rm -rf %s' % installDir
+        executCmd(cmd)
+    cmd = 'mkdir %s' % installDir
+    executCmd(cmd)
+
+    cmd = 'cp -r /ha3_depends/iquan/ ' + installDir
+    executCmd(cmd)
+
+    installShareDir = os.path.join(installDir, 'usr/local/share/')
+    cmd = 'mkdir -p ' + installShareDir
+    executCmd(cmd)
+
+    cmd = 'cp -r /ha3_depends/usr/local/share/* %s' % installShareDir
+    executCmd(cmd)
+
+    if not os.path.exists(installDir) or \
+       not os.path.exists(os.path.join(installShareDir, 'src')) or \
+       not os.path.exists(os.path.join(installShareDir, 'cava/mock')):
+        print ('init install dir failed.')
+        return False
+
+    return True
+
+if __name__ == '__main__':
+    installDir = os.path.join(HERE, 'ha3_install')
+    if len(sys.argv) > 1:
+        installDir = sys.argv[1]
+
+    if not initInstallDir(installDir):
+        sys.exist(-1)
+
+    if not prepareBuildConfig(installDir):
+        sys.exit(-1)

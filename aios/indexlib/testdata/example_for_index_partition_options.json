@@ -1,0 +1,161 @@
+{
+    "MaxMemoryUse": 8024,
+    "MaxIndexSize" : 1024,
+    "ReaderKeepAliveTime": 10000,
+    "MaxReopenMemoryUse" : 4096,
+    "KeepVersionCount": 2,
+    "SortByWeightDocCount": 10000,
+    "MergeStrategy" : "balance_tree",
+    "MergeStrategyParam" : "conflict-segment-number=3;base-doc-count=120000;max-doc-count=1000000",
+    "TrimmerType" : "doc_trimmer",
+    "Index" : {
+        "ReadMode" : "mmap",
+        "Parameter" : "none",
+        "EnableWarmUp" : false
+     },
+    "Summary" : {
+        "ReadMode" : "cached",
+        "Parameter" : "2048",
+        "EnableWarmUp" : true
+     },
+    "Attribute" : {
+        "ReadMode" : "mmap",
+        "Parameter" : "lock,advise_random,lock_slice=4096,lock_interval=2",
+        "EnableWarmUp" : false
+     },
+    "MergeThreadCount" : 3,
+    "FlushThreadCount" : 10,
+    "RtMode" : "realtime",
+    "RtOptions" : {
+        "KeepVersionCount": 10,
+        "MergeStrategy" : "realtime",
+        "MergeStrategyParam" :"max-small-segment-count=5;merge-size-upperbound=128;merge-size-lowerbound=128",
+        "TrimmerType" : "time_trimmer",
+	    "MaxMemoryUse" : 1024,
+	    "Summary" : {
+	        "ReadMode" : "mmap",
+	        "Parameter" : "none",
+	        "EnableWarmUp" : false
+	    },
+	    "Index" : {
+	        "ReadMode" : "cached",
+	        "Parameter" : "1024",
+	        "EnableWarmUp" : false
+	    }
+    },
+    "SpeedUpPrimaryKeyReader" : true,
+    "TruncateOptionConfig" :
+    {
+        "TruncateProfiles" : [
+            {
+                "TruncateProfileName" : "desc_static_trans_score",
+                "IndexNames" : [ ],
+                "TruncateStrategyName" : "distinct_sort",
+                "SortParams":
+        	    [
+                    {
+                        "SortField" : "static_trans_score",
+                        "SortType": "DESC"
+                    },
+                    {
+                        "SortField": "nid",
+                        "SortType": "ASC"
+                    }
+	            ]
+            },
+            {
+                "TruncateProfileName" : "desc_tk_trans_score",
+                "IndexNames" : [ ],
+                "TruncateStrategyName" : "distinct_sort",
+                "SortParams":
+        	    [
+                    {
+                        "SortField" : "tk_trans_score",
+                        "SortType": "DESC"
+                    },
+                    {
+                        "SortField": "nid",
+                        "SortType": "ASC"
+                    }
+	            ]
+            },
+            {
+                "TruncateProfileName" : "desc_biz30day",
+                "IndexNames" : [ ],
+                "TruncateStrategyName" : "distinct_sort",
+                "SortParams":
+        	    [
+                    {
+                        "SortField" : "biz30day",
+                        "SortType": "DESC"
+                    },
+			        {
+				        "SortField": "nid",
+                        "SortType": "ASC"
+              	    }
+	            ]
+            },
+            {
+                "TruncateProfileName" : "desc_tk_total_sales",
+                "IndexNames" : [ ],
+                "TruncateStrategyName" : "distinct_sort",
+                "SortParams":
+        	    [
+                    {
+                        "SortField" : "tk_total_sales",
+                        "SortType": "DESC"
+                    },
+			        {
+				        "SortField": "nid",
+                        "SortType": "ASC"
+              	    }
+	            ]
+            },
+            {
+                "TruncateProfileName" : "desc_uvsum",
+                "IndexNames" : [ ],
+                "TruncateStrategyName" : "distinct_sort",
+                "SortParams":
+        	    [
+                    {
+                        "SortField" : "uvsum",
+                        "SortType": "DESC"
+                    },
+			        {
+				        "SortField": "nid",
+                        "SortType": "ASC"
+              	    }
+	            ]
+            },
+            {
+                "TruncateProfileName" : "asc_ends",
+                "IndexNames" : [ ],
+                "TruncateStrategyName" : "distinct_sort",
+                "SortParams":
+        	    [
+                    {
+                        "SortField" : "ends_1",
+                        "SortType": "ASC"
+                    },
+			        {
+				        "SortField": "nid",
+                        "SortType": "ASC"
+              	    }
+	            ]
+            }
+        ],
+        "TruncateStrategy" : [
+            {
+                "StrategyName" : "distinct_sort",
+                "Threshold" : 100000,
+                "Limit" : 50000,
+                "DiversityConstrain": {
+                    "DistinctField" : "user_id",
+                    "DistinctCount" : 20000,
+                    "DistinctExpandLimit" : 150000
+                }
+            }
+        ],
+        "ExtendIndexNames" : [ "phrase", "cat_id_path", "spuid", "epid", "user", "haspid", "categoryp", "auction_type", "oneyuan", "promote", "commend", "ratesum", "nick", "counts", "shipping", "isnewest", "auto_post", "auction_flag", "options_bits", "has_bid", "isprepay", "uchar", "psbit", "pidvid", "spugroupid", "user_type", "pid", "support_cod", "support_xcard", "baobei_type", "lptime", "lp_start", "istk", "hprop", "auction_tag", "disp_flag", "properties", "etao_tag", "auction_ext", "consign_date", "dna_id", "tk_group_ids", "cluster_id" ]
+    }
+}

@@ -1,0 +1,49 @@
+{
+    "table_name": "auction",
+    "fields": 
+    [
+        {"field_name":"title",        "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
+	{"field_name":"user_name",    "field_type":"STRING", "uniq_encode":true},
+	{"field_name":"user_id",      "field_type":"INTEGER"},
+	{"field_name":"price",        "field_type":"INTEGER"  },
+	{"field_name":"category",     "field_type":"INTEGER",  "multi_value":true, "uniq_encode":true, "compress_type":"equal"},
+	{"field_name":"auction_type", "field_type":"ENUM",     "valid_values":["sale", "buy"] },
+	{"field_name":"product_id",   "field_type":"LONG" },
+	{"field_name":"body",         "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
+	{"field_name":"b2b_body",     "field_type":"TEXT",    "analyzer":"b2b_analyzer"},
+	{"field_name":"taobao_body1",  "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
+	{"field_name":"taobao_body2",  "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
+	{"field_name":"price2",        "field_type":"INTEGER", "compress_type":"equal"  },
+	{"field_name":"price3",        "field_type":"INTEGER"  },
+	{"field_name":"price4",        "field_type":"INTEGER"  },
+	{"field_name":"price5",        "field_type":"INTEGER"  },
+	{"field_name":"categoryp",     "field_type":"INTEGER"  },
+	{"field_name":"catmap",        "field_type":"INTEGER"  }
+    ],
+
+    "indexs": 
+    [
+	{
+	    "index_name": "product_id",
+            "index_type" : "PRIMARYKEY64",
+	    "index_fields": "product_id",
+	    "has_primary_key_attribute": true,
+	    "pk_hash_optimize" : true
+	}
+    ],
+
+    "attributes":
+    [
+        "user_id",
+        "user_name",
+        {
+            "pack_name" : "product_info",
+            "sub_attributes" : ["product_id", "category"],
+            "compress_type" : "equal"
+        },
+        {
+            "pack_name" : "product_price",
+            "sub_attributes" : ["price2", "price3", "price4", "price5"]
+        }
+    ]
+}

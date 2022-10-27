@@ -1,0 +1,37 @@
+# -*- mode: python -*-
+import os
+Import('env')
+env = env.Clone()
+
+segment = env.aDirs('segment')
+open_executor = env.aDirs('open_executor')
+remote_access = env.aDirs('remote_access')
+modifier = env.aDirs('modifier')
+join_cache = env.aDirs('join_cache')
+document_deduper = env.aDirs('document_deduper')
+operation_queue = env.aDirs('operation_queue')
+
+partition_source=Glob('*.cpp')
+
+partition_cpps = [ segment, open_executor,
+                   partition_source, remote_access, modifier,
+                   join_cache, document_deduper, operation_queue ]
+
+# custom_partition_source = [
+#     'custom_offline_partition.cpp',
+#     'custom_offline_partition_writer.cpp',
+#     'custom_online_partition.cpp',
+#     'custom_online_partition_reader.cpp',
+#     'custom_online_partition_writer.cpp',
+#     'custom_partition_data.cpp'
+# ]
+
+# custom_partition_source = map(os.path.abspath, custom_partition_source)
+
+env.aSharedLibrary(target='indexlib_partition', source=partition_cpps)
+# env.aSharedLibrary(target='indexlib_custom_partition', source=custom_partition_source)
+
+env.aDirs('test')
+env.aDirs('perf_test')
+Return(['partition_cpps'] )
+

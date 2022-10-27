@@ -1,0 +1,40 @@
+# -*- mode: python -*-
+
+Import('env')
+
+env = env.Clone()
+
+libutil_sources = [
+    'BufferedLocalFileReader.cpp',
+    'BufferedFileReader.cpp',
+    'DirIterator.cpp',
+    'EncodeConverter.cpp',
+    'NormalizeTable.cpp',
+    'CHN_T2S_SET.cpp',
+    'TimeStamp.cpp',
+    'NetFunction.cpp',
+    'PersistentMap.cpp',
+    'RangeUtil.cpp',
+    'XMLFormatUtil.cpp',
+    'HaCompressUtil.cpp',
+    'IPListParser.cpp',
+    'ZlibCompressorWrapper.cpp',
+    'memcache/MemCache.cpp',
+    'memcache/CacheMap.cpp',
+    'memcache/crc.c',
+    'ChainedFixedSizePool.cpp',
+    'EnvParser.cpp',
+    'cityhash/city.cc',
+]
+
+env.aLibrary(target = 'ha3_util',
+             source = libutil_sources)
+
+env.aProgram(target = 'json_validator',
+             source = ['JsonValidator.cpp'],
+             LIBS = ['snappy', 'arpc', 'kvtracer', 'fslib-framework',
+                     'zookeeper_mt', 'autil', 'protobuf', 'anet', 'alog',
+                     'mxml', 'pthread', 'z', 'dl', 'expat', 'suez_turing', 'amonitor_client'])
+
+env.aDirs('test')
+#env.aDirs('perftest')

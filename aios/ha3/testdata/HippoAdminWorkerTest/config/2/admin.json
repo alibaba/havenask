@@ -1,0 +1,16 @@
+{
+    "can_force_switch" : true,
+    "force_switch_when_dead_lock" : true,
+    "max_worker_unavailable_seconds" : 2,
+    "unavailable_worker_threshold" : 5,
+    "worker_load_balance" : true,
+    "worker_unknown_timeout" : 100,
+    "worker_longdead_timeout" : 200,
+    "invalid_machine_limit" : 1,
+    "healthcheck_config" :
+    {
+	"iowait_threshold" : 10,
+	"request_queue_size_threshold" : 100,
+	"update_interval" : 200000
+    }
+}

@@ -1,0 +1,43 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+lib_summary_eg_sources = [
+    'DefaultSummaryModuleFactory.cpp',
+    '../DefaultSummaryExtractor.cpp',
+]
+
+ha3_summary_eg = env.aSharedLibrary(target = 'ha3_summary_eg', 
+                                    source = lib_summary_eg_sources)
+ha3_summary_eg_installed = env.aCopy('#testdata/testadmin/taobao/taobao_daogou/configurations/configuration_1/plugins', ha3_summary_eg)
+env.Default(ha3_summary_eg_installed)
+
+summary_test_sources=  [
+    'SummaryProfileTest.cpp',
+    'SummaryProfileManagerCreatorTest.cpp',
+    'DefaultSummaryExtractorTest.cpp',
+    'SummaryExtractorProviderTest.cpp',
+    'CavaSummaryExtractorTest.cpp',
+    ]
+
+libsname = ['ha3_fakerank', 'ha3_fakecommon', 'ha3_fakequeryparser', 'ha3sdk_testlib'] 
+
+linkflags = []
+linkflags.append('-Wl,--whole-archive')
+linkflags.append('-lha3_cava')
+linkflags.append('-Wl,--no-whole-archive')
+env.Append(LINKFLAGS=linkflags)
+
+env.aTest(
+    target = 'summary_test', 
+    source = summary_test_sources,
+    LIBS = libsname + env['ha3_test_depend_lib']
+    )
+
+env.Requires('summary_test', ha3_summary_eg_installed)
+
+

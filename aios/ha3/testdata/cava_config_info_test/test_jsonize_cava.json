@@ -1,0 +1,12 @@
+{
+    "enable" : true,
+    "cava_conf" : "conf.json",
+    "lib_path" : "lib",
+    "source_path" : "source",
+    "code_cache_path" : "cache",
+    "pool_trunk_size" : 1,
+    "pool_recycle_size_limit" : 2,
+    "alloc_size_limit" : 3,
+    "init_size_limit" : 4,
+    "module_cache_size" : 5
+}

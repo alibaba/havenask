@@ -1,0 +1,130 @@
+# -*- mode: python -*-
+import os, sys
+# Inherit the environment from my parent.
+Import('env')
+import copy
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+config_h_template = """
+#ifndef ISEARCH_CONFIG_H_
+#define ISEARCH_CONFIG_H_
+
+#define HA3_VERSION "%(version)s"
+#define HA3_MAJOR_VERSION %(major)s
+#define HA3_MINOR_VERSION %(minor)s
+#define HA3_MICRO_VERSION %(micro)s
+#define HA3_REQUEST_VERSION %(requestVersion)s
+
+#endif
+"""
+
+config_cpp_template = """
+#include <ha3/config.h>
+#include <ha3/common.h>
+#include <string>
+
+BEGIN_ISEARCH_NAMESPACE
+
+static const std::string ha3_version = "%(version_str)s";
+static const std::string current_git_status = "%(git_status)s";
+static const std::string current_git_log = "%(git_log)s";
+
+END_ISEARCH_NAMESPACE
+"""
+
+def run(cmd):
+    import subprocess
+    p = subprocess.Popen(cmd, shell=True, close_fds=False,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    if 0 != p.returncode:
+        raise Exception('Execute cmd [%s] faild. data[%s] error[%s], code[%d]'
+                        % (cmd, stdout, stderr, p.returncode))
+    return stdout
+
+def GenerateConfig():
+    shortVersionString = "%s-%s" % (env['mode'], env['version'])
+    requestVersionString = '0'
+    if env.has_key('requestVersion'):
+        requestVersionString = env['requestVersion']
+
+    versionString = "ha3-%s-%s-%s" % (env['mode'], env['version'], env['releaseStr'])
+    versions = env['version'].split(".")
+
+    dir_path = os.getcwd()
+    h_name = os.path.join(dir_path, 'config.h')
+    file = open(h_name, 'w')
+    config_h = config_h_template % {
+        'version' : shortVersionString,
+        'requestVersion' : requestVersionString,
+        'major' : versions[0],
+        'minor' : versions[1],
+        'micro' : versions[2],
+    }
+    file.write(config_h)
+    file.close()
+
+    gitLog= run('git log --max-count=5').replace('"', '\\"').replace("'", "\\'").replace('\n', '\\n')
+    gitStatus = run('git status').replace('"', '\\"').replace("'", "\\'").replace('\n', '\\n')
+    cpp_name = os.path.join(dir_path, 'config.cpp')
+    file = open(cpp_name, 'w')
+    config_cpp = config_cpp_template % { 'version_str' : versionString,
+                                         'git_status' : gitStatus,
+                                         'git_log' :  gitLog }
+    file.write(config_cpp)
+    file.close()
+
+    return [h_name, cpp_name]
+
+def aGenConfig(self, *args, **kwargs):
+    target = GenerateConfig()
+    self.Default(target)
+    self.AlwaysBuild(target)
+    return target
+env.AddMethod(aGenConfig)
+h_name, cpp_name = env.aGenConfig()
+
+env['build_signature_src'] = []
+if env['build_signature'] == 'yes':
+    env['build_signature_src'].append(cpp_name)
+
+#ha3_cava_bc = env.aCompileBC(target = 'ha3_cava.bc',
+#                             source = [
+#                                 env['install_sharedir'] + "/src/cava/Ha3CavaScorerParam.cpp",
+#                                 env['install_sharedir'] + "/src/cava/CavaMultiValueTyped.cpp",
+#                                 env['install_sharedir'] + "/src/cava/FieldRef.cpp",
+#                                 env['install_sharedir'] + "/src/cava/TraceApi.cpp",
+#                                 env['install_sharedir'] + "/src/cava/AttributeExpression.cpp",
+#                                 env['install_sharedir'] + "/src/cava/Reference.cpp",
+#                                env['install_sharedir'] + "/src/cava/MatchDocs.cpp",
+#                             ])
+#env.aInstallShare(ha3_cava_bc, 'bc', True)
+
+cava_code_copy = env.aSync("#/testdata/share/cava", env['install_sharedir'] + "/cava")
+cava_bc_copy = env.aSync("#/testdata/share/bc", env['install_sharedir'] + "/bc")
+#env.Depends(cava_bc_copy, ha3_cava_bc)
+env.Depends(cava_code_copy, env['cava_install'])
+env['cava_copy'] = cava_code_copy + cava_bc_copy
+
+# List my sub-directories.
+env.aDirs('test')
+env.aDirs('util')
+env.aDirs('config')
+env.aDirs('rank')
+env.aDirs('queryparser')
+env.aDirs('search')
+env.aDirs('summary')
+env.aDirs('service')
+env.aDirs('worker')
+env.aDirs('common')
+env.aDirs('qrs')
+env.aDirs('func_expression')
+env.aDirs('sorter')
+env.aDirs('worker')
+env.aDirs('sql')
+env.aDirs('schema')
+env.aDirs('turing')
+
+libfake_entry = env.aLibrary(target = 'fake_entry',
+                             source = 'FakeEntry.cpp')

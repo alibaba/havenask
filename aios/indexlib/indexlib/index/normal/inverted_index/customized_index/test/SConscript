@@ -1,0 +1,53 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+
+demo_indexer_source = [
+    'demo_index_reduce_item.cpp',
+    'demo_index_reducer.cpp',
+    'demo_index_retriever.cpp',
+    'demo_index_segment_retriever.cpp',
+    'demo_in_mem_segment_retriever.cpp',
+    'demo_indexer.cpp',
+    'demo_index_module_factory.cpp',
+]
+
+demo_indexer_lib = env.aSharedLibrary(target = 'demo_indexer', source = [demo_indexer_source], LIBS=[])
+demo_indexer_installed = env.aCopy('#testdata/demo_indexer_plugins/', demo_indexer_lib)
+
+indexer_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'customized_index_intetest.cpp',
+    'match_info_posting_iterator_unittest.cpp',
+#    'customized_index_writer_unittest.cpp',
+    'customized_index_merger_unittest.cpp',
+]
+
+indexer_libs = [
+    'indexlib_indextest_common',
+    'indexlib_configtest',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest'
+]
+
+env.aTest(target = 'indexlib_indexer_intetest_for_gtest',
+          source = indexer_test_sources, LIBS = indexer_libs)
+
+env.Depends('indexlib_indexer_intetest_for_gtest', demo_indexer_installed)

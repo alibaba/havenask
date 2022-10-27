@@ -1,0 +1,53 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+primary_key_ut_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'primary_key_index_merger_typed_unittest.cpp',
+    'primary_key_index_reader_typed_unittest.cpp',
+    'primary_key_index_reader_typed_intetest.cpp',
+    'sorted_primary_key_index_merger_typed_unittest.cpp',
+    'sorted_primary_key_index_reader_typed_unittest.cpp',
+    'primary_key_posting_iterator_unittest.cpp',
+    'on_disk_ordered_primary_key_iterator_unittest.cpp',
+    'primary_key_pair_segment_iterator_unittest.cpp',
+    'hash_primary_key_formatter_unittest.cpp',
+    'sorted_primary_key_formatter_unittest.cpp',
+    'primary_key_formatter_creator_unittest.cpp',
+    'sorted_primary_key_pair_segment_iterator_unittest.cpp',
+    'combine_segments_primary_key_load_strategy_unittest.cpp',
+    'hash_primary_key_index_merger_typed_unittest.cpp',
+    'primary_key_perf_unittest.cpp',
+    'primary_key_hash_table_unittest.cpp',
+    'primary_key_merge_iterator_unittest.cpp',
+    'sequential_primary_key_iterator_unittest.cpp',
+    'hash_primary_key_perf_unittest.cpp',
+]
+
+env.aTest(target = 'indexlib_primary_key_unittest',
+          source = primary_key_ut_test_sources,
+          LIBS = [
+              'indexlib_indextest_common',
+              'indexlib_test',
+              'indexlib_testlib',
+              'indexlib_partition',
+              'indexlib_merger',
+              'indexlib_table',
+              'indexlib_index',
+              'indexlib_index_base',
+              'indexlib_document',
+              'indexlib_common',
+              'indexlib_plugin',
+              'indexlib_config',
+              'indexlib_file_system',
+              'indexlib_storage',
+              'indexlib_util',
+              'indexlib_misc',
+              'fslib-framework',
+              'gmock',
+              'gtest',
+              'pthread',
+              'anet'
+          ])

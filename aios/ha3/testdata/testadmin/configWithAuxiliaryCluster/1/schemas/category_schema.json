@@ -1,0 +1,18 @@
+{
+    "table_name": "category",
+    "fields": 
+    [
+	{"field_name":"cat_id", "field_type":"INTEGER"},
+	{"field_name":"category_name", "field_type":"STRING"},
+	{"field_name":"category_description", "field_type":"STRING"}
+    ],
+    "indexs": 
+    [
+	{
+	    "index_name": "cat_id",
+            "index_type" : "PRIMARYKEY64",
+	    "index_fields": "cat_id"
+	}
+    ],
+    "attributes": ["cat_id", "category_name", "category_description"]
+}

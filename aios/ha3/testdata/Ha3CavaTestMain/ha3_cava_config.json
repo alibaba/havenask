@@ -1,0 +1,44 @@
+{
+    "pluginConf": {
+	"modules" : [
+            {
+                "name" :"default",
+                "path" : ""
+            }
+	],
+	"ASTRewriters": [
+            {
+                "module" : "default",
+                "class"  : "AddDefaultCreate",
+                "parameters" : {}
+            },
+            {
+                "module" : "default",
+                "class"  : "AddBatchScore",
+                "parameters" : {}
+            },
+            {
+                "module" : "default",
+                "class"  : "AddLocation",
+                "parameters" : {}
+            },
+            {
+                "module" : "default",
+                "class"  : "FunctionRewrite",
+                "parameters" : {}
+            }
+	],
+	"TypeExtenders": [
+	],
+	"SemaCheckers": [
+	]
+    },
+    "cavaPreLoads": [
+        "../share/cava",
+        "./function",
+        "./summary",
+        "./scorer"
+    ],
+    "bitCodeFile": "../share/bc/ha3_cava.bc",
+    "debugIR": false
+}

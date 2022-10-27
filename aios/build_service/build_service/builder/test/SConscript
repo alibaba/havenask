@@ -1,0 +1,38 @@
+# -*- mode: python -*-
+
+Import('env')
+
+env = env.Clone()
+
+fake_autil_thread_sources = [
+    'FakeThread.cpp',
+    'IndexBuilderCreator.cpp',
+]
+
+libfake_autil_thread = env.aSharedLibrary(target = 'fake_autil_thread',
+                                          source = fake_autil_thread_sources,
+                                          LIBS = ['autil']);
+
+builder_test_sources=  [
+    '#build_service/test/dotest.cpp',
+    'SortDocumentContainerTest.cpp',
+    'BuilderTest.cpp',
+    'BuilderCreatorTest.cpp',
+    'SortedBuilderTest.cpp',
+    'BuilderMetricsTest.cpp',
+    'BinaryStringUtilTest.cpp',
+    'SortDocumentConverterTest.cpp',
+    'AsyncBuilderTest.cpp',
+    'LineDataBuilderTest.cpp',
+    #'BuilderRangeTest.cpp',
+    ]
+
+libsname = ['bs_builder', 'bs_util', 'bs_document', 'document_fake','bs_analyzer',
+            'bs_config', 'bs_plugin', 'indexlib', 'fake_autil_thread']
+
+env.checkAllCppFileContained(Glob('*.cpp'), builder_test_sources + fake_autil_thread_sources)
+
+readertest = env.aTest(target = 'builder_test',
+                       source = builder_test_sources,
+                       LIBS = libsname + env['bs_test_common_lib'] + env['bs_worker_lib']
+                       );

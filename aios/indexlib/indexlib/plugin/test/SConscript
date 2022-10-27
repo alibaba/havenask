@@ -1,0 +1,66 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+env['auto_version'] = False
+dummy_sources = ['Dummy.cpp']
+
+libdummy = env.aSharedLibrary(target = 'dummy', source = dummy_sources, LIBS=[])
+
+libdummy_installed = env.aCopy('#testdata/plugins/', libdummy)
+nosym_sources = ['../DllWrapper.cpp']
+libnosym = env.aSharedLibrary(target = 'nosym', source = nosym_sources, LIBS=[])
+libnosym_installed = env.aCopy('#testdata/plugins/', libnosym)
+named_factory_sources = ['NamedFactoryModule.cpp']
+libnamed_factory = env.aSharedLibrary(target = 'named_factory', source = named_factory_sources, LIBS=[])
+libnamed_factory_installed = env.aCopy('#testdata/plugins/', libnamed_factory)
+
+plugin_test_sources=  [
+    '#indexlib/test/dotest.cpp',
+    'ModuleTest.cpp',
+    'plugin_manager_test.cpp',
+    'DllWrapperTest.cpp',
+    'index_plugin_loader_unittest.cpp',
+    ]
+
+libsname = [
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest',
+]
+
+#env.checkAllCppFileContained(Glob('*.cpp'), dummy_sources + plugin_test_sources + named_factory_sources)
+
+plugintest = env.aTest(target = 'plugin_test',
+                       source = plugin_test_sources,
+                       LIBS = libsname
+                       );
+env.Requires(plugintest, [libdummy_installed, libnosym_installed, libnamed_factory_installed])
+
+
+###################### dependency check #######################
+plugin_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+plugin_minimal_dependency_libs = [
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+]
+
+env.aTest(target = 'indexlib_plugin_dependency_unittest',
+          source = plugin_minimal_dependency_sources,
+          LIBS = plugin_minimal_dependency_libs)
+

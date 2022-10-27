@@ -1,0 +1,24 @@
+{
+    "modules" : [
+        {
+            "module_name" : "test_module1",
+            "module_path" : "libfakeoptimizer.so",
+            "pararmeters" : {
+            }
+        }
+    ],
+    "optimizers" : [
+        {
+            "module_name" : "test_module1",
+            "optimizer_name" : "test_optimizer1",
+            "pararmeters" : {
+            }
+        },
+        {
+            "module_name" : "test_module1",
+            "optimizer_name" : "test_optimizer1",
+            "pararmeters" : {
+            }
+        }
+    ]
+}

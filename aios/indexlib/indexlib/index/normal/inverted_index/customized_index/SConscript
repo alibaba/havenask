@@ -1,0 +1,14 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+customized_index_source=Glob('*.cpp')
+
+# customized_index_lib = env.aLibrary(target='customized_index', source=customized_index_source)
+# env.aCopy('#testdata', customized_index_lib)
+
+env.aDirs('test')
+Return(['customized_index_source'])
+
+

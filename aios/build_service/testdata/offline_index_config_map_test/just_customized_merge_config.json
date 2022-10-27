@@ -1,0 +1,14 @@
+{
+    "customized_merge_config" :
+    {
+        "full" :
+        {
+            "merge_config" :
+            {
+                "keep_version_count" : 30
+            },
+            "period" : "period=100",
+            "merge_parallel_num" : 100
+        }
+    }
+}

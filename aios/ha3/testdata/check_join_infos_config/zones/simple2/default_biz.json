@@ -1,0 +1,14 @@
+{
+    "aux_table_config" : {
+        "join_infos" : [
+            {
+                "field_name" : "id",
+                "join_field" : "not_exist_field",
+                "join_table" : "aux_table1"
+            }
+        ]
+    },
+    "cluster_config" : {
+        "table_name" : "simple"
+    }
+}

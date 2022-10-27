@@ -1,0 +1,35 @@
+{
+	"table_name": "galaxy",
+
+        "fields": 
+        [
+		{"field_name":"URL",    "field_type":"STRING"   },
+		{"field_name":"HASH_ID",    "field_type":"STRING" },
+		{"field_name":"PAGE_RANK",    "field_type":"STRING"},
+		{"field_name":"HOST_RANK",    "field_type":"STRING"  },
+		{"field_name":"TRUST_RANK",    "field_type":"STRING" },
+		{"field_name":"TITLE",    "field_type":"TEXT" }
+		{"field_name":"ANCHOR", "field_type":"TEXT", }
+		{"field_name":"QUERY_LOG", "field_type":"TEXT" }
+		{"field_name":"BODY", "field_type":"TEXT" }
+        ],
+
+	"indexs": 
+	[
+	     {
+		"index_name": "phrase",
+                "index_type" : "PACK",
+		"index_fields": 
+		[
+			{ "field_name":"TITLE", "boost":0 },
+			{ "field_name":"ANCHOR", "boost":0 },
+			{ "field_name":"QUERY_LOG", "boost":0 },
+			{ "field_name":"BODY", "boost":0 }
+		]
+	     }
+         ],
+
+	 "attributes": ["HASH_ID", "PAGE_RANK", "HOST_RANK", "TRUST_RANK" ],
+
+	 "summarys": ["URL", "TITLE", "BODY" ]
+}

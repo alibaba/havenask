@@ -1,0 +1,22 @@
+{
+    "table_name": "userid2usernick",
+    "table_type": "kv",
+
+    "fields": [
+        { "field_name": "usernick", "field_type": "STRING", "multi_value": false },
+        { "field_name": "userid", "field_type": "INT64", "multi_value": false }
+    ],
+    "regions" :
+    [
+	{
+	    "region_name" : "region1",
+	    "indexs": [ {"index_fields": "usernick", "index_name": "usernick", "index_type": "PRIMARY_KEY"} ],
+	    "attributes": ["userid"]
+	},
+	{
+	    "region_name" : "region2",
+	    "indexs": [ {"index_fields": "userid", "index_name": "userid", "index_type": "PRIMARY_KEY"} ],
+	    "attributes": ["usernick"]
+	}
+    ]
+}

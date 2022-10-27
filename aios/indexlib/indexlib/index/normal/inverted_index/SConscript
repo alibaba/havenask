@@ -1,0 +1,22 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+accessor = env.aDirs('accessor')
+format = env.aDirs('format')
+builtin_index = env.aDirs('builtin_index')
+customized_index = env.aDirs('customized_index')
+truncate = env.aDirs('truncate')
+
+inverted_index=Glob('*.cpp')
+invertedcpps = [accessor, format, builtin_index, customized_index, truncate, inverted_index]
+
+env.aLibrary(target='indexlib_inverted_index', source=invertedcpps)
+
+env.aDirs('test')
+env.aDirs('perf_test')
+
+Return(['invertedcpps'] )
+
+

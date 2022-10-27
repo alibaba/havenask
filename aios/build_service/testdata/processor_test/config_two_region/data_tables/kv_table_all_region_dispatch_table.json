@@ -1,0 +1,27 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "kv_table"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "RegionDocumentProcessor",
+                    "parameters" : {
+                        "dispatcher_type" : "dispatch_to_all_region"
+                    }
+                }
+            ],
+            "modules" : [
+            ]
+        }
+    ],
+    "processor_config" : {
+        "processor_queue_size" : 250,
+        "processor_thread_num" : 3
+    },
+    "processor_rule_config" : {
+        "partition_resource" : 100,
+        "processor_count" : 10
+    }
+}

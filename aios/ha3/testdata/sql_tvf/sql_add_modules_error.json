@@ -1,0 +1,20 @@
+{
+    "modules" : [
+        {
+            "module_name": "tvf",
+            "module_path": "libTestSqlTvfPlugin.so.4.0",
+            "parameters": {}
+        },
+        {
+            "module_name": "tvf",
+            "module_path": "libTestSqlTvfPlugin.so.4.0",
+            "parameters": {}
+        }
+    ],
+    "tvf_profiles" : [
+        {
+            "func_name": "echoTvf",
+            "tvf_name": "echoTvf"
+        }
+    ]
+}

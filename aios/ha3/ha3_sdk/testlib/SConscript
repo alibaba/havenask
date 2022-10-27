@@ -1,0 +1,24 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+env.Append(LIBPATH=['.'])
+
+# List my sub-directories.
+index = env.aDirs('index')
+search = env.aDirs('search')
+builder = env.aDirs('builder')
+function = env.aDirs('func_expression')
+suez_func = env.aDirs('function')
+qrs = env.aDirs('qrs')
+rank = env.aDirs('rank')
+common = env.aDirs('common')
+sorter = env.aDirs('sorter')
+summary = env.aDirs('summary')
+
+testlibcpps = [index, search, builder, function, qrs, rank, common, sorter, summary]
+
+env.aLibraryAndInstall(target='ha3sdk_testlib', source=testlibcpps)

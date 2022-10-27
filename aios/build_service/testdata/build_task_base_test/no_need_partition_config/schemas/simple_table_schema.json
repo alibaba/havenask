@@ -1,0 +1,37 @@
+{
+    "table_name": "cluster1",
+    "fields":
+    [
+        {"field_name":"title",        "field_type":"TEXT",   "analyzer":"singlews_analyzer"},
+        {"field_name":"price",       "field_type":"INTEGER"},
+        {"field_name":"price2",       "field_type":"INTEGER"},
+        {"field_name":"id",       "field_type":"INTEGER"}
+
+    ],
+
+    "indexs":
+    [
+        {
+            "index_name": "title",
+            "index_type": "TEXT",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "position_payload_flag" : 1,
+            "position_list_flag" : 1,
+            "index_analyzer" : "singlews_analyzer",
+            "index_fields": "title"
+        },
+	    {
+	        "index_name": "pk",
+	        "index_type": "PRIMARYKEY64",
+	        "index_fields": "id"
+	    }
+    ],
+
+    "attributes": ["price", "price2"],
+
+    "summarys":{
+        "summary_fields": ["title",  "price2"],
+        "compress_block_size": 5
+    }
+}

@@ -1,0 +1,39 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+skiplist_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'buffered_skip_list_writer_unittest.cpp',
+    'pair_value_skip_list_reader_unittest.cpp',
+    'tri_value_skip_list_reader_unittest.cpp',
+    'in_mem_pair_value_skip_list_reader_unittest.cpp',
+    'in_mem_tri_value_skip_list_reader_unittest.cpp',
+    'skip_list_reader_unittest.cpp',
+    'skip_list_reader_unittest_base.cpp',
+]
+
+libs = [
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest',
+    'pthread'
+]
+
+env.aTest('indexlib_skiplist_unittest', skiplist_test_sources, LIBS=libs)
+

@@ -1,0 +1,44 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+analyzer_sources = [
+    'CodeConverter.cpp',
+    'Normalizer.cpp',
+    'NormalizeTable.cpp',
+    'StopWordFilter.cpp',
+#    'AliTokenizerWrapper.cpp',
+#    'MultiLevelAliTokenizerWrapper.cpp',
+    'SimpleTokenizer.cpp',
+    'Analyzer.cpp',
+    'AnalyzerFactory.cpp',
+    'AnalyzerInfo.cpp',
+    'AnalyzerInfos.cpp',
+    'SingleWSScanner.ll',
+    'SingleWSTokenizer.cpp',
+    'TraditionalTables.cpp',
+    'IdleTokenizer.cpp',
+#    'SemanticAliTokenizerWrapper.cpp',
+    'BuildInTokenizerFactory.cpp',
+    'TokenizerManager.cpp',
+    'EncodeConverter.cpp',
+    'CHN_T2S_SET.cpp',
+    'TextBuffer.cpp',
+    'PrefixTokenizer.cpp',
+    'PrefixTokenizerImpl.cpp',
+    'SuffixPrefixTokenizer.cpp',
+    'SuffixPrefixTokenizerImpl.cpp'
+    ]
+
+env.checkAllCppFileContained(Glob('*.cpp') + Glob('*.ll'), analyzer_sources)
+analyzer_sources = map(os.path.abspath, analyzer_sources)
+
+env.aLibrary(target = 'bs_analyzer',
+             source = analyzer_sources)
+
+env.aDirs('test')
+
+Return(['analyzer_sources'])

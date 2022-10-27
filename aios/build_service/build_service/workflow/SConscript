@@ -1,0 +1,40 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+workflow_sources = [
+    'DocReaderProducer.cpp',
+    'DocProcessorConsumer.cpp',
+    'DocProcessorProducer.cpp',
+    'BuildFlow.cpp',
+    'DocBuilderConsumer.cpp',
+    'SwiftBrokerFactory.cpp',
+    'SwiftProcessedDocProducer.cpp',
+    'SwiftProcessedDocConsumer.cpp',
+    'FlowFactory.cpp',
+    'RealtimeBuilder.cpp',
+    'ProcessedDocRtBuilderImpl.cpp',
+    'TestBrokerFactory.cpp',
+    'PrepareIndex.cpp',
+    'AsyncStarter.cpp',
+    'RealtimeBuilderImplBase.cpp',
+    'RawDocRtJobBuilderImpl.cpp',
+    'RawDocRtServiceBuilderImpl.cpp',    
+    'RealTimeBuilderTaskItem.cpp',
+    'WorkflowThreadPool.cpp',
+    'RealtimeBuilderDefine.cpp',
+    'RawDocBuilderConsumer.cpp',
+    ]
+
+env.checkAllCppFileContained(Glob('*.cpp'), workflow_sources)
+workflow_sources = map(os.path.abspath, workflow_sources)
+
+env.aLibrary(target = 'bs_workflow',
+             source = workflow_sources)
+
+env.aDirs('test')
+
+Return(['workflow_sources'])

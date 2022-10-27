@@ -1,0 +1,64 @@
+# -*- mode: python -*-
+import platform
+Import('env')
+env = env.Clone();
+
+storage_ut_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'file_system_wrapper_unittest.cpp',
+    'file_wrapper_unittest.cpp',
+    'write_control_file_wrapper_unittest.cpp',
+    'buffered_file_wrapper_unittest.cpp',
+    'async_buffered_file_wrapper_unittest.cpp',
+    'buffered_file_wrapper_perf_unittest.cpp',
+    'data_flush_controller_unittest.cpp',
+    'line_reader_unittest.cpp',
+    'archive_file_unittest.cpp',
+    'archive_folder_unittest.cpp',
+    'raid_config_unittest.cpp',
+]
+
+env.aTest(target = 'indexlib_storage_unittest',
+          source = storage_ut_test_sources,
+          LIBS=[
+          'indexlib_basic',
+          'fslib-framework',
+          'gmock',
+          'gtest',
+          ])
+
+
+###################### dependency check #######################3
+storage_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+storage_minimal_dependency_libs = [
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+]
+
+env.aTest(target = 'indexlib_storage_dependency_unittest',
+          source = storage_minimal_dependency_sources,
+          LIBS = storage_minimal_dependency_libs)
+
+
+storage_exception_unittestcpps = [
+    '#indexlib/test/dotest.cpp',
+    'archive_folder_exception_unittest.cpp',
+]
+
+ut_io_exception_libs = [
+    'indexlib_storage_mock',
+    'indexlib_basic',
+    'indexlib_misc',
+    'fslib-framework',
+    'autil',
+    'gmock',
+    'gtest'
+]
+
+env.aTest(target = 'storage_exception_unittest',
+          source = storage_exception_unittestcpps,
+          LIBS= ut_io_exception_libs)

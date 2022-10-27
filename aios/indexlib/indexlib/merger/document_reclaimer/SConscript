@@ -1,0 +1,11 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+document_reclaimer_cpps=Glob('*.cpp')
+env.aDirs('test')
+
+Return(['document_reclaimer_cpps'] )
+
+

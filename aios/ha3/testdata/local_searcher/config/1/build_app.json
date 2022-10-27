@@ -1,0 +1,5 @@
+{
+    "swift_root" : "zfs://invalid/swift",
+    "service_name" : "serviceName",
+    "user_name" : "userName"
+}

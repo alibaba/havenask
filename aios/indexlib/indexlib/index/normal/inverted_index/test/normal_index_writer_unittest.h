@@ -1,0 +1,176 @@
+#ifndef __INDEXLIB_NORMALINDEXWRITERTEST_H
+#define __INDEXLIB_NORMALINDEXWRITERTEST_H
+
+#include <set>
+#include <tr1/memory>
+#include <autil/StringUtil.h>
+#include <autil/mem_pool/SimpleAllocator.h>
+#include <autil/mem_pool/Pool.h>
+#include <autil/mem_pool/RecyclePool.h>
+#include "indexlib/common_define.h"
+
+#include "indexlib/test/test.h"
+#include "indexlib/test/unittest.h"
+#include "indexlib/config/field_schema.h"
+#include "indexlib/config/index_schema.h"
+#include "indexlib/config/index_config.h"
+#include "indexlib/config/high_frequency_vocabulary.h"
+#include "indexlib/document/index_document/normal_document/index_document.h"
+#include "indexlib/document/index_document/normal_document/section.h"
+#include "indexlib/index/normal/inverted_index/accessor/index_writer.h"
+#include "indexlib/util/key_hasher_typed.h"
+#include "indexlib/index/normal/inverted_index/format/dictionary/dictionary_reader.h"
+#include "indexlib/index/normal/inverted_index/format/dictionary/tiered_dictionary_reader.h"
+#include "indexlib/index/test/index_document_maker.h"
+#include "indexlib/index/normal/inverted_index/format/dictionary/dictionary_typed_factory.h"
+#include "indexlib/util/key_hasher_factory.h"
+#include "indexlib/index/test/index_document_maker.h"
+#include "indexlib/index/normal/inverted_index/accessor/normal_index_writer.h"
+#include "indexlib/file_system/indexlib_file_system_impl.h"
+#include "indexlib/file_system/in_mem_directory.h"
+
+IE_NAMESPACE_BEGIN(index);
+
+#define VOL_NAME "writer_vol1"
+#define HIGH_FREQ_TOKEN "token0"
+#define VOL_CONTENT "token0"
+#define NUMBER_HIGH_FREQ_TOKEN "0"
+#define NUMBER_VOL_CONTENT "0"
+
+class NormalIndexWriterTest : public INDEXLIB_TESTBASE 
+{
+public:
+    typedef index::IndexDocumentMaker::PostingAnswerMap AnswerMap;
+    typedef index::IndexDocumentMaker::KeyAnswer KeyAnswer;
+    typedef index::IndexDocumentMaker::Answer Answer;
+    typedef index::IndexDocumentMaker::KeyAnswerInDoc KeyAnswerInDoc;
+    typedef index::IndexDocumentMaker::HashKeyToStrMap HashKeyToStrMap;
+
+public:
+    static const size_t DEFAULT_CHUNK_SIZE = 256 * 10240;
+    static const uint32_t FIELD_NUM_FOR_PACK = 10;
+    static const uint32_t FIELD_NUM_FOR_EXPACK = 8;
+
+    DECLARE_CLASS_NAME(NormalIndexWriterTest);
+public:
+    NormalIndexWriterTest();
+    ~NormalIndexWriterTest();
+public:
+    void CaseSetUp() override;
+    void CaseTearDown() override;
+
+    void TestCaseForDumpDictInlinePosting();
+    void TestCaseForNumberIndexWithOneDoc();
+    void TestCaseForNumberIndexWithMultiDoc();
+    void TestCaseForTextIndexWithOneDoc();
+    void TestCaseForTextIndexWithMultiDoc();
+    void TestCaseForExpackIndexWithOneDoc();
+    void TestCaseForExpackIndexWithMultiDoc();
+    void TestCaseForPackIndexWithOneDoc();
+    void TestCaseForPackIndexWithMultiDoc();
+    void TestCaseForPackIndexWithoutSectionAttribute();
+    void TestCaseForCreateInMemReader();
+    void TestCaseForCreateInMemReaderWithSection();
+    void TestCaseForCreateInMemReaderWithBitmap();
+    void TestCaseForCreateBitmapIndexWriter();
+    void TestCaseForDumpIndexFormatOffline();
+    void TestCaseForDumpIndexFormatOnline();
+    void TestCaseForDumpPerfLongCaseTest();
+    void TestCaseForEstimateDumpMemoryUse();
+
+public:
+    void DoTest(IndexType indexType, uint32_t docNum, uint32_t fieldNum,
+                uint32_t secNum, optionflag_t optionFlag, 
+                bool hasVol = false, index::TokenType tokenType = index::tt_text,
+                FieldType fieldType = ft_text);
+
+    void CreateIndexConfig(IndexType indexType, 
+                           uint32_t fieldNum,
+                           FieldType fieldType = ft_text, 
+                           bool hasVol = false);
+
+    void CreateIndexWriter();
+
+    void CheckFieldMap(docid_t docId, const HashKeyToStrMap &hashKeyToStrMap, Answer *answer);
+
+    void BuildIndex(uint32_t docNum, uint32_t fieldNum, uint32_t secNum,
+                    bool hasVol, index::TokenType tokenType);
+
+    void SetVocabulary(IndexType indexType);
+
+    void CheckBitmap(Answer *answer);
+
+    void CheckDistinctTermCount(uint32_t expectedTermCount)
+    {
+        INDEXLIB_TEST_EQUAL(expectedTermCount, mIndexWriter->GetDistinctTermCount());
+    }
+
+    void CheckPostingWriter(const HashKeyToStrMap &hashKeyToStrMap, Answer *answer);
+
+    void CheckData(bool hasVol);
+
+    // number index should override this
+    void CheckNormalTokens();
+
+    void CheckHighFreqToken();
+
+    bool CheckKey(index::DictionaryReader *reader,
+                  dictkey_t key);
+
+
+protected:
+    void CreatePackIndexConfig(IndexType indexType,
+                               const std::string &indexName, 
+                               uint32_t fieldNum, bool hasVol);
+
+    void CreateSingleFieldIndexConfig(IndexType indexType, 
+            const std::string &indexName,
+            FieldType fieldType, bool hasVol = false);
+
+private:
+    void AddToken(const std::vector<document::Section *> &sectionVec);
+
+    void InnerTestCaseForCreateInMemReader(bool hasSection, bool hasHighVol);
+    
+    void ResetCaseDirectory();
+
+protected:
+    util::SimplePool mSimplePool;
+    config::IndexConfigPtr mIndexConfig;
+    config::IndexPartitionSchemaPtr mSchema;
+    index::IndexWriterPtr mIndexWriter;
+    config::HighFrequencyVocabularyPtr mHighFreqVol;
+    file_system::DirectoryPtr mTestDir;
+    file_system::IndexlibFileSystemPtr mFileSystem;
+    std::set<dictkey_t> mTokens;
+    index::TokenType mTokenType;
+    optionflag_t mOptionFlag;
+    uint64_t mDfSum;
+    config::IndexPartitionOptions mOptions;
+
+private:
+    IE_LOG_DECLARE();
+};
+
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForDumpDictInlinePosting);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForNumberIndexWithOneDoc);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForNumberIndexWithMultiDoc);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForTextIndexWithOneDoc);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForTextIndexWithMultiDoc);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForExpackIndexWithOneDoc);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForExpackIndexWithMultiDoc);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForPackIndexWithOneDoc);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForPackIndexWithMultiDoc);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForPackIndexWithoutSectionAttribute);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForCreateInMemReader);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForCreateInMemReaderWithSection);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForCreateInMemReaderWithBitmap);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForCreateBitmapIndexWriter); 
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForDumpIndexFormatOnline);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForDumpIndexFormatOffline);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForDumpPerfLongCaseTest);
+INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForEstimateDumpMemoryUse);
+
+IE_NAMESPACE_END(index);
+
+#endif //__INDEXLIB_NORMALINDEXWRITERTEST_H

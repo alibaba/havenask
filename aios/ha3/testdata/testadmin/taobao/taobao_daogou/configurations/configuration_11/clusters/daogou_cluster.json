@@ -1,0 +1,66 @@
+{
+    "build_option_config" : {
+        "max_recover_time" : 1
+    },
+    "cluster_config" : {
+        "builder_rule_config" : {
+            "need_partition" : true
+        },
+        "cluster_name" : "daogou",
+        "cluster_type" : "inc_with_realtime",
+        "dispatch_config" : {
+            "switch_by_replica" : true
+        },
+        "hash_mode" : {
+            "hash_field" : "id",
+            "hash_function" : "HASH"
+        },
+        "join_config" : {
+            "join_infos" : [
+                {
+                    "join_cluster" : "company",
+                    "join_field" : "company_id",
+                    "strong_join" : true
+                },
+                {
+                    "join_cluster" : "category",
+                    "join_field" : "category_name",
+                    "strong_join" : false
+                }
+            ]
+        },
+        "proxy_rule" : {
+            "partition_count" : 1,
+            "partition_resource" : 50,
+            "replica_count" : 1
+        },
+        "query_config" : {
+            "default_index" : "default",
+            "default_operator" : "AND"
+        },
+        "searcher_rule" : {
+            "partition_resource" : 50,
+            "replica_count" : 1
+        },
+        "swift_topic_name" : "daogou",
+        "swift_zookeeper_root" : "",
+        "table_name" : "daogou"
+    },
+    "offline_index_config" : {
+        "build_config" : {
+            "keep_version_count" : 2,
+            "max_memory_use" : 1024
+        },
+        "merge_config" : {
+            "keep_version_count" : 2,
+            "merge_strategy" : "optimize",
+            "merge_strategy_param" : ""
+        }
+    },
+    "swift_config" : {
+        "topic" : {
+            "partition_buffer_size" : 1,
+            "partition_resource" : 1
+        }
+    }
+}

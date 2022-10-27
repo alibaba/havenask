@@ -1,0 +1,31 @@
+#ifndef __INDEXLIB_DEMO_INDEX_MODULE_FACTORY_H
+#define __INDEXLIB_DEMO_INDEX_MODULE_FACTORY_H
+
+#include "indexlib/index/normal/inverted_index/customized_index/index_module_factory.h"
+
+IE_NAMESPACE_BEGIN(merger);
+
+class DemoIndexModuleFactory : public index::IndexModuleFactory
+{
+public:
+    DemoIndexModuleFactory();
+    ~DemoIndexModuleFactory();
+public:
+    void destroy() override;
+    index::Indexer* createIndexer(
+        const util::KeyValueMap &parameters) override;
+    
+    index::IndexReducer* createIndexReducer(
+        const util::KeyValueMap &parameters) override;
+    
+    index::IndexSegmentRetriever* createIndexSegmentRetriever(
+        const util::KeyValueMap &parameters) override;
+private:
+    util::KeyValueMap _parameters;
+};
+
+DEFINE_SHARED_PTR(DemoIndexModuleFactory);
+
+IE_NAMESPACE_END(merger);
+
+#endif //__INDEXLIB_DEMO_INDEX_MODULE_FACTORY_H

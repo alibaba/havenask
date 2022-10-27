@@ -1,0 +1,23 @@
+CMD=add
+id=1
+company_id=1
+subject=Mobile 商务笔记本
+keywords=笔记本
+cat_id=10
+end1=20
+
+CMD=add
+id=2
+company_id=2
+subject=Mobile Phone
+keywords=智能手机
+cat_id=20
+end1=40
+
+CMD=add
+id=3
+company_id=1
+subject=Mobile OPPO Mp3
+keywords=Mp3
+cat_id=30
+end1=60

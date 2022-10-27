@@ -1,0 +1,36 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+pb_python_TestJsonize = env.aCompileProto('TestJsonize.proto', 'python')
+pb_TestJsonize = env.aCompileProto('TestJsonize.proto')
+
+fake_proto_sources = [
+    'ProtoTestHelper.cpp',
+    'ProtoCreator.cpp',
+]
+lib_proto_fake = env.aLibrary(target = 'proto_fake', source = fake_proto_sources + pb_TestJsonize)
+
+proto_test_sources=  [
+    '#build_service/test/dotest.cpp',
+    'BasicDefsTest.cpp',
+    'ProtoUtilTest.cpp',
+    'ErrorCollectorTest.cpp',
+    'DataDescriptionsTest.cpp',
+    'ProtoJsonizerTest.cpp',
+    'JsonizableProtobufTest.cpp',
+    'ProtoComparatorTest.cpp',
+    ]
+
+libsname = ['bs_proto', 'proto_fake', 'http_arpc']
+
+env.checkAllCppFileContained(Glob('*.cpp'), proto_test_sources + fake_proto_sources)
+
+prototest = env.aTest(target = 'proto_test',
+                       source = proto_test_sources,
+                       LIBS = libsname + env['bs_test_common_lib'] + env['bs_worker_lib']
+                       );

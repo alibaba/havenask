@@ -1,0 +1,22 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "daogou"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "TokenizeDocumentProcessor"
+                }
+            ],
+            "modules" : [
+            ],
+            "sub_document_processor_chain" : [
+                {
+                    "class_name" : "TokenizeDocumentProcessor"
+                }
+            ],
+            "table_name" : "daogou"
+        }
+    ]
+}

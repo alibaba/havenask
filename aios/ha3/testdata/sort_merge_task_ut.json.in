@@ -1,0 +1,36 @@
+{
+"ClassName": "MergeReduceTask",
+"Parameters":
+{
+	"BuildPartitionCount": "2", 
+	"ParallelBuildNum": "2",
+	"PartitionCount": "4",
+	"BuildPartitionIdFrom": "1",
+	"ConfigDir": "@TOP_SRCDIR@/testdata/local_searcher/config",
+	"IndexDir": "@TOP_SRCDIR@/testdata/apsara_merger_test_tmp",
+	"IndexGeneration": "0",
+	"ZookeeperRoot": "",
+	"UserName": "test_name",
+	"ServiceName": "test_service",
+	"ClusterName": "daogou",
+	"BuildMode": "full",
+        "NeedSort": "true",	
+	"SortFieldName": "cat_id"
+},
+"Inputs":
+[
+    {
+        "AccessPointName": "fromMapTask",
+        "FilePattern": "",
+        "Mode": "MODE_COMMON"
+    }
+],
+"Outputs":
+[
+    {
+        "AccessPointName": "pageMetaOutput",
+        "FilePattern": "",
+        "Mode": "COMMON"
+    }
+]
+}

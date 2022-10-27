@@ -1,0 +1,24 @@
+#ifndef ISEARCH_TEST_H_
+#define ISEARCH_TEST_H_
+#define TOP_SRCDIR "@TOP_SRCDIR@"
+#define TOP_BUILDDIR "@TOP_SRCDIR@" "/" "@TOP_BUILDDIR@"
+#define BUILDDIR "@BUILDDIR@"
+#define BIN_PATH "@TOP_BUILDDIR@/ha3/app"
+#define LIB_PATH "@TOP_BUILDDIR@/lib"
+#define TEST_DATA_PATH "@TOP_SRCDIR@/testdata"
+#define TEST_DATA_CONF_PATH "@TOP_SRCDIR@/testdata/testadmin/taobao/taobao_daogou"
+#define TEST_DATA_CONF_PATH_HA2 "@TOP_SRCDIR@/testdata/testadmin/ha3/isearch_ha3/configurations/configuration_0"
+#define TEST_DATA_CONF_PATH_HA3 "@TOP_SRCDIR@/testdata/testadmin/taobao/taobao_daogou/configurations/configuration_1"
+#define TEST_DATA_CONF_PATH_1CLUSTER "@TOP_SRCDIR@/testdata/testadmin/ha3/isearch_ha3/configurations/configuration_1"
+#define TEST_DATA_CONF_PATH_1CLUSTER_1SEARCHER "@TOP_SRCDIR@/testdata/testadmin/ha3/isearch_ha3/configurations/configuration_2"
+#define TEST_DATA_CONF_PATH_1CLUSTER_2SEARCHER "@TOP_SRCDIR@/testdata/testadmin/ha3/isearch_ha3/configurations/configuration_3"
+#define TEST_DATA_HADOOP "@TOP_SRCDIR@/testdata/hadooptest"
+#define DOTEST_LOGGER_CONF "@DOTEST_LOGGER_CONF@"
+#define ALIWSLIB_DATA_PATH "@ALIWSLIB_DATA_PATH@"
+#define TEST_ZOOKEEPER_PATH "@TOP_SRCDIR@/testdata/zookeeper"
+#define TEST_DATA_SERVICE_ROOT "@TOP_SRCDIR@/testdata/serviceRoot"
+#define TEST_DATA_CONF_PATH_VERSION(version) \
+    "@TOP_SRCDIR@/testdata/testadmin/taobao/taobao_daogou/configurations/configuration_"#version
+
+#define INSTALL_ROOT "@INSTALL_ROOT@"
+#endif

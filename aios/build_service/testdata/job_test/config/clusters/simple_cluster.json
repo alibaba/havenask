@@ -1,0 +1,43 @@
+{
+    "build_option_config" : {
+        "sort_build" : false
+    },
+    "cluster_config" : {
+        "builder_rule_config" : {
+            "build_parallel_num" : 2,
+            "partition_count" : 2
+        },
+        "hash_mode" : {
+            "hash_field" : "id",
+            "hash_function" : "KINGSO_HASH#65536"
+        },
+        "table_name" : "sample"
+    },
+    "index_option_config" : {
+        "KeepVersionCount" : 100,
+        "MergeStrategy" : "balance_tree",
+        "MergeStrategyParam" : "conflict-segment-number=100;base-doc-count=10240;max-doc-count=102400"
+    },
+    "offline_index_config" : {
+	"build_config" : {
+	    "max_doc_count" : 100
+	}
+    },
+    "offline_index_options" : {
+        "full" : {
+            "index_option_config" : {
+                "MergeStrategy" : "optimize"
+            }
+        }
+    },
+    "swift_config" : {
+        "topic" : {
+            "obsolete_file_interval" : 3600,
+            "partition_buffer_size" : 1000,
+            "partition_count" : 1,
+            "partition_file_buf_size" : 1000,
+            "partition_resource" : 1,
+            "reserved_file_count" : 10
+        }
+    }
+}

@@ -1,0 +1,24 @@
+{
+    "cluster_config" : {
+	"table_name" : "mainse_searcher"
+    },
+    "build_option_config" : {
+    },
+    "offline_index_config" : {
+        "merge_config" : {
+	    "merge_thread_count" : 2
+        },
+        "customized_merge_config" : {
+	    "full" : {
+	        "merge_config" : {
+		    "merge_thread_count" : 1
+	        }
+	    },
+	    "inc" : {
+	        "merge_config" : {},
+	        "period" : "period=1800"
+	    }
+            
+        }
+    }
+}

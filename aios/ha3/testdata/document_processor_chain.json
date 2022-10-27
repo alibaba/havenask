@@ -1,0 +1,49 @@
+
+
+{
+   "document_processor_chain":
+	[
+		{
+		     "class_name" : "filter1",
+		     "module_name": "mmm1",
+		     "parameters" :
+		     		  {
+				      "key1" : "aaa",
+				      "key2" : "bbb"
+		     		  }
+		},
+		{
+		     "class_name" : "filter2",
+		     "module_name": "mmm2",
+		     "parameters" :
+		     		  {
+				      "key1" : "aaa",
+				      "key2" : "bbb"
+		     		  }
+		}   
+
+	],
+
+   "sub_document_processor_chain":
+	[
+		{
+		     "class_name" : "filter1",
+		     "module_name": "mmm1",
+		     "parameters" :
+		     		  {
+				      "key1" : "aaa",
+				      "key2" : "bbb"
+		     		  }
+		},
+		{
+		     "class_name" : "filter2",
+		     "module_name": "mmm2",
+		     "parameters" :
+		     		  {
+				      "key1" : "aaa",
+				      "key2" : "bbb"
+		     		  }
+		}   
+
+	]
+}

@@ -1,0 +1,8 @@
+{
+    "user": "taobao",
+    "service_name": "taobao_daogou",
+    "nuwa_addr": "nuwa_address:nuwa_port",
+    "pangu_root": "/taobao/taobao_daogou",
+    "logger_conf": "pangu://nuwa_address:nuwa_port/taobao/taobao_daogou/apsara_log.conf",
+    "clusters":["auction", "offer_gb"]
+}

@@ -1,0 +1,166 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+partition_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'schema_rewriter_unittest.cpp',
+    'offline_partition_unittest.cpp',
+    'online_partition_unittest.cpp',
+    'offline_partition_writer_unittest.cpp',
+    'index_format_version_unittest.cpp',
+    'index_builder_unittest.cpp',
+    'index_builder_metrics_unittest.cpp',
+    'offline_partition_intetest.cpp',
+    'patch_modifier_unittest.cpp',
+    'inplace_modifier_unittest.cpp',
+    'online_partition_writer_unittest.cpp',
+    'on_disk_partition_data_unittest.cpp',
+    'reader_container_unittest.cpp',
+    'partition_reader_cleaner_unittest.cpp',
+    'partition_reader_snapshot_unittest.cpp',
+    'on_disk_index_cleaner_unittest.cpp',
+    'building_partition_data_unittest.cpp',
+    'realtime_partition_data_reclaimer_unittest.cpp',
+    'open_reader_by_loadconfig_unittest.cpp',
+    'sub_doc_unittest.cpp',
+    'in_memory_index_cleaner_unittest.cpp',
+    'in_memory_partition_data_unittest.cpp',
+    'memory_stat_collector_unittest.cpp',
+    'reader_snapshot_unittest.cpp',
+    'table_reader_container_updater_unittest.cpp',
+    'in_mem_virtual_attribute_cleaner_unittest.cpp',
+    'sub_doc_modifier_unittest.cpp',
+    'online_partition_perf_test.cpp',
+    'join_segment_writer_unittest.cpp',
+    'reopen_decider_unittest.cpp',
+    'partition_resource_calculator_unittest.cpp',
+    'sort_build_checker_unittest.cpp',
+    'partition_mem_control_perf_test_unittest.cpp',
+    'raw_document_field_extractor_unittest.cpp',
+    'offline_partition_reader_unittest.cpp',
+    'online_partition_reopen_unittest.cpp',
+    'partition_writer_resource_calculator_unittest.cpp',
+    'patch_loader_unittest.cpp',
+    'multi_partition_task_scheduler_intetest.cpp',
+    'multi_thread_building_partition_data_unittest.cpp',
+    'partition_counter_intetest.cpp',
+    'partition_counter_perf_test.cpp',
+    'flushed_locator_container_unittest.cpp',
+    'time_range_index_intetest.cpp',
+    'index_application_unittest.cpp',
+    'segment_metrics_updater_intetest.cpp',
+    'aux_table_reader_unittest.cpp',
+    'lifecycle_load_intetest.cpp',
+    'local_index_cleaner_unittest.cpp',
+]
+
+custom_partition_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'custom_offline_partition_unittest.cpp',
+    'custom_online_partition_unittest.cpp',
+    'custom_table_intetest.cpp',
+    'custom_table_perf_intetest.cpp',
+]
+
+partition_build_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'index_builder_intetest.cpp',
+    'parallel_build_intetest.cpp',
+]
+
+online_partition_intetest_sources = [
+    '#indexlib/test/dotest.cpp',
+    'online_partition_intetest.cpp',
+    'force_reopen_intetest.cpp',
+    'aux_table_intetest.cpp',
+    'number_range_index_intetest.cpp',
+    'attribute_update_intetest.cpp',
+    'online_partition_reader_intetest.cpp',
+    'auto_add2update_intetest.cpp',
+    'online_offline_join_intetest.cpp',
+]
+
+partition_exception_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'fake_open_executor_chain.cpp',
+    'online_partition_exception_unittest.cpp',
+    'inc_parallel_build_exception_unittest.cpp',
+    'index_builder_exception_unittest.cpp',
+    'online_use_path_meta_cache_intetest.cpp',
+]
+
+partition_commoncpps = [
+    'fake_index_partition_creator.cpp',
+    'index_partition_maker.cpp',
+]
+
+env.aSharedLibrary(target='indexlib_partitiontest_common', source=partition_commoncpps)
+
+partition_libs = [
+    'indexlib_partitiontest_common',
+    'indexlib_indextest_common',
+    'indexlib_file_system_test_common',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest',
+]
+
+env.aTest(target = 'ie_partition_unittest',
+          source = partition_test_sources, LIBS = partition_libs)
+
+#env.aTest(target = 'ie_partition_build_unittest',
+#           source = partition_build_test_sources, LIBS = partition_libs)
+
+# env.aTest(target = 'ie_online_partition_intetest',
+#           source = online_partition_intetest_sources, LIBS = partition_libs)
+
+# env.aTest(target = 'ie_partition_exception_unittest',
+#           source = partition_exception_test_sources,
+#           LIBS = ['indexlib_storage_mock'] + partition_libs)
+
+# env.aTest(target = 'ie_custom_partition_unittest',
+#           source = custom_partition_test_sources, LIBS = partition_libs + ['simpleTable'] )
+libdemoTablePlugin = "#testdata/libdemoTable.so"
+env.Depends('ie_custom_partition_unittest', libdemoTablePlugin)
+
+
+######################## dependency check ##########################
+partition_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+partition_minimal_dependency_libs = [
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+]
+
+#env.aTest(target = 'indexlib_partition_dependency_unittest',
+#          source = partition_minimal_dependency_sources,
+#          LIBS = partition_minimal_dependency_libs)

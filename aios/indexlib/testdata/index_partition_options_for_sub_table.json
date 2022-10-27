@@ -1,0 +1,49 @@
+{
+    "MaxMemoryUse": 8024,
+    "MaxIndexSize" : 1024,
+    "ReaderKeepAliveTime": 10000,
+    "MaxReopenMemoryUse" : 4096,
+    "KeepVersionCount": 2,
+    "SortByWeightDocCount": 10000,
+    "MergeStrategy" : "balance_tree",
+    "MergeStrategyParam" : "conflict-segment-number=3;base-doc-count=120000;max-doc-count=1000000",
+    "EnableDeleteRealtime" : false,
+    "TrimmerType" : "doc_trimmer",
+    "Index" : {
+        "ReadMode" : "mmap",
+        "Parameter" : "none",
+        "EnableWarmUp" : false
+     },
+    "Summary" : {
+        "ReadMode" : "cached",
+        "Parameter" : "2048",
+        "EnableWarmUp" : true
+     },
+    "Attribute" : {
+        "ReadMode" : "mmap",
+        "Parameter" : "lock,lock_slice=1024,lock_interval=2",
+        "EnableWarmUp" : false
+     },
+    "MergeThreadCount" : 3,
+    "RtMode" : "realtime",
+    "RtOptions" : {
+        "KeepVersionCount": 10,
+        "MergeStrategy" : "realtime",
+        "MergeStrategyParam" :"max-small-segment-count=5;merge-size-upperbound=128;merge-size-lowerbound=128",
+        "TrimmerType" : "time_trimmer",
+	    "MaxMemoryUse" : 1024,
+	    "Summary" : {
+	        "ReadMode" : "mmap",
+	        "Parameter" : "none",
+	        "EnableWarmUp" : false
+	    },
+	    "Index" : {
+	        "ReadMode" : "cached",
+	        "Parameter" : "1024",
+	        "EnableWarmUp" : false
+	    }
+    },
+    "TruncateOptionConfig" :
+    {
+    }
+}

@@ -1,0 +1,8 @@
+#ifndef INDEXLIB_TEST_H_
+#define INDEXLIB_TEST_H_
+#define TOP_BUILDDIR "@TOP_BUILDDIR@"
+#define BUILDDIR "@BUILDDIR@"
+#define TEST_DATA_PATH "@TOP_SRCDIR@/testdata/"
+#define BUILD_LD_PATH "@TOP_SRCDIR@/@BUILDDIR@/lib/"
+#endif
+

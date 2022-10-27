@@ -1,0 +1,617 @@
+{
+    "aggregate_sampler_config" : {
+        "aggBatchMode" : true,
+        "aggThreshold" : 2000,
+        "batchSampleMaxCount" : 1000,
+        "maxSortCount" : 10001,
+        "sampleStep" : 100000
+    },
+    "cluster_config" : {
+        "cluster_name" : "mainse_searcher",
+        "deploy_config" : {
+            "block_size" : 1048576,
+            "job_option" : "useDirectIO:true",
+            "sync_interval" : 20,
+            "sync_size_limit" : 1048576
+        },
+        "hash_mode" : {
+            "hash_field" : "nid",
+            "hash_function" : "KINGSO_HASH#720"
+        },
+        "query_config" : {
+            "default_index" : "phrase",
+            "default_operator" : "AND"
+        },
+        "swift_config" : {
+            "need_field_filter" : true,
+            "swift_filter_mode" : "normal_mode",
+            "swift_message_mask" : 2,
+            "swift_message_mask_result" : 2,
+            "swift_reader_config" : "oneRequestReadCount=100;readBufferSize=10240;compress=true",
+            "swift_topic_name" : "mainse",
+            "swift_zookeeper_root" : "zfs://10.246.9.194:12181,10.246.22.4:12181,10.234.9.126:12181,10.234.9.44:12181,10.234.9.49:12181/swift_mainse_online"
+        },
+        "table_name" : "mainse_searcher"
+    },
+    "doc_process_chain_config" : {
+        "document_processor_chain" : [
+            {
+                "class_name" : "ModifiedFieldsDocumentProcessor",
+                "module_name" : "",
+                "parameters" : {
+                    "derivative_relationship" : "nick:DUP_nick;pidvid:DUP_pidvid;ends:ends_1,ends_2;zk_rate:zk_time,zk_rate_single;zk_time:zk_rate,zk_rate_single;dna_id:DUP_dna_id",
+                    "ignore_fields" : "commend",
+                    "rewrite_add_to_skip" : "true",
+                    "rewrite_add_to_update" : "true"
+                }
+            },
+            {
+                "class_name" : "SplitProcessor",
+                "module_name" : "MainseOfflineBuild",
+                "parameters" : {
+                    "Fields" : "lptimedisp_flagpropertiesprovcityendscrowd_favorite_tagscrowd_favorite_scoresvip_prom",
+                    "Separators" : ",,;;   ,"
+                }
+            },
+            {
+                "class_name" : "SplitFieldProcessor",
+                "module_name" : "MainseOfflineBuild",
+                "parameters" : {
+                    "DstFieldsList" : "ends_1,ends_2",
+                    "SrcFields" : "ends"
+                }
+            },
+            {
+                "class_name" : "Duplicator",
+                "module_name" : "MainseOfflineBuild",
+                "parameters" : {
+                }
+            },
+            {
+                "class_name" : "NormalizeProcessor",
+                "module_name" : "MainseOfflineBuild",
+                "parameters" : {
+                    "NormalizeFields" : "provcity"
+                }
+            },
+            {
+                "class_name" : "null_value",
+                "module_name" : "MainseOfflineBuild",
+                "parameters" : {
+                }
+            },
+            {
+                "class_name" : "CSTTimeBuilder",
+                "module_name" : "MainseOfflineBuild",
+                "parameters" : {
+                    "CSTTimeField" : "starts,ends,old_starts,ends_1"
+                }
+            },
+            {
+                "class_name" : "PackEndsProcessor",
+                "module_name" : "MainseOfflineBuild",
+                "parameters" : {
+                    "DstField" : "ends",
+                    "SrcField" : "ends"
+                }
+            },
+            {
+                "class_name" : "postfee",
+                "module_name" : "MainseOfflineBuild",
+                "parameters" : {
+                    "PostFeeFields" : "real_post_fee"
+                }
+            },
+            {
+                "class_name" : "ProvCityProcessor",
+                "module_name" : "MainseOfflineBuild",
+                "parameters" : {
+                    "ProvCityFields" : "provcity",
+                    "ProvCityPath" : "provcity.txt"
+                }
+            },
+            {
+                "class_name" : "pidvid",
+                "module_name" : "MainseOfflineBuild",
+                "parameters" : {
+                    "pidvidfields" : "pidvid;dna_id"
+                }
+            },
+            {
+                "class_name" : "NickProcessor",
+                "module_name" : "MainseOfflineBuild",
+                "parameters" : {
+                    "HashFields" : "nick;cid"
+                }
+            },
+            {
+                "class_name" : "ZKRateProcessor",
+                "module_name" : "MainseOfflineBuild",
+                "parameters" : {
+                    "Date" : "2013-04-18",
+                    "DstField" : "zk_rate_single",
+                    "Last" : "24:00:00",
+                    "Time" : "00:00:00",
+                    "ZKRateField" : "zk_rate",
+                    "ZKTimeField" : "zk_time"
+                }
+            },
+            {
+                "class_name" : "TokenizeDocumentProcessor",
+                "module_name" : "",
+                "parameters" : {
+                }
+            },
+            {
+                "class_name" : "synonym",
+                "module_name" : "MainseOfflineBuild",
+                "parameters" : {
+                    "dict_file_path" : "c2c_same_query.txt.utf_8"
+                }
+            }
+        ],
+        "modules" : [
+            {
+                "module_name" : "MainseOfflineBuild",
+                "module_path" : "libMainseBuild.so",
+                "parameters" : {
+                }
+            }
+        ]
+    },
+    "function_config" : {
+        "functions" : [
+            {
+                "name" : "expiretime",
+                "parameters" : {
+                }
+            },
+            {
+                "name" : "incity",
+                "parameters" : {
+                    "ProvCityPath" : "provcity.txt"
+                }
+            },
+            {
+                "name" : "parentcat",
+                "parameters" : {
+                    "CatRelateTablePath" : "/home/admin/isearch5_data/taobao_data/catrelatetable.dat"
+                }
+            },
+            {
+                "name" : "subcat",
+                "parameters" : {
+                    "SubCatPath" : "/home/admin/isearch5_data/taobao_data/catrelatetable.dat",
+                    "SubCatPath_Bak" : "/home/admin/isearch5_data/taobao_data/catrelatetable.dat.bak"
+                }
+            },
+            {
+                "name" : "olu",
+                "parameters" : {
+                    "hash_type" : "probing",
+                    "join" : "nick",
+                    "swap_dir" : "/dev/shm/",
+                    "table_name" : "online"
+                }
+            },
+            {
+                "name" : "get_value_by_id",
+                "parameters" : {
+                    "DefaultValueOfId" : "0"
+                }
+            }
+        ],
+        "modules" : [
+            {
+                "module_name" : "MainseFunction",
+                "module_path" : "libMainseFunction.so",
+                "parameters" : {
+                }
+            }
+        ]
+    },
+    "index_option_config" : {
+        "Attribute" : {
+            "EnableWarmUp" : true,
+            "Parameter" : "lock",
+            "ReadMode" : "mmap"
+        },
+        "Index" : {
+            "EnableWarmUp" : true,
+            "Parameter" : "lock",
+            "ReadMode" : "mmap"
+        },
+        "KeepVersionCount" : 100,
+        "MaxMemoryUse" : 5120,
+        "MaxReopenMemoryUse" : 3072,
+        "MergeStrategy" : "balance_tree",
+        "MergeStrategyParam" : "conflict-segment-number=3;base-doc-count=10240;max-doc-count=512000;conflict-delete-percent=80;max-valid-doc-count=20000000",
+        "MergeThreadCount" : 1,
+        "ReaderKeepAliveTime" : 10000,
+        "RtOptions" : {
+            "Attribute" : {
+                "EnableWarmUp" : false,
+                "Parameter" : "none",
+                "ReadMode" : "mmap"
+            },
+            "Index" : {
+                "EnableWarmUp" : false,
+                "Parameter" : "none",
+                "ReadMode" : "mmap"
+            },
+            "KeepVersionCount" : 10,
+            "MaxIndexSize" : 2048,
+            "MaxMemoryUse" : 512,
+            "MergeStrategy" : "realtime",
+            "MergeStrategyParam" : "max-small-segment-count=5;merge-size-upperbound=128;merge-size-lowerbound=128",
+            "ReservedOlderIndex" : true,
+            "Summary" : {
+                "EnableWarmUp" : false,
+                "Parameter" : "none",
+                "ReadMode" : "mmap"
+            },
+            "TrimmerType" : "doc_trimmer"
+        },
+        "Summary" : {
+            "EnableWarmUp" : false,
+            "Parameter" : "lock",
+            "ReadMode" : "mmap"
+        },
+        "TruncateOptionConfig" : {
+            "ExtendIndexNames" : [
+                "phrase",
+                "cat_id_path",
+                "spuid",
+                "sspuid",
+                "epid",
+                "user",
+                "haspid",
+                "categoryp",
+                "auction_type",
+                "oneyuan",
+                "promote",
+                "commend",
+                "ratesum",
+                "nick",
+                "counts",
+                "shipping",
+                "isnewest",
+                "auto_post",
+                "auction_flag",
+                "options_bits",
+                "has_bid",
+                "isprepay",
+                "uchar",
+                "psbit",
+                "pidvid",
+                "spugroupid",
+                "user_type",
+                "pid",
+                "support_cod",
+                "support_xcard",
+                "baobei_type",
+                "lptime",
+                "lp_start",
+                "istk",
+                "hprop",
+                "auction_tag",
+                "disp_flag",
+                "properties",
+                "etao_tag",
+                "auction_ext",
+                "consign_date",
+                "dna_id",
+                "tk_group_ids",
+                "cluster_id",
+                "tmall_service_ids",
+                "is_sns_guide",
+                "wl_trans_tag",
+                "changjing",
+                "ss_auction_tag",
+                "m_haixuan_tag",
+                "crowd_favorite_tags",
+                "special_tag"
+            ],
+            "TruncateProfiles" : [
+                {
+                    "IndexNames" : [
+                    ],
+                    "SortParams" : [
+                        {
+                            "SortField" : "static_trans_score",
+                            "SortType" : "DESC"
+                        },
+                        {
+                            "SortField" : "nid",
+                            "SortType" : "ASC"
+                        }
+                    ],
+                    "TruncateProfileName" : "desc_static_trans_score",
+                    "TruncateStrategyName" : "static_trans_score_filter_by_meta"
+                },
+                {
+                    "IndexNames" : [
+                    ],
+                    "SortParams" : [
+                        {
+                            "SortField" : "tk_trans_score",
+                            "SortType" : "DESC"
+                        },
+                        {
+                            "SortField" : "nid",
+                            "SortType" : "ASC"
+                        }
+                    ],
+                    "TruncateProfileName" : "desc_tk_trans_score",
+                    "TruncateStrategyName" : "tk_trans_score_filter_by_meta"
+                },
+                {
+                    "IndexNames" : [
+                    ],
+                    "SortParams" : [
+                        {
+                            "SortField" : "biz30day",
+                            "SortType" : "DESC"
+                        },
+                        {
+                            "SortField" : "nid",
+                            "SortType" : "ASC"
+                        }
+                    ],
+                    "TruncateProfileName" : "desc_biz30day",
+                    "TruncateStrategyName" : "biz30day_filter_by_meta"
+                },
+                {
+                    "IndexNames" : [
+                    ],
+                    "SortParams" : [
+                        {
+                            "SortField" : "tk_total_sales",
+                            "SortType" : "DESC"
+                        },
+                        {
+                            "SortField" : "nid",
+                            "SortType" : "ASC"
+                        }
+                    ],
+                    "TruncateProfileName" : "desc_tk_total_sales",
+                    "TruncateStrategyName" : "tk_total_sales_filter_by_meta"
+                },
+                {
+                    "IndexNames" : [
+                    ],
+                    "SortParams" : [
+                        {
+                            "SortField" : "uvsum",
+                            "SortType" : "DESC"
+                        },
+                        {
+                            "SortField" : "nid",
+                            "SortType" : "ASC"
+                        }
+                    ],
+                    "TruncateProfileName" : "desc_uvsum",
+                    "TruncateStrategyName" : "uvsum_filter_by_meta"
+                },
+                {
+                    "IndexNames" : [
+                    ],
+                    "SortParams" : [
+                        {
+                            "SortField" : "uvsum_suc",
+                            "SortType" : "DESC"
+                        },
+                        {
+                            "SortField" : "nid",
+                            "SortType" : "ASC"
+                        }
+                    ],
+                    "TruncateProfileName" : "desc_uvsum_suc",
+                    "TruncateStrategyName" : "uvsum_suc_filter_by_meta"
+                },
+                {
+                    "IndexNames" : [
+                    ],
+                    "SortParams" : [
+                        {
+                            "SortField" : "ends_1",
+                            "SortType" : "ASC"
+                        },
+                        {
+                            "SortField" : "nid",
+                            "SortType" : "ASC"
+                        }
+                    ],
+                    "TruncateProfileName" : "asc_ends",
+                    "TruncateStrategyName" : "ends_filter_by_timestamp"
+                }
+            ],
+            "TruncateStrategy" : [
+                {
+                    "DiversityConstrain" : {
+                        "FilterByMeta" : true,
+                        "FilterField" : "static_trans_score"
+                    },
+                    "Limit" : 20000,
+                    "StrategyName" : "static_trans_score_filter_by_meta",
+                    "StrategyType" : "truncate_meta"
+                },
+                {
+                    "DiversityConstrain" : {
+                        "FilterByMeta" : true,
+                        "FilterField" : "tk_trans_score"
+                    },
+                    "Limit" : 20000,
+                    "StrategyName" : "tk_trans_score_filter_by_meta",
+                    "StrategyType" : "truncate_meta"
+                },
+                {
+                    "DiversityConstrain" : {
+                        "FilterByMeta" : true,
+                        "FilterField" : "biz30day"
+                    },
+                    "Limit" : 20000,
+                    "StrategyName" : "biz30day_filter_by_meta",
+                    "StrategyType" : "truncate_meta"
+                },
+                {
+                    "DiversityConstrain" : {
+                        "FilterByMeta" : true,
+                        "FilterField" : "tk_total_sales"
+                    },
+                    "Limit" : 20000,
+                    "StrategyName" : "tk_total_sales_filter_by_meta",
+                    "StrategyType" : "truncate_meta"
+                },
+                {
+                    "DiversityConstrain" : {
+                        "FilterByMeta" : true,
+                        "FilterField" : "uvsum"
+                    },
+                    "Limit" : 20000,
+                    "StrategyName" : "uvsum_filter_by_meta",
+                    "StrategyType" : "truncate_meta"
+                },
+                {
+                    "DiversityConstrain" : {
+                        "FilterByMeta" : true,
+                        "FilterField" : "uvsum_suc"
+                    },
+                    "Limit" : 20000,
+                    "StrategyName" : "uvsum_suc_filter_by_meta",
+                    "StrategyType" : "truncate_meta"
+                },
+                {
+                    "DiversityConstrain" : {
+                        "FilterParameter" : "fieldName=ends_1;beginTime=now;adviseEndTime=23:59:59;minInterval=24",
+                        "FilterType" : "FilterByTimeStamp"
+                    },
+                    "StrategyName" : "ends_filter_by_timestamp",
+                    "StrategyType" : "truncate_meta"
+                }
+            ]
+        }
+    },
+    "rankprofile_config" : {
+        "modules" : [
+            {
+                "module_name" : "AuditionModule",
+                "module_path" : "libMainseScorer.so",
+                "parameters" : {
+                }
+            },
+            {
+                "module_name" : "smurfscorer",
+                "module_path" : "libUPRanking.so",
+                "parameters" : {
+                }
+            }
+        ],
+        "rankprofiles" : [
+            {
+                "field_boost" : {
+                },
+                "rank_profile_name" : "DefaultProfile",
+                "scorers" : [
+                    {
+                        "module_name" : "",
+                        "parameters" : {
+                        },
+                        "rank_size" : "500000",
+                        "scorer_name" : "DefaultScorer"
+                    }
+                ]
+            },
+            {
+                "field_boost" : {
+                },
+                "rank_profile_name" : "ScorerAudition",
+                "scorers" : [
+                    {
+                        "module_name" : "AuditionModule",
+                        "parameters" : {
+                            "MLRWeight" : "1",
+                            "MinDocs" : "3000"
+                        },
+                        "rank_size" : "500000",
+                        "scorer_name" : "ScorerAudition"
+                    }
+                ]
+            },
+            {
+                "field_boost" : {
+                },
+                "rank_profile_name" : "ScorerRank",
+                "scorers" : [
+                    {
+                        "module_name" : "AuditionModule",
+                        "parameters" : {
+                            "MLRWeight" : "1",
+                            "MinDocs" : "3000"
+                        },
+                        "rank_size" : "500000",
+                        "scorer_name" : "ScorerAudition"
+                    },
+                    {
+                        "module_name" : "smurfscorer",
+                        "parameters" : {
+                            "cluster" : "c2c",
+                            "config_path" : "UP.xml"
+                        },
+                        "rank_size" : "3000",
+                        "scorer_name" : "TBRelevanceSecondScorer"
+                    }
+                ]
+            },
+            {
+                "field_boost" : {
+                },
+                "rank_profile_name" : "SearcherCacheProfile",
+                "scorers" : [
+                    {
+                        "module_name" : "AuditionModule",
+                        "parameters" : {
+                            "MLRWeight" : "1",
+                            "MinDocs" : "3000",
+                            "cache_tag" : "10"
+                        },
+                        "rank_size" : "UNLIMITED",
+                        "scorer_name" : "SearcherCacheScorer"
+                    }
+                ]
+            }
+        ]
+    },
+    "searcher_cache_config" : {
+        "inc_deletion_percent" : 100,
+        "inc_doc_limit" : 1000,
+        "latency_limit" : 1,
+        "max_item_num" : 200000,
+        "max_size" : 1024
+    },
+    "summary_profile_config" : {
+        "modules" : [
+            {
+                "module_name" : "MainseSummary",
+                "module_path" : "libMainseSummary.so",
+                "parameters" : {
+                }
+            }
+        ],
+        "summary_profiles" : [
+            {
+                "extractor" : {
+                    "extractor_name" : "SubChainExtractor",
+                    "module_name" : "MainseSummary",
+                    "parameters" : {
+                        "config_path" : "searcher_summary.json",
+                        "subChain" : "FieldSummary"
+                    }
+                },
+                "field_configs" : {
+                },
+                "summary_profile_name" : "DefaultProfile"
+            }
+        ]
+    }
+}

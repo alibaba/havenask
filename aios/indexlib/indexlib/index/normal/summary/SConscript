@@ -1,0 +1,11 @@
+Import('env')
+env = env.Clone()
+env.Append(LIBPATH=['.'])
+
+summary=[Glob('*.cpp')]
+
+#env.aLibrary(target='indexlib_summary', source=summary)
+
+env.aDirs('test')
+
+Return(['summary'] )

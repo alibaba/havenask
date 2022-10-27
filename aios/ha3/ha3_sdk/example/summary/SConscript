@@ -1,0 +1,17 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+libsummary_sources = [
+    'SummaryExtractorSample.cpp',
+    'HighlightNumberExtractor.cpp',
+    'SummaryModuleFactorySample.cpp'
+    ]
+
+libsummary = env.aSharedLibrary(target = 'summary_sample', source = libsummary_sources)
+
+env.aDirs('test')

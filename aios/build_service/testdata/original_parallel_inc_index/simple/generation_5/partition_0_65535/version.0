@@ -1,0 +1,32 @@
+{
+"format_version":
+  1,
+"last_segmentid":
+  -1,
+"level_info":
+  {
+  "level_metas":
+    [
+      {
+      "cursor":
+        0,
+      "level_idx":
+        0,
+      "segments":
+        [
+        ],
+      "topology":
+        "sequence"
+      }
+    ]
+  },
+"locator":
+  "32",
+"segments":
+  [
+  ],
+"timestamp":
+  0,
+"versionid":
+  0
+}

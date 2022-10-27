@@ -1,0 +1,112 @@
+{
+    "hippo_zookeeper_root" : "path/to/hippo/leader/elector/root",
+    "app_name" : "your app name", 
+    "user" : "your user name", 
+    "packages" : [
+	{
+	    "type" : "RPM",
+	    "uri" : "ha3 package"
+	},
+	{
+	    "type" : "ARCHIVE",
+	    "uri" : "other packages"
+	}
+    ],
+    "hadoop_home" : "hadoop", 
+    "java_home" : "java", 
+    "classpath" : "conf:etc/hadoop:hadoop-ant-2.0.0-mr1-cdh4.1.2.jar:...", 
+    "preload_path" : "usr/lib64/libtcmalloc_minimal.so.0", 
+    "extern_lib_path" : "extern lib pathes", 
+    "log_conf" : "...",
+    "cm2_server" : {
+	"cm2_server_zookeeper_host" : "cm2host",
+	"cm2_server_leader_path" : "/leaderelectpath",
+	"cm2_server_cluster_name" : "somesearch",
+	"signature" : "online1",
+	"idc_type" : 6,
+	"weight" : 80
+    },
+    "admin_resource" : {
+	"cpu" : 100,
+	"mem" : 1024
+    },
+    "resource_defines" : {
+	"default" : {
+	    "require" : [
+		[
+		    {
+			"name" : "cpu",
+			"type" : "SCALAR",
+			"amount" : 100
+		    },
+		    {
+			"name" : "mem",
+			"type" : "SCALAR",
+			"amount" : 1024
+		    }
+		]
+	    ],
+	    "declare" : [
+		{
+		    "name" : "Foo",
+		    "type" : "TEXT",
+		    "amount" : 5
+		}
+	    ],
+	    "queue" : "D12",
+	    "allocateMode" : "SLOT",
+	    "count" : 1
+	},
+	"good" : {
+	    "require" : [ 
+		{ "cpu" : 2400, "mem" : 64000 },
+		{ "cpu" : 2400, "mem" : 48000 }
+	    ],
+	    "count" : 100
+	},
+	"bad" : {
+	    "require" : [
+		{ "cpu" : 1600, "mem" : 48000 }
+	    ],
+	    "count" : 50
+	},
+	"summary" : {
+	    "require" : [
+		{ "cpu" : 1600, "mem" : 64000, "ssd" : 1 } 
+	    ],
+	    "count" : 60
+	}
+    },
+    "extra_role_processes" : {
+	"index" : [
+	    {
+                "isDaemon" : true,
+		"processName" : "se_server",
+		"cmd" : "/bin/se_server",
+		"envs" : {
+		    "key1" : "value1",
+		    "key2" : "value2"
+		}
+	    }
+	],
+	"qrs" : [
+	    {
+                "isDaemon" : true,
+		"processName" : "log_monitor",
+		"cmd" : "/bin/log_monitor.sh"
+	    }
+	]
+    },
+    "required_datas" : [
+	{
+	    "name" : "isearch5_data",
+	    "source" : "hdfs://isearch5_data",
+	    "dest" : "/home/admin/isearch5_data"
+	},
+	{
+	    "name" : "other_data",
+	    "source" : "hdfs://other_data",
+	    "dest" : "other_data"
+	}
+    ]
+}

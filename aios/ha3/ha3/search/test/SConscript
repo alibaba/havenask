@@ -1,0 +1,146 @@
+# -*- mode: python -*-
+import os
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+env['auto_version'] = False
+
+fake_search_sources = [
+    'MockAttributeExpressionFactory.cpp',
+    'FakeAttributeExpressionCreator.cpp',
+    'FakeAttributeExpressionFactory.cpp',
+    'FakeQueryExecutor.cpp',
+    'QueryExecutorConstructor.cpp',
+    'FakeTimeoutTerminator.cpp',
+    'FakeSummaryExtractor.cpp',
+    'QueryExecutorMock.cpp',
+    'LayerMetasConstructor.cpp',
+    'SearcherTestHelper.cpp',
+    'QueryExecutorTestHelper.cpp',
+    'MatchDocSearcherCreator.cpp',
+    'JoinFilterCreatorForTest.cpp',
+    ]
+
+fakesearchlib = env.aSharedLibrary(target = 'ha3_fakesearch', source = fake_search_sources, LIBS = [])
+
+multiphasescorer_sources = ['FakePhaseScorer.cpp',
+                            'FakeModuleFactory.cpp',]
+
+multiphasescorerlib = env.aSharedLibrary(target = 'multiphasescorer', source = multiphasescorer_sources, LIBS = [])
+
+fakefullcachescorer_sources = ['FakeFullCacheScorer.cpp']
+fakefullcachescorerlib = env.aSharedLibrary(target = 'fakefullcachescorer',
+                                            source = fakefullcachescorer_sources,
+                                            LIBS = [])
+
+fake_optimizer_sources = [
+    'FakeOptimizerModuleFactory.cpp'
+    ]
+libfakeoptimizer = env.aSharedLibrary(target = 'fakeoptimizer',
+                                      source = fake_optimizer_sources,
+                                      LIBS=[])
+
+
+libfakeoptimizercopy = env.aCopy('#testdata/optimizer_config_test/plugins/', libfakeoptimizer)
+libfakefullcachescorercopy = env.aCopy('#testdata/searcher_test/plugins', fakefullcachescorerlib)
+libmultiphasescorercopy = env.aCopy('#testdata/searcher_test/plugins', multiphasescorerlib)
+
+search_test_sources=  [
+    'AggregatorPerfTest.cpp',
+    'RangeAggregatorTypeUnorderedTest.cpp',
+    'RangeAggregatorTypeDenseTest.cpp',
+    'AggregateFunctionTest.cpp',
+    'NormalAggregatorTest.cpp',
+    'NormalAggregatorDenseMapTest.cpp',
+    'AttributeExpressionTest.cpp',
+    'PhraseQueryExecutorTest.cpp',
+    'AndNotQueryExecutorTest.cpp',
+    'OrQueryExecutorTest.cpp',
+    'AndQueryExecutorTest.cpp',
+    'TermQueryExecutorTest.cpp',
+    'MatchDocAllocatorTest.cpp',
+    'QueryExecutorCreatorTest.cpp',
+    'FilterTest.cpp',
+    'AggregateSamplerTest.cpp',
+    'PKQueryExecutorTest.cpp',
+    'AggregatorCreatorTest.cpp',
+    'MatchDocSearcherTest.cpp',
+    'SummarySearcherTest.cpp',
+    'SingleLayerSearcherTest.cpp',
+    'RankSearcherTest.cpp',
+    'LayerRangeDistributorTest.cpp',
+    'ResultEstimatorTest.cpp',
+    'SearcherCacheTest.cpp',
+    'CacheResultTest.cpp',
+    'DefaultSearcherCacheStrategyTest.cpp',
+    'TermDFVisitorTest.cpp',
+    'MultiTermOrQueryExecutorTest.cpp',
+    'AuxiliaryChainVisitorTest.cpp',
+    'AuxiliaryChainOptimizerTest.cpp',
+    'LayerValidatorTest.cpp',
+    'LayerMetasCreatorTest.cpp',
+    'BitmapAndQueryExecutorTest.cpp',
+    'MatchDataManagerTest.cpp',
+    'BatchAggregateSamplerTest.cpp',
+    'SortExpressionCreatorTest.cpp',
+    'CacheMinScoreFilterTest.cpp',
+    'IndexPartitionReaderWrapperTest.cpp',
+    'PartialIndexPartitionReaderWrapperTest.cpp',
+    'IndexPartitionWrapperTest.cpp',
+    'MatchDocScorersTest.cpp',
+    'HitCollectorManagerTest.cpp',
+    'FieldMapTermQueryExecutorTest.cpp',
+    'MatchDataFetcherTest.cpp',
+    'SimpleMatchDataFetcherTest.cpp',
+    'SubSimpleMatchDataFetcherTest.cpp',
+    'FullMatchDataFetcherTest.cpp',
+    'MatchValuesFetcherTest.cpp',
+    'JoinFilterTest.cpp',
+    'SubTermQueryExecutorTest.cpp',
+    'CacheMissSearchStrategyTest.cpp',
+    'CacheHitSearchStrategyTest.cpp',
+    'SearcherCacheManagerTest.cpp',
+    'MatchDocSearchStrategyTest.cpp',
+    'CachedMatchDocSearcherTest.cpp',
+    'DocCountLimitsTest.cpp',
+    'LayerMetaUtilTest.cpp',
+    'QueryExecutorRestrictorTest.cpp',
+    'RestrictPhraseQueryExecutorTest.cpp',
+    'OptimizerChainManagerCreatorTest.cpp',
+    'OptimizerChainManagerTest.cpp',
+    'ProviderBaseTest.cpp',
+    'MultiTermAndQueryExecutorTest.cpp',
+    'WeakAndQueryExecutorTest.cpp',
+    'JitNormalAggregatorTypeDenseTest.cpp',
+    'JitNormalAggregatorTypeUnorderedTest.cpp',
+    'SumAggregateFunctionTest.cpp',
+    'AggregateBase.cpp',
+    'AggregatorTest.cpp',
+    'NormalAggregatorUtilTest.cpp',
+    'BatchAggregatorTest.cpp',
+    'MultiAggregatorTypedTest.cpp',
+    'BatchMultiAggregatorTypedTest.cpp',
+    ]
+
+libsname = ['ha3_fakesearch', 'ha3_fakerank', 'ha3sdk_testlib',
+            'ha3_fakecommon', 'ha3_fakequeryparser',
+            'fakefullcachescorer', 'multiphasescorer', 'fakeoptimizer', 'fakescorer']
+
+linkflags = []
+linkflags.append('-Wl,--whole-archive')
+linkflags.append('-lha3_cava')
+linkflags.append('-lindexlib_test_tool')
+linkflags.append('-Wl,--no-whole-archive')
+env.Append(LINKFLAGS=linkflags)
+
+search_test = env.aTest(
+    target = 'search_test',
+    source = search_test_sources + ["../../sorter/BuildinSorterModuleFactory.cpp"],
+    LIBS = libsname + env['ha3_test_depend_lib']
+    )
+
+env.Depends(search_test, [libfakefullcachescorercopy, libmultiphasescorercopy,
+                          libfakeoptimizercopy] + env['cava_copy'])

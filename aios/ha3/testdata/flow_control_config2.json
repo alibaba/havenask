@@ -1,0 +1,10 @@
+{
+	"sample_interval" : 600,
+	"min_sample_count" : 1000,
+	"queue_size_threshold" : 3,
+	"heavy_load_arpc_error_ratio" : 0.6,
+	"light_load_arpc_error_ratio" : 0.01,
+	"flow_control_categories" : [1,2,3,4,5,6,7,8,9,10,11,12,13,14,16],
+	"min_query_partition_ratio" : 0.5,
+	"max_flow_redirect" : 4
+}

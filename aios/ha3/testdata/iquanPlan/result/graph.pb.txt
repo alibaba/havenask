@@ -1,0 +1,39 @@
+node {
+  name: "1"
+  op: "Ha3ExchangeOp"
+  attr {
+    key: "distribution"
+    value {
+      s: "{\"distribution\":{\"type\":\"ANY\" ,\"hashField\":[]}}"
+    }
+  }
+  attr {
+    key: "fields"
+    value {
+      s: "[\"$a\",\"$EXPR$1\",\"$d\"]"
+    }
+  }
+  attr {
+    key: "graph"
+    value {
+      s: "\n\373\002\n\0010\022\022Ha3CalcTableScanOp*N\n\005table\022E\022C[\"test\",\"dbname\",\"t1, source: [CollectionTableSource(a, b, c, d)]\"]*.\n\005where\022%\022#{ \"op\" :\"=\",\"params\" : [\"$b\",\"10\"]}*!\n\006fields\022\027\022\025[\"$a\",\"$EXPR$1\",\"$d\"]* \n\005scans\022\027\022\025[\"$a\",\"$b\",\"$c\",\"$d\"]*\030\n\007indexes\022\r\022\013[\"$a\",\"$b\"]*\202\001\n\013fields_expr\022s\022q[\"$a\":\"$a\",\"$EXPR$1\":{ \"op\" :\"+\",\"params\" : [{ \"op\" :\"CAST\",\"type\" : \"double\",\"params\" : [\"$c\"]},\"1\"]},\"$d\":\"$d\"]"
+    }
+  }
+}
+node {
+  name: "2"
+  op: "Ha3SinkOp"
+  input: "1"
+  attr {
+    key: "fields"
+    value {
+      s: "[\"$a\",\"$EXPR$1\",\"$d\"]"
+    }
+  }
+  attr {
+    key: "type"
+    value {
+      s: "api"
+    }
+  }
+}

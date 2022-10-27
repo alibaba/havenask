@@ -1,0 +1,149 @@
+# -*- mode: python -*-
+import sys, os, platform, time
+import SCons.Script
+
+# The root environment
+### Place to store some options which influence the compiler
+os.environ['build_options'] = '''
+
+#whether use hadoop, 'yes' or 'no'
+#if use hadoop, hadoop sdk path should be added into append_prefix and JAVA_SDK_PATH should be configured
+hadoop = 'yes'
+JAVA_SDK_PATH = '/opt/taobao/java/'
+
+#version of hadoop, 'std' or 'cdh'
+hadoop_version = 'cdh'
+
+'''
+env = Environment(ENV = {'PATH' : os.environ['PATH']},tools=['default', 'ascons'])
+env.requireAsconsVersion('1.3.0')
+
+#if change version, need change isearch.h SEARCH_REQUEST_VERSION
+env['version'] = '3.8.0'
+env['auto_version'] = True
+env['lib_version'] = '0.5.0'
+
+# compatible suez version, change when request serialize changed
+env['requestVersion'] = '3700000'
+
+
+env['releaseStr'] = 'nightly_' + time.strftime("%Y%m%d%H%M", time.localtime())
+if env['mode'] == 'release':
+    env['releaseStr'] = "rc_1"
+env['sdk_release_str'] = env['releaseStr']
+env['sdk_version'] = env['version']
+
+env.addOptions(PathVariable('JAVA_SDK_PATH',
+                            'path to java sdk dir',
+                            env['install_root'] + '/usr/ali/java',
+                            PathVariable.PathAccept))
+
+env.addOptions(PathVariable('HADOOP_HOME',
+                            'path hadoop home',
+                            '/usr/local/hadoop/hadoop/',
+                            PathVariable.PathAccept))
+
+env.addOptions(EnumVariable('hadoop_version', 'specify version of hadoop', 'cdh',
+                            allowed_values=('std', 'cdh')))
+
+env.addOptions(EnumVariable('use_tcmalloc', 'if you need compile with tcmalloc', 'no',
+                            allowed_values=('yes', 'no')))
+
+env.addOptions(EnumVariable('build_signature',
+                            'if you want to add build signature in exes and libs',
+                            os.environ.get('build_signature', 'no'),
+                            allowed_values=('yes', 'no')))
+
+env.addOptions(EnumVariable('use_gpu', 'enable gpu', 'no', allowed_values=('yes', 'no')))
+env.addOptions(EnumVariable('use_fpga', 'enable fpga', 'no', allowed_values=('yes', 'no')))
+env.addOptions(EnumVariable('fg_ops', 'compile fg_ops', 'no', allowed_values=('yes', 'no')))
+
+
+env.Append(CXXFLAGS = '-std=c++14')
+env.Append(CXXFLAGS='-DRTP_PLATFORM')
+env.Append(CCFLAGS='-D_GLIBCXX_USE_CXX11_ABI=0')
+env.Append(CCFLAGS='-DGTEST_USE_OWN_TR1_TUPLE=0')
+env.Append(CPPDEFINES=['EIGEN_MAX_CPP_VER=11'])
+
+install_lib = os.path.join(env['install_prefix'] , 'lib/python/site-packages/')
+#begin install tools
+env.aInstallVar(env['TOP_DIR'] + '/default_conf/*', 'ha_tools/default_conf')
+env.aInstallEtc(env['TOP_DIR'] + '/tools/etc/ha_tools/tools_conf.py', 'ha_tools/')
+env.aInstallEtc(env['TOP_DIR'] + '/tools/etc/ha_tools/index_diff_alog.conf', 'ha_tools/')
+
+#end install tools
+
+# prepare python ha3 proto file
+env['ha3_proto_py_target_dir'] = install_lib + 'ha3/proto'
+if 'install' in SCons.Script.BUILD_TARGETS:
+    cmd = 'rm -rf {}'.format(env['ha3_proto_py_target_dir'])
+    os.system(cmd)
+
+    # install __init__.py
+    initFilePath = os.path.join(env['BUILD_DIR'], '__init__.py')
+    env.aCreateFile(initFilePath)
+    env.aInstall(install_lib + 'ha3/proto/', initFilePath)
+    env.aInstall(install_lib + 'ha3/', initFilePath)
+
+
+env.aInstallHeader(env['BUILD_DIR'] +'/ha3/proto/*.proto', 'ha3/proto/')
+env.aInstallHeader(env['BUILD_DIR'] +'/ha3/proto/*.pb.h', 'ha3/proto/')
+env.aInstallHeader(env['BUILD_DIR'] +'/ha3/proto/*_generated.h', 'ha3/proto/')
+env.aInstallHeader(env['BUILD_DIR'] +'/ha3/sql/proto/*.proto', 'ha3/sql/proto/')
+env.aInstallHeader(env['BUILD_DIR'] +'/ha3/sql/proto/*.pb.h', 'ha3/sql/proto/')
+env.aInstallHeader(env['BUILD_DIR'] +'/ha3/common/ErrorDefine.h', 'ha3/common/')
+env.aInstallHeader(env['BUILD_DIR'] +'/ha3/common/PBResult.proto', 'ha3/common/')
+env.aInstallHeader(env['BUILD_DIR'] +'/ha3/common/PBResult.pb.h', 'ha3/common/')
+
+headers = ['ha3/*.h',
+           'ha3/*/*.h',
+           'ha3/*/*/*.h',
+           'ha3/*/*/*/*.h',
+           'ha3/*/*/*/*/*.h',
+           'ha3_sdk/testlib/*.h',
+           'ha3_sdk/testlib/*/*.h']
+
+env.aInstallHeader(headers, '', True)
+
+env.aInstallShare(env['TOP_DIR'] + '/ha3_sdk/example', 'ha3_sdk')
+
+env.aInstallEtc('misc/ha3_alog.conf', 'ha3')
+env.aInstallEtc('misc/config_util_alog.conf', 'ha3')
+
+env.aInstallEtc('misc/search_server.cfg', 'ha3')
+env.aInstallEtc('misc/search_worker_init.conf', 'ha3')
+env.aInstallEtc('misc/qrs_server.cfg', 'ha3')
+env.aInstallEtc('misc/qrs_worker_init.conf', 'ha3')
+env.aInstallEtc('misc/qrs_default.def', 'ha3')
+env.aInstallEtc('misc/searcher_default.def', 'ha3')
+env.aInstallEtc('misc/searcher_para_search_2.def', 'ha3')
+env.aInstallEtc('misc/searcher_para_search_4.def', 'ha3')
+env.aInstallEtc('misc/searcher_para_search_8.def', 'ha3')
+env.aInstallEtc('misc/searcher_para_search_16.def', 'ha3')
+env.aInstallEtc('misc/searcher_default_with_aux_scan.def', 'ha3')
+env.aInstallEtc('misc/agg/*', 'ha3/agg/')
+env.aInstallEtc('misc/sql/*', 'ha3/sql/')
+env.aInstallEtc('misc/ha3_cava_config.json', 'ha3')
+env.aInstallEtc('misc/sql_function.json', 'ha3')
+env.aInstallEtc('misc/sql_kmon_function.json', 'ha3')
+
+cava_install = []
+cava_install += env.aInstallShare('cava/ha3/*', '', True)
+cava_install += env.aInstallShare('cava/plugins/*', '', True)
+cava_install += env.aInstallShare('cava/mock/*', '', True)
+cava_install += env.aInstallShare('cava/unsafe/*', '', True)
+env['cava_install'] = cava_install
+
+env.aInstallEmptyDir(env['install_vardir'] + '/ha3')
+
+#env.Tool("compilation_db")
+
+env.SConscript(
+    dirs='.',
+    exports='env',
+    variant_dir=env['BUILD_DIR'],
+    duplicate=0)
+
+#env.CompilationDatabase()
+
+env.aInstall(install_lib + 'ha_tools/', env['TOP_DIR'] + '/tools/ha_tools/*')

@@ -1,0 +1,6 @@
+#ifndef ISEARCH_FAKEINDEXPARTITIONWRITER_H
+#define ISEARCH_FAKEINDEXPARTITIONWRITER_H
+
+#include <indexlib/testlib/fake_index_partition_writer.h>
+
+#endif //ISEARCH_FAKEINDEXPARTITIONWRITER_H

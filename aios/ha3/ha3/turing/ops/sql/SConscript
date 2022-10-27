@@ -1,0 +1,16 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+source = Glob('*.cpp')
+protoSource = env.aDirs('proto')
+
+env.aLibrary(
+    target='ha3_suez_turing_sql_ops',
+    source = source + protoSource)
+
+env.aLibraryAndInstall(
+    target='ha3_suez_turing_sql_opdef',
+    source=['OpDefs.cpp'])
+
+env.aDirs('test')

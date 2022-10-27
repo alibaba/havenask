@@ -1,0 +1,8 @@
+{
+    "cluster_config" : {
+    "hash_mode" : {
+        "hash_function" : "KINGSO_HASH#720",
+        "hash_field" : "id"
+    }
+    }
+}

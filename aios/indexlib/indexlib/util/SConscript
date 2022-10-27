@@ -1,0 +1,23 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+env.aDirs('test')
+env.aDirs('perf_test')
+
+compress = env.aDirs('buffer_compressor')
+mem_control = env.aDirs('memory_control')
+cache = env.aDirs('cache')
+counter = env.aDirs('counter')
+byte_slice_list = env.aDirs('byte_slice_list')
+slice_array = env.aDirs('slice_array')
+
+util = Glob('*.cpp')
+util_cpps = [ util, cache, counter, compress, mem_control, byte_slice_list, slice_array ]
+
+env.aSharedLibrary(target = 'indexlib_util', source = util_cpps)
+
+Return(['util_cpps'] )
+
+

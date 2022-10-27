@@ -1,0 +1,52 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+summary_libs = [
+    'indexlib_indextest_common',
+    'indexlib_configtest',
+    'indexlib_file_system_test_common',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'fslib-framework',
+    'autil',
+    'gmock',
+    'gtest',
+]
+
+summary_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'summary_maker.cpp',
+    'common_disk_summary_segment_reader_unittest.cpp',
+    'local_disk_summary_segment_reader_unittest.cpp',
+    'summary_formatter_unittest.cpp',
+    'in_mem_summary_segment_reader_unittest.cpp',
+    'summary_merger_unittest.cpp',
+    'local_disk_summary_reader_unittest.cpp',
+    'summary_writer_unittest.cpp',
+    'building_summary_reader_unittest.cpp',
+    'summary_reader_intetest.cpp',
+]
+
+env.aTest(target = 'indexlib_summary_unittest', 
+          source = summary_test_sources, LIBS = summary_libs)
+
+Return([])
+
+
+
+

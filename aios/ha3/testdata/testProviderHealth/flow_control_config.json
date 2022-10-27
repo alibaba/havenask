@@ -1,0 +1,8 @@
+{
+	"sample_interval" : 1000000,
+	"min_sample_count" : 5,
+	"queue_size_threshold" : 5,
+	"heavy_load_arpc_error_ratio" : 0.6,
+	"light_load_arpc_error_ratio" : 0,
+	"max_flow_redirect" : 2
+}

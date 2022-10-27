@@ -1,0 +1,8 @@
+Import('env')
+env = env.Clone()
+
+trie=Glob('*.cpp')
+
+#env.aLibrary(target='indexlib_trie', source=trie)
+env.aDirs('test')
+Return(['trie'])

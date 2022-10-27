@@ -1,0 +1,43 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+env.Append(LIBS=['dl'])
+util_test_sources=  [
+    'TimeStampTest.cpp',
+    'BufferedLocalFileReaderTest.cpp',
+    'DirIteratorTest.cpp',
+    'KeyRangeManagerTest.cpp',
+    'EncodeConverterTest.cpp',
+    'NormalizeTableTest.cpp',
+    'ZkServer.cpp',
+    'NetFunctionTest.cpp',
+    'PersistentMapTest.cpp',
+    'RangeUtilTest.cpp',
+    'XMLFormatUtilTest.cpp',
+    'HaCompressUtilTest.cpp',
+    'IPListParserTest.cpp',
+    'ConsistentHashTest.cpp',
+    'ChainedFixedSizePoolTest.cpp',
+    'DataBufferTest.cpp',
+    'MemCacheTest.cpp',
+    'EnvParserTest.cpp',
+    ]
+
+fake_util_sources = [
+    'FakeFileCreator.cpp',
+    ]
+
+lib_util_fake = env.aLibrary(target = 'util_fake',
+                             source = fake_util_sources)
+
+libsname = ['ha3_util', 'ha3_proto', 'util_fake', 'dl', 'mxml',] + env['ha3_test_depend_lib'] + ['indexlib']
+
+utiltest = env.aTest(target = 'util_test',
+                     source = util_test_sources,
+                     LIBS = libsname
+                     );

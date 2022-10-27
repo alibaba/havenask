@@ -1,0 +1,17 @@
+{
+    "cluster_config" : {
+        "cluster_name" : "company",
+        "dispatchable" : false,
+        "hash_mode" : {
+            "hash_field" : "company_id",
+            "hash_function" : "HASH"
+        },
+        "query_config" : {
+            "default_index" : "company_id",
+            "default_operator" : "AND"
+        },
+        "swift_topic_name" : "company",
+        "swift_zookeeper_root" : "",
+        "table_name" : "company"
+    }
+}

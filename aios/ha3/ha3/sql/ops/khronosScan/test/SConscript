@@ -1,0 +1,19 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+test_sources = Glob('*.cpp')
+
+libs = [
+    'khronos_table',
+    'khronos_table_testlib',
+    'indexlib', 'indexlib_test_tool', 'amonitor_client',
+]
+
+env.aTest(target = 'khronos_scan_test',
+          source = test_sources,
+          LIBS = libs + env['ha3_test_depend_lib']);

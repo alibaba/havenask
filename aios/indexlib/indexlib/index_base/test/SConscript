@@ -1,0 +1,85 @@
+# -*- mode: python -*-
+import platform
+Import('env')
+env = env.Clone();
+
+ut_libs = [
+    'indexlib_file_system_test_common',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'fslib-framework',
+    'autil',
+    'gmock',
+    'gtest',
+    'pthread',
+]
+
+ut_io_exception_libs = [
+    'indexlib_file_system_test_common',
+    'indexlib_storage_mock',
+    'indexlib_test',
+    'indexlib',
+    'fslib-framework',
+    'autil',
+    'gmock',
+    'gtest',
+    'pthread'
+]
+
+partition_data_ut_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'version_loader_unittest.cpp',
+    'version_committer_unittest.cpp',
+    'schema_adapter_unittest.cpp',
+    'offline_recover_strategy_unittest.cpp',
+    'merge_task_resource_manager_unittest.cpp',
+    'schema_rewriter_unittest.cpp',
+]
+
+partition_data_exception_unittestcpps = [
+    '#indexlib/test/dotest.cpp',
+    'deploy_index_wrapper_unittest.cpp',
+]
+
+env.aTest(target = 'ie_common_unittest',
+          source = partition_data_ut_test_sources,
+          LIBS= ut_libs)
+
+env.aTest(target = 'ie_common_exception_unittest',
+          source = partition_data_exception_unittestcpps,
+          LIBS= ut_io_exception_libs)
+
+######################## dependency check ##########################
+index_base_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+index_base_minimal_dependency_libs = [
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+]
+
+env.aTest(target = 'indexlib_index_base_dependency_unittest',
+          source = index_base_minimal_dependency_sources,
+          LIBS = index_base_minimal_dependency_libs)
+

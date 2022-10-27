@@ -1,0 +1,16 @@
+{
+    "cluster_type": "inc_with_realtime",
+    "table_name" : "auctionTable", 
+    "swift_zookeeper_root" : "zfs://10.250.8.126:2181/admin/serviceName",
+    "swift_topic_name" : "news",
+    "hash_mode" : { 
+        "hash_function" : "md5", 
+        "hash_field": "uri" 
+    }, 
+    "query_config": { 
+        "default_index": "phrase", 
+        "default_operator": "AND"
+    },
+    "return_hit_rewrite_threshold": 2000,
+    "return_hit_rewrite_ratio": 1.5
+}

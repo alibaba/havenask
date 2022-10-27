@@ -1,0 +1,10 @@
+{
+    "build_config" :
+    {
+        "keep_version_count" : 10
+    },
+    "merge_config" :
+    {
+        "keep_version_count" : 20
+    }
+}

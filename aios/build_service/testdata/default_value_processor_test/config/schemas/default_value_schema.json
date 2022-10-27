@@ -1,0 +1,45 @@
+{
+    "indexs": [
+        {
+	    "term_frequency_flag": 0,
+	    "pk_storage_type": "hash_table",
+	    "index_fields": "nid",
+	    "index_name": "nid",
+	    "index_type": "PRIMARYKEY64",
+	    "has_primary_key_attribute": false
+	}
+    ],
+    "summarys": {
+        "summary_fields": [],
+        "compress": true
+    },
+    "table_name": "mainse_excellent_rank",
+    "fields": [
+	{
+	    "field_type": "STRING",
+	    "default_value": ";",
+	    "field_name": "s_nid_gmv30_c2c"
+	},
+	{
+	    "field_type": "STRING",
+	    "default_value": "",
+	    "field_name": "title_c2c",
+	    "multi_value": true
+	},
+	{
+	    "field_type": "INT32",
+	    "field_name": "pricerank_c2c",
+	    "default_value": "50000"
+	},
+	{
+	    "field_type": "INT64",
+	    "field_name": "nid"
+	}
+    ],
+    "attributes": [
+	"nid",
+	"pricerank_c2c",
+	"title_c2c",
+	"s_nid_gmv30_c2c"
+    ]
+}

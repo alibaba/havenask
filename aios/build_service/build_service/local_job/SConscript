@@ -1,0 +1,25 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+local_job_sources = [
+    'LocalBrokerFactory.cpp',
+    'LocalProcessedDocConsumer.cpp',
+    'LocalProcessedDocProducer.cpp',
+    'LocalJobWorker.cpp',
+    ]
+
+env.aLibrary(target = 'bs_local_job',
+             source = local_job_sources,
+             LIBS = ['build_service'])
+
+libnames = ['bs_local_job', 'build_service', 'hiredis'] + env['bs_worker_lib'] + env['not_prepend_lib']
+
+env.aProgramAndInstall(target = 'bs_local_job',
+                       source = ['LocalJobMain.cpp'],
+                       LIBS = libnames,
+                       LIBATTRS = {'bs_local_job' : 'static'},)
+#env.aDirs('test')

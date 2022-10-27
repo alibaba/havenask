@@ -1,0 +1,47 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+libsname = [
+    'indexlib_indextest_common',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'fslib-framework',
+    'gmock',
+    'gtest',
+    'pthread'
+]
+
+operation_queue_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'update_field_operation_unittest.cpp',
+    'update_field_operation_creator_unittest.cpp',
+    'remove_operation_unittest.cpp',
+    'remove_operation_creator_unittest.cpp',
+    'operation_factory_unittest.cpp',
+    'sub_doc_operation_unittest.cpp',
+    'sub_doc_operation_creator_unittest.cpp',
+    'operation_block_unittest.cpp',
+    'operation_writer_unittest.cpp',
+    'operation_replayer_unittest.cpp',
+    'operation_iterator_unittest.cpp',
+    'operation_redo_strategy_unittest.cpp',
+    'compress_operation_writer_unittest.cpp',
+]
+
+env.aTest(target = 'indexlib_operation_queue_unittest', 
+          source = operation_queue_test_sources, LIBS = libsname)

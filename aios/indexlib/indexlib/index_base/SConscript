@@ -1,0 +1,16 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+segment = env.aDirs('segment')
+meta = env.aDirs('index_meta')
+patch = env.aDirs('patch')
+
+indexBaseSource = Glob('*.cpp')
+indexBaseCpps = [ indexBaseSource, meta, segment, patch]
+
+env.aSharedLibrary(target = 'indexlib_index_base', source = indexBaseCpps)
+
+env.aDirs('test')
+Return(['indexBaseCpps'])

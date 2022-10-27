@@ -1,0 +1,11 @@
+{
+    "cluster_config" : {
+        "inherit_from" : "zones/bad_cluster_config.json",
+        "swift_config" : {
+            "swift_message_mask" : 4,
+            "swift_message_mask_result" : 4
+        },
+        "table_name" : "mainse_searcher"
+    },
+    "inherit_from" : "section_configs/common/cluster_common_config.json"
+}

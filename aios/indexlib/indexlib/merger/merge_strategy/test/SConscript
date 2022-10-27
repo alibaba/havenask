@@ -1,0 +1,44 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+merger_strategy_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    '#indexlib/merger/test/merge_helper.cpp',
+    'align_version_merge_strategy_unittest.cpp',
+    'balance_tree_merge_strategy_unittest.cpp',
+    'key_value_optimize_merge_strategy_unittest.cpp',
+    'optimize_merge_strategy_unittest.cpp',
+    'priority_queue_merge_strategy_unittest.cpp',
+    'realtime_merge_strategy_unittest.cpp',
+    'shard_based_merge_strategy_unittest.cpp',
+    'time_series_merge_strategy_unittest.cpp',
+    'large_time_range_selection_merge_strategy_unittest.cpp'
+]
+
+merger_strategy_libs = [
+    'indexlib_indextest_common',
+    'indexlib_truncate_test_common',
+    'indexlib_configtest',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest'
+]
+
+env.aTest(target = 'indexlib_merger_strategy_unittest',
+          source = merger_strategy_test_sources, LIBS = merger_strategy_libs)

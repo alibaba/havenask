@@ -1,0 +1,39 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+env.Append(LIBS = ['dl']);
+
+config_test_sources=  [
+    'LegacyIndexInfoHelperTest.cpp',
+    'ClusterConfigInfoTest.cpp',
+    'FieldBoostTest.cpp',
+    'ConfigAdapterTest.cpp',
+    'QrsConfigTest.cpp',
+    'HitSummarySchemaTest.cpp',
+    'SearcherCacheConfigTest.cpp',
+    'RankSizeConverterTest.cpp',
+    'RankProfileConfigTest.cpp',
+    'SummaryProfileInfoTest.cpp',
+    'ProcessorInfoTest.cpp',
+    'ClusterConfigParserTest.cpp',
+    'AggSamplerConfigInfoTest.cpp',
+    'ServiceDegradationConfigTest.cpp',
+    'GenerationMetaTest.cpp',
+    'JoinConfigTest.cpp',
+    'ClusterTableInfoManagerTest.cpp',
+    'ClusterTableInfoValidatorTest.cpp',
+    'SearchOptimizerConfigTest.cpp',
+    'SqlConfigTest.cpp',
+    ]
+
+libsname = []
+
+test = env.aTest(target = 'config_test',
+                 source = config_test_sources,
+                 LIBS = libsname + env['ha3_test_depend_lib'])
+Depends(test, env['test_conf_depend'])

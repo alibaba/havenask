@@ -1,0 +1,17 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+libcheat_sorter_sources = [
+    'CheatSorter.cpp',
+    'CheatSorterFactory.cpp'
+    ]
+
+
+libplugin_cheatsorter = env.aSharedLibrary(target = 'plugin_cheatsorter', source = libcheat_sorter_sources)
+
+env.aDirs('test')

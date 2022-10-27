@@ -1,0 +1,67 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+env['auto_version'] = False
+
+fake_commonqrs_processor_sources = [
+    'FakeStringProcessor.cpp',
+    'FakeLSDSProcessor.cpp',
+    'FakeRequestProcessor.cpp',
+    'KeywordReplaceProcessor.cpp',
+    'KeywordFilterProcessor.cpp',
+    'FakeQrsSearcherProcessDelegation.cpp',
+    'FakeFillSummaryProcessor.cpp',
+    'FakeQrsProcessor.cpp',
+    ]
+fake_qrs_sources = [
+    'FakeQrsModuleFactory.cpp',
+    'FakeRequestProcessor2.cpp',
+    'QueryMaker.cpp',
+    ]
+
+fakeqrs_processorlib = env.aSharedLibrary(target = 'ha3_fakeqrs_processor', source = [fake_qrs_sources,fake_commonqrs_processor_sources], LIBS = [])
+fakeqrs_processorlib_installed = env.aCopy('#testdata/testadmin/taobao/taobao_daogou/configurations/configuration_1/plugins/', fakeqrs_processorlib)
+env.aCopy('#tools/share/ha_tools/example/full_config/plugins/', fakeqrs_processorlib)
+
+qrs_test_sources = [
+    'QrsProcessorTest.cpp',
+    'QrsChainManagerTest.cpp',
+    'RequestParserProcessorTest.cpp',
+    'FakeRawStringProcessor.cpp',
+    'QrsChainConfiguratorTest.cpp',
+    'QrsChainManagerConfiguratorTest.cpp',
+    'QueryTokenizerTest.cpp',
+    'QueryFlattenTest.cpp',
+    'RequestValidatorTest.cpp',
+    'QueryValidatorTest.cpp',
+    'RequestValidateProcessorTest.cpp',
+    'KeywordProcessorTest.cpp',
+    'ConfigClauseValidatorTest.cpp',
+    'QrsSearchProcessorTest.cpp',
+    'StopWordsCleanerTest.cpp',
+    'CheckSummaryProcessorTest.cpp',
+    'PageDistinctSelectorTest.cpp',
+    'PageDistinctProcessorTest.cpp',
+    'PageDistinctHitConvertorTest.cpp',
+    'MatchDocs2HitsTest.cpp',
+    'MatchInfoProcessorTest.cpp',
+    'IndexLimitQueryVisitorTest.cpp',
+    'CheckMatchVisitorTest.cpp',
+    'TransAnd2OrVisitorTest.cpp',
+    'LayerClauseValidatorTest.cpp',
+    ]
+
+libsname = ['ha3_fakeqrs_processor','ha3_fakeservice',
+            'ha3_fakesearch', 'ha3sdk_testlib', 'ha3_fakeproto']
+env.aTest(
+    target = 'qrs_test',
+    source = [qrs_test_sources,fake_commonqrs_processor_sources],
+    LIBS = libsname + env['ha3_test_depend_lib']
+    )
+
+Depends('qrs_test', fakeqrs_processorlib_installed)
+Depends('qrs_test', env['test_conf_depend'])

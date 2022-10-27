@@ -1,0 +1,37 @@
+# -*- mode: python -*-
+
+Import('env')
+
+env = env.Clone()
+
+libqrs_sources =  [
+    'QrsProcessor.cpp',
+    'QrsChainManager.cpp',
+    'RequestParserProcessor.cpp',
+    'QrsSearchProcessor.cpp',
+    'QrsChainConfigurator.cpp',
+    'QrsChainManagerConfigurator.cpp',
+    'QueryTokenizer.cpp',
+    'QueryFlatten.cpp',
+    'RequestValidator.cpp',
+    'QueryValidator.cpp',
+    'RequestValidateProcessor.cpp',
+    'CheckSummaryProcessor.cpp',
+    'ConfigClauseValidator.cpp',
+    'StopWordsCleaner.cpp',
+    'PageDistinctProcessor.cpp',
+    'PageDistinctSelector.cpp',
+    'PageDistinctHitConvertor.cpp',
+    'MatchDocs2Hits.cpp',
+    'MatchInfoProcessor.cpp',
+    'TransAnd2OrVisitor.cpp',
+    'IndexLimitQueryVisitor.cpp',
+    'CheckMatchVisitor.cpp',
+    'ParsedQueryVisitor.cpp',
+    'LayerClauseValidator.cpp',
+    ]
+
+env.aLibrary(target = 'ha3_qrs',
+             source = libqrs_sources)
+
+env.aDirs('test')

@@ -1,0 +1,27 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+env['lib_version'] = '0.4.0'
+sample_tvf_plugin = env.aSharedLibrary(
+    target='TestSqlTvfPlugin',
+    source = ['EchoTvfFunctionCreatorFactory.cpp', 'EchoTvfFunc.cpp'],
+    LIBS = ['ha3_sql'],
+)
+
+error_tvf_plugin = env.aSharedLibrary(
+    target='TestErrorSqlTvfPlugin',
+    source = ['EchoTvfFunctionCreatorFactoryError.cpp', 'EchoTvfFunc.cpp'],
+    LIBS = ['ha3_sql'],
+)
+
+error_register_tvf_plugin = env.aSharedLibrary(
+    target='TestErrorRegisterSqlTvfPlugin',
+    source = ['EchoTvfFunctionCreatorFactoryErrorRegister.cpp', 'EchoTvfFunc.cpp'],
+    LIBS = ['ha3_sql'],
+)
+
+Return(['sample_tvf_plugin', 'error_tvf_plugin', 'error_register_tvf_plugin'])

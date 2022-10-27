@@ -1,0 +1,10 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "simple_cluster",
+                "simple_with_sub_cluster"
+            ]
+        }
+    ]
+}

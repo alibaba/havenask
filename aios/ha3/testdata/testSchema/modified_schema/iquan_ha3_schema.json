@@ -1,0 +1,96 @@
+{
+    "attributes": [
+        "id",
+        "test_field_1",
+        "main_docid_to_sub_docid_attr_name",
+        "test_ddl_add_name_3"
+    ],
+    "customized_table_config": {
+        "identifier": "",
+        "parameters": {},
+        "plugin_name": ""
+    },
+    "fields": [
+        {
+            "field_name": "id",
+            "field_type": "LONG",
+            "multi_value": false
+        },
+        {
+            "field_name": "name",
+            "field_type": "STRING",
+            "multi_value": false
+        },
+        {
+            "field_name": "test_field_1",
+            "field_type": "STRING",
+            "multi_value": false
+        },
+        {
+            "field_name": "main_docid_to_sub_docid_attr_name",
+            "field_type": "INTEGER",
+            "multi_value": false
+        },
+        {
+            "field_name": "test_ddl_add_name_3",
+            "field_type": "STRING",
+            "multi_value": false
+        }
+    ],
+    "indexs": [
+        {
+            "index_fields": "id",
+            "index_name": "id",
+            "index_type": "PRIMARYKEY64"
+        },
+        {
+            "index_fields": "name",
+            "index_name": "name",
+            "index_type": "STRING"
+        },
+        {
+            "index_fields": "test_field_1",
+            "index_name": "test_field_1",
+            "index_type": "STRING"
+        },
+        {
+            "index_name": "test_ddl_add_name_3",
+            "index_type": "STRING",
+            "index_fields": "test_ddl_add_name_3"
+        }
+    ],
+    "sub_schema": {
+        "attributes": [
+            "sub_id",
+            "sub_docid_to_main_docid_attr_name"
+        ],
+        "fields": [
+            {
+                "field_name": "sub_id",
+                "field_type": "STRING",
+                "multi_value": false
+            },
+            {
+                "field_name": "sub_docid_to_main_docid_attr_name",
+                "field_type": "INTEGER",
+                "multi_value": false
+            }
+        ],
+        "indexs": [
+            {
+                "index_fields": "sub_id",
+                "index_name": "sub_id",
+                "index_type": "PRIMARYKEY64"
+            }
+        ],
+        "table_name": "table_name_demo_sub"
+    },
+    "summarys": {
+        "summary_fields": [
+            "id",
+            "name"
+        ]
+    },
+    "table_name": "table_name_demo",
+    "table_type": "normal"
+}

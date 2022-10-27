@@ -1,0 +1,16 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+libscorer_sources = [
+                            'ScorerSample.cpp',
+                            'ScorerModuleFactorySample.cpp'
+                          ]
+
+libscorer = env.aSharedLibrary(target = 'scorer_sample', source = libscorer_sources)
+
+env.aDirs('test')

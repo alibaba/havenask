@@ -1,0 +1,145 @@
+syntax = "proto3";
+package isearch.sql;
+
+option cc_enable_arenas = true;
+
+message RunSqlTimeInfo {
+    int64 sqlPlanStartTime = 1;
+    int64 sqlPlanTime = 2;
+    int64 sqlPlan2GraphTime = 3;
+    int64 sqlRunGraphTime = 4;
+}
+
+message RpcNodeInfo {
+    int32 partId = 1;
+    int32 errorCode = 2;
+    bool isReturned = 3;
+    string specStr = 4;
+    int64 rpcUseTime = 5;
+    int64 callUseTime = 6;
+    int64 rpcBegin = 7;
+    int64 rpcEnd = 8;
+    float netLatency = 9;
+}
+
+message RpcInfo {
+    uint32 totalRpcCount = 1;
+    uint32 lackCount = 2;
+    string fromIp = 3;
+    int64 useTime = 4;
+    int64 beginTime = 5;
+    repeated RpcNodeInfo rpcNodeInfos = 6;
+}
+
+message ScanInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    string tableName = 3;
+    uint32 hashKey = 4;
+    uint32 parallelId = 5;
+    uint32 parallelNum = 6;
+    uint64 totalOutputCount = 7;
+    uint64 totalScanCount = 8;
+    uint64 totalUseTime = 9;
+    uint64 totalSeekTime = 10;
+    uint64 totalEvaluateTime = 11;
+    uint64 totalOutputTime = 12;
+    uint32 totalComputeTimes = 13;
+    uint64 totalInitTime = 14;
+    uint64 totalSeekCount = 15;
+}
+
+message JoinInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    uint32 hashKey = 3;
+    uint32 totalComputeTimes = 4;
+    uint64 hashMapSize = 5;
+    uint64 totalLeftHashCount = 6;
+    uint64 totalRightHashCount = 7;
+    uint64 totalJoinCount = 8;
+    uint64 totalUseTime = 9;
+    uint64 totalhashtime = 10;
+    uint64 totalcreatetime = 11;
+    uint64 totalJoinTime = 12;
+    uint64 totalInittableTime = 13;
+    uint64 totalEvaluateTime = 14;
+}
+
+message AggInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    uint32 hashKey = 3;
+    uint64 totalUseTime = 4;
+    uint32 totalOutputCount = 5;
+    uint32 totalComputeTimes = 6;
+    uint64 collectTime = 7;
+    uint64 outputAccTime = 8;
+    uint64 mergeTime = 9;
+    uint64 outputResultTime = 10;
+    uint64 aggPoolSize = 11;
+}
+
+message CalcInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    uint32 hashKey = 3;
+    uint64 totalUseTime = 4;
+    uint32 totalOutputCount = 5;
+    uint32 totalComputeTimes = 6;
+}
+
+message TvfInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    uint32 hashKey = 3;
+    uint64 totalUseTime = 4;
+    uint32 totalOutputCount = 5;
+    uint32 totalComputeTimes = 6;
+}
+
+message ExchangeInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    uint32 hashKey = 3;
+    uint64 totalAccessCount = 4;
+    uint32 lackCount = 5;
+    int64 searcherUseTime = 6;
+    int64 fillResultUseTime = 7;
+    int64 rowCount = 8;
+    int64 poolSize = 9;
+    int64 tablePoolSize = 10;
+}
+
+message SortInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    uint32 hashKey = 3;
+    uint32 outputCount = 5;
+    uint64 totalUseTime = 6;
+    uint64 totalMergeTime = 7;
+    uint64 totalTopKTime = 8;
+    uint64 totalCompactTime = 9;
+    uint64 totalOutputTime = 10;
+    uint32 totalComputeTimes = 11;
+}
+
+message SqlSearchInfo
+{
+    RunSqlTimeInfo runSqlTimeInfo = 1;
+    repeated ExchangeInfo exchangeInfos = 2;
+    repeated ScanInfo scanInfos = 3;
+    repeated JoinInfo joinInfos = 4;
+    repeated AggInfo aggInfos = 5;
+    repeated CalcInfo calcInfos = 6;
+    repeated SortInfo sortInfos = 7;
+    repeated TvfInfo tvfInfos = 8;
+    repeated RpcInfo rpcInfos = 9;
+}

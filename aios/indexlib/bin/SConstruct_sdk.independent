@@ -1,0 +1,377 @@
+# -*- mode: python -*-
+import sys, os, os.path, platform, SCons.Util, SCons.Node
+from subprocess import *
+import string
+import re
+
+
+'''
+usage: 
+
+1) export APSARA_SDK_ROOT_PATH=/home/***/apsara/
+2) export BOOST_ROOT_PATH=/home/***/boost/
+3) cd $INDEX_LIB_ROOT/
+4) scons -U -j 4              // build the indexlib library and sdk
+5) scons . -U -j 4            // build indexlib unittest and run indexlib unittest
+'''
+
+############################################################
+# Get apsara_sdk and boost paths                           #
+############################################################
+
+apsara_sdk_root_path = '~/svn/apsara/apsarasdk_debug_64' # if empty, will use Environment var 'APSARA_SDK_ROOT_PATH'
+boost_root_path = '~/svn/apsara/include/ext' # if empty, will use Environment var 'BOOST_ROOT_PATH'
+
+if apsara_sdk_root_path: 
+    apsara_sdk_root_path = os.path.expanduser(apsara_sdk_root_path)
+if boost_root_path: 
+    boost_root_path = os.path.expanduser(boost_root_path)
+
+# get apsara_sdk_root_path and boost_root_path
+if not apsara_sdk_root_path:
+    apsara_sdk_root_path = os.getenv('APSARA_SDK_ROOT_PATH')
+if not apsara_sdk_root_path or not os.path.isdir(apsara_sdk_root_path):
+    print 'Bad apsara_sdk_root_path: ', apsara_sdk_root_path
+    sys.exit(1)
+
+if not boost_root_path:
+    boost_root_path = os.getenv('BOOST_ROOT_PATH')
+if not boost_root_path or not os.path.isdir(boost_root_path):
+    print 'Bad boost_root_path: ', boost_root_path
+    sys.exit(1)
+
+apsara_sdk_root_path=os.path.realpath(apsara_sdk_root_path)+'/'
+boost_root_path=os.path.realpath(boost_root_path)+'/'
+
+############################################################
+# Redirect stdout/stderr.                                  #
+############################################################
+
+sys.old_stdout_fd = os.dup(sys.stdout.fileno())
+sys.old_stderr_fd = os.dup(sys.stderr.fileno())
+build_log = os.popen('tee build.log', 'w')
+build_err = os.popen('tee build.err', 'w')
+os.dup2(build_log.fileno(), sys.stdout.fileno())
+os.dup2(build_err.fileno(), sys.stderr.fileno())
+
+
+############################################################
+# Default scons build options                              #
+############################################################
+
+# Multi-core parallel build
+SetOption('num_jobs', 1)
+# to create only link (not copy) of source code into the build dir.
+SetOption('duplicate','hard-soft-copy')
+# disable warning about 'two different environment specified for ...'
+SetOption('warn', 'no-duplicate-environment')
+# and 'missing SConscript...'
+SetOption('warn', 'no-missing-sconscript')
+# avoid scanning sources files for header dependency, when possible
+SetOption('implicit_cache', 1)
+
+
+############################################################
+# Define scons argvs                                       #
+############################################################
+
+env=Environment()
+
+env.Decider('MD5-timestamp')
+
+vars = Variables()
+vars.Add(EnumVariable('target', 'Set target machine', platform.architecture()[0][:2],
+                      allowed_values=('32', '64')))
+vars.Add(EnumVariable('mode', 'Set debug mode', 'debug',
+                      allowed_values=('release', 'debug')))
+vars.Add(BoolVariable('profile', 'Generate profile data for gconf, e.g: profile=yes, MUST use along with mode=debug', 0))
+vars.Add(BoolVariable('heapcheck', 'perform heap check by using tcmalloc, e.g: heapcheck=yes, MUST use along with mode=debug', 0))
+vars.Add(EnumVariable('cc', 'Set compiler mode', 'plain',  allowed_values=('plain', 'distcc')))
+vars.Update(env)
+
+
+############################################################
+# Define build paths                                       #
+############################################################
+
+env['BUILD_DIR'] = '#build/'
+env['BUILD_DIR'] = '#build/'+env['mode']+env['target']
+env['LIB_DIR'] = env['BUILD_DIR']+'/lib/'
+env['UNITTEST_DIR'] = env['BUILD_DIR']+'/unittest/'
+env['BIN_DIR'] = env['BUILD_DIR'] + '/bin/'
+
+CurrentDir=os.getcwd()
+
+env['DIST_DIR']='#dist/'
+if env['mode'] == 'debug':
+    if env['target'] == '32':
+        env['DIST_LIB_DIR'] = env['DIST_DIR'] + 'lib32d/'
+        env['DIST_BIN_DIR'] = env['DIST_DIR'] + 'bin32d/'
+    else:
+        env['DIST_LIB_DIR'] = env['DIST_DIR'] + 'lib64d/'
+        env['DIST_BIN_DIR'] = env['DIST_DIR'] + 'bin64d/'
+else:
+    if env['target'] == '32':
+        env['DIST_LIB_DIR'] = env['DIST_DIR'] + 'lib32/'
+        env['DIST_BIN_DIR'] = env['DIST_DIR'] + 'bin32/'
+    else:
+        env['DIST_LIB_DIR'] = env['DIST_DIR'] + 'lib64/'
+        env['DIST_BIN_DIR'] = env['DIST_DIR'] + 'bin64/'
+
+env['APSARA_SDK_ROOT_PATH'] = apsara_sdk_root_path
+env['BOOST_ROOT_PATH'] = boost_root_path
+
+############################################################
+# Add CPPPATH and LIBPATH                                  #
+############################################################
+
+#add local include 
+env.Append(CPPPATH=['#build/include/'])
+env.Append(CPPPATH=['#build/src/'])
+
+env.Append(CPPPATH=[apsara_sdk_root_path])
+env.Append(CPPPATH=[apsara_sdk_root_path + 'include'])
+env.Append(CPPPATH=[apsara_sdk_root_path + 'examples/include'])
+
+env.Append(CPPPATH=[boost_root_path])
+env.Append(CPPPATH=[boost_root_path + 'boost'])
+env.Append(CPPPATH=[boost_root_path + 'boost/tr1'])
+
+env['LIBS'] = ['nuwa_client', 'shennong', 'cangjie', 'kuafu', 'nuwa_client', 'shennong', 'apsara_common', 'rt', 'build_info', 'dl']
+
+env.Append(LIBPATH=env['LIB_DIR'])
+env.Append(LIBPATH=[apsara_sdk_root_path + 'lib/'])
+
+
+############################################################
+# Add CCFLAGS                                              #
+############################################################
+
+env.AppendUnique(LINKFLAGS = '-export-dynamic')
+env.AppendUnique(CCFLAGS = '-pthread')
+env.AppendUnique(CCFLAGS = '-D_FILE_OFFSET_BITS=64')
+env.AppendUnique(CCFLAGS = '-fPIC')
+env.MergeFlags('-D__STDC_LIMIT_MACROS')
+env.MergeFlags('-Wall')
+
+if env['target']=='32':
+    env.AppendUnique(CCFLAGS = '-m32')
+    env.AppendUnique(LINKFLAGS = '-m32')
+else:
+    env.AppendUnique(CCFLAGS = '-m64')
+    env.AppendUnique(LINKFLAGS = '-m64')
+
+if env['mode']=='debug':
+    env.MergeFlags('-g2')
+    env.MergeFlags('-DDEBUG')
+    env.AppendUnique(LINKFLAGS = '-g2')
+    if env['profile']:
+        env.AppendUnique(CCFLAGS = '-pg')
+        env.AppendUnique(LINKFLAGS = '-pg')
+else:
+    env.MergeFlags('-O2 -DNDEBUG')
+
+# distcc setup
+## bin/cc_wrapper will use distcc if CC_WRAPPER_HOME is set
+env['CC']= './bin/cc_wrapper ' + env['CC']
+env['CXX']= './bin/cc_wrapper ' + env['CXX']
+if env['cc']=='distcc':
+    distcc_slave = len(os.popen('distcc --show-hosts').readlines())
+    if distcc_slave > 0:
+        SetOption('num_jobs', distcc_slave * 8)
+        env['ENV']['CC_WRAPPER_HOME'] = os.getenv('HOME')
+
+
+############################################################
+# Define environment helpper function                      #
+############################################################
+
+def hardlinkFunc(dest, source, env):
+    if os.access(dest, os.F_OK):
+        os.unlink(dest)
+    os.link(source, dest)
+    return 0
+env['INSTALL'] = hardlinkFunc
+
+def aGlob(self, *args, **kwargs):
+    files = self.Glob_(*args, **kwargs)
+    files.sort(lambda x,y:cmp(str(x),str(y)))
+    return files
+env.__class__.Glob_ = env.__class__.Glob
+env.__class__.Glob = aGlob
+del aGlob
+
+def aAppend(self, *args, **kwargs):
+    if 'CPPPATH' in kwargs:
+        list = kwargs['CPPPATH']
+        if (type(list) == type('')):
+            list = [list]
+            for path in list:
+                if len(path) > 0 and (path[0] == '#'):
+                    self.Append_(CPPPATH=[self['BUILD_DIR'] + '/' +path[1:]])
+    self.Append_(*args, **kwargs)
+
+env.__class__.Append_ = env.__class__.Append
+env.__class__.Append = aAppend
+del aAppend
+
+
+### Build a static library and copy the lib binary to LIB_DIR
+def aStaticLibrary(self, *args, **kwargs):
+    target = self.StaticLibrary(*args, **kwargs)
+    target = self.Install(self['LIB_DIR'], target)
+### to make the lib be built if no parameter is given after scons
+    self.Default(target)
+    return target
+env.AddMethod(aStaticLibrary)
+
+### Build a dynamic library and copy the lib binary to LIB_DIR
+def aSharedLibrary(self, *args, **kwargs):
+    target = self.SharedLibrary(*args, **kwargs)
+    target = self.Install(self['LIB_DIR'], target)
+### to make the lib be built if no parameter is given after scons
+    self.Default(target)
+    return target
+env.AddMethod(aSharedLibrary)
+
+def aDirs(self, *dirs):
+    return self.SConscript(dirs=Flatten(dirs), exports={'env':self})
+env.AddMethod(aDirs)
+
+def runUnitTest_(target, source, env):
+    CurrentDir=os.getcwd()
+    cmd = '/bin/env'
+
+    if 'heapcheck' in env and env['heapcheck']  and not re.search("_perftest$", source[0].abspath):
+        env.AppendENVPath('HEAP_CHECK_TEST_POINTER_ALIGNMENT', '1')
+        env.AppendENVPath('LD_LIBRARY_PATH', '/usr/local/lib')
+        env.AppendENVPath('LD_PRELOAD', '/usr/local/lib/libtcmalloc.so')
+        env.AppendENVPath('HEAPCHECK', 'normal')
+
+
+    for item in env['ENV'].items():
+        cmd += (' %s=%s' % item)
+
+    for p in source:
+        dirname = os.path.dirname(p.abspath)
+
+        # copy unittest binary to developing dir
+        devdir = re.sub('/build/debug\d*/', '/', dirname, 1)
+        if devdir == dirname:
+            devdir = re.sub('([^/]*indexlib[^/]*)/build/indexlib', '\\1/indexlib', dirname, 1)
+        if devdir and devdir != dirname and os.path.isfile(p.abspath) and os.path.isdir(devdir):
+            copyCmd = 'cp %s %s' % (p.abspath, devdir)
+            print copyCmd
+            os.system(copyCmd)
+
+        # print "Entering directory `%s'" % dirname
+        print "Entering directory `%s'" % CurrentDir
+        ori_cwd = os.path.abspath(os.getcwd())
+        cdCmd = "cd %s; ulimit -c 1000000; ulimit -m 2000000;%s %s" % (dirname, cmd, p.abspath)
+        ret = os.system(cdCmd)
+        print "Leaving directory `%s'" % CurrentDir
+        # print "Leaving directory `%s'" % dirname
+        os.system('cd %s' % ori_cwd)
+        # print 'return value = %d' % ret
+        if ret:
+            return ret
+    return 0
+
+env.Append(BUILDERS = {'runUnitTest' : Builder(action= runUnitTest_) })
+
+def aProgram(self, target=None, source=None, **kwargs):
+    if 'LIBS' in kwargs:
+        if type(kwargs['LIBS']) != type([]):
+            kwargs['LIBS'] = (' '.join(Flatten(kwargs['LIBS']))).split(' ')
+    else:
+        kwargs['LIBS'] = []
+
+    # disable -Wall and -Werror in unittest.cpp
+    if '-Wall' in self['CCFLAGS'] and len([p for p in source if str(p).endswith('unittest.cpp')]) > 0:
+        self['CCFLAGS'].remove('-Wall')
+    if '-Werror' in self['CCFLAGS'] and len([p for p in source if str(p).endswith('unittest.cpp')]) > 0:
+        self['CCFLAGS'].remove('-Werror')
+
+    kwargs['LIBS'].extend(self['LIBS'])
+    target = self.Program(target, source, **kwargs)
+    for p in target:
+        self.Alias('test', p)
+        check = self.runUnitTest(str(p) + '_dummy', source = p)
+        self.Alias('check', check)
+
+    return target
+
+env.AddMethod(aProgram)
+
+def aCopy(self, *args):
+    for f in args:
+        self.Default(self.aDoNothing(f+'_copy', f))
+        t = self.Install(self['BIN_DIR'], f)
+        self.Default(t)
+        self.Alias('test', t)
+env.AddMethod(aCopy)
+
+env.Append(BUILDERS = {'aDoNothing' : Builder(action='') })
+
+# The following code is to create the directory from . to env['BUILD_DIR']
+# This is because a bug in scons: #16926
+
+def copy_dir(s, d):
+    if (not os.path.isdir(s)):
+        return
+
+    if (not os.path.isdir(d)):
+        os.mkdir(d)
+
+    sub = os.listdir(s)
+    for e in sub:
+        if (not e.startswith('.') and e != 'build' and e != 'package'):
+            copy_dir(os.path.join(s,e), os.path.join(d,e))
+
+if (not os.path.isdir('build')):
+    print 'mkdir','build'
+    os.mkdir('build')
+
+if (not os.path.isdir(env['BUILD_DIR'][1:])):
+    print 'mkdir', env['BUILD_DIR'][1:]
+    os.mkdir(env['BUILD_DIR'][1:])
+
+copy_dir('.', env['BUILD_DIR'][1:])
+
+# end of bug-fix for 16926
+
+
+
+############################################################
+# compile and link (same as make)                          #
+############################################################
+
+env.SConscript(
+    dirs='.',
+    exports='env',
+    ### to make build output such as .o, to place at BUILD_DIR
+    ### this copy the structure at . to BUILD_DIR and place output
+    ### file in corresponding sub-folders
+    variant_dir=env['BUILD_DIR'],
+    duplicate=1
+    )
+
+
+############################################################
+# install (same as make install)                           #
+############################################################
+
+dist_libs = ['libindexlib.a']
+dist_bins = []
+dist_includes = [ ]
+env['DIST_INCLUDE_DIR'] = env['DIST_DIR'] + 'include/'	
+
+for i in dist_includes:
+    env.Default(env.InstallAs(env['DIST_INCLUDE_DIR'] + i, 'include/' + i)) 
+
+for i in dist_libs:
+    env.Default(env.Install(env['DIST_LIB_DIR'], env['LIB_DIR'] + i)) 
+
+for i in dist_bins:
+    env.Default(env.Install(env['DIST_BIN_DIR'], 'bin/' + i))
+

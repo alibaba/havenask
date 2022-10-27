@@ -1,0 +1,47 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+env.Append(LIBS = ['dl'])
+
+fakequeryparserlib_sources = [
+    'TableInfoCreator.cpp',
+    'AnalyzerFactoryInit.cpp',
+    ]
+
+fakequeryparser = env.aLibrary(target = 'ha3_fakequeryparser', 
+                               source = fakequeryparserlib_sources, 
+                               LIBS = [])
+
+queryparser_test_sources = [
+    'BisonParserTest.cpp',
+    'DefaultQueryExprEvaluatorTest.cpp',
+    'ScannerTest.cpp',
+    'QueryParserTest.cpp',
+    'RequestParserTest.cpp',
+    'ClauseScannerTest.cpp',
+    'SyntaxExprBisonParserTest.cpp',
+    'AggregateBisonParserTest.cpp',
+    'DistinctBisonParserTest.cpp',
+    'DistinctParserTest.cpp',
+    'VirtualAttributeBisonParserTest.cpp',
+    'LayerClauseParserTest.cpp',
+    'SearcherCacheParserTest.cpp',
+    'SearcherCacheBisonParserTest.cpp',
+    'RankSortParserTest.cpp',
+    ]
+
+libsname = [ 'ha3_fakequeryparser', 'ha3sdk_testlib']
+
+env.aTest(target = 'queryparser_test', 
+          source = queryparser_test_sources,
+          LIBS = libsname + env['ha3_test_depend_lib']
+          )
+
+
+
+
+

@@ -1,0 +1,26 @@
+# -*- mode: python -*-
+
+import os
+Import('env')
+env = env.Clone()
+env.Append(LIBPATH=['.'])
+
+inverted_index = env.aDirs('inverted_index')
+attribute = env.aDirs('attribute')
+summary = env.aDirs('summary')
+adaptive_bitmap = env.aDirs('adaptive_bitmap')
+deletionmap = env.aDirs('deletionmap')
+reclaim_map = env.aDirs('reclaim_map')
+primarykey = env.aDirs('primarykey')
+trie = env.aDirs('trie')
+
+normal_source=Glob('*.cpp')
+
+normalcpps = [ inverted_index, attribute, summary, adaptive_bitmap, trie,
+               deletionmap, reclaim_map, primarykey, normal_source ]
+
+#env.aLibrary(target='indexlib_indexnormal', source=normalcpps)
+
+env.aDirs('test')
+
+Return(['normalcpps'] )

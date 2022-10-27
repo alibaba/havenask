@@ -1,0 +1,14 @@
+{
+    "offline_index_config": {
+        "offline_merge_config" : {
+            "full" : 
+            {
+                "merge_parallel_num" : 3,
+                "merge_config" : 
+                {
+                    "merge_thread_count": 4
+                }
+            }
+        }
+    }
+}

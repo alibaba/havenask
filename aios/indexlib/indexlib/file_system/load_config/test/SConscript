@@ -1,0 +1,24 @@
+# -*- mode: python -*-
+import platform
+Import('env')
+env = env.Clone();
+
+load_config_ut_libs = [
+    'indexlib_basic',
+    'fslib-framework',
+    'autil',
+    'gmock',
+    'gtest',
+    'pthread'
+]
+
+load_config_case_cpps=Glob('*_unittest.cpp')
+load_config_ut_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    load_config_case_cpps,
+]
+
+env.aTest(target = 'ie_load_config_unittest',
+          source = load_config_ut_test_sources,
+          LIBS= load_config_ut_libs)
+

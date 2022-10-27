@@ -1,0 +1,19 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+hash_table = env.aDirs('hash_table')
+numeric_compress = env.aDirs('numeric_compress')
+chunk = env.aDirs('chunk')
+field_format = env.aDirs('field_format')
+
+common_source = Glob('*.cpp')
+commoncpps = [ hash_table, numeric_compress, chunk,
+               common_source, field_format ]
+
+env.aSharedLibrary(target = 'indexlib_common', source = commoncpps)
+
+env.aDirs('test')
+env.aDirs('perf_test')
+Return(['commoncpps'])

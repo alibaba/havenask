@@ -1,0 +1,14 @@
+{
+    "cluster_config" : {
+        "table_name" : "table1",
+        "hash_mode" : {
+            "hash_field" : "id",
+            "hash_function" : "HASH"
+        }
+    },
+    "swift_config" : {
+        "topic": {
+            "partition_count" : 4
+        }
+    }
+}

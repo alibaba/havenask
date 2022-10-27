@@ -1,0 +1,41 @@
+{
+"deploy_file_metas":
+  [
+    {
+    "file_length":
+      -1,
+    "path":
+      "index\/"
+    },
+    {
+    "file_length":
+      -1,
+    "path":
+      "deletionmap\/"
+    },
+    {
+    "file_length":
+      97,
+    "path":
+      "segment_info"
+    },
+    {
+    "file_length":
+      -1,
+    "path":
+      "index\/index\/"
+    },
+    {
+    "file_length":
+      46,
+    "path":
+      "index\/index\/posting"
+    },
+    {
+    "file_length":
+      48,
+    "path":
+      "index\/index\/dictionary"
+    }
+  ]
+}

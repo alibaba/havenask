@@ -1,0 +1,13 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+index_accessor_cpps=Glob('*.cpp')
+#env.aLibrary(target='indexlib_indexaccessor', source=index_accessor_cpps)
+
+# env.aDirs('test')
+# env.aDirs('perf_test')
+Return(['index_accessor_cpps'] )
+
+

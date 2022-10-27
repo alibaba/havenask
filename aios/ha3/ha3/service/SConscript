@@ -1,0 +1,31 @@
+# -*- mode: python -*-
+
+Import('env')
+
+env = env.Clone()
+env.Append(CPPPATH=env['install_root'] + '/usr/local/include/eigen3/')
+
+libservice_sources = [
+    'QrsSearcherProcessDelegation.cpp',
+    'SearcherResourceCreator.cpp',
+    'QrsChainManagerCreator.cpp',
+    'QrsSearcherHandler.cpp',
+    'Session.cpp',
+    'SessionPool.cpp',
+    'SessionWorkItem.cpp',
+    'QrsArpcSession.cpp',
+    'QrsArpcSqlSession.cpp',
+    'HitSummarySchemaCache.cpp',
+    'ThreadPoolManager.cpp',
+    'QrsSearchConfig.cpp',
+    'ServiceDegrade.cpp',
+    'RpcContextUtil.cpp',
+    'QrsRequest.cpp',
+    'QrsResponse.cpp',
+    'QrsSqlHandler.cpp',
+    ]
+
+ha3_service = env.aLibrary(target = 'ha3_service',
+                           source = libservice_sources)
+
+env.aDirs('test')

@@ -1,0 +1,8 @@
+{
+    "summary_profile_name": "Inherit",
+    "extractor":
+    {
+        "module_name": "Inherit",
+	"extractor_name": "Inherit"
+    }
+}

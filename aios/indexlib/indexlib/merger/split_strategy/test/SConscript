@@ -1,0 +1,35 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+split_strategy_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'time_series_split_strategy_unittest.cpp'
+]
+
+split_strategy_libs = [
+    'indexlib_indextest_common',
+    'indexlib_truncate_test_common',
+    'indexlib_configtest',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest'
+]
+
+env.aTest(target = 'indexlib_split_strategy_unittest',
+          source = split_strategy_test_sources, LIBS = split_strategy_libs)

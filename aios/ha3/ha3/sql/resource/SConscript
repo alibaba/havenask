@@ -1,0 +1,11 @@
+# -*- mode: python -*-
+
+Import('env')
+
+env = env.Clone()
+
+sql_resource = Glob('*.cpp')
+
+env.aLibrary(target = 'ha3_sql_resource', source = sql_resource)
+
+Return(['sql_resource'])

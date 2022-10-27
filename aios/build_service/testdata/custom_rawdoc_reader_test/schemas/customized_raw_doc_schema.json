@@ -1,0 +1,23 @@
+{
+    "fields":
+    [
+        {
+            "field_name": "points",
+            "field_type": "FLOAT",
+            "multi_value": true
+        }
+    ],
+    "table_name": "noname",
+    "table_type": "customized",
+    "customized_document_config":
+    [
+        {
+            "id" : "document.raw_document",
+            "plugin_name" : "customized_raw_doc_parser"
+        }
+    ],
+    "customized_table_config" : {
+        "plugin_name" : "customized_raw_doc_parser"
+    },
+    "versionid" : 1
+}

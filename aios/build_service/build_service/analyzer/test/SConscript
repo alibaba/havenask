@@ -1,0 +1,30 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+analyzer_test_sources = [
+    '#build_service/test/dotest.cpp',
+    'StopWordFilterTest.cpp',
+    'CodeConverterTest.cpp',
+    'NormalizerTest.cpp',
+    'SimpleTokenizerTest.cpp',
+    'AnalyzerTest.cpp',
+    'AnalyzerFactoryTest.cpp',
+    'AnalyzerInfosTest.cpp',
+    'SingleWSScannerTest.cpp',
+    'SingleWSTokenizerTest.cpp',
+    'TokenTest.cpp',
+    'TextBufferTest.cpp',
+    'PrefixTokenizerTest.cpp',
+    'SuffixPrefixTokenizerTest.cpp'
+    ]
+
+env.checkAllCppFileContained(Glob('*.cpp'), analyzer_test_sources)
+
+env.aTest(target = 'analyzer_test',
+          source = analyzer_test_sources,
+          LIBS = [ 'bs_analyzer', 'bs_config', 'bs_plugin'] + env['bs_test_common_lib'] + env['bs_worker_lib'])

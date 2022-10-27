@@ -1,0 +1,18 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+libPlugin = env.aDirs('plugins')
+cpPlugin = env.aCopy(env['TOP_DIR'] + '/testdata/sql_tvf/plugins/', libPlugin)
+
+test_sources = Glob('*.cpp')
+
+tvf_test = env.aTest(target = 'ops_tvf_test',
+                     source = test_sources,
+                     LIBS = env['ha3_test_depend_lib']);
+
+env.Depends(tvf_test, cpPlugin)

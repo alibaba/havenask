@@ -1,0 +1,26 @@
+# -*- mode: python -*-
+import platform
+Import('env')
+env = env.Clone();
+
+field_format_date_ut_libs = [
+    'indexlib_basic',
+    'fslib-framework',
+    'autil',
+    'gmock',
+    'gtest',
+    'pthread'
+]
+
+field_format_date_case_cpps=Glob('*_unittest.cpp')
+field_format_date_ut_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    '#indexlib/testlib/schema_maker.cpp',
+    'date_term_maker.cpp',
+    field_format_date_case_cpps,
+]
+
+env.aTest(target = 'ie_field_format_date_unittest',
+          source = field_format_date_ut_test_sources,
+          LIBS= field_format_date_ut_libs)
+

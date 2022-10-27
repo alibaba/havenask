@@ -1,0 +1,16 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+configImpl = env.aDirs('impl')
+config = Glob('*.cpp')
+
+config_cpp = [configImpl, config]
+env.aSharedLibrary(target='indexlib_config', source=config_cpp)
+
+env.aDirs('test')
+Return(['config_cpp'])
+
+
+

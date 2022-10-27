@@ -1,0 +1,30 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+fake_document_sources = [
+    'DocumentTestHelper.cpp',
+    ]
+
+lib_document_fake = env.aLibrary(target = 'document_fake', source = fake_document_sources)
+
+document_test_sources=  [
+    '#build_service/test/dotest.cpp',
+    'ExtendDocumentTest.cpp',
+    # 'RawDocumentTest.cpp',
+    # 'TokenizeDocumentTest.cpp',
+    # 'TokenizeFieldTest.cpp',
+    # 'TokenizeSectionTest.cpp',
+    # 'RawDocumentHashMapTest.cpp',
+    # 'RawDocumentHashMapManagerTest.cpp',
+    ]
+
+env.checkAllCppFileContained(Glob('*.cpp'), fake_document_sources + document_test_sources)
+
+documenttest = env.aTest(target = 'document_test',
+                     source = document_test_sources,
+                     LIBS = ['bs_document', 'bs_analyzer', 'bs_config', 'bs_plugin', 'indexlib'] + env['bs_test_common_lib'] + env['bs_worker_lib']
+                     );

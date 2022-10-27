@@ -1,0 +1,70 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+fake_workflow_sources = [
+    'MockSwiftWriter.cpp',
+    'FakeProcessedDocProducer.cpp',
+    'FakeBuilder.cpp',
+    ]
+lib_workflow_fake = env.aLibrary(target = 'workflow_fake', source = fake_workflow_sources)
+
+
+customized_doc_parser_sources = ['CustomizedDocParser.cpp']
+libcustomized_doc_parser = env.aSharedLibrary(target = 'customized_doc_parser_for_workflow',
+                                              source = customized_doc_parser_sources);
+libcustomized_doc_parser_path = env['LIB_DIR'] + '/' + 'libcustomized_doc_parser_for_workflow.so'
+libcustomized_doc_parser_install = env.aCopy('#testdata/swift_broker_factory_test/customized_doc_parser_config/plugins', libcustomized_doc_parser_path)
+
+
+customized_index_sources = ['CustomizedIndex.cpp']
+libcustomized_index = env.aSharedLibrary(target = 'customized_index_for_workflow',
+                                              source = customized_index_sources);
+libcustomized_index_path = env['LIB_DIR'] + '/' + 'libcustomized_index_for_workflow.so'
+libcustomized_index_install = env.aCopy('#testdata/build_flow_test/customized_index_config/plugins', libcustomized_index_path)
+
+
+workflow_test_sources=  [
+    '#build_service/test/dotest.cpp',
+    'WorkflowTest.cpp',
+    'DocProcessorConsumerTest.cpp',
+    'DocReaderProducerTest.cpp',
+    'DocBuilderConsumerTest.cpp',
+    'RawDocBuilderConsumerTest.cpp',
+    'SwiftProcessedDocConsumerTest.cpp',
+    'SwiftProcessedDocProducerTest.cpp',
+    'SwiftBrokerFactoryTest.cpp',
+    'ProcessedDocRtBuilderImplTest.cpp',
+    'RealtimeBuilderTest.cpp',
+    'CustomizedDocParser.cpp',
+    'RawDocRtServiceBuilderTest.cpp',
+]
+
+workflow_test_2_sources=  [
+    '#build_service/test/dotest.cpp',
+    'BuildFlowTest.cpp',
+    'CustomizedIndex.cpp',
+]
+
+libnames = ['bs_workflow', 'workflow_fake', 'bs_processor',
+            'bs_reader', 'bs_builder', 'bs_util',
+            'reader_fake', 'bs_document',  'document_fake', 'bs_analyzer',
+            'proto_fake', 'bs_config', 'bs_plugin', 'bs_custom_merger',
+            'bs_task_base', 'indexlib', 'io']
+
+env.checkAllCppFileContained(Glob('*.cpp'), workflow_test_sources + fake_workflow_sources + workflow_test_2_sources)
+
+workflowtest = env.aTest(target = 'workflow_test',
+                         source = workflow_test_sources,
+                         LIBS = libnames + env['bs_test_common_lib']);
+
+workflowtest2 = env.aTest(target = 'workflow_test_2',
+                         source = workflow_test_2_sources,
+                         LIBS = libnames + env['bs_test_common_lib']);
+
+env.Depends(workflowtest, [libcustomized_doc_parser_install])
+env.Depends(workflowtest2, [libcustomized_index_install])

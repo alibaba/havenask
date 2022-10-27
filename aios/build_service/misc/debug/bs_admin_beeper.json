@@ -1,0 +1,318 @@
+{
+    "report_thread_num" : 3,
+    "event_queue_size" : 2000,
+    "recorder_configs" :
+    [
+	{
+	    "id" : "misc_info",
+            "type" : "log",
+            "parameters" :
+            [
+                {
+                    "key" : "file_path",
+                    "value" : "beeper_logs/misc_info.log"
+                },
+		{
+		    "key" : "sync_flush",
+		    "value" : "true"
+		}
+            ]
+	},
+        { 
+            "id" : "generation_status",
+            "type" : "log",
+            "parameters" :
+            [
+                {
+                    "key" : "file_path",
+                    "value" : "beeper_logs/generation_status.log"
+                },
+		{
+		    "key" : "sync_flush",
+		    "value" : "true"
+		}
+            ]
+        },
+        { 
+            "id" : "generation_status_sqi",
+            "type" : "sqi",
+            "parameters" :
+            [
+            ],
+            "enable_batch_process" : true
+        },
+        { 
+            "id" : "generation_error",
+            "type" : "log",
+            "parameters" :
+            [
+                {
+                    "key" : "file_path",
+                    "value" : "beeper_logs/generation_error.log"
+                },
+		{
+		    "key" : "sync_flush",
+		    "value" : "true"
+		}
+            ]
+        },
+        { 
+            "id" : "generation_command",
+            "type" : "log",
+            "parameters" :
+            [
+                {
+                    "key" : "file_path",
+                    "value" : "beeper_logs/generation_command.log"
+                },
+		{
+		    "key" : "sync_flush",
+		    "value" : "true"
+		}
+            ]
+        },
+        { 
+            "id" : "admin_status",
+            "type" : "log",
+            "parameters" :
+            [
+                {
+                    "key" : "file_path",
+                    "value" : "beeper_logs/admin_status.log"
+                },
+		{
+		    "key" : "sync_flush",
+		    "value" : "true"
+		}
+            ]
+        },
+        { 
+            "id" : "fslib_error",
+            "type" : "log",
+            "parameters" :
+            [
+                {
+                    "key" : "file_path",
+                    "value" : "beeper_logs/fslib_error.log"
+                },
+		{
+		    "key" : "sync_flush",
+		    "value" : "true"
+		}
+            ]
+        },
+        { 
+            "id" : "fslib_remove",
+            "type" : "log",
+            "parameters" :
+            [
+                {
+                    "key" : "file_path",
+                    "value" : "beeper_logs/fslib_remove.log"
+                },
+		{
+		    "key" : "sync_flush",
+		    "value" : "true"
+		}
+            ]
+        },
+        { 
+            "id" : "fslib_long_interval",
+            "type" : "log",
+            "parameters" :
+            [
+                {
+                    "key" : "file_path",
+                    "value" : "beeper_logs/fslib_long_interval.log"
+                },
+		{
+		    "key" : "sync_flush",
+		    "value" : "true"
+		}
+            ]
+        }	
+    ],
+    "level_configs" :
+    [
+        {
+            "level" : "default",
+	    "report_targets" :
+	    [
+		{
+		    "recorder_id" : "misc_info",
+		    "sync_mode" : false
+		}
+	    ]
+        }
+    ],
+    "collector_parameters" :
+    [
+	{
+	    "id" : "admin_status",
+	    "default_level" : "default",
+	    "level_configs" :
+	    [
+		{
+		    "level" : "default",
+		    "report_targets" :
+		    [
+			{
+			    "recorder_id" : "admin_status",
+			    "sync_mode" : true
+			},
+			{
+			    "recorder_id" : "misc_info",
+			    "sync_mode" : false
+			}
+		    ]
+		}
+	    ]
+	},
+	{
+	    "id" : "generation_command",
+	    "default_level" : "default",
+	    "level_configs" :
+	    [
+		{
+		    "level" : "default",
+		    "report_targets" :
+		    [
+			{
+			    "recorder_id" : "generation_command",
+			    "sync_mode" : true
+			},
+			{
+			    "recorder_id" : "generation_status",
+			    "sync_mode" : false
+			},
+			{
+			    "recorder_id" : "misc_info",
+			    "sync_mode" : false
+			},
+                {
+			    "recorder_id" : "generation_status_sqi",
+			    "sync_mode" : false
+			}
+		    ]
+		}
+	    ]
+	},
+	{
+	    "id" : "generation_error",
+	    "default_level" : "default",
+	    "level_configs" :
+	    [
+		{
+		    "level" : "default",
+		    "report_targets" :
+		    [
+			{
+			    "recorder_id" : "generation_error",
+			    "sync_mode" : true
+			},
+			{
+			    "recorder_id" : "generation_status",
+			    "sync_mode" : false
+			},
+			{
+			    "recorder_id" : "misc_info",
+			    "sync_mode" : false
+			},
+                {
+			    "recorder_id" : "generation_status_sqi",
+			    "sync_mode" : false
+			}
+		    ]
+		}
+	    ]
+	},
+	{
+	    "id" : "generation_status",
+	    "default_level" : "default",
+	    "level_configs" :
+	    [
+		{
+		    "level" : "default",
+		    "report_targets" :
+		    [
+			{
+			    "recorder_id" : "generation_status",
+			    "sync_mode" : false
+			},
+			{
+			    "recorder_id" : "misc_info",
+			    "sync_mode" : false
+			},
+                        {
+			    "recorder_id" : "generation_status_sqi",
+			    "sync_mode" : false
+			}
+		    ]
+		}
+	    ]
+	},
+	{
+	    "id" : "fslib_error",
+	    "default_level" : "default",
+	    "level_configs" :
+	    [
+		{
+		    "level" : "default",
+		    "report_targets" :
+		    [
+			{
+			    "recorder_id" : "fslib_error",
+			    "sync_mode" : false
+			},
+			{
+			    "recorder_id" : "misc_info",
+			    "sync_mode" : false
+			}
+		    ]
+		}
+	    ]
+	},
+	{
+	    "id" : "fslib_remove",
+	    "default_level" : "default",
+	    "level_configs" :
+	    [
+		{
+		    "level" : "default",
+		    "report_targets" :
+		    [
+			{
+			    "recorder_id" : "fslib_remove",
+			    "sync_mode" : false
+			},
+			{
+			    "recorder_id" : "misc_info",
+			    "sync_mode" : false
+			}
+		    ]
+		}
+	    ]
+	},
+	{
+	    "id" : "fslib_long_interval",
+	    "default_level" : "default",
+	    "level_configs" :
+	    [
+		{
+		    "level" : "default",
+		    "report_targets" :
+		    [
+			{
+			    "recorder_id" : "fslib_long_interval",
+			    "sync_mode" : false
+			},
+			{
+			    "recorder_id" : "misc_info",
+			    "sync_mode" : false
+			}
+		    ]
+		}
+	    ]
+	}
+    ]
+}

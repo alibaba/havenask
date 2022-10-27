@@ -1,0 +1,37 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+util_sources = [
+    'UTF8Util.cpp',
+    'StringUtil.cpp',
+    'PinYinTrans.cpp',
+    'FileUtil.cpp',
+    'RangeUtil.cpp',
+    'IndexPathConstructor.cpp',
+    'LogSetupGuard.cpp',
+    'RedisClient.cpp',
+    'SwiftAdminFacade.cpp',
+    'SwiftClientCreator.cpp',
+    'MemUtil.cpp',
+    'BsMetricTagsHandler.cpp',
+    'PooledChannelManager.cpp',
+    'KmonitorUtil.cpp',
+]
+
+env.checkAllCppFileContained(Glob('*.cpp'), util_sources)
+util_sources = map(os.path.abspath, util_sources)
+
+libnames = ['hiredis', 'z', 'arpc']
+
+env.aLibrary(target = 'bs_util',
+             source = util_sources,
+             LIBS = libnames,
+             LIBATTRS = {})
+
+env.aDirs('test')
+
+Return(['util_sources'])

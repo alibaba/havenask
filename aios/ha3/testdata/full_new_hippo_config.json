@@ -1,0 +1,126 @@
+{
+    "hippo_zookeeper_root" : "path/to/hippo/leader/elector/root",
+    "app_name" : "your app name", 
+    "user" : "your user name", 
+    "packages" : [
+	{
+	    "type" : "RPM",
+	    "packageURI" : "ha3 package"
+	},
+	{
+	    "type" : "ARCHIVE",
+	    "packageURI" : "other packages"
+	}
+    ],
+    "cm2_server" : {
+	"cm2_server_zookeeper_host" : "cm2host",
+	"cm2_server_leader_path" : "/leaderelectpath",
+	"cm2_server_cluster_name" : "somesearch",
+	"signature" : "online1",
+	"idc_type" : 6,
+	"weight" : 80
+    },
+    "admin_resource" : {
+	"cpu" : 100,
+	"mem" : 1024
+    },
+    "resource_defines" : {
+	"default" : {
+	    "require" : [
+		[
+		    {
+			"name" : "cpu",
+			"type" : "SCALAR",
+			"amount" : 100
+		    },
+		    {
+			"name" : "mem",
+			"type" : "SCALAR",
+			"amount" : 1024
+		    }
+		]
+	    ],
+	    "declare" : [
+		{
+		    "name" : "Foo",
+		    "type" : "TEXT",
+		    "amount" : 5
+		}
+	    ],
+	    "queue" : "D12",
+	    "allocateMode" : "SLOT",
+	    "count" : 1
+	},
+	"good" : {
+	    "require" : [ 
+		{ "cpu" : 2400, "mem" : 64000 },
+		{ "cpu" : 2400, "mem" : 48000 }
+	    ],
+	    "count" : 100
+	},
+	"bad" : {
+	    "require" : [
+		{ "cpu" : 1600, "mem" : 48000 }
+	    ],
+	    "count" : 50
+	},
+	"summary" : {
+	    "require" : [
+		{ "cpu" : 1600, "mem" : 64000, "ssd" : 1 } 
+	    ],
+	    "count" : 60
+	}
+    },
+    "role_default" : {
+        "processInfos" : [
+            {
+                "envs" : [
+                    ["HADOOP_HOME", "hadoop"],
+                    ["JAVA_HOME", "java"],
+                    ["LD_LIBRARY_PATH", "extern lib pathes:$JAVA_HOME/jre/lib/amd64/server/"],
+                    ["CLASSPATH","conf:etc/hadoop:hadoop-ant-2.0.0-mr1-cdh4.1.2.jar:..."],
+                    ["LD_PRELOAD", "usr/lib64/libtcmalloc_minimal.so.0"]
+                ],
+                "args" : [
+                    ["--logConf", "my conf"]
+                ]
+            }
+        ]
+    },
+    "role_customize" : {
+	"index" : {
+            "processInfos" : [
+	        {
+                    "isDaemon" : true,
+		    "processName" : "se_server",
+		    "cmd" : "/bin/se_server",
+		    "envs" : [
+		        ["key1" , "value1"],
+                        ["key2" , "value2"]
+		    ]
+	        }
+            ]
+	},
+	"qrs" : {
+            "processInfos" : [
+	        {
+                    "isDaemon" : true,
+		    "processName" : "log_monitor",
+		    "cmd" : "/bin/log_monitor.sh"
+	        }
+            ]
+	}
+    },
+    "required_datas" : [
+	{
+	    "name" : "isearch5_data",
+	    "src" : "hdfs://isearch5_data",
+	    "dst" : "/home/admin/isearch5_data"
+	},
+	{
+	    "name" : "other_data",
+	    "src" : "hdfs://other_data",
+	    "dst" : "other_data"
+	}
+    ]
+}

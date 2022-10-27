@@ -1,0 +1,20 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+document_sources = [
+    'ExtendDocument.cpp',
+]
+
+env.checkAllCppFileContained(Glob('*.cpp'), document_sources)
+document_sources = map(os.path.abspath, document_sources)
+
+env.aLibrary(target = 'bs_document',
+             source = document_sources)
+
+env.aDirs('test')
+
+Return(['document_sources'])

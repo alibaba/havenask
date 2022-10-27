@@ -1,0 +1,16 @@
+{
+    "table_name": "kv_table",
+    "table_type": "kv",
+    "fields": [
+        { "field_name": "nid", "field_type": "INT64" },
+        { "field_name": "multi_int32_fixed", "field_type": "INT32", "multi_value": true, "fixed_multi_value_count" : 4},
+        { "field_name": "int8", "field_type": "INT8", "multi_value" : false},
+        { "field_name": "multi_float_fixed", "field_type": "float", "multi_value" : true, "fixed_multi_value_count": 3}
+    ],
+    "indexs": [
+        { "index_name": "nid", "index_fields": "nid", "index_type": "PRIMARY_KEY",
+	  "index_preference" : { "type" : "PERF" }
+        }
+    ],
+    "attributes": [ "nid", "multi_int32_fixed", "int8", "multi_float_fixed"]
+}

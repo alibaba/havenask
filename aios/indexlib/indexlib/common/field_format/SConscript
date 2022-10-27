@@ -1,0 +1,21 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+attribute = env.aDirs('attribute')
+date = env.aDirs('date')
+pack_attribute = env.aDirs('pack_attribute')
+range = env.aDirs('range')
+section_attribute = env.aDirs('section_attribute')
+spatial = env.aDirs('spatial')
+
+field_format = Glob('*.cpp')
+
+field_format_cpps = [
+    field_format, attribute, date, pack_attribute,
+    range, section_attribute, spatial ]
+
+#env.aDirs('test')
+
+Return(['field_format_cpps'] )

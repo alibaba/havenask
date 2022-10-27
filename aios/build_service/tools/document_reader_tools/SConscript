@@ -1,0 +1,17 @@
+# -*- mode: python -*-
+
+import os
+
+Import('env')
+env = env.Clone()
+
+lib_names = ['indexlib', 'swift_client_minimal', 'build_service',
+             'readline', 'arpc', 'http_arpc', 'autil', 'worker_framework']
+
+doc_reader_exe = env.aProgramAndInstall(
+    target="doc_reader_tool",
+    source = Glob('*.cpp'),
+    LIBS = lib_names)
+
+env.Alias('tools', doc_reader_exe)
+env.Default(doc_reader_exe)

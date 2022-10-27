@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+if [ "X$CC_WRAPPER_HOME" != "X" ];
+then
+    export HOME=$CC_WRAPPER_HOME
+    distcc $*
+else
+    $*
+fi

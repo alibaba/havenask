@@ -1,0 +1,230 @@
+{
+    "builder_rule_config" : {
+        "partition_resource" : 50,
+        "partition_count" : 5
+    },
+    "swift_config" : {
+        "topic" : {
+            "partition_count" : 10,
+            "partition_resource" : 100,
+            "partition_buffer" : 1000,
+            "partition_file_buf_size" : 1000,
+            "obsolete_file_interval" : 3600,
+            "reserved_file_count" : 10
+        },
+        "reader_config" : "",
+        "writer_config" : ""
+    },
+    "crontab_config" : {
+        "inc_version_interval" : 1800,
+        "full_merge_interval" : 86400
+    },
+    "build_config" : {
+        "NeedSort" : true,
+        "SortQueueSize" : 100000,
+        "IndexKeepTime" : 3600
+    },
+    "index_partition_option" :
+    {
+        "MergeStrategy" : "balance_tree",
+        "MergeStrategyParam": "conflict-segment-number=3;base-doc-count=10240;max-doc-count=512000;conflict-delete-percent=80;max-valid-doc-count=20000000",
+        "KeepVersionCount" : 10,
+        "SortParams":
+        [
+            {
+                "SortFieldName": "category",
+                "SortFieldType": "INT32",
+                "SortPattern": "DESC"
+            },
+            {
+                "SortFieldName": "ends",
+                "SortFieldType": "INT64",
+                "SortPattern": "ASC"
+            }
+        ],
+        "MaxMemoryUse": 5120,
+        "MergeThreadCount" : 1,
+        "TruncateOptionConfig" :
+        {
+            "TruncateProfiles" : [
+		        {
+                    "TruncateProfileName" : "desc_static_trans_score",
+                    "IndexNames" : [ ],
+                    "TruncateStrategyName" : "static_trans_score_filter_by_meta",
+                    "SortParams":
+		            [
+			            {
+			                "SortField" : "static_trans_score",
+			                "SortType": "DESC"
+			            },
+			            {
+			                "SortField": "nid",
+			                "SortType": "ASC"
+			            }
+		            ]
+		        },
+		        {
+                    "TruncateProfileName" : "desc_tk_trans_score",
+                    "IndexNames" : [ ],
+                    "TruncateStrategyName" : "tk_trans_score_filter_by_meta",
+                    "SortParams":
+		            [
+			            {
+			                "SortField" : "tk_trans_score",
+			                "SortType": "DESC"
+			            },
+			            {
+			                "SortField": "nid",
+			                "SortType": "ASC"
+			            }
+		            ]
+		        },
+		        {
+                    "TruncateProfileName" : "desc_biz30day",
+                    "IndexNames" : [ ],
+                    "TruncateStrategyName" : "biz30day_filter_by_meta",
+                    "SortParams":
+		            [
+			            {
+			                "SortField" : "biz30day",
+			                "SortType": "DESC"
+			            },
+			            {
+			                "SortField": "nid",
+			                "SortType": "ASC"
+			            }
+		            ]
+		        },
+		        {
+                    "TruncateProfileName" : "desc_tk_total_sales",
+                    "IndexNames" : [ ],
+                    "TruncateStrategyName" : "tk_total_sales_filter_by_meta",
+                    "SortParams":
+		            [
+			            {
+			                "SortField" : "tk_total_sales",
+			                "SortType": "DESC"
+			            },
+			            {
+			                "SortField": "nid",
+			                "SortType": "ASC"
+			            }
+		            ]
+		        },
+		        {
+                    "TruncateProfileName" : "desc_uvsum",
+                    "IndexNames" : [ ],
+                    "TruncateStrategyName" : "uvsum_filter_by_meta",
+                    "SortParams":
+		            [
+			            {
+			                "SortField" : "uvsum",
+			                "SortType": "DESC"
+			            },
+			            {
+			                "SortField": "nid",
+			                "SortType": "ASC"
+			            }
+		            ]
+		        },
+		        {
+                    "TruncateProfileName" : "desc_uvsum_suc",
+                    "IndexNames" : [ ],
+                    "TruncateStrategyName" : "uvsum_suc_filter_by_meta",
+                    "SortParams":
+		            [
+			            {
+			                "SortField" : "uvsum_suc",
+			                "SortType": "DESC"
+			            },
+			            {
+			                "SortField": "nid",
+			                "SortType": "ASC"
+			            }
+		            ]
+		        },
+		        {
+                    "TruncateProfileName" : "asc_ends",
+                    "IndexNames" : [ ],
+                    "TruncateStrategyName" : "ends_filter_by_timestamp",
+                    "SortParams":
+		            [
+			            {
+			                "SortField" : "ends_1",
+			                "SortType": "ASC"
+			            },
+			            {
+			                "SortField": "nid",
+			                "SortType": "ASC"
+			            }
+		            ]
+		        }
+            ],
+            "TruncateStrategy" : [
+                {
+                    "StrategyName" : "static_trans_score_filter_by_meta",
+                    "StrategyType" : "truncate_meta",
+                    "Limit" : 20000,
+                    "DiversityConstrain": {
+                        "FilterField" : "static_trans_score",
+                        "FilterByMeta" : true
+                    }
+                },
+                {
+                    "StrategyName" : "tk_trans_score_filter_by_meta",
+                    "StrategyType" : "truncate_meta",
+                    "Limit" : 20000,
+                    "DiversityConstrain": {
+                        "FilterField" : "tk_trans_score",
+                        "FilterByMeta" : true
+                    }
+                },
+                {
+                    "StrategyName" : "biz30day_filter_by_meta",
+                    "StrategyType" : "truncate_meta",
+                    "Limit" : 20000,
+                    "DiversityConstrain": {
+                        "FilterField" : "biz30day",
+                        "FilterByMeta" : true
+                    }
+                },
+                {
+                    "StrategyName" : "tk_total_sales_filter_by_meta",
+                    "StrategyType" : "truncate_meta",
+                    "Limit" : 20000,
+                    "DiversityConstrain": {
+                        "FilterField" : "tk_total_sales",
+                        "FilterByMeta" : true
+                    }
+                },
+                {
+                    "StrategyName" : "uvsum_filter_by_meta",
+                    "StrategyType" : "truncate_meta",
+                    "Limit" : 20000,
+                    "DiversityConstrain": {
+                        "FilterField" : "uvsum",
+                        "FilterByMeta" : true
+                    }
+                },
+                {
+                    "StrategyName" : "uvsum_suc_filter_by_meta",
+                    "StrategyType" : "truncate_meta",
+                    "Limit" : 20000,
+                    "DiversityConstrain": {
+                        "FilterField" : "uvsum_suc",
+                        "FilterByMeta" : true
+                    }
+                },
+                {
+                    "StrategyName" : "ends_filter_by_timestamp",
+                    "StrategyType" : "truncate_meta",
+                    "DiversityConstrain": {
+                        "FilterType" : "FilterByTimeStamp",
+                        "FilterParameter" : "fieldName=ends_1;beginTime=now;adviseEndTime=23:59:59;minInterval=24"
+                    }
+                }
+            ],
+            "ExtendIndexNames" : [ "phrase", "cat_id_path", "spuid", "sspuid", "epid", "user", "haspid", "categoryp", "auction_type", "oneyuan", "promote", "commend", "nick", "counts", "shipping", "isnewest", "auto_post", "auction_flag", "options_bits", "has_bid", "isprepay", "psbit", "pidvid", "spugroupid", "user_type", "pid", "support_cod", "support_xcard", "baobei_type", "lptime", "lp_start", "istk", "hprop", "auction_tag", "disp_flag", "properties", "etao_tag", "auction_ext", "consign_date", "dna_id", "tk_group_ids", "is_sns_guide", "changjing", "ss_auction_tag", "m_haixuan_tag", "special_tag", "item_feed_pic_flag_c2c" ]
+	    }
+    }
+}

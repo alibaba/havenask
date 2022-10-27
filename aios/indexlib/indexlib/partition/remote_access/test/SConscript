@@ -1,0 +1,51 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+partition_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'partition_resource_provider_intetest.cpp',
+    'modify_operation_intetest.cpp',
+    'new_schema_drop_field_unittest.cpp',
+]
+
+remote_access_libs = [
+    'indexlib_indextest_common',
+    'indexlib_file_system_test_common',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest',
+]
+
+env.aTest(target = 'indexlib_remote_access_unittest', 
+          source = partition_test_sources, LIBS = remote_access_libs)
+
+
+demo_indexer_source = [
+    '#indexlib/index/normal/inverted_index/customized_index/test/demo_index_reduce_item.cpp',
+    '#indexlib/index/normal/inverted_index/customized_index/test/demo_index_reducer.cpp',
+    '#indexlib/index/normal/inverted_index/customized_index/test/demo_index_retriever.cpp',
+    '#indexlib/index/normal/inverted_index/customized_index/test/demo_index_segment_retriever.cpp',
+    '#indexlib/index/normal/inverted_index/customized_index/test/demo_in_mem_segment_retriever.cpp',
+    '#indexlib/index/normal/inverted_index/customized_index/test/demo_indexer.cpp',
+    '#indexlib/index/normal/inverted_index/customized_index/test/demo_index_module_factory.cpp',
+]
+
+demo_indexer_lib = env.aSharedLibrary(target = 'modify_demo_indexer', source = [demo_indexer_source], LIBS=[])
+demo_indexer_installed = env.aCopy('#testdata/modify_demo_indexer_plugins/', demo_indexer_lib)
+env.Depends('indexlib_remote_access_unittest', demo_indexer_installed)

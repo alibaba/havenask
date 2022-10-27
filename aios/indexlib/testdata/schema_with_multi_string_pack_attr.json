@@ -1,0 +1,26 @@
+{
+    "table_name": "auction",
+    "fields": 
+    [
+        {"field_name":"int32_single", "field_type":"int32"},
+        {"field_name":"str_single", "field_type":"string"},
+        {"field_name":"str_multi", "field_type":"string", "multi_value":true}
+    ],
+
+    "indexs": 
+    [
+	{
+	    "index_name": "pk",
+            "index_type" : "PRIMARYKEY64",
+	    "index_fields": "str_single"
+	}
+    ],
+
+    "attributes":
+    [
+        {
+            "pack_name" : "pack_attr",
+            "sub_attributes" : ["int32_single", "str_multi"]
+        }
+    ]
+}

@@ -1,0 +1,30 @@
+{
+    "pluginConf": {
+	"modules" : [
+            {
+                "name" :"default",
+                "path" : ""
+            }
+	],
+	"ASTRewriters": [
+            {
+                "module" : "default",
+                "class"  : "AddDefaultCreate",
+                "parameters" : {}
+            }
+	],
+	"TypeExtenders": [
+	],
+	"SemaCheckers": [
+	]
+    },
+    "cavaPreLoads": [
+        "../../testdata/share/cava/cava",
+        "../../testdata/share/cava/unsafe",
+        "../../testdata/share/cava/ha3"
+    ],
+    "bitCodeFile": "../../testdata/share/bc/ha3_cava.bc",
+    "jitCompileOptions": {
+	"debugIR": false
+    }
+}

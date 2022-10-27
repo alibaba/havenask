@@ -1,0 +1,11 @@
+{
+	"detection" : {
+		    "early_termination_trigger_result_percent" : 0.8,	
+		    "early_termination_wait_time_factor" : 5,
+		    "retry_query_trigger_result_percent" : 1.7,
+		    "retry_query_wait_time_factor" : 3     
+	    },
+	"earlyTerminationEnabled": true,
+	"flowControlEnabled" : true,
+ 	"retryQueryEnabled" : true
+}

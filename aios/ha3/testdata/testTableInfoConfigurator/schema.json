@@ -1,0 +1,63 @@
+{
+    "table_name": "auction",
+    "fields":
+    [
+	{"field_name":"id",      "field_type":"INTEGER"},
+	{"field_name":"company_id",      "field_type":"INTEGER"},
+        {"field_name":"image_repository_ids",        "field_type":"TEXT",  "analyzer" : "default"},
+        {"field_name":"have_image",        "field_type":"TEXT",  "analyzer" : "default"},
+	{"field_name":"image_count", "field_type":"TEXT", "analyzer":"default"},
+	{"field_name":"city", "field_type":"TEXT", "analyzer":"default"},
+	{"field_name":"cat_id", "field_type":"INTEGER", "multi_value":true}
+    ],
+    "analyzers":
+    [
+        {
+            "analyzer_name" : "default",
+            "tokenizer_configs" :
+            {
+                "tokenizer_type" : "aliws",
+                "tokenizer_id" : "TAOBAO_CHN"
+            },
+            "stopwords" : [".", ",", ";"],
+            "normalize_options" :
+            {
+                "case_sensitive" : "false",
+                "traditional_sensitive" : "true",
+                "width_sensitive" : "true"
+            }
+        }
+    ],
+    "indexs":
+    [
+	{
+	    "index_name": "phrase",
+            "index_type" : "PACK",
+
+	    "index_fields":
+	    [
+		{"field_name":"have_image", "boost":1000},
+		{"field_name":"image_count", "boost":10}
+	    ]
+	},
+
+	{
+	    "index_name" : "city",
+	    "index_type" : "TEXT",
+	    "index_fields" : "city"
+	},
+
+	{
+            "index_name": "pk",
+	    "index_type": "PRIMARYKEY64",
+            "index_fields": "id"
+	}
+
+    ],
+    "attributes": ["id", "company_id", "cat_id"],
+    "summarys":{
+	"summary_fields": ["id", "have_image"],
+	"compress":false
+    }
+}
+

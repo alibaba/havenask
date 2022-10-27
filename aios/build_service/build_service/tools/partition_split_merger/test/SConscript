@@ -1,0 +1,16 @@
+# -*- mode: python -*-
+
+Import('env')
+
+env = env.Clone()
+
+partition_split_merger_test_sources = [
+    '#build_service/test/dotest.cpp',
+    'PartitionSplitMergerTest.cpp',
+    'PartitionSplitCheckerTest.cpp',
+    ]
+
+env.aTest(target = 'partition_split_merger_test',
+          source = partition_split_merger_test_sources,
+          LIBS = env['bs_test_common_lib'] + env['bs_worker_lib'] + 
+          [ 'partition_split_merger', 'bs_config', 'bs_util', 'bs_proto' ])

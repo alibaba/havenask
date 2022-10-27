@@ -1,0 +1,20 @@
+#!/bin/sh
+cmd=$0
+cmd_parent_dir=${cmd%index_printer_wrapper}
+if [ $cmd_parent_dir = "./" ]; then
+    cmd_parent_dir=`pwd`"/"
+fi
+index_printer_libpath=${cmd_parent_dir}../lib64:${cmd_parent_dir}../../lib64:${cmd_parent_dir}../lib:${cmd_parent_dir}../../lib
+
+export LD_LIBRARY_PATH=$index_printer_libpath:$LD_LIBRARY_PATH:$jvm_lib_path:/usr/ali/java/jre/lib/amd64/server/
+echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+index_printer_bin_cmd=${cmd_parent_dir}index_printer
+echo "$index_printer_bin_cmd $@"
+if [ -f ${index_printer_bin_cmd} ]; then
+    ${index_printer_bin_cmd} "$@"
+else
+    echo "cannot find index_printer in "$cmd_parent_dir >&2
+    exit 10
+fi
+
+exit $?

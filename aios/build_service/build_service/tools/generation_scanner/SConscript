@@ -1,0 +1,14 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+libnames = ['build_service', 'swift_client_minimal', 'hiredis']
+
+bs_generation_scanner = env.aProgramAndInstall(target = 'bs_generation_scanner',
+                       source = [ 'main.cpp'] + env['build_signature_src'],
+                       LIBS = libnames,
+                       LIBATTRS = { 'build_service' : 'static'})
+Return(['bs_generation_scanner'])

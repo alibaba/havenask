@@ -1,0 +1,43 @@
+{
+"ClassName": "BuildMapTask",
+"Parameters":
+{
+	"BuildPartitionCount": "1",
+	"ParallelBuildNum": "1",
+	"PartitionCount": "2",
+	"BuildPartitionIdFrom": "0",
+	"ConfigDir": "@TOP_SRCDIR@/testdata/local_builder/config",
+	"IndexDir": "@TOP_SRCDIR@/testdata/test_index_for_apsara_build_task",
+	"IndexGeneration": "0",
+	"ZookeeperRoot": "",
+	"UserName": "test_name",
+	"ServiceName": "test_service",
+	"ClusterName": "daogou",
+	"BuildMode": "full",
+	"SortFieldType": "uint32",
+	"HasherName": "HASH",
+	"HashFieldName": "keywords",
+	"MapBufferSize": "100",
+	"MapReduceRatio": "1",
+	"NeedSort": "false",
+	"NeedPartition": "true",
+	"RawDocumentDir": "@TOP_SRCDIR@/testdata/test_build_map_task/0",
+	"SortFieldName": "id"
+},
+"Inputs":
+[
+    {
+        "AccessPointName": "input",
+        "FilePattern": "@TOP_SRCDIR@/none",
+        "Mode": "MODE_COMMON"
+    }
+],
+"Outputs":
+[
+    {
+        "AccessPointName": "toReduceTask",
+        "FilePattern": "@TOP_SRCDIR@/testdata/test_build_map_task/map.out",
+        "Mode": "MODE_SORT"
+    }
+]
+}

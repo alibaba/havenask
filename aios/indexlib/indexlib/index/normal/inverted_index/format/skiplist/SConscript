@@ -1,0 +1,10 @@
+Import('env')
+env = env.Clone()
+env.Append(LIBPATH=['.'])
+
+skiplist=Glob('*.cpp')
+env.aDirs('test')
+
+#env.aLibrary(target='indexlib_skiplist', source=skiplist)
+
+Return(['skiplist'] )

@@ -1,0 +1,37 @@
+{
+    "Loggers":{
+        "/heavenask/index_engine/storage/LruCache":{
+            "FileSinkName":"NONE",
+            "ScreenSinkName":"NONE"
+        },
+
+        "/heavenask/index_engine/storage/AdaptiveCache":{
+            "FileSinkName":"ALL",
+            "ScreenSinkName":"NONE"
+        },
+
+        "/":{
+            "DefaultFileSink":"INFO"
+        }
+    },
+    "Sinks":{
+        "FileSinkName":{
+            "Type":"File",
+            "MaxLogFileNum":50,
+            "MaxLogFileSize":20000000,
+            "MaxDaysFromModify":3,
+            "LogFilePath":"log_storage.LOG",
+            "ColumnNames":"__LOGGER__,__FILE__,__TIME__"
+        },
+        
+        "ScreenSinkName":{
+            "Type":"Screen",
+            "ColumnNames":"__FUNCTION__,__LINE__"
+        },
+
+        "DefaultFileSink":{
+            "Type":"File",
+            "ColumnNames":"__FUNCTION__,__LINE__"
+        }
+    }
+}

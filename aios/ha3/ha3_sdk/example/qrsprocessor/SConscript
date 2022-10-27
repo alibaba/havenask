@@ -1,0 +1,19 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+libqrsprocessor_sources = [
+                            'QrsProcessorSample.cpp',
+                            'QrsModuleFactorySample.cpp'
+                          ]
+
+libqrsprocessor = env.aSharedLibrary(target = 'qrsprocessor_sample', source = libqrsprocessor_sources)
+
+qrs_token_rewrite_processorsources = ['QrsTokenRewriteProcessor.cpp', 'QrsTokenRewriteProcessorFactory.cpp', 'RewriteQueryTermVisitor.cpp']
+libqrs_token_rewrite_processor = env.aSharedLibrary(target  = 'qrs_token_rewrite_processor',
+                                    source = qrs_token_rewrite_processorsources);
+

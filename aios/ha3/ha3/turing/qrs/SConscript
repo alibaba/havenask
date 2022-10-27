@@ -1,0 +1,32 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+source = Glob('*.cpp')
+source = filter(lambda f: f.name != 'QrsServiceCreator.cpp', source)
+
+env.aLibrary(
+    target='ha3_suez_turing_qrs',
+    source = source)
+
+staticLibPath = env['TOP_DIR'] + '/' + env['RELATIVE_BUILD_DIR'] + '/lib'
+
+linkflags = []
+linkflags.append('-Wl,--whole-archive')
+linkflags.append('-Wl,--start-group')
+linkflags.append('-Wl,--as-needed')
+for lib in env['depend_static_libs']:
+    if lib in ['ha3_cava', 'ha3_index', 'ha3_monitor', 'ha3_proto', 'ha3_proxy']:
+        linkflags.append('/ha3_depends/usr/local/lib64/lib' + lib + '.a')
+    else:
+        linkflags.append(staticLibPath + '/lib' + lib + '.a')
+linkflags.append('-Wl,--end-group')
+linkflags.append('-Wl,--no-whole-archive')
+linkflags.append('-Wl,--no-undefined')
+
+worker = env.aSharedLibraryAndInstall(target = 'ha3_suez_turing_qrs_worker',
+                                           LIBS = env['ha3_depend_libs'],
+                                           source = ['QrsServiceCreator.cpp'] + env['build_signature_src'],
+                                           LINKFLAGS = env['LINKFLAGS'] + linkflags)
+
+env.aDirs('test')

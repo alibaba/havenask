@@ -1,0 +1,12 @@
+# -*- mode: python -*-
+
+Import('env')
+
+env = env.Clone()
+
+scan_sources = Glob('*.cpp')
+scan_sources += env.aDirs('proto')
+
+env.aDirs('test')
+
+Return(['scan_sources'])

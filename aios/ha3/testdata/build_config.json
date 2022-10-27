@@ -1,0 +1,39 @@
+{
+    "doc_process_chain_config": {
+	"modules" : 
+	[
+            {
+		"module_name" : "module1",
+		"module_path" : "libsimple_document_processor.so",
+		"parameters"  : 
+		{
+		    "key":"value"
+		}
+            }
+	],
+
+	"document_processor_chain" : 
+	[
+            {
+		"class_name" : "SimpleDocumentProcessor",
+		"module_name": "module1",
+		"parameters" :
+		{
+		}
+	    }
+	],
+	
+	"sub_document_processor_chain" : 
+	[
+            {
+		"class_name" : "SimpleDocumentProcessor",
+		"module_name": "module1",
+		"parameters" :
+		{
+		}
+	    }
+	] 
+
+    }
+    
+}

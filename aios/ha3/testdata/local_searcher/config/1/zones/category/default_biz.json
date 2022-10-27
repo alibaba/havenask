@@ -1,0 +1,17 @@
+{
+    "cluster_config" : {
+        "cluster_name" : "category",
+        "dispatchable" : false,
+        "hash_mode" : {
+            "hash_field" : "cat_id",
+            "hash_function" : "HASH"
+        },
+        "query_config" : {
+            "default_index" : "category_name",
+            "default_operator" : "AND"
+        },
+        "swift_topic_name" : "category",
+        "swift_zookeeper_root" : "",
+        "table_name" : "category"
+    }
+}

@@ -1,0 +1,47 @@
+{
+    "qrs_rule" : {
+    },
+    "modules" : [
+      {
+         "module_name" : "FakeQrsModule", 
+         "module_path" : "libha3_fakeqrs_processor.so", 
+         "parameters" : {"aaa1" : "aaa1"}        
+      }
+    ],
+    "processors": [
+	{
+	    "processor_name":"KeywordReplaceProcessor", 
+	    "module_name":"FakeQrsModule",
+	    "parameters": { "k1":"10", "k2":"4"}
+	},
+	{
+	    "processor_name":"KeywordFilterProcessor", 
+	    "module_name":"FakeQrsModule",
+	    "parameters": { "k1":"111", "k2":"222"}	    
+	    
+	},
+	{
+	    "processor_name":"FakeRequestProcessor2", 
+	    "module_name":"FakeQrsModule",
+	    "parameters": { "k1":"333", "k2":"444"}	    
+	    
+	},
+	{
+	    "processor_name":"FakeLSDSProcessor", 
+	    "module_name":"FakeQrsModule",
+	    "parameters": {"lsds":"abc"}
+	}
+    ],  
+    "chains": 
+    [
+        { 
+            "chain_name":"DEFAULT",          
+	    "plugin_points": 
+            {
+		"BEFORE_PARSER_POINT" : ["KeywordReplaceProcessor", "KeywordFilterProcessor"],
+		"BEFORE_VALIDATE_POINT" : ["FakeLSDSProcessor"] ,
+		"BEFORE_SEARCH_POINT" : ["FakeRequestProcessor", "FakeRequestProcessor2"]
+	    }
+	}
+    ]
+}

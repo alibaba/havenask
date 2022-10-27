@@ -1,0 +1,68 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+document_ut_libs = [
+    'indexlib_indextest_common',
+    'indexlib_configtest',
+    'indexlib',
+    'gmock',
+    'gtest',
+]
+
+document_ut_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'document_factory_wrapper_unittest.cpp',
+    'locator_unittest.cpp',
+]
+
+customized_document_source = [
+    'example_customized_document.cpp',
+]
+
+customized1_document_source = [
+    'example1_customized_document.cpp',
+]
+
+env.aLibraryAndInstall(target='example',
+                       source= customized_document_source,
+                       LIBS = ['indexlib'])
+
+env.aLibraryAndInstall(target='example2',
+                       source= customized1_document_source,
+                       LIBS = ['indexlib'])
+
+libcustom_example_path = env['LIB_DIR'] + '/' + 'libexample.so'
+libcustom_example_install = env.aCopy('#testdata/example/plugins',
+                                     libcustom_example_path)
+
+libcustom_example1_path = env['LIB_DIR'] + '/' + 'libexample2.so'
+libcustom_example1_install = env.aCopy('#testdata/example/plugins',
+                                      libcustom_example1_path)
+
+docTest = env.aTest(target = 'ie_document_unittest',
+                    source = document_ut_test_sources,
+                    LIBS = document_ut_libs)
+
+env.Depends(docTest, [libcustom_example_install, libcustom_example1_install])
+
+###################### dependency check #######################
+document_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+document_minimal_dependency_libs = [
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+]
+
+env.aTest(target = 'indexlib_document_dependency_unittest',
+          source = document_minimal_dependency_sources,
+          LIBS = document_minimal_dependency_libs)

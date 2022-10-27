@@ -1,0 +1,169 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+demo_indexer_source = [
+    'demo_index_reduce_item.cpp',
+    'demo_index_reducer.cpp',
+    'demo_index_segment_retriever.cpp',
+    'demo_indexer.cpp',
+    'demo_index_module_factory.cpp',
+]
+
+demo_indexer_lib = env.aSharedLibrary(target = 'merger_demo_indexer',
+                                      source = [demo_indexer_source],
+                                      LIBS = [])
+
+demo_indexer_installed = env.aCopy('#testdata/demo_indexer_plugins/', demo_indexer_lib)
+
+
+demo_indexer_source_for_intetest = [
+    'demo_index_reduce_item.cpp',
+    'demo_index_reducer_for_intetest.cpp',
+    'demo_index_segment_retriever.cpp',
+    'demo_indexer.cpp',
+    'demo_index_module_factory.cpp',
+]
+
+demo_indexer_lib_for_intetest = env.aSharedLibrary(target = 'indexer_for_intetest',
+                                                   source = [demo_indexer_source_for_intetest],
+                                                   LIBS = [])
+
+demo_indexer_installed_for_intetest = env.aCopy('#testdata/demo_indexer_plugins/',
+                                                demo_indexer_lib_for_intetest)
+
+
+merger_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'segment_directory_creator.cpp',
+    'merge_helper.cpp',
+    'merge_task_maker.cpp',
+    'merge_task_item_dispatcher_unittest.cpp',
+    'index_merge_meta_unittest.cpp',
+    'pack_index_merge_meta_unittest.cpp',
+    'merge_work_item_creator_unittest.cpp',
+    'merge_task_item_unittest.cpp',
+    'index_partition_merger_metrics_unittest.cpp',
+    'index_table_merge_meta_creator_unittest.cpp',
+    'segment_directory_unittest.cpp',
+    'multi_part_segment_directory_unittest.cpp',
+    'index_partition_merger_unittest.cpp',
+    'merge_plan_unittest.cpp',
+    'merge_task_unittest.cpp',
+    'multi_partition_merger_unittest.cpp',
+    'parallel_partition_data_merger_unittest.cpp',
+    'index_partition_merger_intetest.cpp',
+    'multi_partition_merger_intetest.cpp',
+    'table_merge_meta_unittest.cpp',
+    'pack_table_merge_meta_unittest.cpp',
+    'merge_task_item_creator_unittest.cpp',
+    'parallel_end_merge_executor_unittest.cpp',
+    'parallel_merge_intetest.cpp',
+    'package_merge_file_system_unittest.cpp',
+    'merge_partition_data_creator_unittest.cpp',
+]
+
+merger_libs = [
+    'indexlib_partitiontest_common',
+    'indexlib_indextest_common',
+    'indexlib_truncate_test_common',
+    'indexlib_configtest',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest'
+]
+
+env.aTest(target = 'indexlib_merger_unittest',
+          source = merger_test_sources, LIBS = merger_libs)
+
+env.Depends('indexlib_merger_unittest', demo_indexer_installed)
+env.Depends('indexlib_merger_unittest', demo_indexer_installed_for_intetest)
+
+merger_exception_cpps = [
+    '#indexlib/test/dotest.cpp',
+    'index_partition_merger_with_exception_unittest.cpp',
+    'merge_exception_unittest.cpp',
+]
+
+libsname_common = [
+    'indexlib_indextest_common',
+    'indexlib_packtest',
+    'indexlib_configtest',
+    'indexlib_attributetest',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'indexlib_indextest_common',
+    'indexlib_truncate_test_common',
+    'fslib-framework',
+    'autil',
+    'gmock',
+    'gtest',
+    'pthread'
+]
+
+libsname_exception =  ['indexlib_storage_mock', 'indexlib_file_system_test_common'] + libsname_common
+env.aTest(target = 'ie_merger_exception_unittest',
+          source = merger_exception_cpps, LIBS = libsname_exception)
+
+##############################################################################3
+custom_merge_unittestcpps = [
+    '#indexlib/test/dotest.cpp',
+    'custom_partition_merger_unittest.cpp',
+]
+
+env.aTest(target = 'ie_custom_merge_unittest', source = custom_merge_unittestcpps, LIBS = merger_libs + ['simpleTable'])
+libdemoTablePlugin = "#testdata/libdemoTable.so"
+env.Depends('ie_custom_merge_unittest', libdemoTablePlugin)
+
+
+######################## dependency check ##########################
+merger_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+merger_minimal_dependency_libs = [
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+]
+
+env.aTest(target = 'indexlib_merger_dependency_unittest',
+          source = merger_minimal_dependency_sources,
+          LIBS = merger_minimal_dependency_libs)

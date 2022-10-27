@@ -1,0 +1,16 @@
+# -*- mode: python -*-
+
+import os
+Import('env')
+env = env.Clone()
+env.Append(LIBPATH=['.'])
+
+normal = env.aDirs('normal')
+calculator = env.aDirs('calculator')
+index_source=Glob('*.cpp')
+indexcpps = [ normal, index_source, calculator]
+
+env.aSharedLibrary(target='indexlib_index', source=indexcpps)
+
+env.aDirs('test')
+Return(['indexcpps'] )

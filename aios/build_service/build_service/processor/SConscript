@@ -1,0 +1,56 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+processor_sources = [
+    'DocumentProcessorChain.cpp',
+    'DocumentProcessorChainCreator.cpp',
+    'Processor.cpp',
+    'ProcessorWorkItem.cpp',
+    'SingleDocProcessorChain.cpp',
+    'MainSubDocProcessorChain.cpp',
+    'BuildInDocProcessorFactory.cpp',
+    'BinaryDocumentProcessor.cpp',
+    'ModifiedFieldsDocumentProcessor.cpp',
+    'TokenizeDocumentProcessor.cpp',
+    'TokenCombinedDocumentProcessor.cpp',
+    'SubDocumentExtractorProcessor.cpp',
+    'SubDocumentExtractor.cpp',
+    'ProcessorConfig.cpp',
+    'HashDocumentProcessor.cpp',
+    'ProcessorMetricReporter.cpp',
+    'ModifiedFieldsModifier.cpp',
+    'ModifiedFieldsModifierCreator.cpp',
+    'ModifiedFieldsIgnoreModifier.cpp',
+    'ModifiedFieldsSubRelationModifier.cpp',
+    'DistributeDocumentProcessor.cpp',
+    'SelectBuildTypeProcessor.cpp',
+    'SleepProcessor.cpp',
+    'DocTTLProcessor.cpp',
+    'DupFieldProcessor.cpp',
+    'LineDataDocumentProcessor.cpp',
+    'MultiThreadProcessorWorkItemExecutor.cpp',
+    'SingleThreadProcessorWorkItemExecutor.cpp',
+    'MultiValueFieldProcessor.cpp',
+    'RegionDocumentProcessor.cpp',
+    'DocumentClusterFilterProcessor.cpp',
+    'ProcessorChainSelector.cpp',
+    'BatchProcessor.cpp',
+    'SlowUpdateProcessor.cpp',
+    'DocTraceProcessor.cpp',
+    'DefaultValueProcessor.cpp',
+    ]
+
+env.checkAllCppFileContained(Glob('*.cpp'), processor_sources)
+processor_sources = map(os.path.abspath, processor_sources)
+
+env.aLibrary(target = 'bs_processor',
+             source = processor_sources,
+             LIBS = ['swift_client_minimal'])
+
+env.aDirs('test')
+
+Return(['processor_sources'])

@@ -1,0 +1,28 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+custom_merger_sources = [
+    'CustomMergerCreator.cpp',
+    'MergeResourceProvider.cpp',
+    'BuildinCustomMergerFactory.cpp',
+    'AlterDefaultFieldMerger.cpp',
+    'TaskItemDispatcher.cpp',
+    'CustomMergeMeta.cpp',
+    'CustomMergerTaskItem.cpp',
+    'CustomMergePlan.cpp',
+    'CustomMergerImpl.cpp',
+    'ReuseAttributeAlterFieldMerger.cpp',
+    ]
+
+env.checkAllCppFileContained(Glob('*.cpp'), custom_merger_sources)
+custom_merger_sources = map(os.path.abspath, custom_merger_sources)
+
+env.aLibrary(target = 'bs_custom_merger',
+             source = custom_merger_sources + env['build_signature_src'],
+             LIBS = env['bs_worker_lib'])
+#env.aDirs('test')
+
+Return(['custom_merger_sources'])

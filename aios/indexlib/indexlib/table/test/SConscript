@@ -1,0 +1,76 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+table_ut_libs = [
+    'indexlib_indextest_common',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest',
+]
+
+broken_table_factory_src = [
+    'broken_table_factory.cpp',
+    '#indexlib/table/demo/demo_table_writer.cpp',
+    '#indexlib/table/demo/demo_table_resource.cpp', 
+]
+
+broken_factory_lib = env.aSharedLibrary(target = 'broken_factory', source = [broken_table_factory_src], LIBS=[])
+broken_factory_installed = env.aCopy('#testdata/', broken_factory_lib)
+
+table_ut_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'table_factroy_unittest.cpp',
+    'table_plugin_loader_unittest.cpp',
+    'table_factory_wrapper_unittest.cpp',
+    'merge_task_dispatcher_unittest.cpp',
+    'task_execute_meta_unittest.cpp',
+]
+
+env.aTest(target = 'ie_table_unittest',
+          source = table_ut_test_sources,
+          LIBS = table_ut_libs)
+
+libdemoTablePlugin = "#testdata/libdemoTable.so"
+
+env.Depends('ie_table_unittest', libdemoTablePlugin)
+env.Depends('ie_table_unittest', broken_factory_installed)
+
+######################## dependency check ##########################
+table_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+table_minimal_dependency_libs = [
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+]
+
+env.aTest(target = 'indexlib_table_dependency_unittest',
+          source = table_minimal_dependency_sources,
+          LIBS = table_minimal_dependency_libs)
+

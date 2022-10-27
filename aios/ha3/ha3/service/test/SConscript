@@ -1,0 +1,88 @@
+# -*- mode: python -*-
+import os
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+fakeservice_sources = [
+    'FakeClosure.cpp',
+    'FakeQrsChainProcessor.cpp'
+    ]
+
+fakeservicelib = env.aLibrary(target = 'ha3_fakeservice',
+                              source = fakeservice_sources)
+
+service_test_sources =  [
+    #'QrsSearcherProcessDelegationTest.cpp',
+    'SessionPoolTest.cpp',
+    'SessionTest.cpp',
+    #'QrsChainManagerCreatorTest.cpp',
+    #'QrsSearcherHandlerTest.cpp',
+    'QrsArpcSessionTest.cpp',
+    'ThreadPoolManagerTest.cpp',
+    'RpcContextUtilTest.cpp',
+    'SearcherResourceCreatorTest.cpp',
+    'ServiceDegradeTest.cpp',
+    'QrsRequestTest.cpp',
+    'QrsResponseTest.cpp',
+    'QrsSearcherProcessDelegationNewTest.cpp',
+    'QrsArpcSqlSessionTest.cpp',
+    'QrsSqlHandlerTest.cpp'
+    ]
+
+linkflags = []
+linkflags.append('-Wl,--whole-archive')
+linkflags.append('-lha3_cava')
+linkflags.append('-Wl,--no-whole-archive')
+env.Append(LINKFLAGS=linkflags)
+
+env['ENV']['JAVA_HOME'] = env['JAVA_SDK_PATH']
+env['ENV']['HADOOP_HOME'] = env['HADOOP_HOME']
+#env['ENV']['binaryPath'] = os.path.join(env['TOP_DIR'], '../_external')
+env['ENV']['binaryPath'] = '/ha3_depends/'
+
+libsname = ['ha3_fakeservice', 'ha3_fakeproto', 'fakescorer',
+            'ha3_fakequeryparser', 'ha3_fakecommon',
+            'ha3_fakeqrs_processor', 'ha3_example_function_plugin', 'fakescorer', 'fakesorter']
+
+testTarget = env.aTest(target = 'service_test',
+                       source = service_test_sources + ["../../sorter/BuildinSorterModuleFactory.cpp"],
+                       LIBS = libsname + env['ha3_test_depend_lib']
+                       )
+
+libfakesorter = env['LIB_DIR'] + '/' + 'libfakesorter.so'
+libfakesorter_installed1 = env.aCopy('#testdata/testadmin/taobao/taobao_daogou/configurations/configuration_1/plugins', libfakesorter)
+libfakesorter_installed2 = env.aCopy('#testdata/testadmin/taobao/taobao_daogou/configurations/configuration_2/0/plugins', libfakesorter)
+libfakesorter_installed3 = env.aCopy('#testdata/testPartition/1/plugins', libfakesorter)
+env.Depends(testTarget, [libfakesorter_installed1,libfakesorter_installed2,libfakesorter_installed3])
+
+libfakescorer = env['LIB_DIR'] + '/' + 'libfakescorer.so'
+libfakescore_installed1 = env.aCopy('#testdata/serviceRoot/config/0/plugins/', libfakescorer)
+libfakescore_installed2 = env.aCopy('#testdata/testadmin/taobao/taobao_daogou/configurations/configuration_1/plugins/', libfakescorer)
+libfakescore_installed3 = env.aCopy('#testdata/testadmin/taobao/taobao_daogou/configurations/configuration_2/0/plugins/', libfakescorer)
+libfakescore_installed4 = env.aCopy('#testdata/testPartition/1/plugins', libfakescorer)
+libfakescore_installed5 = env.aCopy('#testdata/testPartition/0/plugins', libfakescorer)
+env.Depends(testTarget, [libfakescore_installed1,libfakescore_installed2,libfakescore_installed3,libfakescore_installed4,libfakescore_installed5])
+
+libfakeqrsprocessor = env['LIB_DIR'] + '/' + 'libha3_fakeqrs_processor.so'
+libfakeqrsprocessor_installed1 = env.aCopy('#testdata/serviceRoot/config/0/plugins/', libfakeqrsprocessor)
+libfakeqrsprocessor_installed2 = env.aCopy('#testdata/testadmin/taobao/taobao_daogou/configurations/configuration_1/plugins/', libfakeqrsprocessor)
+libfakeqrsprocessor_installed3 = env.aCopy('#testdata/testPartition/0/plugins/', libfakeqrsprocessor)
+libfakeqrsprocessor_installed4 = env.aCopy('#testdata/testPartition/1/plugins/', libfakeqrsprocessor)
+libfakeqrsprocessor_installed5 = env.aCopy('#testdata/testPartition/2/plugins/', libfakeqrsprocessor)
+libfakeqrsprocessor_installed6 = env.aCopy('#testdata/testPartition/3/plugins/', libfakeqrsprocessor)
+libfakeqrsprocessor_installed7 = env.aCopy('#testdata/testPartition/4/plugins/', libfakeqrsprocessor)
+libfakeqrsprocessor_installed8 = env.aCopy('#testdata/testadmin/taobao/taobao_daogou/configurations/configuration_2/0/plugins/', libfakeqrsprocessor)
+
+env.Depends(testTarget, [libfakeqrsprocessor_installed1, libfakeqrsprocessor_installed2,
+                         libfakeqrsprocessor_installed3, libfakeqrsprocessor_installed4,
+                         libfakeqrsprocessor_installed5, libfakeqrsprocessor_installed6,
+                         libfakeqrsprocessor_installed7, libfakeqrsprocessor_installed8])
+
+libfunctionplugin = env['LIB_DIR'] + '/' + 'libha3_example_function_plugin.so'
+libfunctionplugin_installed1 = env.aCopy('#testdata/testadmin/taobao/taobao_daogou/configurations/configuration_1/plugins/', libfunctionplugin)
+libfunctionplugin_installed2 = env.aCopy('#testdata/testadmin/taobao/taobao_daogou/configurations/configuration_2/0/plugins/', libfunctionplugin)
+env.Depends(testTarget, [libfunctionplugin_installed1,libfunctionplugin_installed2])

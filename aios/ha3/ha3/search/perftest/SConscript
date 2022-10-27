@@ -1,0 +1,17 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+search_test_sources = ['SearchUnitPerfTest.cpp',
+                       '#ha3/test/dotest.cpp',]
+
+libsname = ['rank', 'ha3_util', 'config', 'search', 'index', 'storage', 'document', 'queryparser', 'analyzer', 'ranktestlib', 'mxml']
+
+test = env.aTest(target = 'search_test',
+                 source = search_test_sources,
+                 LIBS = libsname)
+Depends(test, env['test_conf_depend'])

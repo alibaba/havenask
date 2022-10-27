@@ -1,0 +1,8 @@
+{
+    "cluster_type" : "section replaced",
+    "hash_mode" : {
+        "hash_function" : "section replaced"
+    },
+    "inherit_from_external" : "$ROOT_PATH/subsection_inherit.json",
+    "inherit_from" : "not_exist"
+}

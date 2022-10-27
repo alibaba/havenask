@@ -1,0 +1,48 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "daogou", "daogou2"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                        "key" : "value"
+                    }
+                }
+            ],
+            "modules" : [
+            ],
+            "sub_document_processor_chain" : [
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                        "key" : "value"
+                    }
+                }
+            ]
+        }
+    ],
+    "raw_data_swift_config" : {
+        "topic" : {
+            "obsolete_file_interval" : 3600,
+            "partition_buffer" : 1000,
+            "partition_count" : 10,
+            "partition_file_buf_size" : 1000,
+            "partition_resource" : 100,
+            "reserved_file_count" : 10,
+            "need_field_filter" : false
+        }
+    },
+    "reader_config" : {
+        "file" : {
+        },
+        "plugin" : {
+        },
+        "swift" : {
+        }
+    }
+}

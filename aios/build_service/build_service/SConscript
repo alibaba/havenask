@@ -1,0 +1,153 @@
+# -*- mode: python -*-
+Import('env')
+import os
+
+env = env.Clone()
+
+config_h_template = """
+#ifndef ISEARCH_BS_CONFIG_H_
+#define ISEARCH_BS_CONFIG_H_
+
+#define BS_MAJOR_VERSION %(major)s
+#define BS_MINOR_VERSION %(minor)s
+#define BS_MICRO_VERSION %(micro)s
+
+#endif
+"""
+
+config_cpp_template = """
+#include "build_service/config.h"
+#include <string>
+
+namespace build_service {
+static const std::string bs_version = "%(version_str)s";
+static const std::string current_git_status = "%(git_status)s";
+static const std::string current_git_log = "%(git_log)s";
+}
+"""
+
+def run(cmd):
+    import subprocess
+    p = subprocess.Popen(cmd, shell=True, close_fds=False,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    if 0 != p.returncode:
+        raise Exception('Execute cmd [%s] faild. data[%s] error[%s], code[%d]'
+                        % (cmd, stdout, stderr, p.returncode))
+    return stdout
+
+def GenerateConfig():
+    versionString = "build_service-%s-%s-%s" % (env['mode'], env['version'], env['release_str'])
+    versions = env['version'].split(".")
+
+    h_name = os.getcwd() + '/../../../build_service/config.h'
+    file = open(h_name, 'w')
+    config_h = config_h_template % { 'major' : versions[0],
+                                     'minor' : versions[1],
+                                     'micro' : versions[2] }
+    file.write(config_h)
+    file.close()
+
+    gitLog= run('git log --max-count=5').replace('"', '\\"').replace("'", "\\'").replace('\n', '\\n')
+    gitStatus = run('git status').replace('"', '\\"').replace("'", "\\'").replace('\n', '\\n')
+    cpp_name = os.getcwd() + '/../../../build_service/config.cpp'
+    file = open(cpp_name, 'w')
+    config_cpp = config_cpp_template % { 'version_str' : versionString,
+                                         'git_status' : gitStatus,
+                                         'git_log' :  gitLog }
+    file.write(config_cpp)
+    file.close()
+
+    return [h_name, cpp_name]
+
+def aGenConfig(self, *args, **kwargs):
+    target = GenerateConfig()
+    self.Default(target)
+    self.AlwaysBuild(target)
+    return target
+env.AddMethod(aGenConfig)
+
+check_header_template = '''
+%(headers)s
+'''
+
+def aCheckHeader(self, *args, **kwargs):
+    cpp_name = os.getcwd() + '/../../../build_service/check_header.cpp'
+    file = open(cpp_name, 'w')
+    headers = env['headers'] + env['proto_headers']
+    file.write(check_header_template % { 'headers' : '\n'.join(map(lambda x: '#include <%s>' % x,
+                                                                   headers))})
+    file.close()
+    run('g++ -o check_header.o -c  %s %s' %  (cpp_name,
+                                              ' '.join(map(lambda x: '-I%s' % x,
+                                                           env['system_includedir']))))
+env.AddMethod(aCheckHeader)
+if env['check_header'] == 'yes':
+    env.aCheckHeader()
+
+env['build_signature_src'] = []
+if env['build_signature'] == 'yes':
+    env.aGenConfig()
+    env['build_signature_src'].append('#build_service/config.cpp')
+
+env.aDirs('test')
+#minizip = env.aDirs('third_party/minizip')
+
+util = env.aDirs('util')
+config = env.aDirs('config')
+common = env.aDirs('common')
+plugin = env.aDirs('plugin')
+document = env.aDirs('document')
+reader = env.aDirs('reader')
+analyzer = env.aDirs('analyzer')
+workflow = env.aDirs('workflow')
+processor = env.aDirs('processor')
+builder = env.aDirs('builder')
+proto = env.aDirs('proto')
+task_base = env.aDirs('task_base')
+custom_merger = env.aDirs('custom_merger')
+io = env.aDirs('io')
+
+env.aDirs('local_job')
+
+bs_lib_src = [util, config, common, plugin,
+              document, reader, analyzer,
+              workflow, processor, builder, proto, task_base, custom_merger, io] + env['build_signature_src']
+
+env.aSharedLibraryAndInstall(target='build_service',
+                             source=bs_lib_src,
+                             LIBS = env['not_prepend_lib'] + ['hippo'],
+                             LIBATTRS = {})
+
+staticLibrary = env.aStaticLibrary(target='build_service',
+                                   source=bs_lib_src,
+                                   LIBS = env['not_prepend_lib'])
+
+# merge multi static library
+tempDir = env['TOP_DIR'] + '/temp'
+buildDir = env['TOP_DIR'] + '/' + env['RELATIVE_BUILD_DIR'] + '/lib/'
+cmd = 'rm -rf %s && mkdir %s && cd %s '\
+      '&& ar x %s/libbuild_service.a '\
+      '&& ar rc libbuild_service.a *.o'\
+      %(tempDir, tempDir, tempDir, buildDir);
+mergeLibrary = env.Command(
+    'mergeLibrary', [], cmd)
+copyLibrary = env.Command('copyLibaray', [],
+                          'cd %s && cp -f libbuild_service.a %s/libbuild_service.a'%(tempDir, buildDir))
+env.Requires(mergeLibrary, staticLibrary)
+env.Requires(copyLibrary, mergeLibrary)
+
+# install library
+installStatic = env.aInstallLib(buildDir + 'libbuild_service.a')
+env.Requires(installStatic, copyLibrary)
+
+# not required in build_service.so
+#worker = env.aDirs('worker')
+#admin = env.aDirs('admin')
+tools = env.aDirs('tools')
+
+#env.Requires(copyLibrary, admin)
+#env.Requires(copyLibrary, worker)
+env.Requires(copyLibrary, tools)
+
+Return(['copyLibrary'])

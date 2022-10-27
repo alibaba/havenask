@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Root>
+<TotalTime>0.000</TotalTime>
+<SortExprMeta><![CDATA[]]></SortExprMeta>
+<hits numhits="2" totalhits="0" coveredPercent="0.00">
+	<hit cluster_name="cluster1" hash_id="1" docid="0" gid="cluster1|6|2|1|0|00000000000000000000000000000005|123">
+		<fields>
+		</fields>
+		<property>
+		</property>
+		<attribute>
+			<att1>100</att1>
+			<att2><![CDATA[abcd]]></att2>
+		</attribute>
+		<sortExprValues></sortExprValues>
+	</hit>
+	<hit cluster_name="cluster2" hash_id="8" docid="7" gid="cluster2|12|9|8|7|0000000000000000000000000000000b|321">
+		<fields>
+		</fields>
+		<property>
+		</property>
+		<attribute>
+			<att1>200</att1>
+			<att2><![CDATA[efgh]]></att2>
+		</attribute>
+		<sortExprValues></sortExprValues>
+	</hit>
+</hits>
+<AggregateResults>
+</AggregateResults>
+<Error>
+	<ErrorCode>0</ErrorCode>
+	<ErrorDescription></ErrorDescription>
+</Error>
+</Root>

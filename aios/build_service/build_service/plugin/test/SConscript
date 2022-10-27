@@ -1,0 +1,41 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+env['auto_version'] = False
+dummy_sources = ['Dummy.cpp']
+
+libdummy = env.aSharedLibrary(target = 'dummy', source = dummy_sources, LIBS=[])
+
+libdummy_installed = env.aCopy('#testdata/plugins/', libdummy)
+
+nosym_sources = ['../DllWrapper.cpp']
+libnosym = env.aSharedLibrary(target = 'nosym', source = nosym_sources, LIBS=[])
+libnosym_installed = env.aCopy('#testdata/plugins/', libnosym)
+
+named_factory_sources = ['NamedFactoryModule.cpp']
+libnamed_factory = env.aSharedLibrary(target = 'named_factory', source = named_factory_sources, LIBS=[])
+libnamed_factory_installed = env.aCopy('#testdata/plugins/', libnamed_factory)
+
+plugin_test_sources=  [
+    '#build_service/test/dotest.cpp',
+    'ModuleTest.cpp',
+    'PlugInManagerTest.cpp',
+    'DllWrapperTest.cpp',
+    'PooledObjectTest.cpp',
+    'ModuleInfoTest.cpp',
+    ]
+
+libsname = ['bs_plugin', 'bs_config', 'bs_util']
+
+env.checkAllCppFileContained(Glob('*.cpp'), dummy_sources + plugin_test_sources + named_factory_sources)
+
+plugintest = env.aTest(target = 'plugin_test',
+                       source = plugin_test_sources,
+                       LIBS = libsname + env['bs_test_common_lib'] + env['bs_worker_lib']
+                       );
+env.Requires(plugintest, [libdummy_installed, libnamed_factory_installed])
+

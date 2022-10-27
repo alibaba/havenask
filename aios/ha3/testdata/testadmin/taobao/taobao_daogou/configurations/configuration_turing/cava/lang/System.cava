@@ -1,0 +1,33 @@
+package cava.lang;
+
+class System {
+    public static extern long currentTimeMillis();
+
+    public static extern void println(boolean v);
+    public static extern void println(char v);
+    public static extern void println(byte v);
+    public static extern void println(int v);
+    public static extern void println(short v);
+    public static extern void println(long v);
+    public static extern void println(ubyte v);
+    public static extern void println(uint v);
+    public static extern void println(ushort v);
+    public static extern void println(ulong v);
+    public static extern void println(char[] v);
+    public static extern void println(float v);
+    public static extern void println(double v);
+
+    public static extern void print(boolean v);
+    public static extern void print(char v);
+    public static extern void print(byte v);
+    public static extern void print(int v);
+    public static extern void print(short v);
+    public static extern void print(long v);
+    public static extern void print(ubyte v);
+    public static extern void print(uint v);
+    public static extern void print(ushort v);
+    public static extern void print(ulong v);
+    public static extern void print(char[] v);
+    public static extern void print(float v);
+    public static extern void print(double v);
+}

@@ -1,0 +1,30 @@
+{
+    "table_name": "sample",
+    "fields": 
+    [
+	{"field_name":"id", "field_type":"INTEGER"},
+	{"field_name":"company_id", "field_type":"INTEGER"},
+	{"field_name":"subject", "field_type":"TEXT", "analyzer":"internet_analyzer"},
+	{"field_name":"keywords", "field_type":"STRING"},
+	{"field_name":"cat_id", "field_type":"INTEGER"}
+    ],
+    "indexs": 
+    [
+	{
+	    "index_name": "default",
+            "index_type" : "PACK",
+	    "term_payload_flag" :  1 ,
+	    "doc_payload_flag" :  1 ,
+	    "position_payload_flag" :  1 ,
+	    "index_fields": 
+	    [
+		{"field_name":"subject", "boost":100}
+	    ]
+	}
+    ],
+    "attributes": [ "id", "company_id", "cat_id" ],
+    "summarys":{ 
+	"summary_fields":["id", "company_id", "subject", "cat_id"],
+	"compress":false
+    }
+}

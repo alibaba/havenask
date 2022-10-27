@@ -1,0 +1,34 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+lib_names = ['indexlib', 'autil', 'fslib-framework', 'pthread']
+index_printer_exe = env.aProgramAndInstall(
+    target="index_printer",
+    source = Glob('*.cpp'),
+    LIBS = lib_names)
+
+env.aDuplicateAndBin('index_printer_wrapper')
+env.aInstallBin('index_printer_wrapper')
+
+env.aDuplicateAndBin('index_reader')
+env.aInstallBin('index_reader')
+
+static_lib_names = [ 'indexlib_test', 'indexlib', 'fslib-framework', 'beeper-framework',
+                     'kmonitor_adapter', 'kmonitor_client',
+                     'autil', 'arpc', 'anet', 'protobuf', 'alog', 'z', 'lz4', 'zstd', 'future_lite' ]
+static_lib_attrs = {}
+for lib in static_lib_names:
+    static_lib_attrs[lib] = "static"
+index_printer_static_exe = env.aProgramAndInstall(
+    target="index_printer_static",
+    source = Glob('*.cpp'),
+    LIBS = static_lib_names + ['snappy', 'pthread'],
+    LIBATTRS = static_lib_attrs)
+
+env.Alias('tools', index_printer_exe)
+env.Default(index_printer_exe)
+
+env.Alias('tools', index_printer_static_exe)
+env.Default(index_printer_static_exe)

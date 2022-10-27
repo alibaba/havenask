@@ -1,0 +1,189 @@
+# -*- mode: python -*-
+import sys, os, os.path, platform, re, time
+
+env = Environment(ENV = {'PATH' : os.environ['PATH']}, tools=['default', 'ascons'])
+env.requireVersion(40)
+
+gtest_filter = '-*PerfTest.*:*.*LongCaseTest*:ExpackPostingMergerTest*:IndexPartitionMergerInteTest*:MultiPartitionMergerTest*:NumberIndexReaderTest*:OnDiskIndexIteratorTest*:OperationReplayerTest*:PackPostingMergerTest*:TextIndexReaderTest*:'
+
+env['version'] = '3.11.1'
+env['releaseStr'] = 'nightly_' + time.strftime("%Y%m%d%H%M", time.localtime())
+if env['mode'] == 'release':
+    env['releaseStr'] = "rc_2"
+env['use_gtest'] = True
+
+env.addOptions(PathVariable('JAVA_SDK_PATH',
+                            'path to java sdk dir',
+                            '/usr/ali/java',
+                            PathVariable.PathAccept))
+
+env.addOptions(EnumVariable('valgrind_check', 'if you need run valgrind', 'no',
+                            allowed_values=('yes', 'no')))
+
+env.addOptions(EnumVariable('indexlib_profile', 'open indexlib profile', 'none',
+                            allowed_values=('basic', 'trace', 'none')))
+
+env.addOptions(EnumVariable('indexlib_perftest', 'run perftest', 'false',
+                            allowed_values=('true', 'false')))
+
+env.addOptions(EnumVariable('default_disable_package_file', 'disable package file in default', 'false',
+                            allowed_values=('true', 'false')))
+
+env.addOptions(EnumVariable('use_hdfs',
+			    'specify whether use hdfs', 'yes',
+                            allowed_values=('yes', 'no')))
+
+env.addOptions(EnumVariable('use_pangu',
+			    'specify whether use pangu', 'yes',
+                            allowed_values=('yes', 'no')))
+
+env.addOptions(EnumVariable('build_signature', 'if you want to add build signature in exes and libs', 'yes',
+                            allowed_values=('yes', 'no')))
+
+env.addOptions(EnumVariable('enable_internal_executor', 'enable indexlib internal executor', 'no',
+                            allowed_values=('yes', 'no')))
+
+env.Append(CCFLAGS = '-Werror')
+
+env.SConscript(
+    dirs='.',
+    exports='env',
+    variant_dir=env['BUILD_DIR'],
+    duplicate=1
+    )
+
+#install headers
+headers = ['indexlib/*.h',
+           'indexlib/*/*.h',
+           'indexlib/document/raw_document/*.h',
+           'indexlib/document/index_document/*.h',
+           'indexlib/document/index_document/kv_document/*.h',
+           'indexlib/document/index_document/normal_document/*.h',
+           'indexlib/document/extend_document/*.h',
+           'indexlib/document/extend_document/tokenize/*.h',
+           'indexlib/document/document_parser/normal_parser/*.h',
+           'indexlib/document/document_parser/line_data_parser/*.h',
+           'indexlib/document/document_parser/kv_parser/*.h',
+           'indexlib/document/document_rewriter/*.h',
+           'indexlib/misc/*.h',
+           'indexlib/common/*.h',
+           'indexlib/common/hash_table/*.h',
+           'indexlib/common/numeric_compress/*.h',
+           'indexlib/common/chunk/*.h',
+           'indexlib/common/field_format/*/*.h',
+           'indexlib/common/field_format/spatial/shape/*.h',
+           'indexlib/common/field_format/spatial/geo_hash/*.h',
+           'indexlib/index/normal/*.h',
+           'indexlib/index/normal/attribute/*.h',
+           'indexlib/index/normal/attribute/accessor/*.h',
+           'indexlib/index/normal/attribute/format/*.h',
+           'indexlib/index/normal/summary/*.h',
+           'indexlib/index/normal/trie/*.h',
+           'indexlib/index/kkv/*.h',
+           'indexlib/index/kv/*.h',
+           'indexlib/index/normal/document_reclaimer/*.h',
+           'indexlib/index/normal/reclaim_map/*.h',
+           'indexlib/index/normal/adaptive_bitmap/*.h',
+           'indexlib/index/normal/primarykey/*.h',
+           'indexlib/index/normal/deletionmap/*.h',
+           'indexlib/index/normal/inverted_index/*.h',
+           'indexlib/index/normal/inverted_index/format/*.h',
+           'indexlib/index/normal/inverted_index/format/skiplist/*.h',
+           'indexlib/index/normal/inverted_index/format/dictionary/*.h',
+           'indexlib/index/normal/inverted_index/accessor/*.h',
+           'indexlib/index/normal/inverted_index/truncate/*.h',
+           'indexlib/index/normal/inverted_index/customized_index/*.h',
+           'indexlib/index/normal/inverted_index/builtin_index/bitmap/*.h',
+           'indexlib/index/normal/inverted_index/builtin_index/pack/*.h',
+           'indexlib/index/normal/inverted_index/builtin_index/text/*.h',
+           'indexlib/index/normal/inverted_index/builtin_index/expack/*.h',
+           'indexlib/index/normal/inverted_index/builtin_index/spatial/*.h',
+           'indexlib/index/normal/inverted_index/builtin_index/date/*.h',
+           'indexlib/index/normal/inverted_index/builtin_index/range/*.h',
+           'indexlib/index/normal/inverted_index/builtin_index/number/*.h',
+           'indexlib/index/normal/inverted_index/builtin_index/string/*.h',
+           'indexlib/index/calculator/*.h',
+           'indexlib/testlib/*.h',
+           'indexlib/partition/*.h',
+           'indexlib/partition/segment/*.h',
+           'indexlib/partition/open_executor/*.h',
+           'indexlib/partition/document_deduper/*.h',
+           'indexlib/partition/remote_access/*.h',
+           'indexlib/partition/join_cache/*.h',
+           'indexlib/partition/operation_queue/*.h',
+           'indexlib/partition/modifier/*.h',
+           'indexlib/index_base/*.h',
+           'indexlib/index_base/segment/*.h',
+           'indexlib/index_base/index_meta/*.h',
+           'indexlib/index_base/patch/*.h',
+           'indexlib/merger/*.h',
+           'indexlib/merger/merge_strategy/*.h',
+           'indexlib/merger/document_reclaimer/*.h',
+           'indexlib/merger/split_strategy/*.h',
+           'indexlib/monitor/*.h',
+           'indexlib/file_system/*.h',
+           'indexlib/file_system/load_config/*.h',
+           'indexlib/util/memory_control/*.h',
+           'indexlib/util/buffer_compressor/*.h',
+           'indexlib/util/byte_slice_list/*.h',
+           'indexlib/util/slice_array/*.h',
+           'indexlib/util/cache/*.h',
+           'indexlib/util/counter/*.h',
+           'indexlib/table/*.h',
+           'indexlib/test/*.h',
+           'table_plugins/array_table/sdk/*.h*',
+          ]
+env.aInstallHeader(headers, '', True)
+
+env.aRpm(FILES = [env['install_libdir'],
+                  env['install_bindir'] + '/index_printer',
+              ],
+         NAME = 'indexlib',
+         VERSION = env['version'],
+         RELEASE = env['releaseStr'],
+         REQUIRES = ['AliWS >= 1.4.0.0','AliWS < 1.5.0.0',
+                     'alog = 13.3.*',
+                     'autil = 0.12.*',
+                     'snappy = 1.1.*',
+                     'lz4 = 1.7.3',
+                     'zstd-devel = 1.1.*',
+                     'fslib-framework = 0.8.*',],
+         AUTOREQPROV = 'no',
+         GROUP = 'Development/sdk',
+         URL = 'http://grd.alibaba-inc.com/projects/heavenasks/',
+         SUMMARY = 'this is the sdk of indexlib')
+
+env.aRpm(PACKAGE_NAME = 'tools',
+         FILES = [env['install_bindir'] + '/index_printer_static',
+                  env['install_bindir'] + '/index_searcher',
+                  env['install_bindir'] + '/index_util',
+                  env['install_bindir'] + '/index_builder',
+                  env['install_bindir'] + '/package_file_unpacker',
+                  env['install_bindir'] + '/attribute_rewriter',
+              ],
+         NAME = 'indexlib',
+         VERSION = env['version'],
+         RELEASE = env['releaseStr'],
+         REQUIRES = ['%{name} = ' + env['version'] + "-" + env['releaseStr']],
+         AUTOREQPROV = 'no',
+         GROUP = '%{group}',
+         URL = 'http://grd.alibaba-inc.com/projects/heavenasks/',
+         SUMMARY = 'this is the tools of indexlib')
+
+env.aRpm(PACKAGE_NAME = 'devel',
+         NAME = 'indexlib',
+         FILES = [env['install_includedir']],
+         SUMMARY = 'Header files, libraries and development documentation for %{name}.',
+         REQUIRES = ['%{name} = %{version}-%{release}',
+                     'alog-devel = 13.3.*',
+                     'autil-devel = 0.12.*',
+                     'snappy = 1.1.*',
+                     'lz4 = 1.7.3',
+                     'zstd-devel = 1.1.*',
+                     'fslib-framework-devel = 0.8.*',],
+
+         AUTOREQPROV = 'no',
+         GROUP = '%{group}',
+         DESCRIPTION = 'This package contains the header files, libraries and examples \n'
+         'documentation for %{name}. If you like to develop programs using %{name}, \n'
+         'you will need to install %{name}-devel.')

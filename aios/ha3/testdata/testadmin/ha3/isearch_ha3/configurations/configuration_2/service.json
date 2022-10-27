@@ -1,0 +1,8 @@
+{
+    "user": "ha3",
+    "service_name": "isearch_ha3",
+    "nuwa_addr": "10.250.12.21:10240",
+    "pangu_root": "",
+    "logger_conf": "",
+    "clusters":["daogou"]
+}

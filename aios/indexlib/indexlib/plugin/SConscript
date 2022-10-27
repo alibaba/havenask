@@ -1,0 +1,25 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+plugin_sources = [
+    'Module.cpp', 
+    'plugin_manager.cpp', 
+    'DllWrapper.cpp',
+    'index_plugin_loader.cpp',
+    'plugin_factory_loader.cpp',
+    ]
+
+#env.checkAllCppFileContained(Glob('*.cpp'), plugin_sources)
+plugin_sources = map(os.path.abspath, plugin_sources)
+
+env.aSharedLibrary(target = 'indexlib_plugin', 
+                   source = plugin_sources)
+
+
+env.aDirs('test')
+
+Return(['plugin_sources'])

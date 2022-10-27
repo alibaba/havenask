@@ -1,0 +1,62 @@
+{
+    "qrs_rule" : {
+        "return_hits_limit": 2000,
+        "connection_timeout": 80,
+	"replica_initial_health" : 8,
+	"search_phase_one_task_queue" : "search_queue",
+	"search_phase_two_task_queue" : "summary_queue",
+	"replica_count" : 2,
+	"resource_type" : "qrs"
+    },
+    "qrs_result_compress" : {
+        "compress_type": "z_speed_compress"
+    },
+    "qrs_request_compress" : {
+        "compress_type": "z_speed_compress"
+    },
+    "qrs_metrics_src_whitelist" : [
+	"src1",
+	"src2"
+    ],
+    "modules" : [
+	{   
+            "module_name" : "qrs_processors",
+            "module_path" : "qrs_processor_1.so",
+            "parameters" : {
+		"key": "value",
+		"key2": "value2"
+            }
+	}
+    ],
+    "processors": [
+	{   
+            "processor_name":"FakeStringProcessor",
+            "module_name":"qrs_processor",
+            "parameters": { "k1":"10", "k2":"4"}
+	},
+	{
+            "processor_name":"FakeStringProcessor1",
+            "module_name":"qrs_processor",
+            "parameters": {"k3":"teststring"}
+	},
+	{   
+            "processor_name":"FakeStringProcessor2",
+            "module_name":"qrs_processor",
+            "parameters": {"k3":"teststring"}
+	}
+    ],  
+    "chains": [
+	{
+            "chain_name":"web",
+            "plugin_points": {
+		"RAW_STRING_PROCESS": ["FakeStringProcessor"],  
+		"REQUEST_PROCESS": ["FakeStringProcessor1", "FakeStringProcessor2"] 
+            }
+	}
+    ],
+    "pool_config": {
+	"pool_trunk_size": 400,
+	"pool_recycle_size_limit": 800,
+	"pool_max_count": 300
+    }
+}

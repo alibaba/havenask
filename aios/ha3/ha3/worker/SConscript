@@ -1,0 +1,22 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+env = env.Clone()
+
+libworker_sources = [
+    'HaProtoJsonizer.cpp',
+    'FixClangSymbol.cpp',
+    ]
+search_entry = [
+    'SearchEntry.cpp',
+    ]
+
+qrs_entry = [
+    'QrsEntry.cpp',
+    ]
+
+libworker_lib = env.aLibrary(target = 'ha3_worker',
+                             source = libworker_sources)
+
+env.aDirs('test')

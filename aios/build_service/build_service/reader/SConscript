@@ -1,0 +1,46 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+reader_sources = [
+    'RawDocumentReader.cpp',
+    'FileRawDocumentReader.cpp',
+    'FileListCollector.cpp',
+    'FilePatternBase.cpp',
+    'FilePattern.cpp',
+    'FilePatternParser.cpp',
+    'MultiFileDocumentReader.cpp',
+    'FileReaderBase.cpp',
+    'FileReader.cpp',
+    'GZipFileReader.cpp',
+    'FileDocumentReader.cpp',
+    'StandardRawDocumentParser.cpp',
+    'CombinedRawDocumentParser.cpp',    
+    'RawDocumentReaderCreator.cpp',
+    'EmptyFilePattern.cpp',
+    'SwiftRawDocumentReader.cpp',
+    'Separator.cpp',
+    'SwiftFieldFilterRawDocumentParser.cpp',
+    'ReaderManager.cpp',
+    'IdleDocumentParser.cpp',
+    'ParserCreator.cpp',
+    'FormatFileDocumentReader.cpp',
+    'FixLenBinaryFileDocumentReader.cpp',
+    'VarLenBinaryFileDocumentReader.cpp',
+    'BinaryFileRawDocumentReader.cpp',
+    'SwiftReaderWrapper.cpp',
+    ]
+
+env.checkAllCppFileContained(Glob('*.cpp'), reader_sources)
+reader_sources = map(os.path.abspath, reader_sources)
+
+env.aLibrary(target = 'bs_reader',
+             source = reader_sources,
+             LIBS = ['swift_client_minimal'])
+
+env.aDirs('test')
+
+Return(['reader_sources'])

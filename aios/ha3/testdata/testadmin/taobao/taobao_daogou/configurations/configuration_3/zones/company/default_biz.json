@@ -1,0 +1,28 @@
+{
+    "cluster_config" : {
+        "cluster_name" : "company",
+        "hash_mode" : {
+            "hash_field" : "uri",
+            "hash_function" : "HASH"
+        },
+        "query_config" : {
+            "default_index" : "phrase",
+            "default_operator" : "AND"
+        },
+        "table_name" : "company"
+    },
+    "multi_call_config" : {
+        "begin_degrade_latency" : 10
+    },
+    "multi_call_config_sql" : {
+        "begin_degrade_latency" : 20
+    },
+    "multi_call_config_t" : {
+        "full_degrade_latency" : 5
+    },
+    "rankprofile_config" : {
+    },
+    "searcher_cache_config" : {
+        "wrong_itme" : "1"
+    }
+}

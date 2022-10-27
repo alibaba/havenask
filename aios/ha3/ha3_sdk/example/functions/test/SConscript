@@ -1,0 +1,18 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+function_example_test_sources=  [
+    'PostageFunctionTest.cpp',
+    'MultiValueFunctionTest.cpp',
+    ]
+
+libsname = ['function_example', 'turing_testlib','ha3sdk_testlib', 'unittest', 'gmock', 'gtest']
+
+env.aTest(target = 'function_example_test', 
+          source = function_example_test_sources,
+          LIBS = libsname + env['ha3_test_depend_lib'])

@@ -1,0 +1,23 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+index_test_sources=  [
+    'FakePostingMakerTest.cpp',
+    'FakeIndexPartitionReaderTest.cpp',
+    'FakeNumberIndexReaderTest.cpp',
+    'FakeNumberPostingIteratorTest.cpp',
+    'FakePostingIteratorTest.cpp',
+    'FakeMetaMakerTest.cpp',
+    'FakeSectionAttributeReaderTest.cpp',
+    ]
+
+libsname = ['ha3_fakeindex']
+
+env.aTest(target = 'index_test',
+          source = index_test_sources,
+          LIBS = env['ha3_test_depend_lib'] + libsname)

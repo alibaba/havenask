@@ -1,0 +1,39 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+import os
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+task_base_test_sources=  [
+    '#build_service/test/dotest.cpp',
+    'BuildTaskTest.cpp',
+    'JobConfigTest.cpp',
+    'MergeTaskTest.cpp',
+    'ConfigDownloaderTest.cpp',
+    'NewFieldMergeTaskTest.cpp',
+    'ModifySchemaByOperationTest.cpp',
+    ]
+
+fake_alter_sources = [
+    'FakeAlterFieldMergerFactory.cpp',
+    'FakeAlterFieldMerger.cpp'
+]
+
+libnames = ['bs_task_base', 'bs_custom_merger', 'bs_util', 'bs_proto', 'bs_builder', 'bs_processor', 'bs_workflow', 'bs_reader', 'bs_document', 'bs_analyzer', 'bs_config', 'bs_common', 'bs_config', 'bs_plugin', 'gtest', 'gmock', 'indexlib_test_tool', 'io']
+
+
+
+lib_alter_fake = env.aSharedLibrary(target='alter_field_fake',
+                                    source = fake_alter_sources)
+libfakeso = env['LIB_DIR'] + '/' + 'libalter_field_fake.so'
+lib_alter_fake_installed = env.aCopy('#testdata/custom_alter_field_config/plugins', libfakeso)
+
+env.checkAllCppFileContained(Glob('*.cpp'), task_base_test_sources)
+
+taskbasetest = env.aTest(target = 'task_base_test',
+                         source = task_base_test_sources,
+                         LIBS = libnames + ['alter_field_fake']);
+env.Depends(taskbasetest, [lib_alter_fake_installed])

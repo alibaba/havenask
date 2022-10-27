@@ -1,0 +1,46 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+index_metadata_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'deploy_index_meta_unittest.cpp',
+    'level_info_unittest.cpp',
+    'progress_synchronizer_unittest.cpp',
+    'segment_info_unittest.cpp',
+    'segment_merge_info_unittest.cpp',
+    'segment_metrics_unittest.cpp',
+    'version_unittest.cpp',
+    'partition_meta_unittest.cpp',
+    'merge_task_resource_unittest.cpp',
+    'segment_file_meta_unittest.cpp',
+    'index_summary_unittest.cpp',
+    'index_path_util_unittest.cpp',
+]
+
+index_metadata_libs = [
+    'indexlib_indextest_common',
+    'indexlib_truncate_test_common',
+    'indexlib_configtest',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest'
+]
+
+env.aTest(target = 'indexlib_index_metadata_unittest',
+          source = index_metadata_test_sources, LIBS = index_metadata_libs)

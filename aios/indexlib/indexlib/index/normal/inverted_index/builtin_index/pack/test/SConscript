@@ -1,0 +1,44 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+unittestcpps = [
+    '#indexlib/test/dotest.cpp',
+    'pack_index_reader_unittest.cpp',
+    'pack_posting_merger_unittest.cpp',
+]
+
+cpps = [
+     'pack_position_maker.cpp',
+     'pack_posting_maker.cpp',
+     ]
+env.aSharedLibrary(target='indexlib_packtest', source = cpps)
+
+env.aTest('indexlib_pack_unittest', unittestcpps,  LIBS=[
+    'indexlib_packtest',
+    'indexlib_attributetest',
+    'indexlib_indextest_common',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'fslib-framework',
+    'gtest',
+    'gmock',
+    'pthread'
+]
+)
+
+Return([])

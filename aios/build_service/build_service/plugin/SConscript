@@ -1,0 +1,24 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+plugin_sources = [
+    'ModuleFactory.cpp',
+    'Module.cpp', 
+    'PlugInManager.cpp', 
+    'DllWrapper.cpp',
+    ]
+
+env.checkAllCppFileContained(Glob('*.cpp'), plugin_sources)
+plugin_sources = map(os.path.abspath, plugin_sources)
+
+env.aLibrary(target = 'bs_plugin', 
+             source = plugin_sources)
+
+
+env.aDirs('test')
+
+Return(['plugin_sources'])

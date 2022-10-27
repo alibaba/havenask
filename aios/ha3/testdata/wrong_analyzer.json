@@ -1,0 +1,48 @@
+{
+"analyzers":
+       "analyzer_name" : "taobao_analyzer",
+       "tokenizer_configs" : 
+       {
+      "tokenizer_type" : "aliws",
+      "tokenizer_id" : "TAOBAO_CHN"
+       },
+       "stopwords" : [".", "mm", "-"],
+       "normalize_options" : 
+       {
+      "case_sensitive" : false,
+      "traditional_sensitive" : true,
+      "width_sensitive" : true
+       }
+   },
+   {
+       "analyzer_name" : "internet_analyzer",
+       "tokenizer_configs" : 
+       {
+      "tokenizer_type" : "aliws",
+      "tokenizer_id" : "INTERNET_CHN"
+       },
+       "stopwords" : [".", "mm", "-"],
+       "normalize_options" : 
+       {
+      "case_sensitive" : true,
+      "traditional_sensitive" : true,
+      "width_sensitive" : true
+       }
+   },
+   {
+       "analyzer_name" : "simple_analyzer",
+       "tokenizer_configs" : 
+       {
+      "tokenizer_type" : "simple",
+      "delimiter" : "\t"
+       },
+       "stopwords" : [".", "mm", "-"],
+       "normalize_options" : 
+       {
+      "case_sensitive" : true,
+      "traditional_sensitive" : true,
+      "width_sensitive" : true
+       }
+   }
+    ]
+}

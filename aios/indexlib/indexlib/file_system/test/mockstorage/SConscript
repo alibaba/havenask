@@ -1,0 +1,24 @@
+# -*- mode: python -*-
+import platform
+Import('env')
+env = env.Clone();
+
+file_system_test_libs = [
+    'indexlib_storage_mock',
+    'indexlib_file_system',
+    'indexlib_file_system_test_common',
+    'indexlib_basic',
+    'fslib-framework',
+    'autil',
+    'gmock',
+    'gtest',
+]
+
+file_system_mockstorage_test_sources= [
+    '#indexlib/test/dotest.cpp',
+    'file_system_unittest.cpp',
+    ]
+
+env.aTest(target = 'ie_file_system_mockstorage_unittest',
+          source = file_system_mockstorage_test_sources,
+          LIBS = file_system_test_libs)

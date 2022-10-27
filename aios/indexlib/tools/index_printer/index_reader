@@ -1,0 +1,565 @@
+#!/usr/bin/env python
+# -*- coding:utf-8 -*-
+import os,sys,traceback,time,tempfile,json
+
+usrLocalBinPath = os.path.dirname(os.path.realpath(__file__))
+usrLocalPath = os.path.dirname(usrLocalBinPath)
+usrLocalLib64Path = os.path.join(usrLocalPath, 'lib64')
+sys.path.append(usrLocalLib64Path) # for libfsutil
+sys.path.append(usrLocalBinPath + '/../../../_external/usr/local/lib64/') # for libfsutil
+import libpyfsutil as fsutil
+fsutil.init({})
+
+class IndexReader(object):
+    '''%(prog)s [options]
+options:
+    -h, --help                          : output help info
+    -p PATH, --index_path=PATH          : required, set index path, should be generation_*/partition_*_*
+    -D, --disk_usage                    : optional, print disk usage, [False]
+    -m, --method                        : optional, [default]
+                                          pls       -- list files in pacakge
+                                          pcat FILE -- cat FILE in package
+                                          pcp FILE1 FILE2 -- copy FILE1 in package to FILE2
+    -v VID, --version=VID               : optional, set print version VID, default print last version
+    -s SID, --segment=SID               : optional, set print segment SID, default no
+    -i NAME, --index=NAME               : optional, set print index name
+    --nosub                             : optional, show sub segment, default [False]
+    --sort=NAME                         : optional, sort by [name|size], default[size]
+    -r, --raw_number                    : optional, show raw nuber, default [False]
+    -H PATH, --hadoop_home=PATH         : optional, set hadoop home.
+    --debug                             : optional, output debug log [False]
+
+examples:
+    %(prog)s -p ./generation_0/partition_0_65535
+    %(prog)s -p ./generation_0/partition_0_16383/ -v 0
+    %(prog)s -H ./usr/local/hadoop/hadoop/ -p hdfs://HDFS/table/generation_0/partition_0_16383/ -s 0
+    %(prog)s -H ./usr/local/hadoop/hadoop/ -p hdfs://HDFS/table/generation_0/partition_0_16383/segment_0_level_0
+    %(prog)s -H ./usr/local/hadoop/hadoop/ -p hdfs://HDFS/table/generation_0/partition_0_16383/ -s 0 -i nid
+    %(prog)s -m pls -p ./partition_0_16383/ -s 0 index/pack1/index_format_option
+    %(prog)s -m pcat -p ./partition_0_16383/ -s 0 index/pack1/index_format_option
+    %(prog)s -m pcp -p ./partition_0_65535/ -s 1 index/pack1/index_format_option ./index_format_option
+    '''
+
+    def __init__(self):
+        pass
+    
+    def __initMember(self, options, args):
+        parrentPath, subPath = options.indexPath.rstrip('/').rsplit('/', 1)
+        if 'segment_' in subPath:
+            options.indexPath = parrentPath
+            options.segment = int(subPath.split('_')[1])
+        elif 'version.' in subPath:
+            options.indexPath = parrentPath
+            options.version = int(subPath.split('.')[1])
+        elif 'package_file.__meta__' == subPath:
+            parrentPath, subPath = parrentPath.rstrip('/').rsplit('/', 1)
+            options.indexPath = parrentPath
+            options.segment = int(subPath.split('_')[1])
+            options.method = 'pls' if len(args) == 1 else 'pcat'
+        self.method = options.method
+        self.versions = {}
+        self.deployMetas = {}
+        self.segmentInfos = {}
+        self.subSegmentInfos = {}
+        self.indexFiles = {}
+        self.segmentCounter = {}
+        self.intermediateVersion = []
+        self.releaseVersion = []
+        self.intermediateSegment = []
+        self.releaseSegment = []
+        self.sizeCounter = {}
+        self.subSizeCounter = {}
+        self.hasSub = False
+        return True
+
+    def usage(self):
+        return self.__doc__ % {'prog' : sys.argv[0]}
+
+    def parseParams(self, optionList):
+        from optparse import OptionParser
+        parser = OptionParser(usage=self.usage())
+        parser.add_option('', '--debug', action='store_true', dest='debug', default=False)
+        parser.add_option('-p', '--partition', action='store', dest='indexPath', default=None)
+        parser.add_option('-D', '--disk_usage', action='store_true', dest='disk_usage', default=False)
+        parser.add_option('-m', '--method', action='store', dest='method', default='default')
+        parser.add_option('-v', '--version', action='store', type='int', dest='version', default=None)
+        parser.add_option('-s', '--segment', action='store', type='int', dest='segment', default=None)
+        parser.add_option('-i', '--index', action='store', dest='indexName', default=None)
+        parser.add_option('', '--nosub', action='store_true', dest='nosub', default=False)
+        parser.add_option('', '--sort', action='store', dest='sort', default='size')
+        parser.add_option('-r', '--raw_number', action='store_true', dest='raw_number', default=None)
+        parser.add_option('-H', '--hadoop_home', action='store', dest='hadoop_home', default=None)
+        parser.add_option('', '--clear', action='store_true', dest='clear', default=False)
+        (self.options, self.args) = parser.parse_args(optionList)
+
+        if not self.options.indexPath:
+            parser.error("need -p")
+        if self.options.debug:
+            print self.options, self.args
+        if not self.__initMember(self.options, self.args):
+            return False
+        return True
+
+    def __jsonLoad(self, path, defaultValue = None):
+        try:
+            if defaultValue and not fsutil.exist(path):
+                return defaultValue
+            jsonStr = fsutil.read(path)
+        except Exception, e:
+            #print traceback.format_exc()
+            print "path: %s" % path
+            raise
+        return json.loads(jsonStr)
+
+    def hr_size(self, plain_size):
+        plain_size = float(plain_size)
+        if plain_size <= 1024:
+            return str( round(plain_size, 2)) + ' B'
+        if plain_size <= 1024 * 1024:
+            return str( round(plain_size / 1024, 2)) + ' K'
+        if plain_size <= 1024 * 1024 * 1024:
+            return str( round(plain_size / 1024 / 1024, 2)) + ' M'
+        if plain_size <= 1024 * 1024 * 1024 *1024:
+            return str( round(plain_size / 1024 / 1024 / 1024, 2)) + ' G'
+
+    def timestampToString(self, timestamp, full = False):
+        timeDesc = time.localtime(timestamp)
+        if not full:
+            return time.strftime('%H:%M:%S',timeDesc)
+        else:
+            return time.strftime('%y-%m-%d %H:%M:%S',timeDesc)
+
+    def loadVersion(self, versionFile):
+        # {u'timestamp': 1389155100000000, u'segments': [9, 13, 17, 27, 29, 31, 33], u'versionid': 25}
+        versionId = int(versionFile.split(".")[-1])
+        self.versions[versionId] = self.__jsonLoad(versionFile)
+
+        deployMetaFile = "%s/deploy_meta.%s" % (os.path.dirname(versionFile), versionId)
+        deployMeta = self.__jsonLoad(deployMetaFile, {'deploy_file_metas': [], 'final_deploy_file_metas': []})
+        self.deployMetas[versionId] = deployMeta
+
+    def parseVersions(self):
+        # self.versions is sorted by versionId
+        usedVersionIds = {}
+        segments = set()
+        for versionId in self.versions:
+            timestamp = int(self.versions[versionId]['timestamp'])
+            if timestamp in usedVersionIds:
+                self.intermediateVersion.append(usedVersionIds[timestamp])
+            usedVersionIds[timestamp] = versionId
+            segments = segments | set(self.versions[versionId]['segments'])
+        self.releaseVersion = [i for i in self.versions.keys() if i not in self.intermediateVersion]
+        releaseSegments = set()
+        for versionId in self.releaseVersion:
+            releaseSegments = releaseSegments | set(self.versions[versionId]['segments'])
+        self.releaseSegment = list(releaseSegments)
+        self.releaseSegment.sort()
+        self.intermediateSegment = [s for s in segments if s not in self.releaseSegment]
+
+    def loadVersions(self, partitionFileList):
+        for (path, isdir) in partitionFileList:
+            if path.startswith('version.') and len(path.split('.')) == 2:
+                versionId = int(path.split('.')[-1])
+                if self.options.version != None and versionId != self.options.version:
+                    continue
+                versionFile = os.path.join(self.options.indexPath, path)
+                self.loadVersion(versionFile)
+        self.parseVersions()
+
+    def loadSegmentInfo(self, segmentId, segmentDir, hasSub):
+        # {u'Locator': u'400000000000000062e52f370100000000000000', u'IsMergedSegment': True, u'Timestamp': 1399135260000000, u'DocCount': 55054308}
+        segmentInfoFile = "%s/segment_info" % segmentDir
+        self.segmentInfos[segmentId] = self.__jsonLoad(segmentInfoFile)
+        if hasSub:
+            subSegmentInfoFile = "%s/sub_segment/segment_info" % segmentDir
+            self.subSegmentInfos[segmentId] = self.__jsonLoad(subSegmentInfoFile)
+        
+    def loadSegmentFileList(self, segmentId, segmentDir):
+        segmentFileListFile = "%s/segment_file_list" % segmentDir
+        if not fsutil.exist(segmentFileListFile):
+            segmentFileListFile = "%s/deploy_index" % segmentDir
+        segmentFileLists = {}
+        segmentFileLists = self.__jsonLoad(segmentFileListFile)
+        self.indexFiles[segmentId] = {}
+        physicalFileCount, physicalFileLength, physicalDirCount = 0, 0, 0
+        for meta in segmentFileLists['deploy_file_metas']:
+            path, length = meta['path'], meta['file_length']
+            if path[-1] == '/':
+                self.indexFiles[segmentId][path] = [0, 'physical_dir']
+                physicalDirCount += 1
+                continue
+            elif length < 0:
+                length = 0
+                print meta
+            physicalFileCount += 1
+            physicalFileLength += length
+            self.indexFiles[segmentId][path] = [length, 'physical']
+        self.segmentCounter[segmentId]['physicalFileCount'] = physicalFileCount
+        self.segmentCounter[segmentId]['physicalFileLength'] = physicalFileLength
+        self.segmentCounter[segmentId]['physicalDirCount'] = physicalDirCount
+
+    def loadPackageFile(self, segmentDir, hasSub):
+        packageFileMetaFile = "%s/package_file.__meta__" % segmentDir
+        segmentPackages = {}
+        if not fsutil.exist(packageFileMetaFile):
+            segmentPackages = {'inner_files': {}}
+        else:
+            segmentPackages = self.__jsonLoad(packageFileMetaFile)
+        if hasSub:
+            subPackageFileMetaFile = "%s/sub_segment/package_file.__meta__" % segmentDir
+            subSegmentPackages = self.__jsonLoad(subPackageFileMetaFile, {'inner_files': {}})
+            for meta in subSegmentPackages['inner_files']:
+                meta['path'] = 'sub_segment/' + meta['path']
+                segmentPackages['inner_files'].append(meta)
+        return segmentPackages
+
+    def loadSegmentPackage(self, segmentId, segmentDir, hasSub):
+        segmentPackages = self.loadPackageFile(segmentDir, hasSub)
+        logicalFileCount, logicalFileLength, logicalDirCount = 0, 0, 0
+        for meta in segmentPackages['inner_files']:
+            path, length = meta['path'], meta['length']
+            if meta['isDir']:
+                self.indexFiles[segmentId][path + '/'] = [0, 'logical_dir']
+                logicalDirCount += 1
+                continue
+            logicalFileLength += length
+            logicalFileCount += 1
+            self.indexFiles[segmentId][path] = [length, 'logical']
+        self.segmentCounter[segmentId]['logicalFileCount'] = logicalFileCount
+        self.segmentCounter[segmentId]['logicalFileLength'] = logicalFileLength
+        self.segmentCounter[segmentId]['logicalDirCount'] = logicalDirCount
+
+    def loadSegmentSize(self, segmentId, segmentDir):
+        self.sizeCounter[segmentId] = {'segment': 0, 'index': 0, 'attribute': 0, 'summary': 0}
+        self.subSizeCounter[segmentId] = {'segment': 0, 'index': 0, 'attribute': 0, 'summary': 0}
+        for path, desc in self.indexFiles[segmentId].items():
+            length = desc[0]
+            if path.startswith('sub_segment/'):
+                path = path[len('sub_segment/'):]
+                sizeMap = self.subSizeCounter[segmentId]
+            else:
+                sizeMap = self.sizeCounter[segmentId]
+            if path.startswith('summary'):
+                sizeMap['summary'] += length
+            elif path.startswith('attribute'):
+                sizeMap['attribute'] += length
+            elif path.startswith('index'):
+                sizeMap['index'] += length
+            where = desc[1]
+            if 'logical' not in where:
+                sizeMap['segment'] += length
+
+    def getSegmentDir(self, segmentId):
+        for i in xrange(0, 3):
+            segemntName = "segment_%d_level_%d" % (segmentId, i)
+            segmentDir = os.path.join(self.options.indexPath, segemntName)
+            if fsutil.exist(segmentDir):
+                return segmentDir
+        fileList = fsutil.ls(self.options.indexPath)
+        for (path, isdir) in fileList:
+            if not path.startswith('segment_'):
+                continue
+            curSegmentId = int(path.split("/")[-1].split("_")[1])
+            if curSegmentId == segmentId:
+                return os.path.join(self.options.indexPath, path)
+        return None
+
+    def loadSegment(self, segmentId, segmentDir):
+        hasSub = False if self.options.nosub else fsutil.exist(segmentDir + '/sub_segment')
+        self.segmentCounter[segmentId] = {}
+        self.loadSegmentInfo(segmentId, segmentDir, hasSub)
+        self.loadSegmentFileList(segmentId, segmentDir)
+        self.loadSegmentPackage(segmentId, segmentDir, hasSub)
+        self.loadSegmentSize(segmentId, segmentDir)
+        return hasSub
+
+    def loadSegments(self, partitionFileList):
+        segmentList = None
+        if self.options.version != None:
+            segmentList = self.versions[self.options.version]["segments"]
+
+        for (path, isdir) in partitionFileList:
+            if not path.startswith('segment_'):
+                continue
+            segmentId = int(path.split("/")[-1].split("_")[1])
+            if segmentList != None and segmentId not in segmentList:
+                continue
+            segmentDir = os.path.join(self.options.indexPath, path)
+            self.loadSegment(segmentId, segmentDir)
+
+    def printSegment(self, segmentId):
+        result = ""
+        docCount = self.segmentInfos[segmentId]['DocCount']
+        timestamp = self.segmentInfos[segmentId]['Timestamp']
+        locator = self.segmentInfos[segmentId]['Locator']
+        mergeFlag = "M" if self.segmentInfos[segmentId]["IsMergedSegment"] else "B"
+        pFileLength = self.hr_size(self.segmentCounter[segmentId]['physicalFileLength'])
+        pFileCount = self.segmentCounter[segmentId]['physicalFileCount']
+        pDirCount = self.segmentCounter[segmentId]['physicalDirCount']
+        lFileLength = self.hr_size(self.segmentCounter[segmentId]['logicalFileLength'])
+        lFileCount = self.segmentCounter[segmentId]['logicalFileCount']
+        lDirCount = self.segmentCounter[segmentId]['logicalDirCount']
+        docCountStr = str(docCount)
+        if segmentId in self.subSegmentInfos:
+            docCountStr = '%s/%d' % (docCountStr, self.subSegmentInfos[segmentId]['DocCount'])
+        result += "SEGMENT[%d]: %s docCount[%s], Time[%s], Timestamp[%s] Locator[%s]\n" % (
+            segmentId, mergeFlag, docCountStr,
+            self.timestampToString(timestamp / 1000000), timestamp, locator)
+        result += "TOTAL: physical[%s, %dF+%dD], logical[%s, %dF+%2dD]\r\n" % (
+            pFileLength, pFileCount, pDirCount, lFileLength, lFileCount, lDirCount)
+        # counter[type][index] = (length, physicalFileCount, physicalDirCount, logicalFileCount, logicalDirCount)
+        counter = {'other': {}, 'index': {}, 'attribute': {}, 'summary': {}, 'deletionmap': {}}
+        indexResult = "INDEX_DETAIL[%s]\n" % (self.options.indexName) if self.options.indexName else ""
+        for path, param in self.indexFiles[segmentId].items():
+            length, where = param
+            if where == 'logical_dir':    whereId = 4
+            elif where == 'logical':      whereId = 3
+            elif where == 'physical_dir': whereId = 2
+            else:                         whereId = 1
+
+            if self.options.indexName is not None and path.startswith(self.options.indexName):
+                indexResult += "  %-60s %15s %s\n" % (path, self.hr_size(length), where)
+
+            sp = path.split('/')
+            isSub = (sp[0] == 'sub_segment')
+            indexType = sp[1] if isSub else sp[0]
+            if indexType.startswith('package_file'):
+                indexName = 'sub_segment/package_file.*' if isSub else 'package_file.*'
+                counter['other'].setdefault(indexName, [0, 0, 0, 0, 0])
+                counter['other'][indexName][0] += length
+                counter['other'][indexName][whereId] += 1
+            elif indexType in ['index', 'attribute']:
+                if sp[1] == "" or (isSub and sp[2] == ""):
+                    continue
+                indexName = '/'.join(sp[0:3]) if isSub else '/'.join(sp[0:2])
+                counter[indexType].setdefault(indexName, [0, 0, 0, 0, 0])
+                counter[indexType][indexName][0] += length
+                counter[indexType][indexName][whereId] += 1
+            elif indexType in ['summary', 'deletionmap']:
+                indexName = '/'.join(sp[0:2]) if isSub else '/'.join(sp[0:1])
+                counter[indexType].setdefault(indexName, [0, 0, 0, 0, 0])
+                counter[indexType][indexName][0] += length
+                counter[indexType][indexName][whereId] += 1                
+            else:
+                indexName = '%s/%s' % (sp[0], sp[1]) if isSub else sp[0] 
+                counter['other'].setdefault(indexName, [0, 0, 0, 0, 0])
+                counter['other'][indexName][0] += length
+                counter['other'][indexName][whereId] += 1
+        assert(len(counter) == 5)
+        for indexType in ['attribute', 'index', 'summary', 'deletionmap', 'other']:
+            if indexType not in counter:
+                continue
+            indexDetal = counter[indexType]
+            tmpResult = ""
+            idx, totalLength, totalCount = 0, 0, 0
+            sortId = 1 if self.options.sort == 'size' else 0
+            for name, detail in sorted(indexDetal.items(), key=lambda d: d[sortId]):
+                fileLength, pFileCount, pDirCount, lFileCount, lDirCount = detail
+                fileLengthStr = fileLength
+                if not self.options.raw_number:
+                    fileLengthStr = self.hr_size(fileLength)
+                tmpResult += "%3d  %-60s %15s\tF[%s+%s] D[%s+%s]\n" % (
+                    idx, name, fileLengthStr, pFileCount, lFileCount, pDirCount, lDirCount)
+                idx += 1
+                totalLength += fileLength
+                totalCount += (pFileCount + lFileCount)
+            result += "%-10s: fileCount[%d] fileSize[%s]\n" % (
+                indexType.upper(), totalCount, self.hr_size(totalLength))
+            result += tmpResult
+        result += indexResult
+        return result
+
+    def printVersions(self):
+        result = "Version Summary:\n"
+        id = 0
+        pattern = "%-3s %-7s %-8s[%-16s]\t%8s\t%s\n"
+        result += pattern % ('#', 'Version', 'time', 'timestamp', 'size', 'segments')
+        for versionId in self.versions:
+            timestamp = self.versions[versionId]["timestamp"]
+            segments = self.versions[versionId]["segments"]
+            timeStr = self.timestampToString(timestamp / 1000000)
+            size = 0
+            for segmentId in segments:
+                size += self.sizeCounter[segmentId]['segment']
+            result += pattern % (id, versionId, timeStr, timestamp,
+                                 self.hr_size(size), segments)
+            id += 1
+        if self.options.version is None:
+            result += "intermediateVersion: %s\n" % (self.intermediateVersion)
+            result += "intermediateSegment: %s\n" % (self.intermediateSegment)
+            result += "releaseVersion: %s\n" % (self.releaseVersion)
+            result += "releaseSegment: %s\n" %(self.releaseSegment)
+        return result
+
+    def printSegments(self):
+        result = "Segments: \n"
+        segmentInfoStrList = []
+        for segmentId in sorted(self.segmentInfos):
+            docCount = self.segmentInfos[segmentId]['DocCount']
+            timestamp = self.segmentInfos[segmentId]['Timestamp'] / 1000000
+            mergeFlag = "M" if self.segmentInfos[segmentId]["IsMergedSegment"] else "B"
+            docCountStr = str(docCount)
+            if segmentId in self.subSegmentInfos:
+                docCountStr += '/%d' % (self.subSegmentInfos[segmentId]['DocCount'])
+            segmentInfoStrList.append("%d[%s,%s,%s]" % (
+                segmentId, mergeFlag, docCountStr, self.timestampToString(timestamp)))
+        
+        offset, step = 0, 5
+        while offset < len(segmentInfoStrList):
+            result += "\t".join(segmentInfoStrList[offset : offset + step])
+            result += '\n'
+            offset += step
+        return result
+
+    def printSegmentDetail(self, pattern, idx, segmentId, segmentInfos, sizeCounter, total):
+        docCount = segmentInfos[segmentId]['DocCount']
+        segment = sizeCounter[segmentId]['segment']
+        attribute = sizeCounter[segmentId]['attribute']
+        index = sizeCounter[segmentId]['index']
+        summary = sizeCounter[segmentId]['summary']
+        other = segment - attribute - index - summary
+        timestamp = segmentInfos[segmentId]['Timestamp'] / 1000000
+        mergeFlag = "M" if segmentInfos[segmentId]["IsMergedSegment"] else ""
+        result = pattern % (idx, segmentId, total['baseDocId'], docCount,
+                             self.hr_size(segment), self.hr_size(attribute),
+                             self.hr_size(index), self.hr_size(summary), self.hr_size(other),
+                             self.timestampToString(timestamp, True), mergeFlag)
+        total['baseDocId'] += docCount
+        total['size'] += segment
+        total['attribute'] += attribute
+        total['index'] += index
+        total['summary'] += summary
+        total['other'] += other
+        return result
+
+
+    def printVersionDetail(self):
+        versionId = sorted(self.versions)[-1]
+        if self.options.version != None:
+            versionId = self.options.version
+        result = "Version [%s], " % versionId
+        result += "DeployMeta [%s + %s]\n" % (len(self.deployMetas[versionId]['deploy_file_metas']),
+                                              len(self.deployMetas[versionId]['final_deploy_file_metas']))
+        pattern = "%-2s %7s %10s %10s %10s %10s %10s %10s %10s %17s %2s\n"
+        title = pattern % ('#', 'segID', 'BaseDocID', 'DocCount', 'Size', 'Attribute', 'Index', 'Summary', 'Other', 'timestamp', 'Merged')
+        result += title
+        subResult = ''
+        total = {'baseDocId': 0, 'size': 0, 'attribute': 0, 'index': 0, 'summary': 0, 'other': 0}
+        subTotal = {'baseDocId': 0, 'size': 0, 'attribute': 0, 'index': 0, 'summary': 0, 'other': 0}
+        idx= 0
+        for segmentId in self.versions[versionId]["segments"]:
+            result += self.printSegmentDetail(pattern, idx, segmentId,
+                                              self.segmentInfos, self.sizeCounter, total)
+            if segmentId in self.subSegmentInfos:
+                subResult += self.printSegmentDetail(pattern, idx, segmentId,
+                                                     self.subSegmentInfos, self.subSizeCounter, subTotal)
+            idx += 1
+
+        result += pattern % ('', 'TOTAL', total['baseDocId'], '',
+                             self.hr_size(total['size']), self.hr_size(total['attribute']),
+                             self.hr_size(total['index']), self.hr_size(total['summary']),
+                             self.hr_size(total['other']), '', '')
+        if subResult:
+            result += '\nSub Segment:\n'
+            result += title
+            result += subResult
+            result += pattern % ('', 'TOTAL', subTotal['baseDocId'], '',
+                                 self.hr_size(subTotal['size']), self.hr_size(subTotal['attribute']),
+                                 self.hr_size(subTotal['index']), self.hr_size(subTotal['summary']),
+                                 self.hr_size(subTotal['other']), '', '')
+
+        if self.options.indexName is not None:
+            result += self.printIndex(versionId, self.options.indexName)
+        return result
+
+    def printIndex(self, versionId, indexName):
+        result = '\nINDEX_DETAIL[%s]\n' % (indexName)
+        pattern = "%-3s %9s %s\n"
+        result += pattern % ('#', 'segID', 'length')
+        totalSize = 0
+        idx = 0
+        for segmentId in self.versions[versionId]["segments"]:
+            size = 0
+            for path, param in self.indexFiles[segmentId].items():
+                length, where = param
+                if path.startswith(indexName):
+                    size += length
+            result += pattern % (idx, segmentId, self.hr_size(size))
+            totalSize += size
+            idx += 1
+        result += pattern % (idx, 'TOTAL', self.hr_size(totalSize))
+        return result
+
+    def parseSegment(self, segmentId):
+        hasSub = self.loadSegment(segmentId, self.getSegmentDir(segmentId))
+        return self.printSegment(segmentId)
+        
+    def parsePartition(self):
+        partitionFileList = fsutil.ls(self.options.indexPath)
+        self.loadVersions(partitionFileList)
+        self.loadSegments(partitionFileList)
+        result = ''
+        result += self.printVersions() + '\n'
+        if self.options.version is None:
+            result += self.printSegments() + '\n'
+        result += self.printVersionDetail() + '\n'
+        return result
+
+    def default(self):
+        segmentId = self.options.segment
+        if segmentId is not None:
+            return self.parseSegment(segmentId)
+        return self.parsePartition()
+
+    def pls(self):
+        segmentDir = self.getSegmentDir(self.options.segment)
+        hasSub = fsutil.exist(segmentDir + '/sub_segment')
+        segmentPackages = self.loadPackageFile(segmentDir, hasSub)
+        pattern = '%3s %-60s %10s %10s %3s %2s\n'
+        result = pattern % ('#', 'path', 'offset', 'length', 'dir', 'fileIdx')
+        idx = 0
+        for meta in segmentPackages['inner_files']:
+            result += pattern % (idx, meta['path'], meta['offset'], meta['length'],
+                                 'D' if meta['isDir'] else 'F', meta['fileIdx'])
+            idx += 1
+        return result
+
+    def pcat(self):
+        srcFileName = self.args[1]
+        segmentDir = self.getSegmentDir(self.options.segment)
+        isSub = srcFileName.startswith('sub_segment/')
+        segmentPackages = self.loadPackageFile(segmentDir, isSub)
+        for meta in segmentPackages['inner_files']:
+            if srcFileName == meta['path']:
+                fileIdx = meta['fileIdx']
+                if isSub:
+                    segmentDir += '/sub_segment'
+                if 'physical_file_names' in segmentPackages:
+                    dataFile = '%s/%s' % (segmentDir, segmentPackages['physical_file_names'][fileIdx])
+                else:
+                    dataFile = '%s/package_file.__data__0' %(segmentDir)
+                return fsutil.read(dataFile, meta['offset'], meta['length'])
+
+    def pcp(self):
+        result = self.pcat()
+        fsutil.write(self.args[2], result)
+
+    def run(self):
+        return getattr(self, self.method)()
+
+def main():
+    reader = IndexReader()
+    if not reader.parseParams(sys.argv):
+        sys.exit(-1)
+    try:
+        result = reader.run()
+        if result:
+            print result
+    except Exception, e:
+        print traceback.format_exc()
+        sys.exit(1)
+    sys.exit(0)
+
+if __name__ == "__main__":
+    main()
+

@@ -1,0 +1,8 @@
+
+Import('env')
+env = env.Clone()
+
+mockstorage = Glob('*.cpp')
+env.aSharedLibrary(target = 'indexlib_storage_mock',
+                   source = mockstorage)
+

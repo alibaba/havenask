@@ -1,0 +1,26 @@
+Import('env')
+env = env.Clone()
+
+lib_names = [
+    'indexlib',
+    'pangumock',
+    'nuwa_client',
+    'shennong',
+    'cangjie',
+    'kuafu',
+    'nuwa_client',
+    'shennong',
+    'apsara_common', 
+    'build_info',
+    'rt',
+    'dl'
+]
+
+
+
+segment_file_reader = env.Program(target="segment_file_reader",
+		          source = ['segment_file_reader.cpp'],
+			  LIBS = lib_names)
+
+env.Alias('tools', segment_file_reader)
+env.Default(segment_file_reader)

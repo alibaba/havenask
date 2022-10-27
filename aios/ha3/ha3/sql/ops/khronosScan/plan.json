@@ -1,0 +1,193 @@
+meta:
+
+metric:
+select metric form meta where ts > 100
+select metric form meta where metric='sys*' // must prefix
+
+tagK:
+select tagk from khronos_meta where metric='sys.cpu' and ts > 15805666
+select tagk from khronos_meta where ts > 15805666
+
+tagV:
+select tagv from khronos_meta where metric='sys.cpu' and tagk = 'host' and ts > 1580566662
+select tagv from khronos_meta where metric='sys.cpu' and tagk = 'host' and tagv='1.1*' and ts > 1580566662
+select tagv from khronos_meta where tagk = 'host' and ts > 1580566662
+select tagv from khronos_meta where tagk = 'host' and tagv='1.1*' and ts > 1580566662
+// tagv must preifx
+
+
+data:
+
+select avg, tags['host'], tags['app']='*', `timestamp` from `@memory1` where tags['host']='10.*' and `timestamp` > 0
+
+host=10.1,app=mainse, 5 10
+10.1  1 12
+10.2  2 13
+
+
+select avg_value, tags['tagk0'], `timestamp` from `@memory1` where tags['tagk0']='tagv*' and `timestamp` > 0
+{
+    "error_code":0,
+    "error_message":"",
+    "result":{
+        "exec_params":{
+            "sql.optimizer.catalog.register.time.us":173,
+            "sql.optimizer.plan.get.cache":false,
+            "sql.optimizer.plan.put.cache":false,
+            "sql.optimizer.rel.optimize.time.us":11520,
+            "sql.optimizer.rel.post.optimize.time.us":28,
+            "sql.optimizer.rel.transform.time.us":3660,
+            "sql.optimizer.sql.parse.time.us":1877,
+            "sql.optimizer.sql.validate.time.us":5476
+        },
+        "rel_plan":[
+            {
+                "attrs":{
+                    "catalog_name":"simple",
+                    "condition":{
+                        "op":"AND",
+                        "params":[
+                            {
+                                "op":"=",
+                                "params":[
+                                    {
+                                        "op":"ITEM",
+                                        "params":[
+                                            "$tags",
+                                            "tagk0"
+                                        ],
+                                        "type":"OTHER"
+                                    },
+                                    "tagv*"
+                                ],
+                                "type":"OTHER"
+                            },
+                            {
+                                "op":">",
+                                "params":[
+                                    "$timestamp",
+                                    0
+                                ],
+                                "type":"OTHER"
+                            }
+                        ],
+                        "type":"OTHER"
+                    },
+                    "db_name":"simple",
+                    "hash_fields":[
+                        "serieskey"
+                    ],
+                    "hash_type":"hash",
+                    "index_infos":{
+                        "$avg_value":{
+                            "name":"avg_value",
+                            "type":"khronos_value"
+                        },
+                        "$timestamp":{
+                            "name":"timestamp",
+                            "type":"khronos_timestamp"
+                        }
+                    },
+                    "limit":2147483647,
+                    "output_field_exprs":{
+                        "$tags['tagk0']":{
+                            "op":"ITEM",
+                            "params":[
+                                "$tags",
+                                "tagk0"
+                            ],
+                            "type":"OTHER"
+                        }
+                    },
+                    "output_fields":[
+                        "$avg_value",
+                        "$tags['tagk0']",
+                        "$timestamp"
+                    ],
+                    "output_fields_type":[
+                        "DOUBLE",
+                        "VARCHAR",
+                        "INTEGER"
+                    ],
+                    "table_name":"memory1",
+                    "table_type":"khronos_data",
+                    "use_nest_table":false,
+                    "used_fields":[
+                        "$avg_value",
+                        "$tags",
+                        "$timestamp"
+                    ]
+                },
+                "id":0,
+                "inputs":{
+                    "input0":[
+
+                    ]
+                },
+                "op_name":"KhronosTableScanKernel"
+            },
+            {
+                "attrs":{
+                    "limit":100,
+                    "offset":0
+                },
+                "id":1,
+                "inputs":{
+                    "input0":[
+                        0
+                    ]
+                },
+                "op_name":"LimitKernel"
+            },
+            {
+                "attrs":{
+                    "catalog_name":"simple",
+                    "db_name":"simple",
+                    "distribution":{
+                        "type":"SINGLETON"
+                    },
+                    "input_node":"MergeKernel_1",
+                    "input_port":"output0",
+                    "lack_result_enable":false,
+                    "sub_graph_run_param_thread_limit":10,
+                    "sub_graph_run_param_timeout":8999973,
+                    "sub_graph_run_param_trace_level":"DEBUG",
+                    "table_name":"memory1"
+                },
+                "id":2,
+                "inputs":{
+                    "input0":[
+                        1
+                    ]
+                },
+                "op_name":"ExchangeKernel"
+            },
+            {
+                "attrs":{
+                    "limit":100,
+                    "offset":0
+                },
+                "id":3,
+                "inputs":{
+                    "input0":[
+                        2
+                    ]
+                },
+                "op_name":"LimitKernel"
+            },
+            {
+                "attrs":{
+                    "type":"api"
+                },
+                "id":4,
+                "inputs":{
+                    "input0":[
+                        3
+                    ]
+                },
+                "op_name":"SinkKernel"
+            }
+        ],
+        "rel_plan_version":"plan_version_0.0.1"
+    }
+}

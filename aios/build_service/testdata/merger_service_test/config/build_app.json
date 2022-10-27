@@ -1,0 +1,7 @@
+{
+    "index_root" : "./",
+    "swift_root" : "zfs://path/to/zfs",
+    "user_name" : "user_name",
+    "service_name" : "service_name",
+    "full_builder_tmp_root" : "hdfs://index//root1"
+}

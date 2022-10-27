@@ -1,0 +1,39 @@
+# -*- mode: python -*-
+import platform
+Import('env')
+env = env.Clone();
+
+partition_perftest_sources = [
+    '#indexlib/test/dotest.cpp',
+    'partition_perf_unittest.cpp',
+    'partition_big_data_perftest.cpp',
+    'multi_thread_dump_perftest.cpp',
+]
+
+partition_perftest_libs = [
+    'indexlib_indextest_common',
+    'indexlib_file_system_test_common',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest',
+]
+
+env.aTest(target = 'partition_perftest',
+          source = partition_perftest_sources,
+          LIBS = partition_perftest_libs)
+
+Return([])

@@ -1,0 +1,22 @@
+{
+    "table_name": "auction",
+    "fields":
+    [
+	{"field_name":"user_id",      "field_type":"INTEGER"},
+	{"field_name":"nid",      "field_type":"INTEGER"},
+        {"field_name":"title",        "field_type":"TEXT",  "analyzer" : "aliws"}
+    ],
+    "indexs":
+    [
+	{
+            "index_name":"nid",
+            "index_fields":"nid",
+            "index_type": "PRIMARYKEY64"
+        }
+    ],
+    "attributes":
+    [
+        "user_id",
+        "nid"
+    ]
+}

@@ -1,0 +1,38 @@
+{
+    "cluster_config" : {
+        "cluster_name" : "daogou",
+        "hash_mode" : {
+            "hash_field" : "id",
+            "hash_function" : "HASH"
+        },
+        "join_config" : {
+            "join_infos" : [
+                {
+                    "join_cluster" : "company",
+                    "join_field" : "company_id",
+                    "strong_join" : true
+                },
+                {
+                    "join_cluster" : "category",
+                    "join_field" : "category_name",
+                    "strong_join" : false
+                }
+            ]
+        },
+        "query_config" : {
+            "default_index" : "default",
+            "default_operator" : "AND"
+        },
+        "swift_topic_name" : "daogou",
+        "swift_zookeeper_root" : "",
+        "table_name" : "daogou"
+    },
+    "turing_options_config" : {
+        "dependency_table" : [
+            "daogou",
+            "daogou2"
+        ],
+        "graph_config_path" : "search_graph.pbtxt"
+    }
+
+}

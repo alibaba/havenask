@@ -1,0 +1,14 @@
+# -*- mode: python -*-
+
+Import('env')
+
+env = env.Clone()
+source = env.aDirs('data')
+source.append(env.aDirs('framework'))
+source.append(env.aDirs('ops'))
+source.append(env.aDirs('proto'))
+source.append(env.aDirs('rank'))
+source.append(env.aDirs('resource'))
+source.append(env.aDirs('util'))
+
+env.aLibrary(target = 'ha3_sql', source = source)

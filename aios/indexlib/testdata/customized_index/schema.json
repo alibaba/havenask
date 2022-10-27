@@ -1,0 +1,55 @@
+{
+"fields":
+  [
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "pk",
+    "field_type":
+      "STRING"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "demo_field",
+    "field_type":
+      "RAW"
+    }
+  ],
+"indexs":
+  [
+    {
+    "has_primary_key_attribute":
+      true,
+    "index_fields":
+      "pk",
+    "index_name":
+      "pk",
+    "index_type":
+      "PRIMARYKEY64",
+    "pk_hash_type":
+      "default_hash",
+    "pk_storage_type":
+      "sort_array"
+    },
+    {
+    "index_fields":
+      "demo_field",
+    "index_name":
+      "test_customize",
+    "index_type":
+      "CUSTOMIZED",
+    "indexer":
+      "demo_indexer",
+    "parameters":
+      {
+      }
+    }
+  ],
+"table_name":
+  "noname",
+"table_type":
+  "normal"
+}

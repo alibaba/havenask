@@ -1,0 +1,18 @@
+{
+    "modules" : [
+        {
+            "module_name" : "test_module1",
+            "module_path" : "libfakesorter.so",
+            "pararmeters" : {
+            }
+        }
+    ],
+    "sorters" : [
+        {
+            "module_name" : "test_module1",
+            "pararmeters" : {
+            },
+            "sorter_name" : "test_sorter1"
+        }
+    ]
+}

@@ -1,0 +1,54 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+fake_worker_sources = [
+    #'FakeBizInfoManager.cpp',
+    #'FakeSuezWorker.cpp',
+]
+
+fakeworkerlib = env.aLibrary(target = 'ha3_fakeworker',
+                              source = fake_worker_sources)
+
+worker_test_sources =  [
+    'HaProtoJsonizerTest.cpp',
+     ]
+
+libsname = ['ha3_fakeproto', 'ha3_fakeservice', 'ha3_fakequeryparser',
+            'ha3_fakecommon', 'ha3_worker', 'ha3_fakeworker',
+            'fakescorer']
+
+testTarget = env.aTest(target = 'worker_impl_test', 
+                       source = worker_test_sources,
+                       LIBS = libsname + env['ha3_test_depend_lib']
+                       )
+
+libfakescorer = env['LIB_DIR'] + '/' + 'libfakescorer.so'
+libfakescore_installed1 = env.aCopy('#testdata/serviceRoot/config/0/plugins/', libfakescorer)
+libfakescore_installed2 = env.aCopy('#testdata/testadmin/taobao/taobao_daogou/configurations/configuration_1/plugins/', libfakescorer)
+libfakescore_installed3 = env.aCopy('#testdata/search_biz_info/config/1/plugins/', libfakescorer)
+libfakescore_installed4 = env.aCopy('#testdata/search_biz_info/config/0/plugins/', libfakescorer)
+libfakescore_installed5 = env.aCopy('#testdata/qrs_zone_resource/config/1/plugins/', libfakescorer)
+libfakescore_installed6 = env.aCopy('#testdata/qrs_zone_resource/config/0/plugins/', libfakescorer)
+env.Depends(testTarget, [libfakescore_installed1,libfakescore_installed2, 
+                         libfakescore_installed3, libfakescore_installed4,
+                         libfakescore_installed5, libfakescore_installed6])
+
+libfakeqrsprocessor = env['LIB_DIR'] + '/' + 'libha3_fakeqrs_processor.so'
+libfakeqrsprocessor_installed1 = env.aCopy('#testdata/serviceRoot/config/0/plugins/', libfakeqrsprocessor)
+libfakeqrsprocessor_installed2 = env.aCopy('#testdata/testadmin/taobao/taobao_daogou/configurations/configuration_1/plugins/', libfakeqrsprocessor)
+libfakeqrsprocessor_installed3 = env.aCopy('#testdata/search_biz_info/config/1/plugins/', 
+                                           libfakeqrsprocessor)
+libfakeqrsprocessor_installed4 = env.aCopy('#testdata/search_biz_info/config/0/plugins/', 
+                                           libfakeqrsprocessor)
+libfakeqrsprocessor_installed5 = env.aCopy('#testdata/qrs_zone_resource/config/0/plugins/', 
+                                           libfakeqrsprocessor)
+libfakeqrsprocessor_installed6 = env.aCopy('#testdata/qrs_zone_resource/config/1/plugins/', 
+                                           libfakeqrsprocessor)
+env.Depends(testTarget, [libfakeqrsprocessor_installed1, libfakeqrsprocessor_installed2, 
+                         libfakeqrsprocessor_installed3, libfakeqrsprocessor_installed4,
+                         libfakeqrsprocessor_installed5, libfakeqrsprocessor_installed6])

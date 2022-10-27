@@ -1,0 +1,83 @@
+# -*- mode: python -*-
+Import('env')
+env = env.Clone()
+
+config_libs = [
+    'indexlib_configtest',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'autil',
+    'gmock',
+    'gtest',
+]
+
+gtest_unittestcpps = [
+    '#indexlib/test/dotest.cpp',
+    '#indexlib/testlib/schema_maker.cpp',
+    '#indexlib/testlib/modify_schema_maker.cpp',
+    'section_attribute_config_unittest.cpp',
+    'package_index_config_unittest.cpp',
+    'field_config_unittest.cpp',
+    'index_partition_schema_unittest.cpp',
+    'compress_type_option_unittest.cpp',
+    'truncate_option_config_unittest.cpp',
+    'check_config_unittest.cpp',
+    'diversity_constrain_unittest.cpp',
+    'truncate_term_vocabulary_unittest.cpp',
+    'adaptive_dictionary_config_unittest.cpp',
+    'check_compability_unittest.cpp',
+    'index_config_unittest.cpp',
+    'single_field_index_config_unittest.cpp',
+    'truncate_index_name_mapper_unittest.cpp',
+    'schema_configurator_unittest.cpp',
+    'high_frequency_vocabulary_unittest.cpp',
+    'high_freq_vocabulary_creator_unittest.cpp',
+    'spatial_index_config_unittest.cpp',
+    'build_config_unittest.cpp',
+    'merge_config_unittest.cpp',
+    'merge_io_config_unittest.cpp',
+    'online_config_unittest.cpp',
+    'index_partition_options_unittest.cpp',
+    'primary_key_index_config_unittest.cpp',
+    'kv_index_config_unittest.cpp',
+    'kkv_index_config_unittest.cpp',
+    'customized_index_config_unittest.cpp',
+    'summary_schema_unittest.cpp',
+    'date_index_config_unittest.cpp',
+    'pack_attribute_config_unittest.cpp',
+    'attribute_config_unittest.cpp',
+    'range_index_config_unittest.cpp',
+    'schema_differ_unittest.cpp',
+    'module_info_unittest.cpp',
+    'value_config_unittest.cpp',
+]
+
+env.aTest(target = 'ie_config_unittest',
+          source = gtest_unittestcpps,
+          LIBS=config_libs)
+
+#################################################################
+
+cpps = [str(fn) for fn in Glob('*.cpp') if 'test.cpp' not in str(fn)]
+env.aSharedLibrary(target='indexlib_configtest', source=cpps)
+
+
+###################### dependency check #######################
+config_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+config_minimal_dependency_libs = [
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+]
+
+env.aTest(target = 'indexlib_config_dependency_unittest',
+          source = config_minimal_dependency_sources,
+          LIBS = config_minimal_dependency_libs)

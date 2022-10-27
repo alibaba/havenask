@@ -1,0 +1,97 @@
+{
+	/* This config file is just for index engine library, and it will be stored in corresponding index partition for the convenience of index partition transfer. we just need one table when building a index partition. */
+	/* fields are order-sensitive; attributes, and summary must have the same order with fields; */
+
+	"table_name": "auction",
+
+        "fields": 
+        [
+                {"field_name":"title",        "field_type":"TEXT",  "analyzer" : "aliws"},
+		{"field_name":"category",     "field_type":"TEXT",  "analyzer" : "aliws"},
+		{"field_name":"user_name",    "field_type":"STRING" },
+	        {"field_name":"price",        "field_type":"FLOAT"  },
+		{"field_name":"auction_type", "field_type":"ENUM",     "valid_values":["sale", "buy"] },
+		{"field_name":"content",      "field_type":"TEXT",  "analyzer" : "aliws"},
+		{"field_name":"multi_string",      "field_type":"string",  "multi_value" : true},
+	        {"field_name":"subject",        "field_type":"TEXT",  "analyzer" : "extendAnalyzer"},
+                {"field_name":"pk",        "field_type":"FLOAT"  },	
+	        {"field_name":"f1",        "field_type":"FLOAT"  },
+	        {"field_name":"f1a",        "field_type":"FLOAT"  },
+	        {"field_name":"f1c",        "field_type":"FLOAT"  },
+	        {"field_name":"f2a",        "field_type":"FLOAT"  },
+	        {"field_name":"f2b",        "field_type":"FLOAT"  },
+	        {"field_name":"f2c",        "field_type":"FLOAT"  },
+	        {"field_name":"f3",        "field_type":"FLOAT"  },
+	        {"field_name":"fA",        "field_type":"FLOAT"  },
+	        {"field_name":"fB",        "field_type":"FLOAT"  },
+	        {"field_name":"fC",        "field_type":"FLOAT"  },
+	        {"field_name":"fD",        "field_type":"FLOAT"  },
+	        {"field_name":"fE",        "field_type":"FLOAT"  },
+	        {"field_name":"fF",        "field_type":"FLOAT"  }
+        ],
+
+	"indexs": 
+	[
+	     {
+		"index_name": "phrase",
+                "index_type" : "PACK",
+
+		"index_fields": 
+		[
+			{"field_name":"title", "boost":1000}, 
+			{"field_name":"category", "boost":10}
+		]
+	     },
+	     {
+		"index_name": "other",
+                "index_type" : "PACK",
+
+		"index_fields": 
+		[
+			{"field_name":"subject", "boost":1000}
+		]
+	     },
+	     {
+	        "index_name" : "user_name",
+		"index_type" : "STRING",
+		"index_fields" : "user_name"
+	     },
+	     {
+	        "index_name" : "multi_string",
+		"index_type" : "STRING",
+		"index_fields" : "multi_string"
+	     },
+	     {
+	        "index_name" : "pk",
+		"index_type" : "PRIMARYKEY128",
+		"index_fields" : "pk"
+	     }
+
+         ],
+
+	 "attributes": ["multi_string", "f1", "f1a", "f1c", "f2a", "f2b", "f3", "fA", "fB", "fC", "fD", "fE"],
+
+         "summarys":{ 
+	     "summary_fields": ["user_name", "content", "price", "auction_type", "multi_string"],
+	     "compress":false
+	 },
+	 "sub_schema": {
+             "table_name": "auction",
+    	     "fields":
+             [
+	         {"field_name":"user_id",      "field_type":"INTEGER"},
+                 {"field_name":"sub_title",  "field_type":"STRING" },
+                 {"field_name":"f1b",        "field_type":"FLOAT"  },
+                 {"field_name":"f2",         "field_type":"FLOAT"  },
+		 {"field_name":"sub_pk",         "field_type":"FLOAT"  }
+             ],
+            "indexs":
+            [
+                {  "index_name" : "sub_title", "index_type" : "STRING", "index_fields" : "sub_title"},
+		{"index_name" : "sub_pk", "index_type" : "PRIMARYKEY128", "index_fields" : "sub_pk" }
+
+            ],
+            "attributes": ["f1b", "f2", "user_id"]
+        }
+}
+

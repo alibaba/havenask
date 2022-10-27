@@ -1,0 +1,154 @@
+{
+    /* This config file is just for index engine library, and it will be stored in corresponding index partition for the convenience of index partition transfer. we just need one table when building a index partition. */
+    /* fields are order-sensitive; attributes, and summary must have the same order with fields; */
+
+    "table_name": "sample_en",
+
+    "fields": 
+    [
+	{"field_name":"id", "field_type":"INTEGER"},
+	{"field_name":"gmt_create", "field_type":"TIME"},
+	{"field_name":"gmt_modified", "field_type":"TIME"},
+	{"field_name":"company_id", "field_type":"INTEGER"},
+	{"field_name":"image_repository_ids", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"have_image", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"image_count", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"image_watermark", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"member_seq", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"subject", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"keywords", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"type", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"enmlr_features", "field_type":"INTEGER"},
+	{"field_name":"category_id", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"category_ids", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"group_id", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"status", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"is_display", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"hs_code", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"ind_by_all", "field_type":"INTEGER"},
+	{"field_name":"ind_by_group", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"owner_member_id", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"owner_member_seq", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"summary", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"description", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"description2", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"certificate_ids", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"port", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"payment_method", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"payment_method_other", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"min_order_quantity", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"min_order_unit", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"min_order_other", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"supply_quantity", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"supply_unit", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"supply_period", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"supply_other", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"packaging_desc", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"consignment_term", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"is_validate", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"member_id", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"money_type", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"price_range", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"image_process", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"create_type", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"orderby_type_group", "field_type":"INTEGER"},
+	{"field_name":"orderby_type_allindex", "field_type":"INTEGER"},
+	{"field_name":"biz_type", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"country", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"continent", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"province", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"city", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"address", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"email", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"company_name", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"domain_id", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"business_role", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"service_level", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"promotion_value", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"rank_score", "field_type":"INTEGER"},
+	{"field_name":"video_path", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"dist_member_id", "field_type":"INTEGER"},
+	{"field_name":"contact_manufacturing", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"trade_region", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"employees_count", "field_type":"INTEGER"},
+	{"field_name":"annual_revenue", "field_type":"INTEGER"},
+	{"field_name":"ispaid", "field_type":"INTEGER"},
+	{"field_name":"attr_list", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"c_create_time", "field_type":"TIME"},
+	{"field_name":"gmt_paid_join", "field_type":"TIME"},
+	{"field_name":"statistic1", "field_type":"INTEGER"},
+	{"field_name":"statistic2", "field_type":"INTEGER"},
+	{"field_name":"statistic3", "field_type":"INTEGER"},
+	{"field_name":"statistic4", "field_type":"INTEGER"},
+	{"field_name":"img_attr", "field_type":"STRING"},
+	{"field_name":"promo_ids", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"promo_price", "field_type":"INTEGER"},
+	{"field_name":"promo_delivery_time", "field_type":"INTEGER"},
+	{"field_name":"attr_desc", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"window_ind_by_all", "field_type":"INTEGER"},
+	{"field_name":"feature_value", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"display_cat_id", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"display_cat_paths", "field_type":"TEXT", "analyzer":"taobao_analyzer"},
+	{"field_name":"commodity_unit_id", "field_type":"TEXT", "analyzer":"taobao_analyzer"}
+    ],
+
+    "indexs": 
+    [
+	{
+	    "index_name": "phrase",
+            "index_type" : "PACK",
+            "has_truncate": true,
+            "use_truncate_profiles" : "",
+	    "index_fields": 
+	    [
+		{"field_name":"subject", "boost":200000}, 
+		{"field_name":"summary", "boost":600000},
+		{"field_name":"company_name", "boost":600000},
+		{"field_name":"feature_value", "boost":600000}
+	    ]
+	},
+	{
+	    "index_name": "cannotbesummary",
+            "index_type": "TEXT",
+            "has_truncate": true,
+            "use_truncate_profiles" : "desc_rank_score",
+            "index_fields": "summary"
+        },
+
+	{
+	    "index_name": "country",
+            "index_type": "TEXT",
+            "has_truncate": true,
+            "use_truncate_profiles" : "desc_rank_score;desc_dist_member_id",
+            "index_fields": "country"
+        },
+
+	{
+	    "index_name": "province",
+            "index_type": "TEXT",
+            "index_fields": "province"
+        },
+
+	{
+	    "index_name": "city",
+            "index_type": "TEXT",
+            "has_truncate": false,
+            "use_truncate_profiles" : "desc_rank_score;desc_dist_member_id",
+            "index_fields": "city"
+        }
+
+    ],
+
+    "attributes": ["id", "rank_score", "dist_member_id"],
+
+    "summarys":{
+        "summary_fields": [ "id", "gmt_create", "gmt_modified", "company_id", "subject", "keywords", "summary", "country", "company_name", "province"],
+        "compress": true
+    },	
+
+    "truncate_profiles" : [
+        {"truncate_profile_name": "desc_rank_score",     "sort_descriptions" : "-rank_score;+id" },
+        {"truncate_profile_name": "desc_dist_member_id", "sort_descriptions" : "-dist_member_id;+id" }
+    ]
+}
+

@@ -1,0 +1,13 @@
+{
+    "cm2_server_cluster_name": "cluster_name",
+    "cm2_server_leader_path": "zk_path",
+    "cm2_server_zookeeper_host": "zk_host",
+    "local" : [
+        {
+            "biz_name" : "bizName"
+        },
+        {
+            "biz_name" : "bizName1"
+        }
+    ]
+}

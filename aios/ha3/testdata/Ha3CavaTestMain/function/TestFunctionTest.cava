@@ -1,0 +1,44 @@
+package test;
+import test.*;
+import ha3.*;
+import mock.*;
+
+class TestFunctionTest {
+    boolean testProcess() {
+        {
+            CavaFunctionTestHelper helper = CavaFunctionTestHelper.create();
+            FunctionProvider provider = helper.createProvider();
+
+            helper.setKVMapApi(provider, "k1", "v1");
+            helper.setConfigMap(provider, "k2", "v2");
+
+            TestFunction test = new TestFunction();
+            TestUnit.assertEquals(test.init(provider), true, "init");
+            helper.println(helper.getQueryTraceStr(provider));
+
+            MatchDoc doc = helper.createMatchDoc(provider);
+
+            TestUnit.assertEquals(test.process(doc, (double)1), (double)1, "score 1");
+            TestUnit.assertEquals(test.process(doc, (long)1), (long)1, "score 2");
+
+            MDouble md = MDouble.create((uint)1);
+            md.set((uint)0, (double)1);
+            MInt64 mi = MInt64.create((uint)1);
+            mi.set((uint)0, (long)1);
+            TestUnit.assertEquals(test.process(doc, (long)3, md, (double)1, mi), true, "score 3");
+
+            helper.println(helper.getDocTraceStr(provider, doc));
+        }
+
+        return true;
+    }
+
+    static boolean test() {
+        TestFunctionTest test = new TestFunctionTest();
+        if (!test.testProcess()) {
+            return false;
+        }
+        return true;
+    }
+
+}

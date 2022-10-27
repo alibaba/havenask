@@ -1,0 +1,18 @@
+{
+    "cluster_config": {
+        "cluster_type" : "inc_with_realtime",
+        "cluster_name" : "mainse_excellent",
+        "table_name" : "mainse_searcher"
+    },
+    "index_option_config" : {
+        "MaxReopenMemoryUse": 30720,
+        "MaxMemoryUse": 4096,
+        "EnablePackageFile" : true,
+        "SpeedUpPrimaryKeyReader" : true,
+        "MergeStrategy": "optimize",
+        "RtOptions" :
+        {
+            "MaxMemoryUse": 4096
+        }
+    }
+}

@@ -1,0 +1,14 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+
+ha3_turing_searcher_test = env.aTest(
+    target = 'ha3_turing_searcher_test',
+    source = Glob('*.cpp') + ["../SearcherBiz.cpp"],
+    LIBS =  env['ha3_test_depend_lib']
+    )

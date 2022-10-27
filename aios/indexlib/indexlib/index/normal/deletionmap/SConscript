@@ -1,0 +1,10 @@
+Import('env')
+env = env.Clone()
+
+deletionmap=Glob('*.cpp')
+
+#env.aLibrary(target='indexlib_deletionmap', source=deletionmap)
+
+env.aDirs('test')
+
+Return(['deletionmap'] )

@@ -1,0 +1,28 @@
+{
+    "anomaly_process" : {
+        "anomaly_process_config" : {
+            "detection" : {
+                "early_termination_trigger_result_percent" : 0.800000,
+                "early_termination_wait_time_factor" : 5,
+                "retry_query_trigger_result_percent" : 0.700000,
+                "retry_query_wait_time_factor" : 3
+            },
+            "earlyTerminationEnabled" : true,
+            "flowControlEnabled" : true,
+            "retryQueryEnabled" : true
+        }
+    },
+    "anomaly_process2" : {
+        "anomaly_process_config" : {
+            "detection" : {
+                "early_termination_trigger_result_percent" : 0.900000,
+                "early_termination_wait_time_factor" : 4,
+                "retry_query_trigger_result_percent" : 0.900000,
+                "retry_query_wait_time_factor" : 2
+            },
+            "earlyTerminationEnabled" : false,
+            "flowControlEnabled" : false,
+            "retryQueryEnabled" : true
+        }
+    }
+}

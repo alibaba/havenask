@@ -1,0 +1,13 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+geo_hash=Glob('*.cpp')
+
+#env.aLibrary(target='indexlib_geo_hash', source=geo_hash)
+
+env.aDirs('test')
+#env.aDirs('perf_test')
+
+Return(['geo_hash'] )

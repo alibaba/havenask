@@ -1,0 +1,25 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+env.Append(LIBS=['dl'])
+
+qrs_perftest_sources=  [
+    '#ha3/test/dotest.cpp',
+#    'MatchDocs2HitsTest.cpp'
+    ]
+
+libsname = ['ha3_qrs', 'ha3_rank', 'ha3_util', 'ha3_config',
+            'ha3_fakesearch', 'ha3_queryparser', 
+            'ha3_search','mxml', 'ha3_proxy',
+            'ha3sdk_testlib', 'ha3_fakecommon', 'ha3_common', 'ha3_proto',
+            'ha3_fakequeryparser', 'ha3_index', 'ha3_monitor', 'ha3_summary'
+            ]
+
+env.aTest(target = 'qrs_perftest',
+          source = qrs_perftest_sources,
+          LIBS = libsname + ['indexlib', 'AliWS', 'dl']);

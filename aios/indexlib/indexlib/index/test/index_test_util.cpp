@@ -1,0 +1,594 @@
+#include "indexlib/index/test/index_test_util.h"
+#include "indexlib/storage/file_system_wrapper.h"
+#include "indexlib/index/normal/attribute/accessor/section_attribute_writer.h"
+#include "indexlib/index/normal/inverted_index/format/short_list_optimize_util.h"
+#include "indexlib/index/normal/inverted_index/accessor/posting_writer_impl.h"
+#include "indexlib/index/normal/inverted_index/format/term_meta_dumper.h"
+#include "indexlib/common/field_format/section_attribute/section_attribute_formatter.h"
+#include "indexlib/file_system/buffered_file_writer.h"
+#include "indexlib/partition/partition_data_creator.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include <autil/StringUtil.h>
+
+using namespace std;
+using namespace autil;
+using namespace autil::mem_pool;
+using namespace fslib;
+using namespace fslib::fs;
+
+IE_NAMESPACE_USE(util);
+IE_NAMESPACE_USE(common);
+IE_NAMESPACE_USE(misc);
+IE_NAMESPACE_USE(storage);
+IE_NAMESPACE_USE(config);
+
+IE_NAMESPACE_USE(file_system);
+IE_NAMESPACE_USE(partition);
+IE_NAMESPACE_USE(index_base);
+IE_NAMESPACE_USE(merger);
+
+IE_NAMESPACE_BEGIN(index);
+
+IndexTestUtil::ToDelete IndexTestUtil::deleteFuncs[IndexTestUtil::DM_MAX_MODE] = 
+{
+    IndexTestUtil::NoDelete, IndexTestUtil::DeleteEven, 
+    IndexTestUtil::DeleteSome, IndexTestUtil::DeleteMany,
+    IndexTestUtil::DeleteAll,
+};
+
+DeletionMapReaderPtr IndexTestUtil::CreateDeletionMap(const Version& version,
+        const vector<uint32_t>& docCounts, IndexTestUtil::ToDelete toDel)
+{
+    DeletionMapReaderPtr deletionMapReader = 
+        InnerCreateDeletionMapReader(version, docCounts);
+
+    docid_t id = 0;
+    for (size_t i = 0; i < docCounts.size(); ++i)
+    {
+        for (uint32_t j = 0; j < docCounts[i];  ++j)
+        {
+            if (toDel(id))
+            {
+                deletionMapReader->Delete(id);
+            }
+            ++id;
+        }
+    }
+    return deletionMapReader;
+}
+
+DeletionMapReaderPtr IndexTestUtil::CreateDeletionMap(
+    const merger::SegmentDirectoryPtr& segDir,
+    const std::vector<uint32_t>& docCounts,             
+    const vector<set<docid_t> >& delDocIdSets)
+{
+    DeletionMapReaderPtr deletionMapReader = 
+        InnerCreateDeletionMapReader(segDir->GetVersion(), docCounts);
+
+    docid_t baseDocId = 0;
+    for (size_t i = 0; i < docCounts.size(); ++i)
+    {
+        for (docid_t docId = 0; 
+             docId < (docid_t)docCounts[i]; 
+             docId++)
+        {
+            docid_t globalId = docId + baseDocId;
+            set<docid_t>::const_iterator it = delDocIdSets[i].find(globalId);
+            if (it != delDocIdSets[i].end())
+            {
+                deletionMapReader->Delete(globalId);
+            }
+        }
+        baseDocId += docCounts[i];
+    }
+
+    return deletionMapReader;
+}
+
+DeletionMapReaderPtr IndexTestUtil::InnerCreateDeletionMapReader(
+            const Version& version,
+            const vector<uint32_t>& docCounts)
+{
+    assert(version.GetSegmentCount() == docCounts.size());
+    DeletionMapReader::SegmentMetaMap segmentMetaMap;
+    uint32_t totalDocCount = 0;
+    for (size_t i = 0; i < version.GetSegmentCount(); ++i)
+    {
+        segmentMetaMap[version[i]] = make_pair(totalDocCount, docCounts[i]);
+        totalDocCount += docCounts[i];
+    }
+    DeletionMapReaderPtr deletionMapReader(
+            new DeletionMapReader(totalDocCount));
+    deletionMapReader->mSegmentMetaMap = segmentMetaMap;
+    return deletionMapReader;
+}
+
+
+void IndexTestUtil::CreateDeletionMap(segmentid_t segId, uint32_t docCount, 
+                                      IndexTestUtil::ToDelete toDel, 
+                                      DeletionMapReaderPtr& deletionMapReader)
+{
+    for (docid_t i = 0; i < (docid_t)docCount; ++i)
+    {
+        if (toDel(i))
+        {
+            deletionMapReader->Delete(segId, i);
+        }
+    }
+}
+
+void IndexTestUtil::ResetDir(const string& dir)
+{
+    CleanDir(dir);
+    MkDir(dir);
+}
+
+void IndexTestUtil::MkDir(const string& dir)
+{
+    if (!FileSystemWrapper::IsExistIgnoreError(dir))
+    {
+        try
+        {
+            FileSystemWrapper::MkDir(dir, true);
+        }
+        catch(const FileIOException&)
+        {
+            std::cout << "Create work directory: ["
+                      << dir << "] FAILED" << std::endl;
+        }
+    }
+}
+
+void IndexTestUtil::CleanDir(const string& dir)
+{
+    if (FileSystemWrapper::IsExist(dir))
+    {
+        try 
+        {
+            FileSystemWrapper::DeleteDir(dir);
+        }
+        catch(const FileIOException& )
+        {
+            std::cout << "Remove directory: ["
+                      << dir << "] FAILED." << std::endl;
+            assert(false);
+        }
+    }
+}
+
+Version IndexTestUtil::CreateVersion(
+        uint32_t segCount, segmentid_t baseSegId)
+{
+    Version version;
+    for (uint32_t i = 0; i < segCount; i++)
+    {
+        version.AddSegment(i + baseSegId);
+    }
+    return version;
+}
+
+merger::SegmentDirectoryPtr IndexTestUtil::CreateSegmentDirectory(const string& dir, 
+        uint32_t segCount, segmentid_t baseSegId)
+{
+    Version version = CreateVersion(segCount, baseSegId);
+    merger::SegmentDirectoryPtr segDir(new merger::SegmentDirectory(dir, version));
+    return segDir;
+}
+
+merger::SegmentDirectoryPtr IndexTestUtil::CreateSegmentDirectory(
+    const string& dir, size_t segCount,
+    segmentid_t baseSegId, versionid_t vid)
+{
+    Version version(vid);
+    for (size_t i = 0; i < segCount; i++)
+    {
+        version.AddSegment(i + baseSegId);
+    }
+
+    merger::SegmentDirectoryPtr segDir(new merger::SegmentDirectory(dir, version));
+    return segDir;
+}
+
+
+/////////////////////////////////////////////////////////////
+class FakeReclaimMap : public ReclaimMap
+{
+private:
+    using ReclaimMap::Init;
+public:
+    void Init(const vector<uint32_t>& docCounts, 
+              const vector<set<docid_t> >& delDocIdSets,
+              bool needReverse)
+    {
+        uint32_t docCount = 0;
+        for (size_t i = 0; i < docCounts.size(); ++i)
+        {
+            docCount += docCounts[i];
+        }
+        mDocIdArray.resize(docCount);
+        docid_t id = 0;
+        for (size_t i = 0; i < docCounts.size(); ++i)
+        {
+            for (size_t j = 0; j < docCounts[i]; ++j)
+            {
+                set<docid_t>::const_iterator it = 
+                    delDocIdSets[i].find(j);
+                if (it == delDocIdSets[i].end())
+                {
+                    mDocIdArray[id] = mNewDocId++;
+                }
+                else
+                {
+                    mDocIdArray[id] = INVALID_DOCID;
+                    mDeletedDocCount++;
+                }
+                id++;
+            }
+        }
+        if (needReverse)
+        {
+            // prepare segment merge info
+            SegmentMergeInfos segMergeInfos;
+            docid_t baseDocId = 0;
+            for (size_t i = 0; i < docCounts.size(); i++)
+            {
+                segmentid_t segId = (segmentid_t)i;
+                uint32_t docCount = docCounts[i];
+                index_base::SegmentInfo segInfo;
+                segInfo.docCount = docCount;
+                SegmentMergeInfo segMergeInfo(segId, segInfo, delDocIdSets[i].size(),
+                        baseDocId);
+                baseDocId += docCount;
+                segMergeInfos.push_back(segMergeInfo);
+            }
+            InitReverseDocIdArray(segMergeInfos);
+        }
+    }
+
+    void Init(const vector<uint32_t>& docCounts, 
+              const vector<set<docid_t> >& delDocIdSets,
+              const vector<segmentid_t>& mergeSegIdVect)
+    {
+        uint32_t docCount = 0;
+        for (size_t i = 0; i < docCounts.size(); ++i)
+        {
+            docCount += docCounts[i];
+        }
+        mDocIdArray.resize(docCount);
+
+        docid_t newLocalId = 0;
+        docid_t oldBaseId = 0;
+
+        for (size_t i = 0; i < docCounts.size(); ++i)
+        {
+            vector<segmentid_t>::const_iterator it;
+            it = find(mergeSegIdVect.begin(), mergeSegIdVect.end(), (segmentid_t)i);
+            if (it == mergeSegIdVect.end())
+            {
+                oldBaseId += docCounts[i];
+                continue;
+            }
+
+            docid_t oldGlobalId = oldBaseId;
+            for (size_t j = 0; j < docCounts[i]; ++j)
+            {
+                set<docid_t>::const_iterator it = 
+                    delDocIdSets[i].find(j);
+                if (it == delDocIdSets[i].end())
+                {
+                    mDocIdArray[oldGlobalId] = newLocalId;
+                    newLocalId++;
+                }
+                else
+                {
+                    mDocIdArray[oldGlobalId] = INVALID_DOCID;
+                    mDeletedDocCount++;
+                }
+                oldGlobalId++;
+            }
+            oldBaseId += docCounts[i];
+        }
+    }
+
+    void SetTargetBaseDocIds(std::vector<docid_t> targetBaseDocIds)
+    {
+      mTargetBaseDocIds = std::move(targetBaseDocIds);
+    }
+};
+
+class SortMergeReclaimMap : public ReclaimMap
+{
+private:
+    using ReclaimMap::Init;
+public:
+    void Init(const vector<uint32_t>& docCounts,
+              const vector<set<docid_t> >& delDocIdSets)
+    {
+        uint32_t docCount = 0;
+        for (size_t i = 0; i < docCounts.size(); ++i)
+        {
+            docCount += docCounts[i];
+        }
+
+        mDocIdArray.resize(docCount);
+
+        vector<docid_t> baseDocIds;
+        docid_t baseDocId = 0;
+        for (size_t i = 0; i < docCounts.size(); ++i)
+        {
+            baseDocIds.push_back(baseDocId);
+            baseDocId += docCounts[i];
+        }
+
+        docid_t id = 0;
+        for (size_t i = 0; i < docCounts.size(); ++i)
+        {
+            for (size_t j = 0; j < docCounts[i] / 2; ++j)
+            {
+                set<docid_t>::const_iterator it = delDocIdSets[i].find(j);
+                if (it == delDocIdSets[i].end())
+                {
+                    mDocIdArray[j + baseDocIds[i] ] = id;
+                    id++;
+                }
+                else
+                {
+                    mDocIdArray[j + baseDocIds[i]] = INVALID_DOCID;
+                    mDeletedDocCount++;
+                }
+            }
+        }
+
+        for (size_t i = 0; i < docCounts.size(); ++i)
+        {
+            for (size_t j = docCounts[i] / 2; j < docCounts[i]; ++j)
+            {
+                set<docid_t>::const_iterator it = delDocIdSets[i].find(j);
+                if (it == delDocIdSets[i].end())
+                {
+                    mDocIdArray[j + baseDocIds[i]] = id;
+                    id++;
+                }
+                else 
+                {
+                    mDocIdArray[j + baseDocIds[i]] = INVALID_DOCID;
+                    mDeletedDocCount++;
+                }
+            }
+        }
+        mNewDocId = id;
+    }
+    void SetTargetBaseDocIds(std::vector<docid_t> targetBaseDocIds)
+    {
+      mTargetBaseDocIds = std::move(targetBaseDocIds);
+    }
+};
+
+uint32_t
+IndexTestUtil::GetTotalDocCount(const vector<uint32_t> &docCounts,
+                                const vector<set<docid_t> > &delDocIdSets,
+                                const SegmentMergeInfos &segMergeInfos) {
+  uint32_t total = 0;
+  if (segMergeInfos.empty()) {
+    for (size_t i = 0; i < docCounts.size(); ++i) {
+      total += docCounts[i] - delDocIdSets[i].size();
+    }
+    return total;
+  }
+
+  vector<uint32_t> mergeDocCounts;
+  vector<set<docid_t> > mergeDelDocIdSets;
+  for (size_t i = 0; i < segMergeInfos.size(); ++i) {
+    segmentid_t segId = segMergeInfos[i].segmentId;
+    mergeDocCounts.push_back(docCounts[segId]);
+    mergeDelDocIdSets.push_back(delDocIdSets[segId]);
+  }
+  for (size_t i = 0; i < mergeDocCounts.size(); ++i) {
+    total += mergeDocCounts[i] - mergeDelDocIdSets[i].size();
+  }
+  return total;
+}
+
+vector<docid_t>
+IndexTestUtil::GetTargetBaseDocIds(const vector<uint32_t> &docCounts,
+                                   const vector<set<docid_t> > &delDocIdSets,
+                                   SegmentMergeInfos &segMergeInfos,
+                                   uint32_t targetSegmentCount) {
+    vector<docid_t> result;
+    if (targetSegmentCount < 2) {
+        return result;
+    }
+    uint32_t total = GetTotalDocCount(docCounts, delDocIdSets, segMergeInfos);
+    size_t splitFactor = total / targetSegmentCount;
+    result.resize(targetSegmentCount);
+    for (uint32_t i = 0; i < targetSegmentCount; ++i) {
+        result[i] = i * splitFactor;
+    }
+    return result;
+}
+
+
+ReclaimMapPtr
+IndexTestUtil::CreateReclaimMap(const vector<uint32_t> &docCounts,
+                                const vector<set<docid_t> > &delDocIdSets,
+                                bool needReverse,
+                                const std::vector<docid_t>& targetBaseDocIds) {
+    FakeReclaimMap* fakeReclaimMap = new FakeReclaimMap();
+    fakeReclaimMap->Init(docCounts, delDocIdSets, needReverse);
+    fakeReclaimMap->SetTargetBaseDocIds(targetBaseDocIds);
+    ReclaimMapPtr reclaimMap(fakeReclaimMap);
+    return reclaimMap;
+}
+
+ReclaimMapPtr
+IndexTestUtil::CreateReclaimMap(const vector<uint32_t> &docCounts,
+                                const vector<vector<docid_t> > &delDocIds,
+                                const std::vector<docid_t> &targetBaseDocIds) {
+    vector<set<docid_t> > delDocIdSets;
+    for (size_t i = 0; i < delDocIds.size(); i++)
+    {
+        set<docid_t> docIdSet;
+        docIdSet.insert(delDocIds[i].begin(), delDocIds[i].end());
+        delDocIdSets.push_back(docIdSet);
+    }
+    return IndexTestUtil::CreateReclaimMap(docCounts, delDocIdSets, targetBaseDocIds);
+}
+
+ReclaimMapPtr IndexTestUtil::CreateReclaimMap(const string &segmentDocIdDesc,
+    const std::vector<docid_t>& targetBaseDocIds)
+{
+    vector<string> segmentStrVec = StringUtil::split(segmentDocIdDesc, ";");
+    vector<uint32_t> docCounts;
+    vector<vector<docid_t> >  delDocIds;
+    for (size_t i = 0; i < segmentStrVec.size(); i++) 
+    {
+        vector<string> docIdsStr = StringUtil::split(segmentStrVec[i], ":");
+        assert(docIdsStr.size() > 0);
+        docCounts.push_back(StringUtil::fromString<uint32_t>(docIdsStr[0]));
+        vector<docid_t> segmentDelDocIds;
+        if (docIdsStr.size() > 1)
+        {
+            StringUtil::fromString(docIdsStr[1], segmentDelDocIds, ",");
+        }
+        delDocIds.push_back(segmentDelDocIds);
+    }
+    return CreateReclaimMap(docCounts, delDocIds, targetBaseDocIds);
+}
+
+ReclaimMapPtr
+IndexTestUtil::CreateReclaimMap(const vector<uint32_t> &docCounts,
+                                const vector<set<docid_t> > &delDocIdSets,
+                                const vector<segmentid_t> &mergeSegIdVect,
+                                const std::vector<docid_t> &targetBaseDocIds) {
+    FakeReclaimMap* fakeReclaimMap = new FakeReclaimMap();
+    fakeReclaimMap->Init(docCounts, delDocIdSets, mergeSegIdVect);
+    fakeReclaimMap->SetTargetBaseDocIds(targetBaseDocIds);
+    ReclaimMapPtr reclaimMap(fakeReclaimMap);
+    return reclaimMap;    
+}
+
+ReclaimMapPtr IndexTestUtil::CreateSortMergingReclaimMap(
+        const vector<uint32_t>& docCounts, 
+        const vector<vector<docid_t> >& delDocIds,
+        const std::vector<docid_t>& targetBaseDocIds)
+{
+    vector<set<docid_t> > delDocIdSets;
+    for (size_t i = 0; i < delDocIds.size(); i++)
+    {
+        set<docid_t> docIdSet;
+        docIdSet.insert(delDocIds[i].begin(), delDocIds[i].end());
+        delDocIdSets.push_back(docIdSet);
+    }
+    return IndexTestUtil::CreateSortMergingReclaimMap(docCounts, delDocIdSets, targetBaseDocIds);
+}
+
+ReclaimMapPtr IndexTestUtil::CreateSortMergingReclaimMap(
+        const vector<uint32_t>& docCounts, 
+        const vector<set<docid_t> >& delDocIdSets,
+        const std::vector<docid_t>& targetBaseDocIds)
+{
+    SortMergeReclaimMap* sortMergeReclaimMap = new SortMergeReclaimMap();
+    sortMergeReclaimMap->Init(docCounts, delDocIdSets);
+    sortMergeReclaimMap->SetTargetBaseDocIds(targetBaseDocIds);
+    ReclaimMapPtr reclaimMap(sortMergeReclaimMap);
+    return reclaimMap;
+}
+
+DeletionMapReaderPtr IndexTestUtil::CreateDeletionMapReader(
+        const vector<uint32_t>& docNums)
+{
+    Version version(0);
+    for (size_t i = 0; i < docNums.size(); i++)
+    {
+        version.AddSegment((segmentid_t)i);
+    }
+    return InnerCreateDeletionMapReader(version, docNums);
+}
+
+void IndexTestUtil::BuildMultiSegmentsFromDataStrings(const vector<string>& dataStrs,
+        const string& rootDir, const vector<docid_t>& baseDocIds,
+        vector<AnswerMap>& answerMaps, 
+        vector<uint8_t>& compressModes, 
+        const index::IndexFormatOption& indexFormatOption)
+{
+    for (size_t i = 0; i < dataStrs.size(); i++) 
+    {
+        stringstream ss;
+        ss << rootDir << SEGMENT_FILE_NAME_PREFIX << "_" << i << "_level_0/";
+        string indexDir = ss.str() + INDEX_DIR_NAME + "/";
+        FileSystem::mkDir(indexDir, true);
+        string dumpFilePath = indexDir + POSTING_FILE_NAME;
+        
+        AnswerMap tempMap;   
+        uint8_t compressMode = BuildOneSegmentFromDataString(
+                dataStrs[i], dumpFilePath, baseDocIds[i], 
+                tempMap, indexFormatOption);
+        compressModes.push_back(compressMode);
+        answerMaps.push_back(tempMap);
+    }
+}
+
+uint8_t IndexTestUtil::BuildOneSegmentFromDataString(
+        const std::string& dataStr,
+        const std::string& filePath, 
+        docid_t baseDocId, 
+        AnswerMap& answerMap,
+        const index::IndexFormatOption& indexFormatOption)
+{
+    Pool byteSlicePool(SectionAttributeFormatter::DATA_SLICE_LEN * 16);
+    RecyclePool bufferPool(SectionAttributeFormatter::DATA_SLICE_LEN * 16);
+    SimplePool simplePool;
+
+    PostingFormatOption formatOption = indexFormatOption.GetPostingFormatOption();
+
+    PostingWriterResource writerResource(&simplePool, &byteSlicePool,
+            &bufferPool, formatOption);
+    PostingWriterImpl writer(&writerResource);
+    answerMap = PostingMaker::MakeDocMap(dataStr);
+    PostingMaker::BuildPostingData(writer, answerMap, baseDocId);
+
+    file_system::BufferedFileWriterPtr file(new file_system::BufferedFileWriter);
+    file->Open(filePath);
+    writer.EndSegment();
+
+    TermMetaDumper tmDumper(formatOption);
+    TermMeta termMeta(writer.GetDF(), writer.GetTotalTF(), 0);
+    tmDumper.Dump(file, termMeta);
+    writer.Dump(file);
+    file->Close();
+    return ShortListOptimizeUtil::GetCompressMode(writer.GetDF(), 
+            writer.GetTotalTF(), formatOption.GetDocListCompressMode());
+}
+
+SegmentData IndexTestUtil::CreateSegmentData(
+        const file_system::DirectoryPtr& directory,
+        const SegmentInfo& segmentInfo,
+        segmentid_t segId,
+        docid_t baseDocId)
+{
+    SegmentData segmentData;
+    segmentData.SetSegmentInfo(segmentInfo);
+    segmentData.SetSegmentId(segId);
+    segmentData.SetDirectory(directory);
+    segmentData.SetBaseDocId(baseDocId);
+    return segmentData;
+}
+
+index_base::PartitionDataPtr IndexTestUtil::CreatePartitionData(
+        const file_system::IndexlibFileSystemPtr& fileSystem,
+        uint32_t segCount, segmentid_t baseSegId)
+{
+    //TODO: by default, baseSegId=0
+    Version version = CreateVersion(segCount, baseSegId);
+    return CreatePartitionData(fileSystem, version);
+}
+
+index_base::PartitionDataPtr IndexTestUtil::CreatePartitionData(
+        const file_system::IndexlibFileSystemPtr& fileSystem,
+        Version version)
+{
+    return PartitionDataCreator::CreateOnDiskPartitionData(fileSystem, version);
+}
+
+IE_NAMESPACE_END(index);
+

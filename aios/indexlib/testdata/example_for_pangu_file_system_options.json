@@ -1,0 +1,7 @@
+{
+    "type": 0,
+    "minCopy": 20,
+    "maxCopy": 55,
+    "appName": "testAppName",
+    "partName": "testPartName"
+}

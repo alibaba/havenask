@@ -1,0 +1,77 @@
+{
+"attributes":
+  [
+    "string1",
+    "price"
+  ],
+"fields":
+  [
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "string1",
+    "field_type":
+      "STRING"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "pk",
+    "field_type":
+      "STRING"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "price",
+    "field_type":
+      "UINT32"
+    }
+  ],
+"indexs":
+  [
+    {
+    "doc_payload_flag":
+      0,
+    "has_dict_inline_compress":
+      true,
+    "index_fields":
+      "string1",
+    "index_name":
+      "index",
+    "index_type":
+      "STRING",
+    "term_payload_flag":
+      0
+    },
+    {
+    "has_primary_key_attribute":
+      true,
+    "index_fields":
+      "pk",
+    "index_name":
+      "pk",
+    "index_type":
+      "PRIMARYKEY64",
+    "pk_hash_type":
+      "default_hash",
+    "pk_storage_type":
+      "sort_array"
+    }
+  ],
+"summarys":
+  {
+  "summary_fields":
+    [
+      "string1",
+      "price"
+    ]
+  },
+"table_name":
+  "noname",
+"table_type":
+  "normal"
+}

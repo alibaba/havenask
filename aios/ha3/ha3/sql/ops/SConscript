@@ -1,0 +1,30 @@
+# -*- mode: python -*-
+
+Import('env')
+
+env = env.Clone()
+
+condition = env.aDirs('condition')
+agg = env.aDirs('agg')
+tvf = env.aDirs('tvf')
+calc = env.aDirs('calc')
+exchange = env.aDirs('exchange')
+join = env.aDirs('join')
+limit = env.aDirs('limit')
+merge = env.aDirs('merge')
+scan = env.aDirs('scan')
+#khronos_scan = env.aDirs('khronosScan')
+sink = env.aDirs('sink')
+sort = env.aDirs('sort')
+union = env.aDirs('union')
+values = env.aDirs('values')
+
+util = env.aDirs('util')
+source = Glob('*.cpp')
+
+opscpps = [condition, agg, tvf, calc, exchange, join, limit, merge, scan, sink, sort, union, values, util]
+
+env.aLibrary(target='ha3_sql_ops', source=opscpps)
+
+Return(['condition', 'agg', 'tvf', 'calc', 'exchange', 'join', 'limit', 'merge', 'scan',
+        'sink', 'sort', 'union', 'values', 'util', 'source'])

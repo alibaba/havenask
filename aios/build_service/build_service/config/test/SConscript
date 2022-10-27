@@ -1,0 +1,45 @@
+# -*- mode: python -*-
+
+Import('env')
+
+env = env.Clone()
+
+config_test_sources=  [
+    '#build_service/test/dotest.cpp',
+    'ResourceReaderTest.cpp',
+    'BuildServiceConfigTest.cpp',
+    'BuildRuleConfigTest.cpp',
+    'DocProcessorChainConfigTest.cpp',
+    'ProcessorInfoTest.cpp',
+    'SwiftTopicConfigTest.cpp',
+    'GenerationMetaTest.cpp',
+    'IndexPartitionOptionsWrapperTest.cpp',
+    'ConfigParserTest.cpp',
+    'OfflineIndexConfigMapTest.cpp',
+    'SwiftConfigTest.cpp',
+    'ProcessorConfiguratorTest.cpp',
+    'BuilderClusterConfigTest.cpp',
+    'BuilderConfigTest.cpp',
+    'CounterConfigTest.cpp',
+    'ProcessorChainSelectorConfigTest.cpp',
+    'ConfigReaderAccessorTest.cpp',
+    'HashModeTest.cpp',
+]
+
+# test ResourceReaderManager separately to avoid case intertwine.
+config_test_sources2 = [
+    '#build_service/test/dotest.cpp',
+    'ResourceReaderManagerTest.cpp',
+]
+
+env.checkAllCppFileContained(Glob('*.cpp'), config_test_sources + config_test_sources2)
+
+configtest = env.aTest(target = 'config_test',
+                       source = config_test_sources,
+                       LIBS = ['bs_config', 'bs_plugin', 'bs_util', 'proto_fake']
+                               + env['bs_test_common_lib'] + env['bs_worker_lib']);
+
+configtest2 = env.aTest(target = 'config_test2',
+                        source = config_test_sources2,
+                        LIBS = ['bs_config', 'bs_plugin', 'bs_util', 'proto_fake']
+                                + env['bs_test_common_lib'] + env['bs_worker_lib']);

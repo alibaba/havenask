@@ -1,0 +1,15 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+testlib_index_sources = Glob('*.cpp')
+
+fakeindexlib = env.aStaticLibrary(target = 'ha3_fakeindex', source = testlib_index_sources)
+
+env.aDirs('test')
+
+Return(['testlib_index_sources'])

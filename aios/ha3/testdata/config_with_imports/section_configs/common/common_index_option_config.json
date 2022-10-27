@@ -1,0 +1,28 @@
+{
+    "online_index_config" :
+    {
+        "build_config" :
+        {
+            "build_total_memory": 512,
+            "keep_version_count": 20
+        },
+        "max_reopen_memory_use": 20480,
+        "online_keep_version_count" : 10,
+        "max_realtime_memory_size" : 1024
+    },
+    "offline_index_config" :
+    {
+        "build_config" :
+        {
+            "build_total_memory": 5120,
+            "keep_version_count": 20
+        },
+        "merge_config" :
+        {
+            "keep_version_count": 20,
+            "merge_strategy": "balance_tree",        
+            "merge_strategy_param": "conflict-segment-number=3;base-doc-count=10240;max-doc-count=512000;conflict-delete-percent=80;max-valid-doc-count=20000000",
+            "merge_thread_count" : 1
+        }
+    }
+}

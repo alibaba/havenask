@@ -1,0 +1,6 @@
+Import('env')
+env = env.Clone()
+
+string=Glob('*.cpp')
+
+Return(['string'] )

@@ -1,0 +1,4 @@
+{
+    "can_force_switch" : false,
+    "force_switch_when_dead_lock" : false
+}

@@ -1,0 +1,42 @@
+{
+"ClassName": "BuildReduceTask",
+"Parameters":
+{
+	"BuildPartitionCount": "1",
+	"ParallelBuildNum": "1",
+	"PartitionCount": "1",
+	"BuildPartitionIdFrom": "0",
+	"ConfigDir": "@TOP_SRCDIR@/testdata/local_builder/config",
+	"IndexDir": "@TOP_SRCDIR@/testdata/test_index_for_apsara_build_task",
+	"IndexGeneration": "0",
+	"ZookeeperRoot": "",
+	"UserName": "test_name",
+	"ServiceName": "test_service",
+	"ClusterName": "daogou",
+	"BuildMode": "full",
+	"BuildTimeStamp": "123456",
+	"BuildQueueSize": "100",
+	"NeedSort": "false",
+	"NeedPartition": "false",
+	"ProcessThreadNum": "2",
+	"ProcessQueueSize": "100",
+	"RawDocumentDir": "@TOP_SRCDIR@/testdata/BuildReduceTaskTest/partitioned_data",
+	"SortFieldType": "long"
+},
+"Inputs":
+[
+    {
+        "AccessPointName": "fromMapTask",
+        "FilePattern": "",
+        "Mode": "MODE_COMMON"
+    }
+],
+"Outputs":
+[
+    {
+        "AccessPointName": "pageMetaOutput",
+        "FilePattern": "",
+        "Mode": "COMMON"
+    }
+]
+}

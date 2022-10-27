@@ -1,0 +1,74 @@
+{
+    "data_descriptions" : [
+        {
+            "data" : "hdfs://data",
+            "document_format" : "isearch",
+            "field_separator" : "",
+            "kv_separator" : "=",
+            "separator_prefix" : "<doc>",
+            "separator_suffix" : "</doc>",
+            "src" : "file",
+            "type" : "file",
+            "trace_field" : "nid"
+        },
+        {
+            "need_field_filter" : "false",
+            "reader_config" : "",
+            "src" : "swift",
+            "swift_root" : "zfs://root",
+            "topic_name" : "raw_doc",
+            "type" : "swift"
+        },
+        {
+            "src" : "plugin",
+            "type" : "plugin"
+        }
+    ],
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "cluster1",
+		        "cluster2",
+                "cluster3",
+                "cluster4"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "ModifiedFieldsDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+                {
+                    "module_name" : "MainseOfflineBuild",
+                    "module_path" : "libMainseBuild.so",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "sub_document_processor_chain" : [
+                {
+                    "class_name" : "ModifiedFieldsDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ]
+        }
+    ],
+    "processor_config" : {
+        "processor_queue_size" : 1000,
+        "processor_thread_num" : 10
+    },
+    "processor_rule_config" : {
+        "parallel_num" : 2,
+        "partition_count" : 2
+    },
+    "slow_node_detect_config" : {
+        "slow_time_threshold" : 60,
+        "detect_interval" : 1,
+        "slow_qps_judge_ratio" : 0.8
+    }    
+}

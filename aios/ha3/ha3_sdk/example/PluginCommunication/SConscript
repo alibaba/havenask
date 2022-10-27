@@ -1,0 +1,21 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+libscorer_sources = [
+    'CommunicationScorer.cpp',
+    'CommunicationScorerModuleFactory.cpp',
+    ]
+
+libscorer = env.aSharedLibrary(target = 'communication_scorer', source = libscorer_sources)
+
+libqrs_sources = [
+    'CommunicationQrsModuleFactory.cpp',
+    'CommunicationQrsProcessor.cpp',
+    ]
+
+libqrs = env.aSharedLibrary(target = 'communication_qrs', source = libqrs_sources)

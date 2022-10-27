@@ -1,0 +1,241 @@
+# -*- mode: python -*-
+
+import os
+import time
+from build_requires import *
+
+# The root environment
+### Place to store some options which influence the compiler
+os.environ['build_options'] = '''
+gtest_color = 'yes'
+build_signature = 'yes'
+use_heap_profiler = 'true'
+'''
+
+env = Environment(ENV = {'PATH' : os.environ['PATH']},
+                  tools=['default', 'ascons'])
+env.requireAsconsVersion('1.3.0')
+
+env['version'] = '1.9.2'
+env['release_str'] = 'nightly_' + time.strftime("%Y%m%d%H%M", time.localtime())
+
+if env['mode'] == 'release':
+    env['release_str'] = "rc_2"
+
+luaPathId = env['version'] + '_' + env['release_str']
+env['lua_path_id'] = luaPathId
+
+env.addOptions(PathVariable('JAVA_SDK_PATH',
+                            'path to java sdk dir',
+                            env['HOME'] + '/usr/ali/java',
+                            PathVariable.PathAccept))
+
+env.addOptions(EnumVariable('use_tcmalloc', 'if you need compile with tcmalloc', 'no',
+                            allowed_values=('yes', 'no')))
+
+# env.addOptions(EnumVariable('hadoop_job_package', 'if you want to generate hadoop job package', 'no',
+#                             allowed_values=('yes', 'no')))
+
+# env.addOptions(EnumVariable('apsara_job_package', 'if you want to generate apsara job package', 'no',
+#                             allowed_values=('yes', 'no')))
+
+env.addOptions(EnumVariable('check_header', 'if you want to check include header files', 'no',
+                            allowed_values=('yes', 'no')))
+
+env.addOptions(EnumVariable('build_signature', 'if you want to add build signature in exes and libs', 'yes',
+                            allowed_values=('yes', 'no')))
+
+env.addOptions(EnumVariable('gen_build_spec', 'if you want to generate _build.spec', 'no',
+                            allowed_values=('yes', 'no')))
+
+print env['CXX']
+if 'clang' not in env['CXX']:
+    env.Append(CCFLAGS = '-Werror')
+else:
+    env.Append(CCFLAGS = '-Wall')
+
+if env['gen_build_spec'] == 'yes':
+    genBuildSpec()
+
+# sdk rpm
+env['headers'] = [
+    'build_service/workflow/RealtimeErrorDefine.h',
+    'build_service/workflow/RealtimeBuilder.h',
+    'build_service/workflow/PrepareIndex.h',
+    "build_service/workflow/RealtimeBuilderDefine.h",
+    "build_service/workflow/WorkflowThreadPool.h",
+
+    'build_service/document/ClassifiedDocument.h',
+    'build_service/document/RawDocument.h',
+    'build_service/document/DocumentDefine.h',
+    'build_service/document/TokenizeDocument.h',
+    'build_service/document/ExtendDocument.h',
+    'build_service/document/TokenizeField.h',
+    'build_service/document/ProcessedDocument.h',
+    'build_service/document/TokenizeSection.h',
+    'build_service/document/RawDocumentHashMap.h',
+    'build_service/document/RawDocumentHashMapManager.h',
+
+    'build_service/reader/FileReaderBase.h',
+    'build_service/reader/RawDocumentReader.h',
+    'build_service/reader/FileDocumentReader.h',
+    'build_service/reader/ReaderModuleFactory.h',
+    'build_service/reader/VarLenBinaryDocumentEncoder.h',
+    'build_service/reader/RawDocumentParser.h',
+    'build_service/reader/StandardRawDocumentParser.h',
+    'build_service/reader/Separator.h',
+    'build_service/reader/ParserCreator.h',
+    'build_service/reader/FileListCollector.h',
+    'build_service/reader/CollectResult.h',
+    'build_service/reader/FileDocumentReader.h',
+    'build_service/reader/FileReaderBase.h',
+    'build_service/custom_merger/CustomMergerFactory.h',
+    'build_service/custom_merger/MergeResourceProvider.h',
+    'build_service/custom_merger/CustomMerger.h',
+    'build_service/custom_merger/CustomMergerImpl.h',
+    'build_service/custom_merger/CustomMergerTaskItem.h',
+    'build_service/custom_merger/CustomMergeMeta.h',
+    'build_service/custom_merger/CustomMergePlan.h',
+    'build_service/custom_merger/TaskItemDispatcher.h',
+
+    'build_service/processor/DocumentProcessorFactory.h',
+    'build_service/processor/DocumentProcessor.h',
+    'build_service/processor/TokenizeDocumentProcessor.h', # for plugin test
+
+    'build_service/analyzer/Token.h',
+    'build_service/analyzer/Tokenizer.h',
+    'build_service/analyzer/SimpleTokenizer.h',
+    'build_service/analyzer/TokenizerModuleFactory.h',
+    'build_service/analyzer/BuildInTokenizerFactory.h',
+    'build_service/analyzer/TokenizerConfig.h',
+    'build_service/analyzer/TokenizerManager.h',
+    'build_service/analyzer/AnalyzerFactory.h',
+    'build_service/analyzer/Analyzer.h',
+    'build_service/analyzer/AnalyzerInfos.h',
+    'build_service/analyzer/AnalyzerInfo.h',
+    'build_service/analyzer/AnalyzerDefine.h',
+    'build_service/analyzer/TraditionalTables.h',
+    'build_service/analyzer/Normalizer.h',
+    "build_service/analyzer/NormalizeTable.h",
+    'build_service/analyzer/EncodeConverter.h',
+    'build_service/analyzer/CodeConverter.h',
+    'build_service/plugin/PooledObject.h',
+    'build_service/plugin/ModuleInfo.h',
+    'build_service/plugin/Module.h',
+    'build_service/plugin/DllWrapper.h',
+    'build_service/plugin/ModuleFactory.h',
+    'build_service/plugin/PlugInManager.h',
+
+    'build_service/config/ResourceReader.h',
+    'build_service/config/GenerationMeta.h',
+    'build_service/config/TaskOutputConfig.h',
+    'build_service/config/TaskInputConfig.h',
+    'build_service/config/TaskTarget.h',
+    'build_service/config/TaskControllerConfig.h',
+    'build_service/config/TaskConfig.h',
+    'build_service/config/ConfigDefine.h',
+    'build_service/config/BuildServiceConfig.h',
+    'build_service/config/BuilderClusterConfig.h',
+    'build_service/config/CounterConfig.h',
+    'build_service/config/BuilderConfig.h',
+    'build_service/config/ResourceReader.h',
+    'build_service/config/TaskOutputConfig.h',
+    'build_service/config/SwiftConfig.h',
+    'build_service/config/SwiftTopicConfig.h',
+    'build_service/config/CLIOptionNames.h',
+    'build_service/config/HashModeConfig.h',
+    'build_service/config/DocReclaimSource.h',
+    'build_service/config/HashMode.h',
+    'build_service/config/IndexPartitionOptionsWrapper.h',
+    'build_service/config/BuildRuleConfig.h',
+    'build_service/config/ScriptTaskConfig.h',
+    'build_service/config/ControlConfig.h',
+    'build_service/common/Locator.h',
+    'build_service/common/End2EndLatencyReporter.h',
+    'build_service/common/PathDefine.h',
+    'build_service/common/BeeperCollectorDefine.h',
+
+    'build_service/util/Log.h',
+    'build_service/util/ErrorLogCollector.h',
+    'build_service/util/Monitor.h',
+    'build_service/util/RangeUtil.h',
+    'build_service/util/UTF8Util.h',
+    'build_service/util/StringUtil.h',
+    'build_service/util/MemUtil.h',
+    'build_service/util/PinYinTrans.h',
+    'build_service/util/FileUtil.h',
+    'build_service/util/LogSetupGuard.h',
+    'build_service/util/SwiftClientCreator.h',
+    'build_service/util/IndexPathConstructor.h',
+    'build_service/util/PooledChannelManager.h',
+    'build_service/proto/ErrorCollector.h',
+    'build_service/proto/JsonizableProtobuf.h',
+    'build_service/proto/ProtoComparator.h',
+    'build_service/proto/ProtoUtil.h',
+    'build_service/proto/DataDescription.h',
+    'build_service/proto/ParserConfig.h',
+
+    'build_service/common_define.h',
+    'build_service/io/Output.h',
+    'build_service/io/OutputCreator.h',
+    'build_service/io/Input.h',
+    'build_service/io/InputCreator.h',
+    'build_service/io/SwiftOutput.h',
+    'build_service/io/IndexlibIndexInput.h',
+    'build_service/io/IODefine.h',
+
+    'build_service/task_base/Task.h',
+    'build_service/task_base/TaskFactory.h',
+    'build_service/task_base/TaskDefine.h',
+    'build_service/task_base/BuildInTaskFactory.h',
+]
+
+env['proto_headers'] = [
+    'build_service/proto/BasicDefs.pb.h',
+    'build_service/proto/Heartbeat.pb.h',
+    'build_service/proto/Admin.pb.h',
+]
+
+
+# basic rpm
+env.SConscript(
+    dirs='.',
+    exports='env',
+    variant_dir=env['BUILD_DIR'],
+    duplicate=1)
+
+# worker rpm
+env.aInstallEtc('misc/bs_alog.conf', 'bs')
+env.aInstallEtc('misc/bs_test_alog.conf', 'bs')
+if env['mode'] == 'release':
+    env.aInstallEtc('misc/bs_beeper.json', 'bs')
+else:
+    env.aInstallEtc('misc/debug/bs_beeper.json', 'bs')
+
+env.aInstallHeader(env['headers'], '', True)
+env.aInstallHeader(map(lambda x: os.path.join(env['BUILD_DIR'], x), env['proto_headers']),
+                   'build_service/proto/')
+
+# tools rpm
+# install python tools proto
+initFilePath = os.path.join(env['BUILD_DIR'], '__init__.py')
+env.aCreateFile(initFilePath)
+
+python_lib = os.path.join(env['install_prefix'] , 'lib/python/site-packages/')
+env.aInstall(python_lib + 'build_service/proto/', [
+    env['BUILD_DIR']+'/build_service/proto/BasicDefs_pb2.py',
+    env['BUILD_DIR']+'/build_service/proto/Heartbeat_pb2.py'
+])
+env.aInstall(python_lib + 'build_service/', initFilePath)
+env.aInstall(python_lib + 'build_service/proto/', initFilePath)
+
+# install tools
+env.aInstall(python_lib + '/bs_tools/', env['TOP_DIR'] + '/tools/bs_tools/*.py')
+env.aInstall(python_lib + '/bs_tools/', env['TOP_DIR'] + '/tools/bs_tools/*.template')
+env.aInstall(python_lib + '/bs_tools/', env['TOP_DIR'] + '/tools/bs_tools/include')
+
+env.aInstallBin(env['TOP_DIR'] + '/tools/bin/addr2line_stack_tracer.sh')
+env.aInstallBin(env['TOP_DIR'] + '/tools/bin/flow_graph.py')
+env.aInstallBin(env['TOP_DIR'] + '/tools/bin/bs')
+env.aInstallEtc(env['TOP_DIR'] + '/tools/etc/bs_tools/tools_conf.py', 'bs_tools/')
+env.aInstallShare(env['TOP_DIR'] + '/tools/share/bs_tools/example', 'bs_tools/')

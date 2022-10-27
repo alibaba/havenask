@@ -1,0 +1,21 @@
+
+import ha3.*;
+class MultiValueScorer {
+    MInt32Ref ref;
+    boolean init(ScorerProvider provider) {
+        IRefManager refManger = provider.getRefManager();
+        ref = refManger.requireMInt32("multi_id");
+        return true;
+    }
+    double process(MatchDoc doc) {
+        MInt32 ids = ref.get(doc);
+        int score = 0;
+        for (uint i = 0; i < ids.size(); i++) {
+            score += ids.get(i);
+        }
+        return score + 1.0;
+    }
+    static MultiValueScorer create() {
+	return new MultiValueScorer();
+    }
+}

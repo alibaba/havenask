@@ -1,0 +1,15 @@
+{
+    "auction" : {
+        "anomaly_process_config" : {
+            "detection" : {
+                "early_termination_trigger_result_percent" : 0.500000,
+                "early_termination_wait_time_factor" : 10,
+                "retry_query_trigger_result_percent" : 1.000000,
+                "retry_query_wait_time_factor" : 10
+            },
+            "earlyTerminationEnabled" : true,
+            "flowControlEnabled" : false,
+            "retryQueryEnabled" : false
+        }
+    }
+}

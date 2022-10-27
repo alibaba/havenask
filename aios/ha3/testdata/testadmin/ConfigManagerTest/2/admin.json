@@ -1,0 +1,8 @@
+{
+    "healthcheck_config" : {
+        "iowait_threshold" : 20,
+        "request_queue_size_threshold" : 200,
+        "update_interval" : 200000
+    }
+}
+			

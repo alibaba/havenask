@@ -1,0 +1,6 @@
+{
+    "inherit_from" : "invalid_configs/build_config1.json",
+    "RawDocumentFormat" : "isearch",
+    "NeedSort" : false,
+    "NeedSkip" : false
+}

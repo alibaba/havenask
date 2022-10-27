@@ -1,0 +1,18 @@
+package ha3;
+import lib.*;
+class FeatureLib {
+    static FeatureLib create() { return new FeatureLib(); }
+    Feature1 _feature1;
+    Feature2 _feature2;
+    boolean init() {
+	_feature1 = new Feature1(1);
+	_feature2 = new Feature2(2);
+	return true;
+    }
+    Feature1 getFeature1() {
+	return _feature1.clone();
+    }
+    Feature2 getFeature2() {
+	return _feature2.clone();
+    }
+}

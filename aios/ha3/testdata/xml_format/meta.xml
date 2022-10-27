@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Root>
+<TotalTime>0.000</TotalTime>
+<SortExprMeta><![CDATA[]]></SortExprMeta>
+<AggregateResults>
+</AggregateResults>
+<Error>
+	<ErrorCode>0</ErrorCode>
+	<ErrorDescription></ErrorDescription>
+</Error>
+<meta metaKey="qrsInfo">
+	<trace><![CDATA[ddd]]></trace>
+</meta>
+<meta metaKey="searchInfo">
+	<matchCount><![CDATA[1]]></matchCount>
+	<seekCount><![CDATA[100]]></seekCount>
+</meta>
+</Root>

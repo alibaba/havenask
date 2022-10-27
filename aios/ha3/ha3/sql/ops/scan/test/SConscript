@@ -1,0 +1,13 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+test_sources = Glob('*.cpp')
+
+env.aTest(target = 'ops_scan_test',
+          source = test_sources,
+          LIBS = env['ha3_test_depend_lib']);

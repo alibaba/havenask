@@ -1,0 +1,15 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+testlib_builder_sources = Glob('*.cpp')
+
+testlib_builder = env.aStaticLibrary(target = 'testlib_builder', source = testlib_builder_sources)
+
+#env.aDirs('test')
+
+Return(['testlib_builder_sources'])

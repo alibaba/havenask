@@ -1,0 +1,109 @@
+# -*- mode: python -*-
+import os
+import SCons.Script
+Import('env')
+
+env = env.Clone()
+ha3_proto_py_target_dir = env['ha3_proto_py_target_dir']
+
+libcommon_sources = [
+    'ErrorDefine.cpp',
+    'Request.cpp',
+    'Result.cpp',
+    'QueryClause.cpp',
+    'Query.cpp',
+    'TermQuery.cpp',
+    'Hits.cpp',
+    'Hit.cpp',
+    'Term.cpp',
+    'AndQuery.cpp',
+    'PhraseQuery.cpp',
+    'OrQuery.cpp',
+    'RankQuery.cpp',
+    'AndNotQuery.cpp',
+    'NumberQuery.cpp',
+    'NumberTerm.cpp',
+    'MultiTermQuery.cpp',
+    'TableQuery.cpp',
+    'ColumnTerm.cpp',
+    'AggregateDescription.cpp',
+    'AggregateClause.cpp',
+    'ConfigClause.cpp',
+    'RankClause.cpp',
+    'SortDescription.cpp',
+    'SortClause.cpp',
+    'DistinctClause.cpp',
+    'AggregateResult.cpp',
+    'Ha3MatchDocAllocator.cpp',
+    'MatchDocs.cpp',
+    'DocIdClause.cpp',
+    'ResultFormatter.cpp',
+    'XMLResultFormatter.cpp',
+    'PBResultFormatter.cpp',
+    'FilterClause.cpp',
+    'AggFunDescription.cpp',
+    'QueryTermVisitor.cpp',
+    'AccessLog.cpp',
+    'SqlAccessLog.cpp',
+    'SearcherAccessLog.cpp',
+    'ErrorResult.cpp',
+    'MultiErrorResult.cpp',
+    'AttributeItem.cpp',
+    'ClusterClause.cpp',
+    'PKFilterClause.cpp',
+    'HealthCheckClause.cpp',
+    'AttributeClause.cpp',
+    'FetchSummaryClause.cpp',
+    'IndexScanner.cpp',
+    'WorkerAddress.cpp',
+    'AggResultReader.cpp',
+    'DistinctDescription.cpp',
+    'DataProvider.cpp',
+    'GlobalVariableManager.cpp',
+    'HaPathDefs.cpp',
+    'RangeSet.cpp',
+    'MultiLevelRangeSet.cpp',
+    'GlobalIdentifier.cpp',
+    'DisplayVersion.cpp',
+    'SwiftPartitionUtil.cpp',
+    'SummaryHit.cpp',
+    'KVPairClause.cpp',
+    'VirtualAttributeClause.cpp',
+    'QueryLayerClause.cpp',
+    'LayerDescription.cpp',
+    'SearcherCacheClause.cpp',
+    'OptimizerClause.cpp',
+    'RankHint.cpp',
+    'RankSortClause.cpp',
+    'RankSortDescription.cpp',
+    'FinalSortClause.cpp',
+    'AccessCounterLog.cpp',
+    'CompressTypeConvertor.cpp',
+    'ClauseBase.cpp',
+    'RequestCacheKeyGenerator.cpp',
+    'PhaseOneSearchInfo.cpp',
+    'ReturnInfo.cpp',
+    'AnalyzerClause.cpp',
+    'PhaseTwoSearchInfo.cpp',
+    'ExtraSearchInfo.cpp',
+    'VersionCalculator.cpp',
+    'FBResultFormatter.cpp',
+]
+
+pb_python_result = env.aCompileProto('PBResult.proto', 'python')
+pb_result = env.aCompileProto('PBResult.proto')
+
+py_ha3_proto_pb_result = env.aInstall(ha3_proto_py_target_dir,
+                                      env['BUILD_DIR']+'/ha3/common/PBResult_pb2.py')
+Depends(py_ha3_proto_pb_result, pb_python_result)
+
+env.aGenerateErrorInfo("ErrorDefine.cpp", "ErrorDefine.ed")
+env.aGenerateErrorInfo("ErrorDefine.py", "ErrorDefine.ed")
+env.aInstall(env['TOP_DIR'] + "/tools/ha_tools/", "ErrorDefine.py")
+libcommon_sources += pb_result
+
+env.aLibrary(target = 'ha3_common',
+             source = libcommon_sources)
+env.aDirs('sparsehash')
+env.aDirs('test')
+#env.aDirs('perftest')

@@ -1,0 +1,18 @@
+#ifndef ISEARCH_BS_REALTIMEERRORCODE_H
+#define ISEARCH_BS_REALTIMEERRORCODE_H
+
+namespace build_service {
+namespace workflow {
+
+enum RealtimeErrorCode {
+    ERROR_NONE,
+    ERROR_BUILD_REALTIME_REACH_MAX_INDEX_SIZE,
+    ERROR_REOPEN_INDEX_LACKOFMEM_ERROR,
+    ERROR_BUILD_DUMP,
+    ERROR_SWIFT_SEEK
+};
+
+}
+}
+
+#endif //ISEARCH_BS_REALTIMEERRORCODE_H

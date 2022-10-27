@@ -1,0 +1,75 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+env['auto_version'] = False
+reader_plugin_sources = ['CustomRawDocumentReader.cpp',
+                         'CustomRawDocumentReaderFactory.cpp']
+libcustom_reader = env.aSharedLibrary(target  = 'custom_reader',
+                                      source = reader_plugin_sources);
+
+libcustom_reader_path = env['LIB_DIR'] + '/' + 'libcustom_reader.so'
+libcustom_reader_install = env.aCopy('#testdata/custom_rawdoc_reader_test/plugins', libcustom_reader_path)
+
+
+customized_raw_doc_parser_sources = ['CustomizedRawDocParser.cpp']
+libcustomized_raw_doc_parser = env.aSharedLibrary(target  = 'customized_raw_doc_parser',
+                                                  source = customized_raw_doc_parser_sources);
+libcustomized_raw_doc_parser_path = env['LIB_DIR'] + '/' + 'libcustomized_raw_doc_parser.so'
+libcustomized_raw_doc_parser_install = env.aCopy('#testdata/custom_rawdoc_reader_test/plugins',
+                                                 libcustomized_raw_doc_parser_path)
+
+fake_reader_sources = [
+    'FakeRawDocumentReader.cpp',
+    'FakeSwiftRawDocumentReader.cpp',
+    'MockSwiftReader.cpp',
+    'FakeFileReader.cpp',
+    ]
+
+lib_reader_fake = env.aLibrary(target = 'reader_fake', source = fake_reader_sources)
+
+reader_test_sources=  [
+    '#build_service/test/dotest.cpp',
+    'FileListCollectorTest.cpp',
+    'FilePatternTest.cpp',
+    'FilePatternParserTest.cpp',
+    'FileRawDocumentReaderTest.cpp',
+    'GZipFileReaderTest.cpp',
+    'FileDocumentReaderTestBase.cpp',
+    'BinaryFileDocumentReaderTestBase.cpp',
+    'Ha3FileDocumentReaderTest.cpp',
+    'ISearchFileDocumentReaderTest.cpp',
+    'FixLenBinaryFileDocumentReaderTest.cpp',
+    'VarLenBinaryFileDocumentReaderTest.cpp',
+    'MultiFileDocumentReaderTest.cpp',
+    'StandardRawDocumentParserTest.cpp',
+    'RawDocumentReaderCreatorTest.cpp',
+    'FilePatternBaseTest.cpp',
+    'SwiftRawDocumentReaderTest.cpp',
+    'SeparatorTest.cpp',
+    'RawDocumentReaderTest.cpp',
+    'SwiftFieldFilterRawDocumentParserTest.cpp',
+    'CustomRawDocumentReader.cpp',
+    'ReaderManagerTest.cpp',
+    'IdleDocumentParserTest.cpp',
+    'SwiftClientCreatorTest.cpp',
+    'CombinedRawDocumentParserTest.cpp',
+    'CustomizedRawDocParser.cpp',
+    ]
+
+env.checkAllCppFileContained(Glob('*.cpp'), reader_test_sources + fake_reader_sources + reader_plugin_sources)
+
+libsname = ['bs_reader', 'bs_util', 'reader_fake', 'bs_document', 'bs_analyzer', 'proto_fake',
+            'bs_config', 'bs_plugin', 'indexlib', 'swift_client_minimal']
+
+
+readertest = env.aTest(target = 'reader_test',
+                       source = reader_test_sources,
+                       LIBS = libsname + env['bs_test_common_lib'] + env['bs_worker_lib']
+                       );
+
+env.Depends(readertest,
+            [libcustom_reader_install, libcustomized_raw_doc_parser_install])

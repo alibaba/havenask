@@ -1,0 +1,74 @@
+{
+     "TruncateProfiles" : [
+	 {
+            "TruncateProfileName" : "desc_price",
+            "SortField" : "price",
+            "SortType": "DESC",
+            "TruncateStrategyName" : "ends_filter_big_inc"
+	 },
+	 {
+            "TruncateProfileName" : "desc_biz30day",
+            "SortParams" : [
+                {
+                    "SortField" : "biz30day",
+                    "SortType" : "DESC"
+                },
+                {
+                    "SortField" : "nid",
+                    "SortType" : "ASC"
+                }
+            ],
+            "TruncateStrategyName" : "ends_filter_inc"
+	 },
+	 {
+            "TruncateProfileName" : "desc_sales",
+            "SortField" : "sales",
+            "SortType": "DESC",
+            "TruncateStrategyName" : "ends_filter_normal"
+	 },
+	 {
+            "TruncateProfileName" : "galaxy_weight",
+            "TruncateStrategyName" : "galaxy"
+	 }
+    ],
+    "TruncateStrategy" : [
+        {
+            "StrategyName" : "ends_filter_big_inc",
+            "Threshold" : 100000,
+            "Limit" : 50000,
+            "DiversityConstrain": {
+	    	"FilterType" : "FilterByTimeStamp",
+		"FilterParameter" : "fieldName=ends_1;beginTime=18:00:00;adviseEndTime=23:00:00"
+            }
+        },
+        {
+            "StrategyName" : "ends_filter_inc",
+            "Threshold" : 100000,
+            "Limit" : 50000,
+            "DiversityConstrain": {
+	    	"FilterType" : "FilterByTimeStamp",
+		"FilterParameter" : "fieldName=ends_1;beginTime=now;adviseEndTime=10:00:00;minInvertal=6"
+            }
+        },
+        {
+            "StrategyName" : "ends_filter_normal",
+            "Threshold" : 100000,
+            "Limit" : 50000,
+            "DiversityConstrain": {
+	    	"FilterType" : "FilterByMeta",
+		"FilterParameter" : "fieldName=desc_biz30day"
+            }
+        },
+        {
+            "StrategyName" : "galaxy",
+            "Threshold" : 100000,
+            "Limit" : 50000,
+            "DiversityConstrain": {
+	    	"FilterType" : "Default",
+		"FilterParameter" : "fieldName=DOC_PAYLOAD;filterMask=0xFFFF;filterMinValue=1;filterMaxValue=100"
+            }
+        }
+    ],
+    "ExtendIndexNames" : ["catid"]
+}
+

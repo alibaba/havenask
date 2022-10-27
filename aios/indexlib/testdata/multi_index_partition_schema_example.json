@@ -1,0 +1,52 @@
+{
+"attributes":
+  [
+    {
+    "attribute_name":
+      "attr1",
+    "slave":
+      {
+      "attribute_name":
+        "dattr1",
+      "index_name":
+        "pk",
+      "table_name":
+        "table2"
+      },
+    "master":
+      {
+      "attribute_name":
+        "sattr1",
+      "table_name":
+        "table1"
+      }
+    },
+    {
+    "attribute_name":
+      "attr2",
+    "slave":
+      {
+      "attribute_name":
+        "dattr2",
+      "index_name":
+        "pk",
+      "table_name":
+        "table2"
+      },
+    "master":
+      {
+      "attribute_name":
+        "sattr2",
+      "table_name":
+        "table1"
+      }
+    }
+  ],
+"schema_name":
+  "noname",
+"tables":
+  [
+    "table1",
+    "table2"
+  ]
+}

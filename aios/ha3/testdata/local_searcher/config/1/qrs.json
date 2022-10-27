@@ -1,0 +1,22 @@
+{
+    "qrs_rule" : {
+        "return_hits_limit": 5000,
+        "connection_timeout":1000000
+    },
+    "modules" : [
+    ],
+    "processors": [
+    ],  
+    "chains": 
+    [
+        { 
+            "chain_name":"DEFAULT",
+	    "plugin_points": 
+            {
+		"BEFORE_PARSER_POINT" : [],
+		"BEFORE_VALIDATE_POINT" : [] ,
+		"BEFORE_SEARCH_POINT" : []
+	    }
+	}
+    ]
+}

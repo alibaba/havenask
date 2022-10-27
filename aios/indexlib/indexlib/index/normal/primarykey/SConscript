@@ -1,0 +1,10 @@
+Import('env')
+env = env.Clone()
+env.Append(LIBPATH=['.'])
+
+primarykey=Glob('*.cpp')
+
+#env.aLibrary(target='indexlib_primarykey', source=primarykey)
+env.aDirs('test')
+
+Return(['primarykey'] )

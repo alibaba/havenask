@@ -1,0 +1,17 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+
+hashtable_test_sources = [
+    'hashtable_test.cc',
+    'libc_allocator_with_realloc_test.cc',
+    ]
+
+env.aTest(target = 'hashtable_test',
+          source = hashtable_test_sources,
+          LIBS = env['ha3_test_depend_lib']);

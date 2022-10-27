@@ -1,0 +1,7 @@
+{
+    "MergeStrategy" : "optimize",
+    "MergeStrategyParam" : "",
+    "MergeThreadCount" : 3,
+    "RtOptions" : {
+    }
+}

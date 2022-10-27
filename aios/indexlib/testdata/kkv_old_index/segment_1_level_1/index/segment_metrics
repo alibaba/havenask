@@ -1,0 +1,13 @@
+{
+"segment_stat_metrics_@_0":
+  {
+  "max_skey_count":
+    1,
+  "max_value_len":
+    20,
+  "pkey_count":
+    4,
+  "skey_count":
+    5
+  }
+}

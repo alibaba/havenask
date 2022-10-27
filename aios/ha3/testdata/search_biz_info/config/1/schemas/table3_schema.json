@@ -1,0 +1,47 @@
+{
+
+    "table_name": "table3",
+
+    "fields": 
+    [
+	{"field_name":"id", "field_type":"INTEGER"},
+	{"field_name":"gmt_create", "field_type":"TIME"},
+	{"field_name":"gmt_modified", "field_type":"TIME"},
+	{"field_name":"company_id", "field_type":"INTEGER"},
+	{"field_name":"subject", "field_type":"TEXT", "analyzer":"default"},
+	{"field_name":"company_name", "field_type":"TEXT", "analyzer":"default"},
+	{"field_name":"feature_value", "field_type":"TEXT", "analyzer":"default"},
+	{"field_name":"city", "field_type":"TEXT", "analyzer":"default"},
+	{"field_name":"summary", "field_type":"TEXT", "analyzer":"default"}
+    ],
+
+    "indexs": 
+    [
+	{
+	    "index_name": "phrase",
+            "index_type" : "PACK",
+	    "index_fields": 
+	    [
+		{"field_name":"subject", "boost":200000}, 
+		{"field_name":"company_name", "boost":600000}, 
+		{"field_name":"feature_value", "boost":600000}, 
+		{"field_name":"summary", "boost":600000}
+	    ]
+	},
+
+	{
+	    "index_name": "city",
+            "index_type": "TEXT",
+            "index_fields": "city"
+        }
+
+    ],
+
+    "attributes": ["id"],
+
+    "summarys":{ 
+	"summary_fields": [ "id",  "gmt_create", "company_name"],
+	"compress":false
+    } 	 
+}
+

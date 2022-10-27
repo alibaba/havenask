@@ -1,0 +1,11 @@
+Import('env')
+env = env.Clone()
+
+operation_queue=Glob('*.cpp')
+
+#env.aLibrary(target='indexlib_operation_queue', source=operation_queue)
+
+env.aDirs('test')
+env.aDirs('perf_test')
+
+Return(['operation_queue'])

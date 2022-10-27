@@ -1,0 +1,11 @@
+{
+    "deploy_file_metas": 
+    [
+	{"path" : "deletionmap/"},
+	{"path" : "index/"},
+	{"path" : "segment_info"},
+        {"path" : "index/index1/"},
+        {"path" : "index/index1/posting"},
+        {"path" : "index/index1/dictionary"}
+    ]
+}

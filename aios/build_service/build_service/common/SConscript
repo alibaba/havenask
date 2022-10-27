@@ -1,0 +1,32 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+common_sources = [
+    'PathDefine.cpp',
+    'Locator.cpp',
+    'PkTracer.cpp',
+    'End2EndLatencyReporter.cpp',
+    'CounterSynchronizer.cpp',
+    'CounterFileSynchronizer.cpp',
+    'CounterRedisSynchronizer.cpp',
+    'CounterSynchronizerCreator.cpp',
+    'CheckpointList.cpp',
+    'ProcessorTaskIdentifier.cpp',
+    'TaskIdentifier.cpp',
+    ]
+
+env.checkAllCppFileContained(Glob('*.cpp'), common_sources)
+common_sources = map(os.path.abspath, common_sources)
+
+
+env.aLibrary(target = 'bs_common',
+             source = common_sources)
+
+
+env.aDirs('test')
+
+Return(['common_sources'])

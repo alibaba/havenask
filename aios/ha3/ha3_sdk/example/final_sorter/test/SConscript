@@ -1,0 +1,17 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+cheat_sorter_test_sources=  [
+    'CheatSorterTest.cpp',
+    ]
+
+libsname = ['plugin_cheatsorter', 'ha3sdk_testlib', 'unittest', 'gmock', 'gtest']
+
+env.aTest(target = 'cheat_sorter_test', 
+          source = cheat_sorter_test_sources,
+          LIBS = libsname + env['ha3_test_depend_lib'])

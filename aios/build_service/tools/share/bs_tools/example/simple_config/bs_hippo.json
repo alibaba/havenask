@@ -1,0 +1,45 @@
+{
+    "packages" : [
+        {
+            "packageURI" : "package/path",
+            "type" : "RPM"
+        }
+    ],
+    "role_customize" : [
+        {
+            "_bs_role" : ".*",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        {
+                            "amount" : 0,
+                            "name" : "cpu"
+                        },
+                        {
+                            "amount" : 1024,
+                            "name" : "mem"
+                        },
+                        {
+                            "amount" : 0,
+                            "name" : "bs_test"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],    
+    "role_default" : {
+        "count" : 1,
+        "processInfos" : [
+            {
+                "envs" : [
+                    ["HADOOP_HOME","/home/hadoop.devel/hadoop-2.2.0-cdh5.0.0-devel/hadoop/"],
+                    ["LD_LIBRARY_PATH","/usr/ali/java/jre/lib/amd64/server/"]
+                ],
+                "args" : [
+                    ["-l", "$HIPPO_APP_INST_ROOT/usr/local/etc/bs/bs_alog.conf"]
+                ]
+            }
+        ]
+    }
+}

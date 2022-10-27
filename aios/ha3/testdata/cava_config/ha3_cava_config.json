@@ -1,0 +1,37 @@
+{
+    "pluginConf": {
+	"modules" : [
+            {
+                "name" :"default",
+                "path" : ""
+            }
+	],
+	"ASTRewriters": [
+            {
+                "module" : "default",
+                "class"  : "AddDefaultClone",
+                "parameters" : {}
+            },
+            {
+                "module" : "default",
+                "class"  : "AddDefaultCreate",
+                "parameters" : {}
+            },
+            {
+                "module" : "default",
+                "class"  : "AddBatchScore",
+                "parameters" : {}
+            }
+	],
+	"TypeExtenders": [
+	],
+	"SemaCheckers": [
+	]
+    },
+    "cavaPreLoads": [
+        "../../testdata/share/cava/ha3",
+        "../../testdata/share/cava/unsafe",
+        "../../testdata/share/cava/cava"
+    ],
+    "debugIR": false
+}

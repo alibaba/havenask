@@ -1,0 +1,3 @@
+query_nokia	http://www.taobao.com	good
+query_nokia	http://www.yahoo.cn	fair
+query_nokia	http://www.baidu.com	fair

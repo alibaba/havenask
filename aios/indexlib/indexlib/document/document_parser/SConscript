@@ -1,0 +1,14 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+parser=Glob('*.cpp')
+normal_parser=env.aDirs('normal_parser')
+linedata_parser=env.aDirs('line_data_parser')
+kv_parser=env.aDirs('kv_parser')
+
+#env.aDirs('test')
+
+document_parser_cpps = [ parser, normal_parser, linedata_parser, kv_parser ]
+Return(['document_parser_cpps'])

@@ -1,0 +1,12 @@
+# -*- mode: python -*-
+import os
+Import('env')
+
+env = env.Clone()
+
+join_sources = Glob('*.cpp')
+
+
+env.aDirs('test')
+
+Return(['join_sources'])

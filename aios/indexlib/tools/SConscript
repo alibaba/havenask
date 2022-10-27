@@ -1,0 +1,11 @@
+# -*- mode: python -*-
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+env.Append(CPPPATH = ['#'])
+env.Append(CPPPATH = [env['BUILD_DIR'] + '/tools/'])
+
+env.aDirs('index_printer')

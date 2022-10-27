@@ -1,0 +1,9 @@
+这个目录是为了测试Ha3CavaTestMain 准备的
+./build/debug64/bin/Ha3CavaTestMain testdata/Ha3CavaTestMain/ha3_cava_config.json testdata/Ha3CavaTestMain/summary/TestSummaryTest.cava
+./build/debug64/bin/Ha3CavaTestMain testdata/Ha3CavaTestMain/ha3_cava_config.json testdata/Ha3CavaTestMain/function/TestFunctionTest.cava
+./build/debug64/bin/Ha3CavaTestMain testdata/Ha3CavaTestMain/ha3_cava_config.json testdata/Ha3CavaTestMain/scorer/TestScorerTest.cava
+
+
+1. CavaHa3ScorerTestHelper和CavaHa3MockHelper不兼容
+2. create 返回值变化
+3. public extern MatchDoc createMatchDoc(); -> public extern MatchDoc getMatchDoc(ScorerProvider provider);

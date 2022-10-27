@@ -1,0 +1,7 @@
+{
+    "root_str_key" : "root_str_base_value",
+    "root_int_key" : 0,
+    "root_bool_key" : false,
+    "base_str_key" : "base_str_value",
+    "base_int_key" : 5
+}

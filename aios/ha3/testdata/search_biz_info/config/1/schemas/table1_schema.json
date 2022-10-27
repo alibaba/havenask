@@ -1,0 +1,34 @@
+{
+
+    "table_name": "table1",
+
+    "fields": 
+    [
+	{"field_name":"id", "field_type":"INTEGER"},
+	{"field_name":"gmt_create", "field_type":"TIME"},
+	{"field_name":"gmt_modified", "field_type":"TIME"},
+	{"field_name":"company_id", "field_type":"INTEGER"},
+	{"field_name":"subject", "field_type":"TEXT", "analyzer":"default"},
+	{"field_name":"company_name", "field_type":"TEXT", "analyzer":"default"},
+	{"field_name":"feature_value", "field_type":"TEXT", "analyzer":"default"},
+	{"field_name":"summary", "field_type":"TEXT", "analyzer":"default"}
+    ],
+
+    "indexs": 
+    [
+	{
+	    "index_name": "company_id",
+            "index_type": "PRIMARYKEY64",
+            "index_fields": "company_id"
+        }
+
+    ],
+
+    "attributes": ["id", "company_id"],
+
+    "summarys":{ 
+	"summary_fields": [ "id",  "gmt_create", "company_name"],
+	"compress":false
+    }
+}
+

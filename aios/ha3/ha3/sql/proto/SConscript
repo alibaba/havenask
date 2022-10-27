@@ -1,0 +1,18 @@
+# -*- mode: python -*-
+
+Import('env')
+
+env = env.Clone()
+
+
+pb_SqlSearchInfo = env.aCompileProto('SqlSearchInfo.proto')
+
+pb_sql_source1 = (pb_SqlSearchInfo)
+pb_sql_source2 = Glob('*.cpp')
+
+pb_sql_source = pb_sql_source1 + pb_sql_source2
+
+sql_proto = env.aLibrary(target = 'sql_proto',
+                         source = pb_sql_source)
+
+Return('pb_sql_source')

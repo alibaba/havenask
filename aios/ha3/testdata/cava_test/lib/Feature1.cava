@@ -1,0 +1,23 @@
+package lib;
+import ha3.*;
+class Feature1 {
+    int val;
+    DoubleRef ref;
+    Feature1(int a) {
+	val = a;
+	return;
+    }
+    boolean init(ScorerProvider provider) {
+        IRefManager refManger = provider.getRefManager();
+        ref = refManger.requireDouble("field1");
+        return true;
+    }
+    double process(MatchDoc doc) {
+        return ref.get(doc) + val;
+    }
+    Feature1 clone() {
+	Feature1 feature1 = new Feature1(0);
+	feature1.val = val;
+	return feature1;
+    }
+}

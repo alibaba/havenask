@@ -1,0 +1,53 @@
+# -*- mode: python -*-
+
+import os
+import sys
+import re
+import unittest
+
+Import('env')
+env = env.Clone()
+
+TOOLS_CONF_CONTEXT = '''
+import os
+
+install_prefix = "%s"
+lib_path = install_prefix + "/lib64/:" + install_prefix + "/lib/:" \
+           + os.path.realpath(install_prefix + "/../lib/") + ":" \
+           + os.path.realpath(install_prefix + "/../lib64/") + ":" \
+           + "/usr/local/lib64:/usr/local/lib:/usr/lib64:/usr/lib:/usr/ali/java/jre/lib/amd64/server/"
+
+hadoop_home = "/hadoop/home/path/"
+hadoop_user = "username"
+hadoop_groups = "supergroup"
+hadoop_replica = "3"
+'''
+
+def runTest(source, target, env):
+    sys.path.append(env['TOP_DIR'] + "/tools/bs_tools/")
+    sys.path.append(env['TOP_DIR'] + "/tools/bs_tools/test/")
+    sys.path.append(env['TOP_DIR'] + '/build/%s64/' % env['mode'])
+    protoRoot = env['TOP_DIR'] + '/build/%s64/build_service' % env['mode']
+    initPy = os.path.join(protoRoot, "__init__.py")
+    if not os.path.exists(initPy):
+        fInit = open(initPy, 'w')
+        fInit.close()
+    sys.path.append(protoRoot)
+    sys.path.append(env['TOP_DIR'])
+    import build_options
+    sys.path.insert(0, env['TOP_DIR'] + '/../_external/usr/lib/python2.7/site-packages/')
+    sys.path.insert(0, env['TOP_DIR'] + '/../_external/usr/local/lib/python/site-packages/')
+    sys.path.insert(0, '/usr/local/lib/python/site-packages/')
+    f = open(env['TOP_DIR'] + "/tools/bs_tools/test/tools_conf.py", 'w')
+    f.write(TOOLS_CONF_CONTEXT % (env['TOP_DIR'] + '/../_external/usr/local'))
+    f.close()
+    import test_main
+    return not test_main.runTest()
+
+f = open(env['TOP_DIR'] + '/build/%s64/build_service/proto/__init__.py' % env['mode'], 'w')
+f.close()
+env.Append(BUILDERS = {"pyTestBuilder" : Builder(action = runTest, multi = 1)})
+test = env.pyTestBuilder(source = [], target = "python unit test")
+
+env.Alias("check", test)
+env.Alias("test", test)

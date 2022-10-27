@@ -1,0 +1,43 @@
+{
+    "Loggers":{
+        "/heavenask/index_engine/common/ByteSliceWriter":{
+            "FileSinkName1":"NONE",
+            "ScreenSinkName1":"NONE"
+        },
+
+        "/heavenask/index_engine/common/ByteSliceWriterTest":{
+            "FileSinkName1":"NONE",
+            "ScreenSinkName1":"NONE"
+        },
+        
+        "/":{
+            "DefaultFileSink":"INFO"
+        }
+    },
+    "Sinks":{
+        "FileSinkName1":{
+            "Type":"File",
+            "MaxLogFileNum":50,
+            "MaxLogFileSize":20000000,
+            "MaxDaysFromModify":3,
+            "LogFilePath":"test_log_path.LOG",
+            "ColumnNames":"__LOGGER__,__FILE__,__TIME__"
+        },
+        
+        "FileSinkName2":{
+            "Type":"File"
+        },
+        
+        "ScreenSinkName1":{
+            "Type":"Screen",
+            "ColumnNames":"__FUNCTION__,__LINE__"
+        },
+
+        "DefaultFileSink":{
+            "Type":"File",
+            "ColumnNames":"__FUNCTION__,__LINE__"
+        }
+        
+    }
+
+}

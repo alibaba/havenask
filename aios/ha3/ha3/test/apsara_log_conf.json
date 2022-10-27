@@ -1,0 +1,65 @@
+{
+    "Loggers":{
+        "/":{
+	    "Console": "ERROR"
+	},
+        "/isearch":{
+	    "Console": "ERROR"
+	},
+        "/isearch/service":{
+	    "Console": "ERROR"
+	},
+        "/isearch/analyzer":{
+	    "Console": "ERROR"
+	},
+        "/isearch/common":{
+	    "Console": "ERROR"
+	},
+        "/isearch/search/Searcher":{
+	    "Console": "ERROR"
+	},
+        "/isearch/util":{
+	    "Console": "ERROR"
+	},
+        "/isearch/queryparser/SyntaxExprParser":{
+	    "Console": "ERROR"
+	},
+        "/isearch/qrs":{
+	    "Console": "DEBUG"
+	},
+        "/isearch/common/AccessLog":{
+	    "AccessFileSink": "ERROR"
+	},
+	"/isearch/util/LogTest":{
+	    "TestFileSink": "ERROR"
+	},
+	"/isearch/client/DocumentReader":{
+	    "Console": "ERROR"
+	},
+	"/isearch/build_system/NewSenderImplementor":{
+	    "Console": "ERROR"
+	},
+	"/isearch/build_system/NewSenderImplementorTest":{
+	    "Console": "ERROR"
+	},
+	"/isearch/stand_client/SendDocTask":{
+	    "Console": "ERROR"
+	}
+    },
+    "Sinks":{
+        "Console":{
+            "Type":"Screen",
+            "ColumnNames":"__FILE__,__LEVEL__,__FUNCTION__,__LINE__"
+        },
+	"AccessFileSink":{
+            "Type":"Screen",
+            "ColumnNames":"__FILE__,__FUNCTION__,__LINE__"
+        },
+	"TestFileSink":{
+            "Type":"File",
+	    "LogFilePath":"TestLog.log",
+            "MaxLogFileNum":1,
+            "ColumnNames":"__FILE__"
+        }
+    }
+}

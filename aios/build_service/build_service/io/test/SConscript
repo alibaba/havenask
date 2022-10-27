@@ -1,0 +1,22 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+import os
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+io_test_sources=  [
+    '#build_service/test/dotest.cpp',
+    'MultiFileOutputTest.cpp',
+    ]
+
+libnames = ['bs_task_base', 'bs_util', 'bs_proto', 'bs_custom_merger', 'bs_workflow','bs_config', 'bs_common', 'bs_util', 'bs_reader', 'bs_proto', 'bs_builder', 'bs_processor', 'bs_document', 'bs_analyzer', 'bs_plugin', 'gtest', 'gmock', 'indexlib_test_tool', 'io']
+
+
+env.checkAllCppFileContained(Glob('*.cpp'), io_test_sources)
+
+io_tests = env.aTest(target = 'io_test',
+                     source = io_test_sources,
+                     LIBS = libnames)

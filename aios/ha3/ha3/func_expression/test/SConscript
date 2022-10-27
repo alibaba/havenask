@@ -1,0 +1,17 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+example_function_plugin_sources = [
+    'ExampleAddFunction.cpp',
+    'ExampleFunctionAttributeExpressionFactory.cpp',
+    'ExampleMinusFunction.cpp',
+    ]
+
+functionpluginlib = env.aLibrary(target = 'ha3_example_function_plugin', source = example_function_plugin_sources, LIBS = [])
+libfunctionplugin = env['LIB_DIR'] + '/' + 'libha3_example_function_plugin.so'
+env.aCopy('#testdata/testadmin/taobao/taobao_daogou/configurations/configuration_1/plugins/', libfunctionplugin)

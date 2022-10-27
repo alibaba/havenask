@@ -1,0 +1,16 @@
+{
+    "data_descriptions" : [
+    ],
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "cluster1",
+                "cluster2"
+            ]
+        }
+    ],
+    "processor_rule_config" : {
+        "parallel_num" : 5,
+        "partition_count" : 5
+    }
+}

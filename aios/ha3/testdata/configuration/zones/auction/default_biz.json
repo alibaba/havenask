@@ -1,0 +1,63 @@
+{
+    "build_config" : {
+        "filter_chains" : [
+            {
+                "class_name" : "Ha2Filter",
+                "module_name" : "filter",
+                "parameters" : {
+                    "key" : "value"
+                }
+            }
+        ],
+        "modules" : [
+            {
+                "module_name" : "filter",
+                "module_path" : "auction_filter",
+                "parameters" : {
+                    "key2" : "value2"
+                }
+            }
+        ],
+        "pangu_max_copy" : 2,
+        "pangu_min_copy" : 1
+    },
+    "cluster_config" : {
+        "cluster_name" : "auction",
+        "hash_mode" : {
+            "hash_field" : "uri",
+            "hash_function" : "md5"
+        },
+        "table_name" : "auction"
+    },
+    "rankprofile_config" : {
+        "modules" : [
+            {
+                "module_name" : "mlr",
+                "module_path" : "mlr_scorer.so",
+                "parameters" : {
+                    "key" : "value",
+                    "key2" : "value2"
+                }
+            }
+        ],
+        "rankprofiles" : [
+            {
+                "field_boost" : {
+                    "phrase.body" : 100,
+                    "phrase.detail" : 10,
+                    "phrase.title" : 1000
+                },
+                "rank_profile_name" : "mlr",
+                "scorers" : [
+                    {
+                        "module_name" : "mlr",
+                        "parameters" : {
+                            "key" : "value"
+                        },
+                        "scorer_name" : "mlr_scorer"
+                    }
+                ]
+            }
+        ]
+    }
+}

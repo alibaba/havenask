@@ -1,0 +1,32 @@
+import ha3.*;
+
+class MultiValueSetScorer {
+    Int32Ref idRef;
+    MInt32Ref multiIdDeclRef;
+    boolean init(ScorerProvider provider) {
+        IRefManager refManger = provider.getRefManager();
+        idRef = refManger.requireInt32("id");
+        // int32 multivalue
+        multiIdDeclRef = refManger.declareMInt32("multi_id2", true);
+        return true;
+    }
+    double process(MatchDoc doc) {
+        uint len = 2;
+        MInt32 ids = MInt32.create(len);
+        int id = idRef.get(doc);
+        for (uint i=0; i < len; i++) {
+            ids.set(i, i + id);
+        }
+        multiIdDeclRef.set(doc, ids);
+        int score = 0;
+        MInt32 rIds = multiIdDeclRef.get(doc);
+        for (uint i = 0; i < rIds.size(); i++) {
+            score += rIds.get(i);
+        }
+
+        return score  - 1.0;
+    }
+    static MultiValueSetScorer create() {
+	return new MultiValueSetScorer();
+    }
+}

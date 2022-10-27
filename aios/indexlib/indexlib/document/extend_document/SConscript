@@ -1,0 +1,12 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+extdoc=Glob('*.cpp')
+tokenize=env.aDirs('tokenize')
+
+#env.aDirs('test')
+
+ext_doc_cpps = [ extdoc, tokenize ]
+Return(['ext_doc_cpps'])

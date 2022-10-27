@@ -1,0 +1,8 @@
+{
+    "offline_index_config" : {
+        "customized_merge_config" : {
+	    "xxx" : {"period" : "daytime=18:01"},
+	    "yyy" : {"period" : "period=2"}
+        }
+    }
+}

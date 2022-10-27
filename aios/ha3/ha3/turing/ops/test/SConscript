@@ -1,0 +1,29 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+
+libsname = ['ha3_suez_turing_variant', 'ha3_suez_turing_ops', 'ha3_fakesearch',
+            'ha3_fakerank', 'ha3sdk_testlib',
+            'ha3_fakecommon', 'ha3_fakequeryparser',
+            'fakefullcachescorer', 'multiphasescorer', 'fakeoptimizer', 'fakescorer',
+            'ops_testutil', 'test', 'testlib']
+
+linkflags = []
+linkflags.append('-Wl,--whole-archive')
+linkflags.append('-lindexlib_test_tool')
+linkflags.append('-Wl,--no-whole-archive')
+env.Append(LINKFLAGS=linkflags)
+
+source = Glob('*.cpp')
+
+
+env.aTest(
+    target = 'ha3_ops_test',
+    source = source + ['../../../sorter/BuildinSorterModuleFactory.cpp'],
+    LIBS = libsname + env['ha3_test_depend_lib']
+    )

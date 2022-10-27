@@ -1,0 +1,28 @@
+CMD=add
+PK=12345321
+url=http://www.aliyun.com/index.html
+title=阿里云计算有限公司
+body=xxxxxx xxx
+time=3123423421
+multi_value_field=1234324342
+
+CMD=delete
+PK=12345321
+
+
+
+CMD=update
+PK=12345321
+time=3123423421
+
+
+CMD=add
+PK=12345321
+url=http://www.aliyun.com/index.html
+title=阿里云计算有限公司
+body=xxxxxx xxx
+time=3123423421
+multi_value_field=1234324342
+
+
+

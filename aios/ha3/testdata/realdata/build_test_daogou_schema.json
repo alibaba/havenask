@@ -1,0 +1,128 @@
+{
+	"table_name": "build_test_daogou",
+  "fields": 
+  [
+		{
+		"field_name":"url",
+		"field_type":"STRING"
+		},
+		{
+		"field_name":"title",
+		"field_type":"TEXT",
+                "analyzer":"taobao_analyzer"
+		},
+		{
+		"field_name":"content",
+		"field_type":"TEXT",
+                "analyzer":"taobao_analyzer"
+		},
+                {
+                "field_name":"author",
+                "field_type":"STRING"
+                },
+                {
+                "field_name":"pub_time",
+                "field_type":"LONG"
+                },
+		{
+		"field_name":"cat_id",
+		"field_type":"INTEGER"
+		},
+		{
+		"field_name":"dedup_num",
+		"field_type":"LONG"
+		},
+                {
+		"field_name":"article_id",
+		"field_type":"INTEGER"
+		},
+    {
+    "field_name":"spuid0",
+    "field_type":"LONG"
+    },
+    {
+    "field_name":"price0",
+    "field_type":"FLOAT"
+    },
+    {
+    "field_name":"soldNum0",
+    "field_type":"TIME"
+    },
+    {
+    "field_name":"categoryId0",
+    "field_type":"INTEGER"
+    },
+    {
+    "field_name":"spuid1",
+    "field_type":"INTEGER"
+    },
+    {
+    "field_name":"price1",
+    "field_type":"FLOAT"
+    },
+    {
+    "field_name":"soldNum1",
+    "field_type":"INTEGER"
+    },
+    {
+    "field_name":"categoryId1",
+    "field_type":"INTEGER"
+    },
+		{
+    "field_name":"spuid2",
+    "field_type":"INTEGER"
+    },
+    {
+    "field_name":"price2",
+    "field_type":"FLOAT"
+    },
+    {
+    "field_name":"soldNum2",
+    "field_type":"INTEGER"
+    },
+    {
+    "field_name":"categoryId2",
+    "field_type":"INTEGER"
+    }
+  ],
+
+	"indexs": 
+	[
+	    {
+		    "index_name": "phrase",
+        "index_type": "PACK",
+				"term_payload_flag" :  1 ,
+				"doc_payload_flag" :  1 ,
+				"position_payload_flag" :  0 ,
+				"index_fields": 
+				[
+					{
+					"field_name":"title",
+					"boost":0
+					},
+					{
+					"field_name":"content",
+					"boost":0
+                    }
+				]
+                    },
+                {
+                    "index_name": "pk",
+        "index_type": "PRIMARYKEY64",
+                     "index_fields": "url"
+                    }
+	],
+
+	 "attributes": 
+     [ 
+         "url","dedup_num","cat_id",
+         "spuid0","price0","categoryId0",
+         "spuid1","price1","soldNum1","categoryId1",
+         "spuid2","price2","soldNum2","categoryId2"
+     ],
+
+    "summarys":{ 
+	"summary_fields": ["url","title","content","cat_id","price0","soldNum0","spuid0"],
+	"compress":false
+    }
+}

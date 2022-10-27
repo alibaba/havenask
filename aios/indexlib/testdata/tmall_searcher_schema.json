@@ -1,0 +1,1981 @@
+{
+    "table_name": "tmall_searcher",
+    "adaptive_dictionaries": [
+        {
+            "adaptive_dictionary_name": "percent",
+            "dict_type": "PERCENT",
+            "threshold": 5
+        },
+        {
+            "adaptive_dictionary_name": "size",
+            "dict_type": "INDEX_SIZE"
+        }
+    ],
+    "dictionaries": [
+        {
+            "dictionary_name": "auction_tag_dict",
+            "content": "1478;20482;20546;385;3974;4166;5954;775"
+        },
+        {
+            "dictionary_name": "auction_type_dict",
+            "content": "b"
+        },
+        {
+            "dictionary_name": "baobei_type_dict",
+            "content": "1"
+        },
+        {
+            "dictionary_name": "categoryp_dict",
+            "content": "16;26;50008090"
+        },
+        {
+            "dictionary_name": "cat_id_path_dict",
+            "content": "16;26;50008090;50024407;50025135;50029835;50093854;50097251;50102996;50108549;51538082"
+        },
+        {
+            "dictionary_name": "disp_flag_dict",
+            "content": "1;16;32;4;64"
+        },
+        {
+            "dictionary_name": "hprop_dict",
+            "content": "0"
+        },
+        {
+            "dictionary_name": "isnewest_dict",
+            "content": "2"
+        },
+        {
+            "dictionary_name": "isprepay_dict",
+            "content": "1"
+        },
+        {
+            "dictionary_name": "istk_dict",
+            "content": "5"
+        },
+        {
+            "dictionary_name": "pidvid_dict",
+            "content": "1627207:132069;1627207:28320;1627207:28324;1627207:28326;1627207:28332;1627207:28338;1627207:28341;1627207:30156;1627207:3232478;1627207:3232480;1627207:3232481;1627207:3232483;1627207:3232484;1627207:90554;20418023:157305307;20509:28315;20509:28316"
+        },
+        {
+            "dictionary_name": "prom_options_bit_dict",
+            "content": "1;4"
+        },
+        {
+            "dictionary_name": "psbit_dict",
+            "content": "4"
+        },
+        {
+            "dictionary_name": "ratesum_dict",
+            "content": "11;12;13"
+        },
+        {
+            "dictionary_name": "shopphrase_dict",
+            "content": "专;专卖;专营;品;家;家居;店;数;数码;旗舰;服;服饰;用品;码;车;运动;饰"
+        },
+        {
+            "dictionary_name": "sku_or_dict",
+            "content": "1627207:132069;1627207:28320;1627207:28324;1627207:28326;1627207:28332;1627207:28338;1627207:28341;1627207:30156;1627207:3232478;1627207:3232480;1627207:3232481;1627207:3232483;1627207:3232484;1627207:90554;20509:28315;20509:28316"
+        },
+        {
+            "dictionary_name": "skuphrase_dict",
+            "content": "0;1;10;100;170;175;180;2;200;2013;25;3;30;300;38;39;40;5;50;500;60;95;a;g;l;m;s;xl;xxl;专;专用;中;以上;休闲;保护;修;修身;元;全新;军;军绿;冬;冬季;包;包邮;单;厚;双;否;品;商务;圆;圆领;型;夏;夏季;外;外套;大;天蓝;头;套;女;女装;季;家;小;岁;巧克力;布;带;常规;年;扣;拉链;新;新款;无;时尚;春;普;普通;服;柜;桔;桔色;棉;欧;款;正;正品;毛;水;浅;浅灰;深;潮;灰;灰色;牛;特价;现货;男;男士;白;白色;皮;短;秋;秋冬;秋季;简;简约;粉;粉红;系;系列;紫;紫色;红;红色;纯;纯色;线;绒;绿;绿色;美;腰;自主;色;花;蓝;蓝色;衣;衫;袋;袖;装;装饰;裤;褐;褐色;贴;车;运动;透;透明;通;通勤;邮;金;链;长;长袖;防;青年;鞋;韩;韩版;领;风;高;黄;黄色;黑;黑色"
+        },
+        {
+            "dictionary_name": "support_cod_dict",
+            "content": "1"
+        },
+        {
+            "dictionary_name": "support_xcard_dict",
+            "content": "1"
+        }
+    ],
+    "fields": [
+        {
+            "field_name": "activity_id",
+            "field_type": "STRING",
+            "multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "cspu_ids",
+            "field_type": "STRING",
+            "multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "mlr_algo_bts1_yundu_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "mlr_algo_bts2_yundu_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "mlr_algo_bts3_yundu_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "mlr_algo_bts4_yundu_b2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "mlr_algo_bts5_yundu_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "tmall_seller_sort_bts1_b2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "tmall_seller_sort_bts2_b2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "WirlessAucScore_b2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "tmall_app_field1_b2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "tmall_app_field2_b2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "tmall_app_field3_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "tmall_app_field4_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "tmall_app_field5_b2c",
+            "field_type": "UINT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "tmall_app_field6_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "gid_weight",
+            "field_type": "UINT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "auc_personal_recall_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "WirlessQueryNidScore_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "tmall_bad_seller_auction_b2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "alg_bts_feature3",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "alg_feedback_features",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "ltm_nid_ngram_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "alg_tag",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "areascore",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "auction_ext",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "auc_new_score",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "auction_point",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "auction_tag",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "auc_constellation_b2c",
+            "field_type": "UINT8",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "ss_auction_tag",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "auction_type",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "auto_post",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "baobei_type",
+            "field_type": "INT16",
+            "updatable_multi_value": true,
+            "multi_value": true
+        },
+        {
+            "field_name": "biz30day",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "brand",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "jhs_starttime",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "brand_tag",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "category",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "categoryp",
+            "field_type": "INT32",
+            "updatable_multi_value": true,
+            "multi_value": true
+        },
+        {
+            "field_name": "cat_id_path",
+            "field_type": "INT32",
+            "updatable_multi_value": true,
+            "multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "catmap",
+            "field_type": "UINT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "comment_count",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "auction_activity_id",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "mainbts_rand_buy",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "mainbts_good_buy",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "cspus",
+            "field_type": "UINT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "disp_flag",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "division_brand_diaoxing",
+            "field_type": "UINT16"
+        },
+        {
+            "field_name": "division_pidvid",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "division_price",
+            "field_type": "UINT16"
+        },
+        {
+            "field_name": "doc_more",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "ends",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "ends_1",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "tmall_detail_app_cvs_b2c",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "basis_items_informations_b2c",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "grade_avg",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "sis_seller_update_score",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "seller_refund_b2c",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "auc_popu_new_product",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "hprop",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "isnewest",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "spam_filter",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "spam_level",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "isprepay",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "istk",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "item_query_score",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "level_one_cat",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "lg_auction_with_city",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "list_alg_features",
+            "field_type": "INT32",
+            "updatable_multi_value": true,
+            "multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "lp_rate",
+            "field_type": "UINT16"
+        },
+        {
+            "field_name": "lp_start",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "lptime",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "main_rate",
+            "field_type": "UINT16"
+        },
+        {
+            "field_name": "mall_auc_level",
+            "field_type": "UINT16"
+        },
+        {
+            "field_name": "min_escape_info_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "alg_bts1_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "alg_bts3_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "alg_bts4_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "alg_bts5_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "user_model_rule_b2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "mlr_shop_search",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "new_product_single_score",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "nick",
+            "field_type": "UINT64"
+        },
+        {
+            "field_name": "DUP_nick",
+            "field_type": "TEXT",
+            "analyzer": "multi_level_analyzer"
+        },
+        {
+            "field_name": "DUP_DUP_nick",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "nid",
+            "field_type": "UINT64"
+        },
+        {
+            "field_name": "oldbiz30day",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "old_starts",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "options_bits",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "ordercost",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "personal_data",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "pid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "pidvid",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "DUP_pidvid",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "pidvid_taobao",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "tmall_service_district",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "DUP_tmall_service_district",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "pps_auction_tags",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "pricemodel_lowprice",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "prom_biz30day",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "prom_options_bit",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "promote",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "prom_quantity",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "properties",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "provcity",
+            "field_type": "UINT16",
+            "updatable_multi_value": true,
+            "multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "psbit",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "q_doc_enhance",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "ratesum",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "real_post_fee",
+            "field_type": "UINT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "realtime_personality",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "region",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "reserve_price",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "unit_price",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "scid",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "seller_rank_score",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "seller_rank_score2",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "shop_score",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "shop_title",
+            "field_type": "UINT64"
+        },
+        {
+            "field_name": "DUP_shop_title",
+            "field_type": "TEXT",
+            "analyzer": "multi_level_analyzer"
+        },
+        {
+            "field_name": "shop_type",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "sku_and",
+            "field_type": "STRING",
+            "multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "sku_color_alg",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "sku_max",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "sku_min",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "sku_or",
+            "field_type": "STRING",
+            "multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "sku_or_num",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "sku_tagprice_max",
+            "field_type": "DOUBLE",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "sku_tagprice_min",
+            "field_type": "DOUBLE",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "spu_biz30day",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "spugroupid",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "spuid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "sspuid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "spu_max",
+            "field_type": "FLOAT"
+        },
+        {
+            "field_name": "spu_min",
+            "field_type": "FLOAT"
+        },
+        {
+            "field_name": "spu_top_tag",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "dsr_score",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "starts",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "static_trans_score",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "static_trans_score2",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "static_trans_score3",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "static_trans_score_app",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "sub_spuid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "support_cod",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "support_xcard",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "tag_price",
+            "field_type": "DOUBLE",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "title",
+            "field_type": "TEXT",
+            "analyzer": "multi_level_analyzer"
+        },
+        {
+            "field_name": "tk_rate",
+            "field_type": "UINT16"
+        },
+        {
+            "field_name": "tk_trans_score",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "tmall_service_ids",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "tmall_sort_score",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "tmall_spu_disable",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "tmall_title",
+            "field_type": "UINT64"
+        },
+        {
+            "field_name": "DUP_tmall_title",
+            "field_type": "TEXT",
+            "analyzer": "multi_level_analyzer"
+        },
+        {
+            "field_name": "spu_selling_point",
+            "field_type": "TEXT",
+            "analyzer": "multi_level_analyzer"
+        },
+        {
+            "field_name": "total_sold_quantity",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "user",
+            "multi_value": true,
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "user_id",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "shopid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "uvsum_suc",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "commend",
+            "field_type": "UINT16"
+        },
+        {
+            "field_name": "volume30day",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "week_sales",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "weight",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "zk_time",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "mj_zk_time",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "coupon_zk_time",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "zk_time_wap",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "zk_group",
+            "field_type": "UINT16",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "zk_group_wap",
+            "field_type": "UINT16",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "zk_money",
+            "field_type": "FLOAT",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "zk_rate",
+            "field_type": "UINT16",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "mj_zk_fee",
+            "field_type": "UINT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "coupon_zk_fee",
+            "field_type": "UINT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "zk_rate_wap",
+            "field_type": "UINT16",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "zk_rate2",
+            "field_type": "UINT16",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "zk_rate2_wap",
+            "field_type": "UINT16",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "zk_rate3",
+            "field_type": "UINT16",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "cat_full_path_b2c",
+            "field_type": "TEXT",
+            "analyzer": "semantic_analyzer"
+        },
+        {
+            "field_name": "hot_properties",
+            "field_type": "TEXT",
+            "analyzer": "semantic_analyzer"
+        },
+        {
+            "field_name": "un_hot_properties",
+            "field_type": "TEXT",
+            "analyzer": "semantic_analyzer"
+        },
+        {
+            "field_name": "auc_tag_names_b2c",
+            "field_type": "TEXT",
+            "analyzer": "semantic_analyzer"
+        },
+        {
+            "field_name": "spu_txt_b2c",
+            "field_type": "TEXT",
+            "analyzer": "multi_level_analyzer"
+        },
+        {
+            "field_name": "sku_pidvid",
+            "field_type": "UINT8",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "sku_price",
+            "field_type": "FLOAT",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "tm_zk_time",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "tm_zk_type",
+            "field_type": "UINT8",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "tm_zk_gift",
+            "field_type": "UINT16",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "barcodes",
+            "field_type": "UINT64",
+            "multi_value": true,
+            "updatable_multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "DUP_barcodes",
+            "field_type": "STRING",
+            "multi_value": true,
+            "compress_type": "uniq"
+        },
+        {
+            "field_name": "realtime_cvr_score1_1111",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "realtime_cvr_score2_1111",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "soldout_score1_1111",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "soldout_score2_1111",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "s_quantity_1111",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "mainsku_soldout_time_1111",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "trans_1day_1111",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "spu_fst",
+            "field_type": "INT32"
+        },
+   	{
+	    "field_name":"pack_attr_field1", 
+	    "field_type":"UINT8", 
+	    "multi_value":true, 
+	    "uniq_encode":true, 
+	    "updatable_multi_value":true
+	},
+   	{
+	    "field_name":"pack_attr_field2", 
+	    "field_type":"UINT8", 
+	    "multi_value":true, 
+	    "uniq_encode":true, 
+	    "updatable_multi_value":true
+	},
+    {
+        "field_name": "poi_newoffer",
+        "field_type": "FLOAT",
+        "multi_value": true
+    },
+    {
+        "field_name": "store_ids",
+        "field_type": "INT32",
+        "multi_value": true,
+        "uniq_encode": true
+    },
+    {
+        "field_name": "address_newoffer",
+        "field_type": "TEXT",
+        "analyzer": "multi_level_analyzer"
+    },
+    {
+        "field_name": "ba_newoffer",
+        "field_type": "INT32",
+        "multi_value": true
+    }
+    ],
+    "indexs": [
+        {
+            "index_name": "skuphrase",
+            "index_type": "EXPACK",
+            "position_list_flag": 0,
+            "term_frequency_flag": 0,
+            "first_occ_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "percent",
+            "index_analyzer": "multi_level_analyzer",
+            "index_fields": [
+                {
+                    "field_name": "title",
+                    "boost": 1000
+                },
+                {
+                    "field_name": "DUP_tmall_title",
+                    "boost": 1000
+                },
+                {
+                    "field_name": "cat_full_path_b2c",
+                    "boost": 1000
+                },
+                {
+                    "field_name": "hot_properties",
+                    "boost": 1000
+                },
+                {
+                    "field_name": "un_hot_properties",
+                    "boost": 1000
+                },
+                {
+                    "field_name": "auc_tag_names_b2c",
+                    "boost": 1000
+                }
+            ]
+        },
+        {
+            "index_name": "stdphrase",
+            "index_type": "EXPACK",
+            "position_list_flag": 0,
+            "term_frequency_flag": 0,
+            "first_occ_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "percent",
+            "index_analyzer": "multi_level_analyzer",
+            "index_fields": [
+                {
+                    "field_name": "DUP_tmall_title",
+                    "boost": 1000
+                },
+                {
+                    "field_name": "spu_selling_point",
+                    "boost": 1000
+                },
+                {
+                    "field_name": "cat_full_path_b2c",
+                    "boost": 1000
+                },
+                {
+                    "field_name": "hot_properties",
+                    "boost": 1000
+                },
+                {
+                    "field_name": "un_hot_properties",
+                    "boost": 1000
+                },
+                {
+                    "field_name": "auc_tag_names_b2c",
+                    "boost": 1000
+                },
+                {
+                    "field_name": "spu_txt_b2c",
+                    "boost": 1000
+                }
+            ]
+        },
+        {
+            "index_name": "shopphrase",
+            "index_type": "EXPACK",
+            "position_list_flag": 0,
+            "term_frequency_flag": 0,
+            "first_occ_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "percent",
+            "index_fields": [
+                {
+                    "field_name": "DUP_nick",
+                    "boost": 1000
+                },
+                {
+                    "field_name": "DUP_shop_title",
+                    "boost": 1000
+                }
+            ]
+        },
+        {
+            "index_name": "activity_id",
+            "index_type": "STRING",
+            "index_fields": "activity_id",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "cspu_ids",
+            "index_type": "STRING",
+            "index_fields": "cspu_ids",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "barcodes",
+            "index_type": "STRING",
+            "index_fields": "DUP_barcodes",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "region_service",
+            "index_type": "STRING",
+            "index_fields": "DUP_tmall_service_district",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "alg_tag",
+            "index_type": "NUMBER",
+            "index_fields": "alg_tag",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "auc_constellation_b2c",
+            "index_type": "NUMBER",
+            "index_fields": "auc_constellation_b2c",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "auction_ext",
+            "index_type": "STRING",
+            "index_fields": "auction_ext",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "auction_tag",
+            "index_type": "NUMBER",
+            "index_fields": "auction_tag",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "ss_auction_tag",
+            "index_type": "NUMBER",
+            "index_fields": "ss_auction_tag",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "auction_type",
+            "index_type": "STRING",
+            "index_fields": "auction_type",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "auto_post",
+            "index_type": "STRING",
+            "index_fields": "auto_post",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "baobei_type",
+            "index_type": "NUMBER",
+            "index_fields": "baobei_type",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "brand_tag",
+            "index_type": "NUMBER",
+            "index_fields": "brand_tag",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "categoryp",
+            "index_type": "NUMBER",
+            "index_fields": "categoryp",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "cat_id_path",
+            "index_type": "NUMBER",
+            "index_fields": "cat_id_path",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "percent"
+        },
+        {
+            "index_name": "disp_flag",
+            "index_type": "STRING",
+            "index_fields": "disp_flag",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "hprop",
+            "index_type": "STRING",
+            "index_fields": "hprop",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "isnewest",
+            "index_type": "NUMBER",
+            "index_fields": "isnewest",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "spam_filter",
+            "index_type": "NUMBER",
+            "index_fields": "spam_filter",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "isprepay",
+            "index_type": "STRING",
+            "index_fields": "isprepay",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "istk",
+            "index_type": "STRING",
+            "index_fields": "istk",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "lp_start",
+            "index_type": "STRING",
+            "index_fields": "lp_start",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "lptime",
+            "index_type": "STRING",
+            "index_fields": "lptime",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "nick",
+            "index_type": "STRING",
+            "index_fields": "DUP_DUP_nick",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "options_bits",
+            "index_type": "STRING",
+            "index_fields": "options_bits",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "pid",
+            "index_type": "NUMBER",
+            "index_fields": "pid",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "pidvid",
+            "index_type": "STRING",
+            "index_fields": "DUP_pidvid",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "percent"
+        },
+        {
+            "index_name": "pidvid_taobao",
+            "index_type": "STRING",
+            "index_fields": "pidvid_taobao",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "percent"
+        },
+        {
+            "index_name": "pps_auction_tags",
+            "index_type": "STRING",
+            "index_fields": "pps_auction_tags",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "prom_options_bit",
+            "index_type": "STRING",
+            "index_fields": "prom_options_bit",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "promote",
+            "index_type": "STRING",
+            "index_fields": "promote",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "properties",
+            "index_type": "STRING",
+            "index_fields": "properties",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "psbit",
+            "index_type": "STRING",
+            "index_fields": "psbit",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "ratesum",
+            "index_type": "NUMBER",
+            "index_fields": "ratesum",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "region",
+            "index_type": "NUMBER",
+            "index_fields": "region",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "scid",
+            "index_type": "NUMBER",
+            "index_fields": "scid",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "sku_and",
+            "index_type": "STRING",
+            "index_fields": "sku_and",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "sku_or",
+            "index_type": "STRING",
+            "index_fields": "sku_or",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "spugroupid",
+            "index_type": "STRING",
+            "index_fields": "spugroupid",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "spuid",
+            "index_type": "NUMBER",
+            "index_fields": "spuid",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "sspuid",
+            "index_type": "NUMBER",
+            "index_fields": "sspuid",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "sub_spuid",
+            "index_type": "NUMBER",
+            "index_fields": "sub_spuid",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "support_cod",
+            "index_type": "STRING",
+            "index_fields": "support_cod",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "support_xcard",
+            "index_type": "STRING",
+            "index_fields": "support_xcard",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "size"
+        },
+        {
+            "index_name": "tmall_service_ids",
+            "index_type": "STRING",
+            "index_fields": "tmall_service_ids",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "user",
+            "index_type": "STRING",
+            "index_fields": "user",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "user_id",
+            "index_type": "NUMBER",
+            "index_fields": "user_id",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "nid",
+            "index_fields": "nid",
+            "index_type": "PRIMARYKEY64",
+            "is_primary_key_sorted": true,
+            "has_primary_key_attribute": false,
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "store_ids",
+            "index_type": "NUMBER",
+            "index_fields": "store_ids",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "address_newoffer",
+            "index_type": "TEXT",
+            "index_fields": "address_newoffer",
+            "term_frequency_flag": 0,
+            "position_list_flag": 0
+        },
+        {
+            "index_name": "ba_newoffer",
+            "index_type": "NUMBER",
+            "index_fields": "ba_newoffer",
+            "term_frequency_flag": 0,
+            "high_frequency_term_posting_type": "both",
+            "high_frequency_adaptive_dictionary": "percent"
+        }
+    ],
+    "attributes": [
+        "mlr_algo_bts1_yundu_b2c",
+        "mlr_algo_bts2_yundu_b2c",
+        "mlr_algo_bts3_yundu_b2c",
+        "mlr_algo_bts4_yundu_b2c",
+        "mlr_algo_bts5_yundu_b2c",
+        "tmall_seller_sort_bts1_b2c",
+        "tmall_seller_sort_bts2_b2c",
+        "alg_bts_feature3",
+        "alg_feedback_features",
+        "ltm_nid_ngram_b2c",
+        "alg_tag",
+        "areascore",
+        "auc_new_score",
+        "auction_point",
+        "auction_tag",
+        "ss_auction_tag",
+        "biz30day",
+        "brand",
+        "jhs_starttime",
+        "brand_tag",
+        "category",
+        "cat_id_path",
+        "catmap",
+        "comment_count",
+        "auction_activity_id",
+        "mainbts_good_buy",
+        "mainbts_rand_buy",
+        "cspus",
+        "division_brand_diaoxing",
+        "division_pidvid",
+        "division_price",
+        "doc_more",
+        "ends",
+        "ends_1",
+        "tmall_detail_app_cvs_b2c",
+        "grade_avg",
+        "sis_seller_update_score",
+        "seller_refund_b2c",
+        "auc_popu_new_product",
+        "isnewest",
+        "item_query_score",
+        "level_one_cat",
+        "lg_auction_with_city",
+        "list_alg_features",
+        "lp_rate",
+        "main_rate",
+        "mall_auc_level",
+        "min_escape_info_b2c",
+        "alg_bts1_b2c",
+        "alg_bts3_b2c",
+        "alg_bts4_b2c",
+        "alg_bts5_b2c",
+        "user_model_rule_b2c",
+        "mlr_shop_search",
+        "new_product_single_score",
+        "nick",
+        "nid",
+        "oldbiz30day",
+        "old_starts",
+        "ordercost",
+        "personal_data",
+        "pid",
+        "pidvid",
+        "pricemodel_lowprice",
+        "prom_biz30day",
+        "prom_quantity",
+        "provcity",
+        "q_doc_enhance",
+        "ratesum",
+        "real_post_fee",
+        "realtime_personality",
+        "region",
+        "reserve_price",
+        "unit_price",
+        "scid",
+        "seller_rank_score",
+        "seller_rank_score2",
+        "shop_score",
+        "shop_title",
+        "shop_type",
+        "sku_and",
+        "sku_color_alg",
+        "sku_max",
+        "sku_min",
+        "sku_or",
+        "sku_or_num",
+        "sku_tagprice_max",
+        "sku_tagprice_min",
+        "spu_biz30day",
+        "spuid",
+        "sspuid",
+        "spu_max",
+        "spu_min",
+        "spu_top_tag",
+        "dsr_score",
+        "starts",
+        "static_trans_score",
+        "static_trans_score2",
+        "static_trans_score3",
+        "static_trans_score_app",
+        "sub_spuid",
+        "tag_price",
+        "tk_rate",
+        "tk_trans_score",
+        "tmall_sort_score",
+        "tmall_spu_disable",
+        "tmall_title",
+        "total_sold_quantity",
+        "user_id",
+        "shopid",
+        "uvsum_suc",
+        "commend",
+        "volume30day",
+        "week_sales",
+        "weight",
+        "zk_time_wap",
+        "zk_rate_wap",
+        "zk_group_wap",
+        "zk_rate2_wap",
+        "zk_time",
+        "mj_zk_time",
+        "coupon_zk_time",
+        "zk_group",
+        "zk_money",
+        "zk_rate",
+        "zk_rate2",
+        "zk_rate3",
+        "mj_zk_fee",
+        "coupon_zk_fee",
+        "sku_pidvid",
+        "sku_price",
+        "basis_items_informations_b2c",
+        "WirlessAucScore_b2c",
+        "tmall_app_field1_b2c",
+        "tmall_app_field2_b2c",
+        "tmall_app_field3_b2c",
+        "tmall_app_field4_b2c",
+        "tmall_app_field5_b2c",
+        "tmall_app_field6_b2c",
+        "gid_weight",
+        "auc_personal_recall_b2c",
+        "WirlessQueryNidScore_b2c",
+        "tmall_bad_seller_auction_b2c",
+        "tm_zk_time",
+        "tm_zk_type",
+        "tm_zk_gift",
+        "barcodes",
+        "realtime_cvr_score1_1111",
+        "realtime_cvr_score2_1111",
+        "soldout_score1_1111",
+        "soldout_score2_1111",
+        "s_quantity_1111",
+        "mainsku_soldout_time_1111",
+        "trans_1day_1111",
+        "spu_fst",
+        "spam_level",
+        "poi_newoffer",
+	    "pack_attr_field1", 
+	    "pack_attr_field2",
+        "tmall_service_district"
+    ],
+    "summarys": {
+        "summary_fields": ["nid"],
+        "compress": true
+    },
+    "sub_schema": {
+        "table_name": "tmall_searcher",
+        "adaptive_dictionaries": [
+            {
+                "adaptive_dictionary_name": "percent",
+                "dict_type": "PERCENT",
+                "threshold": 5
+            },
+            {
+                "adaptive_dictionary_name": "size",
+                "dict_type": "INDEX_SIZE"
+            }
+        ],
+        "fields": [
+            {
+                "field_name": "sku_zk_time_wap_skulist",
+                "field_type": "INT64",
+                "multi_value": true,
+                "compress_type": "uniq"
+            },
+            {
+                "field_name": "sku_zk_rate_wap_skulist",
+                "field_type": "UINT16",
+                "multi_value": true,
+                "compress_type": "uniq"
+            },
+            {
+                "field_name": "sku_zk_group_wap_skulist",
+                "field_type": "UINT16",
+                "multi_value": true,
+                "compress_type": "uniq"
+            },
+            {
+                "field_name": "sku_zk_time_skulist",
+                "field_type": "INT64",
+                "multi_value": true,
+                "compress_type": "uniq"
+            },
+            {
+                "field_name": "sku_size_tag_skulist",
+                "field_type": "INT32",
+                "multi_value": true,
+                "compress_type": "uniq"
+            },
+            {
+                "field_name": "sku_zk_group_skulist",
+                "field_type": "UINT16",
+                "multi_value": true,
+                "compress_type": "uniq"
+            },
+            {
+                "field_name": "cspuid_skulist",
+                "field_type": "INT64"
+            },
+            {
+                "field_name": "skuid_skulist",
+                "field_type": "UINT64"
+            },
+            {
+                "field_name": "cspu_sold_skulist",
+                "field_type": "INT32"
+            },
+            {
+                "field_name": "sku_properties_skulist",
+                "field_type": "INT64",
+                "multi_value": true,
+                "compress_type": "uniq"
+            },
+            {
+                "field_name": "DUP_sku_properties_skulist",
+                "field_type": "STRING",
+                "multi_value": true
+            },
+            {
+                "field_name": "sku_price_skulist",
+                "field_type": "DOUBLE"
+            },
+            {
+                "field_name": "sku_know_tag_skulist",
+                "field_type": "UINT64",
+                "multi_value": true,
+                "compress_type": "uniq"
+            },
+            {
+                "field_name": "nid_skuscore_SkuII_skulist",
+                "field_type": "DOUBLE"
+            },
+            {
+                "field_name": "nid_cspuscore_SkuII_skulist",
+                "field_type": "DOUBLE"
+            },
+            {
+                "field_name": "cspu_disable_skulist",
+                "field_type": "INT8"
+            },
+            {
+                "field_name": "sku_zk_rate_skulist",
+                "field_type": "UINT16",
+                "multi_value": true,
+                "compress_type": "uniq"
+            },
+            {
+                "field_name": "sku_sold_skulist",
+                "field_type": "INT32"
+            },
+            {
+                "field_name": "sale_prop_txt_skulist",
+                "field_type": "TEXT",
+                "analyzer": "semantic_analyzer"
+            },
+            {
+                "field_name": "product_code_skulist",
+                "field_type": "TEXT",
+                "analyzer": "semantic_analyzer"
+            }
+        ],
+        "indexs": [
+            {
+                "index_name": "phrase_skulist",
+                "index_type": "EXPACK",
+                "position_list_flag": 0,
+                "term_frequency_flag": 0,
+                "first_occ_flag": 0,
+                "high_frequency_term_posting_type": "both",
+                "high_frequency_adaptive_dictionary": "percent",
+                "index_analyzer": "multi_level_analyzer",
+                "index_fields": [
+                    {
+                        "field_name": "sale_prop_txt_skulist",
+                        "boost": 1000
+                    },
+                    {
+                        "field_name": "product_code_skulist",
+                        "boost": 1000
+                    }
+                ]
+            },
+            {
+                "index_name": "cspuid_skulist",
+                "index_type": "NUMBER",
+                "index_fields": "cspuid_skulist",
+                "term_frequency_flag": 0,
+                "has_dict_inline_compress" : true
+            },
+            {
+                "index_name": "cspu_disable_skulist",
+                "index_type": "NUMBER",
+                "index_fields": "cspu_disable_skulist",
+                "term_frequency_flag": 0,
+                "has_dict_inline_compress" : true
+            },
+            {
+                "index_name": "skuid_skulist",
+                "index_type": "PRIMARYKEY64",
+                "index_fields": "skuid_skulist",
+                "is_primary_key_sorted": true,
+                "term_frequency_flag": 0
+            },
+            {
+                "index_name": "sku_properties_skulist",
+                "index_type": "STRING",
+                "index_fields": "DUP_sku_properties_skulist",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_name": "sku_size_tag_skulist",
+                "index_type": "NUMBER",
+                "index_fields": "sku_size_tag_skulist",
+                "term_frequency_flag": 0
+            }
+        ],
+        "attributes": [
+            "sku_zk_time_wap_skulist",
+            "sku_zk_rate_wap_skulist",
+            "sku_zk_group_wap_skulist",
+            "sku_zk_time_skulist",
+            "sku_zk_group_skulist",
+            "cspuid_skulist",
+            "skuid_skulist",
+            "cspu_sold_skulist",
+            "sku_properties_skulist",
+            "sku_price_skulist",
+            "sku_know_tag_skulist",
+            "nid_skuscore_SkuII_skulist",
+            "nid_cspuscore_SkuII_skulist",
+            "cspu_disable_skulist",
+            "sku_zk_rate_skulist",
+            "sku_sold_skulist",
+            "sku_size_tag_skulist"
+        ],
+        "summarys": {
+            "summary_fields": [],
+            "compress": true
+        }
+    }
+}

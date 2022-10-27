@@ -1,0 +1,34 @@
+# -*- mode: python -*-
+
+Import('env')
+
+env = env.Clone()
+
+libconfig_sources = [
+    'LegacyIndexInfoHelper.cpp',
+    'QueryInfo.cpp',
+    'ResultConfigInfo.cpp',
+    'ClusterConfigInfo.cpp',
+    'ConfigAdapter.cpp',
+    'ProcessorInfo.cpp',
+    'QrsChainInfo.cpp',
+    'HitSummarySchema.cpp',
+    'GenerationMeta.cpp',
+    'RankProfileInfo.cpp',
+    'RankProfileConfig.cpp',
+    'RankSizeConverter.cpp',
+    "SummaryProfileInfo.cpp",
+    'SummaryProfileConfig.cpp',
+    'ClusterConfigParser.cpp',
+    'JoinConfig.cpp',
+    'ClusterTableInfoManager.cpp',
+    'ClusterTableInfoValidator.cpp',
+    'ResourceTypeSet.cpp',
+    'SearchOptimizerConfig.cpp',
+    'TuringOptionsInfo.cpp',
+    ]
+
+env.aLibrary(target = 'ha3_config',
+             source = libconfig_sources)
+
+env.aDirs('test')

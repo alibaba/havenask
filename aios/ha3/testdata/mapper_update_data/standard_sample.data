@@ -1,0 +1,15 @@
+CMD=update_field
+id=1
+company_id=1
+cat_id=10
+end1=20
+
+CMD=update_field
+id=2
+company_id=2
+
+CMD=update_field
+id=3
+company_id=3
+cat_id=30
+

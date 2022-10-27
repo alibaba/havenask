@@ -1,0 +1,55 @@
+{
+    "tables": [
+        {
+            "catalog_name": "default",
+            "database_name": "db4",
+            "table_version": 2,
+            "table_name": "logical_table1",
+            "table_type": "json_default",
+            "table_content_version": "0.1",
+            "table_content": {
+                "table_name": "logical_table1",
+                "table_type": "normal",
+                "fields": [
+                    {
+                        "field_name": "i1",
+                        "field_type": {
+                            "type": "int32"
+                        }
+                    },
+                    {
+                        "field_name": "i2",
+                        "field_type": {
+                            "type": "int32"
+                        }
+                    }
+                ],
+                "sub_tables": [
+                    {
+                        "sub_table_name": "multiset1",
+                        "sub_fields": [
+                            {
+                                "field_name": "ix",
+                                "field_type": {
+                                    "type": "int32"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "distribution": {
+                    "partition_cnt": 1,
+                    "hash_fields": [
+                        "i1"
+                    ],
+                    "hash_function": "HASH64"
+                },
+                "join_info": {
+                    "table_name": "",
+                    "join_field": ""
+                },
+                "properties": {}
+            }
+        }
+    ]
+}

@@ -1,0 +1,28 @@
+CMD=delete
+company_id=1
+subject=Mobile 商务笔记本
+keywords=笔记本
+cat_id=10
+end1=20
+
+CMD=update_field
+company_id=1
+subject=Mobile 商务笔记本
+keywords=笔记本
+cat_id=10
+end1=20
+
+CMD=add
+company_id=1
+subject=Mobile 商务笔记本
+keywords=笔记本
+cat_id=10
+end1=20
+
+CMD=update
+company_id=1
+subject=Mobile 商务笔记本
+keywords=笔记本
+cat_id=10
+end1=20
+

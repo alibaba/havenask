@@ -1,0 +1,36 @@
+CMD=add
+id=1
+url=1
+company_id=11
+subject=Mobile 商务笔记本
+title=Mobile
+keywords=笔记本
+cat_id=11
+
+CMD=add
+id=2
+url=2
+company_id=12
+subject=Mobile Phone
+title=Mobile Phone
+keywords=智能手机
+cat_id=12
+
+CMD=add
+id=3
+url=0
+company_id=13
+subject=Mobile OPPO Mp3
+title=mp3
+keywords=Mp3
+cat_id=13
+
+CMD=add
+id=4
+url=3
+company_id=14
+subject=Mobile 诺基亚_5320
+title=手机
+keywords=Nokia手机
+cat_id=14
+

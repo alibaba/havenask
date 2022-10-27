@@ -1,0 +1,103 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+unittestcpps = [
+    '#indexlib/test/dotest.cpp',
+    'partition_info_creator.cpp',
+    'partition_info_unittest.cpp',
+    'lifecycle_segment_metrics_updater_unittest.cpp',
+    'time_series_segment_metrics_updater_unittest.cpp',
+    'multi_segment_metrics_updater_unittest.cpp',
+    'max_min_segment_metrics_updater_unittest.cpp',
+]
+
+libsname_common = [
+    'indexlib_indextest_common',
+    'indexlib_packtest',
+    'indexlib_configtest',
+    'indexlib_attributetest',
+    'indexlib_indextest_common',
+    'indexlib_truncate_test_common',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'fslib-framework',
+    'autil',
+    'gmock',
+    'gtest',
+    'pthread'
+]
+
+commoncpps = [
+    '#indexlib/merger/test/merge_task_maker.cpp',
+    '#indexlib/test/version_maker.cpp',
+    '#indexlib/index/normal/inverted_index/test/index_iterator_mock.cpp',
+    '#indexlib/index/normal/inverted_index/test/index_term_extender_mock.cpp',
+    '#indexlib/index/normal/inverted_index/test/segment_term_info_queue_mock.cpp',
+    '#indexlib/index/normal/inverted_index/builtin_index/pack/test/pack_position_maker.cpp',
+    '#indexlib/index/normal/inverted_index/builtin_index/pack/test/pack_posting_maker.cpp',
+    '#indexlib/index/normal/attribute/test/attribute_test_util.cpp',
+    '#indexlib/index/normal/attribute/test/section_attribute_test_util.cpp',
+    '#indexlib/index/normal/attribute/test/attribute_merger_test_util.cpp',
+    '#indexlib/index/normal/attribute/test/updatable_var_num_attribute_merger_test_util.cpp',
+    'mock_segment_directory.cpp',
+    'index_test_util.cpp',
+    'posting_maker.cpp',
+    'index_document_maker.cpp',
+    'document_maker.cpp',
+    'section_data_maker.cpp',
+    'document_checker_for_gtest.cpp',
+]
+
+#### for io exception ####
+exception_unittestcpps = [
+    '#indexlib/test/dotest.cpp',
+    'indexlib_exception_perftest.cpp',
+    ]
+
+libsname = libsname_common + ['indexlib_storage']
+libsname_exception =  ['indexlib_storage_mock', 'indexlib_file_system_test_common'] + libsname_common
+
+env.aSharedLibrary(target='indexlib_indextest_common', source=commoncpps)
+
+env.aTest(target = 'ie_index_unittest', source = unittestcpps, LIBS = libsname)
+env.aTest(target = 'ie_index_exception_unittest', 
+          source = exception_unittestcpps, LIBS = libsname_exception)
+
+Return([])
+
+######################## dependency check ##########################
+index_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+index_minimal_dependency_libs = [
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+]
+
+env.aTest(target = 'indexlib_index_dependency_unittest',
+          source = index_minimal_dependency_sources,
+          LIBS = index_minimal_dependency_libs)

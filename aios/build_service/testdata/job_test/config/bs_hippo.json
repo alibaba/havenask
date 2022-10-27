@@ -1,0 +1,59 @@
+{
+    "packages" : [
+        {
+            "packageURI" : "pangu://AT-ha3perf/zhubin/bs_func_test//_external_2015-10-30-16:15:21.tar",
+            "type" : "ARCHIVE"
+        }
+    ],
+    "role_customize" : [
+        {
+            "_bs_role" : ".*",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        {
+                            "amount" : 75,
+                            "name" : "cpu"
+                        },
+                        {
+                            "amount" : 1,
+                            "name" : "mem"
+                        },
+                        {
+                            "amount" : 1,
+                            "name" : "zhubin_test"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "role_default" : {
+        "count" : 1,
+        "processInfos" : [
+            {
+                "args" : [
+                    [
+                        "-l",
+                        "$HIPPO_APP_INST_ROOT/usr/local/etc/bs/bs_test_alog.conf"
+                    ]
+                ],
+                "envs" : [
+                    [
+                        "HADOOP_HOME",
+                        "/home/hadoop.devel/hadoop-2.2.0-cdh5.0.0-devel/hadoop/"
+                    ],
+                    [
+                        "LD_LIBRARY_PATH",
+                        "/usr/ali/java/jre/lib/amd64/server/"
+                    ],
+                    [
+                        "SEND_MESSAGE_ADDR",
+                        "tcp:10.101.169.108:9200"
+                    ]
+                ],
+                "isDaemon" : true
+            }
+        ]
+    }
+}

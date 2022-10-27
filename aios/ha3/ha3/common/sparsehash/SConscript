@@ -1,0 +1,7 @@
+# -*- mode: python -*-
+import os
+import SCons.Script
+Import('env')
+
+env = env.Clone()
+env.aDirs('test')

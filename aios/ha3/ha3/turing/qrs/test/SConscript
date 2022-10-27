@@ -1,0 +1,18 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+libsname = ['ha3_fakeservice']
+
+#env['ENV']['JAVA_HOME'] = env['JAVA_SDK_PATH']
+#env['ENV']['HADOOP_HOME'] = env['HADOOP_HOME']
+
+ha3_turing_searcher_test = env.aTest(
+    target = 'ha3_turing_qrs_test',
+    source = Glob('*.cpp'),
+    LIBS = env['ha3_test_depend_lib'] + libsname
+    )

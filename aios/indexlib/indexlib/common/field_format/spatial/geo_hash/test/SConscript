@@ -1,0 +1,35 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+geo_hash_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'geo_hash_util_unittest.cpp',
+]
+
+geo_hash_libs = [
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_indextest_common',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_common',
+    'indexlib_document',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest',
+]
+
+env.aTest(target = 'ie_geo_hash_unittest', 
+          source = geo_hash_test_sources, LIBS = geo_hash_libs)
+
+

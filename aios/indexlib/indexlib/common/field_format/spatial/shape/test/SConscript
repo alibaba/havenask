@@ -1,0 +1,45 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+shape_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'shape_creator_unittest.cpp',
+    'point_unittest.cpp',
+    'circle_unittest.cpp',
+    'shape_coverer_unittest.cpp',
+    'rectangle_unittest.cpp',
+    'line_intersect_operator_unittest.cpp',
+    'rectangle_intersect_operator_unittest.cpp',
+    'polygon_unittest.cpp',
+    'line_unittest.cpp',
+    'event_unittest.cpp',
+    'event_queue_unittest.cpp',
+    'slseg_unittest.cpp',
+]
+
+shape_libs = [
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest',
+]
+
+env.aTest(target = 'ie_shape_unittest', 
+          source = shape_test_sources, LIBS = shape_libs)
+
+

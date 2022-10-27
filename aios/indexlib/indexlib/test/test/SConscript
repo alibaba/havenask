@@ -1,0 +1,62 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+example_resources = [
+    'example_customized_document.cpp'
+]
+
+libcustom_doc_factory = env.aSharedLibrary(target='customized_doc_for_psm_test',
+                                           source= example_resources)
+
+test_ut_libs = [
+    'indexlib_test',
+    'indexlib',
+    'gmock',
+    'gtest',
+    'pthread'
+]
+
+test_ut_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'document_parser_unittest.cpp',
+    'schema_maker_unittest.cpp',
+    'document_creator_unittest.cpp',
+    'partition_state_machine_unittest.cpp',
+    'single_field_partition_data_provider_unittest.cpp',
+]
+
+psm_test =env.aTest(target = 'ie_test_unittest',
+                    source = test_ut_test_sources,
+                    LIBS = test_ut_libs)
+
+env.Depends(psm_test,
+            [libcustom_doc_factory])
+
+######################## dependency check ##########################
+test_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+test_minimal_dependency_libs = [
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+]
+
+env.aTest(target = 'indexlib_test_dependency_unittest',
+          source = test_minimal_dependency_sources,
+          LIBS = test_minimal_dependency_libs)

@@ -1,0 +1,17 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+libsname = ['ops_testutil', 'test', 'testlib']
+
+env.aTest(
+    target = 'ha3_sql_ops_test',
+    source = [
+        'RunSqlOpTest.cpp',
+    ],
+    LIBS = libsname + env['ha3_test_depend_lib']
+)

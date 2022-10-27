@@ -1,0 +1,24 @@
+{
+    "table_name": "simple_table",
+    "table_type": "customized",
+    "customized_table_config" : {
+        "plugin_name" : "customized_index_for_workflow",
+        "parameters" : {
+            "key": "param1",
+            "max_doc_count": "2000"
+        }
+    },
+    "customized_document_config" :
+    [
+        {
+            "plugin_name" : "customized_index_for_workflow",
+            "parameters" : {"key":"param2"},
+            "id" : "document.parser"
+        },
+        {
+            "plugin_name" : "customized_index_for_workflow",
+            "parameters" : {"key":"param3"},
+            "id" : "document.raw_document"
+        }
+    ]
+}

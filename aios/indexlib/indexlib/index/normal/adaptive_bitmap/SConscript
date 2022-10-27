@@ -1,0 +1,9 @@
+Import('env')
+env = env.Clone()
+
+adaptive_bitmap=Glob('*.cpp')
+env.aDirs('test')
+
+#env.aLibrary(target='indexlib_adaptive_bitmap', source=adaptive_bitmap)
+
+Return(['adaptive_bitmap'] )

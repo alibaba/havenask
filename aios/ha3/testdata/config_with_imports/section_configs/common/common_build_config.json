@@ -1,0 +1,32 @@
+{
+    "RawDocumentFormat" : "ha3",
+    "NeedSort" : true,
+    "NeedPartition" : true,
+    "MapBufferSize" : 256,
+    "MapReduceRatio" : 8,
+    "DocumentProcessThreadNum" : 1,
+    "DocumentProcessQueueSize" : 250,
+    "IndexDocumentQueueSize" : 250,        
+    "EnableSyncBuild" : true,
+    "BuildQps" : 500,  
+    "NeedSkip": false,      
+    "IndexKeepTime" : 36000,
+    "IndexDumpInterval" : 60,
+    "HashFieldAllowEmpty" : false,
+    "IncDedupOption": "use:yes;ignore_fields:commend",
+    "SortParams":
+    [
+        {
+	    "SortFieldName": "category",
+	    "SortFieldType": "INT32",
+	    "SortPattern": "DESC"
+        },
+        {
+	    "SortFieldName": "ends",
+	    "SortFieldType": "INT64",
+	    "SortPattern": "ASC"
+        }
+    ],
+    "NeedParseEnds" : true,
+    "RealtimeBuildDelayTime" : 90
+}

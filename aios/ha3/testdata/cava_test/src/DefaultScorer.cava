@@ -1,0 +1,16 @@
+
+import ha3.*;
+class DefaultScorer {
+    Int32Ref ref;
+    boolean init(ScorerProvider provider) {
+        IRefManager refManger = provider.getRefManager();
+        ref = refManger.requireInt32("id");
+        return true;
+    }
+    double process(MatchDoc doc) {
+        return ref.get(doc);
+    }
+    static DefaultScorer create() {
+	return new DefaultScorer();
+    }
+}

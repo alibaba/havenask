@@ -1,0 +1,24 @@
+package scorer;
+import lib.*;
+import ha3.*;
+import ha3.FeatureLib;
+
+class UseFeatureLibScorer {
+    Feature1 _feature1;
+    Feature2 _feature2;
+    boolean init(ha3.ScorerProvider provider, FeatureLib featureLib) {
+	_feature1 = featureLib.getFeature1();
+	_feature2 = featureLib.getFeature2();
+	_feature1.init(provider);
+	_feature2.init(provider);
+        return true;
+    }
+
+    double process(ha3.MatchDoc doc) {
+	return _feature1.process(doc) + _feature2.process(doc);
+    }
+    static UseFeatureLibScorer create() {
+	return new UseFeatureLibScorer();
+    }
+
+}

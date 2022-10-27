@@ -1,0 +1,71 @@
+# -*- mode: python -*-
+import platform
+Import('env')
+env = env.Clone();
+
+common_ut_libs = [
+    'indexlib_testlib',
+    'indexlib_indextest_common',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_common',
+    'indexlib_document',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system_test_common',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'fslib-framework',
+    'autil',
+    'gmock',
+    'gtest',
+    'pthread',
+]
+
+commoncpps = [
+]
+
+common_ut_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'radix_tree_unittest.cpp',
+    'radix_tree_node_unittest.cpp',
+    'typed_slice_list_unittest.cpp',
+    'short_buffer_unittest.cpp',
+    'atomic_value_typed_unittest.cpp',
+    'byte_slice_writer_unittest.cpp',
+    "byte_slice_reader_unittest.cpp",
+    "profiling_unittest.cpp",
+    'in_mem_file_writer_unittest.cpp',
+    'executor_scheduler_unittest.cpp',
+]
+
+
+env.aSharedLibrary(target='indexlib_commontest_common', source=commoncpps)
+
+env.aTest(target = 'ie_common_unittest',
+          source = common_ut_test_sources,
+          LIBS= common_ut_libs)
+
+
+###################### dependency check #######################
+common_minimal_dependency_sources = [
+    '#indexlib/test/do_dependency_test.cpp',
+]
+
+common_minimal_dependency_libs = [
+    'indexlib_common',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+]
+
+env.aTest(target = 'indexlib_common_dependency_unittest',
+          source = common_minimal_dependency_sources,
+          LIBS = common_minimal_dependency_libs)

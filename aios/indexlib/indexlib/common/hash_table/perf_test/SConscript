@@ -1,0 +1,17 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+util_hash_table_ut_perftest_sources = [
+    '#indexlib/test/dotest.cpp',
+    #'dense_hash_table_perf_unittest.cpp',
+    #'cuckoo_hash_table_perf_unittest.cpp',
+    #'chain_hash_table_perf_unittest.cpp', 
+    'dense_hash_table_multi_thread_unittest.cpp',
+    'cuckoo_hash_table_multi_thread_unittest.cpp'
+]
+
+env.aTest(target = 'ie_util_hash_table_perftest',
+          source = util_hash_table_ut_perftest_sources,
+          LIBS= ['indexlib_basic', 'autil', 'gmock', 'gtest'])

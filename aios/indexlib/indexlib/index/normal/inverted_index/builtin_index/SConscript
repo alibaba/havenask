@@ -1,0 +1,25 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+date = env.aDirs('date')
+range = env.aDirs('range')
+spatial = env.aDirs('spatial')
+bitmap = env.aDirs('bitmap')
+pack = env.aDirs('pack')
+expack = env.aDirs('expack')
+text = env.aDirs('text')
+string = env.aDirs('string')
+number = env.aDirs('number')
+
+builtin_index=Glob('*.cpp')
+builtincpps = [date, range, spatial, bitmap, pack, expack, text, string, number, builtin_index]
+
+#env.aLibrary(target='indexlib_builtin_index', source=builtincpps)
+
+#env.aDirs('test')
+
+Return(['builtincpps'] )
+
+

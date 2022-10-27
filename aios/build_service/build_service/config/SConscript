@@ -1,0 +1,52 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+config_sources = [
+    'ResourceReader.cpp',
+    'BuildServiceConfig.cpp',
+    'SwiftTopicConfig.cpp',
+    'BuildRuleConfig.cpp',
+    'IndexPartitionOptionsWrapper.cpp',
+    'DocProcessorChainConfig.cpp',
+    'GenerationMeta.cpp',
+    'ConfigParser.cpp',
+    'OfflineMergeConfig.cpp',
+    'OfflineIndexConfigMap.cpp',
+    'SwiftConfig.cpp',
+    'ProcessorRuleConfig.cpp',
+    'ProcessorConfigurator.cpp',
+    'BuilderClusterConfig.cpp',
+    'BuilderConfig.cpp',
+    'SlowNodeDetectConfig.cpp',
+    'CounterConfig.cpp',
+    'MergePluginConfig.cpp',
+    'HashModeConfig.cpp',
+    'HashMode.cpp',
+    'SchemaUpdatableClusterConfig.cpp',
+    'TaskConfig.cpp',
+    'TaskInputConfig.cpp',
+    'TaskOutputConfig.cpp',
+    'TaskControllerConfig.cpp',
+    'TaskTarget.cpp',
+    'ProcessorChainSelectorConfig.cpp',
+    'ResourceReaderManager.cpp',
+    'ConfigReaderAccessor.cpp',
+    'DocReclaimSource.cpp',
+    'ScriptTaskConfig.cpp',
+    'ControlConfig.cpp',
+    ]
+
+env.checkAllCppFileContained(Glob('*.cpp'), config_sources)
+config_sources = map(os.path.abspath, config_sources)
+
+env.aLibrary(target = 'bs_config',
+             source = config_sources,
+             LIBS = ['swift_client_minimal', 'hiredis'])
+
+env.aDirs('test')
+
+Return(['config_sources'])

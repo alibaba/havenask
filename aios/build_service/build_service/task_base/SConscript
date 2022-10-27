@@ -1,0 +1,27 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+task_base_sources = [
+    'BuildTask.cpp',
+    'JobConfig.cpp',
+    'MergeTask.cpp',
+    'TaskBase.cpp',
+    'Task.cpp',    
+    'ConfigDownloader.cpp',
+    'NewFieldMergeTask.cpp',
+    'BuildInTaskFactory.cpp',
+    ]
+
+env.checkAllCppFileContained(Glob('*.cpp'), task_base_sources)
+task_base_sources = map(os.path.abspath, task_base_sources)
+
+env.aLibrary(target = 'bs_task_base',
+             source = task_base_sources + env['build_signature_src'],
+             LIBS = env['bs_worker_lib'])
+
+env.aDirs('test')
+
+Return(['task_base_sources'])

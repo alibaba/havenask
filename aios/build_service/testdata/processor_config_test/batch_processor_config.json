@@ -1,0 +1,6 @@
+{
+    "processor_thread_num" : 16,
+    "processor_queue_size" : 10000,
+    "processor_strategy" : "batch",
+    "processor_strategy_parameter" : "batch_size=32;max_enqueue_seconds=1"
+}

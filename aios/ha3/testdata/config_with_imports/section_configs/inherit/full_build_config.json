@@ -1,0 +1,50 @@
+{
+  "build_option_config": {
+    "DocumentProcessQueueSize": 5000,
+    "DocumentProcessThreadNum": 8,
+    "EnableSyncBuild": false,
+    "IndexDocumentQueueSize": 5000,
+    "RawDocFilePattern": "lasttable_common/good-part-<720>.gz;lasttable_mall/good-part-<720>.gz",
+    "RawDocumentFormat": "isearch",
+    "inherit_from": "section_configs/common/cluster_common_config.json"
+  },
+  "offline_index_config": {
+    "merge_config": {
+      "merge_strategy": "optimize",
+      "merge_strategy_param": "",
+      "merge_thread_count": 4,
+      "truncate_strategy": [
+        {
+          "diversity_constrain": {
+            "distinct_count": 20000,
+            "distinct_expand_limit": 150000,
+            "distinct_field": "user_id"
+          },
+          "limit": 50000,
+          "strategy_name": "distinct_sort",
+          "threshold": 100000,
+          "truncate_profiles": [
+            "desc_tk_total_sales",
+            "desc_static_trans_score",
+            "desc_biz30day",
+            "desc_uvsum_suc",
+            "desc_uvsum",
+            "asc_ends",
+            "desc_tk_trans_score"
+          ]
+        },
+        {
+          "diversity_constrain": {
+            "distinct_count": 32000,
+            "distinct_expand_limit": 180000,
+            "distinct_field": "user_id"
+          },
+          "limit": 80000,
+          "strategy_name": "distinct_sort_for_ends",
+          "threshold": 120000,
+          "truncate_profiles": "[NEED_TO_BE_FILLED_MANUALLY]"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,37 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+deletionmap_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'deletion_map_reader_unittest.cpp',
+    'deletion_map_merge_unittest.cpp',
+    'in_mem_deletion_map_reader_unittest.cpp',
+    'deletion_map_writer_unittest.cpp',
+]
+
+deletionmap_libs = [
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'fslib-framework',
+    'gtest',
+    'pthread'
+]
+
+env.aTest(target = 'indexlib_deletionmap_unittest', 
+          source = deletionmap_test_sources, LIBS = deletionmap_libs)

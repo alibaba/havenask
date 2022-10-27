@@ -1,0 +1,28 @@
+#!/bin/env python
+
+import os
+import sys
+
+HERE = os.path.split(os.path.realpath(__file__))[0]
+threadCount = 30
+
+def executCmd(cmd):
+    print cmd
+    os.system(cmd)
+
+def build(code):
+    subPath = os.path.join(HERE, 'aios', code)
+    cmd = 'cd %s && scons install -j%d' % (subPath, threadCount)
+    executCmd(cmd)
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        try:
+            threadCount = int(sys.argv[1])
+        except:
+            print "./build [$threadCount], threadCount must be integer."
+            sys.exit(-1)
+
+    build('indexlib')
+    build('build_service')
+    build('ha3')

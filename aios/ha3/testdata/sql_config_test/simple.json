@@ -1,0 +1,43 @@
+{
+    "db_name": "gg",
+    "output_format": "json",
+    "parallel_num": 10,
+    "sql_timeout": 2000,
+    "timeout_factor": 0.1,
+    "sub_graph_timeout_factor": 0.2,
+    "sub_graph_thread_limit": 3,
+    "main_graph_thread_limit": 2,
+    "parallel_tables": ["1", "2"],
+    "iquan_plan_cache_enable":true,
+    "iquan_plan_prepare_level":"aaaaa",
+    "iquan_client_config" : {
+        "debug_flag" : true,
+        "cache_config" : {
+            "sql.parse" : {
+                "initial_capacity" : 100,
+                "concurrency_level" : 200,
+                "maximum_size" : 300,
+                "expire_after_write_sec" : 400
+            }
+        }
+    },
+    "iquan_jni_config" : {
+        "table_config" : {
+            "summary_suffix" : "fake_summary"
+        }
+    },
+    "iquan_warmup_config" : {
+        "thread_number" : 100,
+        "warmup_second_interval" : 200,
+        "warmup_query_number" : 300
+    },
+    "iquan_kmon_config" : {
+        "kmon_service" : "cluster",
+        "kmon_tenant_name" : "pre",
+        "service_name" : "ha3",
+        "kmon_sink_flume_topic" : "test_topic",
+        "kmon_flume_period" : 100,
+        "kmon_flume_queue_capacity" : 1000,
+        "flumeAddress" : "11.22.33.44:8888"
+    }
+}

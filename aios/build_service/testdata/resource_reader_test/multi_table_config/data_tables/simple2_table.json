@@ -1,0 +1,19 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "cluster11"
+            ]
+        },
+        {
+            "clusters" : [
+                "cluster11"
+            ]
+        },
+        {
+            "clusters" : [
+                "cluster13"
+            ]
+        }
+    ]
+}

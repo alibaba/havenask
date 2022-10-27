@@ -1,0 +1,80 @@
+# -*- mode: python -*-
+
+Import('env')
+
+env = env.Clone()
+libqueryparser_sources = [
+    'BinaryQueryExpr.cpp',
+    'QueryExprToStringEvaluator.cpp',
+    'DefaultQueryExprEvaluator.cpp',
+    'AtomicQueryExpr.cpp',
+    'NumberTermExpr.cpp',
+    'PhraseTermExpr.cpp',
+    'MultiTermQueryExpr.cpp',
+    'WordsTermExpr.cpp',
+    'RankQueryExpr.cpp',
+    'OrQueryExpr.cpp',
+    'AndNotQueryExpr.cpp',
+    'AndQueryExpr.cpp',
+    'QueryExpr.cpp',
+    'QueryParser.cpp',
+    'ParserContext.cpp',
+    'Scanner.ll',
+    'BisonParser.yy',
+    'RequestParser.cpp',
+    'SyntaxExprParser.cpp',
+    'AggregateParser.cpp',
+    'DistinctParser.cpp',
+    'ClauseScanner.ll',
+    'ClauseBisonParser.yy',
+    'ClauseParserContext.cpp',
+    'OrTermQueryExpr.cpp',
+    'AndTermQueryExpr.cpp',
+    'VirtualAttributeParser.cpp',
+    'LayerParser.cpp',
+    'SearcherCacheParser.cpp',
+    ]
+
+env["LEXFLAGS"] = '-8 -Cfa'
+
+env.SideEffect(['BisonParser.hh', 'location.hh', 'position.hh',  'stack.hh'], ['BisonParser.cc'])
+env.SideEffect(['ClauseBisonParser.hh', 'location.hh', 'position.hh',  'stack.hh'], ['ClauseBisonParser.cc'])
+
+env.aLibrary(target = 'ha3_queryparser',
+             source = libqueryparser_sources)
+
+env.aLibraryAndInstall(target = 'ha3_queryparser_util',
+             source = ['../qrs/QueryFlatten.cpp',
+                       '../common/Term.cpp',
+                       '../common/NumberTerm.cpp',
+                       '../common/Query.cpp',
+                       '../common/TermQuery.cpp',
+                       '../common/PhraseQuery.cpp',
+                       '../common/MultiTermQuery.cpp',
+                       '../common/AndQuery.cpp',
+                       '../common/OrQuery.cpp',
+                       '../common/AndNotQuery.cpp',
+                       '../common/RankQuery.cpp',
+                       '../common/NumberQuery.cpp',
+                       'QueryParser.cpp',
+                       'ParserContext.cpp',
+                       'Scanner.ll',
+                       'BisonParser.yy',
+                       'QueryExpr.cpp',
+                       'BinaryQueryExpr.cpp',
+                       'AtomicQueryExpr.cpp',
+                       'NumberTermExpr.cpp',
+                       'PhraseTermExpr.cpp',
+                       'MultiTermQueryExpr.cpp',
+                       'WordsTermExpr.cpp',
+                       'RankQueryExpr.cpp',
+                       'OrQueryExpr.cpp',
+                       'AndNotQueryExpr.cpp',
+                       'AndQueryExpr.cpp',
+                       'OrTermQueryExpr.cpp',
+                       'AndTermQueryExpr.cpp',
+                       'DefaultQueryExprEvaluator.cpp',
+             ])
+
+env.aDirs('test')
+#env.aDirs('perftest')

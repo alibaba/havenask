@@ -1,0 +1,44 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+util_test_sources=  [
+    '#build_service/test/dotest.cpp',
+    'UTF8UtilTest.cpp',
+    'StringUtilTest.cpp',
+    'PinYinTransTest.cpp',
+    'FileUtilTest.cpp',
+    'RangeUtilTest.cpp',
+    'IndexPathConstructorTest.cpp',
+    'StreamQueueTest.cpp',
+    'EnvUtilTest.cpp',
+    'RedisClientTest.cpp',
+    'BsMetricTagsHandlerTest.cpp',
+    'MemControlStreamQueueTest.cpp',
+    'SwiftClientCreatorTest.cpp',
+    'PooledChannelManagerTest.cpp',
+    ]
+
+fake_fslib_source = ['FakeFileSystem.cpp']
+fake_fslib = env.aSharedLibrary(target='fake_fslib',
+                                source=fake_fslib_source)
+
+fake_redis_client_source = ['FakeRedisClient.cpp']
+libfake_redis_client = env.aSharedLibrary(target='fake_redis_client',
+                                          source=fake_redis_client_source)
+
+libsname = ['fake_redis_client', 'bs_util', 'fake_fslib', 'proto_fake', 'hiredis',
+            'z',
+            'kmonitor_adapter', 'kmonitor_client', 'hippo', 'cm_basic', 'worker_framework']
+
+env.checkAllCppFileContained(Glob('*.cpp'), util_test_sources + fake_fslib_source + fake_redis_client_source)
+
+utiltest = env.aTest(
+    target = 'util_test',
+    source = util_test_sources,
+    LIBS = libsname + env['bs_test_common_lib']
+);

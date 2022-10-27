@@ -1,0 +1,43 @@
+{
+    "cluster_config" : {
+        "builder_rule_config" : {
+            "partition_count" : 1,
+            "build_parallel_num" : 1,
+            "merge_parallel_num" : 1,
+            "map_reduce_ratio" : 1,
+            "need_partition" : true
+        },
+        "table_name" : "simple_table"
+    },
+    "offline_index_config" : {
+        "build_config" :
+        {
+            "keep_version_count" : 1
+                    
+        },
+        "customized_merge_config" : {
+            "full" : {
+                "merge_config" : {
+                    "merge_strategy" : "optimize",
+                    "merge_strategy_param" : ""
+                                    
+                }
+                            
+            },
+            "inc" : {
+                "merge_config" : {
+                    "merge_strategy" : "balance_tree",
+                    "merge_strategy_param" : "conflict-segment-number=10;base-doc-count=1000;max-doc-count=10000",
+                    "document_reclaim_config_path": "test.json"
+                },
+                "period" : "period=60",
+                "doc_reclaim_source" : {
+                    "swift_root": "xakjsdhfijdhgf",
+                    "topic_name": "asjfh"
+                }
+            }
+                    
+        }
+            
+    }
+}

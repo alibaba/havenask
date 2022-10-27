@@ -1,0 +1,43 @@
+# -*- mode: python -*-
+Import('env')
+env = env.Clone()
+
+attribute_perf_libs = [
+    'indexlib_indextest_common',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'fslib-framework',
+    'autil',
+    'gmock',
+    'gtest',
+    'pthread'
+]
+
+attribute_perf_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'var_num_attribute_accessor_perf_unittest.cpp',
+    'defrag_slice_perf_unittest.cpp',
+    'var_num_attribute_reader_read_perf_unittest.cpp',
+]
+
+env.aTest(target = 'ie_attribute_perftest', 
+          source = attribute_perf_test_sources,
+          LIBS = attribute_perf_libs)
+
+env.aTest(target = 'ie_attribute_big_data_perftest',
+          source = ['#indexlib/test/dotest.cpp', 'attribute_big_data_unittest.cpp'],
+          LIBS = attribute_perf_libs)
+

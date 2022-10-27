@@ -1,0 +1,17 @@
+{
+    "data_descriptions" : [
+        {
+            "data" : "hdfs://data",
+            "src" : "file"
+        },
+        {
+            "src" : "swift",
+            "swift_root" : "zfs://root",
+            "topic_name" : "raw_doc"
+        },
+        {
+            "src" : "plugin",
+            "type" : "plugin"
+        }
+    ]
+}

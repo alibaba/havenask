@@ -1,0 +1,8 @@
+# -*- mode: python -*-
+
+import os
+
+Import('env')
+env = env.Clone()
+
+env.aDirs('test')

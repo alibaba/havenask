@@ -1,0 +1,44 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+document_normaldoc_ut_libs = [
+    'indexlib_testlib',
+    'indexlib_indextest_common',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_common',
+    'indexlib_document',
+    'indexlib_plugin',
+    'indexlib_configtest',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'gmock',
+    'gtest',
+]
+
+document_normaldoc_ut_test_sources = [
+    '#indexlib/test/dotest.cpp',
+    'normal_document_unittest.cpp',
+    'serialized_summary_document_unittest.cpp',
+    'field_builder_unittest.cpp',
+    'field_unittest.cpp',
+    'index_document_unittest.cpp',
+    'search_summary_document_unittest.cpp',
+    'section_unittest.cpp',
+    'summary_document_unittest.cpp',
+    'token_unittest.cpp',
+    'attribute_document_unittest.cpp',
+    'attribute_document_field_extractor_unittest.cpp',
+]
+
+env.aTest(target = 'indexlib_document_normaldoc_unittest',
+          source = document_normaldoc_ut_test_sources,
+          LIBS = document_normaldoc_ut_libs)

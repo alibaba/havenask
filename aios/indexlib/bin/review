@@ -1,0 +1,4 @@
+#!/usr/bin/env python
+
+import os, sys
+os.system("./post-review --server=http://ct02.asc.cnz.alimama.com:9000/ --username=weijian " + " ".join(sys.argv[1:]))

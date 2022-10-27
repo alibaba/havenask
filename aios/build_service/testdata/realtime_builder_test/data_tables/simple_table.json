@@ -1,0 +1,83 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "mainse_searcher_excellent",
+                "mainse_searcher"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "ModifiedFieldsDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+                {
+                    "module_name" : "MainseOfflineBuild",
+                    "module_path" : "libMainseBuild.so",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "sub_document_processor_chain" : [
+                {
+                    "class_name" : "ModifiedFieldsDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ]
+        },
+        {
+            "clusters" : [
+                "mainse_summary"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "ModifiedFieldsDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+                {
+                    "module_name" : "MainseOfflineBuild",
+                    "module_path" : "libMainseBuild.so",
+                    "parameters" : {
+                    }
+                }
+            ]
+        }
+    ],
+    "processor_config" : {
+        "processor_queue_size" : 1000,
+        "processor_thread_num" : 10
+    },
+    "processor_rule_config" : {
+        "partition_count" : 50
+    },
+    "raw_data_swift_config" : {
+        "topic" : {
+            "obsolete_file_interval" : 3600,
+            "partition_buffer" : 1000,
+            "partition_count" : 10,
+            "partition_file_buf_size" : 1000,
+            "partition_resource" : 100,
+            "reserved_file_count" : 10
+        }
+    },
+    "reader_config" : {
+        "file" : {
+        },
+        "plugin" : {
+        },
+        "swift" : {
+            "reader_config" : "reader_config",
+            "swift_root" : "zfs://root",
+            "topic_name" : ""
+        }
+    }
+}

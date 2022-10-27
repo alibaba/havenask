@@ -1,0 +1,51 @@
+{
+    "offline_index_config" : {
+        "build_config" : {
+            "keep_version_count" : 4,
+            "max_memory_use" : 6144,
+        },
+        "merge_config" : {
+            "keep_version_count" : 4,
+            "merge_strategy" : "balance_tree",
+            "merge_strategy_param" : "conflict-segment-number=3;base-doc-count=10240;max-doc-count=500000;conflict-delete-percent=70;max-valid-doc-count=1000000",
+            "merge_thread_count" : 3,
+        },
+        "customized_merge_config" : {
+            "full" : {
+                "merge_config" : {
+                    "keep_version_count": 1,
+                    "merge_strategy": "optimize",
+                    "merge_strategy_param": "",
+                    "merge_thread_count": 10
+                }
+            },
+	    "inc" : {
+                "merge_config" : {
+                    "keep_version_count": 2,
+                    "merge_strategy": "balance_tree",
+                    "merge_strategy_param": "conflict-segment-number=3;base-doc-count=10240;max-doc-count=500000;conflict-delete-percent=70;max-valid-doc-count=1000000",
+                    "merge_thread_count": 10
+                },
+                "period" : "period=1800"
+            },
+	    "inc_merge" : {
+                "merge_config" : {
+                    "keep_version_count": 3,
+                    "merge_strategy": "optimize",
+                    "merge_strategy_param": "max-doc-count=4000000",
+                    "merge_thread_count": 10
+                },
+                "period" : "daytime=17:30"
+            }
+        }
+    },
+    "online_index_config" : {
+        "build_config" : {
+            "keep_version_count" : 4,
+            "max_memory_use" : 512
+        },
+        "online_keep_version_count" : 10,
+        "max_realtime_memory_size" : 1024,
+        "max_reopen_memory_use" : 6144
+    }
+}

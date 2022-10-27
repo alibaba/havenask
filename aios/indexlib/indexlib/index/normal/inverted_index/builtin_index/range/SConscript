@@ -1,0 +1,10 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+range_dir=Glob('*.cpp')
+
+#env.aLibrary(target='indexlib_range', source=range_dir)
+
+env.aDirs('test')
+Return(['range_dir'] )

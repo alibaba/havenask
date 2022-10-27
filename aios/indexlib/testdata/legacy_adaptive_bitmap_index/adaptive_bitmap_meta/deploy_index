@@ -1,0 +1,7 @@
+{
+    "deploy_file_metas": 
+    [
+	{"path" : "strIndex"},
+	{"path" : "numIndex"}
+    ]
+}

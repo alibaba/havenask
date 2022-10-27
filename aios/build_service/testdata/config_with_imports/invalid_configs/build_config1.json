@@ -1,0 +1,4 @@
+{
+    "inherit_from" : "invalid_configs/build_config2.json",
+    "buildQps" : 1000
+}

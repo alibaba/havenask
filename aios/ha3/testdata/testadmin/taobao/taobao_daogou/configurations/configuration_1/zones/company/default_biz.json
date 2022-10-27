@@ -1,0 +1,68 @@
+{
+    "build_config" : {
+        "filter_chains" : [
+            {
+                "class_name" : "Ha2Filter",
+                "module_name" : "filter",
+                "parameters" : {
+                    "key" : "value"
+                }
+            }
+        ],
+        "modules" : [
+            {
+                "module_name" : "filter",
+                "module_path" : "auction_filter",
+                "parameters" : {
+                    "key2" : "value2"
+                }
+            }
+        ]
+    },
+    "cluster_config" : {
+        "cluster_name" : "company",
+        "hash_mode" : {
+            "hash_field" : "uri",
+            "hash_function" : "HASH"
+        },
+        "query_config" : {
+            "default_index" : "phrase",
+            "default_operator" : "AND"
+        },
+        "table_name" : "company"
+    },
+    "rankprofile_config" : {
+        "modules" : [
+            {
+                "module_name" : "mlr",
+                "module_path" : "libfakescorer.so",
+                "parameters" : {
+                    "key" : "value"
+                }
+            }
+        ],
+        "rankprofiles" : [
+            {
+                "field_boost" : {
+                    "phrase.body" : 100,
+                    "phrase.detail" : 10,
+                    "phrase.title" : 1000
+                },
+                "rank_profile_name" : "mlr",
+                "scorers" : [
+                    {
+                        "module_name" : "mlr",
+                        "parameters" : {
+                            "key" : "value"
+                        },
+                        "rank_size" : "UNLIMITED",
+                        "scorer_name" : "mlr_scorer"
+                    }
+                ]
+            }
+        ]
+    },
+    "searcher_cache_config" : {
+        "wrong_itme" : "1"
+    }
+}

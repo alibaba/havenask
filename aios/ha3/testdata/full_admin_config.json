@@ -1,0 +1,18 @@
+{
+    "can_force_switch" : true,
+    "force_switch_when_dead_lock" : false,
+    "max_worker_unavailable_seconds" : 100,
+    "searcher_long_dead_seconds" : 1800,
+    "qrs_resource" : 30,
+    "unavailable_worker_threshold" : 20,
+    "worker_load_balance" : true,
+    "healthcheck_config" : {
+	"iowait_threshold" : 10,
+	"request_queue_size_threshold" : 100,
+	"update_interval" : 100000
+    },
+    "worker_capability" : [
+	{"machine_list" : "machine1,machine2", "capability": 10},
+	{"machine_list" : "machine3,machine4", "capability": 12}
+    ]
+}

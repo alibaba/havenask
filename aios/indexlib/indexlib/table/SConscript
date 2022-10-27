@@ -1,0 +1,16 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+table_src = Glob('*.cpp')
+
+table_cpps = [ table_src ]
+
+env.aSharedLibrary(target='indexlib_table', source=table_cpps)
+
+env.aDirs('test')
+env.aDirs('demo')
+
+Return(['table_cpps'] )
+

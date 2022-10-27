@@ -1,0 +1,47 @@
+{
+    "aggregate_sampler_config" : {
+        "aggThreshold" : 10,
+        "sampleStep" : 2
+    },
+    "cluster_config" : {
+        "cluster_name" : "auction",
+        "hash_mode" : {
+            "hash_field" : "uri",
+            "hash_function" : "HASH"
+        },
+        "join_config" : {
+            "join_infos" : [
+                {
+                    "join_cluster" : "company",
+                    "join_field" : "company_id"
+                },
+                {
+                    "join_cluster" : "seller",
+                    "join_field" : "seller_id"
+                }
+            ]
+        },
+        "query_config" : {
+            "default_index" : "phrase",
+            "default_operator" : "AND"
+        },
+        "table_name" : "auction"
+    },
+    "doc_process_chain_config" : {
+    },
+    "final_sorter_config" : {
+    },
+    "function_config" : {
+    },
+    "rankprofile_config" : {
+    },
+    "searcher_cache_config" : {
+        "inc_deletion_percent" : 10,
+        "inc_doc_limit" : 2000,
+        "latency_limit" : 2,
+        "max_item_num" : 400000,
+        "max_size" : 2048
+    },
+    "summary_profile_config" : {
+    }
+}

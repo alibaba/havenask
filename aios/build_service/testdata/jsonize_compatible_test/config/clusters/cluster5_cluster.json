@@ -1,0 +1,81 @@
+{
+    "cluster_config" : {
+	"table_name" : "cluster5",
+	"hash_mode" : {
+            "hash_field" : "nid",
+            "hash_function" : "KINGSO_HASH#720"
+	},
+        "cluster_name" : "cluster1",
+        "cluster_type" : "inc_with_realtime",
+	"builder_rule_config" : {
+            "partition_count" : 2,
+            "build_parallel_num" : 3,
+            "merge_parallel_num" : 1,
+            "map_reduce_ratio" : 1,
+            "need_partition" : true
+	},
+        "keep_checkpoint_count" : 2
+    },
+    "build_option_config" : {
+        "sort_build" : true,
+        "sort_queue_size" : 100000,
+	"sort_descriptions" : [
+	    {
+		"sort_field" : "category",
+		"sort_pattern" : "desc"
+	    },
+	    {
+		"sort_field" : "ends",
+		"sort_pattern" : "desc"
+	    }
+	]
+    },
+    "offline_index_config" : {
+        "customized_merge_config" : {
+	    "full" : {
+	        "merge_config" : {
+		    "keep_version_count": 100,
+		    "merge_strategy" : "optimize",
+		    "merge_strategy_param": "",
+		    "merge_thread_count" : 4,
+		    "truncate_strategy" : [
+			{
+			    "strategy_name" : "distinct_sort",
+			    "threshold" : 100000,
+			    "limit" : 50000,
+			    "diversity_constrain": {
+				"distinct_field" : "user_id",
+				"distinct_count" : 20000,
+				"distinct_expand_limit" : 150000
+			    },
+                            "truncate_profiles" : [
+                                "desc_static_trans_score"
+                            ]
+			},
+			{
+			    "strategy_name" : "distinct_sort_for_ends",
+			    "threshold" : 120000,
+			    "limit" : 80000,
+			    "diversity_constrain": {
+				"distinct_field" : "user_id",
+				"distinct_count" : 32000,
+				"distinct_expand_limit" : 180000
+			    }
+			}
+		    ]
+	        },
+	        "merge_parallel_num" : 5
+	    },
+	    "inc" : {
+	        "merge_config" : {},
+	        "period" : "period=1800",
+	        "merge_parallel_num" : 1
+	    },
+	    "inc_merge" : {
+	        "merge_config" : {},
+	        "period" : "daytime=17:30",
+	        "merge_parallel_num" : 3
+	    }
+        }
+    }
+}

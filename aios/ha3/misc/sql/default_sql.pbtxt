@@ -1,0 +1,31 @@
+node {
+  name: "sql_request"
+  op: "Placeholder"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_STRING
+    }
+  }
+  attr {
+    key: "shape"
+    value {
+      shape {
+        unknown_rank: true
+      }
+    }
+  }
+}
+node {
+  name: "run_sql"
+  op: "RunSqlOp"
+  input: "sql_request"
+}
+node {
+  name: "sql_done"
+  op: "NoOp"
+  input: "^run_sql"
+}
+versions {
+  producer: 24
+}

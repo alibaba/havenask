@@ -1,0 +1,34 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "simple"
+            ],
+            "document_processor_chain" : [
+		{
+                    "class_name" : "SleepProcessor",
+                    "module_name" : "",
+		    "parameters" : {
+			"sleep_per_document" : "5"
+		    }
+		},
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+            ],
+            "table_name" : "sample"
+        }
+    ],
+    "processor_config" : {
+        "processor_queue_size" : 1000,
+        "processor_thread_num" : 10
+    },
+    "processor_rule_config" : {
+        "partition_count" : 1
+    }
+}

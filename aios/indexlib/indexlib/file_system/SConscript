@@ -1,0 +1,15 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+load_config = env.aDirs('load_config')
+file_system = Glob('*.cpp')
+
+indexlib_file_system_cpps = [ load_config, file_system ]
+
+env.aSharedLibrary(target = 'indexlib_file_system', source = indexlib_file_system_cpps)
+
+env.aDirs('test')
+
+Return(['indexlib_file_system_cpps'])

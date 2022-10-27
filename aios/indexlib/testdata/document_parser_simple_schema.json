@@ -1,0 +1,102 @@
+{
+    "table_name": "auction",
+    "fields":
+    [
+	{"field_name":"user_id",      "field_type":"INTEGER"},
+	{"field_name":"location",      "field_type":"location"},
+        {"field_name":"line",      "field_type":"line"},
+        {"field_name":"polygon",      "field_type":"polygon"},
+	{"field_name":"nid",      "field_type":"INTEGER"},
+        {"field_name":"title",        "field_type":"TEXT",  "analyzer" : "aliws"},
+	{"field_name":"category",     "field_type":"TEXT",  "analyzer" : "aliws"},
+	{"field_name":"user_name",    "field_type":"STRING" },
+	{"field_name":"price",        "field_type":"FLOAT"  },
+	{"field_name":"auction_type", "field_type":"ENUM",     "valid_values":["sale", "buy"] },
+	{"field_name":"content",      "field_type":"TEXT",  "analyzer" : "aliws"},
+	{"field_name":"multi_string",      "field_type":"string",  "multi_value" : true},
+	{"field_name":"subject",        "field_type":"TEXT",  "analyzer" : "extendAnalyzer"},
+	{"field_name":"bitwords", "field_type":"STRING", "multi_value":true, "updatable_multi_value":true },
+        {"field_name":"in_pack_1", "field_type":"uint32"},
+        {"field_name":"in_pack_2", "field_type":"string"},
+        {"field_name":"multi_int", "field_type":"uint8", "multi_value" : true, "updatable_multi_value":true} 
+    ],
+    "indexs":
+    [
+	{
+            "index_name":"nid",
+            "index_fields":"nid",
+            "index_type": "PRIMARYKEY64"
+        },
+	{
+	    "index_name": "phrase",
+            "index_type" : "PACK",
+	    "index_fields":
+	    [
+		{"field_name":"title", "boost":1000},
+		{"field_name":"category", "boost":10}
+	    ]
+	},
+	{
+	    "index_name": "other",
+            "index_type" : "PACK",
+	    "index_fields":
+	    [
+		{"field_name":"subject", "boost":1000}
+	    ]
+	},
+	{
+	    "index_name": "spatial_index",
+            "index_type" : "SPATIAL",
+	    "index_fields": "location",
+	    "max_search_dist": 10000,
+	    "max_dist_err": 20
+	},
+    {
+	    "index_name": "line",
+            "index_type" : "SPATIAL",
+	    "index_fields": "line",
+	    "max_search_dist": 10000000000,
+	    "max_dist_err": 20
+	},
+    {
+	    "index_name": "polygon",
+            "index_type" : "SPATIAL",
+	    "index_fields": "polygon",
+	    "max_search_dist": 10000000000,
+	    "max_dist_err": 20
+	},
+	{
+	    "index_name" : "user_name",
+	    "index_type" : "STRING",
+	    "index_fields" : "user_name"
+	},
+	{
+	    "index_name" : "multi_string",
+	    "index_type" : "STRING",
+	    "index_fields" : "multi_string"
+	},
+	{
+            "index_name":"bitwords",
+            "index_type":"STRING",
+            "index_fields":"bitwords"
+        }
+    ],
+    "attributes":
+    [
+        "user_id",
+        "multi_string",
+        "multi_int", 
+        "nid",
+        "location",
+        "line",
+        "polygon",
+        {
+            "pack_name": "pack_attr",
+            "sub_attributes": ["in_pack_1", "in_pack_2"]
+        }
+    ],
+    "summarys":{
+	"summary_fields": ["user_name", "content", "price", "auction_type", "multi_string"],
+	"compress":false
+    }
+}

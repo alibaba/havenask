@@ -1,0 +1,26 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+env.Append(LIBS=['dl'])
+
+common_perftest_sources=  [
+    '#ha3/test/dotest.cpp',
+#    'SerializeRequestTest.cpp',
+#    'ParseXMLFormatResultTest.cpp',
+    'ParsePBFormatResultTest.cpp',
+    ]
+
+libsname = [ 'ha3_search', 'ha3_fakesearch', 'ha3sdk_testlib', 'ha3_qrs', 'ha3_service', 'ha3_admin', 'hb_node_manager',
+             'hb_node', 'cm_basic', 'ha3_summary', 'ha3_func_expression', 'ha3_fakecommon', 'ha3_rank',
+             'ha3_builder', 'ha3_protobuf_impl', 'ha3_index', 'ha3_config', 'ha3_common', 'ha3_queryparser',
+             'ha3_proto', 'ha3_util', 'ha3_monitor', 'ha3_proxy', 'indexlib', 'mxml']
+
+test = env.aTest(target = 'common_perftest',
+                 source = common_perftest_sources,
+                 LIBS = libsname + ['indexlib', 'AliWS', 'dl'])
+Depends(test, env['test_conf_depend'])

@@ -1,0 +1,8 @@
+{
+    "cluster_config" : {
+	"table_name" : "simple",
+	"builder_rule_config" : {
+            "partition_count" : 2
+	}
+    }
+}

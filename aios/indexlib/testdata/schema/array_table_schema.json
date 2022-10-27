@@ -1,0 +1,32 @@
+{
+    "table_name": "simple_table",
+    "table_type": "customized",
+    "customized_table_config" : {
+        "plugin_name" : "array_table",
+        "parameters":{
+            "is_tolerate_missing_data":"true"
+        }
+
+    },
+    "customized_document_config" :
+    [
+        {
+            "plugin_name" : "array_table",
+            "parameters" : {
+                "field_type":"literal",
+                "index_field_name":"key",
+                "value_field_name":"value"
+            },
+            "id" : "document.parser"
+        }
+    ],
+    "user_defined_param":
+    {
+        "array_meta":
+        {
+            "item_count": 3,
+            "item_type": "float",
+            "slice_size": 5
+        }
+    }
+}

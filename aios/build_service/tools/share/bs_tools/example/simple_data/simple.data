@@ -1,0 +1,31 @@
+CMD=add
+id=1
+text_field1=text1       text2   text3
+text_field2=text4       text5
+string_field=g.cn
+int32_field=33
+double_field=3.14
+multi_uint32_field=223
+
+CMD=add
+id=2
+text_field1=text2
+text_field2=text1       text5
+string_field=www.baidu.com
+int32_field=40
+double_field=-3.14
+multi_uint32_field=2
+
+CMD=add
+id=3
+text_field1=alibaba
+text_field2=exmaple
+string_field=work.alibaba-inc.com
+int32_field=-22
+double_field=1.33
+multi_uint32_field=6633
+
+CMD=update_field
+id=1
+int32_field=11
+

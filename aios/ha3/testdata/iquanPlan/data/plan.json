@@ -1,0 +1,91 @@
+{
+    "rel_plan": [
+        {
+            "id": 0,
+            "op_name": "TableScanOp",
+            "attrs": {
+                "output_fields": [  "$a",  "$b"],
+                "indexes": {  "$f": [    "number",    "f"  ],  "$size": [    "number",    "size"  ],  "$price": [    "number",    "price"  ],  "$a": [    "number",    "a"  ],  "$id": [    "number",    "id"  ]},
+                "table_path": [  "test",  "dbname"],
+                "scans": [  "$a",  "$b",  "$c",  "$size",  "$price",  "$id",  "$ha3IndexField_phrase",  "$d",  "$e",  "$f"],
+                "fetch": "0",
+                "output_field_exprs": {  "$a": "$a",  "$b": "$b"},
+                "use_sub": "false",
+                "table_name": "t1"
+            },
+            "inputs": {}
+        },
+        {
+            "id": 1,
+            "op_name": "AggregateOp",
+            "attrs": {
+                "output_fields": [  "$a",  "$count$0$0",  "$min$1$0",  "$sum$2$0",  "$count$2$1"],
+                "scope": "PARTIAL",
+                "agg_funcs": [  {    "output": [      "$count$0$0"    ],    "input": [      "$a"    ],    "agg_func": "COUNT",    "type": "PARTIAL"  },  {    "output": [      "$min$1$0"    ],    "input": [      "$b"    ],    "agg_func": "MIN",    "type": "PARTIAL"  },  {    "output": [      "$sum$2$0",      "$count$2$1"    ],    "input": [      "$b"    ],    "agg_func": "AVG",    "type": "PARTIAL"  }],
+                "group_by_field": [  "$a"]
+            },
+            "inputs": {
+                "input": [
+                    0
+                ]
+            }
+        },
+        {
+            "id": 2,
+            "op_name": "ExchangeOp",
+            "attrs": {
+                "output_fields": [  "$a",  "$count$0$0",  "$min$1$0",  "$sum$2$0",  "$count$2$1"],
+                "catalog_name": "test",
+                "db_name": "dbname",
+                "distribution": {  "hashField": [],  "type": "SINGLETON"}
+            },
+            "inputs": {
+                "input": [
+                    1
+                ]
+            }
+        },
+        {
+            "id": 3,
+            "op_name": "AggregateOp",
+            "attrs": {
+                "output_fields": [  "$a", "$EXPR$0", "$EXPR$1", "$EXPR$2"],
+                "group_by_fields": [  "$a"],
+                "scope": "FINAL",
+                "agg_funcs": [  {    "output": [      "$EXPR$0"    ],    "input": [      "$count$0$0"    ],    "agg_func": "COUNT",    "type": "FINAL"  },  {    "output": [      "$EXPR$1"    ],    "input": [      "$min$1$0"    ],    "agg_func": "MIN",    "type": "FINAL"  },  {    "output": [      "$EXPR$2"    ],    "input": [      "$sum$2$0",      "$count$2$1"    ],    "agg_func": "AVG",    "type": "FINAL"  }]
+            },
+            "inputs": {
+                "input": [
+                    2
+                ]
+            }
+        },
+        {
+            "id": 4,
+            "op_name": "CalcOp",
+            "attrs": {
+                "output_fields": [  "$EXPR$0",  "$EXPR$1",  "$EXPR$2"],
+                "condition": "",
+                "output_field_exprs": {  "$EXPR$0": "$EXPR$0",  "$EXPR$1": "$EXPR$1",  "$EXPR$2": "$EXPR$2"}
+            },
+            "inputs": {
+                "input": [
+                    3
+                ]
+            }
+        },
+        {
+            "id": 5,
+            "op_name": "SinkOp",
+            "attrs": {
+                "output_fields": [  "$EXPR$0",  "$EXPR$1",  "$EXPR$2"],
+                "type": "api"
+            },
+            "inputs": {
+                "input": [
+                    4
+                ]
+            }
+        }
+    ]
+}

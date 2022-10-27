@@ -1,0 +1,65 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+libsname = [
+    'indexlib_storage_mock',
+    'indexlib_truncate_test_common',
+    'indexlib_indextest_common',
+    'indexlib_packtest',
+    'indexlib_configtest',
+    'indexlib_test',
+    'indexlib_testlib',
+    'indexlib_partition',
+    'indexlib_merger',
+    'indexlib_table',
+    'indexlib_index',
+    'indexlib_index_base',
+    'indexlib_document',
+    'indexlib_common',
+    'indexlib_plugin',
+    'indexlib_config',
+    'indexlib_file_system',
+    'indexlib_storage',
+    'indexlib_util',
+    'indexlib_misc',
+    'fslib-framework',
+    'gmock',
+    'gtest',
+    'pthread'
+]
+
+unittestcpps = [
+    '#indexlib/test/dotest.cpp',
+    'truncate_index_intetest.cpp',
+    'bucket_map_creator_unittest.cpp',
+    'bucket_map_unittest.cpp',
+    'comparator_unittest.cpp',
+    'doc_distinct_unittest.cpp',
+    'doc_filter_processor_unittest.cpp',
+    'doc_info_allocator_unittest.cpp',
+    'doc_payload_filter_processor_unittest.cpp',
+    'multi_truncate_index_writer_unittest.cpp',
+    'reference_typed_unittest.cpp',
+    'reference_unittest.cpp',
+    'single_truncate_index_writer_unittest.cpp',
+    'time_strategy_truncate_meta_reader_unitteset_unittest.cpp',
+    'sort_truncate_collector_unittest.cpp',
+    'no_sort_truncate_collector_unittest.cpp',
+    'truncate_index_writer_creator_unittest.cpp',
+    'truncate_index_writer_unittest.cpp',
+    'truncate_meta_reader_unittest.cpp',
+]
+
+env.aTest(target = 'ie_truncate_unittest', 
+          source = unittestcpps, LIBS = libsname)
+
+cpps = [
+     'fake_truncate_attribute_reader.cpp',
+     'fake_single_truncate_index_writer.cpp',
+     'truncate_test_helper.cpp',
+     ]
+
+env.aSharedLibrary(target='indexlib_truncate_test_common', source = cpps)
+

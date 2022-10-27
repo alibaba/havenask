@@ -1,0 +1,14 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+shape = env.aDirs('shape')
+geo_hash = env.aDirs('geo_hash')
+
+spatial_format=Glob('*.cpp')
+
+spatial_cpps = [ spatial_format, shape, geo_hash ]
+
+env.aDirs('test')
+Return(['spatial_cpps'])

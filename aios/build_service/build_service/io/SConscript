@@ -1,0 +1,23 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+io_sources = [
+    'IndexlibIndexInput.cpp',
+    'SwiftOutput.cpp',
+    'FileOutput.cpp',
+    'MultiFileOutput.cpp'
+    ]
+
+env.checkAllCppFileContained(Glob('*.cpp'), io_sources)
+io_sources = map(os.path.abspath, io_sources)
+
+env.aLibrary(target = 'io',
+             source = io_sources + env['build_signature_src'],
+             LIBS = env['bs_worker_lib'])
+
+env.aDirs('test')
+
+Return(['io_sources'])
