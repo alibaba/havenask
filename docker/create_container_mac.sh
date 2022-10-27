@@ -16,7 +16,7 @@ if [ $# -lt 1 ]; then
 fi
 
 
-IMAGE="reg.docker.alibaba-inc.com/aios-open-source/ha3_dev:0.1"
+IMAGE="havenask/ha3_dev:0.1"
 if [ $# -eq 2 ]; then
     IMAGE=$2
 fi
