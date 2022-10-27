@@ -1,6 +1,6 @@
 编译环境
 1. 请确保编译的机器内存在15G以上，mac编译时需调整Docker容器资源上限（包括CPU、Memory、Swap等），具体路径：Docker Desktop->setting->Resources。
-2. 请确保cpu位8core以上，不然编译比较慢。
+2. 请确保cpu为8core以上，不然编译比较慢。
 3. 编译镜像为havenask/ha3_dev:0.1，建议创建容器前手动下载。
 
 linux环境编译步骤
