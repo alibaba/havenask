@@ -16,7 +16,7 @@ if [ $# -lt 1 ]; then
 fi
 
 
-IMAGE="havenask/ha3_dev:0.1"
+IMAGE="havenask/ha3_runtime:0.1"
 if [ $# -eq 2 ]; then
     IMAGE=$2
 fi
