@@ -8,7 +8,7 @@ cd ~
 git clone git@gitlab.alibaba-inc.com:havenask/ha3.git
 cd ~/ha3/docker
 ## 如果是Linux环境执行以下指令
-./create_container.sh <DOCKER_NAME> havenask/ha3_dev:0.1
+./create_container.sh <DOCKER_NAME> havenask/ha3_runtime:0.1
 ## 如果是Mac环境执行以下指令
 ./create_container_mac.sh <DOCKER_NAME> havenask/ha3_runtime:0.1
 ```
