@@ -5,18 +5,18 @@
 ```
 docker pull havenask/ha3_runtime:0.1
 cd ~
-git clone git@gitlab.alibaba-inc.com:havenask/ha3.git
-cd ~/ha3/docker
+git clone git@github.com:alibaba/havenask.git
+cd ~/havenask/docker
 ## 如果是Linux环境执行以下指令
 ./create_container.sh <DOCKER_NAME> havenask/ha3_runtime:0.1
 ## 如果是Mac环境执行以下指令
 ./create_container_mac.sh <DOCKER_NAME> havenask/ha3_runtime:0.1
 ```
-2. 以ssh的方式登陆容器，执行python脚本构建ha3/example/data下测试文档的索引并执行sql查询。其中USER为进入容器前的用户名 
+2. 以ssh的方式登陆容器，执行python脚本构建havenask/example/data下测试文档的索引并执行sql查询。其中USER为进入容器前的用户名 
 ```
-cd ~/ha3/docker/<DOCKER_NAME>
+cd ~/havenask/docker/<DOCKER_NAME>
 ./sshme
-cd /home/<USER>/ha3/example/scripts
+cd /home/<USER>/havenask/example/scripts
 ## 对于测试文档构建索引
 python build_demo_data.py /ha3_install
 ## 执行查询
@@ -29,8 +29,8 @@ python start_demo_searcher.py /ha3_install
 ### 启动开发容器
 * ha3镜像分为开发镜像和运行时镜像，前者用于编译ha3，后者无需编译即可运行ha3。本节使用的是开发镜像
 ```
-docker pull havenask/ha3_runtime:0.1
-cd ~/ha3/docker
+docker pull havenask/ha3_dev:0.1
+cd ~/havenask/docker
 ## 如果是Linux环境执行以下指令
 ./create_container.sh <DOCKER_NAME> havenask/ha3_dev:0.1
 ## 如果是Mac环境执行以下指令
@@ -47,7 +47,7 @@ cd ~/ha3/docker
 ### 单独编译子项目方法
 * 以indexlib为例
 ```
-cd ~/ha3/aios/indexlib
+cd ~/havenask/aios/indexlib
 ## -j为编译线程数
 scons install -j30
 ## 执行ut，进入指定的目录
