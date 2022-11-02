@@ -43,7 +43,7 @@ cd ~/havenask/docker/<DOCKER_NAME>
 /home/<USER>/havenask/example/scripts/build_demo_data.py /ha3_install
 ```
 
-#### 测试引擎查询
+### 测试引擎查询
 * 启动havenask引擎
 ```
 ## <USER>为启动容器前的用户名
