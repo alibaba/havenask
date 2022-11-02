@@ -37,6 +37,8 @@ python build_demo_data.py /ha3_install
 ## 执行查询
 python start_demo_searcher.py /ha3_install
 ```
+
+
 ## 编译ha3
 ### 编译环境
 1. 请确保编译的机器内存在15G以上，mac编译时需调整Docker容器资源上限（包括CPU、Memory、Swap等），具体路径：Docker Desktop->setting->Resources。
