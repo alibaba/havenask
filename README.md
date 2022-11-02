@@ -35,22 +35,22 @@ cd ~/havenask/docker/<DOCKER_NAME>
 ./sshme
 ```
 
-### 测试构建索引
+### 测试索引构建
 
-* 构建全量索引。索引构建日志和报错路径为`havenask/example/workdir/bs.log`，索引产出路径为`example/workdir/runtimedata`
+构建全量索引
 ```
 ## <USER>为启动容器前的用户名
 /home/<USER>/havenask/example/scripts/build_demo_data.py /ha3_install
 ```
 
 ### 测试引擎查询
-* 启动havenask引擎
+启动havenask引擎
 ```
 ## <USER>为启动容器前的用户名
 /home/<USER>/havenask/example/scripts/start_demo_searcher.py /ha3_install
 ```
 
-* 引擎的默认查询端口为45800，使用脚本进行查询测试。下面是一些测试query。
+引擎的默认查询端口为45800，使用脚本进行查询测试。下面是一些测试query。
 
 ```
 python curl_http.py 45800 "query=select count(*) from in0"
