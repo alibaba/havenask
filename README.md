@@ -28,15 +28,14 @@ cd ~/havenask/docker
 ## 如果是Mac环境执行以下指令
 ./create_container_mac.sh <DOCKER_NAME> havenask/ha3_runtime:0.1
 ```
-2. 以ssh的方式登陆容器，执行python脚本构建havenask/example/data下测试文档的索引并执行sql查询。其中USER为进入容器前的用户名 
+2. 以ssh的方式登陆容器
 ```
 cd ~/havenask/docker/<DOCKER_NAME>
-
-## 进入容器
+## ssh进入容器
 ./sshme
 ```
 
-3. 启动运行时容器后，详细的havenask脚本或手动测试方法见[example](https://github.com/alibaba/havenask/tree/main/example)
+3. 启动运行时容器后，构建测试数据索引以及查询引擎的方法见[example](https://github.com/alibaba/havenask/tree/main/example)
 
 ## 编译ha3
 ### 编译环境
