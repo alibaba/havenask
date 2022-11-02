@@ -16,7 +16,7 @@ Havenask 的核心能力与优势，有以下几点：
 使用前确保已经安装和启动Docker服务
 
 ### 启动容器
-1. 克隆仓库并创建容器。其中DOCKER_NAME为指定的容器名
+克隆仓库并创建容器。其中DOCKER_NAME为指定的容器名
 ```
 docker pull havenask/ha3_runtime:0.1
 cd ~
@@ -28,7 +28,7 @@ cd ~/havenask/docker
 ## 如果是Mac环境执行以下指令
 ./create_container_mac.sh <DOCKER_NAME> havenask/ha3_runtime:0.1
 ```
-2. 以ssh的方式登陆容器
+以ssh的方式登陆容器
 ```
 cd ~/havenask/docker/<DOCKER_NAME>
 ## ssh进入容器
