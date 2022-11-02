@@ -12,9 +12,9 @@ Havenask 的核心能力与优势，有以下几点：
 * <strong>支持向量检索</strong>：可通过与插件配合实现多模态搜索，满足更多场景的搜索服务搭建需求（待发布）。
 
 
-
 ## 开始使用
 * 使用前确保已经安装和启动Docker服务
+* Wiki见[Havenask Wiki](https://github.com/alibaba/havenask/wiki)
 ### 启动运行时容器
 1. 克隆仓库并创建容器。其中DOCKER_NAME为指定的容器名
 ```
@@ -32,12 +32,9 @@ cd ~/havenask/docker
 cd ~/havenask/docker/<DOCKER_NAME>
 ./sshme
 cd /home/<USER>/havenask/example/scripts
-## 对于测试文档构建索引
-python build_demo_data.py /ha3_install
-## 执行查询
-python start_demo_searcher.py /ha3_install
 ```
 
+3. 启动运行时容器后，详细的havenask脚本或手动测试方法见[example](https://github.com/alibaba/havenask/tree/main/example)
 
 ## 编译ha3
 ### 编译环境
