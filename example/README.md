@@ -8,7 +8,7 @@
 * 工作目录: example/workdir
 * 配置目录: example/config
 * 数据目录: example/data
-* 测试脚本: example/script
+* 测试脚本: example/scripts
 
 请根据业务需求和实际数据格式对配置和数据进行修改。如何修改配置和数据格式的详解请参考问天引擎文档
 

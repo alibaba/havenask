@@ -22,6 +22,7 @@ docker pull havenask/ha3_runtime:0.1
 cd ~
 git clone git@github.com:alibaba/havenask.git
 cd ~/havenask/docker
+
 ## 如果是Linux环境执行以下指令
 ./create_container.sh <DOCKER_NAME> havenask/ha3_runtime:0.1
 ## 如果是Mac环境执行以下指令
@@ -30,8 +31,9 @@ cd ~/havenask/docker
 2. 以ssh的方式登陆容器，执行python脚本构建havenask/example/data下测试文档的索引并执行sql查询。其中USER为进入容器前的用户名 
 ```
 cd ~/havenask/docker/<DOCKER_NAME>
+
+## 进入容器
 ./sshme
-cd /home/<USER>/havenask/example/scripts
 ```
 
 3. 启动运行时容器后，详细的havenask脚本或手动测试方法见[example](https://github.com/alibaba/havenask/tree/main/example)
@@ -45,6 +47,7 @@ cd /home/<USER>/havenask/example/scripts
 ```
 docker pull havenask/ha3_dev:0.1
 cd ~/havenask/docker
+
 ## 如果是Linux环境执行以下指令
 ./create_container.sh <DOCKER_NAME> havenask/ha3_dev:0.1
 ## 如果是Mac环境执行以下指令
@@ -62,6 +65,7 @@ cd ~/havenask/docker
 * 以indexlib为例
 ```
 cd ~/havenask/aios/indexlib
+
 ## -j为编译线程数
 scons install -j30
 ## 执行ut，进入指定的目录
