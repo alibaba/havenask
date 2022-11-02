@@ -43,7 +43,7 @@ python curl_http.py 12345 "query=select title, subject from in0_summary_ where i
 mkdir /home/<USER>/havenask/example/workdir
 ```
 
-* 构建全量索引。使用时请替换上面的按照路径和配置的路径，建议在指定-c、-d、-w参数时使用绝对路径。具体的参数含义可以执行/home/<USER>/havenask/ha3_install/usr/local/bin/bs -h查看
+* 构建全量索引。使用时请替换上面的按照路径和配置的路径，建议在指定-c、-d、-w参数时使用绝对路径。具体的参数含义可以执行/home/\<USER\>/havenask/ha3_install/usr/local/bin/bs -h查看
 ```
 <ha3_install>/usr/local/bin/bs startjob \
     -c /home/<USER>/havenask/example/config/normal_config/offline_config/ \
