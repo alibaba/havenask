@@ -13,9 +13,9 @@ Havenask 的核心能力与优势，有以下几点：
 
 
 ## 开始使用
-* 使用前确保已经安装和启动Docker服务
-* Wiki见[Havenask Wiki](https://github.com/alibaba/havenask/wiki)
-### 启动运行时容器
+使用前确保已经安装和启动Docker服务
+
+### 启动容器
 1. 克隆仓库并创建容器。其中DOCKER_NAME为指定的容器名
 ```
 docker pull havenask/ha3_runtime:0.1
@@ -35,38 +35,31 @@ cd ~/havenask/docker/<DOCKER_NAME>
 ./sshme
 ```
 
-3. 启动运行时容器后，构建测试数据索引以及查询引擎的方法见[example](https://github.com/alibaba/havenask/tree/main/example)
+### 测试构建索引
 
-## 编译ha3
-### 编译环境
-1. 请确保编译的机器内存在15G以上，mac编译时需调整Docker容器资源上限（包括CPU、Memory、Swap等），具体路径：Docker Desktop->setting->Resources。
-2. 请确保cpu位8core以上，不然编译比较慢。
-### 启动开发容器
-* ha3镜像分为开发镜像和运行时镜像，前者用于编译ha3，后者无需编译即可运行ha3。本节使用的是开发镜像
+* 构建全量索引。索引构建日志和报错路径为`havenask/example/workdir/bs.log`，索引产出路径为`example/workdir/runtimedata`
 ```
-docker pull havenask/ha3_dev:0.1
-cd ~/havenask/docker
+## <USER>为启动容器前的用户名
+/home/<USER>/havenask/example/scripts/build_demo_data.py /ha3_install
+```
 
-## 如果是Linux环境执行以下指令
-./create_container.sh <DOCKER_NAME> havenask/ha3_dev:0.1
-## 如果是Mac环境执行以下指令
-./create_container_mac.sh <DOCKER_NAME> havenask/ha3_dev:0.1
+#### 测试引擎查询
+* 启动havenask引擎
 ```
-* 接下来创建开发容器的命令与上一节一致
-  
-### 执行编译指令
-* 执行以下指令。如果报"fatal error: Killed signal terminated program cc1plus"错误，是由于编译机器内存不足导致的，请build时减少线程数（如：./build 5）
+## <USER>为启动容器前的用户名
+/home/<USER>/havenask/example/scripts/start_demo_searcher.py /ha3_install
 ```
-./configure
-./build
-```
-### 单独编译子项目方法
-* 以indexlib为例
-```
-cd ~/havenask/aios/indexlib
 
-## -j为编译线程数
-scons install -j30
-## 执行ut，进入指定的目录
-scons . -u -j20
+* 引擎的默认查询端口为45800，使用脚本进行查询测试。下面是一些测试query。
+
 ```
+python curl_http.py 45800 "query=select count(*) from in0"
+
+python curl_http.py 45800 "query=select id,hits from in0 where MATCHINDEX('title', '搜索词典')"
+
+python curl_http.py 45800 "query=select title, subject from in0_summary_ where id=1 or id=2"
+```
+
+
+## 文档
+* 更多详细的引擎使用说明见[快速开始](https://github.com/alibaba/havenask/wiki/%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B)
