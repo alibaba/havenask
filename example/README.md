@@ -10,7 +10,7 @@
 * 数据目录: example/data
 * 测试脚本: example/scripts
 
-请根据业务需求和实际数据格式对配置和数据进行修改。如何修改配置和数据格式的详解请参考问天引擎文档
+请根据业务需求和实际数据格式对配置和数据进行修改。如何修改配置和数据格式的详解请参考 [Havenask Wiki](https://github.com/alibaba/havenask/wiki)
 
 
 ## 使用脚本测试
@@ -25,7 +25,7 @@
 /home/<USER>/havenask/example/scripts/start_demo_searcher.py <ha3_install> <qrsHttpPort>
 ```
 
-* 假设\<qrsHttpPort\>为12345，可以直接通过curl命令进行查询测试，也可以使用脚本进行测试，下面是一些测试query。其他查询语法请参考：[Havenask Wiki](https://github.com/alibaba/havenask/wiki)
+* 假设\<qrsHttpPort\>为12345，可以直接通过curl命令进行查询测试，也可以使用脚本进行测试，下面是一些测试query。其他查询语法请参考 [Havenask Wiki](https://github.com/alibaba/havenask/wiki)
 
 ```
 python curl_http.py 12345 "query=select count(*) from in0"
