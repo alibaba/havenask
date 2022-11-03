@@ -28,11 +28,6 @@
     },
     "qrs_rule" : {
         "connection_timeout" : 750,
-        "healthcheck_files" : [
-            "status.taobao"
-        ],
-        "replica_count" : 1,
-        "resource_type" : "qrs_tag",
         "return_hits_limit" : 5000
     }
 }
