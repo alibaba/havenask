@@ -70,3 +70,4 @@ aios/build_service/zookeeper_log
 aios/build_service/build_service/check_header.cpp
 ha3_install
 example/scripts/workdir/
+!.gitkeep
