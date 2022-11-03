@@ -4,7 +4,7 @@
 ## Example目录结构说明
 * havenask编译结果目录: <ha3_install>
   * 如果是运行镜像默认/ha3_install
-  * 如果是编译镜像默认/home/\<USER\>/havenask/ha3_install
+  * 如果是编译镜像默认/home/\<USER\>/havenask/ha3_install (USER为登陆容器前的用户名)
 * 工作目录: example/scripts/workdir
 * 配置目录: example/config
 * 数据目录: example/data

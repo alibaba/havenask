@@ -36,9 +36,8 @@ cd ~/havenask/docker/<DOCKER_NAME>
 
 ### 测试索引构建
 
-构建全量索引
+构建全量索引，其中USER为登陆容器前的用户名
 ```
-## <USER>为启动容器前的用户名
 cd /home/<USER>/havenask/example/scripts
 python build_demo_data.py /ha3_install
 ```
