@@ -28,10 +28,9 @@ cd ~/havenask/docker
 ## 如果是Mac环境执行以下指令
 ./create_container_mac.sh <DOCKER_NAME> havenask/ha3_runtime:0.1
 ```
-以ssh的方式登陆容器
+登陆容器
 ```
 cd ~/havenask/docker/<DOCKER_NAME>
-## ssh进入容器
 ./sshme
 ```
 
@@ -40,14 +39,15 @@ cd ~/havenask/docker/<DOCKER_NAME>
 构建全量索引
 ```
 ## <USER>为启动容器前的用户名
-/home/<USER>/havenask/example/scripts/build_demo_data.py /ha3_install
+cd /home/<USER>/havenask/example/scripts
+python build_demo_data.py /ha3_install
 ```
 
 ### 测试引擎查询
 启动havenask引擎
 ```
 ## <USER>为启动容器前的用户名
-/home/<USER>/havenask/example/scripts/start_demo_searcher.py /ha3_install
+python start_demo_searcher.py /ha3_install
 ```
 
 引擎的默认查询端口为45800，使用脚本进行查询测试。下面是一些测试query。
@@ -62,4 +62,4 @@ python curl_http.py 45800 "query=select title, subject from in0_summary_ where i
 
 
 ## 文档
-* 更多详细的引擎使用说明见[快速开始](https://github.com/alibaba/havenask/wiki/%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B)
+* 更多详细的引擎使用说明见[havenask Wiki](https://github.com/alibaba/havenask/wiki)
