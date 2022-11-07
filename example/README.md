@@ -4,7 +4,7 @@
 ## Example目录结构说明
 * havenask编译结果目录: <ha3_install>
   * 如果是运行镜像默认/ha3_install
-  * 如果是编译镜像默认/home/\<USER\>/havenask/ha3_install (USER为登陆容器前的用户名)
+  * 如果是编译镜像默认~/havenask/ha3_install
 * 工作目录: example/scripts/workdir
 * 配置目录: example/config
 * 数据目录: example/data
@@ -17,7 +17,7 @@
 
 * 构建全量索引。如果报错可以查看example/scripts/workdir/bs.log文件，索引产出在example/scripts/workdir/runtimedata目录
 ```
-cd /home/<USER>/havenask/example/scripts
+cd ~/havenask/example/scripts
 python build_demo_data.py <ha3_install>
 ```
 
@@ -41,16 +41,16 @@ python curl_http.py 12345 "query=select title, subject from in0_summary_ where i
 
 * 创建workdir
 ```
-mkdir /home/<USER>/havenask/example/scripts/workdir
+mkdir ~/havenask/example/scripts/workdir
 ```
 
-* 构建全量索引。使用时请替换上面的按照路径和配置的路径，建议在指定-c、-d、-w参数时使用绝对路径。具体的参数含义可以执行/home/\<USER\>/havenask/ha3_install/usr/local/bin/bs -h查看
+* 构建全量索引。使用时请替换上面的按照路径和配置的路径，建议在指定-c、-d、-w参数时使用绝对路径。具体的参数含义可以执行~/havenask/ha3_install/usr/local/bin/bs -h查看
 ```
 <ha3_install>/usr/local/bin/bs startjob \
-    -c /home/<USER>/havenask/example/config/normal_config/offline_config/ \
+    -c ~/havenask/example/config/normal_config/offline_config/ \
     -n in0 -j local -m full  \ 
-    -d /home/<USER>/havenask/example/data/test.data \
-    -w /home/<USER>/havenask/example/scripts/workdir -i \
+    -d ~/havenask/example/data/test.data \
+    -w ~/havenask/example/scripts/workdir -i \
     ./runtimedata -p 1 --documentformat=ha3
 ```
 
@@ -58,15 +58,15 @@ mkdir /home/<USER>/havenask/example/scripts/workdir
 * 启动havenask。执行时请将下面的目录地址替换为真实的地址。具体参数含义可以执行python <ha3_install>/usr/local/lib/python/site-packages/ha_tools/local_search_starter.py -h查看。启动成功后，会输出qrs的http和arpc端口
 ```
 ### 进入workdir目录，
-cd /home/<USER>/havenask/example/scripts/workdir
+cd ~/havenask/example/scripts/workdir
 
 ### 启动havenask
 
 python <ha3_install>/local_search_starter.py \
         -i ./runtimedata/ \
-        -c /home/<USER>/havenask/example/normal_config/online_config/  \
+        -c ~/havenask/example/normal_config/online_config/  \
         -p 30468,30480  \
-        -b /home/<USER>/havenask/ha3_install 
+        -b ~/havenask/ha3_install 
 ```
 
 
