@@ -18,27 +18,22 @@ Havenask 的核心能力与优势，有以下几点：
 ### 启动容器
 克隆仓库并创建容器。其中DOCKER_NAME为指定的容器名
 ```
-docker pull havenask/ha3_runtime:0.1
-cd ~
 git clone git@github.com:alibaba/havenask.git
-cd ~/havenask/docker
+cd havenask/docker
+docker pull havenask/ha3_runtime:0.1
 
-## 如果是Linux环境执行以下指令
-./create_container.sh <DOCKER_NAME> havenask/ha3_runtime:0.1
-## 如果是Mac环境执行以下指令
-./create_container_mac.sh <DOCKER_NAME> havenask/ha3_runtime:0.1
+./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.1
 ```
 登陆容器
 ```
-cd ~/havenask/docker/<DOCKER_NAME>
-./sshme
+./<CONTAINER_NAME>/sshme
 ```
 
 ### 测试索引构建
 
 构建全量索引，其中USER为登陆容器前的用户名
 ```
-cd /home/<USER>/havenask/example/scripts
+cd ~/havenask/example/scripts
 python build_demo_data.py /ha3_install
 ```
 
