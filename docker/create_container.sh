@@ -113,7 +113,7 @@ if [ -f /tmp/.passwd ]; then
     fi
     echo `cat /tmp/.passwd` >> /etc/passwd
 
-    cat /etc/passwd | awf -F: '{print $1}' | grep -w -q $hippouser
+    cat /etc/passwd | awk -F: '{print $1}' | grep -w -q $hippouser
     if [ $? -eq 0 ]; then
 	sed -i "/$hippouser:/d" /etc/shadow
     fi
