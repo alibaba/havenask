@@ -16,7 +16,7 @@ Havenask 的核心能力与优势，有以下几点：
 使用前确保已经安装和启动Docker服务
 
 ### 启动容器
-克隆仓库并创建容器。其中DOCKER_NAME为指定的容器名
+克隆仓库并创建容器。其中CONTAINER_NAME为指定的容器名
 ```
 git clone git@github.com:alibaba/havenask.git
 cd havenask/docker
