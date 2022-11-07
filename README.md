@@ -21,7 +21,6 @@ Havenask 的核心能力与优势，有以下几点：
 git clone git@github.com:alibaba/havenask.git
 cd havenask/docker
 docker pull havenask/ha3_runtime:0.1
-
 ./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.1
 ```
 登陆容器
