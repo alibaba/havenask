@@ -176,14 +176,14 @@ if [ $? -ne 0 ]; then
     exit 3
 fi
 
-sshme="ssh $USER@`hostname` -o ConnectTimeout=1 -p $SSHPORT \$*"
+sshme="#!/bin/bash\nssh $USER@`hostname` -o ConnectTimeout=1 -p $SSHPORT \$*"
 [ -e $CUR_DIR/sshme ] && rm -rf $CUR_DIR/sshme
-echo $sshme > $CUR_DIR/sshme
+echo -e $sshme > $CUR_DIR/sshme
 chmod +x $CUR_DIR/sshme
-dockerstop="docker stop $name;docker rm -fv $name"
+dockerstop="#!/bin/bash\ndocker stop $name;docker rm -fv $name"
 stopSh=stopContainer.sh
 [ -e $CUR_DIR/$stopSh ] && rm -rf $CUR_DIR/$stopSh
-echo $dockerstop > $CUR_DIR/$stopSh
+echo -e #!/bin/bash\n$dockerstop > $CUR_DIR/$stopSh
 chmod +x $CUR_DIR/$stopSh
 
 echo "INFO start container success"
