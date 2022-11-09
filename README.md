@@ -1,3 +1,4 @@
+
 ## 项目介绍
 Havenask是阿里巴巴集团自研的搜索引擎，也是阿里巴巴内部广泛使用的大规模分布式检索系统，支持了包括淘宝、天猫、菜鸟、高德、饿了么、全球化在内整个阿里巴巴集团的搜索业务，为用户提供高性能、低成本、易用的搜索服务，同时具有灵活的定制和开发能力，支持算法快速迭代，帮助客户和开发者量身定做适合自身业务的智能搜索服务，助力业务增长。
 
@@ -11,18 +12,29 @@ Havenask 的核心能力与优势，有以下几点：
 * <strong>支持图化开发</strong>：实现算法分钟级快速迭代，定制能力丰富，在新一代智能检索场景下的支持效果优秀。
 * <strong>支持向量检索</strong>：可通过与插件配合实现多模态搜索，满足更多场景的搜索服务搭建需求（待发布）。
 
+## 相关文档
+* Havenask Wiki: [https://github.com/alibaba/havenask/wiki](https://github.com/alibaba/havenask/wiki)
 
 ## 开始使用
 使用前确保已经安装和启动Docker服务
 
 ### 启动容器
-克隆仓库并创建容器。其中CONTAINER_NAME为指定的容器名
+克隆仓库
 ```
 git clone git@github.com:alibaba/havenask.git
 cd havenask/docker
-docker pull havenask/ha3_runtime:0.1
-./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.1
 ```
+创建容器。其中CONTAINER_NAME为指定的容器名
+```
+docker pull havenask/ha3_runtime:0.1 
+./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.1 
+```
+如果由于Docker Hub访问不稳定无法下载以上镜像，可以尝试阿里云镜像源
+```
+docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.1 
+./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.1 
+```
+
 登陆容器
 ```
 ./<CONTAINER_NAME>/sshme
@@ -51,7 +63,3 @@ python curl_http.py 45800 "query=select id,hits from in0 where MATCHINDEX('title
 
 python curl_http.py 45800 "query=select title, subject from in0_summary_ where id=1 or id=2"
 ```
-
-
-## 文档
-* 更多详细的引擎使用说明见[havenask Wiki](https://github.com/alibaba/havenask/wiki)
