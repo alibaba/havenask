@@ -25,6 +25,10 @@ python build_demo_data.py <ha3_install>
 ```
 python start_demo_searcher.py <ha3_install> <qrsHttpPort>
 ```
+* 如果启动失败可以尝试以下操作：
+    1. 删除工作目录example/scripts/workdir
+    2. 如果开启了多个havenask容器，尝试全部关闭并重启一个新容器
+    3. 重新利用脚本构建索引并查询
 
 * 假设\<qrsHttpPort\>为12345，可以直接通过curl命令进行查询测试，也可以使用脚本进行测试，下面是一些测试query。其他查询语法请参考 [havenask Wiki](https://github.com/alibaba/havenask/wiki)
 
