@@ -42,7 +42,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.1
 
 ### 测试索引构建
 
-构建全量索引，其中USER为登陆容器前的用户名
+构建全量索引
 ```
 cd ~/havenask/example/scripts
 python build_demo_data.py /ha3_install
