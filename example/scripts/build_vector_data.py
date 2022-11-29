@@ -1,6 +1,7 @@
 #!/bin/env python
 import os
 import sys
+import util
 
 HERE = os.path.split(os.path.realpath(__file__))[0]
 
@@ -17,6 +18,8 @@ if __name__ == '__main__':
     configRoot = os.path.join(HERE, '../config/vector_config/offline_config/')
     dataPath = os.path.join(HERE, '../data/vector.data')
     workDir = os.path.join(HERE, './workdir')
+    if not util.copyAithetaIndexerPlugin(configRoot):
+        sys.exit(-1)
     if not os.path.exists(workDir):
         cmd = 'mkdir ' + workDir
         executCmd(cmd)

@@ -20,4 +20,3 @@ env.SConscript(
     )
 
 env.aInstall(env['TOP_DIR'] + '/lib/', [env['BUILD_DIR'] + '/lib/*.so'])
-#env.aInstallEtc('etc/*', 'bs_plugin')

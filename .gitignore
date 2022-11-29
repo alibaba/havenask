@@ -71,4 +71,5 @@ aios/build_service/build_service/check_header.cpp
 aios/plugin_platform/indexer_plugins/aitheta_indexer/aitheta_indexer/__signature.h
 ha3_install
 example/scripts/workdir/
+libaitheta_indexer*
 !.gitkeep
