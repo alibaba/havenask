@@ -1,0 +1,16 @@
+# -*- mode: python -*-
+import os
+Import('env')
+env = env.Clone()
+
+sources = ['#/aitheta_indexer/test/dotest.cpp'] + Glob("*.cpp") + Glob("#/aitheta_indexer/plugins/aitheta/test/aitheta_test_base.cpp")
+
+aitheta_reduce_task_libs = [
+    'reduce_task_util',
+    'aitheta_indexer',
+    'gmock',
+    'gtest'
+]
+
+
+testTarget = env.aTest(target = 'reduce_task_test', source = sources, LIBS = aitheta_reduce_task_libs)

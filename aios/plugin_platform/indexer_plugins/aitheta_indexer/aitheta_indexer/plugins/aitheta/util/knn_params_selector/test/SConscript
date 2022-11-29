@@ -1,0 +1,15 @@
+# -*- mode: python -*-
+import os
+Import('env')
+env = env.Clone()
+
+test_sources = ['#/aitheta_indexer/test/dotest.cpp'] + Glob("*.cpp")
+
+test_libs = [
+    'knn_params_selector',
+    'aitheta_indexer',
+    'gmock',
+    'gtest'
+]
+
+testTarget = env.aTest(target = 'knn_params_selector_test', source = test_sources, LIBS = test_libs)

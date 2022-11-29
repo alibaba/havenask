@@ -1,0 +1,86 @@
+{
+    "dynamic_configs":[
+    {
+        "type":"pq",
+        "strategies":[
+        {
+            "name":"blance",
+            "as_default":true,
+            "dynamic_param_list":[
+            {
+                "upper_limit":5000,
+                "params":{
+                    "proxima.pq.builder.train_fragment_number":"8",
+                    "proxima.pq.builder.train_coarse_centroid_number":"20",
+                    "proxima.general.builder.memory_quota":"51200",
+                    "proxima.general.builder.train_sample_count":"800"
+                }
+
+            },
+            {
+                "upper_limit":10000,
+                "params":{
+                    "proxima.pq.builder.train_fragment_number":"16",
+                    "proxima.pq.builder.train_coarse_centroid_number":"40",
+                    "proxima.general.builder.memory_quota":"1024000",
+                    "proxima.general.builder.train_sample_count":"1600"
+                }
+
+            },
+            {
+                "upper_limit":15000,
+                "params":{
+                    "proxima.pq.builder.train_fragment_number":"24",
+                    "proxima.pq.builder.train_coarse_centroid_number":"60",
+                    "proxima.general.builder.memory_quota":"153600"
+                }
+            }
+
+            ]
+
+        },
+        {
+            "name":"low_rt",
+            "dynamic_param_list":[
+            {
+                "upper_limit":15000,
+                "params":{
+                    "proxima.pq.builder.train_fragment_number":"8",
+                    "proxima.pq.builder.train_product_centroid_number":"256",
+                    "proxima.pq.builder.train_coarse_centroid_number":"8192",
+                    "proxima.general.builder.memory_quota":"1000000000",
+                    "proxima.general.builder.train_sample_count":"8",
+                    "proxima.pq.searcher.coarse_scan_ratio": "0.4",
+                    "proxima.pq.searcher.product_scan_number": "2000"
+                }
+            }
+            ]
+
+        },
+        {
+            "name":"low_rt_ip",
+            "dynamic_param_list":[
+            {
+                "upper_limit":15000,
+                "params":{
+                    "proxima.pq.builder.train_fragment_number":"8",
+                    "proxima.pq.builder.train_product_centroid_number":"256",
+                    "proxima.pq.builder.train_coarse_centroid_number":"8192",
+                    "proxima.general.builder.memory_quota":"1000000000",
+                    "proxima.general.builder.train_sample_count":"8",
+                    "proxima.pq.searcher.coarse_scan_ratio": "1",
+                    "proxima.pq.searcher.product_scan_number": "2000"
+                }
+
+            }
+
+            ]
+
+        }
+        ]
+
+    }
+
+    ]
+
+}

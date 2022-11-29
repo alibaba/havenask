@@ -1,0 +1,23 @@
+# -*- mode: python -*-
+import sys, os, os.path, platform, re, time
+
+env = Environment(ENV = {'PATH' : os.environ['PATH']}, tools=['default', 'ascons'])
+
+env.requireVersion(40)
+
+
+env['version'] = '0.2.0'
+env['releaseStr'] = 'nightly_' + time.strftime("%Y%m%d%H%M", time.localtime())
+if env['mode'] == 'release':
+    env['releaseStr'] = "rc_0"
+
+env.Append(CCFLAGS = '-Werror')
+env.SConscript(
+    dirs='.',
+    exports='env',
+    variant_dir=env['BUILD_DIR'],
+    duplicate=1
+    )
+
+env.aInstall(env['TOP_DIR'] + '/lib/', [env['BUILD_DIR'] + '/lib/*.so'])
+#env.aInstallEtc('etc/*', 'bs_plugin')
