@@ -68,6 +68,8 @@ aios/build_service/config.*
 aios/build_service/apsara_base.LOG*
 aios/build_service/zookeeper_log
 aios/build_service/build_service/check_header.cpp
+aios/plugin_platform/indexer_plugins/aitheta_indexer/aitheta_indexer/__signature.h
 ha3_install
 example/scripts/workdir/
+libaitheta_indexer*
 !.gitkeep

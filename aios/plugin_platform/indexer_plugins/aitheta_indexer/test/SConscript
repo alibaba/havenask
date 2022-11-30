@@ -1,0 +1,8 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, 
+#so my changes are limited in this directory and sub-directories.
+env = env.Clone()

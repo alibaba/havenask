@@ -1,0 +1,51 @@
+{
+    "strategies":[
+        {
+            "name":"blance",
+            "as_default":true,
+            "dynamic_param_list":[
+                {
+                    "upper_limit":5000,
+                    "params":{
+                        "proxima.pq.builder.train_fragment_number": "8",
+                        "proxima.pq.builder.train_coarse_centroid_number": "20",
+                        "proxima.general.builder.memory_quota" : "51200",
+                        "proxima.general.builder.train_sample_count" : "800"
+                    }
+                },
+                {
+                    "upper_limit":10000,
+                    "params":{
+                        "proxima.pq.builder.train_fragment_number": "16",
+                        "proxima.pq.builder.train_coarse_centroid_number": "40",
+                        "proxima.general.builder.memory_quota" : "1024000",
+                        "proxima.general.builder.train_sample_count" : "1600"
+                    }
+                },
+                {
+                    "upper_limit":15000,
+                    "params":{
+                        "proxima.pq.builder.train_fragment_number": "24",
+                        "proxima.pq.builder.train_coarse_centroid_number": "60",
+                        "proxima.general.builder.memory_quota" : "153600",
+                        "proxima.general.builder.train_sample_count" : "2400"
+                    }
+                }
+            ]
+        },
+        {
+            "name":"low_rt",
+            "dynamic_param_list":[
+                {
+                    "upper_limit":15000,
+                    "params":{
+                        "proxima.pq.builder.train_fragment_number": "24",
+                        "proxima.pq.builder.train_coarse_centroid_number": "60",
+                        "proxima.general.builder.memory_quota" : "153600",
+                        "proxima.general.builder.train_sample_count" : "2400"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,17 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+aitheta_indexer_source = Glob('*.cpp')
+env.Append(CCFLAGS = '-fopenmp -Wno-unused-variable ')
+env.Append(_ALIBFLAGS=' -Wl,--whole-archive -l:libknn_cluster.a -l:libknn_utils.a ' +
+'-l:libknn_linear.a -l:libknn_hc.a -l:libknn_pq.a -l:libknn_graph.a -l:libaitheta.a -Wl,--no-whole-archive ' +
+'-lpthread -lgomp -lm -lindexlib ' )
+aitheta_indexer_lib = env.aLibraryAndInstall(
+    target = 'aitheta_indexer',
+    source = aitheta_indexer_source,
+    LIBS=['aitheta_indexer_util']
+)
+env.aDirs('util')
+env.aDirs('test')

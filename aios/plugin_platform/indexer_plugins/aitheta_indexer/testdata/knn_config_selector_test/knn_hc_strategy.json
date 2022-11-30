@@ -1,0 +1,36 @@
+{
+    "strategies":[
+    {
+        "name":"blance",
+        "as_default":true,
+        "dynamic_param_list":[
+            ]
+
+    },
+    {
+        "name":"low_rt",
+        "dynamic_param_list":[
+        {
+            "upper_limit":15000,
+            "params":{
+                "proxima.hc.common.basic_block_size":"32",
+                "proxima.hc.builder.num_in_level_1":"2000",
+                "proxima.hc.builder.num_in_level_2":"200",
+                "proxima.hc.common.leaf_centroid_num":"400000",
+                "proxima.hc.common.level_cnt":"2",
+                "proxima.hc.common.max_doc_cnt":"1001",
+                "proxima.general.builder.train_sample_count":"1000",
+                "proxima.general.builder.train_sample_ratio":"0.100000",
+                "proxima.hc.builder.build_in_memory":"1",
+                "proxima.hc.builder.memory_quota":"2000000000",
+                "search_metric_type": "ip",
+                "proxima.hc.searcher.max_scan_num" : "300",
+                "proxima.hc.searcher.scan_num_in_level_1":"100",
+                "proxima.hc.searcher.scan_num_in_level_2": "20",
+                "proxima.hc.searcher.topk": "10"
+            }
+        }
+        ]
+    }
+    ]
+}
