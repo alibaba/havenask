@@ -16,7 +16,7 @@ Havenask 的核心能力与优势，有以下几点：
 * Havenask Wiki: [https://github.com/alibaba/havenask/wiki](https://github.com/alibaba/havenask/wiki)
 
 ## 开始使用
-使用前确保已经安装和启动Docker服务
+使用前确保设备已经安装和启动Docker服务
 
 ### 启动容器
 克隆仓库
@@ -24,7 +24,7 @@ Havenask 的核心能力与优势，有以下几点：
 git clone git@github.com:alibaba/havenask.git
 cd havenask/docker
 ```
-创建容器。其中CONTAINER_NAME为指定的容器名
+创建容器，其中CONTAINER_NAME为指定的容器名
 ```
 docker pull havenask/ha3_runtime:0.1 
 ./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.1 
