@@ -1,0 +1,37 @@
+{
+    "build_option_config" : {
+        "async_build" : true,
+        "async_queue_size" : 1000,
+        "document_filter" : true,
+        "max_recover_time" : 30,
+        "sort_build" : true,
+        "sort_descriptions" : [
+            {
+                "sort_field" : "hits",
+                "sort_pattern" : "asc"
+            }
+        ],
+        "sort_queue_mem" : 4096,
+        "sort_queue_size" : 10000000
+    },
+    "cluster_config" : {
+        "builder_rule_config" : {
+            "batch_mode" : false,
+            "build_parallel_num" : 1,
+            "merge_parallel_num" : 1,
+            "partition_count" : 1
+        },
+        "cluster_name" : "in0",
+        "hash_mode" : {
+            "hash_field" : "id",
+            "hash_function" : "HASH"
+        },
+        "table_name" : "in0"
+    },
+    "offline_index_config" : {
+        "build_config" : {
+            "build_total_memory" : 5120,
+            "keep_version_count" : 40
+        }
+    }
+}

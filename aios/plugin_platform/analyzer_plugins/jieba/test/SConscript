@@ -1,0 +1,16 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env', "Libs")
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+analyzer_test_sources = [
+    'JiebaTokenizerTest.cpp'
+    ]
+
+env.aTest(target = 'analyzer_test',
+          source = analyzer_test_sources,
+          LIBS = env['ha3_test_depend_lib']  + Libs
+)

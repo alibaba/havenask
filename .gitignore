@@ -72,4 +72,6 @@ aios/plugin_platform/indexer_plugins/aitheta_indexer/aitheta_indexer/__signature
 ha3_install
 example/scripts/workdir/
 libaitheta_indexer*
+libanalyzer_plugin*
 !.gitkeep
+**/workdir
