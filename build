@@ -26,3 +26,4 @@ if __name__ == '__main__':
     build('indexlib')
     build('build_service')
     build('ha3')
+    build('plugin_platform/indexer_plugins/aitheta_indexer')

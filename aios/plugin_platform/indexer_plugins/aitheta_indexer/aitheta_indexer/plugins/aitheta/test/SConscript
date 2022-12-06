@@ -1,0 +1,20 @@
+# -*- mode: python -*-
+import os
+Import('env')
+env = env.Clone()
+
+aitheta_indexer_test_sources = ['#/aitheta_indexer/test/dotest.cpp'] + Glob("*.cpp")
+
+aitheta_indexer_test_libs = [
+    'aitheta_indexer',
+    'indexlib',
+    'gmock',
+    'gtest'
+]
+
+libaitheta_indexer = env['LIB_DIR'] + '/' + 'libaitheta_indexer.so'
+
+aitheta_indexer_test_installed = env.aCopy('#/testdata/aitheta_indexer_plugins/', libaitheta_indexer)
+testTarget = env.aTest(target = 'aitheta_indexer_test', source = aitheta_indexer_test_sources, LIBS = aitheta_indexer_test_libs)
+
+env.Depends(testTarget, aitheta_indexer_test_installed)

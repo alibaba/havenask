@@ -1,0 +1,35 @@
+{
+    "dynamic_param_list":[
+        {
+            "upper_limit":40000,
+            "params":{
+                "builder.max_level":"1",
+                "builder.type":"hnsw_compress",
+                "searcher.max_level":"2",
+                "searcher.type":"hnsw"
+
+            }
+        },
+        {
+            "upper_limit":0,
+            "params":{
+                "builder.max_level":"3",
+                "builder.type":"hnsw_compress",
+                "searcher.max_level":"6",
+                "searcher.type":"hnsw"
+
+            }
+        },
+        {
+            "upper_limit":80000,
+            "params":{
+                "builder.max_level":"2",
+                "builder.type":"hnsw_compress",
+                "searcher.max_level":"4",
+                "searcher.type":"hnsw"
+
+            }
+        }
+    ]
+
+}

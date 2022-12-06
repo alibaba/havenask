@@ -22,7 +22,7 @@ if [ $# -lt 1 ]; then
     exit 2
 fi
 
-IMAGE="havenask/ha3_runtime:0.1"
+IMAGE="havenask/ha3_runtime:0.2.0"
 if [ $# -eq 2 ]; then
     IMAGE=$2
 fi
@@ -81,7 +81,7 @@ sshme="docker exec --user $USER -it $CONTAINER_NAME sh -c 'cd ~ && /bin/bash' "
 [ -e $CONTAINER_DIR/sshme ] && rm -rf $CONTAINER_DIR/sshme
 echo $sshme > $CONTAINER_DIR/sshme
 chmod +x $CONTAINER_DIR/sshme
-dockerstop="docker stop $name;docker rm -fv $DOCKER_NAME"
+dockerstop="docker stop $CONTAINER_NAME;docker rm -fv $CONTAINER_NAME"
 stopSh=stopContainer.sh
 [ -e $CONTAINER_DIR/$stopSh ] && rm -rf $CONTAINER_DIR/$stopSh
 echo $dockerstop > $CONTAINER_DIR/$stopSh

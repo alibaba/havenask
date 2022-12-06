@@ -1,0 +1,16 @@
+# -*- mode: python -*-
+import os
+Import('env')
+env = env.Clone()
+
+aitheta_indexer_test_sources = ['#/aitheta_indexer/test/dotest.cpp'] + Glob("*.cpp")
+
+aitheta_indexer_test_libs = [
+    'aitheta_indexer_util',
+    'aitheta_indexer',
+    'gmock',
+    'gtest'
+]
+
+
+testTarget = env.aTest(target = 'aitheta_indexer_util_test', source = aitheta_indexer_test_sources, LIBS = aitheta_indexer_test_libs)

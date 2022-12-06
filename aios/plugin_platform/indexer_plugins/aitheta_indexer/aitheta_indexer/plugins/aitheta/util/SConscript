@@ -1,0 +1,16 @@
+# -*- mode: python -*-
+
+Import('env')
+env = env.Clone()
+
+reduce_task_sources = env.aDirs('reduce_task')
+knn_params_selector_sources = env.aDirs('knn_params_selector')
+aitheta_indexer_util_source = Glob('*.cpp') + reduce_task_sources + knn_params_selector_sources
+
+env.aStaticLibraryAndInstall(
+    target = 'aitheta_indexer_util',
+    source = aitheta_indexer_util_source
+)
+
+env.aDirs('test')
+

@@ -1,0 +1,36 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment,
+#so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+env.Append(CCFLAGS='-D_GLIBCXX_USE_CXX11_ABI=0')
+
+env.Append(ACSUBST = {'BUILDDIR': env['RELATIVE_BUILD_DIR']})
+env.Append(ACSUBST = {'TOP_BUILDDIR': env['RELATIVE_BUILD_DIR']})
+env.Append(ACSUBST = {'TOP_SRCDIR': env['TOP_DIR']})
+env.Append(CPPPATH=env['install_root'] + '/usr/local/proxima/include/')
+env.Append(LIBPATH=[env['install_root'] + "/usr/local/proxima/arch/broadwell/release/lib/"])
+
+env.aACSubst(target = ['aitheta_indexer/test/test.h'],
+             source = ['aitheta_indexer/test/test.h.in'])
+
+env.aCheckLibraryPrependLib('pthread')
+env.aCheckLibraryPrependLib('dl')
+env.aCheckLibraryPrependLib('alog')
+env.aCheckLibraryPrependLib('protobuf')
+env.aCheckLibraryPrependLib('autil')
+env.aCheckLibraryPrependLib('fslib-framework')
+
+env.Append(CCFLAGS='-std=c++14')
+env.Append(CCFLAGS='-mavx2')
+env.Append(CCFLAGS='-mfma')
+
+
+
+# List my sub-directories.
+env.aDirs('aitheta_indexer')
+env.aDirs('test')
