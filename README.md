@@ -63,3 +63,9 @@ python curl_http.py 45800 "query=select id,hits from in0 where MATCHINDEX('title
 
 python curl_http.py 45800 "query=select title, subject from in0_summary_ where id=1 or id=2"
 ```
+
+## 联系我们
+官方技术交流钉钉群：
+
+![3293821693450208](https://user-images.githubusercontent.com/590717/206684715-5ab1df49-f919-4d8e-85ee-58b364edef31.jpg)
+
