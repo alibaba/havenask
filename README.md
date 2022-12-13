@@ -16,8 +16,13 @@ Havenask 的核心能力与优势，有以下几点：
 * Havenask Wiki: [https://github.com/alibaba/havenask/wiki](https://github.com/alibaba/havenask/wiki)
 
 ## 开始使用
-使用前确保设备已经安装和启动Docker服务
-
+* 镜像介绍：
+ * ha3_runtime：可直接运行的镜像，无需编译代码，包含了问天引擎的可执行文件。
+ * ha3_dev：用于开发测试的镜像，里面包含了开发测试时需要的各种依赖库和头文件，如何编译问天引擎请参考[编译代码](https://github.com/alibaba/havenask/wiki/%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B#%E7%BC%96%E8%AF%91%E4%BB%A3%E7%A0%81)。
+* 环境要求
+ * 确保机器内存大于10G，cpu大于2核，磁盘大小大于50G。
+ * 使用前确保设备已经安装和启动Docker服务。
+ 
 ### 启动容器
 克隆仓库
 ```
@@ -28,7 +33,7 @@ cd havenask/docker
 ```
 docker pull havenask/ha3_runtime:0.2.0
 ./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.2.0
-```
+``10
 如果由于Docker Hub访问不稳定无法下载以上镜像，可以尝试阿里云镜像源
 ```
 docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.0
