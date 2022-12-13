@@ -33,13 +33,12 @@ cd havenask/docker
 ```
 docker pull havenask/ha3_runtime:0.2.0
 ./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.2.0
-``10
+```
 如果由于Docker Hub访问不稳定无法下载以上镜像，可以尝试阿里云镜像源
 ```
 docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.0
 ./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.0
 ```
-
 登陆容器
 ```
 ./<CONTAINER_NAME>/sshme
