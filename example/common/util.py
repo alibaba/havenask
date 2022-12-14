@@ -17,12 +17,12 @@ def getConfigMaxVersion(configRoot):
     return versions
 
 def copyPlugin(candidateSourcePaths = [
-                                                os.path.join(HERE, "../../aios/plugin_platform/indexer_plugins/aitheta_indexer/lib/"),
-                                                os.path.join(HERE, "../../aios/plugin_platform/analyzer_plugins/build/release64/lib/"),
-                                                '/ha3_depends/usr/local/lib64/'
-                                            ],
-                                            plugin = "",
-                                            targetPath = ""):
+    os.path.join(HERE, "../../aios/plugin_platform/indexer_plugins/aitheta_indexer/lib/"),
+    os.path.join(HERE, "../../aios/plugin_platform/analyzer_plugins/build/release64/lib/"),
+    '/ha3_depends/usr/local/lib64/',
+    '/ha3_install/usr/local/lib64'],
+               plugin = "",
+               targetPath = ""):
     versions = getConfigMaxVersion(targetPath)
     if len(versions) <= 0:
         print 'config %s is invalid, a num sub dir must be exist' % targetPath
