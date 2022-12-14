@@ -32,10 +32,7 @@
         },
         "jieba_analyzer":
         {
-            "tokenizer_configs" :
-            {
-                "tokenizer_type" : "singlews"
-            },
+            "tokenizer_name" : "jieba_analyzer",
             "stopwords" : [],
             "normalize_options" :
             {
@@ -56,7 +53,7 @@
         "tokenizers" : [
             {
                 "tokenizer_name": "jieba_analyzer", 
-                "tokenizer_type": "jieba_analyzer", 
+                "tokenizer_type": "jieba", 
                 "module_name": "analyzer_plugin", 
                 "parameters": {
                     "dict_path": "jieba_dict/jieba.dict.utf8",

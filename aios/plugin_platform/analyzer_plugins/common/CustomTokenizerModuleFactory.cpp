@@ -13,8 +13,10 @@ PLUG_LOG_SETUP(plug, CustomTokenizerModuleFactory);
 
 Tokenizer* CustomTokenizerModuleFactory::createTokenizer(const std::string& tokenizerType)
 {
-    if ( tokenizerType == "jieba_analyzer" ){
-        return new JiebaTokenizer;
+    Tokenizer* tokenizer = nullptr;
+    if ( tokenizerType == "jieba" ){
+        tokenizer = new JiebaTokenizer();
+        return tokenizer;
     }
     PLUG_LOG(ERROR,"Tokenizer type %s Not Found.",tokenizerType.c_str());
     return 0;

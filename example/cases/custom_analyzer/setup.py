@@ -20,6 +20,6 @@ def search_prepare():
     if not util.copyPlugin(plugin="libanalyzer_plugin.so", targetPath=bizsConfigDir):
         raise IOError
     testQueries = [
-        "select id,hits from in0 where MATCHINDEX(\'title\', \'搜索词典\')"
+        "select id,hits from in0 where MATCHINDEX(\'title\', \'搜索词典\')&&kvpair=timeout:10000"
     ]
     return configDir, testQueries

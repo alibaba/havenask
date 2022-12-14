@@ -1,14 +1,23 @@
 # Example
-开始检索之前，需要手动构建索引，目前只支持全量构建。构建索引需要准备配置和原始数据。
+* 开始检索之前，需要手动构建索引，目前只支持全量构建。构建索引需要准备配置和原始数据。
 
 ## Example目录结构说明
-* havenask编译结果目录: <ha3_install>
-  * 如果是运行镜像默认/ha3_install
-  * 如果是编译镜像默认~/havenask/ha3_install
-* 工作目录: example/scripts/workdir
-* 配置目录: example/config
-* 数据目录: example/data
-* 测试脚本: example/scripts
+* data 测试数据
+* common 测试工具脚本目录
+* cases 运行样例
+* cases/<case> 具体某个样例名
+  * config 配置文件
+  * workdir 引擎工作目录
+  * setup.py 在运行测试之前的自动准备脚本
+
+* 具体样例
+
+
+| case  |  样例说明|
+|---|---|
+|  normal | 默认样例，执行简单sql查询  |
+| vector | havenask向量索引样例 |
+| custom_analyzer| 以开源c++版jieba分词器为基础的定制havenask分词插件样例 |
 
 请根据业务需求和实际数据格式对配置和数据进行修改。如何修改配置和数据格式的详解请参考 [havenask Wiki](https://github.com/alibaba/havenask/wiki)
 
@@ -18,7 +27,9 @@
 * 构建全量索引。如果报错可以查看example/scripts/workdir/bs.log文件，索引产出在example/scripts/workdir/runtimedata目录
 ```
 cd ~/havenask/example/scripts
-python build_demo_data.py <ha3_install>
+## <ha3_install>代表编译结果路径，如果在运行镜像为/ha3_install，在编译镜像为~/havenask/ha3_install
+## <case>代表example下某个case的目录名，如normal
+python build_demo_data.py <ha3_install> <case>
 ```
 
 * 启动havenask并查询数据。\<qrsHttpPort\>为查询端口

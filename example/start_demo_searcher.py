@@ -14,6 +14,7 @@ def executCmd(cmd):
     os.system(cmd)
 
 if __name__ == '__main__':
+    os.system("pkill -9 sap_server_d")
     if len(sys.argv) < 2:
         print 'python start_demo_searcher.py installRoot case[optional] qrsHttpPort[optional]'
         print 'please specify install root'

@@ -25,12 +25,32 @@ JiebaTokenizer::JiebaTokenizer()
 {
 }
 
+JiebaTokenizer::JiebaTokenizer(string dictPath, 
+                                string hmmPath, 
+                                string userDictPath, 
+                                string idfPath, 
+                                string stopWordPath,
+                                set<string> stopWords)
+{
+    _dictPath = dictPath;
+    _hmmPath = hmmPath;
+    _userDictPath = userDictPath;
+    _idfPath = idfPath;
+    _stopWordPath = stopWordPath;
+    set<std::string>::iterator iter = stopWords.begin();
+    while(iter != stopWords.end()) {
+        _stopWords.insert(*iter);
+        iter++;
+    }
+}
+
 JiebaTokenizer::~JiebaTokenizer() {
 }
 
-void JiebaTokenizer::clear() {
+void JiebaTokenizer::reset() {
     _cursor = 0;
     _cutWords.clear();
+    jieba = new cppjieba::Jieba(_dictPath, _hmmPath, _userDictPath, _idfPath, _stopWordPath);
 }
 
 bool JiebaTokenizer::getAndCheckJiebaDataPath(const KeyValueMap &parameters, const ResourceReaderPtr &resourceReader, string key, string& fullPath) {
@@ -56,22 +76,21 @@ bool JiebaTokenizer::init(const KeyValueMap &parameters,
                            const ResourceReaderPtr &resourceReader)
 {
     string dictPath, hmmPath, userDictPath, idfPath, stopWordPath;
-    if(!getAndCheckJiebaDataPath(parameters, resourceReader, DICT_PATH_KEY, dictPath)) {
+    if(!getAndCheckJiebaDataPath(parameters, resourceReader, DICT_PATH_KEY, _dictPath)) {
         return false;
     }
-    if(!getAndCheckJiebaDataPath(parameters, resourceReader, HMM_PATH_KEY, hmmPath)) {
+    if(!getAndCheckJiebaDataPath(parameters, resourceReader, HMM_PATH_KEY, _hmmPath)) {
         return false;
     }
-    if(!getAndCheckJiebaDataPath(parameters, resourceReader, USER_DICT_PATH_KEY, userDictPath)) {
+    if(!getAndCheckJiebaDataPath(parameters, resourceReader, USER_DICT_PATH_KEY, _userDictPath)) {
         return false;
     }
-    if(!getAndCheckJiebaDataPath(parameters, resourceReader, IDF_PATH_KEY, idfPath)) {
+    if(!getAndCheckJiebaDataPath(parameters, resourceReader, IDF_PATH_KEY, _idfPath)) {
         return false;
     }
-    if(!getAndCheckJiebaDataPath(parameters, resourceReader, STOP_WORD_PATH_KEY, stopWordPath)) {
+    if(!getAndCheckJiebaDataPath(parameters, resourceReader, STOP_WORD_PATH_KEY, _stopWordPath)) {
         return false;
     }
-    jieba = new cppjieba::Jieba(dictPath, hmmPath, userDictPath, idfPath, stopWordPath);
     string stopWordContent;
     resourceReader->getFileContent(stopWordContent, parameters.find(STOP_WORD_PATH_KEY)->second);
     string tmpWord;
@@ -92,7 +111,7 @@ bool JiebaTokenizer::init(const KeyValueMap &parameters,
 }
 
 void JiebaTokenizer::tokenize(const char *text, size_t len) {
-    clear();
+    reset();
     string testStr = string(text, len);
     jieba->Cut(testStr, _cutWords, true);
 }
@@ -114,7 +133,7 @@ bool JiebaTokenizer::next(Token &token) {
 }
 
 Tokenizer *JiebaTokenizer::clone() {
-    return new JiebaTokenizer();
+    return new JiebaTokenizer(_dictPath, _hmmPath, _userDictPath, _idfPath, _stopWordPath, _stopWords);
 }
 
 }
