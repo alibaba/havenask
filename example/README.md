@@ -34,7 +34,7 @@ python build_demo_data.py <ha3_install> <case>
 
 * 启动havenask并查询数据。\<qrsHttpPort\>为查询端口
 ```
-python start_demo_searcher.py <ha3_install> <qrsHttpPort>
+python start_demo_searcher.py <ha3_install> <qrsHttpPort> <case>
 ```
 * 如果启动失败可以尝试以下操作：
     1. 删除工作目录example/\<case\>/workdir
