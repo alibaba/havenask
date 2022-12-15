@@ -40,7 +40,7 @@ void JiebaTokenizer::reset() {
     _cutWords.clear();
 }
 
-bool JiebaTokenizer::getAndCheckJiebaDataPath(const KeyValueMap &parameters, const ResourceReaderPtr &resourceReader, string key, string& fullPath) {
+bool JiebaTokenizer::getAndCheckJiebaDataPath(const KeyValueMap &parameters, const ResourceReaderPtr &resourceReader, const string key, string& fullPath) {
     KeyValueMap::const_iterator it = parameters.find(key);
     if (it != parameters.end()) {
         string path = it->second;
