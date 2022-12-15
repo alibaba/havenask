@@ -25,23 +25,11 @@ JiebaTokenizer::JiebaTokenizer()
 {
 }
 
-JiebaTokenizer::JiebaTokenizer(string dictPath, 
-                                string hmmPath, 
-                                string userDictPath, 
-                                string idfPath, 
-                                string stopWordPath,
-                                set<string> stopWords)
+JiebaTokenizer::JiebaTokenizer(shared_ptr<cppjieba::Jieba> jieba, 
+                                shared_ptr<std::set<string>>stopWords)
 {
-    _dictPath = dictPath;
-    _hmmPath = hmmPath;
-    _userDictPath = userDictPath;
-    _idfPath = idfPath;
-    _stopWordPath = stopWordPath;
-    set<std::string>::iterator iter = stopWords.begin();
-    while(iter != stopWords.end()) {
-        _stopWords.insert(*iter);
-        iter++;
-    }
+    this->_jieba = jieba;
+    this->_stopWords = stopWords;
 }
 
 JiebaTokenizer::~JiebaTokenizer() {
@@ -50,10 +38,9 @@ JiebaTokenizer::~JiebaTokenizer() {
 void JiebaTokenizer::reset() {
     _cursor = 0;
     _cutWords.clear();
-    jieba = new cppjieba::Jieba(_dictPath, _hmmPath, _userDictPath, _idfPath, _stopWordPath);
 }
 
-bool JiebaTokenizer::getAndCheckJiebaDataPath(const KeyValueMap &parameters, const ResourceReaderPtr &resourceReader, string key, string& fullPath) {
+bool JiebaTokenizer::getAndCheckJiebaDataPath(const KeyValueMap &parameters, const ResourceReaderPtr &resourceReader, const string& key, string& fullPath) {
     KeyValueMap::const_iterator it = parameters.find(key);
     if (it != parameters.end()) {
         string path = it->second;
@@ -91,13 +78,16 @@ bool JiebaTokenizer::init(const KeyValueMap &parameters,
     if(!getAndCheckJiebaDataPath(parameters, resourceReader, STOP_WORD_PATH_KEY, _stopWordPath)) {
         return false;
     }
+    _jieba = make_shared<cppjieba::Jieba>(_dictPath, _hmmPath, _userDictPath, _idfPath, _stopWordPath);
+
     string stopWordContent;
     resourceReader->getFileContent(stopWordContent, parameters.find(STOP_WORD_PATH_KEY)->second);
     string tmpWord;
+    set<string> stopWords;
     for(size_t i=0;i<stopWordContent.size();i++) {
         char c = stopWordContent[i];
         if(c == '\n' && tmpWord.size() != 0) {
-            _stopWords.insert(tmpWord);
+            stopWords.insert(tmpWord);
             tmpWord.clear();
         }
         else {
@@ -105,15 +95,17 @@ bool JiebaTokenizer::init(const KeyValueMap &parameters,
         }
     }
     if(tmpWord.size() != 0) {
-        _stopWords.insert(tmpWord);
+        stopWords.insert(tmpWord);
     }
+    _stopWords = make_shared<set<string>>(stopWords);
+
     return true;
 }
 
 void JiebaTokenizer::tokenize(const char *text, size_t len) {
     reset();
     string testStr = string(text, len);
-    jieba->Cut(testStr, _cutWords, true);
+    _jieba->Cut(testStr, _cutWords, true);
 }
 
 bool JiebaTokenizer::next(Token &token) {
@@ -123,7 +115,7 @@ bool JiebaTokenizer::next(Token &token) {
     string word =  _cutWords[_cursor];
     token.getNormalizedText().assign(word.c_str());
     token.setPosition(_cursor++);
-    if(_stopWords.find(word) != _stopWords.end()) {
+    if(_stopWords->find(word) != _stopWords->end()) {
         token.setIsRetrieve(false);
     }
     else {
@@ -133,7 +125,7 @@ bool JiebaTokenizer::next(Token &token) {
 }
 
 Tokenizer *JiebaTokenizer::clone() {
-    return new JiebaTokenizer(_dictPath, _hmmPath, _userDictPath, _idfPath, _stopWordPath, _stopWords);
+    return new JiebaTokenizer(_jieba, _stopWords);
 }
 
 }

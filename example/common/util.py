@@ -18,9 +18,10 @@ def getConfigMaxVersion(configRoot):
 
 def copyPlugin(candidateSourcePaths = [
     os.path.join(HERE, "../../aios/plugin_platform/indexer_plugins/aitheta_indexer/lib/"),
-    os.path.join(HERE, "../../aios/plugin_platform/analyzer_plugins/build/release64/lib/"),
     '/ha3_depends/usr/local/lib64/',
-    '/ha3_install/usr/local/lib64'],
+    '/ha3_install/usr/local/lib64',
+    os.path.join(os.path.expanduser("~"), 'havenask/ha3_install/usr/local/lib64')
+    ],
                plugin = "",
                targetPath = ""):
     versions = getConfigMaxVersion(targetPath)
@@ -28,11 +29,9 @@ def copyPlugin(candidateSourcePaths = [
         print 'config %s is invalid, a num sub dir must be exist' % targetPath
         return False
     soTarget = '%s/plugins/%s' % (os.path.join(targetPath, str(versions[-1])), plugin)
-    if os.path.exists(soTarget):
-        return True
 
     for path in candidateSourcePaths:
-        soPath = os.path.join(path, plugin)
+        soPath = os.path.join(os.path.abspath(path), plugin)
         if os.path.exists(soPath):
             dirList = os.listdir(targetPath)
             cmd = 'cp %s %s/plugins/' % (soPath, os.path.join(targetPath, str(versions[-1])))
