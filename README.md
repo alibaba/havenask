@@ -48,7 +48,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.0
 
 构建全量索引
 ```
-cd ~/havenask/example/scripts
+cd ~/havenask/example/
 python build_demo_data.py /ha3_install
 ```
 
