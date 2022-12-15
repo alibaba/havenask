@@ -28,7 +28,7 @@ JiebaTokenizer::JiebaTokenizer()
 JiebaTokenizer::JiebaTokenizer(shared_ptr<cppjieba::Jieba> jieba, 
                                 shared_ptr<std::set<string>>stopWords)
 {
-    this->jieba = jieba;
+    this->_jieba = jieba;
     this->_stopWords = stopWords;
 }
 
@@ -40,7 +40,7 @@ void JiebaTokenizer::reset() {
     _cutWords.clear();
 }
 
-bool JiebaTokenizer::getAndCheckJiebaDataPath(const KeyValueMap &parameters, const ResourceReaderPtr &resourceReader, const string key, string& fullPath) {
+bool JiebaTokenizer::getAndCheckJiebaDataPath(const KeyValueMap &parameters, const ResourceReaderPtr &resourceReader, const string& key, string& fullPath) {
     KeyValueMap::const_iterator it = parameters.find(key);
     if (it != parameters.end()) {
         string path = it->second;
@@ -78,7 +78,7 @@ bool JiebaTokenizer::init(const KeyValueMap &parameters,
     if(!getAndCheckJiebaDataPath(parameters, resourceReader, STOP_WORD_PATH_KEY, _stopWordPath)) {
         return false;
     }
-    jieba = make_shared<cppjieba::Jieba>(_dictPath, _hmmPath, _userDictPath, _idfPath, _stopWordPath);
+    _jieba = make_shared<cppjieba::Jieba>(_dictPath, _hmmPath, _userDictPath, _idfPath, _stopWordPath);
 
     string stopWordContent;
     resourceReader->getFileContent(stopWordContent, parameters.find(STOP_WORD_PATH_KEY)->second);
@@ -105,7 +105,7 @@ bool JiebaTokenizer::init(const KeyValueMap &parameters,
 void JiebaTokenizer::tokenize(const char *text, size_t len) {
     reset();
     string testStr = string(text, len);
-    jieba->Cut(testStr, _cutWords, true);
+    _jieba->Cut(testStr, _cutWords, true);
 }
 
 bool JiebaTokenizer::next(Token &token) {
@@ -125,7 +125,7 @@ bool JiebaTokenizer::next(Token &token) {
 }
 
 Tokenizer *JiebaTokenizer::clone() {
-    return new JiebaTokenizer(jieba, _stopWords);
+    return new JiebaTokenizer(_jieba, _stopWords);
 }
 
 }

@@ -18,7 +18,7 @@ public:
 private:
     JiebaTokenizer& operator=(const JiebaTokenizer &);
     void reset();
-    bool getAndCheckJiebaDataPath(const build_service::KeyValueMap &parameters, const build_service::config::ResourceReaderPtr &resourceReader, const std::string key, std::string& path);
+    bool getAndCheckJiebaDataPath(const build_service::KeyValueMap &parameters, const build_service::config::ResourceReaderPtr &resourceReader, const std::string& key, std::string& path);
 public:
     bool init(const build_service::KeyValueMap &parameters,
               const build_service::config::ResourceReaderPtr &resourceReader);
@@ -27,7 +27,7 @@ public:
     Tokenizer *clone();
 
 private:
-    std::shared_ptr<cppjieba::Jieba> jieba;
+    std::shared_ptr<cppjieba::Jieba> _jieba;
     std::shared_ptr<std::set<std::string>> _stopWords;
     size_t _cursor;
     std::vector<std::string> _cutWords;

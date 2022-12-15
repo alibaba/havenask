@@ -16,10 +16,9 @@ Tokenizer* CustomTokenizerModuleFactory::createTokenizer(const std::string& toke
     Tokenizer* tokenizer = nullptr;
     if ( tokenizerType == "jieba" ){
         tokenizer = new JiebaTokenizer();
-        return tokenizer;
     }
     PLUG_LOG(ERROR,"Tokenizer type %s Not Found.",tokenizerType.c_str());
-    return 0;
+    return tokenizer;
 }
 }}
 
