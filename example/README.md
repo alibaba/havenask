@@ -24,9 +24,9 @@
 
 ## 使用脚本测试
 
-* 构建全量索引。如果报错可以查看example/scripts/workdir/bs.log文件，索引产出在example/scripts/workdir/runtimedata目录
+* 构建全量索引。如果报错可以查看example/\<case\>/workdir/bs.log文件，索引产出在example/\<case\>/workdir/runtimedata目录
 ```
-cd ~/havenask/example/scripts
+cd ~/havenask/example/
 ## <ha3_install>代表编译结果路径，如果在运行镜像为/ha3_install，在编译镜像为~/havenask/ha3_install
 ## <case>代表example下某个case的目录名，如normal
 python build_demo_data.py <ha3_install> <case>
@@ -37,7 +37,7 @@ python build_demo_data.py <ha3_install> <case>
 python start_demo_searcher.py <ha3_install> <qrsHttpPort>
 ```
 * 如果启动失败可以尝试以下操作：
-    1. 删除工作目录example/scripts/workdir
+    1. 删除工作目录example/\<case\>/workdir
     2. 如果开启了多个havenask容器，尝试全部关闭并重启一个新容器
     3. 重新利用脚本构建索引并查询
 
@@ -56,7 +56,7 @@ python curl_http.py 12345 "query=select title, subject from in0_summary_ where i
 
 * 创建workdir
 ```
-mkdir ~/havenask/example/scripts/workdir
+mkdir ~/havenask/example/<case>/workdir
 ```
 
 * 构建全量索引。使用时请替换上面的按照路径和配置的路径，建议在指定-c、-d、-w参数时使用绝对路径。具体的参数含义可以执行~/havenask/ha3_install/usr/local/bin/bs -h查看
@@ -65,7 +65,7 @@ mkdir ~/havenask/example/scripts/workdir
     -c ~/havenask/example/config/normal_config/offline_config/ \
     -n in0 -j local -m full  \ 
     -d ~/havenask/example/data/test.data \
-    -w ~/havenask/example/scripts/workdir -i \
+    -w ~/havenask/example/<case>/workdir -i \
     ./runtimedata -p 1 --documentformat=ha3
 ```
 
@@ -73,7 +73,7 @@ mkdir ~/havenask/example/scripts/workdir
 * 启动havenask。执行时请将下面的目录地址替换为真实的地址。具体参数含义可以执行python <ha3_install>/usr/local/lib/python/site-packages/ha_tools/local_search_starter.py -h查看。启动成功后，会输出qrs的http和arpc端口
 ```
 ### 进入workdir目录，
-cd ~/havenask/example/scripts/workdir
+cd ~/havenask/example/<case>/workdir
 
 ### 启动havenask
 
