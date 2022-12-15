@@ -18,6 +18,7 @@
 |  normal | 默认样例，执行简单sql查询  |
 | vector | havenask向量索引样例 |
 | custom_analyzer| 以开源c++版jieba分词器为基础的定制havenask分词插件样例 |
+| custom_analyzer_big| 基于jieba分词器搜索5万条数据样例 |
 
 请根据业务需求和实际数据格式对配置和数据进行修改。如何修改配置和数据格式的详解请参考 [havenask Wiki](https://github.com/alibaba/havenask/wiki)
 
