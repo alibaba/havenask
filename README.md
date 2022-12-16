@@ -31,13 +31,13 @@ cd havenask/docker
 ```
 创建容器，其中CONTAINER_NAME为指定的容器名
 ```
-docker pull havenask/ha3_runtime:0.2.0
-./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.2.0
+docker pull havenask/ha3_runtime:0.2.2
+./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.2.2
 ```
 如果由于Docker Hub访问不稳定无法下载以上镜像，可以尝试阿里云镜像源
 ```
-docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.0
-./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.0
+docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.2
+./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.2
 ```
 登陆容器
 ```
