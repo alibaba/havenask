@@ -58,7 +58,7 @@ python build_demo_data.py /ha3_install
 python start_demo_searcher.py /ha3_install
 ```
 
-引擎的默认查询端口为45800，使用脚本进行查询测试。下面是一些测试query。
+引擎的默认查询端口为45800，使用脚本进行查询测试。下面是一些测试query。更多测试case见[example](https://github.com/alibaba/havenask/tree/main/example)
 
 ```
 python curl_http.py 45800 "query=select count(*) from in0"
