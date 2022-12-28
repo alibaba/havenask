@@ -33,7 +33,7 @@ cd ~/havenask/example/
 python build_demo_data.py <ha3_install> <case>
 ```
 
-* 启动havenask并查询数据。\<qrsHttpPort\>为查询端口
+* 启动havenask并查询数据。\<qrsHttpPort\>为查询端口。如果查询报错可以查看example/\<case\>/workdir/local_search_12000/qrs/logs/ha3.log日志文件
 ```
 python start_demo_searcher.py <ha3_install> <case> <qrsHttpPort>
 ```
