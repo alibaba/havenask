@@ -8,6 +8,9 @@
 * cases/<case> 具体某个样例名
   * config 配置文件
   * workdir 引擎工作目录
+      * workdir/bs.log 索引构建日志
+      * workdir/local_search_12000/qrs/logs/ha3.log 在线引擎qrs查询日志
+      * workdir/local_search_12000/in0_0/logs/ha3.log 在线引擎searcher查询日志
   * setup.py 在运行测试之前的自动准备脚本
 
 * 具体样例
@@ -33,7 +36,7 @@ cd ~/havenask/example/
 python build_demo_data.py <ha3_install> <case>
 ```
 
-* 启动havenask并查询数据。\<qrsHttpPort\>为查询端口
+* 启动havenask并查询数据。\<qrsHttpPort\>为查询端口。如果查询错误可以根据qrs日志（workdir/local_search_12000/qrs/logs/ha3.log）和searcher日志（workdir/local_search_12000/in0_0/logs/ha3.log）进行排查
 ```
 python start_demo_searcher.py <ha3_install> <case> <qrsHttpPort>
 ```
