@@ -4,10 +4,7 @@
 import os
 import sys
 HERE = os.path.split(os.path.realpath(__file__))[0]
-sys.path.append(os.path.abspath(os.path.join(HERE, "common")))
-import util
 
-HERE = os.path.split(os.path.realpath(__file__))[0]
 
 def executCmd(cmd):
     print cmd
@@ -43,9 +40,6 @@ if __name__ == '__main__':
         exit(-1)                      
     configDir = os.path.abspath(configDir)
     bizsConfigDir = os.path.join(configDir, 'bizs')
-    if not util.copyPlugin(plugin="libanalyzer_plugin.so", targetPath=bizsConfigDir):
-        sys.exit(-1)
-
 
     if not os.path.exists(workDir):
         print '%s not exists, please build index with build_demo_data.py first.'

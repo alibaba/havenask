@@ -2,8 +2,6 @@
 import os
 import sys
 HERE = os.path.split(os.path.realpath(__file__))[0]
-sys.path.append(os.path.abspath(os.path.join(HERE, "common")))
-import util
 
 def executCmd(cmd):
     print cmd
