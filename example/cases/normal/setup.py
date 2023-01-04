@@ -1,10 +1,7 @@
 # *-* coding:utf-8 *-*
 import os
 import sys
-import util
 HERE = os.path.split(os.path.realpath(__file__))[0]
-sys.path.append(os.path.abspath(os.path.join(HERE, "../../common")))
-import util
 
 
 def build_prepare():

@@ -10,7 +10,7 @@ Havenask 的核心能力与优势，有以下几点：
 * <strong>SQL查询支持</strong>：支持SQL语法便捷查询，查询体验更友好。
 * <strong>丰富的插件机制</strong>：支持各类业务插件，拓展性强。
 * <strong>支持图化开发</strong>：实现算法分钟级快速迭代，定制能力丰富，在新一代智能检索场景下的支持效果优秀。
-* <strong>支持向量检索</strong>：可通过与插件配合实现多模态搜索，满足更多场景的搜索服务搭建需求（待发布）。
+* <strong>支持向量检索</strong>：可通过与插件配合实现多模态搜索，满足更多场景的搜索服务搭建需求。
 
 ## 相关文档
 * Havenask Wiki: [https://github.com/alibaba/havenask/wiki](https://github.com/alibaba/havenask/wiki)
