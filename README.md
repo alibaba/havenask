@@ -1,3 +1,99 @@
+## Introduction
+
+As a search engine developed by Alibaba Group, Havenask is a large-scale distributed information search system widely used within Alibaba Group. It provides the search services for business across the Alibaba Group such as Taobao, Tmall, Cainiao, Amap, Ele.me, and global services. It offers high-performance and easy-to-use search services with low costs. Havenask also provides flexible customization and development capabilities. Its algorithms can be fast iterated. This way, Havenask enables you to develop intelligent search service tailored for your business and empower business growth.
+
+
+
+Havenask delivers the following benefits:
+
+
+
+* <strong>Ultimate performance</strong>: ensures realtime search from hundreds of billions of data records and achieves millions of queries per second (QPS) and millions of writes per second (TPS). Havenask delivers queries in milliseconds and updates data in seconds.
+
+* <strong>C++ underlying structure</strong>: ensures higher performance and better memory and stability.
+
+* <strong>Supported SQL queries</strong>: offers a more user-friendly query experience.
+
+* <strong>Rich plugins </strong>: supports various business plug-ins, which makes the engine highly scalable.
+
+* <strong>Supported graphical development</strong>: allows you to iterate algorithms in minutes. In addition, a wide range of customization capabilities are available with excellent performance delivered for next-generation intelligent search.
+
+
+## Documentation
+* Havenask Wiki: https://github.com/alibaba/havenask/wiki
+
+## Get Started
+
+* Havenask Docker images
+  * <strong>ha3_runtime</strong>: runtime image allows you to quickly start a search service without compiling.
+  * <strong>ha3_dev </strong>: development image includes all libraries necessary for compiling havenask. （[Wiki: Compile Code](https://github.com/alibaba/havenask/wiki/Get-Started-en#compile-code)）
+* Requirements
+  * Runtime: cpu > 2 cores, memory > 4G, disk > 20G
+  * Dev: cpu > 2 cores, memory > 10G, disk > 50G 
+  * Install and Start Docker
+
+
+
+
+### Run the container
+
+* clone the repository
+```
+git clone git@github.com:alibaba/havenask.git
+```
+
+* create the container. CONTAINER_NAME specifies the name of the container.
+```
+docker pull havenask/ha3_runtime:0.2.2
+./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.2.2
+```
+* If the connection to Docker Hub is unstable, you can try to download the images from Alibaba Cloud Container Registry.
+```
+docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.2
+./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.2
+```
+
+
+
+* Log on to the container.
+
+```
+./<CONTAINER_NAME>/sshme
+```
+
+
+
+### Build Demo Index
+```
+cd ~/havenask/example/
+python build_demo_data.py /ha3_install
+```
+
+### Query Demo Index
+* start havenask 
+```
+python start_demo_searcher.py /ha3_install
+```
+* havenask container listens on the default port of 4580. Here are some examples. ([More examples](https://github.com/alibaba/havenask/tree/main/example))
+
+
+```
+python curl_http.py 45800 "query=select count(*) from in0"
+
+python curl_http.py 45800 "query=select id,hits from in0 where MATCHINDEX('title', '搜索词典')"
+
+python curl_http.py 45800 "query=select title, subject from in0_summary_ where id=1 or id=2"
+
+```
+
+## Contact Us
+Havenask DingTalk Group：
+
+![3293821693450208](https://user-images.githubusercontent.com/590717/206684715-5ab1df49-f919-4d8e-85ee-58b364edef31.jpg)
+
+
+
+
 
 ## 项目介绍
 Havenask是阿里巴巴集团自研的搜索引擎，也是阿里巴巴内部广泛使用的大规模分布式检索系统，支持了包括淘宝、天猫、菜鸟、高德、饿了么、全球化在内整个阿里巴巴集团的搜索业务，为用户提供高性能、低成本、易用的搜索服务，同时具有灵活的定制和开发能力，支持算法快速迭代，帮助客户和开发者量身定做适合自身业务的智能搜索服务，助力业务增长。
@@ -20,7 +116,8 @@ Havenask 的核心能力与优势，有以下几点：
    * ha3_runtime：可直接运行的镜像，无需编译代码，包含了问天引擎的可执行文件。
    * ha3_dev：用于开发测试的镜像，里面包含了开发测试时需要的各种依赖库和头文件，如何编译问天引擎请参考[编译代码](https://github.com/alibaba/havenask/wiki/%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B#%E7%BC%96%E8%AF%91%E4%BB%A3%E7%A0%81)。
 * 环境要求
-   * 确保机器内存大于10G，cpu大于2核，磁盘大小大于50G。
+   * 运行镜像：确保机器内存大于4G，cpu大于2核，磁盘大小大于20G。
+   * 开发镜像：确保机器内存大于10G，cpu大于2核，磁盘大小大于50G。
    * 使用前确保设备已经安装和启动Docker服务。
  
 ### 启动容器
