@@ -1,5 +1,7 @@
 ## Introduction
 
+[![Leaderboard](https://img.shields.io/badge/HavenAsk-Check%20Your%20Contribution-orange)](https://opensource.alibaba.com/contribution_leaderboard/details?projectValue=havenask)
+
 As a search engine developed by Alibaba Group, Havenask is a large-scale distributed information search system widely used within Alibaba Group. It provides the search services for business across the Alibaba Group such as Taobao, Tmall, Cainiao, Amap, Ele.me, and global services. It offers high-performance and easy-to-use search services with low costs. Havenask also provides flexible customization and development capabilities. Its algorithms can be fast iterated. This way, Havenask enables you to develop intelligent search service tailored for your business and empower business growth.
 
 
@@ -96,6 +98,9 @@ Havenask DingTalk Group：
 
 
 ## 项目介绍
+
+[![Leaderboard](https://img.shields.io/badge/HavenAsk-%E6%9F%A5%E7%9C%8B%E8%B4%A1%E7%8C%AE%E6%8E%92%E8%A1%8C%E6%A6%9C-orange)](https://opensource.alibaba.com/contribution_leaderboard/details?projectValue=havenask)
+
 Havenask是阿里巴巴集团自研的搜索引擎，也是阿里巴巴内部广泛使用的大规模分布式检索系统，支持了包括淘宝、天猫、菜鸟、高德、饿了么、全球化在内整个阿里巴巴集团的搜索业务，为用户提供高性能、低成本、易用的搜索服务，同时具有灵活的定制和开发能力，支持算法快速迭代，帮助客户和开发者量身定做适合自身业务的智能搜索服务，助力业务增长。
 
 此外，基于Havenask打造的行业AI搜索产品——[阿里云OpenSearch](https://www.aliyun.com/product/opensearch)，也将持续在阿里云上为企业级开发者提供全托管、免运维的一站式智能搜索服务，欢迎企业级开发者们试用。
