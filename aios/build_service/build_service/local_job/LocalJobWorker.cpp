@@ -32,7 +32,7 @@ LocalJobWorker::~LocalJobWorker() {
 bool LocalJobWorker::run(const string &step, uint16_t mapCount,
                          uint16_t reduceCount, const string &jobParams)
 {
-    BS_LOG(INFO, "mapCount[%u] reduceCount[%u]", mapCount, reduceCount);
+    BS_LOG(INFO, "mapCount[%u] reduceCount[%u], jobParams:%s", mapCount, reduceCount, jobParams.c_str());
 
     if ("build" == step) {
         return buildJob(mapCount, reduceCount, jobParams);
@@ -127,7 +127,7 @@ bool LocalJobWorker::downloadConfig(const std::string &jobParams) {
     }
     string configPath = getValueFromKeyValueMap(kvMap, CONFIG_PATH);
     string localConfigPath;
-    ConfigDownloader::DownloadErrorCode errorCode = 
+    ConfigDownloader::DownloadErrorCode errorCode =
         ConfigDownloader::downloadConfig(configPath, localConfigPath);
     if (errorCode != ConfigDownloader::DEC_NONE) {
         string errorMsg = "download config[" + configPath + "] to local failed!";
