@@ -22,7 +22,7 @@ if [ $# -lt 1 ]; then
     exit 2
 fi
 
-IMAGE="havenask/ha3_runtime:0.1"
+IMAGE="havenask/ha3_runtime:0.2.2"
 if [ $# -eq 2 ]; then
     IMAGE=$2
 fi

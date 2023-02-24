@@ -10,14 +10,19 @@ Havenask 的核心能力与优势，有以下几点：
 * <strong>SQL查询支持</strong>：支持SQL语法便捷查询，查询体验更友好。
 * <strong>丰富的插件机制</strong>：支持各类业务插件，拓展性强。
 * <strong>支持图化开发</strong>：实现算法分钟级快速迭代，定制能力丰富，在新一代智能检索场景下的支持效果优秀。
-* <strong>支持向量检索</strong>：可通过与插件配合实现多模态搜索，满足更多场景的搜索服务搭建需求（待发布）。
+* <strong>支持向量检索</strong>：可通过与插件配合实现多模态搜索，满足更多场景的搜索服务搭建需求。
 
 ## 相关文档
 * Havenask Wiki: [https://github.com/alibaba/havenask/wiki](https://github.com/alibaba/havenask/wiki)
 
 ## 开始使用
-使用前确保设备已经安装和启动Docker服务
-
+* 镜像介绍
+   * ha3_runtime：可直接运行的镜像，无需编译代码，包含了问天引擎的可执行文件。
+   * ha3_dev：用于开发测试的镜像，里面包含了开发测试时需要的各种依赖库和头文件，如何编译问天引擎请参考[编译代码](https://github.com/alibaba/havenask/wiki/%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B#%E7%BC%96%E8%AF%91%E4%BB%A3%E7%A0%81)。
+* 环境要求
+   * 确保机器内存大于10G，cpu大于2核，磁盘大小大于50G。
+   * 使用前确保设备已经安装和启动Docker服务。
+ 
 ### 启动容器
 克隆仓库
 ```
@@ -26,15 +31,14 @@ cd havenask/docker
 ```
 创建容器，其中CONTAINER_NAME为指定的容器名
 ```
-docker pull havenask/ha3_runtime:0.1 
-./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.1 
+docker pull havenask/ha3_runtime:0.2.2
+./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.2.2
 ```
 如果由于Docker Hub访问不稳定无法下载以上镜像，可以尝试阿里云镜像源
 ```
-docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.1 
-./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.1 
+docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.2
+./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.2
 ```
-
 登陆容器
 ```
 ./<CONTAINER_NAME>/sshme
@@ -44,7 +48,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.1
 
 构建全量索引
 ```
-cd ~/havenask/example/scripts
+cd ~/havenask/example/
 python build_demo_data.py /ha3_install
 ```
 
@@ -54,7 +58,7 @@ python build_demo_data.py /ha3_install
 python start_demo_searcher.py /ha3_install
 ```
 
-引擎的默认查询端口为45800，使用脚本进行查询测试。下面是一些测试query。
+引擎的默认查询端口为45800，使用脚本进行查询测试。下面是一些测试query。更多测试case见[example](https://github.com/alibaba/havenask/tree/main/example)
 
 ```
 python curl_http.py 45800 "query=select count(*) from in0"
@@ -63,3 +67,9 @@ python curl_http.py 45800 "query=select id,hits from in0 where MATCHINDEX('title
 
 python curl_http.py 45800 "query=select title, subject from in0_summary_ where id=1 or id=2"
 ```
+
+## 联系我们
+官方技术交流钉钉群：
+
+![3293821693450208](https://user-images.githubusercontent.com/590717/206684715-5ab1df49-f919-4d8e-85ee-58b364edef31.jpg)
+

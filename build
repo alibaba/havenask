@@ -15,11 +15,6 @@ def build(code):
     cmd = 'cd %s && scons install -j%d' % (subPath, threadCount)
     executCmd(cmd)
 
-def buildPlugin(code):
-    subPath = os.path.join(HERE, 'aios', code)
-    cmd = 'cd %s && scons -j%d' % (subPath, threadCount)
-    executCmd(cmd)
-
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         try:
@@ -31,4 +26,5 @@ if __name__ == '__main__':
     build('indexlib')
     build('build_service')
     build('ha3')
-    buildPlugin('plugin_platform/indexer_plugins/aitheta_indexer')
+    build('plugin_platform/indexer_plugins/aitheta_indexer')
+    build('plugin_platform/analyzer_plugins')
