@@ -48,6 +48,7 @@ merger_test_sources = [
     'index_table_merge_meta_creator_unittest.cpp',
     'segment_directory_unittest.cpp',
     'multi_part_segment_directory_unittest.cpp',
+    'multi_part_counter_merger_unittest.cpp',
     'index_partition_merger_unittest.cpp',
     'merge_plan_unittest.cpp',
     'merge_task_unittest.cpp',
