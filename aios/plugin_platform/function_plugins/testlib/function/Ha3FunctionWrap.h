@@ -1,10 +1,8 @@
-#ifndef HA3_FUNCTIONWARP_H
-#define HA3_FUNCTIONWARP_H
-
 #include <suez/turing/test/FunctionWrap.h>
 #include <ha3/func_expression/FunctionProvider.h>
 
-BEGIN_HA3_NAMESPACE(function);
+namespace pluginplatform {
+namespace function_plugins {
 
 class Ha3FunctionWrap : public suez::turing::FunctionWrap
 {
@@ -73,5 +71,4 @@ public:
     HA3_NS(common)::DataProviderPtr _dataProvider;
 };
 
-END_HA3_NAMESPACE(function);
-#endif // HA3_FUNCTIONWARP_H
+}}

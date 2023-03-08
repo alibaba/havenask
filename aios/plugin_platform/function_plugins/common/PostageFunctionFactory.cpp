@@ -1,8 +1,9 @@
 #include <common/PostageFunctionFactory.h>
 #include <postage_demo/PostageFunction.h>
 
-BEGIN_HA3_NAMESPACE(func_expression);
-HA3_LOG_SETUP(functions, PostageFunctionFactory);
+namespace pluginplatform {
+namespace function_plugins {
+HA3_LOG_SETUP(function_plugins, PostageFunctionFactory);
 
 PostageFunctionFactory::PostageFunctionFactory() { 
 }
@@ -17,14 +18,13 @@ bool PostageFunctionFactory::registeFunctions() {
 
 
 extern "C" 
-util::ModuleFactory* createFactory() {
+isearch::util::ModuleFactory* createFactory() {
     return new PostageFunctionFactory;
 }
 
 extern "C" 
-void destroyFactory(util::ModuleFactory *factory) {
+void destroyFactory(isearch::util::ModuleFactory *factory) {
     factory->destroy();
 }
 
-
-END_HA3_NAMESPACE(func_expression);
+}}

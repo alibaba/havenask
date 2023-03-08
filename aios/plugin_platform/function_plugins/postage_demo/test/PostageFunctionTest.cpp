@@ -9,7 +9,8 @@ using namespace autil;
 USE_HA3_NAMESPACE(search);
 USE_HA3_NAMESPACE(common);
 
-BEGIN_HA3_NAMESPACE(func_expression);
+namespace pluginplatform {
+namespace function_plugins {
 
 class PostageFunctionTest : public TESTBASE {
 public:
@@ -19,7 +20,7 @@ public:
     HA3_LOG_DECLARE();
 };
 
-HA3_LOG_SETUP(func_expression, PostageFunctionTest);
+HA3_LOG_SETUP(function_plugins, PostageFunctionTest);
 
 TEST_F(PostageFunctionTest, testSimpleProcess) { 
     HA3_LOG(DEBUG, "Begin Test!");
@@ -28,7 +29,7 @@ TEST_F(PostageFunctionTest, testSimpleProcess) {
 
     int32_t buyerCity = 2;
 
-    HA3_NS(function)::Ha3FunctionWrap fw(GET_TEST_DATA_PATH(), GET_CLASS_NAME());
+    pluginplatform::function_plugins::Ha3FunctionWrap fw(GET_TEST_DATA_PATH(), GET_CLASS_NAME());
     suez::turing::InvertedTableParam param;
     param.addAttribute<int32_t>("seller_city", "1,2,3,4,5,6,7,8");
     param.fillDocs();
@@ -63,5 +64,5 @@ void PostageFunctionTest::createPostageMap(const string &inputStr,
     }
 }
 
-END_HA3_NAMESPACE(functions);
+}}
 

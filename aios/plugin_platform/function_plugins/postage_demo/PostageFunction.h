@@ -1,6 +1,3 @@
-#ifndef ISEARCH_POSTAGEFUNCTION_H
-#define ISEARCH_POSTAGEFUNCTION_H
-
 #include <ha3/common.h>
 #include <ha3/isearch.h>
 #include <ha3/util/Log.h>
@@ -10,9 +7,10 @@
 #include <ha3/search/AttributeExpression.h>
 #include <ha3/config/ResourceReader.h>
 
-BEGIN_HA3_NAMESPACE(func_expression);
+namespace pluginplatform {
+namespace function_plugins {
 
-class PostageFunction : public FunctionInterfaceTyped<double>
+class PostageFunction : public isearch::func_expression::FunctionInterfaceTyped<double>
 {
 public:
     typedef std::map<std::pair<int32_t, int32_t>, std::pair<double, double> > PostageMap;
@@ -49,11 +47,9 @@ public:
     /* override */ bool init(const KeyValueMap &funcParameter,
                                  const HA3_NS(config)::ResourceReaderPtr &resourceReader);
 
-    /* override */ FunctionInterface *createFunction(const FunctionSubExprVec& funcSubExprVec);
+    /* override */ isearch::func_expression::FunctionInterface *createFunction(const isearch::func_expression::FunctionSubExprVec& funcSubExprVec);
 private:
     PostageMap _postageMap;
 };
 
-END_HA3_NAMESPACE(func_expression);
-
-#endif //ISEARCH_POSTAGEFUNCTION_H
+}}

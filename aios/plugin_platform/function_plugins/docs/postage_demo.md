@@ -25,80 +25,83 @@ config=cluster:daogou&&query=test&&filter=price+postage(sellerCity, 311)<100
 
 ```
 //PostageFunction.h
-#ifndef ISEARCH_POSTAGEFUNCTION_H
-#define ISEARCH_POSTAGEFUNCTION_H
+#include <ha3/common.h>
+#include <ha3/isearch.h>
+#include <ha3/util/Log.h>
+#include <ha3/func_expression/FunctionInterface.h>
+#include <ha3/func_expression/FunctionCreator.h>
+#include <ha3/common/DataProvider.h>
+#include <ha3/search/AttributeExpression.h>
+#include <ha3/config/ResourceReader.h>
 
-#include <autil/Log.h>
-#include "turing_plugins/util/common.h"
-#include "suez/turing/expression/function/FunctionCreator.h"
-#include "suez/turing/expression/function/FunctionInterface.h"
-#include "suez/turing/expression/function/FunctionMap.h"
+namespace pluginplatform {
+namespace function_plugins {
 
-BEGIN_TURING_PLUGINS_NAMESPACE(func_expression);
-
-class PostageFunction : public suez::turing::FunctionInterfaceTyped<double>                               (1)
+class PostageFunction : public isearch::func_expression::FunctionInterfaceTyped<double>(1)
 {
 public:
     typedef std::map<std::pair<int32_t, int32_t>, std::pair<double, double> > PostageMap;
 public:
-    PostageFunction(suez::turing::AttributeExpressionTyped<int32_t> *sellerCityAttrExpr,
+    PostageFunction(HA3_NS(search)::AttributeExpressionTyped<int32_t> *sellerCityAttrExpr,
                   int32_t buyerCity, const PostageMap &postageMap);
     ~PostageFunction();
 private:
     PostageFunction(const PostageFunction &);
     PostageFunction& operator=(const PostageFunction &);
 public:
-    /* override */ bool beginRequest(suez::turing::FunctionProvider *provider);                           (2)
-    /* override */ double evaluate(matchdoc::MatchDoc matchDoc);                             (3)
-    /* override */ void endRequest() {}                                                     (4)
+    bool beginRequest(suez::turing::FunctionProvider *provider) override;(2)
+    double evaluate(matchdoc::MatchDoc matchDoc) override;(3)
+    void endRequest() override {
+    }(4)
 private:
-    suez::turing::AttributeExpressionTyped<int32_t> *_sellerCityAttrExpr;
+    HA3_NS(search)::AttributeExpressionTyped<int32_t> *_sellerCityAttrExpr;
     int32_t _buyerCity;
     const PostageMap &_postageMap;
-
     matchdoc::Reference<double> *_distanceRef;
     double *_minPostage;
 private:
-    AUTIL_LOG_DECLARE();
+    HA3_LOG_DECLARE();
 };
 
 //////////////////////////////////////////////////////////////////////////////
 
-DECLARE_FUNCTION_CREATOR(PostageFunction, "postage", 2);                                    (5)
-class PostageFunctionCreatorImpl : public FUNCTION_CREATOR_CLASS_NAME(PostageFunction)      (6)
+DECLARE_FUNCTION_CREATOR(PostageFunction, "postage", 2);(5)
+class PostageFunctionCreatorImpl : public FUNCTION_CREATOR_CLASS_NAME(PostageFunction)(6)
 {
 public:
     typedef PostageFunction::PostageMap PostageMap;
 public:
-    /* override */ bool init(const KeyValueMap &funcParameter,                              (7)
-                             const suez::ResourceReaderPtr &resourceReader);
+    /* override */ bool init(const KeyValueMap &funcParameter,(7)
+                                 const HA3_NS(config)::ResourceReaderPtr &resourceReader);
 
-    /* override */ suez::turing::FunctionInterface *createFunction(
-                            const suez::turing::FunctionSubExprVec& funcSubExprVec);                      (8)
+    /* override */ isearch::func_expression::FunctionInterface *createFunction(const isearch::func_expression::FunctionSubExprVec& funcSubExprVec);(8)
 private:
     PostageMap _postageMap;
 };
 
-END_TURING_PLUGINS_NAMESPACE(func_expression);
-
-#endif //ISEARCH_POSTAGEFUNCTION_H
+}}
 
 
 //PostageFunction.cpp
-#include "PostageFunction.h"
-#include <suez/turing/expression/framework/ArgumentAttributeExpression.h>
+#include <postage_demo/PostageFunction.h>
+#include <ha3/search/ArgumentAttributeExpression.h>
 
 using namespace std;
-using namespace suez::turing;
 
-BEGIN_TURING_PLUGINS_NAMESPACE(func_expression);
-AUTIL_LOG_SETUP(func_expression, PostageFunction);
+USE_HA3_NAMESPACE(config);
+USE_HA3_NAMESPACE(common);
+USE_HA3_NAMESPACE(search);
+
+namespace pluginplatform {
+namespace function_plugins {
+HA3_LOG_SETUP(function_plugins, PostageFunction);
+
 
 bool PostageFunctionCreatorImpl::init(const KeyValueMap &funcParameter,
-                                      const suez::ResourceReaderPtr &resourceReader)
+                                      const ResourceReaderPtr &resourceReader)
 {
     string fileContext;
-    if (!resourceReader->getFileContent(fileContext, "postage_map")) {                      (9)
+    if (!resourceReader->getFileContent(fileContext, "postage_map")) {(9)
         return false;
     }
     istringstream iss(fileContext);
@@ -111,10 +114,10 @@ bool PostageFunctionCreatorImpl::init(const KeyValueMap &funcParameter,
     return true;
 }
 
-FunctionInterface *PostageFunctionCreatorImpl::createFunction(
-                                      const FunctionSubExprVec& funcSubExprVec)
+suez::turing::FunctionInterface *PostageFunctionCreatorImpl::createFunction(
+        const isearch::func_expression::FunctionSubExprVec& funcSubExprVec)
 {
-    if (funcSubExprVec.size() != 2) {                                                       (10)
+    if (funcSubExprVec.size() != 2) {(10)
         return NULL;
     }
     AttributeExpressionTyped<int32_t> *sellerCityAttrExpr =
@@ -151,12 +154,14 @@ PostageFunction::PostageFunction(AttributeExpressionTyped<int32_t> *sellerCityAt
 PostageFunction::~PostageFunction() {
 }
 
-bool PostageFunction::beginRequest(FunctionProvider *provider) {
-    _distanceRef = provider->declareVariable<double>("distance", true);                     (11)
+bool PostageFunction::beginRequest(suez::turing::FunctionProvider *provider) {
+    HA3_NS(func_expression)::FunctionProvider *funcProvider =
+        dynamic_cast<HA3_NS(func_expression)::FunctionProvider *>(provider);
+    _distanceRef = funcProvider->declareVariable<double>("distance", true);(11)
     if (!_distanceRef) {
         return false;
     }
-    _minPostage = provider->declareVariable<double>("min_postage", true);             (12)
+    _minPostage = funcProvider->getDataProvider()->declareGlobalVariable<double>("min_postage", true);(12)
     if (!_minPostage) {
         return false;
     }
@@ -164,8 +169,8 @@ bool PostageFunction::beginRequest(FunctionProvider *provider) {
     return true;
 }
 
-double PostageFunction::evaluate(MatchDoc matchDoc) {
-    (void)_sellerCityAttrExpr->evaluate(matchDoc);                                          (13)
+double PostageFunction::evaluate(matchdoc::MatchDoc matchDoc) {
+    (void)_sellerCityAttrExpr->evaluate(matchDoc);(13)
     int32_t sellerCity = _sellerCityAttrExpr->getValue(matchDoc);
     pair<int32_t, int32_t> post(sellerCity, _buyerCity);
     PostageMap::const_iterator it = _postageMap.find(post);
@@ -175,14 +180,14 @@ double PostageFunction::evaluate(MatchDoc matchDoc) {
         postage = it->second.first;
         distance = it->second.second;
     }
-    if (*_minPostage > postage) {                                                           (14)
+    if (*_minPostage > postage) {(14)
         *_minPostage = postage;
     }
-    _distanceRef->set(matchDoc->getVariableSlab(), distance);                               (15)
+    _distanceRef->set(matchDoc, distance);(15)
     return postage;
 }
 
-END_TURING_PLUGINS_NAMESPACE(func_expression);
+}}
 ```
 
 说明：
@@ -253,15 +258,15 @@ END_TURING_PLUGINS_NAMESPACE(func_expression);
 
 ```
 //PostageFunctionFactory.h
-#ifndef ISEARCH_POSTAGEFUNCTIONFACTORY_H
-#define ISEARCH_POSTAGEFUNCTIONFACTORY_H
+#include <ha3/common.h>
+#include <ha3/isearch.h>
+#include <ha3/util/Log.h>
+#include <ha3/func_expression/SyntaxExpressionFactory.h>
 
-#include "autil/Log.h"
-#include <suez/turing/expression/function/SyntaxExpressionFactory.h>
+namespace pluginplatform {
+namespace function_plugins {
 
-BEGIN_TURING_PLUGINS_NAMESPACE(func_expression);
-
-class PostageFunctionFactory : public suez::turing::SyntaxExpressionFactory
+class PostageFunctionFactory : public isearch::func_expression::SyntaxExpressionFactory
 {
 public:
     PostageFunctionFactory();
@@ -270,56 +275,51 @@ private:
     PostageFunctionFactory(const PostageFunctionFactory &);
     PostageFunctionFactory& operator=(const PostageFunctionFactory &);
 public:
-    /* override */ bool init(const KeyValueMap &parameters);                        (1)
-    /* override */ bool registeFunctions();                                         (2)
+    /* override */ bool registeFunctions();(1)
 private:
-    AUTIL_LOG_DECLARE();
+    HA3_LOG_DECLARE();
 };
 
-TURING_PLUGINS_TYPEDEF_PTR(PostageFunctionFactory);
+HA3_TYPEDEF_PTR(PostageFunctionFactory);
 
-END_TURING_PLUGINS_NAMESPACE(func_expression);
-
-#endif //ISEARCH_POSTAGEFUNCTIONFACTORY_H
+}}
 
 //PostageFunctionFactory.cpp
-#include "PostageFunctionFactory.h"
-#include <functions/PostageFunction.h>
+#include <common/PostageFunctionFactory.h>
+#include <postage_demo/PostageFunction.h>
 
-BEGIN_TURING_PLUGINS_NAMESPACE(func_expression);
-AUTIL_LOG_SETUP(functions, PostageFunctionFactory);
+namespace pluginplatform {
+namespace function_plugins {
+HA3_LOG_SETUP(function_plugins, PostageFunctionFactory);
 
-PostageFunctionFactory::PostageFunctionFactory() {
+PostageFunctionFactory::PostageFunctionFactory() { 
 }
 
-PostageFunctionFactory::~PostageFunctionFactory() {
-}
-
-bool PostageFunctionFactory::init(const KeyValueMap &parameters) {
-    return true;
+PostageFunctionFactory::~PostageFunctionFactory() { 
 }
 
 bool PostageFunctionFactory::registeFunctions() {
-    REGISTE_FUNCTION_CREATOR(PostageFunctionCreatorImpl);                           (3)
-//    REGISTE_FUNCTION_CREATOR(OtherCreatorImpl);
+    REGISTE_FUNCTION_CREATOR(PostageFunctionCreatorImpl);(2)
+    //    REGISTE_FUNCTION_CREATOR(OtherCreatorImpl);
     return true;
 }
 
-extern "C"
-ModuleFactory* createFactory() {
-    return new PostageFunctionFactory;                                              (4)
+
+extern "C" 
+isearch::util::ModuleFactory* createFactory() {
+    return new PostageFunctionFactory;(3)
 }
 
-extern "C"
-void destroyFactory(util::ModuleFactory *factory) {
+extern "C" 
+void destroyFactory(isearch::util::ModuleFactory *factory) {
     factory->destroy();
 }
-END_TURING_PLUGINS_NAMESPACE(func_expression);
+
+}}
 ```
 
 说明：
 
-- 1.FunctionFactory的init函数，在插件被load的时候（upc/loadPartition时）调用一次，传入参数为用户在配置中写入的参数，基类中有默认的空实现。
-- 2.registeFunctions函数必须继承，该函数用于注册本插件所有的FunctionCreator。
-- 3.REGISTE_FUNCTION_CREATOR用于注册creator，本例中只有一个creator，多个的写法即后面的OtherCreatorImpl（取消掉注释）。
-- 4.插件接口，createFactory时new出自己的factory。
+- 1.registeFunctions函数必须继承，该函数用于注册本插件所有的FunctionCreator。
+- 2.REGISTE_FUNCTION_CREATOR用于注册creator，本例中只有一个creator，多个的写法即后面的OtherCreatorImpl（取消掉注释）。
+- 3.插件接口，createFactory时new出自己的factory。

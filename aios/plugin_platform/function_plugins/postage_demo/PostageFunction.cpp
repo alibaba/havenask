@@ -7,8 +7,9 @@ USE_HA3_NAMESPACE(config);
 USE_HA3_NAMESPACE(common);
 USE_HA3_NAMESPACE(search);
 
-BEGIN_HA3_NAMESPACE(func_expression);
-HA3_LOG_SETUP(func_expression, PostageFunction);
+namespace pluginplatform {
+namespace function_plugins {
+HA3_LOG_SETUP(function_plugins, PostageFunction);
 
 
 bool PostageFunctionCreatorImpl::init(const KeyValueMap &funcParameter,
@@ -28,8 +29,8 @@ bool PostageFunctionCreatorImpl::init(const KeyValueMap &funcParameter,
     return true;
 }
 
-FunctionInterface *PostageFunctionCreatorImpl::createFunction(
-        const FunctionSubExprVec& funcSubExprVec)
+suez::turing::FunctionInterface *PostageFunctionCreatorImpl::createFunction(
+        const isearch::func_expression::FunctionSubExprVec& funcSubExprVec)
 {
     if (funcSubExprVec.size() != 2) {
         return NULL;
@@ -101,4 +102,4 @@ double PostageFunction::evaluate(matchdoc::MatchDoc matchDoc) {
     return postage;
 }
 
-END_HA3_NAMESPACE(func_expression);
+}}

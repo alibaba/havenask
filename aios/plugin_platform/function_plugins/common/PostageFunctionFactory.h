@@ -1,14 +1,12 @@
-#ifndef ISEARCH_POSTAGEFUNCTIONFACTORY_H
-#define ISEARCH_POSTAGEFUNCTIONFACTORY_H
-
 #include <ha3/common.h>
 #include <ha3/isearch.h>
 #include <ha3/util/Log.h>
 #include <ha3/func_expression/SyntaxExpressionFactory.h>
 
-BEGIN_HA3_NAMESPACE(func_expression);
+namespace pluginplatform {
+namespace function_plugins {
 
-class PostageFunctionFactory : public SyntaxExpressionFactory
+class PostageFunctionFactory : public isearch::func_expression::SyntaxExpressionFactory
 {
 public:
     PostageFunctionFactory();
@@ -24,6 +22,4 @@ private:
 
 HA3_TYPEDEF_PTR(PostageFunctionFactory);
 
-END_HA3_NAMESPACE(func_expression);
-
-#endif //ISEARCH_POSTAGEFUNCTIONFACTORY_H
+}}
