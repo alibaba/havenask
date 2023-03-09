@@ -12,7 +12,7 @@ if __name__ == '__main__':
         print 'python build_demo_data.py installRoot case[optional]'
         print 'please specify install root'
         sys.exit(-1)
-    
+
     installRoot = os.path.abspath(sys.argv[1])
     if len(sys.argv) == 3:
         case = sys.argv[2]
@@ -25,11 +25,11 @@ if __name__ == '__main__':
         sys.path.append(os.path.abspath(
             os.path.join(HERE, "..", caseRoot)))
         from setup import build_prepare
-        configDir, dataDir = build_prepare()   
+        configDir, dataDir = build_prepare()
     except Exception as e:
         print(e)
         print("failed to call build prepare function in %s/setup.py" % (caseRoot))
-        exit(-1)                      
+        exit(-1)
     dataDir = os.path.abspath(dataDir)
     configDir = os.path.abspath(configDir)
 
@@ -40,18 +40,22 @@ if __name__ == '__main__':
         executCmd(cmd)
     cmd = 'mkdir ' + workDir
     executCmd(cmd)
-    cmd = '%s/usr/local/bin/bs startjob -c %s -n in0 -j local -m full -d %s -w %s -i ./runtimedata -p 1 --documentformat=ha3' % (installRoot, configDir, dataDir, workDir)
-    executCmd(cmd)
 
+    realtimeInfo = None
     try:
         sys.path.append(os.path.abspath(
             os.path.join(HERE, "..", caseRoot)))
         from setup import realtime_prepare
         realtimeInfoPath = realtime_prepare()
+        with open(realtimeInfoPath, 'r') as f:
+            realtimeInfo = f.read()
     except Exception as e:
-        print(e)
-        print("failed to call realtime prepare function in %s/setup.py" % (caseRoot))
-        exit(-1)
+        print("ignore generate realtime info")
 
-    cmd = 'cp %s %s' % (realtimeInfoPath, os.path.join(workDir, 'runtimedata/in0/generation_0/'))
+    realtimeOption = ""
+    if realtimeInfo:
+        realtimeInfo = '"' + realtimeInfo.replace('"', '\\"') + '"'
+        realtimeOption = ' --realtimeInfo=' + realtimeInfo
+    cmd = '%s/usr/local/bin/bs startjob -c %s -n in0 -j local -m full -d %s -w %s -i ./runtimedata -p 1 --documentformat=ha3' % (installRoot, configDir, dataDir, workDir)
+    cmd += realtimeOption
     executCmd(cmd)

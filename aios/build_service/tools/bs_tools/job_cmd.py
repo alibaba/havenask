@@ -3,6 +3,7 @@
 import sys
 import os
 import base_cmd
+import json
 import fs_util_delegate
 import build_rule_config
 import build_app_config
@@ -136,6 +137,7 @@ Option:
     --readSrc=read_src                             : required when data_path is empty, read_src in data_table config
     --parameters=parameters                        : optional, additional parameters for starting build job
     -l logConfigPath, --logConfigPath=logConfigPath: optional, specify log config file path
+    --realtimeInfo                                 : optional, specify realtime_info.json content
 
 Example:
     bs stj -c config/ -n simple -m full -j apsara
@@ -180,6 +182,7 @@ Example:
         self.parser.add_option('', '--parameters', action='store', dest='parameters',
                                default='')
         self.parser.add_option('-l', '--logConfigPath', action='store', dest='logConfigPath')
+        self.parser.add_option('', '--realtimeInfo', action='store', dest='realtimeInfo')
 
     def checkOptionsValidity(self, options):
         super(StartJobCmd, self).checkOptionsValidity(options)
@@ -219,6 +222,12 @@ Example:
             if not self.fsUtil.exists(options.logConfigPath):
                 raise Exception("log config path[%s] not exist." % options.logConfigPath)
 
+        if options.realtimeInfo:
+            try:
+                json.loads(options.realtimeInfo)
+            except ValueError as e:
+                raise Exception("invalid realtime info format [%s]." % options.realtimeInfo)
+
     def initMember(self, options):
         super(StartJobCmd, self).initMember(options)
         self.generationMeta = options.generationMeta
@@ -251,6 +260,7 @@ Example:
         self.generationId = options.generationId
         if options.workDir:
             os.chdir(options.workDir)
+        self.realtimeInfo = options.realtimeInfo
 
     def _checkBuildPartCount(self):
         if ((self.buildPartFrom is  None and self.buildPartCount is not None) or
@@ -288,7 +298,8 @@ Example:
                                self.dataDescription,
                                self.readSrc,
                                self.parameters,
-                               self.logConfigPath)
+                               self.logConfigPath,
+                               self.realtimeInfo)
 
 class StopJobCmd(JobCmdBase):
     '''
