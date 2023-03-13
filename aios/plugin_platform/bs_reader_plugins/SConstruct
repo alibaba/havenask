@@ -1,0 +1,33 @@
+# -*- mode: python -*-
+import sys, os, platform, time
+import SCons.Script
+
+# The root environment
+### Place to store some options which influence the compiler
+os.environ['build_options'] = '''
+
+#whether use hadoop, 'yes' or 'no'
+#if use hadoop, hadoop sdk path should be added into append_prefix and JAVA_SDK_PATH should be configured
+hadoop = 'yes'
+JAVA_SDK_PATH = '/opt/taobao/java/'
+
+#version of hadoop, 'std' or 'cdh'
+hadoop_version = 'cdh'
+
+'''
+env = Environment(ENV = {'PATH' : os.environ['PATH']},tools=['default', 'ascons'])
+env.requireAsconsVersion('1.3.0')
+
+env.Append(CXXFLAGS = '-std=c++14')
+env.Append(CXXFLAGS='-DRTP_PLATFORM')
+env.Append(CCFLAGS='-D_GLIBCXX_USE_CXX11_ABI=0')
+env.Append(CCFLAGS='-DGTEST_USE_OWN_TR1_TUPLE=0')
+env.Append(CPPDEFINES=['EIGEN_MAX_CPP_VER=11'])
+
+env.MergeFlags("-I#/.")
+
+env.SConscript(
+    dirs='.',
+    exports='env',
+    variant_dir=env['BUILD_DIR'],
+    duplicate=0)

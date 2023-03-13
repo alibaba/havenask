@@ -1,0 +1,82 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+import os
+import copy
+import time
+import getpass
+import subprocess
+
+env = env.Clone()
+
+env.Append(ACSUBST = {'BUILDDIR': env['RELATIVE_BUILD_DIR']})
+env.Append(ACSUBST = {'TOP_BUILDDIR': env['RELATIVE_BUILD_DIR']})
+env.Append(ACSUBST = {'TOP_SRCDIR': env['TOP_DIR']})
+env.Append(ACSUBST = {'abs_top_srcdir': env['TOP_DIR']})
+env.Append(ACSUBST = {'INSTALL_ROOT': env['install_root']})
+
+ha_protocol_version = "ha3-protocol-3.0"
+env.Append(ACSUBST = {'HA_PROTOCOL_VERSION': ha_protocol_version})
+
+env['depend_static_libs'] =  []
+
+env['depend_dynamic_libs'] = [
+    'suez_turing',
+    'suez',
+    'build_service',
+    'indexlib',
+    'turing_ops',
+    'basic_variant',
+    'iquan_jni',
+    'iquan_common',
+    'navi',
+    'matchdoc',
+    'swift_client_minimal',
+    'cava',
+    'hippo',
+    'multi_call',
+    'fslib-framework',
+    'amonitor_client',
+    'kmonitor_client',
+    'kmonitor_adapter',
+    'resource_reader',
+    'cm_basic',
+    'cm_sub',
+    'sap_eagle',
+    'eagleeye_core',
+    'mid-diamond',
+    'worker_framework',
+    'http_arpc',
+    'kvtracer',
+    'autil',
+    'arpc',
+    'anet',
+    'sap',
+    'alog',
+    'z',
+    'dl',
+    'xml2',
+    'snappy',
+    'lz4',
+    'zstd',
+    'protobuf',
+    'pthread',
+    'sap_eagle',
+    'hiredis',
+    'zookeeper_mt',
+    'tensorflow_cc',
+    'absl_strings',
+]
+
+env['ha3_depend_libs'] = env['depend_static_libs'] + env['depend_dynamic_libs']
+
+env['ha3_test_depend_lib'] = env['ha3_depend_libs'] + ['unittest', 'gmock', 'gtest']
+
+libs = env['ha3_depend_libs']
+
+env.aACSubst(target = ['test/test.h'],
+             source = ['test/test.h.in'])
+
+env.aDirs('raw_doc_readers')
+env.aDirs('util')
