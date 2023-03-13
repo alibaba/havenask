@@ -42,3 +42,16 @@ if __name__ == '__main__':
     executCmd(cmd)
     cmd = '%s/usr/local/bin/bs startjob -c %s -n in0 -j local -m full -d %s -w %s -i ./runtimedata -p 1 --documentformat=ha3' % (installRoot, configDir, dataDir, workDir)
     executCmd(cmd)
+
+    try:
+        sys.path.append(os.path.abspath(
+            os.path.join(HERE, "..", caseRoot)))
+        from setup import realtime_prepare
+        realtimeInfoPath = realtime_prepare()
+    except Exception as e:
+        print(e)
+        print("failed to call realtime prepare function in %s/setup.py" % (caseRoot))
+        exit(-1)
+
+    cmd = 'cp %s %s' % (realtimeInfoPath, os.path.join(workDir, 'runtimedata/in0/generation_0/'))
+    executCmd(cmd)
