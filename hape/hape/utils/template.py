@@ -34,6 +34,8 @@ class JsonTemplateRender:
                 
     @staticmethod          
     def render_content(content, render_vars):
+        if type(content) != str and type(content) != unicode:
+            return content
         for key in render_vars:
             placeholder = "${"+key+"}"
             value = render_vars[key]

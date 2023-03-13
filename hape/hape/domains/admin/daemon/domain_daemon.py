@@ -1,21 +1,28 @@
 import sys
 import os
+import time
+import threading
 import json
-hape_path = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../../"))
-sys.path.append(hape_path)
-from hape.utils.logger import Logger
-from hape.utils.shell import Shell
 from argparse import ArgumentParser
 import traceback
+hape_path = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../../"))
+sys.path.append(hape_path)
+
+from hape.utils.logger import Logger
+from hape.utils.shell import Shell
 from hape.domains.target import *
 from hape.utils.dict_file_util import DictFileUtil
 from hape.common.constants.hape_common import HapeCommon
 from hape.utils.shell import Shell
 from hape.domains.admin.events.event_processor import EventProcessor
-import time
-import threading
 
-    
+'''
+domain daemon in hape admin, 
+usage:
+1. prcess target by event processor
+2. distribute target to worker
+2. collect hearbeat from worker
+'''
 class DomainDaemon():
     def __init__(self, global_conf, domain_name):
         self._global_conf = global_conf
@@ -29,25 +36,25 @@ class DomainDaemon():
         Logger.logger_name = "admin"
         
         self._domain_name = domain_name
-        Logger.info("init admin aconfn, cluster name:[{}]".format(domain_name))
-        self._loop_interval = float(global_conf["hape-admin"]["target-process-interval-sec"])
-        self._domain_hb_service = DomainHeartbeatService(global_conf)
+        Logger.info("init admin daemon, domain name:[{}]".format(domain_name))
+        self._loop_interval = float(global_conf["hape-admin"]["daemon-process-interval-sec"])
+        self._domain_heartbeat_service = DomainHeartbeatService(global_conf)
         self.threads = []
         self._event_detector = EventProcessor(global_conf)
         
       
         
-    def collect_hb(self):
+    def collect_heartbeat(self):
         roles = HapeCommon.ROLES
         threads = []
         for role in roles:
-            workername_list  = self._domain_hb_service.get_workerlist(self._domain_name, role)
+            workername_list  = self._domain_heartbeat_service.get_workerlist(self._domain_name, role)
             if len(workername_list) == 0:
-                Logger.warning("no workers for hb")
+                Logger.warning("no workers for heartbeat")
                 continue
             Logger.info("get wokers list {}".format(workername_list))
             for worker_name in workername_list:
-                t = threading.Thread(target=self._collect_worker_hb, args=(self._domain_name, role, worker_name))
+                t = threading.Thread(target=self._collect_worker_heartbeat, args=(self._domain_name, role, worker_name))
                 t.name = worker_name + "-heartbeat"
                 t.start()
                 threads.append(t)
@@ -56,11 +63,11 @@ class DomainDaemon():
             thread.join()   
                 
         
-    def _collect_worker_hb(self, domain_name, role_name, worker_name):
+    def _collect_worker_heartbeat(self, domain_name, role_name, worker_name):
         try:
-            final_target = self._domain_hb_service.read_worker_final_target(domain_name, role_name, worker_name)
+            final_target = self._domain_heartbeat_service.read_worker_final_target(domain_name, role_name, worker_name)
             if final_target != None:
-                self._domain_hb_service.collect_heartbeat(domain_name, role_name, worker_name)
+                self._domain_heartbeat_service.collect_heartbeat(domain_name, role_name, worker_name)
         except:
             Logger.warning("collect heartbeat for worker {} failed".format(worker_name))
             Logger.warning(traceback.format_exc())
@@ -70,17 +77,17 @@ class DomainDaemon():
         roles = HapeCommon.ROLES
         threads = []
         for role in roles:
-            workername_list  = self._domain_hb_service.get_workerlist(self._domain_name, role)
+            workername_list  = self._domain_heartbeat_service.get_workerlist(self._domain_name, role)
             if len(workername_list) == 0:
                 Logger.warning("no workers for target")
                 continue
             Logger.info("get wokers list {}".format(workername_list))
             for worker_name in workername_list:
-                Logger.info("process worker target {}".format(worker_name))
-                Logger.info("current final target {}".format(self._domain_hb_service.read_worker_final_target(self._domain_name, role, worker_name)))
-                Logger.info("current user target {}".format(self._domain_hb_service.read_worker_user_target(self._domain_name, role, worker_name)))
                 t = threading.Thread(target=self._process_worker_target, args=(self._domain_name, role, worker_name))
                 t.name = worker_name + "-target"
+                Logger.info("process worker target {}".format(worker_name))
+                Logger.info("current final target {}".format(self._domain_heartbeat_service.read_worker_final_target(self._domain_name, role, worker_name)))
+                Logger.info("current user target {}".format(self._domain_heartbeat_service.read_worker_user_target(self._domain_name, role, worker_name)))
                 threads.append(t)
                 t.start()
                 
@@ -95,11 +102,11 @@ class DomainDaemon():
             Logger.error("process target for worker {} failed".format(worker_name))
             Logger.error(traceback.format_exc())
     
-    def loop_hb(self):
+    def loop_heartbeat(self):
         while True:
             try:
                 Logger.info("heartbeat loop")
-                self.collect_hb()
+                self.collect_heartbeat()
             except:
                 Logger.info(traceback.format_exc())
             time.sleep(self._loop_interval)
@@ -114,8 +121,12 @@ class DomainDaemon():
             time.sleep(self._loop_interval)
     
     def daemon(self):
-        self.threads.append(threading.Thread(target=self.loop_target ,args=()).start())
-        self.threads.append(threading.Thread(target=self.loop_hb ,args=()).start())
+        t = threading.Thread(target=self.loop_target ,args=())
+        t.start()
+        self.threads.append(t)
+        t = threading.Thread(target=self.loop_heartbeat ,args=())
+        t.start()
+        self.threads.append(t)
                     
     
 if __name__ == "__main__":

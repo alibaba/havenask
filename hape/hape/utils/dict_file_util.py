@@ -3,6 +3,7 @@ import json
 import os
 import traceback
 from ConfigParser import ConfigParser
+from .logger import Logger
 
 class UnsupportedFileTypeError(Exception):
     pass
@@ -56,9 +57,12 @@ class DictFileUtil:
         raise UnsupportedFileTypeError("unsupport file type: None")
             
     @staticmethod
-    def read(abs_path, type=None):
+    def read(abs_path, type=None, supress_warning=False):
         if not os.path.exists(abs_path):
-            raise IOError("not found: {}".format(abs_path))
+            message = "file not found: {}".format(abs_path)
+            if not supress_warning:
+                Logger.warning(message)
+            raise IOError(message)
         
         type = DictFileUtil.parse_type(abs_path, type)
         return DictFileUtil.read_funcs[type](abs_path)

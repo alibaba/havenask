@@ -5,9 +5,9 @@ hape_path = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../..
 sys.path.append(hape_path)
 import socket
 import httplib
-from hape.commands import PlanCommand
 
 from hape.utils.logger import Logger
+from hape.common import HapeCommon
 from hape.utils.shell import Shell
 
 from .target_worker_base import TargetWorkerBase
@@ -22,13 +22,15 @@ class SearcherTargetWorker(TargetWorkerBase, object):
     def solve_updater(self, processor_target, biz_target):
         Logger.info("solve updater")
         workdir = processor_target["workdir"]
-        processor_command = "python {workdir}/package/hape/hape/domains/workers/starter/part_search_update.py --role searcher -i ./runtimedata/ -c {config_path} -p 1,2".format(
-            workdir = workdir, 
+        processor_command = "python {workdir}/package/hape/domains/workers/starter/part_search_update.py --role searcher -i ./runtimedata/ -c {config_path} -p 0,0 --part_count {part_count} --part_id {part_id}".format(
+            workdir = workdir, part_count = biz_target["partition_count"], part_id = biz_target["partition_id"], 
             config_path=self._heartbeat[self._biz_plan_key]["local_config_path"])
         Logger.info("updater command {}".format(processor_command))
         shell=Shell()
-        shell.execute_command(processor_command)
-        self._heartbeat["starter"] = processor_command
+        response = shell.execute_command(processor_command)
+        if response.find("success") == -1:
+            raise RuntimeError("update searcher failed")
+        # self._heartbeat["starter"] = processor_command
         Logger.info("solve updater succeed")
         self._heartbeat["status"] = "running"
     
@@ -42,15 +44,20 @@ class SearcherTargetWorker(TargetWorkerBase, object):
         workdir = processor_target["workdir"]
         shell=Shell()
         port1, port2  = self._choose_free_ports(), self._choose_free_ports()
-        processor_command = "python {workdir}/package/hape/hape/domains/workers/starter/part_search_starter.py --role searcher --part_id {part_id} --part_count {part_count} -i ./runtimedata/ -c {config_path} -p {ports} -b {workdir}/package/ha3_install".format(
+        shell.kill_pids(shell.get_pids("sap_server_d"))
+        processor_command = "python {workdir}/package/hape/domains/workers/starter/part_search_starter.py --role searcher --part_id {part_id} --part_count {part_count} -i ./runtimedata/ -c {config_path} -p {ports} -b {workdir}/package/ha3_install".format(
             workdir = workdir, 
             part_count = biz_target["partition_count"], part_id = biz_target["partition_id"], 
             config_path=self._heartbeat[self._biz_plan_key]["local_config_path"], ports = str(port1) + "," + str(port2))
+        self._heartbeat["starter"] = processor_command
         Logger.info("starter command {}".format(processor_command))
         shell=Shell()
-        shell.execute_command(processor_command)
-        self._heartbeat["starter"] = processor_command
+        response = shell.execute_command(processor_command)
+        if response.find("success") == -1:
+            raise RuntimeError("start searcher failed")
+        # self._heartbeat["starter"] = processor_command
         Logger.info("solve succeed")
+        self.write_heartbeat()
     
     def solve_index_target(self, processor_target, biz_target):
         Logger.info("solve index target")
@@ -84,7 +91,6 @@ class SearcherTargetWorker(TargetWorkerBase, object):
                 biz_heartbeat["index_info"][index_name] = {}
                 biz_heartbeat["index_info"][index_name]["index_path"] = index_path
                 biz_heartbeat["index_info"][index_name]["local_index_path"] = local_index_path
-                self.solve_starter(processor_target, biz_target)
                 self.write_heartbeat()
             Logger.info("solve index {} succeed".format(index_name))
         Logger.info("solve index target succeed")
@@ -103,8 +109,8 @@ class SearcherTargetWorker(TargetWorkerBase, object):
         except Exception as e:
             return -1, '', str(e), 418
     
-    def solve_ready_zones(self, processor_target, biz_target):
-        Logger.error("solve ready_zones")
+    def solve_subscribe_infos(self, processor_target, biz_target):
+        Logger.info("solve subscribe_infos")
         try:
             shell=Shell()
             pid = shell.get_pids("sap_server_d")[0]
@@ -115,7 +121,7 @@ class SearcherTargetWorker(TargetWorkerBase, object):
             heartbeat = json.loads(out)
             
             serviceInfo = json.loads(heartbeat["serviceInfo"])
-            ready_zone = {  }
+            subscribe_info = {  }
             infos = serviceInfo["cm2"]["topo_info"].strip('|').split('|')
             for info in infos:
                 splitInfo = info.split(':')
@@ -127,27 +133,51 @@ class SearcherTargetWorker(TargetWorkerBase, object):
                 localConfig["ip"] = socket.gethostbyname(socket.gethostname())
                 localConfig["tcp_port"] = int(ports[0])
                 zoneName = splitInfo[0] + "_" + str(biz_target["partition_id"])
-                ready_zone[zoneName] = localConfig
+                subscribe_info[zoneName] = localConfig
                 Logger.info("gen localConfig: {}".format(localConfig))
-            self._heartbeat[self._biz_plan_key]["ready_zone"] = ready_zone
-            Logger.info("gen ready_zone: {}".format(ready_zone))
+            self._heartbeat[self._biz_plan_key]["subscribe_info"] = subscribe_info
+            Logger.info("gen subscribe_info: {}".format(subscribe_info))
             self._heartbeat["status"] = "running"
             self.write_heartbeat()
         except:
-            Logger.error("solve ready_zones failed")
+            Logger.error("solve subscribe_infos failed")
             Logger.error(traceback.format_exc())
             return False
-        Logger.error("solve ready_zones succeed")
+        Logger.info("solve subscribe_infos succeed")
         return True
     
     
+    def schedule_write_heartbeat(self):
+        if "status" not in self._heartbeat:
+            Logger.info("status is not set, not write heartbeat")
+            return
+        else:
+            pids = Shell().get_pids("sap_server_d")
+            Logger.info("sap_server_d pids:[{}]".format(pids))
+            if len(pids) == 0:
+                Logger.info("sap_server_d processor not found, not write heartbeat")
+                self._heartbeat["status"] = "starting"
+                return 
+        super(SearcherTargetWorker, self).write_heartbeat()
+    
             
     def watch_target(self, user_cmd, processor_target, biz_target):
-        if user_cmd == PlanCommand.START_WORKERS_COMMAND:
+        if user_cmd == HapeCommon.START_WORKER_COMMAND or user_cmd == HapeCommon.DP_COMMAND:
             self.solve_processor_info(processor_target)
-            self.solve_config_target(processor_target, biz_target)
-            self.solve_index_target(processor_target, biz_target)
-            if self.solve_ready_zones(processor_target, biz_target):
-                self._hb_manager.remove_worker_final_target(self._domain_name, self._role_name, self._worker_name)
+            if "index_info" in biz_target and len(biz_target["index_info"]) != 0:
+                self.solve_index_target(processor_target, biz_target)
+                self.solve_config_target(processor_target, biz_target)
+                self.solve_starter(processor_target, biz_target)
+                if self.solve_subscribe_infos(processor_target, biz_target):
+                    self._heartbeat_manager.remove_worker_final_target(self._domain_name, self._role_name, self._worker_name)
 
-    
+        elif user_cmd == HapeCommon.UPC_COMMAND:
+            self.solve_config_target(processor_target, biz_target)
+            self.solve_updater(processor_target, biz_target)
+            self._heartbeat_manager.remove_worker_final_target(self._domain_name, self._role_name, self._worker_name)
+            
+        elif user_cmd == HapeCommon.UPF_COMMAND:
+            self._heartbeat["status"] = "starting"
+            self.solve_index_target(processor_target, biz_target)
+            self.solve_updater(processor_target, biz_target)
+            self._heartbeat_manager.remove_worker_final_target(self._domain_name, self._role_name, self._worker_name)

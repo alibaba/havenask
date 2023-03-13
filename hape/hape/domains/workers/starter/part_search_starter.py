@@ -133,6 +133,10 @@ examples:
 
     def initMember(self, options):
         self.workDir = os.getcwd()
+        with open("heartbeats/envs_and_args.json", "r") as f:
+            self.envs_and_args = json.load(f)
+                
+        
         self.label = options.label
         self.partitionIndex = options.partitionIndex
         self.partitionCount = options.partitionCount
@@ -221,7 +225,16 @@ examples:
         self.startCmdTemplate += " JAVA_HOME=/usr/local/java HADOOP_HOME=/usr/local/hadoop/hadoop"
         if self.dailyrunMode:
             self.startCmdTemplate += " DAILY_RUN_MODE=true"
+            
+        for key in self.envs_and_args["envs"]:
+            value = self.envs_and_args["envs"][key]
+            self.startCmdTemplate += " {}={}".format(key, value)
+            
         self.startCmdTemplate += " PATH=$JAVA_HOME/bin:%s LD_LIBRARY_PATH=%s sap_server_d -l %s -r %s -c %s --port arpc:%d --port http:%d --env httpPort=%d --env serviceName=%s --env amonitorPath=%s/%s --env amonitorPort=%s --env roleType=%s --env port=%d --env ip=%s --env userName=admin --env decodeUri=true --env haCompatible=true --env zoneName=%s --env roleName=%s_partition_%d --env partId=0 --env decisionLoopInterval=10000 --env loadThreadNum=1"
+        
+        for elem in self.envs_and_args["args"]:
+            self.startCmdTemplate += " {} {}".format(elem["key"], elem["value"])
+        
 
         self.alogConfigPath = os.path.join(self.binaryPath, "usr/local/etc/ha3/ha3_alog.conf")
         self.searchCfg = os.path.join(self.binaryPath, "usr/local/etc/ha3/search_server.cfg")
@@ -315,7 +328,7 @@ examples:
         return target
 
     def writeReadyZones(self):
-        with open("{}/heartbeats/ready_zones.json".format(self.workDir), "w") as fp:
+        with open("{}/heartbeats/subscribe_infos.json".format(self.workDir), "w") as fp:
             json.dump(self.readyZones, fp)
 
     def startQrs(self):
@@ -378,13 +391,7 @@ examples:
         max_version = max([int(zone["version"]) for zone in readyZones])
         for zone in readyZones:
             zone["version"] = max_version
-        # coord_service = CoordinateClient("")
-        # reponse = coord_service.read()
-        # if self.label in reponse:
-        #     readyZones = reponse[self.label]
-        # else:
-        #     readyZones = {}
-        
+
         target = {
             "service_info" : {
                 "cm2_config" : {
@@ -587,8 +594,13 @@ examples:
             startCmd += " --env specialCatalogList=" + str(self.specialCatalogList)
 
         startCmd += ' -d -n >> %s_qrs.asan  2>&1 ' % (self.pidFile)
+        
+        with open("heartbeats/sap_server_d.command", "w") as command_file:
+            command_file.write(startCmd)
+        
         os.chdir(rundir)
         print "start qrs cmd: %s"% startCmd
+        
         os.system(startCmd)
         time.sleep(0.3)
         pids = self.getPids(rundir)
@@ -643,9 +655,12 @@ examples:
             if self.basicTuringBizNames:
                 startCmd += " --env basicTuringBizNames=" + self.basicTuringBizNames
             if self.kmonSinkAddress:
-                startCmd += " --env kmonitorSinkAddress=" + self.kmonSinkAddress;
+                startCmd += " --env kmonitorSinkAddress=" + self.kmonSinkAddress
+                
 
             startCmd += ' -d -n >> %s_searcher.asan  2>&1 ' % (self.pidFile)
+            with open("heartbeats/sap_server_d.command", "w") as command_file:
+                command_file.write(startCmd)
             os.chdir(rundir)
             os.system(startCmd)
             httpArpcPort_list.append((rundir, roleName, startCmd))
@@ -673,6 +688,10 @@ examples:
                 print 'get searcher listen port failed, pid [%d]' % pid
                 return False
             self.searcher_port_list.append((int(http_port), int(arpc_port)))
+            
+        with open(self.portFile, 'w') as portFile:
+                for http_port, arpc_port in self.searcher_port_list:
+                    portFile.write('%s %s\n' % (http_port, arpc_port))
 
         f.close()
         return True

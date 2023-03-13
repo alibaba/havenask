@@ -8,16 +8,22 @@ from .target import Target
 import time
 from hape.common.constants.hape_common import HapeCommon
 import shutil
+import datetime
 import traceback
+
+'''
+wrapper to read and write target and heartbeat
+'''
 
 class DistributeTargetError(Exception):
     pass
 
 class DomainHeartbeatService:
     
-    def __init__(self, global_config):
+    def __init__(self, global_config, supress_warning=True):
         self._workdir = os.path.join(global_config["hape-admin"]["workdir"], HapeCommon.ADMIN_DOMAIN_DIR, HapeCommon.HB_WORKDIR)
         self._worker_workdir = os.path.join(global_config["hape-worker"]["workdir"])
+        self._supress_warning = supress_warning
 
     
     def get_workerlist(self, domain_name, role_name):
@@ -35,10 +41,10 @@ class DomainHeartbeatService:
     def _read_worker_target(self, domain_name, role_name, worker_name, type):
         try:
             target_file_path = self.get_worker_target_file_path(domain_name, role_name, worker_name, type)
-            # Logger.info("read worker target {} {}".format(target_file_path, type))
-            return DictFileUtil.read(target_file_path)
+            return DictFileUtil.read(target_file_path, supress_warning= self._supress_warning)
         except:
-            Logger.debug("{} target for worker {} not exists in {}".format(type, worker_name, target_file_path))
+            if not self._supress_warning:
+                Logger.warning("{} target for worker {} not exists in {}".format(type, worker_name, target_file_path))
             return None
     
     def _write_worker_target(self, domain_name, role_name, worker_name, type, dict_obj):
@@ -47,17 +53,22 @@ class DomainHeartbeatService:
         if not os.path.exists(target_dir):
             shell=Shell()
             shell.makedir(target_dir)
-        dict_obj["timestamp"] = int(time.time())
+        dict_obj[HapeCommon.LAST_TARGET_TIMESTAMP_KEY[type]] = str(datetime.datetime.now())
         Logger.debug("write worker target, path:{} target:{}".format(target_file_path, dict_obj))
         return DictFileUtil.write(target_file_path, dict_obj)
     
     
-    def remove_worker_targetdir(self, domain_name, role_name, worker_name):
+    def remove_worker_targetdir(self, domain_name, role_name, worker_name, stop_mode=False):
         target_dir = os.path.join(self._workdir, domain_name, role_name, worker_name)
         Logger.info("clean worker {} workdir {}".format(worker_name, target_dir))
         if os.path.exists(target_dir):
             if os.path.isdir(target_dir):
-                shutil.rmtree(target_dir)
+                if not stop_mode:
+                    shutil.rmtree(target_dir)
+                else:
+                    for filename in os.listdir(target_dir):
+                        if os.path.isfile(os.path.join(target_dir, filename)) and filename.find("final-target")==-1:
+                            os.remove(os.path.join(target_dir, filename))
             else:
                 os.remove(target_dir)
     
@@ -104,7 +115,8 @@ class DomainHeartbeatService:
             shell = Shell(ipaddr)
             if not shell.file_exists(to_path):
                 shell.makedir(to_path)
-            shell.remote_put_file(from_path, to_path)
+            shell = Shell()
+            shell.put_remote_file(from_path, ipaddr+":"+to_path)
             Logger.info("distribute target to {} succeed {}".format(final_target['worker_name'], final_target))
         except:
             Logger.error("failed to distribute target")
@@ -114,18 +126,23 @@ class DomainHeartbeatService:
     def collect_heartbeat(self, domain_name, role_name, worker_name):
         final_target = self.read_worker_final_target(domain_name, role_name, worker_name)
         ipaddr = final_target["plan"][HapeCommon.PROCESSOR_INFO_KEY]["ipaddr"]
-        shell = Shell(ipaddr)
         from_path = os.path.join(self._worker_workdir, worker_name, "heartbeats", worker_name+"-heartbeat.json")
         to_path = os.path.dirname(self.get_worker_target_file_path(domain_name, role_name, worker_name, Target.HEARTBEAT))
-        Logger.info("collect hb from {} to {}".format(from_path, to_path))
+        Logger.info("collect heartbeat from {}:{} to {}".format(ipaddr, from_path, to_path))
+        shell=Shell()
         if not os.path.exists(to_path):
-            shell=Shell()
             shell.makedir(to_path)
-        tmp_to_path =  os.path.join(to_path, "__temp__")
-        if not os.path.exists(tmp_to_path):
-            os.makedirs(tmp_to_path)
-        shell.remote_get_file(from_path, tmp_to_path)
-        hb =  DictFileUtil.read(os.path.join(tmp_to_path, os.path.basename(from_path)))
-        if hb!=None and len(hb) != 0:
-            shutil.move(os.path.join(tmp_to_path, os.path.basename(from_path)), os.path.join(to_path, os.path.basename(from_path)))
-            shutil.rmtree(tmp_to_path)
+        tmp_to_path =  os.path.join(to_path, "__temp_heartbeat.json")
+        try:
+            shell.get_remote_file(ipaddr + ":" + from_path, tmp_to_path)
+            heartbeat =  DictFileUtil.read(os.path.join(tmp_to_path))
+        except:
+            heartbeat = None
+            Logger.warning("heartbeat not exists in host:{}, path:{}".format(ipaddr, from_path))
+
+        try:        
+            heartbeat =  DictFileUtil.read(os.path.join(tmp_to_path))
+        except:
+            heartbeat = None
+        if heartbeat!=None and len(heartbeat) != 0:
+            self.write_worker_heartbeat(domain_name, role_name, worker_name, heartbeat)

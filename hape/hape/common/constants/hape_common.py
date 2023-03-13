@@ -13,12 +13,16 @@ class HapeCommon:
     PACKAGE_KEY = "packages"
     HEARTBEAT_TIMEOUT_SEC = 180
     
+    START_WORKER_COMMAND = "start-worker"
+    STOP_WORKER_COMMAND = "stop-worker"
+    REMOVE_WORKER_COMMAND = "remove-worker"
+    DP_COMMAND = "dp"
+    UPC_COMMAND = "upc"
+    UPF_COMMAND = "upf"
     
-    # @staticmethod
-    # def parse_biz_plan(role_name, plan):
-    #     biz_plan_key = HapeCommon.ROLE_BIZ_PLAN_KEY[role_name]
-    #     if role_name == "bs":
-    #         return plan[biz_plan_key]
-    #     else:
-    #         return plan[biz_plan_key]
+    LAST_TARGET_TIMESTAMP_KEY = {
+        "final-target": "last-final-target-timestamp",
+        "user-target": "last-user-target-timestamp",
+        "heartbeat": "last-heartbeat-timestamp"
+    }
 

@@ -1,10 +1,13 @@
 import os
+import time
+import traceback
+
 from hape.utils.dict_file_util import DictFileUtil
 from hape.utils.logger import Logger
 from hape.utils.shell import Shell
 from hape.domains.target.target import Target
-import time
-import traceback
+from hape.common import HapeCommon
+import datetime
 
 
 class HeartBeatManager:
@@ -23,7 +26,7 @@ class HeartBeatManager:
             target_file_path = self.get_worker_target_file_path(domain_name, role_name, worker_name, type)
             return DictFileUtil.read(target_file_path)
         except:
-            Logger.warning(traceback.format_exc())
+            Logger.warning("{} target for worker {} not exists in {}".format(type, worker_name, target_file_path))
             return None
     
     def _remove_worker_target(self, domain_name, role_name, worker_name, type):
@@ -44,9 +47,8 @@ class HeartBeatManager:
         if not os.path.exists(target_dir):
             shell=Shell()
             shell.makedir(target_dir)
-        dict_obj["timestamp"] = int(time.time())
+        dict_obj[HapeCommon.LAST_TARGET_TIMESTAMP_KEY[type]] = str(datetime.datetime.now())
         return DictFileUtil.write(target_file_path, dict_obj)
         
     def write_worker_heartbeat(self, domain_name, role_name, worker_name, dict_obj):
-        dict_obj["timestamp"] = int(time.time())
         return self._write_worker_target(domain_name, role_name, worker_name, Target.HEARTBEAT, dict_obj)

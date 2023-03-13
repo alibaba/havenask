@@ -3,99 +3,73 @@
 import os
 import sys
 hape_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(hape_path)
-sys.path.append(os.path.join(hape_path, "bin"))
-from hape.commands import PlanCommand, InitCommand
-from hape.utils.logger import Logger
-import fire
-import json
+sys.path = [hape_path, os.path.join(hape_path, "bin"), os.path.join(hape_path, "hape_depends")] + sys.path
 
-class HapeCmd(object):
+from hape.commands import *
+from hape.domains.admin.daemon.daemon_manager import AdminDaemonManager
+
+usage = '''
+usage:
+python bin/hape_cmd.py [subcommands] [arguments]
+
+hape subcommands:
+    init                init biz config and hape config
+    check               check problem in havenask domain
+    start               start havenask domain
+    stop                stop havenask domain
+    remove              remove havenask domain
+    gs                  get status of havenask domain
+    gt                  get target of havenask domain
+    upf                 update full index of havenask searchers
+    upc                 update biz config of havenask workers
+    build_full_index    build full index
+    restart_daemon      restart domain daemon 
+    kill_daemon         kill domain daemon
+
+see more detail of subcommands, do:
+    python bin/hape_cmd.py [subcommands]
+'''
+
+def __usage(bin):
+    return  usage % {'prog' : bin}
+
+
+def run(argv):
+        
+    if len(argv) < 2:
+        print(__usage(argv[0]))
+        return True
+
+    cmd_str = argv[1]
+    if cmd_str == 'init':
+        InitCommand().init(argv[2:])
+    elif cmd_str == 'start':
+        StartCommand().start(argv[2:])
+    elif cmd_str == "stop":
+        StopCommand().stop(argv[2:])
+    elif cmd_str == "remove":
+        RemoveCommand().remove(argv[2:])
+    elif cmd_str == "build_full_index":
+        StartCommand().build_full_index(argv[2:])
+    elif cmd_str == "dp":
+        DpCommand().dp(argv[2:])
+    elif cmd_str == "upf":
+        UpfCommand().upf(argv[2:])
+    elif cmd_str == "upc":
+        UpcCommand().upc(argv[2:])
+    elif cmd_str == "gs":
+        StatusCommand().get_status(argv[2:])
+    elif cmd_str == "gt":
+        TargetCommand().get_target(argv[2:])
+    elif cmd_str == "check":
+        CheckCommand().check(argv[2:])
+    elif cmd_str == "restart_daemon":
+        DaemonCommand().restart_daemon(argv[2:])
+    elif cmd_str == "kill_daemon":
+        DaemonCommand().kill_daemon(argv[2:])
+    else:
+        raise ValueError("Unknown command [{}]".format(cmd_str))
     
-    def _strip_domain_name(self, config_path):
-        if not config_path.endswith("_hape_config"):
-            raise ValueError
-        else:
-            name = os.path.basename(config_path).split("_")[0]
-            Logger.info("parse domain nameas {}".format(name))
-            return name
-    
-    def _check_role(self, role):
-        choices = set(["all", "bs", "qrs", "searcher"])
-        if role not in choices:
-            log = "--role argument must be one of {}".format(choices)
-            Logger.error(log)
-            raise ValueError(log)
-    
-    def start(self, config, role, worker=None):
-        """Usage: start cluster role
 
-        Arguments:
-        name: cluster name
-        config: hape config
-        role: role in cluster
-        """
-        
-        name = self._strip_domain_name(config)
-        self._check_role(role)
-        cmd = PlanCommand(config)
-    
-        if role == "all":
-            cmd.start(name, ["bs", "searcher", "qrs"], worker)
-        else:
-            cmd.start(name, [role], worker)
-            
-    def build_full_index(self, config):
-        """Usage: build full index
-
-        Arguments:
-        name: cluster name
-        config: hape config
-        role: role in cluster
-        """
-        
-        name = self._strip_domain_name(config)
-        cmd = PlanCommand(config)
-        cmd.start(name, ["bs"],  None)
-        
-            
-    def remove(self, config, role):
-        """Usage: remove cluster role
-
-        Arguments:
-        name: cluster name
-        config: hape config
-        role: role in cluster
-        """
-        self._check_role(role)
-        name = self._strip_domain_name(config)
-        cmd = PlanCommand(config)
-        if role == "all":
-            cmd.remove(name, ["bs", "searcher", "qrs"])
-        else:
-            cmd.remove(name, [role])
-            
-    def gs(self, config, role, final_target=False):
-        """Usage: get status of cluster role
-
-        Arguments:
-        name: cluster name
-        config: hape config
-        role: role in cluster
-        """
-        self._check_role(role)
-        name = self._strip_domain_name(config)
-        cmd = PlanCommand(config)
-        
-        if role == "all":
-            status = cmd.get_status(name, ["bs", "qrs", "searcher"], final_target)
-        else:
-            status = cmd.get_status(name, [role], final_target)
-        print(json.dumps(status, indent=4))
-        
-            
-        
-        
 if __name__ == "__main__":
-    fire.Fire(HapeCmd)
-    
+    run(sys.argv)

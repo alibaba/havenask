@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 import time
 import os
 import sys
-import json
+import traceback
 hape_path = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../"))
 sys.path.append(hape_path)
 
@@ -15,15 +15,19 @@ from hape.domains.workers.roles.searcher_target_worker import SearcherTargetWork
 from hape.domains.workers.roles.qrs_target_worker import QrsTargetWorker
 
 
+'''
+different worker daemon implementations of bs/qrs/searcher
+'''
+
 class HaTargetWorkerFactory:
     @staticmethod
     def create(global_conf, domain_name, role_name, container_name):
         if role == "bs":
             return BsTargetWorker(global_conf, domain_name, role_name, container_name)
         if role == "qrs":
-            return QrsTargetWorker(global_conf, domain_name, role_name, container_name).watch()
+            return QrsTargetWorker(global_conf, domain_name, role_name, container_name)
         if role == "searcher":
-            return SearcherTargetWorker(global_conf, domain_name, role_name, container_name).watch()
+            return SearcherTargetWorker(global_conf, domain_name, role_name, container_name)
     
 if __name__  == "__main__":
     parser =  ArgumentParser()
@@ -38,5 +42,10 @@ if __name__  == "__main__":
     global_conf = DictFileUtil.read(args.global_conf)
     Logger.init(global_conf["hape-worker"]["logging-conf"])
     Logger.logger_name = "worker"
-    HaTargetWorkerFactory.create(global_conf, domain_name, role, worker_name).watch()
+    try:
+        Logger.info("try to start worker daemon with parameter global_conf: {} domain_name:{} role_name:{} worker_name{}".format(args.global_conf, domain_name, role, worker_name))
+        HaTargetWorkerFactory.create(global_conf, domain_name, role, worker_name).run()
+    except:
+        Logger.error("start worker daemon failed")
+        Logger.error(traceback.format_exc())
         

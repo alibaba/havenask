@@ -1,26 +1,34 @@
-from hape.domains.target import *
-from .handlers.start_handler import StartHandler
-from .handlers.remove_handler import RemoveHandler
-from .handlers.auto_index_load_handler import AutoIndexLoadHandler
-from .handlers.qrs_subscribe_handler import QrsSubscribeHandler
-from .handlers.upc_handler import UpcHandler
-from .handlers.dp_handler import DpHandler
-from hape.utils.logger import Logger
 import traceback
 
+from hape.domains.target import *
+from handlers import *
+from hape.utils.logger import Logger
+
+'''
+process user targets and some automatic targets
+'''
 class EventProcessor:
     def __init__(self, global_conf):
         self._global_conf = global_conf
-        self._domain_hb_service = DomainHeartbeatService(global_conf)
+        self._domain_heartbeat_service = DomainHeartbeatService(global_conf)
         self._handlers = [
+            StartHandler(global_conf),
+            StopHandler(global_conf),
+            RemoveHandler(global_conf),
+            AutoIndexLoadHandler(global_conf),
+            QrsSubscribeHandler(global_conf),
+            UpcHandler(global_conf),
+            DpHandler(global_conf),
+            UpfHandler(global_conf),
+            # AutoKeepWorkerHandler(global_conf)
         ]
     
     def process(self, domain_name, role_name, worker_name): 
         Logger.info("start to process event for {}".format(worker_name))
         for handler in self._handlers:
             try:
-                user_target = self._domain_hb_service.read_worker_user_target(domain_name, role_name, worker_name)
-                final_target = self._domain_hb_service.read_worker_final_target(domain_name, role_name, worker_name)
+                user_target = self._domain_heartbeat_service.read_worker_user_target(domain_name, role_name, worker_name)
+                final_target = self._domain_heartbeat_service.read_worker_final_target(domain_name, role_name, worker_name)
                 # Logger.info(handler.name())
                     
                 if user_target == None and  final_target == None:
@@ -41,11 +49,9 @@ class EventProcessor:
                 else:
                     Logger.info("user cmd is None")
                 if handler.handle(domain_name, role_name, worker_name, user_target) == False:
-                    Logger.info("handler [{}] processed failed or not not meet condition, continue".format(handler_name))
-                    continue
-                Logger.info("handler [{}] processed successfully".format(handler_name))
-                self._domain_hb_service.remove_worker_user_target(domain_name, role_name, worker_name)
-                Logger.info("user target for handler [{}] is consumed".format(handler_name))
+                    Logger.info("handler [{}] processed failed or not not meet condition".format(handler_name))
+                else:
+                    Logger.info("handler [{}] processed successfully".format(handler_name))
             except:
                 error_info = "handler {} failed".format(handler.name())
                 Logger.error(error_info)

@@ -13,7 +13,6 @@ hape_path = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../..
 sys.path.append(hape_path)
 from hape.domains.workers.starter.part_search_starter import PartSearchStartCmd
 import re
-import requests
 
 class PartSearchUpdateCmd(PartSearchStartCmd):
     '''
@@ -87,6 +86,8 @@ examples:
         # if len(ports) != 3:
         #     return False
         self.portListArray = [ports[0], ports[1], ports[1]]
+        if self.role == "searcher":
+            self.searcher_port_list = [[ports[0], ports[1]]]
         return True
         pass
     
@@ -105,7 +106,7 @@ examples:
 
     def _loadQrsTarget(self, timeout = 300):
         self.readyZones = {}
-        with open("{}/qrs_subscribe.json".format(self.workDir), "r") as f:
+        with open("{}/heartbeats/qrs_subscribe.json".format(self.workDir), "r") as f:
             self.readyZones = json.load(f)
         print("qrs readyZones {}".format(self.readyZones))
         # localTopoStr = "##".join(self.readyZones.values())
@@ -120,7 +121,7 @@ examples:
             },
             "biz_info" : {
                 "default" : {
-                    "config_path" : self.onlineConfigPath
+                    "config_path" : self.createConfigLink('qrs', 'biz', 'default', self.onlineConfigPath)
                 }
             },
             "table_info" : {
@@ -144,7 +145,6 @@ examples:
             print('address', address)
             print("param", targetRequest)
             retCode, out, err, _ = self.curl(address, "/HeartbeatService/heartbeat", targetRequest)
-            response = requests.post("http://"+address+"/HeartbeatService/heartbeat", json=targetRequest)
             if retCode != 0:
                 print "set qrs target %s failed." % targetStr
                 continue
@@ -155,15 +155,13 @@ examples:
         return timeout > 0
     
     def _loadSearcherTarget(self, targetInfos, timeout = 300):
-        with open("{}/ready_zones.json".format(self.workDir), "r") as f:
-            self.readyZones = json.load(f)
-        print("searcher readyZones {}".format(self.readyZones))
         while timeout > 0:
             time.sleep(5)
             timeout -= 5
             count = 0
             for targetInfo in targetInfos:
                 portList = self._getSearcherPortList(count)
+                print(portList)
                 count += 1
                 zoneName = targetInfo[0]
                 partId = targetInfo[1]
@@ -181,11 +179,15 @@ examples:
                                   "globalCustomInfo": json.dumps(globalInfo)
                 }
                 address = "%s:%d" %(self.ip, httpArpcPort)
-                retCode, out, err = self.curl(address, "/HeartbeatService/heartbeat", targetRequest)
+                # print("request", address, targetRequest)
+                retCode, out, err, _ = self.curl(address, "/HeartbeatService/heartbeat", targetRequest)
                 if retCode != 0:
                     print "set target %s failed." % targetStr
                     continue
                 response = json.loads(out)
+                # print("response", response)
+                # print('requestSig', requestSig)
+                # print('response sig', response["signature"])
                 if response["signature"] == requestSig:
                     serviceInfo = json.loads(response["serviceInfo"])
                     arpcAddress = "%s:%d" %(self.ip, arpcPort)

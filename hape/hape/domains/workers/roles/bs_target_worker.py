@@ -2,10 +2,10 @@ import os
 import sys
 hape_path = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../"))
 sys.path.append(hape_path)
-from hape.commands import PlanCommand
 
 from hape.utils.logger import Logger
 from hape.utils.shell import Shell
+from hape.common import HapeCommon
 
 from .target_worker_base import TargetWorkerBase
 import time
@@ -25,25 +25,25 @@ class BsTargetWorker(TargetWorkerBase):
                 workdir=workdir, generation_id=generation_id, index_name = index_name, 
                 config_path=biz_heartbeat["local_config_path"], data_path=biz_heartbeat["local_data_path"], partition_count=biz_target["partition_count"], part_id=biz_target["partition_id"])
         
-        if "realtime_address" in biz_target:
-            realtime_address, realtime_topic = biz_target["realtime_address"], biz_target["realtime_topic"]
+        self._heartbeat["starter"] = starter_command
+        if "realtime_info" in biz_target:
             realtime_info = {
                 "realtime_mode":"realtime_service_rawdoc_rt_build_mode",
                 "data_table" : biz_target["index_name"],
                 "type":"plugin",
                 "module_name":"kafka",
                 "module_path":"libbs_raw_doc_reader_plugin.so",
-                "topic_name":realtime_topic,
-                "bootstrap.servers": realtime_address,
                 "src_signature":str(int(time.time())),
                 "realtime_process_rawdoc": "true"
             }
-            biz_heartbeat["realtime_option"] = realtime_info
+            realtime_info.update(biz_target["realtime_info"])
+            biz_heartbeat["realtime_info"] = realtime_info
 
             realtime_option = ' --realtimeInfo="' + json.dumps(realtime_info).replace('"','\\"')+'"'
             starter_command += realtime_option
         
         Logger.info("worker starter command {}".format(starter_command))
+        self._heartbeat["status"] = "building"
         out = shell.execute_command(starter_command)
         if out.find("failed")!=-1:
             self._heartbeat["runtime-message"] = out
@@ -85,17 +85,30 @@ class BsTargetWorker(TargetWorkerBase):
             biz_heartbeat["local_data_path"] = local_data_path
             biz_heartbeat["data_path"] = data_path
             Logger.info("update data {}".format(local_data_path))
-            Logger.info("solve data hb {}".format(self._heartbeat))
+            Logger.info("solve data heartbeat {}".format(self._heartbeat))
             self.write_heartbeat()
             
         Logger.info("solve index {} end".format(index_name))
+        
+    def schedule_write_heartbeat(self):
+        if "status" not in self._heartbeat:
+            Logger.info("state is not set, not write heartbeat")
+            return
+        else:
+            if self._heartbeat["status"] !="finished":
+                pids = Shell().get_pids("startjob")
+                if len(pids) == 0:
+                    Logger.info("startjob processor not found, not write heartbeat")
+                    self._heartbeat["status"] = "starting"
+                    return 
+        super(BsTargetWorker, self).write_heartbeat()
                 
     def watch_target(self, user_cmd, processor_target, biz_target):
-        if user_cmd == PlanCommand.START_WORKERS_COMMAND:
+        if user_cmd == HapeCommon.START_WORKER_COMMAND or user_cmd == HapeCommon.DP_COMMAND:
             self.solve_processor_info(processor_target)
             self.solve_config_target(processor_target, biz_target)
             self.solve_data_target(processor_target, biz_target)
             self.solve_starter(processor_target, biz_target)
-            self._hb_manager.remove_worker_final_target(self._domain_name, self._role_name, self._worker_name)
+            self._heartbeat_manager.remove_worker_final_target(self._domain_name, self._role_name, self._worker_name)
 
     
