@@ -2,10 +2,10 @@
 ```
 realtime": true
 ```
-参考:`example/cases/normal/config/online_config/table/0/clusters/in0_cluster.json`
+参考:`example/cases/realtime/config/online_config/table/0/clusters/in0_cluster.json`
 
 # realtime_info.json参数
-参考:`example/cases/normal/config/realtime_info.json`
+参考:`example/cases/realtime/config/realtime_info.json`
 ```
 {
     "realtime_mode":"realtime_service_rawdoc_rt_build_mode",
