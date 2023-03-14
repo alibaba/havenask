@@ -9,10 +9,6 @@ def build_prepare():
     dataPath = os.path.join(HERE, '../../data/test.data')
     return configRoot, dataPath
 
-def realtime_prepare():
-    realtimeInfoPath = os.path.join(HERE, './config/realtime_info.json')
-    return realtimeInfoPath
-
 def search_prepare():
     configDir = os.path.join(HERE, './config/online_config')
     bizsConfigDir = os.path.join(configDir, "bizs")

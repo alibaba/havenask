@@ -33,6 +33,5 @@
             "build_total_memory" : 5120,
             "keep_version_count" : 40
         }
-    },
-    "realtime": true
+    }
 }
