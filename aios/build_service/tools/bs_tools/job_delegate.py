@@ -32,11 +32,12 @@ class JobDelegate(object):
         self.parameters = ''
         self.logConfigPath = ''
         self.jobTimestamp = int(time.time())
+        self.realtimeInfo = None
 
     def startJob(self, generationMeta, timeout, sleepInterval, buildMode, buildStep,
                  buildPartFrom, buildPartCount, mergeConfigName, dataPath=None, generationId=None,
                  documentFormat=None, rawDocSchemaName=None, dataDescription=None,
-                 readSrc=None, parameters=None, logConfigPath=''):
+                 readSrc=None, parameters=None, logConfigPath='', realtimeInfo=None):
         '''
         public function for job command.
         no return value
@@ -96,6 +97,7 @@ class JobDelegate(object):
 
         self._renameTempIndexDir(buildMode, buildStep)
         self.__copyGenerationMetaToPartitions(generationMeta)
+        self.__generateRealtimeInfoFile(realtimeInfo)
 
     def getJobStatus(self, buildStep, buildMode, showDetail, timeout = 60):
         '''
@@ -168,6 +170,20 @@ class JobDelegate(object):
             if self.fsUtil.exists(destGeneratorMeta):
                 continue
             self.fsUtil.copy(generationMeta, destGeneratorMeta)
+
+    def __generateRealtimeInfoFile(self, realtimeInfo=None):
+        '''
+        private function : generate realtime_info.json file.
+        '''
+        if not realtimeInfo:
+            return
+        finalIndexGenerationDir = self.__getGenerationDir(self.buildAppConf.indexRoot)
+        realtimeInfoFilePath = os.path.join(finalIndexGenerationDir, "realtime_info.json")
+        if self.fsUtil.exists(realtimeInfoFilePath):
+            return
+        realtimeInfo = json.loads(realtimeInfo)
+        with open(realtimeInfoFilePath, 'w') as f:
+            json.dump(realtimeInfo, f, indent=4)
 
     def __getTempGenerationDir(self):
         return "%s/__temp__generation_%d/" % (os.path.join(

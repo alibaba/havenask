@@ -1,0 +1,23 @@
+# -*- mode: python -*-
+
+# Inherit the environment from my parent.
+Import('env')
+
+env = env.Clone()
+
+
+env['gtest_filter'] = '-*.*_DisabledIntegration'
+
+test_sources = [
+    '#/test/dotest.cpp',
+    'KafkaReaderWrapperTest.cpp',
+    'KafkaSinglePartitionConsumerWrapperTest.cpp',
+    'KafkaRawDocumentReaderTest.cpp'
+    ]
+
+env.aTest(target = 'raw_doc_reader_test',
+          source = test_sources,
+          LIBS = env['ha3_test_depend_lib'] + ['bs_raw_doc_reader_plugin',
+                                               'rdkafka++',
+                                               'bs_reader_plugin_util']
+)

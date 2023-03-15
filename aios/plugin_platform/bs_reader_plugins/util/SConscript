@@ -1,0 +1,18 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+sources = Glob('*.cpp')
+target = "bs_reader_plugin_util"
+
+env.aStaticLibraryAndInstall(
+    target = target,
+    source = sources,
+    LIBS=[],
+    LIBATTRS = {}
+)
+
+Return("target")

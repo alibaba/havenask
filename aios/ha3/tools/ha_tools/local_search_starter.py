@@ -194,7 +194,7 @@ examples:
         self.preload = options.preload
         self.serviceName = options.serviceName
         self.amonPort = options.amonPort
-        self.libPath = "/opt/taobao/java/jre/lib/amd64/server/:/ha3_depends/home/admin/sap/lib64/:/ha3_depends/home/admin/diamond-client4cpp/lib:/ha3_depends/home/admin/eagleeye-core/lib/:/ha3_depends/usr/local/cuda-10.1/lib64/stubs:/ha3_depends/usr/local/cuda-10.1/lib64/:/ha3_depends/usr/local/lib64:/ha3_depends/usr/local/lib:/ha3_depends/usr/lib64/:/ha3_depends/usr/lib/:/usr/local/lib64:"  + self.binaryPath + "/usr/local/lib64:" + self.binaryPath + "/usr/lib:" + self.binaryPath + "/usr/lib64:" + self.binaryPath + "/usr/local/lib:"
+        self.libPath = "/opt/taobao/java/jre/lib/amd64/server/:/ha3_depends/home/admin/sap/lib64/:/ha3_depends/home/admin/diamond-client4cpp/lib:/ha3_depends/home/admin/eagleeye-core/lib/:/ha3_depends/usr/local/cuda-10.1/lib64/stubs:/ha3_depends/usr/local/cuda-10.1/lib64/:/ha3_depends/usr/local/lib64:/ha3_depends/usr/local/lib:/ha3_depends/usr/lib64/:/ha3_depends/usr/lib/:/usr/local/lib64:"  + self.binaryPath + "/usr/local/lib64:" + self.binaryPath + "/usr/lib:" + self.binaryPath + "/usr/lib64:" + self.binaryPath + "/usr/local/lib:/usr/local/lib"
         self.binPath = self.binaryPath + "/usr/local/bin/:" + self.binaryPath + "/usr/bin/:" + self.binaryPath + "/bin/:" + "/usr/local/bin:/usr/bin:/bin:/ha3_depends/home/admin/sap/bin/"
         self.startCmdTemplate = "/bin/env HIPPO_DP2_SLAVE_PORT=19715"
         if self.preload:
