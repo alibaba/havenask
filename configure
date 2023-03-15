@@ -32,7 +32,8 @@ def prepareBuildConfig(installDir):
        not doPrepareBuildConfig('plugin_platform/analyzer_plugins', installDir)  or \
        not doPrepareBuildConfig('plugin_platform/summary_plugins', installDir)  or \
        not doPrepareBuildConfig('plugin_platform/build_plugins', installDir)  or \
-       not doPrepareBuildConfig('plugin_platform/function_plugins', installDir):
+       not doPrepareBuildConfig('plugin_platform/function_plugins', installDir)  or \
+       not doPrepareBuildConfig('plugin_platform/bs_reader_plugins', installDir):
         return False
     return True
 

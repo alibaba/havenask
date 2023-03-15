@@ -3,6 +3,7 @@
 #include "indexlib/merger/multi_part_segment_directory.h"
 #include "indexlib/merger/segment_directory_finder.h"
 #include "indexlib/merger/merge_partition_data_creator.h"
+#include "indexlib/merger/multi_part_counter_merger.h"
 #include "indexlib/misc/exception.h"
 #include "indexlib/util/counter/counter_base.h"
 #include "indexlib/util/counter/counter_map.h"
@@ -40,7 +41,7 @@ MultiPartSegmentDirectory::MultiPartSegmentDirectory(
     }
 }
 
-MultiPartSegmentDirectory::~MultiPartSegmentDirectory() 
+MultiPartSegmentDirectory::~MultiPartSegmentDirectory()
 {
 }
 
@@ -95,7 +96,7 @@ void MultiPartSegmentDirectory::InitOneSegment(partitionid_t partId,
         segmentid_t physicalSegId, segmentid_t virtualSegId, const Version& version)
 {
     assert(partId < (partitionid_t)mPartSegIds.size());
-    string segPath = SegmentDirectoryFinder::MakeSegmentPath(mRootDirs[partId], 
+    string segPath = SegmentDirectoryFinder::MakeSegmentPath(mRootDirs[partId],
             physicalSegId, version);
     Segment segment(segPath, partId, physicalSegId);
     mSegments[virtualSegId] = segment;
@@ -118,16 +119,16 @@ segmentid_t MultiPartSegmentDirectory::GetVirtualSegmentId(
     for (Segments::const_iterator it = mSegments.begin();
          it != mSegments.end(); ++it)
     {
-        if (it->second.physicalSegId == physicalSegId 
+        if (it->second.physicalSegId == physicalSegId
             && it->second.partId == partId)
         {
             return it->first;
         }
-    }    
+    }
     return INVALID_SEGMENTID;
 }
 
-void MultiPartSegmentDirectory::GetPhysicalSegmentId(segmentid_t virtualSegId, 
+void MultiPartSegmentDirectory::GetPhysicalSegmentId(segmentid_t virtualSegId,
             segmentid_t& physicalSegId, partitionid_t& partId) const
 {
     Segments::const_iterator iter = mSegments.find(virtualSegId);
@@ -157,7 +158,8 @@ string MultiPartSegmentDirectory::GetLatestCounterMapContent() const
         return CounterMap::EMPTY_COUNTER_MAP_JSON;
     }
 
-    CounterMap mergedCounterMap;
+    bool hasSub = mSubSegmentDirectory;
+    MultiPartCounterMerger counterMerger(hasSub);
     for (const auto& segVec : mPartSegIds)
     {
         if (segVec.empty())
@@ -165,11 +167,9 @@ string MultiPartSegmentDirectory::GetLatestCounterMapContent() const
             continue;
         }
         segmentid_t lastSegIdOfPartition = segVec.back();
-        mergedCounterMap.Merge(
-                GetCounterMapContent(mSegments.at(lastSegIdOfPartition)),
-                CounterBase::FJT_MERGE);
+        counterMerger.Merge(GetCounterMapContent(mSegments.at(lastSegIdOfPartition)));
     }
-    return mergedCounterMap.ToJsonString();
+    return counterMerger.ToJsonString();
 }
 
 IE_NAMESPACE_END(merger);

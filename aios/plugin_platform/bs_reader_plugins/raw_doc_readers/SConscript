@@ -1,0 +1,25 @@
+# -*- mode: python -*-
+
+Import('env')
+import os
+
+env = env.Clone()
+
+reader_sources = [
+    'KafkaReaderWrapper.cpp',
+    'KafkaSinglePartitionConsumerWrapper.cpp',
+    'KafkaRawDocumentReader.cpp',
+    'CustomReaderModuleFactory.cpp'
+    ]
+
+target = 'bs_raw_doc_reader_plugin'
+env.aSharedLibraryAndInstall(
+    target = target,
+    source = reader_sources,
+    LIBS = env['ha3_depend_libs'] + ['rdkafka++', 'bs_reader_plugin_util'],
+    LIBATTRS = {'bs_reader_plugin_util': 'static'}
+)
+
+env.aDirs('test')
+
+Return(['target'])

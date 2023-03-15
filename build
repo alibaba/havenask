@@ -28,3 +28,4 @@ if __name__ == '__main__':
     build('ha3')
     build('plugin_platform/indexer_plugins/aitheta_indexer')
     build('plugin_platform/analyzer_plugins')
+    build('plugin_platform/bs_reader_plugins')

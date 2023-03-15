@@ -8,8 +8,7 @@ def build_prepare():
     configRoot = os.path.join(HERE, './config/offline_config/')
     dataPath = os.path.join(HERE, '../../data/test.data')
     return configRoot, dataPath
-        
-        
+
 def search_prepare():
     configDir = os.path.join(HERE, './config/online_config')
     bizsConfigDir = os.path.join(configDir, "bizs")
