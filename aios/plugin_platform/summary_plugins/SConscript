@@ -73,21 +73,21 @@ def getSubdirs(abs_path_dir) :
     lst = [ name for name in os.listdir(abs_path_dir) if os.path.isdir(os.path.join(abs_path_dir, name)) and name[0] != '.' ]
     return lst
 
-function_plugins = []
+summary_plugins = []
 
 for plugin_dir in getSubdirs(Dir('.').srcnode().abspath):
-    if plugin_dir in ['docs','testlib','testdata', 'build', "runtime_testdata", "util"]:
+    if plugin_dir in ['docs','testdata', 'build', "runtime_testdata", "util"]:
         continue
     ret = env.aDirs(plugin_dir)
-    function_plugins.append(ret)
+    summary_plugins.append(ret)
 
 linkflags = []
 linkflags.append('-Wl,--whole-archive')
-for lib in function_plugins:
+for lib in summary_plugins:
     linkflags.append("%s/lib/lib%s.a" % (env['ABS_BUILD_DIR'], lib))
 linkflags.append('-Wl,--no-whole-archive')
 env.Append(LINKFLAGS=linkflags)
 
-env.aSharedLibraryAndInstall(target = 'function_example',
+env.aSharedLibraryAndInstall(target = 'summary_sample',
     source = [],
-    LIBS = function_plugins)
+    LIBS = summary_plugins)

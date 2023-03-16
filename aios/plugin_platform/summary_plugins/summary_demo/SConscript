@@ -1,0 +1,23 @@
+# -*- mode: python -*-
+# Inherit the environment from my parent.
+Import('env')
+
+# Make a copy of the environment, so my changes are limited in this directory and sub-directories.
+env = env.Clone()
+
+sources = Glob('*.cpp')
+target = "sample_summary"
+
+env.aStaticLibraryAndInstall(
+    target = target,
+    source = sources,
+    LIBS=env['ha3_depend_libs'], 
+    LIBATTRS = {
+        }
+)
+
+Libs = [target]
+Export("Libs")
+
+env.aDirs("test")
+Return("target")

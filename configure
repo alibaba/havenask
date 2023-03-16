@@ -29,7 +29,10 @@ def prepareBuildConfig(installDir):
        not doPrepareBuildConfig('build_service', installDir) or \
        not doPrepareBuildConfig('ha3', installDir) or \
        not doPrepareBuildConfig('plugin_platform/indexer_plugins/aitheta_indexer', installDir) or \
-       not doPrepareBuildConfig('plugin_platform/analyzer_plugins', installDir) or \
+       not doPrepareBuildConfig('plugin_platform/analyzer_plugins', installDir)  or \
+       not doPrepareBuildConfig('plugin_platform/summary_plugins', installDir)  or \
+       not doPrepareBuildConfig('plugin_platform/build_plugins', installDir)  or \
+       not doPrepareBuildConfig('plugin_platform/function_plugins', installDir)  or \
        not doPrepareBuildConfig('plugin_platform/bs_reader_plugins', installDir):
         return False
     return True
