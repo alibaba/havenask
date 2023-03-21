@@ -128,7 +128,6 @@ class RemoteDockerContainerService(ContainerSerivceBase, object):
         shell = Shell(processor_target["ipaddr"], enable_localize=True)
         worker_name = processor_target["worker_name"]
         Logger.info("stop worker {}".format(worker_name))
-        ## prevent remove worker have no privileges
         shell.execute_command("docker exec -t {} bash -c \"chmod 777 -R {}\"".format(worker_name, processor_target["workdir"]))
         shell.execute_command("docker rm -f {}".format(worker_name))
         shell.execute_command("cd {}; rm -rf heartbeats".format(processor_target["workdir"]))
@@ -137,6 +136,7 @@ class RemoteDockerContainerService(ContainerSerivceBase, object):
         shell = Shell(processor_target["ipaddr"], enable_localize=True)
         worker_name = processor_target["worker_name"]
         Logger.info("remove worker {}".format(worker_name))
+        shell.execute_command("docker exec -t {} bash -c \"rm -rf {}/*\"".format(worker_name, processor_target["workdir"]))
         shell.execute_command("docker rm -f {}".format(worker_name))
         shell.execute_command("rm -rf {}".format(processor_target["workdir"]))
 

@@ -22,7 +22,10 @@ class StartHandler(EventHandler, object):
         self._domain_heartbeat_service.write_worker_final_target(domain_name, role_name, worker_name, final_target)
         self._start_worker(final_target)
         self._domain_heartbeat_service.distribute_target(final_target)
-        self._domain_heartbeat_service.remove_worker_user_target(domain_name, role_name, worker_name)
+        user_target = self._domain_heartbeat_service.read_worker_user_target(domain_name, role_name, worker_name)
+        ## avoid remove new target coming from users
+        if user_target != None and user_target["user_cmd"] == HapeCommon.START_WORKER_COMMAND:
+            self._domain_heartbeat_service.remove_worker_user_target(domain_name, role_name, worker_name)
         Logger.info("user target is consumed")
         return True
         
