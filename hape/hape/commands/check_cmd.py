@@ -3,6 +3,7 @@
 import os
 import socket
 import argparse
+import sys
 
 from hape.utils.dict_file_util import DictFileUtil
 from hape.utils.logger import Logger
@@ -22,7 +23,7 @@ check abnorma in havenask domain
 class CheckCommand(CommandBase, object):
     
     def check(self, args):
-        Logger.init_stdout_logger(True)
+        Logger.init_stdout_logger(False)
         parser = argparse.ArgumentParser()
         required_group = parser.add_argument_group('required arguments')
         required_group.add_argument('--config', type=str, dest='config', required=True, help="hape config path of havenask domain")
@@ -35,6 +36,11 @@ class CheckCommand(CommandBase, object):
     def _check(self, domain_name):
         Logger.info("start to check abnormal in domain")
         
+        version_info = sys.version_info
+        
+        if version_info.major !=2 or version_info.minor != 7:
+            raise RuntimeError("python2.7 must be set as default python interpreter, recommend to use conda or virtualenv")
+
         Logger.info("check daemon in domain")
         daemon_manager = AdminDaemonManager(self.config)
         daemon_manager.keep_daemon(domain_name)
@@ -68,7 +74,7 @@ class CheckCommand(CommandBase, object):
             
     def _check_linux_command_installed(self, ip):
         shell = Shell(ip)
-        response = shell.execute_command("rsync")
+        response = shell.execute_command("rsync", supress_error=True)
         if response.find("Usage") == -1:
             raise RuntimeError("must install rsync command in host:[{}]".format(ip))
             
@@ -118,25 +124,26 @@ class CheckCommand(CommandBase, object):
         image_name, image_version = image.split(":")
         code, response, error = Shell(ip).execute_command("docker images | grep {}".format(image_name), output_all=True)
         if code != 0:
-            flag = False
-            for line in response.strip().split("\n"):
-                tmp = line.strip().split()
-                if len(tmp)>=2 and tmp[0] == image_name and tmp[1] == image_version:
-                    flag = True
-                    break
-            if not flag:
-                Logger.info("host lack docker image, ip:[{}] image:[{}]".format(ip, image))
-                Logger.info("run docker pull image command in host[{}], it will cost some time".format(ip))
-                Logger.info("or you can exit and pull it yourself")
-                command = "docker pull {}".format(image)
-                shell = Shell(ip)
-                shell.execute_command(command, output_all=True)
+            raise RuntimeError("image [{}] not exists in host [{}]".format(image, ip))
+            # flag = False
+            # for line in response.strip().split("\n"):
+            #     tmp = line.strip().split()
+            #     if len(tmp)>=2 and tmp[0] == image_name and tmp[1] == image_version:
+            #         flag = True
+            #         break
+            # if not flag:
+            #     Logger.info("host lack docker image, ip:[{}] image:[{}]".format(ip, image))
+            #     Logger.info("run docker pull image command in host[{}], it will cost some time".format(ip))
+            #     Logger.info("or you can exit and pull it yourself")
+            #     command = "docker pull {}".format(image)
+            #     shell = Shell(ip)
+            #     shell.execute_command(command, output_all=True)
             
             
     def _check_docker_ps(self, ip, image):
         shell = Shell(ip)
         check_command = "docker ps | grep havenask_check"
-        code, out, error = shell.execute_command(check_command, output_all=True)
+        code, out, error = shell.execute_command(check_command, output_all=True, supress_error=True)
         if code == 1:
             return False
         elif code == 0:

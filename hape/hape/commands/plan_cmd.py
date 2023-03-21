@@ -64,12 +64,10 @@ class StartCommand(PlanCommandBase, object):
         required_group.add_argument('--index_name', type=str, dest='index_name', required=True, help="name of index to build")
         self.args = parser.parse_args(args)
         self.config = self.args.config
-        self.roles = [self.args.role] if self.args.role != 'all' else ["searcher", "qrs", "bs"]
         self.domain_name = self._strip_domain_name(self.config)
         self.build_index_name = self.args.index_name
-        self.worker = self.args.worker
         self.init_member(self.config)
-        self._start(self.domain_name, self.roles, self.worker, build_index_name = self.build_index_name)
+        self._start(self.domain_name, ["bs"], None, build_index_name = self.build_index_name)
     
     def _start(self, domain_name, roles, worker, build_index_name=None):
         self._daemon_manager.keep_daemon(domain_name)

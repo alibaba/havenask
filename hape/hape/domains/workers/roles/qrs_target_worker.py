@@ -89,7 +89,7 @@ class QrsTargetWorker(TargetWorkerBase ,object):
     
     def schedule_write_heartbeat(self):
         if "status" not in self._heartbeat:
-            Logger.info("state is not set, not write heartbeat")
+            Logger.info("status is not set, not write heartbeat")
             return
         else:
             pids = Shell().get_pids("sap_server_d")
@@ -98,7 +98,7 @@ class QrsTargetWorker(TargetWorkerBase ,object):
                 Logger.info("sap_server_d processor not found, not write heartbeat")
                 self._heartbeat["status"] = "starting"
                 return 
-        super(QrsTargetWorker, object).write_heartbeat()
+        super(QrsTargetWorker, self).write_heartbeat()
     
     
     def check_curl(self, biz_target):

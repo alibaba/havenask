@@ -27,7 +27,7 @@ class Shell:
             self._enable_localize = True
         else:
             self._enable_localize = False
-    def execute_command(self, command, is_daemon=False, output_all=False):
+    def execute_command(self, command, is_daemon=False, output_all=False, supress_error=False):
         if is_daemon:
             command = command + " > /dev/null 2>&1 & "
 
@@ -55,7 +55,7 @@ class Shell:
         else:
             Logger.info(message)
             
-        if code ==  1:
+        if code ==  1 and not supress_error:
             message = "{}: ERROR: failed to execute command {}".format(self._shell_name, command)
             Logger.access_log(message)
             # raise ShellExecuteError(message)

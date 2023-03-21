@@ -92,7 +92,7 @@ class BsTargetWorker(TargetWorkerBase):
         
     def schedule_write_heartbeat(self):
         if "status" not in self._heartbeat:
-            Logger.info("state is not set, not write heartbeat")
+            Logger.info("status is not set, not write heartbeat")
             return
         else:
             if self._heartbeat["status"] !="finished":
