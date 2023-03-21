@@ -1,0 +1,16 @@
+{
+    "processor_info": {
+        "image": "registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.3.0", 
+        "envs": {
+        }, 
+        "args": [
+        ],
+        "packages": [
+        ]
+    }, 
+    "searcher_config": {
+        "config_path": "${admin_ip}:${hape_repo}/conf/generated/${render_domain_name}/${render_domain_name}_biz_config/${render_domain_name}_online_config",
+        "partition_count": "${partition_count}",
+        "replica_count": 1
+    }
+}

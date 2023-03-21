@@ -75,3 +75,5 @@ libaitheta_indexer*
 libanalyzer_plugin*
 !.gitkeep
 **/workdir
+hape/conf/generated
+hape/hape_depends

@@ -1,0 +1,22 @@
+{
+    "processor_info": {
+        "image": "registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.3.0", 
+        "envs": {
+        }, 
+        "args": [
+
+        ],
+        "packages": [
+        ]
+    }, 
+    "index_config": {
+        "index_info": {
+            "${index_name}":{
+                "partition_count": "${index_partition_count}",
+                "output_index_path": "${admin_ip}:${homedir}/havenask/hape/index/${render_domain_name}/${index_name}", 
+                "data_path": "${admin_ip}:${hape_repo}/conf/templates/data",
+                "config_path": "${admin_ip}:${hape_repo}/conf/generated/${render_domain_name}/${render_domain_name}_biz_config/${render_domain_name}_offline_config"
+            }
+        }
+    }
+}
