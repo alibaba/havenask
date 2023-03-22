@@ -76,7 +76,7 @@ python build_demo_data.py /ha3_install
 ```
 python start_demo_searcher.py /ha3_install
 ```
-* havenask container listens on the default port of 4580. Here are some examples. ([More examples](https://github.com/alibaba/havenask/tree/main/example))
+* havenask container listens on the default port of 45800. Here are some examples. ([More examples](https://github.com/alibaba/havenask/tree/main/example))
 
 
 ```
