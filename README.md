@@ -46,13 +46,13 @@ git clone git@github.com:alibaba/havenask.git
 
 * create the container. CONTAINER_NAME specifies the name of the container.
 ```
-docker pull havenask/ha3_runtime:0.2.2
-./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.2.2
+docker pull havenask/ha3_runtime:0.3.0
+./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.3.0
 ```
 * If the connection to Docker Hub is unstable, you can try to download the images from Alibaba Cloud Container Registry.
 ```
-docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.2
-./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.2
+docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.3.0
+./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.3.0
 ```
 
 
@@ -76,7 +76,7 @@ python build_demo_data.py /ha3_install
 ```
 python start_demo_searcher.py /ha3_install
 ```
-* havenask container listens on the default port of 4580. Here are some examples. ([More examples](https://github.com/alibaba/havenask/tree/main/example))
+* havenask container listens on the default port of 45800. Here are some examples. ([More examples](https://github.com/alibaba/havenask/tree/main/example))
 
 
 ```
@@ -133,13 +133,13 @@ cd havenask/docker
 ```
 创建容器，其中CONTAINER_NAME为指定的容器名
 ```
-docker pull havenask/ha3_runtime:0.2.2
-./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.2.2
+docker pull havenask/ha3_runtime:0.3.0
+./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:0.3.0
 ```
 如果由于Docker Hub访问不稳定无法下载以上镜像，可以尝试阿里云镜像源
 ```
-docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.2
-./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.2.2
+docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.3.0
+./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.3.0
 ```
 登陆容器
 ```
