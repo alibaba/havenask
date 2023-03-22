@@ -95,6 +95,7 @@ class StartCommand(PlanCommandBase, object):
             final_target = self._domain_heartbeat_service.read_worker_final_target(domain_name, role, worker)
             user_target = final_target
             user_target['type'] = Target.USER_TARGET_TYPE
+            user_target['user_cmd'] = HapeCommon.START_WORKER_COMMAND
             self._domain_heartbeat_service.write_worker_user_target(domain_name, role, worker, user_target)
 
     def _gen_start_target_role(self, domain_name, role_name, plan):
@@ -238,10 +239,10 @@ class UpcCommand(PlanCommandBase, object):
         parser = argparse.ArgumentParser()
         required_group = parser.add_argument_group('required arguments')
         required_group.add_argument('--config', type=str, dest='config', required=True, help="hape config path of havenask domain")
-        required_group.add_argument('--role', choices=["all", "bs", "searcher", "qrs"], dest='role', required=True, help="role in domain")
+        required_group.add_argument('--role', choices=["searcher", "qrs"], dest='role', required=True, help="role in domain")
         self.args = parser.parse_args(args)
         self.config = self.args.config
-        self.roles = [self.args.role] if self.args.role != 'all' else ["searcher", "qrs", "bs"]
+        self.roles = [self.args.role]
         self.domain_name = self._strip_domain_name(self.config)
         self.init_member(self.config)
         self._upc(self.domain_name, self.roles) 
