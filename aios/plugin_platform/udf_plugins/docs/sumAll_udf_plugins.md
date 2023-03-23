@@ -55,7 +55,7 @@ private:
 <a name="vtDlc"></a>
 #### 定义UDF原型
 
-在sql_function.json中注册UDF
+在biz/sql/{zonename}_function.json配置中注册UDF
 ```json
 {
     "functions": [
@@ -104,3 +104,41 @@ private:
 5. 插件注册支持注册多个函数原型，每一个原型是一个map结构；
 6. 参数列表；
 7. 返回值类型。
+
+<a name="vtDlc"></a>
+#### 配置module
+
+配置相对简单。用户仅需将自己需要用到的module配置到zones/{cluster}/{bizname}_biz.json文件中，如下所示：
+
+```
+"function_config" : {
+    "modules" : [
+        {
+            "module_name" : "funcs",
+            "module_path" : "libtest_udf_plugins.so",
+            "parameters" : {
+            }
+        }
+    ],
+    "functions": [
+    ]
+},
+```
+
+modules 中配置该集群所要用到的module信息，包括：
+
+- module_name ： module的名字
+- module_path：module 所对应的so的路径
+- parameters：初始化module需要传的key，value对
+
+functions 中配置需要传递参数的function，包括：
+
+- name：function 的名字
+
+- parameters：需要传递给function的key，value对
+```
+  Tip
+  无需key，value来初始化的function 可以不用配置
+```
+
+
