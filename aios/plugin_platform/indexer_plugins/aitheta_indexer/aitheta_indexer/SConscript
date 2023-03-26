@@ -27,6 +27,13 @@ def run(cmd):
                         % (cmd, stdout, stderr, p.returncode))
     return stdout
 
+def runGitCmd(cmd):
+    try:
+        gitInfo = run(cmd)
+    except Exception as e:
+        gitInfo = ""
+    return gitInfo
+
 def GenerateBuildInfo():
     login_name = getpass.getuser()
     try:
@@ -37,7 +44,7 @@ def GenerateBuildInfo():
     return "%s@%s %s" % (login_name, host_ip, build_time)
 
 def GenerateGitCommitInfo():
-    log_info = run("git log --pretty=format:'%H %s (%cn)' -1")
+    log_info = runGitCmd("git log --pretty=format:'%H %s (%cn)' -1")
     return log_info.replace('"', '\\"').replace("'", "\\'").replace('\n', '\\n')
 
 def GenerateVersionInfo():

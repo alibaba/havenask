@@ -38,8 +38,15 @@ def GenerateBuildInfo():
     build_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     return "%s@%s %s" % (login_name, host_ip, build_time)
 
+def runGitCmd(cmd):
+    try:
+        gitInfo = run(cmd)
+    except Exception as e:
+        gitInfo = ""
+    return gitInfo
+
 def GenerateGitCommitInfo():
-    log_info = run("git log --pretty=format:'%H %s (%cn)' -1")
+    log_info = runGitCmd("git log --pretty=format:'%H %s (%cn)' -1")
     return log_info.replace('"', '\\"').replace("'", "\\'").replace('\n', '\\n')
 
 def GenerateVersionInfo():
@@ -87,26 +94,25 @@ plugin = env.aDirs('plugin')
 test_tool = env.aDirs('test')
 table = env.aDirs('table')
 
-# env.aSharedLibraryAndInstall(target='indexlib_open', 
+# env.aSharedLibraryAndInstall(target='indexlib_open',
 #                              source = [table])
 
-env.aLibraryAndInstall(target='indexlib', 
+env.aLibraryAndInstall(target='indexlib',
                        source = [util, merger, config,
                                  document, storage, file_system, index, testlib, table,
                                  plugin, common, misc, partition, index_base],
                        LIBS = ['lz4', 'snappy', 'zstd', 'z', 'future_lite', 'beeper-framework'])
 
-# env.aLibraryAndInstall(target='indexlib_tester', 
+# env.aLibraryAndInstall(target='indexlib_tester',
 #                        source = [util, merger, config,
-#                                  document, storage, file_system, index, testlib, 
+#                                  document, storage, file_system, index, testlib,
 #                                  plugin, common, misc, partition, index_base, test_tool],
 #                        LIBS = ['lz4', 'snappy', 'zstd', 'z'])
 
-env.aLibraryAndInstall(target='indexlib_test_tool', 
+env.aLibraryAndInstall(target='indexlib_test_tool',
                        source = [test_tool],
                        LIBS = ['lz4', 'snappy', 'zstd', 'z'])
 
-env.aLibraryAndInstall(target='indexlib_basic', 
+env.aLibraryAndInstall(target='indexlib_basic',
                        source = [util, storage, file_system, common, misc, config],
                        LIBS = ['lz4', 'snappy', 'zstd', 'z'])
-
