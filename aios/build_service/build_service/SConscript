@@ -36,6 +36,13 @@ def run(cmd):
                         % (cmd, stdout, stderr, p.returncode))
     return stdout
 
+def runGitCmd(cmd):
+    try:
+        gitInfo = run(cmd)
+    except Exception as e:
+        gitInfo = ""
+    return gitInfo
+
 def GenerateConfig():
     versionString = "build_service-%s-%s-%s" % (env['mode'], env['version'], env['release_str'])
     versions = env['version'].split(".")
@@ -48,8 +55,8 @@ def GenerateConfig():
     file.write(config_h)
     file.close()
 
-    gitLog= run('git log --max-count=5').replace('"', '\\"').replace("'", "\\'").replace('\n', '\\n')
-    gitStatus = run('git status').replace('"', '\\"').replace("'", "\\'").replace('\n', '\\n')
+    gitLog= runGitCmd('git log --max-count=5').replace('"', '\\"').replace("'", "\\'").replace('\n', '\\n')
+    gitStatus = runGitCmd('git status').replace('"', '\\"').replace("'", "\\'").replace('\n', '\\n')
     cpp_name = os.getcwd() + '/../../../build_service/config.cpp'
     file = open(cpp_name, 'w')
     config_cpp = config_cpp_template % { 'version_str' : versionString,
