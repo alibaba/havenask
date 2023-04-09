@@ -56,22 +56,19 @@ bool DocReaderProducer::stop() {
 }
 
 bool DocReaderProducer::getMaxTimestamp(int64_t &timestamp) {
-    SwiftRawDocumentReader *swiftReader = dynamic_cast<SwiftRawDocumentReader *>(_reader);
-    if (!swiftReader) {
-        BS_LOG(WARN, "getMaxTimestamp failed because has no swift reader.");
-        return false;
+    if (_reader) {
+        return _reader->getMaxTimestampAfterStartTimestamp(timestamp);
     }
-    return swiftReader->getMaxTimestampAfterStartTimestamp(timestamp);
+    return false;
 }
 
 bool DocReaderProducer::getLastReadTimestamp(int64_t &timestamp) {
-    SwiftRawDocumentReader *swiftReader = dynamic_cast<SwiftRawDocumentReader *>(_reader);
-    if (!swiftReader) {
-        BS_LOG(WARN, "getLastReadTimestamp failed because has no swift reader.");
-        return false;
+    if (_reader && _reader->isStreamReader()) {
+        timestamp = _lastReadOffset.load(std::memory_order_relaxed);
+        return true;
     }
-    timestamp = _lastReadOffset.load(std::memory_order_relaxed);
-    return true;
+    BS_LOG(WARN, "getLastReadTimestamp failed because reader not supported.");
+    return false;
 }
 
 }

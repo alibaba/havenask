@@ -36,6 +36,7 @@ static const std::string REALTIME_MODE = "realtime_mode";
 static const std::string REALTIME_SERVICE_MODE = "realtime_service_mode";
 static const std::string REALTIME_JOB_MODE = "realtime_job_mode";
 static const std::string REALTIME_SERVICE_RAWDOC_RT_BUILD_MODE = "realtime_service_rawdoc_rt_build_mode";
+static const std::string REALTIME_PROCESS_RAWDOC = "realtime_process_rawdoc";
 
 // reader
 static const std::string DATA_PATH = "data"; // required
@@ -47,7 +48,7 @@ static const std::string SWIFT_SRC_FULL_BUILD_LATENCY = "swift_source_full_build
 static const std::string SWIFT_SRC_FULL_BUILD_TIMEOUT = "swift_source_full_build_time_limit";
 static const std::string CUSTOMIZE_FULL_PROCESSOR_COUNT = "full_processor_count";
 static const std::string RAW_DOCUMENT_SCHEMA_NAME = "raw_doc_schema_name";
-    
+
 static const std::string FILE_READ_SRC = "file";
 static const std::string FIX_LEN_BINARY_FILE_READ_SRC = "fix_length_binary_file";
 static const std::string VAR_LEN_BINARY_FILE_READ_SRC = "var_length_binary_file";
@@ -59,7 +60,7 @@ static const std::string INDEX_CLONE_SRC = "index_clone";
 static const std::string SOURCE_INDEX_ADMIN_ADDRESS = "source_admin_address";
 static const std::string SOURCE_INDEX_BUILD_ID = "source_build_id";
 static const std::string MADROX_ADMIN_ADDRESS = "madrox_admin_address";
-static const std::string INDEX_CLONE_LOCATOR = "cloned-index-locator"; 
+static const std::string INDEX_CLONE_LOCATOR = "cloned-index-locator";
 
 
 static const std::string EXTEND_FIELD_NAME = "extend_field_name";

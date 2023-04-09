@@ -74,13 +74,20 @@ RawDocConsumer *FlowFactory::createRawDocConsumer(const RoleInitParam &initParam
     }
     return new DocProcessorConsumer(processor);
 }
-    
+
 RawDocConsumer *FlowFactory::createRawDocBuilderConsumer(const RoleInitParam &initParam) {
     Builder *builder = getBuilder(initParam);
     if (!builder) {
         return NULL;
     }
-    return new RawDocBuilderConsumer(builder);
+    Processor *processor = nullptr;
+    if (needProcessRawdoc(initParam)) {
+        processor = getProcessor(initParam);
+        if (!processor) {
+            return nullptr;
+        }
+    }
+    return new RawDocBuilderConsumer(builder, processor);
 }
 
 ProcessedDocProducer *FlowFactory::createProcessedDocProducer(const RoleInitParam &initParam) {
@@ -100,7 +107,7 @@ ProcessedDocConsumer *FlowFactory::createProcessedDocConsumer(const RoleInitPara
     auto it = initParam.kvMap.find(config::PROCESSED_DOC_SWIFT_STOP_TIMESTAMP);
     if (it != initParam.kvMap.end())
     {
-        int64_t stopTimestamp = -1;    
+        int64_t stopTimestamp = -1;
         if (!autil::StringUtil::fromString(it->second, stopTimestamp)) {
             BS_LOG(ERROR, "invalid stopTimestamp[%s]", it->second.c_str());
             return NULL;
@@ -224,6 +231,14 @@ builder::Builder *FlowFactory::createBuilder(
     BuilderCreator creator(_indexPart);
     return creator.create(initParam.resourceReader, initParam.kvMap,
                           initParam.partitionId, initParam.metricProvider);
+}
+
+bool FlowFactory::needProcessRawdoc(const RoleInitParam &initParam) {
+    auto it = initParam.kvMap.find(config::REALTIME_PROCESS_RAWDOC);
+    if (it != initParam.kvMap.end() && it->second == "true") {
+        return true;
+    }
+    return false;
 }
 
 }

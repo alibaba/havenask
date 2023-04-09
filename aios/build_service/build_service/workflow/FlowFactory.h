@@ -28,7 +28,7 @@ public:
 
     ProcessedDocProducer *createProcessedDocProducer(const RoleInitParam &initParam) override;
     ProcessedDocConsumer *createProcessedDocConsumer(const RoleInitParam &initParam) override;
-    bool initCounterMap(RoleInitParam &initParam) override; 
+    bool initCounterMap(RoleInitParam &initParam) override;
 
 public:
     reader::RawDocumentReader *getReader() const { return _reader; }
@@ -50,6 +50,7 @@ private:
     virtual builder::Builder *createBuilder(
             const RoleInitParam &initParam);
     RawDocConsumer *createRawDocBuilderConsumer(const RoleInitParam &initParam);
+    bool needProcessRawdoc(const RoleInitParam &initParam);
 
 private:
     IE_NAMESPACE(partition)::IndexPartitionPtr _indexPart;
