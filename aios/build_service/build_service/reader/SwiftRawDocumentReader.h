@@ -33,7 +33,7 @@ public:
     /* override */ bool seek(int64_t offset);
     /* override */ bool isEof() const;
     /* override */ void suspendReadAtTimestamp(int64_t timestamp, ExceedTsAction action);
-    bool isExceedSuspendTimestamp() const override { return _exceedSuspendTimestamp; } 
+    bool isExceedSuspendTimestamp() const override { return _exceedSuspendTimestamp; }
 protected:
     ErrorCode readDocStr(std::string &docStr, int64_t &offset, int64_t &timestamp) override;
     ErrorCode readDocStr(std::vector<Message> &msgs, int64_t &offset, size_t maxMessageCount) override;
@@ -44,6 +44,7 @@ public:
     virtual bool getMaxTimestamp(int64_t &timestamp);
 public:
     bool getMaxTimestampAfterStartTimestamp(int64_t &timestamp);
+    bool isStreamReader() { return true; }
 protected:
     virtual SWIFT_NS(client)::SwiftClient *createSwiftClient(
             const std::string& zkPath,
@@ -51,7 +52,7 @@ protected:
     virtual SwiftReaderWrapper *createSwiftReader(
             const std::string &swiftReaderConfig, SWIFT_NS(protocol)::ErrorInfo *errorInfo);
     std::string createSwiftReaderConfig(const ReaderInitParam &params);
-    
+
 private:
     bool doSeek(int64_t timestamp);
     bool initSwiftReader(SwiftReaderWrapper *swiftReader,
@@ -59,7 +60,7 @@ private:
     bool setLimitTime(SwiftReaderWrapper *swiftReader,
                       const KeyValueMap &kvMap,
                       const std::string &limitTimeType);
-    
+
     void setErrorCode(SWIFT_NS(protocol)::ErrorCode errorCode);
 private:
     SwiftReaderWrapper *_swiftReader;
