@@ -36,7 +36,7 @@ RawDocumentReader::RawDocumentReader()
     , _sourceFieldName(HA_RESERVED_SOURCE)
     , _batchBuildSize(1)
 {
-    setBeeperCollector(WORKER_ERROR_COLLECTOR_NAME);    
+    setBeeperCollector(WORKER_ERROR_COLLECTOR_NAME);
 }
 
 RawDocumentReader::~RawDocumentReader() {
@@ -59,7 +59,7 @@ bool RawDocumentReader::initialize(const ReaderInitParam &params) {
 
     if (!initBatchBuild(params)) {
         string errorMsg = "init batch build size failed";
-        BS_LOG(ERROR, "%s", errorMsg.c_str());        
+        BS_LOG(ERROR, "%s", errorMsg.c_str());
         return false;
     }
 
@@ -91,12 +91,12 @@ bool RawDocumentReader::initialize(const ReaderInitParam &params) {
 
     _parseFailCounter = GET_ACC_COUNTER(params.counterMap, parseFailCount);
     if (!_parseFailCounter) {
-        BS_LOG(ERROR, "create parse counter failed.");        
+        BS_LOG(ERROR, "create parse counter failed.");
     }
     return init(params);
 }
 
-bool RawDocumentReader::init(const ReaderInitParam &params){    
+bool RawDocumentReader::init(const ReaderInitParam &params){
     return true;
 }
 
@@ -121,13 +121,13 @@ RawDocumentReader::ErrorCode RawDocumentReader::read(
         if (ec != ERROR_NONE) {
             return ec;
         }
-        
+
         string errorMsg = string("no document factory wrapper");
         REPORT_ERROR_WITH_ADVICE(READER_ERROR_READ_EXCEPTION, errorMsg, BS_STOP);
         return ERROR_EXCEPTION;
     }
     if (_batchBuildSize != 1) {
-        rawDoc.reset(_documentFactoryWrapper->CreateMultiMessageRawDocument());        
+        rawDoc.reset(_documentFactoryWrapper->CreateMultiMessageRawDocument());
     } else {
         rawDoc.reset(_documentFactoryWrapper->CreateRawDocument());
     }
@@ -175,7 +175,7 @@ RawDocumentReader::ErrorCode RawDocumentReader::read(
     INCREASE_VALUE(_rawDocSizePerSecMetric, rawDocSize);
 
     {
-        ScopeLatencyReporter reporter(_parseLatencyMetric.get());            
+        ScopeLatencyReporter reporter(_parseLatencyMetric.get());
         bool ret = false;
         if (_batchBuildSize != 1) {
             ret = _parser->parseMultiMessage(_msgBuffer, rawDoc);
@@ -282,7 +282,7 @@ bool RawDocumentReader::initBatchBuild(const ReaderInitParam &params) {
     if (!params.resourceReader->getConfigWithJsonPath(clusterFileName, "build_option_config",
                                                       builderConfig)) {
         string errorMsg = "get builder config from cluster file[" + clusterFileName + "] failed";
-        BS_LOG(ERROR, "%s", errorMsg.c_str());        
+        BS_LOG(ERROR, "%s", errorMsg.c_str());
         return false;
     }
     if (builderConfig.batchBuildSize != 1) {
@@ -300,6 +300,11 @@ bool RawDocumentReader::initBatchBuild(const ReaderInitParam &params) {
 
 int64_t RawDocumentReader::getFreshness() {
     return numeric_limits<int64_t>::max();
+}
+
+bool RawDocumentReader::getMaxTimestampAfterStartTimestamp(int64_t &timestamp) {
+    BS_LOG(WARN, "getMaxTimestamp failed because reader not supported.");
+    return false;
 }
 
 }

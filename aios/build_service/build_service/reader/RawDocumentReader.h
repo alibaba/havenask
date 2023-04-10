@@ -18,9 +18,9 @@ DECLARE_REFERENCE_CLASS(util, AccumulativeCounter);
 
 IE_NAMESPACE_BEGIN(misc);
 class MetricProvider;
-typedef std::shared_ptr<MetricProvider> MetricProviderPtr; 
+typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 class Metric;
-typedef std::shared_ptr<Metric> MetricPtr; 
+typedef std::shared_ptr<Metric> MetricPtr;
 IE_NAMESPACE_END(misc);
 
 namespace build_service {
@@ -76,6 +76,9 @@ public:
     virtual void suspendReadAtTimestamp(int64_t targetTimestamp, ExceedTsAction action) {}
     virtual bool isExceedSuspendTimestamp() const { return false; }
 
+    virtual bool getMaxTimestampAfterStartTimestamp(int64_t &timestamp);
+    virtual bool isStreamReader() { return false; }
+
 protected:
     virtual ErrorCode readDocStr(std::string &docStr, int64_t &offset, int64_t &timestamp) = 0;
     virtual ErrorCode readDocStr(std::vector<Message> &msgs, int64_t &offset, size_t maxMessageCount) {
@@ -95,7 +98,7 @@ protected:
     virtual int64_t getFreshness();
     virtual bool initDocumentFactoryWrapper(const ReaderInitParam &params);
     bool initBatchBuild(const ReaderInitParam &params);
-    bool initMetrics(IE_NAMESPACE(misc)::MetricProviderPtr metricProvider);    
+    bool initMetrics(IE_NAMESPACE(misc)::MetricProviderPtr metricProvider);
 
 protected:
     IE_NAMESPACE(document)::RawDocumentParser *_parser;
@@ -104,7 +107,7 @@ protected:
     std::string _sourceFieldName;
 
     IE_NAMESPACE(document)::DocumentFactoryWrapperPtr _documentFactoryWrapper;
-        
+
 private:
     IE_NAMESPACE(util)::AccumulativeCounterPtr _parseFailCounter;
     common::End2EndLatencyReporter _e2eLatencyReporter;
@@ -113,7 +116,7 @@ private:
     IE_NAMESPACE(misc)::MetricPtr _rawDocSizePerSecMetric;
     IE_NAMESPACE(misc)::MetricPtr _readLatencyMetric;
     IE_NAMESPACE(misc)::MetricPtr _parseLatencyMetric;
-    IE_NAMESPACE(misc)::MetricPtr _parseErrorQpsMetric;    
+    IE_NAMESPACE(misc)::MetricPtr _parseErrorQpsMetric;
 
     std::string _traceField;
     std::string _extendFieldName;

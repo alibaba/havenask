@@ -9,8 +9,10 @@ namespace workflow {
 
 BS_LOG_SETUP(workflow, RawDocBuilderConsumer);
 
-RawDocBuilderConsumer::RawDocBuilderConsumer(builder::Builder *builder)
+RawDocBuilderConsumer::RawDocBuilderConsumer(builder::Builder *builder,
+                                             processor::Processor *processor)
     : _builder(builder)
+    , _processor(processor)
     , _endTimestamp(INVALID_TIMESTAMP)
 {
 }
@@ -26,6 +28,42 @@ FlowError RawDocBuilderConsumer::consume(const document::RawDocumentPtr &item) {
     if (_builder->hasFatalError()) {
         return FE_FATAL;
     }
+
+    if (_processor) {
+        return processAndBuildDoc(item);
+    } else {
+        return buildDoc(item);
+    }
+
+    return FE_EXCEPTION;
+}
+
+FlowError RawDocBuilderConsumer::processAndBuildDoc(const document::RawDocumentPtr &item) {
+    assert(_processor);
+    _processor->processDoc(item);
+    auto processedDocVecPtr = _processor->getProcessedDoc();
+    if (processedDocVecPtr == nullptr || processedDocVecPtr->empty()) {
+        return FE_OK;
+    }
+    for (size_t i = 0; i < processedDocVecPtr->size(); ++i) {
+        const ProcessedDocumentPtr &processedDoc = (*processedDocVecPtr)[i];
+        const ProcessedDocument::DocClusterMetaVec &metaVec =
+            processedDoc->getDocClusterMetaVec();
+        const DocumentPtr &document = processedDoc->getDocument();
+        const common::Locator &locator = processedDoc->getLocator();
+        if (!document || document->GetDocOperateType() == SKIP_DOC
+            || document->GetDocOperateType() == UNKNOWN_OP)
+        {
+            continue;
+        }
+        if (!_builder->build(document) || _builder->hasFatalError()) {
+            return FE_FATAL;
+        }
+    }
+    return FE_OK;
+}
+
+FlowError RawDocBuilderConsumer::buildDoc(const document::RawDocumentPtr &item) {
     if (_builder->build(item)) {
         return FE_OK;
     }

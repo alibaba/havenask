@@ -153,7 +153,7 @@ bool SwiftRawDocumentReader::setLimitTime(
         BEEPER_INTERVAL_REPORT(10, WORKER_ERROR_COLLECTOR_NAME, msg);
         return false;
     }
-        
+
     if (_startTimestamp > limitTime) {
         BS_LOG(ERROR, "startTimestamp[%ld] > %s[%ld]",
                _startTimestamp, limitTimeType.c_str(), limitTime);
@@ -162,7 +162,7 @@ bool SwiftRawDocumentReader::setLimitTime(
         BEEPER_INTERVAL_REPORT(10, WORKER_ERROR_COLLECTOR_NAME, msg);
         return false;
     }
-        
+
     if (limitTime != numeric_limits<int64_t>::max()) {
         swiftReader->setTimestampLimit(limitTime, limitTime);
         BS_LOG(INFO, "swift reader will suspend at timestamp[%ld]", limitTime);
@@ -173,7 +173,7 @@ bool SwiftRawDocumentReader::setLimitTime(
         RawDocumentReader::ETA_SUSPEND : RawDocumentReader::ETA_STOP;
     return true;
 }
-    
+
 bool SwiftRawDocumentReader::seek(int64_t offset) {
     return doSeek(offset);
 }
@@ -183,7 +183,7 @@ bool SwiftRawDocumentReader::doSeek(int64_t timestamp) {
     BS_LOG(INFO, "swift seek timestamp[%ld]", timestamp);
     string msg = "swift seek timestamp [" + StringUtil::toString(timestamp) + "]";
     BEEPER_INTERVAL_REPORT(10, WORKER_STATUS_COLLECTOR_NAME, msg);
-    
+
     SWIFT_NS(protocol)::ErrorCode ec = _swiftReader->seekByTimestamp(timestamp, false);
     if (ec != SWIFT_NS(protocol)::ERROR_NONE
         && ec != SWIFT_NS(protocol)::ERROR_CLIENT_NO_MORE_MESSAGE)
@@ -263,7 +263,7 @@ RawDocumentReader::ErrorCode SwiftRawDocumentReader::readDocStr(
                 return ERROR_WAIT;
             } else {
                 msg += "eof";
-                BEEPER_INTERVAL_REPORT(10, WORKER_STATUS_COLLECTOR_NAME, msg);                
+                BEEPER_INTERVAL_REPORT(10, WORKER_STATUS_COLLECTOR_NAME, msg);
                 return ERROR_EOF;
             }
         } else if (SWIFT_NS(protocol)::ERROR_CLIENT_NO_MORE_MESSAGE == ec) {
@@ -296,7 +296,7 @@ RawDocumentReader::ErrorCode SwiftRawDocumentReader::readDocStr(std::vector<Mess
     SWIFT_NS(protocol)::Messages messages;
     SWIFT_NS(protocol)::ErrorCode ec =
         _swiftReader->read(offset, messages, maxMessageCount, DEFAULT_WAIT_READER_TIME);
-    
+
     if (SWIFT_NS(protocol)::ERROR_NONE != ec) {
         if (SWIFT_NS(protocol)::ERROR_CLIENT_EXCEED_TIME_STAMP_LIMIT == ec) {
             BS_LOG(INFO, "swift read exceed the limited timestamp");
@@ -372,7 +372,7 @@ bool SwiftRawDocumentReader::getMaxTimestamp(int64_t &timestamp) {
         BS_LOG(WARN, "%s", errorMsg.c_str());
         return false;
     }
-    
+
     if (status.maxMessageId < 0) {
         timestamp = -1;
     } else {
