@@ -16,7 +16,7 @@ import traceback
 import shutil
 import threading
 import json
-
+import time
 
 class TargetWorkerBase:
     def __init__(self, global_conf, domain_name, role_name, worker_name):  #type:(dict, str, str, str)->None
@@ -78,6 +78,7 @@ class TargetWorkerBase:
             Logger.info("update config {}".format(local_config_path))
             biz_heartbeat["config_path"] = config_path
             dest_path = os.path.join(work_dir, "worker_config", ("online_config" if self._role_name !="bs" else  "offline_config"))
+            dest_path += "_" + str(int(time.time()))
             shutil.move(local_config_path, dest_path)
             biz_heartbeat["local_config_path"] = dest_path
             self.write_heartbeat()
