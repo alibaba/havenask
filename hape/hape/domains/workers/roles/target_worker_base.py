@@ -17,7 +17,6 @@ import shutil
 import threading
 import json
 
-
 class TargetWorkerBase:
     def __init__(self, global_conf, domain_name, role_name, worker_name):  #type:(dict, str, str, str)->None
         # print(global_conf["hape-worker"]["logging-conf"])
@@ -74,11 +73,9 @@ class TargetWorkerBase:
             shell.execute_command("rm -rf worker_config")
             shell.makedir("worker_config")
             Logger.info("try to get config file {}".format(config_path))
-            local_config_path = self._dfs_client.get(config_path, os.path.join(work_dir, "worker_config"))
-            Logger.info("update config {}".format(local_config_path))
+            dest_path = self._dfs_client.get(config_path, os.path.join(work_dir, "worker_config"))
+            Logger.info("update config {}".format(dest_path))
             biz_heartbeat["config_path"] = config_path
-            dest_path = os.path.join(work_dir, "worker_config", ("online_config" if self._role_name !="bs" else  "offline_config"))
-            shutil.move(local_config_path, dest_path)
             biz_heartbeat["local_config_path"] = dest_path
             self.write_heartbeat()
         else:
