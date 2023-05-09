@@ -110,8 +110,8 @@ public final class HashAlgorithm {
     }
 
     public static long getPartitionId(long hashId, int partCount) {
-        long c = DEFAULT_RANGE_TO / partCount;
-        long m = DEFAULT_RANGE_TO % partCount;
+        long c = HASH_SIZE / partCount;
+        long m = HASH_SIZE % partCount;
         long from = 0;
         for (long i = 0; i < partCount && from <= DEFAULT_RANGE_TO; ++i) {
             long to = from + c + (i >= m ? 0 : 1) - 1;
