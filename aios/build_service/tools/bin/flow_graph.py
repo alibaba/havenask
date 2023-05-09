@@ -14,9 +14,9 @@ examples:
     %(prog)s -a XXX.XXX.XXX.XXX:6666 -A mainse_bspre_offline -D mainse -G 1571110174
     '''
     def __init__(self):
-        self.ossPath = 'oss://search-ad/bs_admin_graph/flow_graph/'
-        self.ossKey = '4fRssnpCK1DmTv8RvXh5qxUrQacPxj'
-        self.ossId = 'LTAI4Fh1WPfYTxBn5bvAhrKg'
+        self.ossPath = 'invalid'
+        self.ossKey = 'invalid'
+        self.ossId = 'invalid'
         curTime = int(time.time())
         self.today = self.__toTimeStr(curTime)
         self.yesterday = self.__toTimeStr(curTime - 86400)
