@@ -106,8 +106,8 @@ def hashString(s):
 
 
 def getPartitionId(hashId, partCount):
-    c = DEFAULT_RANGE_TO / partCount;
-    m = DEFAULT_RANGE_TO % partCount;
+    c = HASH_SIZE / partCount;
+    m = HASH_SIZE % partCount;
     _from, i = 0, 0
     
     while(i < partCount and _from <= DEFAULT_RANGE_TO):
