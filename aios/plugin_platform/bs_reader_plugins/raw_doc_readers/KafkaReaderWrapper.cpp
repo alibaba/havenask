@@ -16,8 +16,8 @@ static const uint16_t DEFAULT_RANGE_FROM = 0;
 static const uint16_t DEFAULT_RANGE_TO = 65535;
 
 static const uint64_t BATCH_READ_COUNT = 256;
-static const uint64_t READ_BUFFER_SIZE = 2048;
-static const uint64_t BATCH_CONSUME_COUNT = 32767;
+static const uint64_t READ_BUFFER_SIZE = 32767;
+static const uint64_t BATCH_CONSUME_COUNT = 2048;
 
 KafkaReaderWrapper::KafkaReaderWrapper()
     : _kafkaPartCount(0), _bufferCursor(0), _curTimestamp(-1)
@@ -325,8 +325,8 @@ int64_t KafkaReaderWrapper::getNextMsgTimestamp() const {
 KafkaSinglePartitionConsumerConfig KafkaReaderWrapper::getSinglePartConsumerConfig() {
     KafkaSinglePartitionConsumerConfig config;
     config.batchReadCount = BATCH_READ_COUNT;
-    config.batchConsumeCount = READ_BUFFER_SIZE;
-    config.readBufferSize = BATCH_CONSUME_COUNT;
+    config.batchConsumeCount = BATCH_CONSUME_COUNT;
+    config.readBufferSize = READ_BUFFER_SIZE;
     return config;
 }
 
