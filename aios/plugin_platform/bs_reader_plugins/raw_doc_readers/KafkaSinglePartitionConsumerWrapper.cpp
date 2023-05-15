@@ -11,6 +11,7 @@ BS_LOG_SETUP(reader, KafkaSinglePartitionConsumerWrapper);
 
 static const uint32_t HASH_SIZE = 65536;
 static const int64_t DEFAULT_CONSUME_TIMEOUT_MS = 1000;
+static const int64_t DEFAULT_CONSUME_BATCH_TIMEOUT_MS = 2000;
 static const int64_t MAX_TIME_STAMP = numeric_limits<int64_t>::max();
 
 KafkaSinglePartitionConsumerWrapper::KafkaSinglePartitionConsumerWrapper(
@@ -66,6 +67,8 @@ bool KafkaSinglePartitionConsumerWrapper::tryRead(
             break;
         }
     }
+    BS_LOG(DEBUG, "_buffer.size=[%lu], _bufferCursor=[%lu], messages.size=[%lu]",
+           _buffer.size(), _bufferCursor, messages.size());
     return messages.size() > 0;
 }
 
@@ -80,6 +83,7 @@ bool KafkaSinglePartitionConsumerWrapper::tryFillBuffer() {
         _buffer.insert(_buffer.end(), messages.begin(), messages.end());
     } else {
         messages.insert(messages.begin(), _buffer.begin() + _bufferCursor, _buffer.end());
+        _bufferCursor = 0;
         _buffer.swap(messages);
     }
     return true;
@@ -114,7 +118,11 @@ RdKafka::ErrorCode KafkaSinglePartitionConsumerWrapper::consumeOne(std::shared_p
 RdKafka::ErrorCode KafkaSinglePartitionConsumerWrapper::consumeBatch(
         std::vector<std::shared_ptr<RdKafka::Message>> &messages) {
     RdKafka::ErrorCode rec = RdKafka::ERR_NO_ERROR;
+    int64_t beginTime = TimeUtility::currentTime();
     for (size_t i = 0; i < _config.batchConsumeCount; ++i) {
+        if(TimeUtility::currentTime() - beginTime > DEFAULT_CONSUME_BATCH_TIMEOUT_MS * 1000) {
+            break;
+        }
         std::shared_ptr<RdKafka::Message> msg;
         RdKafka::ErrorCode ec = consumeOne(msg);
         if (RdKafka::ERR_NO_ERROR != ec) {
