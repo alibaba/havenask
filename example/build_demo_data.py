@@ -56,6 +56,8 @@ if __name__ == '__main__':
     if realtimeInfo:
         realtimeInfo = '"' + realtimeInfo.replace('"', '\\"') + '"'
         realtimeOption = ' --realtimeInfo=' + realtimeInfo
-    cmd = '%s/usr/local/bin/bs startjob -c %s -n in0 -j local -m full -d %s -w %s -i ./runtimedata -p 1 --documentformat=ha3' % (installRoot, configDir, dataDir, workDir)
+    files = os.listdir(os.path.join(caseRoot, 'config/offline_config/0/clusters'))
+    clusters = [f[:len(f)-len('_cluster.json')] for f in files if f.endswith('_cluster.json')]
+    cmd = '%s/usr/local/bin/bs startjob -c %s -n %s -j local -m full -d %s -w %s -i ./runtimedata -p 1 --documentformat=ha3' % (installRoot, configDir, clusters[0], dataDir, workDir)
     cmd += realtimeOption
     executCmd(cmd)

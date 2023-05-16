@@ -1,0 +1,16 @@
+{
+    "dependency_table": [
+        "llm"
+    ],
+    "cluster_config" : {
+        "hash_mode" : {
+            "hash_field" : "pk",
+            "hash_function" : "HASH"
+        },
+        "query_config" : {
+            "default_index" : "pk",
+            "default_operator" : "AND"
+        },
+        "table_name" : "llm"
+    }
+}
