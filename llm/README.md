@@ -6,25 +6,34 @@
 ![流程图](/llm/resources/flow.jpg)
 
 # 开始
-Havenask的运行依赖docker环境。个人电脑上推荐安装[Docker Desktop](https://www.docker.com/products/docker-desktop/)。
+## 环境要求
+* CPU 16核, 64G内存
+* 需要安装docker环境
 
-安装完后，场景运行容器：
-
+## 准备容器
+* 克隆havenask仓库
 ```shell
-docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.3.0
+git clone https://github.com/alibaba/havenask.git
+```
+
+* 创建容器
+```shell
 cd ~/havenask/docker
 ./create_container.sh havenask registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.3.0
+```
+
+* 登陆容器
+```shell
 ./havenask/sshme
 ```
 
-详情请参考[快速开始](https://github.com/alibaba/havenask#%E5%BC%80%E5%A7%8B%E4%BD%BF%E7%94%A8)
+详情请参考[havenask](https://github.com/alibaba/havenask#%E5%BC%80%E5%A7%8B%E4%BD%BF%E7%94%A8)
 
 ## 安装依赖
-项目依赖```python >= 3.10```，可以使用[conda](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html)管理python环境。下载linux环境的```Anaconda```或者```Miniconda```，
-按提示步骤完成安装。如安装```Anaconda```。
+使用[conda](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html)管理python环境。下载linux环境的```Anaconda```，按提示步骤完成安装。
 
-```
-bash Anaconda-latest-Linux-x86_64.sh
+```shell
+bash Anaconda3-2023.03-1-Linux-x86_64.sh
 ```
 
 安装完conda后， 执行下面的命令创建并激活python环境
@@ -35,11 +44,8 @@ conda activate havenask_llm
 ```
 
 安装python依赖
-* 如果使用GPU，请先检查机器上安装的cuda版本，```requirements.txt```中默认配置的```torch```版本为```2.0```，要求```cuda```版本不低于```11.7```。
-* 如果```cuda```版本低于```11.7```，从[pytorch版本列表](https://pytorch.org/get-started/previous-versions)选择相应的版本。
-
 ```shell
-cd ~/havenask/llm
+cd ~/havenask/llm  # 当前目录为/home/$USER
 pip install -r requirements.txt
 ```
 
@@ -98,7 +104,6 @@ CHATGLM_MODEL=THUDM/chatglm-6b
 使用[embed_files.py](script/embed_files.py)脚本对数据文件进行处理，目前支持```.md```和```.pdf```格式的文件。处理完成后会生成一个Havenask引擎格式的数据文件。
 例如处理Havenask wiki数据，忽略```.git```和```english```目录下的文件。
 ```shell
-cd ~/havenask/llm
 git clone https://github.com/alibaba/havenask.wiki.git
 python -m script.embed_files havenask.wiki ./llm.data .git,english
 ```
@@ -113,6 +118,8 @@ cd ~/havenask/example/
 /usr/bin/python2.7 build_demo_data.py /ha3_install llm
 ```
 
+* Havenask服务目前需要python2.7启动任务
+
 ### 启动服务
 索引构建结束后，启动havenask服务，根据需要可以修改端口号。并将```.env```中配置的QRS端口一并修改。
 ```shell
@@ -123,6 +130,7 @@ cd ~/havenask/example/
 ## 启动问答服务
 ### api部署
 ```shell
+cd ~/havenask/llm
 python api.py
 ```
 测试请求
@@ -147,6 +155,7 @@ curl -H "Content-Type: application/json" http://127.0.0.1:8000/chat -d '{"query"
 
 ### cli方式
 ```shell
+cd ~/havenask/llm
 python cli_demo.py
 ```
 输入exit退出，输入clear会清空history，输入其他内容进行问答。
@@ -154,6 +163,7 @@ python cli_demo.py
 
 ### webdemo
 ```shell
+cd ~/havenask/llm
 python webdemo.py
 ```
 在浏览器中打开返回的web地址，方便使用
@@ -182,8 +192,6 @@ python script/deploy_chatglm.py
 CHATGLM_SERVER_ENDPOINT=http://{ip}:8001/
 EMBEDDING_SERVER_ENDPOINT=http://{ip}:8008/
 ```
-
-模型也可以跑在CPU上，根据实际使用情况，ChatGLM-6b在96核512G内存机器上，推理时占用了26G内存、50核，耗时一两分钟。如果资源不足，可以使用ChatGLM的量化版本。
 
 ## 更换模型
 
