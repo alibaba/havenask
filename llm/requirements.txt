@@ -1,0 +1,15 @@
+fastapi == 0.95.*
+pydantic == 1.10.*
+uvicorn == 0.21.*
+openai == 0.27.*
+tiktoken == 0.3.*
+numpy == 1.24.*
+tenacity == 8.2.*
+torch == 2.0.*
+transformers == 4.28.*
+python-dotenv == 1.0.0
+sentencepiece == 0.1.99
+cpm-kernels == 1.0.*
+gradio == 3.29.*
+mdtex2html == 1.2.*
+PyPDF2 == 3.0.*

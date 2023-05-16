@@ -1,0 +1,82 @@
+{
+    "attributes": [
+        "pk",
+        "embedding",
+        "content",
+        "source_id",
+        "url"
+    ],
+    "fields": [
+        {
+            "field_name": "pk",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "embedding",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "content",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "source_id",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "url",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "DUP_pk",
+            "field_type": "RAW"
+        },
+        {
+            "field_name": "DUP_embedding",
+            "field_type": "RAW"
+        }
+    ],
+    "indexs": [
+        {
+            "index_name": "pk",
+            "index_fields": "pk",
+            "index_type": "PRIMARYKEY64",
+            "has_primary_key_attribute": true,
+            "is_primary_key_sorted": true
+        },
+        {
+            "index_name": "embedding_index",
+            "index_type":"CUSTOMIZED",
+            "index_fields":[
+                {
+                    "boost":1,
+                    "field_name":"DUP_pk"
+                },
+                {
+                    "boost":1,
+                    "field_name":"DUP_embedding"
+                }
+            ],
+            "indexer":"aitheta_indexer",
+            "parameters":{
+                "use_linear_threshold":"10000",
+                "build_metric_type":"l2",
+                "search_metric_type":"ip",
+                "use_dynamic_params":"1",
+                "dimension":"1024",
+                "index_type":"hc"
+            }
+        }
+    ],
+    "summarys": {
+        "compress": true,
+        "summary_fields": [
+            "pk",
+            "embedding",
+            "content",
+            "source_id",
+            "url"
+        ]
+    },
+    "table_name": "llm"
+}
