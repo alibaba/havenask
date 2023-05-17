@@ -5,12 +5,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from llm_adapter.factory import get_llm_adapter
-from havenask.havenask import Havenask
+from vectorstore.factory import get_vector_store
 
 import logging
 logging.basicConfig(format="[%(asctime)s] [%(levelname)s] %(message)s", level=logging.INFO)
 
 llm = get_llm_adapter()
+store = get_vector_store()
 
 """Override Chatbot.postprocess"""
 
@@ -70,7 +71,7 @@ def reset_state():
 async def chat(input, chatbot, max_length, top_p, temperature, history):
     chatbot.append((parse_text(input), ""))
     embedding = await llm.embed_query(input)
-    candidate_docs = await Havenask.query(embedding, 3)
+    candidate_docs = await store.query(embedding, 3)
 
     if inspect.iscoroutinefunction(llm.stream_chat):
         response = await llm.stream_chat(candidate_docs, input, history, max_length=max_length,

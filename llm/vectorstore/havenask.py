@@ -4,19 +4,21 @@ import aiohttp
 import logging
 import urllib.parse
 from typing import List
-from models.models import HAResult
+from models.models import HAResult, HADocument
+from .basestore import BaseStore
 
-HA_QRS_ADDRESS = os.environ.get('HA_QRS_ADDRESS', '127.0.0.1:45800')
-HA_TABLE_NAME = os.environ.get('HA_TABLE_NAME', 'embedding')
+class Havenask(BaseStore):
+    HA_QRS_ADDRESS = os.environ.get('HA_QRS_ADDRESS', '127.0.0.1:45800')
+    HA_TABLE_NAME = os.environ.get('HA_TABLE_NAME', 'embedding')
 
-class Havenask(object):
+    async def insert(self, docs: List[HADocument]):
+        raise NotImplementedError
 
-    @classmethod
-    async def query(cls, embedding: List[float], topn: int) -> List[HAResult]:
+    async def query(self, embedding: List[float], topn: int) -> List[HAResult]:
         result = []
         embedding_str = ','.join([str(fp) for fp in embedding])
-        sql = f'''select pk, content, source_id from {HA_TABLE_NAME} where MATCHINDEX('embedding_index', '{embedding_str}&n={topn}')&&kvpair=format:full_json'''
-        qrs_address = HA_QRS_ADDRESS
+        sql = f'''select pk, content, source_id from {self.HA_TABLE_NAME} where MATCHINDEX('embedding_index', '{embedding_str}&n={topn}')&&kvpair=format:full_json'''
+        qrs_address = self.HA_QRS_ADDRESS
         if not qrs_address.startswith('http://'):
             qrs_address = 'http://' + qrs_address
         url = f'{qrs_address}/sql?{urllib.parse.quote(sql)}'

@@ -44,6 +44,20 @@ class HADocument(BaseModel):
         doc_str += '\x1E\n'
         return doc_str
 
+    def to_os_doc(self):
+        fields = {
+            'pk': self.pk,
+            'source_id': self.source_id,
+            'content': self.content,
+            'url': self.url,
+            'embedding': self.embedding
+        }
+        doc = {
+            'cmd': 'add',
+            'fields': fields
+        }
+        return doc
+
 class InsertResponse(BaseModel):
     success: bool
 
