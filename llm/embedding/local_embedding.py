@@ -28,10 +28,17 @@ class LocalEmbedding(BaseEmbedding):
 
     async def embed_text(self, text: str) -> List[int]:
         tokens = self.tokenizer(text, padding=True, truncation=True, return_tensors='pt', max_length=512)
+        if torch.cuda.is_available():
+            tokens = tokens.to('cuda')
+
         with torch.no_grad():
             model_output = self.model(**tokens)
         embeddings = self.mean_pooling(model_output, tokens['attention_mask'])
-        return embeddings[0].numpy().tolist()
+
+        if torch.cuda.is_available():
+            return embeddings[0].cpu().numpy().tolist()
+        else:
+            return embeddings[0].numpy().tolist()
 
     async def embed_query(self, text: str) -> List[int]:
         return await self.embed_text(text)
