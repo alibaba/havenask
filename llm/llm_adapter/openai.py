@@ -24,7 +24,7 @@ class OpenAI(LLM):
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(3))
     async def embed_text(cls, text: str) -> List[float]:
         response = await openai.Embedding.acreate(input=[text], engine=cls.EMBEDDING_ENGINE)
-        return [data['embedding'] for data in response['data']]
+        return response['data'][0]['embedding']
 
     @classmethod
     async def embed_query(cls, text: str) -> List[float]:

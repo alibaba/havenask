@@ -6,6 +6,21 @@
 ![流程图](/llm/resources/flow.jpg)
 
 # 开始
+更简单的使用Havenask的方式是在[阿里云OpenSearch](https://www.aliyun.com/product/opensearch)上创建实例，之后在```.env```中配置实例信息
+```conf
+VECTOR_STORE=OpenSearch
+
+# OpenSearch信息
+OPENSEARCH_ENDPOINT=
+OPENSEARCH_INSTANCE_ID=
+OPENSEARCH_TABLE_NAME=
+OPENSEARCH_DATA_SOURCE=
+OPENSEARCH_USER_NAME=
+OPENSEARCH_PASSWORD=
+```
+
+如果需要本地部署Havenask，可以按下列步骤进行。
+
 ## 环境要求
 * CPU 16核, 64G内存
 * 需要安装docker环境
@@ -62,6 +77,7 @@ OPENAI_API_BASE=***
 OPENAI_EMBEDDING_ENGINE=text-embedding-ada-002
 OPENAI_CHAT_ENGINE=gpt-3.5-turbo
 
+VECTOR_STORE=Havenask
 HA_QRS_ADDRESS=127.0.0.1:45800
 HA_TABLE_NAME=llm
 ```
@@ -79,6 +95,7 @@ OPENAI_API_TYPE=azure
 OPENAI_EMBEDDING_ENGINE=embedding_deployment_id
 OPENAI_CHAT_ENGINE=chat_deployment_id
 
+VECTOR_STORE=Havenask
 # Havenask信息
 HA_QRS_ADDRESS=127.0.0.1:45800
 HA_TABLE_NAME=llm
@@ -88,6 +105,7 @@ HA_TABLE_NAME=llm
 ```conf
 LLM_NAME=ChatGLM
 
+VECTOR_STORE=Havenask
 HA_QRS_ADDRESS=127.0.0.1:45800
 HA_TABLE_NAME=llm
 
@@ -105,7 +123,7 @@ CHATGLM_MODEL=THUDM/chatglm-6b
 例如处理Havenask wiki数据，忽略```.git```和```english```目录下的文件。
 ```shell
 git clone https://github.com/alibaba/havenask.wiki.git
-python -m script.embed_files havenask.wiki ./llm.data .git,english
+python -m script.embed_files -f havenask.wiki -o ./llm.data -i .git,english
 ```
 
 如果从```Huggingface```自动下载模型失败，参考[从本地加载模型](README.md#本地加载模型)，手动下载模型。
@@ -131,7 +149,7 @@ cd ~/havenask/example/
 ### api部署
 ```shell
 cd ~/havenask/llm
-python api.py
+python api_demo.py
 ```
 测试请求
 ```shell
@@ -164,7 +182,7 @@ python cli_demo.py
 ### webdemo
 ```shell
 cd ~/havenask/llm
-python webdemo.py
+python web_demo.py
 ```
 在浏览器中打开返回的web地址，方便使用
 ![cli-demo](/llm/resources/webdemo.jpg)

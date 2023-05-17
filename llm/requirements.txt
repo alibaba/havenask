@@ -13,3 +13,4 @@ cpm-kernels == 1.0.*
 gradio == 3.29.*
 mdtex2html == 1.2.*
 PyPDF2 == 3.0.*
+alibabacloud_ha3engine

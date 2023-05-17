@@ -7,11 +7,12 @@ import logging
 logging.basicConfig(format="[%(asctime)s] [%(levelname)s] %(message)s", level=logging.WARNING)
 
 from llm_adapter.factory import get_llm_adapter
-from havenask.havenask import Havenask
+from vectorstore.factory import get_vector_store
 
 async def run():
     print("Welcome to Havenask LLM demo!!")
     llm = get_llm_adapter()
+    store = get_vector_store()
     history = []
     while True:
         query = input("\nUser: ")
@@ -22,7 +23,7 @@ async def run():
             continue
 
         embedding = await llm.embed_query(query)
-        candidate_docs = await Havenask.query(embedding, 3)
+        candidate_docs = await store.query(embedding, 3)
 
         print("AI: ", end='', flush=True)
         last_print_len = 0

@@ -1,4 +1,5 @@
 import sys
+import argparse
 import asyncio
 from  dotenv import load_dotenv
 load_dotenv()
@@ -7,7 +8,11 @@ from typing import List
 from models.models import HADocument
 from spliter.sentence_spliter import SentenceSpliter
 from llm_adapter.factory import get_llm_adapter
+from vectorstore.factory import get_vector_store
 from extractor.file_extractor import extract_file_content
+
+llm = get_llm_adapter()
+store = get_vector_store()
 
 async def parse_dir(filepath: Path, ignore_dirs: List[str], spliter: SentenceSpliter, outfile):
     if filepath.is_dir():
@@ -30,24 +35,31 @@ async def parse_dir(filepath: Path, ignore_dirs: List[str], spliter: SentenceSpl
         chunks = await spliter.split_token_with_overlap(file_content)
         embeddings = []
         for chunk in chunks:
-            embedding = await get_llm_adapter().embed_text(chunk)
+            embedding = await llm.embed_text(chunk)
             embeddings.append(embedding)
         for i, chunk in enumerate(chunks):
             ha_document = HADocument(id=i, source_id=filepath.name, content=chunk, embedding=embeddings[i])
-            outfile.write(ha_document.to_ha_str())
+            if outfile:
+                outfile.write(ha_document.to_ha_str())
+            else:
+                await store.insert([ha_document])
     
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print('Usage: python embed_fiels.py input_dir output_file_name ignore_dir')
-        sys.exit(-1)
+    opt_parser = argparse.ArgumentParser(description="run app")
+    opt_parser.add_argument("-f", dest="input_path", help="input file or dir", required=True)
+    opt_parser.add_argument("-o", dest="output", help="[option] output file path", required=False)
+    opt_parser.add_argument("-i", dest="ignore_dirs", help="[option] ignore dirs", required=False)
+    args, _ = opt_parser.parse_known_args(sys.argv[1:])
 
-    input_dir = sys.argv[1]
-    output_file_name = sys.argv[2]
+    input_dir = args.input_path
+    output_file_name = args.output
     ignore_dirs = []
-    if len(sys.argv) > 3:
-        ignore_dirs = sys.argv[3].split(',')
+    if args.ignore_dirs:
+        ignore_dirs = args.ignore_dirs.split(',')
 
     input_path = Path(input_dir)
     spliter = SentenceSpliter()
-    with open(output_file_name, 'w') as fd:
-        asyncio.run(parse_dir(input_path, ignore_dirs, spliter, fd))
+    fd = None
+    if output_file_name:
+        fd = open(output_file_name, 'w')
+    asyncio.run(parse_dir(input_path, ignore_dirs, spliter, fd))

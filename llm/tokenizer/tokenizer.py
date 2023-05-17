@@ -4,7 +4,7 @@ from typing import List, Any
 class Tokenizer(ABC):
 
     @abstractmethod
-    def encode(self, text: str) -> List[Any]:
+    async def encode(self, text: str) -> List[Any]:
         raise NotImplementedError
 
     @abstractmethod
