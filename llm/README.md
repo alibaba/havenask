@@ -6,24 +6,23 @@
 ![流程图](/llm/resources/flow.jpg)
 
 # 开始
-更简单的使用Havenask的方式是在[阿里云OpenSearch](https://www.aliyun.com/product/opensearch)上创建实例，之后在```.env```中配置实例信息
-```conf
-VECTOR_STORE=OpenSearch
-
-# OpenSearch信息
-OPENSEARCH_ENDPOINT=
-OPENSEARCH_INSTANCE_ID=
-OPENSEARCH_TABLE_NAME=
-OPENSEARCH_DATA_SOURCE=
-OPENSEARCH_USER_NAME=
-OPENSEARCH_PASSWORD=
-```
+更简单的使用Havenask的方式是在[阿里云OpenSearch](https://www.aliyun.com/product/opensearch)上创建实例，详情请参考[OpenSearch+大模型方案](https://help.aliyun.com/document_detail/2341640.html)。
 
 如果需要本地部署Havenask，可以按下列步骤进行。
 
 ## 环境要求
 * CPU 16核, 64G内存
+* GPU需要16G显存
 * 需要安装docker环境
+
+## Docker容器中使用GPU
+如果需要在docker容器中使用GPU
+
+1. docker版本大于等于19.03
+2. 在宿主机上安装
+* [nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+* [nvidia-container-runtime](https://github.com/NVIDIA/nvidia-container-runtime#installation)
+3. 在```docker/create_container.sh```脚本中，docker run命令增加参数```--gpus all```
 
 ## 准备容器
 * 克隆havenask仓库
@@ -125,6 +124,8 @@ CHATGLM_MODEL=THUDM/chatglm-6b
 git clone https://github.com/alibaba/havenask.wiki.git
 python -m script.embed_files -f havenask.wiki -o ./llm.data -i .git,english
 ```
+
+* -f选项指定需要构建的文档目录
 
 如果从```Huggingface```自动下载模型失败，参考[从本地加载模型](README.md#本地加载模型)，手动下载模型。
 
