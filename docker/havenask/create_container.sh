@@ -67,7 +67,7 @@ echo "Begin pull image: ${IMAGE}"
 
 docker pull $IMAGE
 
-docker run --ulimit nofile=655350:655350 --privileged --cap-add SYS_ADMIN --device /dev/fuse --ulimit memlock=-1 --cpu-shares=15360 --cpu-quota=9600000 --cpu-period=100000 --memory=500000m -d --net=host --name $CONTAINER_NAME -v /home/$USER:/home/$USER -v $CONTAINER_DIR/initContainer.sh:$CONTAINER_DIR/initContainer.sh $IMAGE /sbin/init 1> /dev/null
+docker run --ulimit nofile=655350:655350 --privileged --cap-add SYS_ADMIN --device /dev/fuse --ulimit memlock=-1 --cpu-shares=15360 --cpu-quota=9600000 --cpu-period=100000 --memory=500000m -d --net=host --name $CONTAINER_NAME -v $HOME:/home/$USER -v $CONTAINER_DIR/initContainer.sh:$CONTAINER_DIR/initContainer.sh $IMAGE /sbin/init 1> /dev/null
 
 
 if [ $? -ne 0 ]; then
