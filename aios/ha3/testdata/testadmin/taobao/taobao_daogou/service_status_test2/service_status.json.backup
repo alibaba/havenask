@@ -1,0 +1,14 @@
+[
+    {
+	"cluster_name":"daogou",
+	"config_version":"0",
+	"index_version":"0",
+	"status":"serve"
+    },
+    {
+	"cluster_name":"daogou",
+	"config_version":"0",
+	"index_version":"1",
+	"status":"unserver"
+    }
+]

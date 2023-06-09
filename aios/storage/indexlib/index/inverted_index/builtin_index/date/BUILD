@@ -1,0 +1,69 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+indexlib_cc_library(
+    name='DateMemIndexer',
+    deps=[
+        ':DateLeafMemReader',
+        '//aios/storage/indexlib/index/inverted_index:InvertedMemIndexer',
+        '//aios/storage/indexlib/index/inverted_index/config:DateIndexConfig'
+    ]
+)
+indexlib_cc_library(
+    name='DateLeafMemReader',
+    deps=[
+        ':TimeRangeInfo',
+        '//aios/storage/indexlib/index/inverted_index:InvertedLeafMemReader'
+    ]
+)
+indexlib_cc_library(
+    name='TimeRangeInfo',
+    deps=[
+        '//aios/autil:json', '//aios/autil:log',
+        '//aios/storage/indexlib/file_system:interface',
+        '//aios/storage/indexlib/index/common/field_format/date:DateTerm',
+        '//aios/storage/indexlib/index/inverted_index:constants'
+    ]
+)
+indexlib_cc_library(
+    name='DateLeafReader',
+    deps=[
+        ':TimeRangeInfo',
+        '//aios/storage/indexlib/index/inverted_index:InvertedLeafReader',
+        '//aios/storage/indexlib/index/inverted_index:SegmentPostings',
+        '//aios/storage/indexlib/index/inverted_index/config:DateIndexConfig'
+    ]
+)
+indexlib_cc_library(
+    name='DateDiskIndexer',
+    deps=[
+        ':DateLeafReader',
+        '//aios/storage/indexlib/index/inverted_index:InvertedDiskIndexer'
+    ]
+)
+indexlib_cc_library(
+    name='DateIndexReader',
+    deps=[
+        ':BuildingDateIndexReader', ':DateLeafReader',
+        '//aios/storage/indexlib/index/common/field_format/date:DateFieldEncoder',
+        '//aios/storage/indexlib/index/common/field_format/date:DateQueryParser',
+        '//aios/storage/indexlib/index/inverted_index:InvertedIndexReaderImpl',
+        '//aios/storage/indexlib/index/inverted_index:NumberDocValueFilterTyped',
+        '//aios/storage/indexlib/index/inverted_index:RangePostingIterator',
+        '//aios/storage/indexlib/index/inverted_index:SeekAndFilterIterator'
+    ]
+)
+indexlib_cc_library(
+    name='BuildingDateIndexReader',
+    deps=[
+        ':DateLeafMemReader',
+        '//aios/storage/indexlib/index/inverted_index:BuildingIndexReader',
+        '//aios/storage/indexlib/index/inverted_index:SegmentPostings'
+    ]
+)
+indexlib_cc_library(
+    name='DateIndexMerger',
+    deps=[
+        ':TimeRangeInfo',
+        '//aios/storage/indexlib/index/inverted_index/builtin_index/text:TextIndexMerger'
+    ]
+)

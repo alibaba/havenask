@@ -1,0 +1,57 @@
+import "arpc/proto/rpc_extensions.proto";
+package suez;
+
+option cc_generic_services = true;
+option cc_enable_arenas = true;
+
+message TargetRequest {
+    optional string signature = 1;
+    optional string customInfo = 2;
+    optional string globalCustomInfo = 3;
+    optional string identifier = 4;
+    optional string schedulerInfo = 5;
+    optional string porcessVersion = 6;
+    optional string preload = 7;
+    optional string prepare = 8;
+    optional bool forceSync = 20; // for integration_test
+};
+
+message CurrentResponse {
+    optional string signature = 1;
+    optional string customInfo = 2;
+    optional string serviceInfo = 3;
+};
+
+message SetLoggerLevelRequest {
+    enum LogLevel {
+        DISABLE = 0;
+        FATAL   = 1;
+        ERROR   = 2;
+        WARN    = 3;
+        INFO    = 4;
+        DEBUG   = 5;
+        TRACE1  = 6;
+        TRACE2  = 7;
+        TRACE3  = 8;
+        NOTSET  = 9;
+    }
+    required string logger = 1;
+    required LogLevel level = 2;
+}
+
+message SetLoggerLevelResponse {
+    optional bytes errorInfo = 1;
+}
+
+service HeartbeatService
+{
+    option (arpc.global_service_id) = 700;
+    rpc heartbeat ( TargetRequest ) returns ( CurrentResponse ) {
+        option (arpc.local_method_id) = 1;
+    };
+
+    rpc setLoggerLevel(SetLoggerLevelRequest) returns (SetLoggerLevelResponse) {
+        option (arpc.local_method_id) = 2;
+    }
+
+}

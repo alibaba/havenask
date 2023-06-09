@@ -1,0 +1,26 @@
+{
+    "table_name": "auction",
+    "fields":
+    [
+	{"field_name":"id_fake",      "field_type":"INTEGER"},
+	{"field_name":"company_id",      "field_type":"INTEGER"},
+	{"field_name":"cat_id", "field_type":"INTEGER"}
+    ],
+    "analyzers":
+    [
+    ],
+    "indexs":
+    [
+	{
+            "index_name": "pk",
+	    "index_type": "PRIMARYKEY64",
+            "index_fields": "id_fake"
+	}
+    ],
+    "attributes": ["id_fake", "company_id", "cat_id"],
+    "summarys":{
+	"summary_fields": ["id_fake"],
+	"compress":false
+    }
+}
+

@@ -1,0 +1,28 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+package hippo.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+message Message {
+    optional string key = 1;
+    optional string value = 2;
+}
+
+message AppHeartBeatRequest {
+    repeated Message message = 1;
+}
+
+message AppHeartBeatResponse {
+    repeated Message message = 1;    
+}
+
+service AppHeartBeatService {
+    option (arpc.global_service_id) = 9000;
+
+    rpc heartBeat(AppHeartBeatRequest) returns (AppHeartBeatResponse) {
+	option (arpc.local_method_id) = 1;
+    };
+}

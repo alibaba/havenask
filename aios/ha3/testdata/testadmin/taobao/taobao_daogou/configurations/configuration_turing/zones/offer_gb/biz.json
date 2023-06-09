@@ -1,0 +1,40 @@
+{
+    "biz_name" : "user_graph_search",
+    "graph_config_path" : "test_graph.def",
+    "worker_zone" : "test",
+    "arpc_timeout" : 100,
+    "enable_xla" : true,
+    "session_count" : 555,
+    "max_outstanding_session" : 333,
+    "item_table_name" : "item_table",
+    "dependency_table" : ["dependency_table"],
+    "anomaly_process_config" : {
+        "begin_degrade_latency":20,
+	"heavy_load_arpc_error_ratio" : 0.300000,
+	"light_load_arpc_error_ratio" : 0,
+	"max_flow_redirect" : 2,
+	"min_sample_count" : 4,
+	"queue_size_threshold" : 11,
+	"sample_interval" : 51
+    },
+    "cava_config" : {
+	"enable" : true,
+	"enable_query_code" : true,
+        "cava_conf" : "cava_conf_path",
+        "lib_path" : "cava_lib_path",
+        "source_path" : "cava_source_path",
+        "code_cache_path" : "code_cache",
+        "alloc_size_limit" : 128,
+        "init_size_limit" : 32,
+        "module_cache_size" : 1000,
+        "compile_queue_size" : 2000
+    },
+    "pool_config" : {
+	"pool_trunk_size" : 100,
+        "pool_recycle_size_limit" : 1000,
+        "pool_max_count" : 2000
+    },
+    "optimize_graph" : true,
+    "run_options" : {},
+    "session_config" : {}
+}

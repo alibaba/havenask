@@ -1,0 +1,331 @@
+syntax = "proto2";
+import "arpc/proto/rpc_extensions.proto";
+package suez;
+
+option cc_enable_arenas = true;
+option cc_generic_services = true;
+option java_generic_services = true;
+
+option java_multiple_files = true;
+option java_package = "suez.service.proto";
+option java_outer_classname = "SuezServiceProto";
+
+enum ErrorCode {
+    TBS_ERROR_NONE = 0;
+    TBS_ERROR_NO_TABLE = 1;
+    TBS_ERROR_NO_PK = 2;
+    TBS_ERROR_NO_RECORD = 3;
+    TBS_ERROR_PARSE_FAILED = 4;
+    TBS_ERROR_CREATE_READER = 5;
+    TBS_ERROR_NOT_SUPPORTED = 6;
+    TBS_ERROR_GET_FAILED = 7;
+    TBS_ERROR_GET_SCHEMA = 8;
+    TBS_ERROR_NOT_SUPPORTED_VALUE_TYPE = 9;
+    TBS_ERROR_INVALID_ATTR_NAME = 10;
+    TBS_ERROR_NO_INDEXPARTITION = 11;
+    TBS_ERROR_INVALID_PARAMETER = 12;
+    TBS_ERROR_ALTER_TABLE = 13;
+    TBS_ERROR_UPDATE_SCHEMA = 14;
+    TBS_ERROR_GET_SCHEMA_VERSION = 15;
+    DS_ERROR_UPDATE_SCHEMA = 16;
+    DS_ERROR_GET_SCHEMA_VERSION = 17;
+    TBS_ERROR_SERVICE_NOT_READY = 100;
+
+    TBS_ERROR_OTHERS = 400;
+    TBS_ERROR_UNKOWN = 404;
+}
+
+message ErrorInfo {
+    optional ErrorCode errorCode = 1 [default = TBS_ERROR_NONE];
+    optional string errorMsg = 2;
+}
+
+message TableQueryRequest {
+    optional string table = 1;
+    optional string attr = 2;
+    optional string pk = 3;
+    optional int64 docid = 4;
+    optional string region = 5;
+    optional string indexName = 6;
+    optional string indexValue = 7;
+    optional int64 limit = 8;
+    optional string sk = 9;
+    optional bool showSchema = 10;
+
+    // for index table only return docIds
+    optional bool queryDoc   = 11;
+
+    // for local_debug: 
+    // kv table : murmur hash value
+    // normal table : pk hash value
+    optional uint64 pkNumber = 12;
+
+    // encode string value with base64
+    optional bool encodeStr = 13;
+
+    optional bool ignoreDeletionMap = 14;
+    repeated int32 partition = 15;
+    optional bool needSectionInfo = 16;
+};
+
+enum ValueType {
+    INT_8                = 0;
+    UINT_8               = 1;
+    INT_16               = 2;
+    UINT_16              = 3;
+    INT_32               = 4;
+    UINT_32              = 5;
+    INT_64               = 6;
+    UINT_64              = 7;
+    INT_128              = 8;
+    FLOAT                = 9;
+    DOUBLE               = 10;
+    STRING               = 11;
+}
+
+message SingleAttrValue {
+    optional string attrName          = 1;
+    optional int64 intValue           = 3;
+    optional double doubleValue       = 4;
+    optional string strValue          = 5;
+    repeated int64 multiIntValue      = 6;
+    repeated double multiDoubleValue  = 7;
+    repeated string multiStrValue     = 8;
+}
+
+message DocValue {
+    repeated SingleAttrValue attrValue = 1;
+    optional int64 docId               = 2;
+}
+
+message AttributeResultSchema {
+    optional string attrName     = 1;
+    optional ValueType valueType = 2;
+    optional bool isMulti        = 3;
+}
+
+message ResultSchema {
+    repeated AttributeResultSchema attrSchema = 1;
+    optional string tableType                 = 2;
+    optional string schemaName                = 3;
+
+    // json of indexSchema class
+    optional string jsonSchema                = 4;
+}
+
+message IndexTermMeta {
+    optional int32 docFreq         =  1;
+    optional int32 totalTermFreq   =  2;
+    optional uint32 payload        =  3;
+}
+
+message SectionMeta {
+    optional int32 fieldId           = 1;
+    optional uint32 sectionWeight    = 2;
+    optional uint32 sectionLen       = 3;
+}
+
+message TableQueryResult {
+    optional string tableName             = 1;
+    optional int64 resultCount            = 2;
+    repeated DocValue DocValueSet         = 3;
+    optional ResultSchema resultSchema    = 4;
+    repeated int64 docIds                 = 5;
+    optional IndexTermMeta IndexTermMeta  = 6;
+    repeated float matchValues            = 7;
+    repeated SectionMeta sectionMetas     = 8;
+}
+
+message TableQueryResponse {
+    optional TableQueryResult res   = 1;
+    optional ErrorInfo errorInfo    = 2;
+}
+
+message SchemaQueryRequest {
+    optional string tableName = 1;
+    optional bool jsonSchema = 2;
+}
+
+message SchemaQueryResponse {
+    optional ResultSchema res    = 1;
+    optional ErrorInfo errorInfo = 2;
+}
+
+message VersionQueryRequest {
+    optional string tableName = 1;
+    optional bool detail = 2;
+    repeated int32 partition = 3;
+}
+
+message VersionQueryResponse {
+    message Locator {
+	optional uint64 src = 1;
+	optional int64 offset = 2;
+    }
+    optional ErrorInfo errorInfo = 1;
+    optional string publishVersionInfo = 2;
+    optional string privateVersionInfo = 3;
+    repeated string segmentInfo = 4;
+    optional Locator buildLocator = 5;
+    optional Locator lastCommittedLocator = 6;
+    optional uint64 docCount = 7;
+}
+
+enum DocWriteState {
+    LOG                       = 0;
+    ASYNC                     = 1;
+    SYNC                      = 2;
+    ERROR                     = 3;
+}
+
+message Write {
+    optional uint32 hashId    = 1;
+    optional string str       = 2;
+}
+
+message WriteRequest {
+    optional string tableName      = 1;
+    optional string format         = 2;
+    repeated Write writes          = 3;
+}
+
+message WriteResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional int64 checkpoint = 2;
+    optional int64 buildGap = 3;
+    repeated DocWriteState docWriteState   = 4;
+}
+
+message UpdateSchemaRequest {
+    required string zoneName = 1; // db name
+    required string tableName = 2;
+    repeated uint32 partIds = 3;
+    required string configPath = 4;
+    optional uint32 timeoutInMs = 5 [default = 60000];
+    optional uint32 schemaVersion = 6;
+}
+
+message UpdateSchemaResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated uint32 failPartIds = 2;
+}
+
+message GetSchemaVersionRequest {
+    required string zoneName = 1;
+    required string tableName = 2;
+    repeated uint32 partIds = 3;
+    optional uint32 timeoutInMs = 4 [default = 60000];
+}
+
+message TableSchemaVersion {
+    optional uint32 partId = 1;
+    optional uint32 currentVersionId = 2;
+}
+
+message GetSchemaVersionResponse {
+    repeated TableSchemaVersion schemaVersions = 1;
+    repeated uint32 failPartIds = 2;
+    optional ErrorInfo errorInfo = 3;
+}
+
+message HealthCheckRequest {
+    optional string request = 1;
+}
+
+message HealthCheckResponse {
+    optional bool serviceReady = 1;
+}
+
+message InputKey {
+    required uint32 partId = 1;
+    repeated uint64 hashkeys = 2;
+    repeated string keys = 3;
+}
+
+enum KVBatchGetResultType {
+    BYTES = 1;
+    TABLE = 2;
+    DEBUG = 3;
+    FLATBYTES = 4;
+}
+
+message KVBatchGetRequest {
+    required string tableName = 1;
+    repeated InputKey inputKeys = 2;
+    required string indexName = 3;
+    repeated string attrs = 4;
+    required KVBatchGetResultType resultType = 5;
+    required bool   useHashKey = 6 [default = true];
+    optional uint32 timeoutInUs = 7 [default = 60000];
+}
+
+message KVBatchGetResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional bytes binValues = 2;
+    repeated bytes values = 3 [ctype=RAW_STRING];
+    repeated uint64 foundKeys = 4;
+    required int32 failedCount = 5;
+    required int32 notFoundCount = 6;
+    repeated string debugStr = 7;
+}
+
+message AggRequest {
+    required string tableName = 1;
+    required string indexName = 2;
+    optional uint32 hashId = 3;
+    optional uint64 key = 4;
+    repeated string rawKeys = 5;
+    optional string distinctField = 6;
+}
+
+message AggResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional uint64 value = 2;
+    optional float latencyInMs = 3;
+}
+
+service TableService
+{
+    option (arpc.global_service_id) = 800;
+    rpc queryTable ( TableQueryRequest ) returns ( TableQueryResponse ) {
+        option (arpc.local_method_id) = 1;
+    }
+    rpc querySchema (SchemaQueryRequest) returns (SchemaQueryResponse) {
+        option (arpc.local_method_id) = 2;
+    }
+    rpc queryVersion (VersionQueryRequest) returns (VersionQueryResponse) {
+        option (arpc.local_method_id) = 3;
+    }
+    rpc writeTable (WriteRequest) returns (WriteResponse) {
+        option (arpc.local_method_id) = 4;
+    }
+    rpc updateSchema (UpdateSchemaRequest) returns (UpdateSchemaResponse) {
+        option (arpc.local_method_id) = 6;
+    }
+    rpc getSchemaVersion (GetSchemaVersionRequest) returns (GetSchemaVersionResponse) {
+        option (arpc.local_method_id) = 7;
+    }
+    rpc health_check(HealthCheckRequest) returns(HealthCheckResponse) {
+        option (arpc.local_method_id) = 10;
+    }
+    rpc kvBatchGet(KVBatchGetRequest) returns (KVBatchGetResponse) {
+        option (arpc.local_method_id) = 20;
+    }
+    rpc aggregate(AggRequest) returns (AggResponse) {
+	option (arpc.local_method_id) = 30;
+    }
+}
+
+// for qrs
+service DdlService
+{
+    // catlog service use 900
+    option (arpc.global_service_id) = 1000;
+
+    rpc updateSchema(UpdateSchemaRequest) returns (UpdateSchemaResponse) {
+        option (arpc.local_method_id) = 101;
+    }
+    rpc getSchemaVersion(GetSchemaVersionRequest) returns (GetSchemaVersionResponse) {
+        option (arpc.local_method_id) = 102;
+    }
+}

@@ -1,0 +1,46 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(
+    default_visibility=[
+        '//aios/storage/indexlib/index/primary_key:__subpackages__'
+    ]
+)
+indexlib_cc_library(
+    name='PrimaryKeyMerger',
+    srcs=[],
+    hdrs=['PrimaryKeyMerger.h'],
+    deps=[
+        ':OnDiskHashPrimaryKeyIterator', ':OnDiskOrderedPrimaryKeyIterator',
+        ':PrimaryKeyAttributeMerger',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:SegmentMeta',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskResourceManager',
+        '//aios/storage/indexlib/index:DocMapper',
+        '//aios/storage/indexlib/index:IIndexMerger',
+        '//aios/storage/indexlib/index:IndexFactoryCreator',
+        '//aios/storage/indexlib/index/primary_key:primary_key_indexer'
+    ]
+)
+indexlib_cc_library(
+    name='PrimaryKeyAttributeMerger',
+    deps=[
+        '//aios/storage/indexlib/index/attribute:merger',
+        '//aios/storage/indexlib/index/primary_key:primary_key_indexer',
+        '//aios/storage/indexlib/index/primary_key/config:PrimaryKeyIndexConfig'
+    ]
+)
+indexlib_cc_library(
+    name='OnDiskHashPrimaryKeyIterator',
+    srcs=[],
+    hdrs=['OnDiskHashPrimaryKeyIterator.h'],
+    deps=[
+        '//aios/storage/indexlib/index/primary_key:primary_key_reader_interface'
+    ]
+)
+indexlib_cc_library(
+    name='OnDiskOrderedPrimaryKeyIterator',
+    srcs=[],
+    hdrs=['OnDiskOrderedPrimaryKeyIterator.h'],
+    deps=[
+        '//aios/storage/indexlib/index/primary_key:primary_key_reader_interface'
+    ]
+)

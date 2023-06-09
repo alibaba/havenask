@@ -1,0 +1,33 @@
+include "TwoDimTable.fbs";
+
+namespace isearch.fbs;
+
+table SqlErrorResult {
+      partitionId: string (id:0);
+      hostName: string (id:1);
+      errorCode: uint (id:2);
+      errorDescription: string (id:3);
+}
+
+table TableLeaderInfo {
+      tableName: string (id:0);
+      isLeader: bool(id:1);
+}
+table TableBuildWatermark {
+      tableName: string (id:0);
+      buildWatermark: long(id:1);
+}
+
+table SqlResult {
+      processTime: double (id:0);
+      rowCount: uint32 (id:1);
+      errorResult: SqlErrorResult (id:2);
+      sqlTable: TwoDimTable (id:3);
+      searchInfo: string (id:4);
+      coveredPercent: double (id:5);
+      leaderInfos: [TableLeaderInfo] (id:6);
+      buildWatermarks: [TableBuildWatermark] (id:7);
+      hasSoftFailure: bool (id:8);
+}
+
+root_type SqlResult;

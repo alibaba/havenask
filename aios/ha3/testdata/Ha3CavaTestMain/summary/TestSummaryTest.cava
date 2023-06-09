@@ -1,0 +1,46 @@
+package test;
+import ha3.*;
+import mock.*;
+
+class TestSummaryTest {
+    boolean testInit() {
+        CavaHa3SummaryTestHelper helper = CavaHa3SummaryTestHelper.create();
+        SummaryProvider provider = helper.getSummaryProvider();
+
+        helper.setKVMapApi("double", "1.1");
+        helper.setKVMapApi("long", "1");
+        //        helper.setTraceLevel("ALL");
+
+        TestSummary t = new TestSummary();
+        TestUnit.assertEquals(t.init(provider), true, "init");
+        helper.println(helper.getQueryTraceStr(provider));
+        return true;
+    }
+
+    boolean testProcess() {
+        CavaHa3SummaryTestHelper helper = CavaHa3SummaryTestHelper.create();
+        SummaryProvider provider = helper.getSummaryProvider();
+
+        SummaryDoc doc = helper.getSummaryDoc();
+        helper.setSummaryField(doc, "key", "val");
+        helper.setKVMapApi("double", "1.1");
+        helper.setKVMapApi("long", "1");
+
+        TestSummary test = new TestSummary();
+        TestUnit.assertEquals(test.init(provider), true, "init");
+        TestUnit.assertEquals(test.process(doc), true, "process");
+        TestUnit.assertEquals(doc.getFieldValue("key").equals("val"), true, "field equal");
+        return true;
+    }
+
+    static int main() {
+        TestSummaryTest test = new TestSummaryTest();
+        if (!(test.testInit() && test.testProcess()))
+            {
+                return -1;
+            }
+
+        return 0;
+    }
+
+}

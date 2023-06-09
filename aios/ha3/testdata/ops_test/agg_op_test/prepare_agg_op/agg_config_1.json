@@ -1,0 +1,7 @@
+{
+    "aggregate_sampler_config" :    {
+        "aggBatchMode" : true,  
+        "aggThreshold" : 1,
+        "batchSampleMaxCount" : 10
+    }
+}

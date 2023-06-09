@@ -1,0 +1,175 @@
+#!/bin/env python
+
+import sys
+import os
+import json
+import shutil
+import multiprocessing
+
+rawSourceCodeDir = 'codegen_source_code'
+codegenBinaryPath = 'codegen'
+clangIncludeDir = 'clang_include'
+
+def codegen(codegenInfos, binaryPath, job, outputPath, sourcePath, includeFlags, clangIncludePath, buildOption):
+    buildOption += ' -fcoroutines-ts'
+    files = ""
+    for singleFile in codegenInfos["CodegenFiles"]:
+        singleFile = singleFile["sourceFile"].replace('\\', '')
+        singleFile = singleFile.replace(".h", ".cpp")
+        singleFile = os.path.join(sourcePath, singleFile)
+        files += singleFile + " "
+
+    if not os.path.exists(clangIncludePath):
+        print ('clang include not found')
+        return False
+    cmd = "%s %s -j=%d -d=%s -s=%s -- -w %s -I %s %s"%(binaryPath, files, job, outputPath,
+                                                       sourcePath, includeFlags, clangIncludePath, buildOption)
+    print ('codegen cmd [%s]\n'%cmd)
+    if os.system(cmd) != 0:
+        print ('codegen failed')
+        return False
+    print ('codegen done\n')
+    return True
+
+def copyHeader(sourcePath, destPath):
+    path = os.popen("find -L %s -name include"%sourcePath).read().strip().split('\n')
+    for line in path:
+        if len(line) == 0:
+            continue
+        sub_dir = line[len(sourcePath):]
+        dest = destPath + sub_dir
+        if os.path.exists(dest):
+            shutil.rmtree(dest)
+        os.makedirs(dest)
+        cmd = "cp -r %s/* %s" % (line, dest)
+        os.system(cmd)
+    cmd = "chmod -R +w " + destPath;
+    os.system(cmd)
+    print ('copy header from %s to %s done\n'%(sourcePath, destPath))
+
+
+def multiThreadCompile(compiler, job, sourceCodeDir, includeFlags, option, targetFile):
+    if compiler == 'g++':
+        option += ' -fcoroutines'
+    else:
+        option += ' -fcoroutines-ts'
+    allCppFiles = os.popen("find -L %s -name '*.cpp'"%sourceCodeDir).read().strip().split('\n')
+    oFiles = []
+    pool = multiprocessing.Pool(job)
+    ret = []
+    cmds = []
+    print ('begin compile\n')
+    
+    for singleFile in allCppFiles:
+        cmd = '%s %s -c %s -o %s.o -I %s %s'%(compiler, option, singleFile, singleFile,
+                                              sourceCodeDir, includeFlags)
+        cmds.append(cmd)
+        oFiles.append('%s.o'%singleFile)
+        ret.append(pool.apply_async(os.system, (cmd, )))
+    pool.close()
+    pool.join()
+    for i in range(len(cmds)):
+        if ret[i].get() != 0:
+            print ('compile [%s] failed\n'%cmds[i])
+            return False
+
+    print ("compile done\n")
+    fileList = " ".join(oFiles)
+    linkCmd = "%s %s %s -o %s "%(compiler, option, fileList, targetFile)
+    print ("link cmd[%s]\n"%linkCmd)
+    os.system(linkCmd)
+    print ("link done, target file %s\n"%targetFile)
+
+def removeUselessFile(sourceCodeDir, includeCodeDirs):
+    needRemove = os.getenv("CODEGEN_REMOVE_TRASH")
+    if needRemove == 'false':
+        return
+    for dir in includeCodeDirs:
+        shutil.rmtree(dir)
+    removeCmd = 'find -L %s -name *.o| xargs rm'%sourceCodeDir
+    os.system(removeCmd)
+
+def checkDir(path):
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+
+def main():
+    if len(sys.argv) != 2:
+        print ("args not valid, usage: codegen_tool paramFile")
+        return False
+
+    paramPath = sys.argv[1]
+    if not os.path.exists(paramPath):
+        print ("path %s not exist"%paramPath)
+        return False
+    
+    workDir = os.getenv("HIPPO_APP_WORKDIR")
+    if workDir is None or not os.path.exists(workDir):
+        print ('workdir %s not exist'%workDir)
+        return False
+    workDir = os.path.join(workDir, 'codegen_dir')
+    checkDir(workDir)
+        
+    hippoAppInstallRoot = os.getenv("HIPPO_APP_INST_ROOT")
+    if hippoAppInstallRoot is None or not os.path.exists(hippoAppInstallRoot):
+        print ('hippoAppInstallRoot %s not exist'% hippoAppInstallRoot)
+        return False
+    binaryPath = os.path.realpath(hippoAppInstallRoot)
+
+    with open(paramPath,"r") as f:
+        param = json.loads(f.read())
+
+    codeHash = param["CodeHash"]
+    codegenVersion = param["CodegenVersion"]    
+
+    workDir = os.path.join(workDir, codegenVersion)
+    checkDir(workDir)
+
+
+    outputPath = os.path.join(workDir, codeHash)
+    checkDir(outputPath)
+    
+    sourceCodeDir = os.path.join(workDir, codeHash, "source_code")
+    if os.path.exists(sourceCodeDir):
+        shutil.rmtree(sourceCodeDir)
+    checkDir(sourceCodeDir)
+    
+    copyHeader(binaryPath, os.path.join(workDir, codeHash))
+    includeCodeDirs = [
+        os.path.join(workDir, codeHash, 'include'),
+        os.path.join(workDir, codeHash, 'usr/local/include'),
+        os.path.join(workDir, codeHash, 'usr/local/include/rapidjson/include'),
+        os.path.join(workDir, codeHash, 'usr/local/include/aios/storage/'),
+        os.path.join(workDir, codeHash, 'usr/local/include/com_google_absl/')
+    ]
+    includeFlags = ' '.join(['-I ' + x for x in includeCodeDirs])
+
+    cmd = 'find -L %s -name %s'%(binaryPath, clangIncludeDir)
+    clangIncludePath = os.popen(cmd).read().strip()
+    
+    shutil.copy(paramPath, os.path.join(sourceCodeDir, "codegen_info"))   # copy codegen_info
+
+    cmdIndex = "find -L %s -name %s"%(binaryPath, rawSourceCodeDir)
+    indexlibSourceCode = os.popen(cmdIndex).read().strip()
+
+    if not os.path.exists(indexlibSourceCode):
+        print ("indexlib source code not exist\n")
+        print (cmdIndex)
+        return False
+    if not codegen(param, codegenBinaryPath, param["Job"],
+                   sourceCodeDir, indexlibSourceCode, includeFlags, clangIncludePath, param["BuildOption"]):
+        return False
+    
+    multiThreadCompile(param["Compiler"], param["Job"], sourceCodeDir, includeFlags,
+                       param["BuildOption"], os.path.join(outputPath, "%s_codegen.so"%codeHash))
+    removeUselessFile(sourceCodeDir, includeCodeDirs)
+
+    return True
+
+
+if __name__ == '__main__':
+    if main():
+        sys.exit(0)
+    else:
+        sys.exit(1)

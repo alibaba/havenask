@@ -1,0 +1,49 @@
+load('//bazel:bundle.bzl', 'bundle_files')
+py_library(
+    name='bs_tools_conf',
+    srcs=glob(['etc/bs_tools/*.py', 'etc/bs_tools/include/*.py']),
+    imports=['etc/bs_tools'],
+    visibility=['//visibility:public'],
+    deps=[
+        '//aios/apps/facility/build_service:proto_py',
+        '//aios/hippo/lib/python/site_packages:hippo_py_sdk',
+        '//aios/network/arpc:arpc_python'
+    ]
+)
+filegroup(name='bs', srcs=['bin/bs'], visibility=['//visibility:public'])
+bundle_files(
+    name='bs_bin_package',
+    srcs=[':bs'],
+    prefix='usr/local',
+    visibility=['//visibility:public']
+)
+bundle_files(
+    name='install_etcs',
+    srcs=glob(['etc/bs_tools/*.py']),
+    prefix='usr/local',
+    visibility=['//visibility:public'],
+    deps=[':bs_tools_package']
+)
+bundle_files(
+    name='bs_tools_package',
+    srcs=['bs_tools/tools_config.py'],
+    prefix='usr/local/etc'
+)
+py_library(
+    name='bs_tools',
+    srcs=glob(['bs_tools/*.py']),
+    data=[
+        '//aios/apps/facility/build_service/build_service/tools:bs_generation_scanner',
+        '//aios/filesystem/fslib/tools:fs_util_bin'
+    ],
+    visibility=['//visibility:public'],
+    deps=([
+        '//aios/apps/facility/build_service:proto_py',
+        '//aios/network/arpc:arpc_python'
+    ] + [])
+)
+py_library(
+    name='bs_tools_include',
+    srcs=glob(['bs_tools/include/*.py']),
+    visibility=['//visibility:public']
+)

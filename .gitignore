@@ -1,0 +1,15 @@
+/bazel-*
+bazel-*
+bazel.log
+bep.json*
+/.vscode
+.idea
+.DS_Store
+__pycache__
+*.pyc
+*.rpm
+rpm/*.log
+*.tgz
+*.tar
+*.so
+

@@ -1,0 +1,63 @@
+{
+    "db_name": "gg",
+    "output_format": "json",
+    "parallel_num": 10,
+    "sql_timeout": 2000,
+    "timeout_factor": 0.1,
+    "sub_graph_timeout_factor": 0.2,
+    "sub_graph_thread_limit": 3,
+    "main_graph_thread_limit": 2,
+    "cte_opt_ver": 1,
+    "parallel_tables": ["1", "2"],
+    "summary_tables": ["2", "3"],
+    "iquan_plan_cache_enable":true,
+    "iquan_plan_prepare_level":"aaaaa",
+    "iquan_client_config" : {
+        "debug_flag" : true,
+        "cache_config" : {
+            "sql.parse" : {
+                "initial_capacity" : 100,
+                "concurrency_level" : 200,
+                "maximum_size" : 300
+            }
+        }
+    },
+    "iquan_jni_config" : {
+        "table_config" : {
+            "summary_suffix" : "fake_summary"
+        }
+    },
+    "iquan_warmup_config" : {
+        "thread_number" : 100,
+        "warmup_second_interval" : 200,
+        "warmup_query_number" : 300
+    },
+    "iquan_kmon_config" : {
+        "service_name": "ha3",
+        "tenant_name": "pre",
+        "flume_address": "11.22.33.44:8888",
+        "auto_recycle": false,
+        "global_tags": "instance:na63;zone:excellent"
+    },
+    "swift_writer_config" : {
+        "swift_client_config" : "client1",
+        "table_read_write_config" : {
+            "table1" : {
+                "swift_topic_name" : "topic1",
+                "swift_reader_config" : "reader1",
+                "swift_writer_config" : "writer1"
+            }
+        }
+    },
+    "table_writer_config" : {
+        "zone_names" : ["a", "b"]
+    },
+    "db_name_alias" : {
+        "gg" : ["gg1", "gg2"],
+        "aa" : ["bb"]
+    },
+    "table_name_alias" : {
+        "t" : ["t1", "t2"],
+        "aa" : ["bb"]
+    }
+}

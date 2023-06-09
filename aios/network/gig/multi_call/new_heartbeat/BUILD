@@ -1,0 +1,20 @@
+package(default_visibility=['//aios/network/gig:__subpackages__'])
+cc_library(
+    name='new_heartbeat_headers',
+    hdrs=glob(['*.h']),
+    deps=['//aios/network/gig:new_heartbeat_proto_cc_proto_headers']
+)
+cc_library(
+    name='new_heartbeat',
+    srcs=glob(['*.cpp']),
+    deps=[
+        ':new_heartbeat_headers',
+        '//aios/network/gig/multi_call/interface:interface_headers',
+        '//aios/network/gig/multi_call/service:service_headers',
+        '//aios/network/gig/multi_call/rpc:rpc_headers',
+        '//aios/network/gig/multi_call/common:common_headers',
+        '//aios/network/gig/multi_call/stream:stream',
+        '//aios/network/gig:new_heartbeat_proto_cc_proto_headers',
+        '//aios/network/gig:new_heartbeat_proto_cc_proto'
+    ]
+)

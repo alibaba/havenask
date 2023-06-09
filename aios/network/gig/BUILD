@@ -1,0 +1,68 @@
+package(default_visibility=['//aios/network/gig:__subpackages__'])
+load('//bazel:defs.bzl', 'cc_proto')
+cc_library(
+    name='multi_call',
+    deps=[
+        '//aios/network/gig/multi_call/interface:interface_headers',
+        '//aios/network/gig/multi_call/service:service_public_headers',
+        '//aios/network/gig/multi_call/heartbeat:heartbeat_public_headers',
+        '//aios/network/gig/multi_call/rpc:rpc_public_headers',
+        '//aios/network/gig/multi_call/arpc:arpc_public_headers',
+        '//aios/network/gig/multi_call/agent:agent_public_headers',
+        '//aios/network/gig/multi_call/config:config_headers',
+        '//aios/network/gig/multi_call/common:common_headers',
+        '//aios/network/gig/multi_call/stream:stream_headers',
+        '//aios/network/gig/multi_call/subscribe:subscribe_headers',
+        '//aios/network/gig/multi_call/metric:metric_headers',
+        ':common_proto_cc_proto_headers', ':jni_proto_cc_proto_headers',
+        '@grpc//:grpc++', '//aios/network/gig/multi_call/interface:interface',
+        '//aios/network/gig/multi_call/service:service',
+        '//aios/network/gig/multi_call/stream:stream',
+        '//aios/network/gig/multi_call/subscribe:subscribe',
+        '//aios/network/gig/multi_call/metric:metric',
+        '//aios/network/gig/multi_call/agent:agent',
+        '//aios/network/gig/multi_call/rpc:rpc',
+        '//aios/network/gig/multi_call/heartbeat:heartbeat',
+        '//aios/network/gig/multi_call/new_heartbeat:new_heartbeat',
+        '//aios/network/gig/multi_call/java:java'
+    ],
+    copts=['-Werror'],
+    visibility=['//visibility:public'],
+    alwayslink=1
+)
+cc_proto(
+    name='heartbeat_proto',
+    srcs=['multi_call/proto/Heartbeat.proto'],
+    deps=['//aios/network/arpc:proto']
+)
+cc_proto(
+    name='new_heartbeat_proto',
+    srcs=['multi_call/proto/NewHeartbeat.proto'],
+    deps=[':agent_proto']
+)
+cc_proto(
+    name='agent_proto',
+    srcs=['multi_call/proto/GigAgent.proto'],
+    deps=[':common_proto']
+)
+cc_proto(
+    name='jni_proto',
+    srcs=[
+        'multi_call/proto/GigSelectProto.proto',
+        'multi_call/proto/GigCallProto.proto'
+    ],
+    deps=[':common_proto']
+)
+cc_proto(
+    name='stream_proto',
+    srcs=['multi_call/proto/GigStreamHeader.proto'],
+    deps=[]
+)
+cc_proto(
+    name='common_proto',
+    srcs=[
+        'multi_call/proto/GigErrorCodeProto.proto',
+        'multi_call/proto/GigCommonProto.proto'
+    ],
+    deps=[]
+)

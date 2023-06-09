@@ -1,0 +1,133 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+indexlib_cc_library(
+    name='VarLenDataAccessor',
+    deps=[
+        ':VarLenDataIterator', '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/index/common:radix_tree',
+        '//aios/storage/indexlib/index/common:typed_slice_list',
+        '//aios/storage/indexlib/util:HashMap',
+        '//aios/storage/indexlib/util:KeyHasherTyped'
+    ]
+)
+indexlib_cc_library(
+    name='VarLenDataParam',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/common:constants'
+    ]
+)
+indexlib_cc_library(
+    name='VarLenDataParamHelper',
+    deps=[
+        ':AttributeCompressInfo', ':VarLenDataParam',
+        '//aios/storage/indexlib/config:FileCompressConfig',
+        '//aios/storage/indexlib/config:GroupDataParameter',
+        '//aios/storage/indexlib/index/source/config:SourceGroupConfig',
+        '//aios/storage/indexlib/index/summary/config:SummaryGroupConfig'
+    ]
+)
+indexlib_cc_library(
+    name='EqualValueCompressDumper',
+    srcs=[],
+    deps=[
+        ':EqualValueCompressAdvisor',
+        '//aios/storage/indexlib/index/common:constants',
+        '//aios/storage/indexlib/index/common:typed_slice_list'
+    ]
+)
+indexlib_cc_library(
+    name='AdaptiveAttributeOffsetDumper',
+    deps=[
+        ':AttributeCompressInfo', ':EqualValueCompressDumper',
+        '//aios/autil:mem_pool_base'
+    ]
+)
+indexlib_cc_library(
+    name='EqualValueCompressAdvisor',
+    srcs=[],
+    deps=[
+        '//aios/autil:mem_pool_base',
+        '//aios/storage/indexlib/index/common:numeric_compress'
+    ]
+)
+indexlib_cc_library(
+    name='VarLenDataWriter',
+    deps=[
+        ':AdaptiveAttributeOffsetDumper', ':VarLenDataParam',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/common:fs_writer_param_decider',
+        '//aios/storage/indexlib/index/common/field_format:attribute_field_format'
+    ]
+)
+indexlib_cc_library(
+    name='VarLenDataDumper',
+    deps=[
+        ':VarLenDataAccessor', ':VarLenDataIterator', ':VarLenDataWriter',
+        '//aios/autil:const_string_util'
+    ]
+)
+indexlib_cc_library(
+    name='AttributeCompressInfo',
+    deps=[
+        '//aios/storage/indexlib/config:CompressTypeOption',
+        '//aios/storage/indexlib/index/attribute/config:AttributeConfig'
+    ]
+)
+indexlib_cc_library(
+    name='VarLenDataIterator',
+    deps=[
+        '//aios/storage/indexlib/index/common:radix_tree',
+        '//aios/storage/indexlib/index/common:typed_slice_list'
+    ]
+)
+indexlib_cc_library(
+    name='CompressOffsetReader',
+    deps=[
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/common:constants',
+        '//aios/storage/indexlib/index/common/numeric_compress:EquivalentCompressReader',
+        '//aios/storage/indexlib/index/common/numeric_compress:EquivalentCompressSessionReader'
+    ]
+)
+indexlib_cc_library(
+    name='UncompressOffsetReader',
+    deps=[
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/file_system/stream:file_stream',
+        '//aios/storage/indexlib/index/common:constants',
+        '//aios/storage/indexlib/index/common:error_code'
+    ]
+)
+indexlib_cc_library(
+    name='VarLenOffsetReader',
+    deps=[
+        ':CompressOffsetReader', ':UncompressOffsetReader', ':VarLenDataParam',
+        '//aios/storage/indexlib/index/common/field_format/attribute:MultiValueAttributeFormatter'
+    ]
+)
+indexlib_cc_library(name='VarLenDataReader', deps=[':VarLenOffsetReader'])
+indexlib_cc_library(
+    name='VarLenDataMerger',
+    deps=[
+        ':VarLenDataParam', ':VarLenDataReader', ':VarLenDataWriter',
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/base:Types',
+        '//aios/storage/indexlib/index:DocMapper',
+        '//aios/storage/indexlib/index:IIndexMerger',
+        '//aios/storage/indexlib/index/attribute:patch',
+        '//aios/storage/indexlib/index/attribute:util'
+    ]
+)
+indexlib_cc_library(
+    name='ExpandableValueAccessor',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/base:Define',
+        '//aios/storage/indexlib/file_system/file:interface',
+        '//aios/storage/indexlib/util:ValueWriter'
+    ]
+)

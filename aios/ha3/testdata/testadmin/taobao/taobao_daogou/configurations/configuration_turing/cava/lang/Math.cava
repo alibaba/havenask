@@ -1,0 +1,25 @@
+package cava.lang;
+
+class Math {
+    //TODO PI, E
+    public static externC int abs(int v);
+    public static externC long labs(long v);
+    public static externC double fabs(double v);
+    public static externC double acos(double v);
+    public static externC double asin(double v);
+    public static externC double atan(double v);
+    public static externC double atan2(double x, double y);
+    public static externC double cos(double v);
+    public static externC double cosh(double v);
+    public static externC double tan(double v);
+    public static externC double tanh(double v);
+    public static externC double sin(double v);
+    public static externC double sinh(double v);
+    public static externC double floor(double v);
+    public static externC double ceil(double v);
+    public static externC double log(double v);
+    public static externC double exp(double v);
+    public static externC double log10(double v);
+    public static externC double pow(double x, double y);
+    public static externC double sqrt(double v);    
+}

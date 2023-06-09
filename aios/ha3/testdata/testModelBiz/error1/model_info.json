@@ -1,0 +1,15 @@
+{
+    "biz_name" : "m1",
+    "input" : [
+        {
+            "node" : "aaa",
+            "type" : "int"
+        }
+    ],
+    "output" : [
+        {
+            "node" : "bbb",
+            "type" : "float"
+        }
+    ]
+}

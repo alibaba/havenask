@@ -1,0 +1,13278 @@
+node {
+  name: "ha3_request"
+  op: "Placeholder"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "shape"
+    value {
+      shape {
+        unknown_rank: true
+      }
+    }
+  }
+}
+node {
+  name: "init_request"
+  op: "RequestInitOp"
+  input: "ha3_request"
+}
+node {
+  name: "create_layer_metas"
+  op: "LayerMetasCreateOp"
+  input: "init_request"
+}
+node {
+  name: "split_ranges"
+  op: "RangeSplitOp"
+  input: "create_layer_metas"
+  attr {
+    key: "N"
+    value {
+      i: 32
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges"
+  input: "prepare_expression_resource"
+}
+node {
+  name: "agg_prepare"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource"
+  input: "^prepare_seek_iterator"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while/Enter"
+  op: "Enter"
+  input: "Const"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while/Enter_2"
+  op: "Enter"
+  input: "agg_prepare"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while/Merge"
+  op: "Merge"
+  input: "while/Enter"
+  input: "while/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while/Merge_1"
+  op: "Merge"
+  input: "while/Enter_1"
+  input: "while/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while/Merge_2"
+  op: "Merge"
+  input: "while/Enter_2"
+  input: "while/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while/cond_equal/x"
+  op: "Const"
+  input: "^while/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while/cond_equal"
+  op: "Equal"
+  input: "while/cond_equal/x"
+  input: "while/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while/LoopCond"
+  op: "LoopCond"
+  input: "while/cond_equal"
+}
+node {
+  name: "while/Switch"
+  op: "Switch"
+  input: "while/Merge"
+  input: "while/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while/Switch_1"
+  op: "Switch"
+  input: "while/Merge_1"
+  input: "while/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while/Switch_2"
+  op: "Switch"
+  input: "while/Merge_2"
+  input: "while/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while/Identity"
+  op: "Identity"
+  input: "while/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while/Identity_1"
+  op: "Identity"
+  input: "while/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while/Identity_2"
+  op: "Identity"
+  input: "while/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while/seek_docs"
+  op: "SeekOp"
+  input: "while/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while/agg_docs"
+  op: "AggregatorOp"
+  input: "while/Identity_2"
+  input: "while/seek_docs:1"
+}
+node {
+  name: "while/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while/seek_docs:2"
+  input: "while/agg_docs:1"
+}
+node {
+  name: "while/NextIteration"
+  op: "NextIteration"
+  input: "while/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while/NextIteration_1"
+  op: "NextIteration"
+  input: "while/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while/NextIteration_2"
+  op: "NextIteration"
+  input: "while/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while/Exit"
+  op: "Exit"
+  input: "while/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while/Exit_1"
+  op: "Exit"
+  input: "while/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while/Exit_2"
+  op: "Exit"
+  input: "while/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_1"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_1"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:1"
+  input: "prepare_expression_resource_1"
+}
+node {
+  name: "agg_prepare_1"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_1"
+  input: "^prepare_seek_iterator_1"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_1"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_1/Enter"
+  op: "Enter"
+  input: "Const_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_1/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_1/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_1/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_1/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_1/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_1/Merge"
+  op: "Merge"
+  input: "while_1/Enter"
+  input: "while_1/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_1/Merge_1"
+  op: "Merge"
+  input: "while_1/Enter_1"
+  input: "while_1/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_1/Merge_2"
+  op: "Merge"
+  input: "while_1/Enter_2"
+  input: "while_1/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_1/cond_equal/x"
+  op: "Const"
+  input: "^while_1/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_1/cond_equal"
+  op: "Equal"
+  input: "while_1/cond_equal/x"
+  input: "while_1/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_1/LoopCond"
+  op: "LoopCond"
+  input: "while_1/cond_equal"
+}
+node {
+  name: "while_1/Switch"
+  op: "Switch"
+  input: "while_1/Merge"
+  input: "while_1/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_1/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_1/Switch_1"
+  op: "Switch"
+  input: "while_1/Merge_1"
+  input: "while_1/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_1/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_1/Switch_2"
+  op: "Switch"
+  input: "while_1/Merge_2"
+  input: "while_1/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_1/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_1/Identity"
+  op: "Identity"
+  input: "while_1/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_1/Identity_1"
+  op: "Identity"
+  input: "while_1/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_1/Identity_2"
+  op: "Identity"
+  input: "while_1/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_1/seek_docs"
+  op: "SeekOp"
+  input: "while_1/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_1/agg_docs"
+  op: "AggregatorOp"
+  input: "while_1/Identity_2"
+  input: "while_1/seek_docs:1"
+}
+node {
+  name: "while_1/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_1/seek_docs:2"
+  input: "while_1/agg_docs:1"
+}
+node {
+  name: "while_1/NextIteration"
+  op: "NextIteration"
+  input: "while_1/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_1/NextIteration_1"
+  op: "NextIteration"
+  input: "while_1/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_1/NextIteration_2"
+  op: "NextIteration"
+  input: "while_1/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_1/Exit"
+  op: "Exit"
+  input: "while_1/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_1/Exit_1"
+  op: "Exit"
+  input: "while_1/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_1/Exit_2"
+  op: "Exit"
+  input: "while_1/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_2"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_2"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:2"
+  input: "prepare_expression_resource_2"
+}
+node {
+  name: "agg_prepare_2"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_2"
+  input: "^prepare_seek_iterator_2"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_2"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_2/Enter"
+  op: "Enter"
+  input: "Const_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_2/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_2/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_2/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_2/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_2/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_2/Merge"
+  op: "Merge"
+  input: "while_2/Enter"
+  input: "while_2/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_2/Merge_1"
+  op: "Merge"
+  input: "while_2/Enter_1"
+  input: "while_2/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_2/Merge_2"
+  op: "Merge"
+  input: "while_2/Enter_2"
+  input: "while_2/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_2/cond_equal/x"
+  op: "Const"
+  input: "^while_2/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_2/cond_equal"
+  op: "Equal"
+  input: "while_2/cond_equal/x"
+  input: "while_2/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_2/LoopCond"
+  op: "LoopCond"
+  input: "while_2/cond_equal"
+}
+node {
+  name: "while_2/Switch"
+  op: "Switch"
+  input: "while_2/Merge"
+  input: "while_2/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_2/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_2/Switch_1"
+  op: "Switch"
+  input: "while_2/Merge_1"
+  input: "while_2/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_2/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_2/Switch_2"
+  op: "Switch"
+  input: "while_2/Merge_2"
+  input: "while_2/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_2/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_2/Identity"
+  op: "Identity"
+  input: "while_2/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_2/Identity_1"
+  op: "Identity"
+  input: "while_2/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_2/Identity_2"
+  op: "Identity"
+  input: "while_2/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_2/seek_docs"
+  op: "SeekOp"
+  input: "while_2/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_2/agg_docs"
+  op: "AggregatorOp"
+  input: "while_2/Identity_2"
+  input: "while_2/seek_docs:1"
+}
+node {
+  name: "while_2/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_2/seek_docs:2"
+  input: "while_2/agg_docs:1"
+}
+node {
+  name: "while_2/NextIteration"
+  op: "NextIteration"
+  input: "while_2/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_2/NextIteration_1"
+  op: "NextIteration"
+  input: "while_2/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_2/NextIteration_2"
+  op: "NextIteration"
+  input: "while_2/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_2/Exit"
+  op: "Exit"
+  input: "while_2/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_2/Exit_1"
+  op: "Exit"
+  input: "while_2/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_2/Exit_2"
+  op: "Exit"
+  input: "while_2/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_3"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_3"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:3"
+  input: "prepare_expression_resource_3"
+}
+node {
+  name: "agg_prepare_3"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_3"
+  input: "^prepare_seek_iterator_3"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_3"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_3/Enter"
+  op: "Enter"
+  input: "Const_3"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_3/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_3/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_3"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_3/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_3/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_3"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_3/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_3/Merge"
+  op: "Merge"
+  input: "while_3/Enter"
+  input: "while_3/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_3/Merge_1"
+  op: "Merge"
+  input: "while_3/Enter_1"
+  input: "while_3/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_3/Merge_2"
+  op: "Merge"
+  input: "while_3/Enter_2"
+  input: "while_3/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_3/cond_equal/x"
+  op: "Const"
+  input: "^while_3/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_3/cond_equal"
+  op: "Equal"
+  input: "while_3/cond_equal/x"
+  input: "while_3/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_3/LoopCond"
+  op: "LoopCond"
+  input: "while_3/cond_equal"
+}
+node {
+  name: "while_3/Switch"
+  op: "Switch"
+  input: "while_3/Merge"
+  input: "while_3/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_3/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_3/Switch_1"
+  op: "Switch"
+  input: "while_3/Merge_1"
+  input: "while_3/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_3/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_3/Switch_2"
+  op: "Switch"
+  input: "while_3/Merge_2"
+  input: "while_3/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_3/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_3/Identity"
+  op: "Identity"
+  input: "while_3/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_3/Identity_1"
+  op: "Identity"
+  input: "while_3/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_3/Identity_2"
+  op: "Identity"
+  input: "while_3/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_3/seek_docs"
+  op: "SeekOp"
+  input: "while_3/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_3/agg_docs"
+  op: "AggregatorOp"
+  input: "while_3/Identity_2"
+  input: "while_3/seek_docs:1"
+}
+node {
+  name: "while_3/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_3/seek_docs:2"
+  input: "while_3/agg_docs:1"
+}
+node {
+  name: "while_3/NextIteration"
+  op: "NextIteration"
+  input: "while_3/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_3/NextIteration_1"
+  op: "NextIteration"
+  input: "while_3/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_3/NextIteration_2"
+  op: "NextIteration"
+  input: "while_3/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_3/Exit"
+  op: "Exit"
+  input: "while_3/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_3/Exit_1"
+  op: "Exit"
+  input: "while_3/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_3/Exit_2"
+  op: "Exit"
+  input: "while_3/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_4"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_4"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:4"
+  input: "prepare_expression_resource_4"
+}
+node {
+  name: "agg_prepare_4"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_4"
+  input: "^prepare_seek_iterator_4"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_4"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_4/Enter"
+  op: "Enter"
+  input: "Const_4"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_4/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_4/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_4"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_4/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_4/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_4"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_4/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_4/Merge"
+  op: "Merge"
+  input: "while_4/Enter"
+  input: "while_4/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_4/Merge_1"
+  op: "Merge"
+  input: "while_4/Enter_1"
+  input: "while_4/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_4/Merge_2"
+  op: "Merge"
+  input: "while_4/Enter_2"
+  input: "while_4/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_4/cond_equal/x"
+  op: "Const"
+  input: "^while_4/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_4/cond_equal"
+  op: "Equal"
+  input: "while_4/cond_equal/x"
+  input: "while_4/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_4/LoopCond"
+  op: "LoopCond"
+  input: "while_4/cond_equal"
+}
+node {
+  name: "while_4/Switch"
+  op: "Switch"
+  input: "while_4/Merge"
+  input: "while_4/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_4/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_4/Switch_1"
+  op: "Switch"
+  input: "while_4/Merge_1"
+  input: "while_4/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_4/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_4/Switch_2"
+  op: "Switch"
+  input: "while_4/Merge_2"
+  input: "while_4/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_4/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_4/Identity"
+  op: "Identity"
+  input: "while_4/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_4/Identity_1"
+  op: "Identity"
+  input: "while_4/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_4/Identity_2"
+  op: "Identity"
+  input: "while_4/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_4/seek_docs"
+  op: "SeekOp"
+  input: "while_4/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_4/agg_docs"
+  op: "AggregatorOp"
+  input: "while_4/Identity_2"
+  input: "while_4/seek_docs:1"
+}
+node {
+  name: "while_4/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_4/seek_docs:2"
+  input: "while_4/agg_docs:1"
+}
+node {
+  name: "while_4/NextIteration"
+  op: "NextIteration"
+  input: "while_4/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_4/NextIteration_1"
+  op: "NextIteration"
+  input: "while_4/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_4/NextIteration_2"
+  op: "NextIteration"
+  input: "while_4/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_4/Exit"
+  op: "Exit"
+  input: "while_4/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_4/Exit_1"
+  op: "Exit"
+  input: "while_4/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_4/Exit_2"
+  op: "Exit"
+  input: "while_4/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_5"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_5"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:5"
+  input: "prepare_expression_resource_5"
+}
+node {
+  name: "agg_prepare_5"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_5"
+  input: "^prepare_seek_iterator_5"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_5"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_5/Enter"
+  op: "Enter"
+  input: "Const_5"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_5/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_5/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_5"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_5/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_5/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_5"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_5/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_5/Merge"
+  op: "Merge"
+  input: "while_5/Enter"
+  input: "while_5/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_5/Merge_1"
+  op: "Merge"
+  input: "while_5/Enter_1"
+  input: "while_5/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_5/Merge_2"
+  op: "Merge"
+  input: "while_5/Enter_2"
+  input: "while_5/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_5/cond_equal/x"
+  op: "Const"
+  input: "^while_5/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_5/cond_equal"
+  op: "Equal"
+  input: "while_5/cond_equal/x"
+  input: "while_5/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_5/LoopCond"
+  op: "LoopCond"
+  input: "while_5/cond_equal"
+}
+node {
+  name: "while_5/Switch"
+  op: "Switch"
+  input: "while_5/Merge"
+  input: "while_5/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_5/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_5/Switch_1"
+  op: "Switch"
+  input: "while_5/Merge_1"
+  input: "while_5/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_5/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_5/Switch_2"
+  op: "Switch"
+  input: "while_5/Merge_2"
+  input: "while_5/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_5/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_5/Identity"
+  op: "Identity"
+  input: "while_5/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_5/Identity_1"
+  op: "Identity"
+  input: "while_5/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_5/Identity_2"
+  op: "Identity"
+  input: "while_5/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_5/seek_docs"
+  op: "SeekOp"
+  input: "while_5/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_5/agg_docs"
+  op: "AggregatorOp"
+  input: "while_5/Identity_2"
+  input: "while_5/seek_docs:1"
+}
+node {
+  name: "while_5/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_5/seek_docs:2"
+  input: "while_5/agg_docs:1"
+}
+node {
+  name: "while_5/NextIteration"
+  op: "NextIteration"
+  input: "while_5/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_5/NextIteration_1"
+  op: "NextIteration"
+  input: "while_5/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_5/NextIteration_2"
+  op: "NextIteration"
+  input: "while_5/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_5/Exit"
+  op: "Exit"
+  input: "while_5/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_5/Exit_1"
+  op: "Exit"
+  input: "while_5/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_5/Exit_2"
+  op: "Exit"
+  input: "while_5/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_6"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_6"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:6"
+  input: "prepare_expression_resource_6"
+}
+node {
+  name: "agg_prepare_6"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_6"
+  input: "^prepare_seek_iterator_6"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_6"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_6/Enter"
+  op: "Enter"
+  input: "Const_6"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_6/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_6/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_6"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_6/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_6/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_6"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_6/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_6/Merge"
+  op: "Merge"
+  input: "while_6/Enter"
+  input: "while_6/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_6/Merge_1"
+  op: "Merge"
+  input: "while_6/Enter_1"
+  input: "while_6/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_6/Merge_2"
+  op: "Merge"
+  input: "while_6/Enter_2"
+  input: "while_6/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_6/cond_equal/x"
+  op: "Const"
+  input: "^while_6/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_6/cond_equal"
+  op: "Equal"
+  input: "while_6/cond_equal/x"
+  input: "while_6/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_6/LoopCond"
+  op: "LoopCond"
+  input: "while_6/cond_equal"
+}
+node {
+  name: "while_6/Switch"
+  op: "Switch"
+  input: "while_6/Merge"
+  input: "while_6/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_6/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_6/Switch_1"
+  op: "Switch"
+  input: "while_6/Merge_1"
+  input: "while_6/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_6/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_6/Switch_2"
+  op: "Switch"
+  input: "while_6/Merge_2"
+  input: "while_6/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_6/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_6/Identity"
+  op: "Identity"
+  input: "while_6/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_6/Identity_1"
+  op: "Identity"
+  input: "while_6/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_6/Identity_2"
+  op: "Identity"
+  input: "while_6/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_6/seek_docs"
+  op: "SeekOp"
+  input: "while_6/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_6/agg_docs"
+  op: "AggregatorOp"
+  input: "while_6/Identity_2"
+  input: "while_6/seek_docs:1"
+}
+node {
+  name: "while_6/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_6/seek_docs:2"
+  input: "while_6/agg_docs:1"
+}
+node {
+  name: "while_6/NextIteration"
+  op: "NextIteration"
+  input: "while_6/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_6/NextIteration_1"
+  op: "NextIteration"
+  input: "while_6/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_6/NextIteration_2"
+  op: "NextIteration"
+  input: "while_6/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_6/Exit"
+  op: "Exit"
+  input: "while_6/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_6/Exit_1"
+  op: "Exit"
+  input: "while_6/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_6/Exit_2"
+  op: "Exit"
+  input: "while_6/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_7"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_7"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:7"
+  input: "prepare_expression_resource_7"
+}
+node {
+  name: "agg_prepare_7"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_7"
+  input: "^prepare_seek_iterator_7"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_7"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_7/Enter"
+  op: "Enter"
+  input: "Const_7"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_7/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_7/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_7"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_7/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_7/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_7"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_7/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_7/Merge"
+  op: "Merge"
+  input: "while_7/Enter"
+  input: "while_7/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_7/Merge_1"
+  op: "Merge"
+  input: "while_7/Enter_1"
+  input: "while_7/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_7/Merge_2"
+  op: "Merge"
+  input: "while_7/Enter_2"
+  input: "while_7/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_7/cond_equal/x"
+  op: "Const"
+  input: "^while_7/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_7/cond_equal"
+  op: "Equal"
+  input: "while_7/cond_equal/x"
+  input: "while_7/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_7/LoopCond"
+  op: "LoopCond"
+  input: "while_7/cond_equal"
+}
+node {
+  name: "while_7/Switch"
+  op: "Switch"
+  input: "while_7/Merge"
+  input: "while_7/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_7/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_7/Switch_1"
+  op: "Switch"
+  input: "while_7/Merge_1"
+  input: "while_7/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_7/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_7/Switch_2"
+  op: "Switch"
+  input: "while_7/Merge_2"
+  input: "while_7/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_7/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_7/Identity"
+  op: "Identity"
+  input: "while_7/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_7/Identity_1"
+  op: "Identity"
+  input: "while_7/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_7/Identity_2"
+  op: "Identity"
+  input: "while_7/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_7/seek_docs"
+  op: "SeekOp"
+  input: "while_7/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_7/agg_docs"
+  op: "AggregatorOp"
+  input: "while_7/Identity_2"
+  input: "while_7/seek_docs:1"
+}
+node {
+  name: "while_7/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_7/seek_docs:2"
+  input: "while_7/agg_docs:1"
+}
+node {
+  name: "while_7/NextIteration"
+  op: "NextIteration"
+  input: "while_7/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_7/NextIteration_1"
+  op: "NextIteration"
+  input: "while_7/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_7/NextIteration_2"
+  op: "NextIteration"
+  input: "while_7/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_7/Exit"
+  op: "Exit"
+  input: "while_7/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_7/Exit_1"
+  op: "Exit"
+  input: "while_7/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_7/Exit_2"
+  op: "Exit"
+  input: "while_7/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_8"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_8"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:8"
+  input: "prepare_expression_resource_8"
+}
+node {
+  name: "agg_prepare_8"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_8"
+  input: "^prepare_seek_iterator_8"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_8"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_8/Enter"
+  op: "Enter"
+  input: "Const_8"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_8/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_8/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_8"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_8/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_8/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_8"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_8/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_8/Merge"
+  op: "Merge"
+  input: "while_8/Enter"
+  input: "while_8/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_8/Merge_1"
+  op: "Merge"
+  input: "while_8/Enter_1"
+  input: "while_8/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_8/Merge_2"
+  op: "Merge"
+  input: "while_8/Enter_2"
+  input: "while_8/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_8/cond_equal/x"
+  op: "Const"
+  input: "^while_8/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_8/cond_equal"
+  op: "Equal"
+  input: "while_8/cond_equal/x"
+  input: "while_8/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_8/LoopCond"
+  op: "LoopCond"
+  input: "while_8/cond_equal"
+}
+node {
+  name: "while_8/Switch"
+  op: "Switch"
+  input: "while_8/Merge"
+  input: "while_8/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_8/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_8/Switch_1"
+  op: "Switch"
+  input: "while_8/Merge_1"
+  input: "while_8/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_8/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_8/Switch_2"
+  op: "Switch"
+  input: "while_8/Merge_2"
+  input: "while_8/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_8/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_8/Identity"
+  op: "Identity"
+  input: "while_8/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_8/Identity_1"
+  op: "Identity"
+  input: "while_8/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_8/Identity_2"
+  op: "Identity"
+  input: "while_8/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_8/seek_docs"
+  op: "SeekOp"
+  input: "while_8/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_8/agg_docs"
+  op: "AggregatorOp"
+  input: "while_8/Identity_2"
+  input: "while_8/seek_docs:1"
+}
+node {
+  name: "while_8/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_8/seek_docs:2"
+  input: "while_8/agg_docs:1"
+}
+node {
+  name: "while_8/NextIteration"
+  op: "NextIteration"
+  input: "while_8/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_8/NextIteration_1"
+  op: "NextIteration"
+  input: "while_8/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_8/NextIteration_2"
+  op: "NextIteration"
+  input: "while_8/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_8/Exit"
+  op: "Exit"
+  input: "while_8/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_8/Exit_1"
+  op: "Exit"
+  input: "while_8/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_8/Exit_2"
+  op: "Exit"
+  input: "while_8/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_9"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_9"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:9"
+  input: "prepare_expression_resource_9"
+}
+node {
+  name: "agg_prepare_9"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_9"
+  input: "^prepare_seek_iterator_9"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_9"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_9/Enter"
+  op: "Enter"
+  input: "Const_9"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_9/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_9/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_9"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_9/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_9/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_9"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_9/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_9/Merge"
+  op: "Merge"
+  input: "while_9/Enter"
+  input: "while_9/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_9/Merge_1"
+  op: "Merge"
+  input: "while_9/Enter_1"
+  input: "while_9/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_9/Merge_2"
+  op: "Merge"
+  input: "while_9/Enter_2"
+  input: "while_9/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_9/cond_equal/x"
+  op: "Const"
+  input: "^while_9/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_9/cond_equal"
+  op: "Equal"
+  input: "while_9/cond_equal/x"
+  input: "while_9/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_9/LoopCond"
+  op: "LoopCond"
+  input: "while_9/cond_equal"
+}
+node {
+  name: "while_9/Switch"
+  op: "Switch"
+  input: "while_9/Merge"
+  input: "while_9/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_9/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_9/Switch_1"
+  op: "Switch"
+  input: "while_9/Merge_1"
+  input: "while_9/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_9/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_9/Switch_2"
+  op: "Switch"
+  input: "while_9/Merge_2"
+  input: "while_9/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_9/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_9/Identity"
+  op: "Identity"
+  input: "while_9/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_9/Identity_1"
+  op: "Identity"
+  input: "while_9/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_9/Identity_2"
+  op: "Identity"
+  input: "while_9/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_9/seek_docs"
+  op: "SeekOp"
+  input: "while_9/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_9/agg_docs"
+  op: "AggregatorOp"
+  input: "while_9/Identity_2"
+  input: "while_9/seek_docs:1"
+}
+node {
+  name: "while_9/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_9/seek_docs:2"
+  input: "while_9/agg_docs:1"
+}
+node {
+  name: "while_9/NextIteration"
+  op: "NextIteration"
+  input: "while_9/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_9/NextIteration_1"
+  op: "NextIteration"
+  input: "while_9/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_9/NextIteration_2"
+  op: "NextIteration"
+  input: "while_9/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_9/Exit"
+  op: "Exit"
+  input: "while_9/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_9/Exit_1"
+  op: "Exit"
+  input: "while_9/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_9/Exit_2"
+  op: "Exit"
+  input: "while_9/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_10"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_10"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:10"
+  input: "prepare_expression_resource_10"
+}
+node {
+  name: "agg_prepare_10"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_10"
+  input: "^prepare_seek_iterator_10"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_10"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_10/Enter"
+  op: "Enter"
+  input: "Const_10"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_10/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_10/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_10"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_10/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_10/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_10"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_10/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_10/Merge"
+  op: "Merge"
+  input: "while_10/Enter"
+  input: "while_10/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_10/Merge_1"
+  op: "Merge"
+  input: "while_10/Enter_1"
+  input: "while_10/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_10/Merge_2"
+  op: "Merge"
+  input: "while_10/Enter_2"
+  input: "while_10/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_10/cond_equal/x"
+  op: "Const"
+  input: "^while_10/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_10/cond_equal"
+  op: "Equal"
+  input: "while_10/cond_equal/x"
+  input: "while_10/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_10/LoopCond"
+  op: "LoopCond"
+  input: "while_10/cond_equal"
+}
+node {
+  name: "while_10/Switch"
+  op: "Switch"
+  input: "while_10/Merge"
+  input: "while_10/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_10/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_10/Switch_1"
+  op: "Switch"
+  input: "while_10/Merge_1"
+  input: "while_10/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_10/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_10/Switch_2"
+  op: "Switch"
+  input: "while_10/Merge_2"
+  input: "while_10/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_10/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_10/Identity"
+  op: "Identity"
+  input: "while_10/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_10/Identity_1"
+  op: "Identity"
+  input: "while_10/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_10/Identity_2"
+  op: "Identity"
+  input: "while_10/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_10/seek_docs"
+  op: "SeekOp"
+  input: "while_10/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_10/agg_docs"
+  op: "AggregatorOp"
+  input: "while_10/Identity_2"
+  input: "while_10/seek_docs:1"
+}
+node {
+  name: "while_10/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_10/seek_docs:2"
+  input: "while_10/agg_docs:1"
+}
+node {
+  name: "while_10/NextIteration"
+  op: "NextIteration"
+  input: "while_10/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_10/NextIteration_1"
+  op: "NextIteration"
+  input: "while_10/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_10/NextIteration_2"
+  op: "NextIteration"
+  input: "while_10/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_10/Exit"
+  op: "Exit"
+  input: "while_10/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_10/Exit_1"
+  op: "Exit"
+  input: "while_10/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_10/Exit_2"
+  op: "Exit"
+  input: "while_10/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_11"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_11"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:11"
+  input: "prepare_expression_resource_11"
+}
+node {
+  name: "agg_prepare_11"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_11"
+  input: "^prepare_seek_iterator_11"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_11"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_11/Enter"
+  op: "Enter"
+  input: "Const_11"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_11/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_11/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_11"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_11/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_11/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_11"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_11/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_11/Merge"
+  op: "Merge"
+  input: "while_11/Enter"
+  input: "while_11/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_11/Merge_1"
+  op: "Merge"
+  input: "while_11/Enter_1"
+  input: "while_11/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_11/Merge_2"
+  op: "Merge"
+  input: "while_11/Enter_2"
+  input: "while_11/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_11/cond_equal/x"
+  op: "Const"
+  input: "^while_11/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_11/cond_equal"
+  op: "Equal"
+  input: "while_11/cond_equal/x"
+  input: "while_11/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_11/LoopCond"
+  op: "LoopCond"
+  input: "while_11/cond_equal"
+}
+node {
+  name: "while_11/Switch"
+  op: "Switch"
+  input: "while_11/Merge"
+  input: "while_11/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_11/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_11/Switch_1"
+  op: "Switch"
+  input: "while_11/Merge_1"
+  input: "while_11/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_11/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_11/Switch_2"
+  op: "Switch"
+  input: "while_11/Merge_2"
+  input: "while_11/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_11/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_11/Identity"
+  op: "Identity"
+  input: "while_11/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_11/Identity_1"
+  op: "Identity"
+  input: "while_11/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_11/Identity_2"
+  op: "Identity"
+  input: "while_11/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_11/seek_docs"
+  op: "SeekOp"
+  input: "while_11/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_11/agg_docs"
+  op: "AggregatorOp"
+  input: "while_11/Identity_2"
+  input: "while_11/seek_docs:1"
+}
+node {
+  name: "while_11/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_11/seek_docs:2"
+  input: "while_11/agg_docs:1"
+}
+node {
+  name: "while_11/NextIteration"
+  op: "NextIteration"
+  input: "while_11/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_11/NextIteration_1"
+  op: "NextIteration"
+  input: "while_11/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_11/NextIteration_2"
+  op: "NextIteration"
+  input: "while_11/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_11/Exit"
+  op: "Exit"
+  input: "while_11/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_11/Exit_1"
+  op: "Exit"
+  input: "while_11/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_11/Exit_2"
+  op: "Exit"
+  input: "while_11/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_12"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_12"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:12"
+  input: "prepare_expression_resource_12"
+}
+node {
+  name: "agg_prepare_12"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_12"
+  input: "^prepare_seek_iterator_12"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_12"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_12/Enter"
+  op: "Enter"
+  input: "Const_12"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_12/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_12/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_12"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_12/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_12/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_12"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_12/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_12/Merge"
+  op: "Merge"
+  input: "while_12/Enter"
+  input: "while_12/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_12/Merge_1"
+  op: "Merge"
+  input: "while_12/Enter_1"
+  input: "while_12/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_12/Merge_2"
+  op: "Merge"
+  input: "while_12/Enter_2"
+  input: "while_12/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_12/cond_equal/x"
+  op: "Const"
+  input: "^while_12/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_12/cond_equal"
+  op: "Equal"
+  input: "while_12/cond_equal/x"
+  input: "while_12/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_12/LoopCond"
+  op: "LoopCond"
+  input: "while_12/cond_equal"
+}
+node {
+  name: "while_12/Switch"
+  op: "Switch"
+  input: "while_12/Merge"
+  input: "while_12/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_12/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_12/Switch_1"
+  op: "Switch"
+  input: "while_12/Merge_1"
+  input: "while_12/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_12/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_12/Switch_2"
+  op: "Switch"
+  input: "while_12/Merge_2"
+  input: "while_12/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_12/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_12/Identity"
+  op: "Identity"
+  input: "while_12/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_12/Identity_1"
+  op: "Identity"
+  input: "while_12/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_12/Identity_2"
+  op: "Identity"
+  input: "while_12/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_12/seek_docs"
+  op: "SeekOp"
+  input: "while_12/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_12/agg_docs"
+  op: "AggregatorOp"
+  input: "while_12/Identity_2"
+  input: "while_12/seek_docs:1"
+}
+node {
+  name: "while_12/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_12/seek_docs:2"
+  input: "while_12/agg_docs:1"
+}
+node {
+  name: "while_12/NextIteration"
+  op: "NextIteration"
+  input: "while_12/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_12/NextIteration_1"
+  op: "NextIteration"
+  input: "while_12/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_12/NextIteration_2"
+  op: "NextIteration"
+  input: "while_12/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_12/Exit"
+  op: "Exit"
+  input: "while_12/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_12/Exit_1"
+  op: "Exit"
+  input: "while_12/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_12/Exit_2"
+  op: "Exit"
+  input: "while_12/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_13"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_13"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:13"
+  input: "prepare_expression_resource_13"
+}
+node {
+  name: "agg_prepare_13"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_13"
+  input: "^prepare_seek_iterator_13"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_13"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_13/Enter"
+  op: "Enter"
+  input: "Const_13"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_13/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_13/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_13"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_13/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_13/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_13"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_13/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_13/Merge"
+  op: "Merge"
+  input: "while_13/Enter"
+  input: "while_13/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_13/Merge_1"
+  op: "Merge"
+  input: "while_13/Enter_1"
+  input: "while_13/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_13/Merge_2"
+  op: "Merge"
+  input: "while_13/Enter_2"
+  input: "while_13/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_13/cond_equal/x"
+  op: "Const"
+  input: "^while_13/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_13/cond_equal"
+  op: "Equal"
+  input: "while_13/cond_equal/x"
+  input: "while_13/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_13/LoopCond"
+  op: "LoopCond"
+  input: "while_13/cond_equal"
+}
+node {
+  name: "while_13/Switch"
+  op: "Switch"
+  input: "while_13/Merge"
+  input: "while_13/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_13/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_13/Switch_1"
+  op: "Switch"
+  input: "while_13/Merge_1"
+  input: "while_13/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_13/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_13/Switch_2"
+  op: "Switch"
+  input: "while_13/Merge_2"
+  input: "while_13/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_13/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_13/Identity"
+  op: "Identity"
+  input: "while_13/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_13/Identity_1"
+  op: "Identity"
+  input: "while_13/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_13/Identity_2"
+  op: "Identity"
+  input: "while_13/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_13/seek_docs"
+  op: "SeekOp"
+  input: "while_13/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_13/agg_docs"
+  op: "AggregatorOp"
+  input: "while_13/Identity_2"
+  input: "while_13/seek_docs:1"
+}
+node {
+  name: "while_13/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_13/seek_docs:2"
+  input: "while_13/agg_docs:1"
+}
+node {
+  name: "while_13/NextIteration"
+  op: "NextIteration"
+  input: "while_13/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_13/NextIteration_1"
+  op: "NextIteration"
+  input: "while_13/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_13/NextIteration_2"
+  op: "NextIteration"
+  input: "while_13/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_13/Exit"
+  op: "Exit"
+  input: "while_13/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_13/Exit_1"
+  op: "Exit"
+  input: "while_13/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_13/Exit_2"
+  op: "Exit"
+  input: "while_13/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_14"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_14"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:14"
+  input: "prepare_expression_resource_14"
+}
+node {
+  name: "agg_prepare_14"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_14"
+  input: "^prepare_seek_iterator_14"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_14"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_14/Enter"
+  op: "Enter"
+  input: "Const_14"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_14/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_14/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_14"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_14/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_14/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_14"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_14/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_14/Merge"
+  op: "Merge"
+  input: "while_14/Enter"
+  input: "while_14/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_14/Merge_1"
+  op: "Merge"
+  input: "while_14/Enter_1"
+  input: "while_14/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_14/Merge_2"
+  op: "Merge"
+  input: "while_14/Enter_2"
+  input: "while_14/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_14/cond_equal/x"
+  op: "Const"
+  input: "^while_14/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_14/cond_equal"
+  op: "Equal"
+  input: "while_14/cond_equal/x"
+  input: "while_14/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_14/LoopCond"
+  op: "LoopCond"
+  input: "while_14/cond_equal"
+}
+node {
+  name: "while_14/Switch"
+  op: "Switch"
+  input: "while_14/Merge"
+  input: "while_14/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_14/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_14/Switch_1"
+  op: "Switch"
+  input: "while_14/Merge_1"
+  input: "while_14/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_14/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_14/Switch_2"
+  op: "Switch"
+  input: "while_14/Merge_2"
+  input: "while_14/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_14/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_14/Identity"
+  op: "Identity"
+  input: "while_14/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_14/Identity_1"
+  op: "Identity"
+  input: "while_14/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_14/Identity_2"
+  op: "Identity"
+  input: "while_14/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_14/seek_docs"
+  op: "SeekOp"
+  input: "while_14/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_14/agg_docs"
+  op: "AggregatorOp"
+  input: "while_14/Identity_2"
+  input: "while_14/seek_docs:1"
+}
+node {
+  name: "while_14/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_14/seek_docs:2"
+  input: "while_14/agg_docs:1"
+}
+node {
+  name: "while_14/NextIteration"
+  op: "NextIteration"
+  input: "while_14/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_14/NextIteration_1"
+  op: "NextIteration"
+  input: "while_14/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_14/NextIteration_2"
+  op: "NextIteration"
+  input: "while_14/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_14/Exit"
+  op: "Exit"
+  input: "while_14/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_14/Exit_1"
+  op: "Exit"
+  input: "while_14/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_14/Exit_2"
+  op: "Exit"
+  input: "while_14/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_15"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_15"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:15"
+  input: "prepare_expression_resource_15"
+}
+node {
+  name: "agg_prepare_15"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_15"
+  input: "^prepare_seek_iterator_15"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_15"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_15/Enter"
+  op: "Enter"
+  input: "Const_15"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_15/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_15/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_15"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_15/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_15/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_15"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_15/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_15/Merge"
+  op: "Merge"
+  input: "while_15/Enter"
+  input: "while_15/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_15/Merge_1"
+  op: "Merge"
+  input: "while_15/Enter_1"
+  input: "while_15/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_15/Merge_2"
+  op: "Merge"
+  input: "while_15/Enter_2"
+  input: "while_15/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_15/cond_equal/x"
+  op: "Const"
+  input: "^while_15/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_15/cond_equal"
+  op: "Equal"
+  input: "while_15/cond_equal/x"
+  input: "while_15/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_15/LoopCond"
+  op: "LoopCond"
+  input: "while_15/cond_equal"
+}
+node {
+  name: "while_15/Switch"
+  op: "Switch"
+  input: "while_15/Merge"
+  input: "while_15/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_15/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_15/Switch_1"
+  op: "Switch"
+  input: "while_15/Merge_1"
+  input: "while_15/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_15/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_15/Switch_2"
+  op: "Switch"
+  input: "while_15/Merge_2"
+  input: "while_15/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_15/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_15/Identity"
+  op: "Identity"
+  input: "while_15/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_15/Identity_1"
+  op: "Identity"
+  input: "while_15/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_15/Identity_2"
+  op: "Identity"
+  input: "while_15/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_15/seek_docs"
+  op: "SeekOp"
+  input: "while_15/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_15/agg_docs"
+  op: "AggregatorOp"
+  input: "while_15/Identity_2"
+  input: "while_15/seek_docs:1"
+}
+node {
+  name: "while_15/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_15/seek_docs:2"
+  input: "while_15/agg_docs:1"
+}
+node {
+  name: "while_15/NextIteration"
+  op: "NextIteration"
+  input: "while_15/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_15/NextIteration_1"
+  op: "NextIteration"
+  input: "while_15/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_15/NextIteration_2"
+  op: "NextIteration"
+  input: "while_15/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_15/Exit"
+  op: "Exit"
+  input: "while_15/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_15/Exit_1"
+  op: "Exit"
+  input: "while_15/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_15/Exit_2"
+  op: "Exit"
+  input: "while_15/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_16"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_16"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:16"
+  input: "prepare_expression_resource_16"
+}
+node {
+  name: "agg_prepare_16"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_16"
+  input: "^prepare_seek_iterator_16"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_16"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_16/Enter"
+  op: "Enter"
+  input: "Const_16"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_16/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_16/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_16"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_16/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_16/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_16"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_16/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_16/Merge"
+  op: "Merge"
+  input: "while_16/Enter"
+  input: "while_16/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_16/Merge_1"
+  op: "Merge"
+  input: "while_16/Enter_1"
+  input: "while_16/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_16/Merge_2"
+  op: "Merge"
+  input: "while_16/Enter_2"
+  input: "while_16/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_16/cond_equal/x"
+  op: "Const"
+  input: "^while_16/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_16/cond_equal"
+  op: "Equal"
+  input: "while_16/cond_equal/x"
+  input: "while_16/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_16/LoopCond"
+  op: "LoopCond"
+  input: "while_16/cond_equal"
+}
+node {
+  name: "while_16/Switch"
+  op: "Switch"
+  input: "while_16/Merge"
+  input: "while_16/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_16/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_16/Switch_1"
+  op: "Switch"
+  input: "while_16/Merge_1"
+  input: "while_16/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_16/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_16/Switch_2"
+  op: "Switch"
+  input: "while_16/Merge_2"
+  input: "while_16/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_16/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_16/Identity"
+  op: "Identity"
+  input: "while_16/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_16/Identity_1"
+  op: "Identity"
+  input: "while_16/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_16/Identity_2"
+  op: "Identity"
+  input: "while_16/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_16/seek_docs"
+  op: "SeekOp"
+  input: "while_16/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_16/agg_docs"
+  op: "AggregatorOp"
+  input: "while_16/Identity_2"
+  input: "while_16/seek_docs:1"
+}
+node {
+  name: "while_16/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_16/seek_docs:2"
+  input: "while_16/agg_docs:1"
+}
+node {
+  name: "while_16/NextIteration"
+  op: "NextIteration"
+  input: "while_16/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_16/NextIteration_1"
+  op: "NextIteration"
+  input: "while_16/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_16/NextIteration_2"
+  op: "NextIteration"
+  input: "while_16/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_16/Exit"
+  op: "Exit"
+  input: "while_16/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_16/Exit_1"
+  op: "Exit"
+  input: "while_16/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_16/Exit_2"
+  op: "Exit"
+  input: "while_16/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_17"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_17"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:17"
+  input: "prepare_expression_resource_17"
+}
+node {
+  name: "agg_prepare_17"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_17"
+  input: "^prepare_seek_iterator_17"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_17"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_17/Enter"
+  op: "Enter"
+  input: "Const_17"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_17/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_17/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_17"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_17/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_17/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_17"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_17/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_17/Merge"
+  op: "Merge"
+  input: "while_17/Enter"
+  input: "while_17/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_17/Merge_1"
+  op: "Merge"
+  input: "while_17/Enter_1"
+  input: "while_17/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_17/Merge_2"
+  op: "Merge"
+  input: "while_17/Enter_2"
+  input: "while_17/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_17/cond_equal/x"
+  op: "Const"
+  input: "^while_17/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_17/cond_equal"
+  op: "Equal"
+  input: "while_17/cond_equal/x"
+  input: "while_17/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_17/LoopCond"
+  op: "LoopCond"
+  input: "while_17/cond_equal"
+}
+node {
+  name: "while_17/Switch"
+  op: "Switch"
+  input: "while_17/Merge"
+  input: "while_17/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_17/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_17/Switch_1"
+  op: "Switch"
+  input: "while_17/Merge_1"
+  input: "while_17/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_17/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_17/Switch_2"
+  op: "Switch"
+  input: "while_17/Merge_2"
+  input: "while_17/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_17/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_17/Identity"
+  op: "Identity"
+  input: "while_17/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_17/Identity_1"
+  op: "Identity"
+  input: "while_17/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_17/Identity_2"
+  op: "Identity"
+  input: "while_17/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_17/seek_docs"
+  op: "SeekOp"
+  input: "while_17/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_17/agg_docs"
+  op: "AggregatorOp"
+  input: "while_17/Identity_2"
+  input: "while_17/seek_docs:1"
+}
+node {
+  name: "while_17/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_17/seek_docs:2"
+  input: "while_17/agg_docs:1"
+}
+node {
+  name: "while_17/NextIteration"
+  op: "NextIteration"
+  input: "while_17/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_17/NextIteration_1"
+  op: "NextIteration"
+  input: "while_17/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_17/NextIteration_2"
+  op: "NextIteration"
+  input: "while_17/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_17/Exit"
+  op: "Exit"
+  input: "while_17/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_17/Exit_1"
+  op: "Exit"
+  input: "while_17/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_17/Exit_2"
+  op: "Exit"
+  input: "while_17/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_18"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_18"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:18"
+  input: "prepare_expression_resource_18"
+}
+node {
+  name: "agg_prepare_18"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_18"
+  input: "^prepare_seek_iterator_18"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_18"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_18/Enter"
+  op: "Enter"
+  input: "Const_18"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_18/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_18/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_18"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_18/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_18/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_18"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_18/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_18/Merge"
+  op: "Merge"
+  input: "while_18/Enter"
+  input: "while_18/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_18/Merge_1"
+  op: "Merge"
+  input: "while_18/Enter_1"
+  input: "while_18/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_18/Merge_2"
+  op: "Merge"
+  input: "while_18/Enter_2"
+  input: "while_18/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_18/cond_equal/x"
+  op: "Const"
+  input: "^while_18/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_18/cond_equal"
+  op: "Equal"
+  input: "while_18/cond_equal/x"
+  input: "while_18/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_18/LoopCond"
+  op: "LoopCond"
+  input: "while_18/cond_equal"
+}
+node {
+  name: "while_18/Switch"
+  op: "Switch"
+  input: "while_18/Merge"
+  input: "while_18/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_18/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_18/Switch_1"
+  op: "Switch"
+  input: "while_18/Merge_1"
+  input: "while_18/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_18/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_18/Switch_2"
+  op: "Switch"
+  input: "while_18/Merge_2"
+  input: "while_18/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_18/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_18/Identity"
+  op: "Identity"
+  input: "while_18/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_18/Identity_1"
+  op: "Identity"
+  input: "while_18/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_18/Identity_2"
+  op: "Identity"
+  input: "while_18/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_18/seek_docs"
+  op: "SeekOp"
+  input: "while_18/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_18/agg_docs"
+  op: "AggregatorOp"
+  input: "while_18/Identity_2"
+  input: "while_18/seek_docs:1"
+}
+node {
+  name: "while_18/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_18/seek_docs:2"
+  input: "while_18/agg_docs:1"
+}
+node {
+  name: "while_18/NextIteration"
+  op: "NextIteration"
+  input: "while_18/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_18/NextIteration_1"
+  op: "NextIteration"
+  input: "while_18/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_18/NextIteration_2"
+  op: "NextIteration"
+  input: "while_18/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_18/Exit"
+  op: "Exit"
+  input: "while_18/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_18/Exit_1"
+  op: "Exit"
+  input: "while_18/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_18/Exit_2"
+  op: "Exit"
+  input: "while_18/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_19"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_19"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:19"
+  input: "prepare_expression_resource_19"
+}
+node {
+  name: "agg_prepare_19"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_19"
+  input: "^prepare_seek_iterator_19"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_19"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_19/Enter"
+  op: "Enter"
+  input: "Const_19"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_19/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_19/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_19"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_19/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_19/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_19"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_19/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_19/Merge"
+  op: "Merge"
+  input: "while_19/Enter"
+  input: "while_19/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_19/Merge_1"
+  op: "Merge"
+  input: "while_19/Enter_1"
+  input: "while_19/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_19/Merge_2"
+  op: "Merge"
+  input: "while_19/Enter_2"
+  input: "while_19/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_19/cond_equal/x"
+  op: "Const"
+  input: "^while_19/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_19/cond_equal"
+  op: "Equal"
+  input: "while_19/cond_equal/x"
+  input: "while_19/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_19/LoopCond"
+  op: "LoopCond"
+  input: "while_19/cond_equal"
+}
+node {
+  name: "while_19/Switch"
+  op: "Switch"
+  input: "while_19/Merge"
+  input: "while_19/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_19/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_19/Switch_1"
+  op: "Switch"
+  input: "while_19/Merge_1"
+  input: "while_19/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_19/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_19/Switch_2"
+  op: "Switch"
+  input: "while_19/Merge_2"
+  input: "while_19/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_19/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_19/Identity"
+  op: "Identity"
+  input: "while_19/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_19/Identity_1"
+  op: "Identity"
+  input: "while_19/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_19/Identity_2"
+  op: "Identity"
+  input: "while_19/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_19/seek_docs"
+  op: "SeekOp"
+  input: "while_19/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_19/agg_docs"
+  op: "AggregatorOp"
+  input: "while_19/Identity_2"
+  input: "while_19/seek_docs:1"
+}
+node {
+  name: "while_19/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_19/seek_docs:2"
+  input: "while_19/agg_docs:1"
+}
+node {
+  name: "while_19/NextIteration"
+  op: "NextIteration"
+  input: "while_19/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_19/NextIteration_1"
+  op: "NextIteration"
+  input: "while_19/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_19/NextIteration_2"
+  op: "NextIteration"
+  input: "while_19/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_19/Exit"
+  op: "Exit"
+  input: "while_19/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_19/Exit_1"
+  op: "Exit"
+  input: "while_19/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_19/Exit_2"
+  op: "Exit"
+  input: "while_19/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_20"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_20"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:20"
+  input: "prepare_expression_resource_20"
+}
+node {
+  name: "agg_prepare_20"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_20"
+  input: "^prepare_seek_iterator_20"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_20"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_20/Enter"
+  op: "Enter"
+  input: "Const_20"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_20/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_20/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_20"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_20/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_20/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_20"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_20/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_20/Merge"
+  op: "Merge"
+  input: "while_20/Enter"
+  input: "while_20/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_20/Merge_1"
+  op: "Merge"
+  input: "while_20/Enter_1"
+  input: "while_20/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_20/Merge_2"
+  op: "Merge"
+  input: "while_20/Enter_2"
+  input: "while_20/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_20/cond_equal/x"
+  op: "Const"
+  input: "^while_20/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_20/cond_equal"
+  op: "Equal"
+  input: "while_20/cond_equal/x"
+  input: "while_20/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_20/LoopCond"
+  op: "LoopCond"
+  input: "while_20/cond_equal"
+}
+node {
+  name: "while_20/Switch"
+  op: "Switch"
+  input: "while_20/Merge"
+  input: "while_20/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_20/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_20/Switch_1"
+  op: "Switch"
+  input: "while_20/Merge_1"
+  input: "while_20/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_20/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_20/Switch_2"
+  op: "Switch"
+  input: "while_20/Merge_2"
+  input: "while_20/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_20/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_20/Identity"
+  op: "Identity"
+  input: "while_20/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_20/Identity_1"
+  op: "Identity"
+  input: "while_20/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_20/Identity_2"
+  op: "Identity"
+  input: "while_20/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_20/seek_docs"
+  op: "SeekOp"
+  input: "while_20/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_20/agg_docs"
+  op: "AggregatorOp"
+  input: "while_20/Identity_2"
+  input: "while_20/seek_docs:1"
+}
+node {
+  name: "while_20/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_20/seek_docs:2"
+  input: "while_20/agg_docs:1"
+}
+node {
+  name: "while_20/NextIteration"
+  op: "NextIteration"
+  input: "while_20/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_20/NextIteration_1"
+  op: "NextIteration"
+  input: "while_20/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_20/NextIteration_2"
+  op: "NextIteration"
+  input: "while_20/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_20/Exit"
+  op: "Exit"
+  input: "while_20/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_20/Exit_1"
+  op: "Exit"
+  input: "while_20/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_20/Exit_2"
+  op: "Exit"
+  input: "while_20/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_21"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_21"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:21"
+  input: "prepare_expression_resource_21"
+}
+node {
+  name: "agg_prepare_21"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_21"
+  input: "^prepare_seek_iterator_21"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_21"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_21/Enter"
+  op: "Enter"
+  input: "Const_21"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_21/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_21/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_21"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_21/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_21/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_21"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_21/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_21/Merge"
+  op: "Merge"
+  input: "while_21/Enter"
+  input: "while_21/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_21/Merge_1"
+  op: "Merge"
+  input: "while_21/Enter_1"
+  input: "while_21/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_21/Merge_2"
+  op: "Merge"
+  input: "while_21/Enter_2"
+  input: "while_21/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_21/cond_equal/x"
+  op: "Const"
+  input: "^while_21/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_21/cond_equal"
+  op: "Equal"
+  input: "while_21/cond_equal/x"
+  input: "while_21/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_21/LoopCond"
+  op: "LoopCond"
+  input: "while_21/cond_equal"
+}
+node {
+  name: "while_21/Switch"
+  op: "Switch"
+  input: "while_21/Merge"
+  input: "while_21/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_21/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_21/Switch_1"
+  op: "Switch"
+  input: "while_21/Merge_1"
+  input: "while_21/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_21/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_21/Switch_2"
+  op: "Switch"
+  input: "while_21/Merge_2"
+  input: "while_21/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_21/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_21/Identity"
+  op: "Identity"
+  input: "while_21/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_21/Identity_1"
+  op: "Identity"
+  input: "while_21/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_21/Identity_2"
+  op: "Identity"
+  input: "while_21/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_21/seek_docs"
+  op: "SeekOp"
+  input: "while_21/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_21/agg_docs"
+  op: "AggregatorOp"
+  input: "while_21/Identity_2"
+  input: "while_21/seek_docs:1"
+}
+node {
+  name: "while_21/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_21/seek_docs:2"
+  input: "while_21/agg_docs:1"
+}
+node {
+  name: "while_21/NextIteration"
+  op: "NextIteration"
+  input: "while_21/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_21/NextIteration_1"
+  op: "NextIteration"
+  input: "while_21/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_21/NextIteration_2"
+  op: "NextIteration"
+  input: "while_21/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_21/Exit"
+  op: "Exit"
+  input: "while_21/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_21/Exit_1"
+  op: "Exit"
+  input: "while_21/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_21/Exit_2"
+  op: "Exit"
+  input: "while_21/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_22"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_22"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:22"
+  input: "prepare_expression_resource_22"
+}
+node {
+  name: "agg_prepare_22"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_22"
+  input: "^prepare_seek_iterator_22"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_22"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_22/Enter"
+  op: "Enter"
+  input: "Const_22"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_22/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_22/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_22"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_22/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_22/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_22"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_22/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_22/Merge"
+  op: "Merge"
+  input: "while_22/Enter"
+  input: "while_22/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_22/Merge_1"
+  op: "Merge"
+  input: "while_22/Enter_1"
+  input: "while_22/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_22/Merge_2"
+  op: "Merge"
+  input: "while_22/Enter_2"
+  input: "while_22/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_22/cond_equal/x"
+  op: "Const"
+  input: "^while_22/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_22/cond_equal"
+  op: "Equal"
+  input: "while_22/cond_equal/x"
+  input: "while_22/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_22/LoopCond"
+  op: "LoopCond"
+  input: "while_22/cond_equal"
+}
+node {
+  name: "while_22/Switch"
+  op: "Switch"
+  input: "while_22/Merge"
+  input: "while_22/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_22/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_22/Switch_1"
+  op: "Switch"
+  input: "while_22/Merge_1"
+  input: "while_22/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_22/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_22/Switch_2"
+  op: "Switch"
+  input: "while_22/Merge_2"
+  input: "while_22/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_22/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_22/Identity"
+  op: "Identity"
+  input: "while_22/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_22/Identity_1"
+  op: "Identity"
+  input: "while_22/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_22/Identity_2"
+  op: "Identity"
+  input: "while_22/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_22/seek_docs"
+  op: "SeekOp"
+  input: "while_22/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_22/agg_docs"
+  op: "AggregatorOp"
+  input: "while_22/Identity_2"
+  input: "while_22/seek_docs:1"
+}
+node {
+  name: "while_22/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_22/seek_docs:2"
+  input: "while_22/agg_docs:1"
+}
+node {
+  name: "while_22/NextIteration"
+  op: "NextIteration"
+  input: "while_22/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_22/NextIteration_1"
+  op: "NextIteration"
+  input: "while_22/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_22/NextIteration_2"
+  op: "NextIteration"
+  input: "while_22/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_22/Exit"
+  op: "Exit"
+  input: "while_22/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_22/Exit_1"
+  op: "Exit"
+  input: "while_22/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_22/Exit_2"
+  op: "Exit"
+  input: "while_22/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_23"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_23"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:23"
+  input: "prepare_expression_resource_23"
+}
+node {
+  name: "agg_prepare_23"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_23"
+  input: "^prepare_seek_iterator_23"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_23"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_23/Enter"
+  op: "Enter"
+  input: "Const_23"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_23/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_23/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_23"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_23/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_23/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_23"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_23/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_23/Merge"
+  op: "Merge"
+  input: "while_23/Enter"
+  input: "while_23/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_23/Merge_1"
+  op: "Merge"
+  input: "while_23/Enter_1"
+  input: "while_23/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_23/Merge_2"
+  op: "Merge"
+  input: "while_23/Enter_2"
+  input: "while_23/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_23/cond_equal/x"
+  op: "Const"
+  input: "^while_23/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_23/cond_equal"
+  op: "Equal"
+  input: "while_23/cond_equal/x"
+  input: "while_23/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_23/LoopCond"
+  op: "LoopCond"
+  input: "while_23/cond_equal"
+}
+node {
+  name: "while_23/Switch"
+  op: "Switch"
+  input: "while_23/Merge"
+  input: "while_23/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_23/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_23/Switch_1"
+  op: "Switch"
+  input: "while_23/Merge_1"
+  input: "while_23/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_23/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_23/Switch_2"
+  op: "Switch"
+  input: "while_23/Merge_2"
+  input: "while_23/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_23/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_23/Identity"
+  op: "Identity"
+  input: "while_23/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_23/Identity_1"
+  op: "Identity"
+  input: "while_23/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_23/Identity_2"
+  op: "Identity"
+  input: "while_23/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_23/seek_docs"
+  op: "SeekOp"
+  input: "while_23/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_23/agg_docs"
+  op: "AggregatorOp"
+  input: "while_23/Identity_2"
+  input: "while_23/seek_docs:1"
+}
+node {
+  name: "while_23/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_23/seek_docs:2"
+  input: "while_23/agg_docs:1"
+}
+node {
+  name: "while_23/NextIteration"
+  op: "NextIteration"
+  input: "while_23/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_23/NextIteration_1"
+  op: "NextIteration"
+  input: "while_23/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_23/NextIteration_2"
+  op: "NextIteration"
+  input: "while_23/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_23/Exit"
+  op: "Exit"
+  input: "while_23/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_23/Exit_1"
+  op: "Exit"
+  input: "while_23/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_23/Exit_2"
+  op: "Exit"
+  input: "while_23/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_24"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_24"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:24"
+  input: "prepare_expression_resource_24"
+}
+node {
+  name: "agg_prepare_24"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_24"
+  input: "^prepare_seek_iterator_24"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_24"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_24/Enter"
+  op: "Enter"
+  input: "Const_24"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_24/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_24/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_24"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_24/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_24/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_24"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_24/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_24/Merge"
+  op: "Merge"
+  input: "while_24/Enter"
+  input: "while_24/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_24/Merge_1"
+  op: "Merge"
+  input: "while_24/Enter_1"
+  input: "while_24/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_24/Merge_2"
+  op: "Merge"
+  input: "while_24/Enter_2"
+  input: "while_24/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_24/cond_equal/x"
+  op: "Const"
+  input: "^while_24/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_24/cond_equal"
+  op: "Equal"
+  input: "while_24/cond_equal/x"
+  input: "while_24/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_24/LoopCond"
+  op: "LoopCond"
+  input: "while_24/cond_equal"
+}
+node {
+  name: "while_24/Switch"
+  op: "Switch"
+  input: "while_24/Merge"
+  input: "while_24/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_24/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_24/Switch_1"
+  op: "Switch"
+  input: "while_24/Merge_1"
+  input: "while_24/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_24/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_24/Switch_2"
+  op: "Switch"
+  input: "while_24/Merge_2"
+  input: "while_24/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_24/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_24/Identity"
+  op: "Identity"
+  input: "while_24/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_24/Identity_1"
+  op: "Identity"
+  input: "while_24/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_24/Identity_2"
+  op: "Identity"
+  input: "while_24/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_24/seek_docs"
+  op: "SeekOp"
+  input: "while_24/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_24/agg_docs"
+  op: "AggregatorOp"
+  input: "while_24/Identity_2"
+  input: "while_24/seek_docs:1"
+}
+node {
+  name: "while_24/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_24/seek_docs:2"
+  input: "while_24/agg_docs:1"
+}
+node {
+  name: "while_24/NextIteration"
+  op: "NextIteration"
+  input: "while_24/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_24/NextIteration_1"
+  op: "NextIteration"
+  input: "while_24/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_24/NextIteration_2"
+  op: "NextIteration"
+  input: "while_24/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_24/Exit"
+  op: "Exit"
+  input: "while_24/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_24/Exit_1"
+  op: "Exit"
+  input: "while_24/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_24/Exit_2"
+  op: "Exit"
+  input: "while_24/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_25"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_25"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:25"
+  input: "prepare_expression_resource_25"
+}
+node {
+  name: "agg_prepare_25"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_25"
+  input: "^prepare_seek_iterator_25"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_25"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_25/Enter"
+  op: "Enter"
+  input: "Const_25"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_25/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_25/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_25"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_25/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_25/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_25"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_25/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_25/Merge"
+  op: "Merge"
+  input: "while_25/Enter"
+  input: "while_25/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_25/Merge_1"
+  op: "Merge"
+  input: "while_25/Enter_1"
+  input: "while_25/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_25/Merge_2"
+  op: "Merge"
+  input: "while_25/Enter_2"
+  input: "while_25/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_25/cond_equal/x"
+  op: "Const"
+  input: "^while_25/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_25/cond_equal"
+  op: "Equal"
+  input: "while_25/cond_equal/x"
+  input: "while_25/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_25/LoopCond"
+  op: "LoopCond"
+  input: "while_25/cond_equal"
+}
+node {
+  name: "while_25/Switch"
+  op: "Switch"
+  input: "while_25/Merge"
+  input: "while_25/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_25/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_25/Switch_1"
+  op: "Switch"
+  input: "while_25/Merge_1"
+  input: "while_25/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_25/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_25/Switch_2"
+  op: "Switch"
+  input: "while_25/Merge_2"
+  input: "while_25/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_25/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_25/Identity"
+  op: "Identity"
+  input: "while_25/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_25/Identity_1"
+  op: "Identity"
+  input: "while_25/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_25/Identity_2"
+  op: "Identity"
+  input: "while_25/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_25/seek_docs"
+  op: "SeekOp"
+  input: "while_25/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_25/agg_docs"
+  op: "AggregatorOp"
+  input: "while_25/Identity_2"
+  input: "while_25/seek_docs:1"
+}
+node {
+  name: "while_25/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_25/seek_docs:2"
+  input: "while_25/agg_docs:1"
+}
+node {
+  name: "while_25/NextIteration"
+  op: "NextIteration"
+  input: "while_25/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_25/NextIteration_1"
+  op: "NextIteration"
+  input: "while_25/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_25/NextIteration_2"
+  op: "NextIteration"
+  input: "while_25/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_25/Exit"
+  op: "Exit"
+  input: "while_25/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_25/Exit_1"
+  op: "Exit"
+  input: "while_25/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_25/Exit_2"
+  op: "Exit"
+  input: "while_25/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_26"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_26"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:26"
+  input: "prepare_expression_resource_26"
+}
+node {
+  name: "agg_prepare_26"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_26"
+  input: "^prepare_seek_iterator_26"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_26"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_26/Enter"
+  op: "Enter"
+  input: "Const_26"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_26/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_26/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_26"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_26/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_26/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_26"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_26/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_26/Merge"
+  op: "Merge"
+  input: "while_26/Enter"
+  input: "while_26/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_26/Merge_1"
+  op: "Merge"
+  input: "while_26/Enter_1"
+  input: "while_26/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_26/Merge_2"
+  op: "Merge"
+  input: "while_26/Enter_2"
+  input: "while_26/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_26/cond_equal/x"
+  op: "Const"
+  input: "^while_26/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_26/cond_equal"
+  op: "Equal"
+  input: "while_26/cond_equal/x"
+  input: "while_26/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_26/LoopCond"
+  op: "LoopCond"
+  input: "while_26/cond_equal"
+}
+node {
+  name: "while_26/Switch"
+  op: "Switch"
+  input: "while_26/Merge"
+  input: "while_26/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_26/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_26/Switch_1"
+  op: "Switch"
+  input: "while_26/Merge_1"
+  input: "while_26/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_26/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_26/Switch_2"
+  op: "Switch"
+  input: "while_26/Merge_2"
+  input: "while_26/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_26/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_26/Identity"
+  op: "Identity"
+  input: "while_26/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_26/Identity_1"
+  op: "Identity"
+  input: "while_26/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_26/Identity_2"
+  op: "Identity"
+  input: "while_26/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_26/seek_docs"
+  op: "SeekOp"
+  input: "while_26/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_26/agg_docs"
+  op: "AggregatorOp"
+  input: "while_26/Identity_2"
+  input: "while_26/seek_docs:1"
+}
+node {
+  name: "while_26/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_26/seek_docs:2"
+  input: "while_26/agg_docs:1"
+}
+node {
+  name: "while_26/NextIteration"
+  op: "NextIteration"
+  input: "while_26/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_26/NextIteration_1"
+  op: "NextIteration"
+  input: "while_26/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_26/NextIteration_2"
+  op: "NextIteration"
+  input: "while_26/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_26/Exit"
+  op: "Exit"
+  input: "while_26/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_26/Exit_1"
+  op: "Exit"
+  input: "while_26/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_26/Exit_2"
+  op: "Exit"
+  input: "while_26/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_27"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_27"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:27"
+  input: "prepare_expression_resource_27"
+}
+node {
+  name: "agg_prepare_27"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_27"
+  input: "^prepare_seek_iterator_27"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_27"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_27/Enter"
+  op: "Enter"
+  input: "Const_27"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_27/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_27/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_27"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_27/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_27/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_27"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_27/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_27/Merge"
+  op: "Merge"
+  input: "while_27/Enter"
+  input: "while_27/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_27/Merge_1"
+  op: "Merge"
+  input: "while_27/Enter_1"
+  input: "while_27/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_27/Merge_2"
+  op: "Merge"
+  input: "while_27/Enter_2"
+  input: "while_27/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_27/cond_equal/x"
+  op: "Const"
+  input: "^while_27/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_27/cond_equal"
+  op: "Equal"
+  input: "while_27/cond_equal/x"
+  input: "while_27/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_27/LoopCond"
+  op: "LoopCond"
+  input: "while_27/cond_equal"
+}
+node {
+  name: "while_27/Switch"
+  op: "Switch"
+  input: "while_27/Merge"
+  input: "while_27/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_27/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_27/Switch_1"
+  op: "Switch"
+  input: "while_27/Merge_1"
+  input: "while_27/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_27/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_27/Switch_2"
+  op: "Switch"
+  input: "while_27/Merge_2"
+  input: "while_27/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_27/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_27/Identity"
+  op: "Identity"
+  input: "while_27/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_27/Identity_1"
+  op: "Identity"
+  input: "while_27/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_27/Identity_2"
+  op: "Identity"
+  input: "while_27/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_27/seek_docs"
+  op: "SeekOp"
+  input: "while_27/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_27/agg_docs"
+  op: "AggregatorOp"
+  input: "while_27/Identity_2"
+  input: "while_27/seek_docs:1"
+}
+node {
+  name: "while_27/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_27/seek_docs:2"
+  input: "while_27/agg_docs:1"
+}
+node {
+  name: "while_27/NextIteration"
+  op: "NextIteration"
+  input: "while_27/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_27/NextIteration_1"
+  op: "NextIteration"
+  input: "while_27/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_27/NextIteration_2"
+  op: "NextIteration"
+  input: "while_27/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_27/Exit"
+  op: "Exit"
+  input: "while_27/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_27/Exit_1"
+  op: "Exit"
+  input: "while_27/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_27/Exit_2"
+  op: "Exit"
+  input: "while_27/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_28"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_28"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:28"
+  input: "prepare_expression_resource_28"
+}
+node {
+  name: "agg_prepare_28"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_28"
+  input: "^prepare_seek_iterator_28"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_28"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_28/Enter"
+  op: "Enter"
+  input: "Const_28"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_28/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_28/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_28"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_28/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_28/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_28"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_28/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_28/Merge"
+  op: "Merge"
+  input: "while_28/Enter"
+  input: "while_28/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_28/Merge_1"
+  op: "Merge"
+  input: "while_28/Enter_1"
+  input: "while_28/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_28/Merge_2"
+  op: "Merge"
+  input: "while_28/Enter_2"
+  input: "while_28/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_28/cond_equal/x"
+  op: "Const"
+  input: "^while_28/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_28/cond_equal"
+  op: "Equal"
+  input: "while_28/cond_equal/x"
+  input: "while_28/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_28/LoopCond"
+  op: "LoopCond"
+  input: "while_28/cond_equal"
+}
+node {
+  name: "while_28/Switch"
+  op: "Switch"
+  input: "while_28/Merge"
+  input: "while_28/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_28/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_28/Switch_1"
+  op: "Switch"
+  input: "while_28/Merge_1"
+  input: "while_28/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_28/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_28/Switch_2"
+  op: "Switch"
+  input: "while_28/Merge_2"
+  input: "while_28/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_28/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_28/Identity"
+  op: "Identity"
+  input: "while_28/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_28/Identity_1"
+  op: "Identity"
+  input: "while_28/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_28/Identity_2"
+  op: "Identity"
+  input: "while_28/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_28/seek_docs"
+  op: "SeekOp"
+  input: "while_28/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_28/agg_docs"
+  op: "AggregatorOp"
+  input: "while_28/Identity_2"
+  input: "while_28/seek_docs:1"
+}
+node {
+  name: "while_28/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_28/seek_docs:2"
+  input: "while_28/agg_docs:1"
+}
+node {
+  name: "while_28/NextIteration"
+  op: "NextIteration"
+  input: "while_28/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_28/NextIteration_1"
+  op: "NextIteration"
+  input: "while_28/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_28/NextIteration_2"
+  op: "NextIteration"
+  input: "while_28/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_28/Exit"
+  op: "Exit"
+  input: "while_28/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_28/Exit_1"
+  op: "Exit"
+  input: "while_28/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_28/Exit_2"
+  op: "Exit"
+  input: "while_28/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_29"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_29"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:29"
+  input: "prepare_expression_resource_29"
+}
+node {
+  name: "agg_prepare_29"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_29"
+  input: "^prepare_seek_iterator_29"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_29"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_29/Enter"
+  op: "Enter"
+  input: "Const_29"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_29/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_29/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_29"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_29/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_29/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_29"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_29/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_29/Merge"
+  op: "Merge"
+  input: "while_29/Enter"
+  input: "while_29/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_29/Merge_1"
+  op: "Merge"
+  input: "while_29/Enter_1"
+  input: "while_29/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_29/Merge_2"
+  op: "Merge"
+  input: "while_29/Enter_2"
+  input: "while_29/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_29/cond_equal/x"
+  op: "Const"
+  input: "^while_29/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_29/cond_equal"
+  op: "Equal"
+  input: "while_29/cond_equal/x"
+  input: "while_29/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_29/LoopCond"
+  op: "LoopCond"
+  input: "while_29/cond_equal"
+}
+node {
+  name: "while_29/Switch"
+  op: "Switch"
+  input: "while_29/Merge"
+  input: "while_29/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_29/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_29/Switch_1"
+  op: "Switch"
+  input: "while_29/Merge_1"
+  input: "while_29/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_29/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_29/Switch_2"
+  op: "Switch"
+  input: "while_29/Merge_2"
+  input: "while_29/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_29/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_29/Identity"
+  op: "Identity"
+  input: "while_29/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_29/Identity_1"
+  op: "Identity"
+  input: "while_29/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_29/Identity_2"
+  op: "Identity"
+  input: "while_29/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_29/seek_docs"
+  op: "SeekOp"
+  input: "while_29/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_29/agg_docs"
+  op: "AggregatorOp"
+  input: "while_29/Identity_2"
+  input: "while_29/seek_docs:1"
+}
+node {
+  name: "while_29/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_29/seek_docs:2"
+  input: "while_29/agg_docs:1"
+}
+node {
+  name: "while_29/NextIteration"
+  op: "NextIteration"
+  input: "while_29/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_29/NextIteration_1"
+  op: "NextIteration"
+  input: "while_29/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_29/NextIteration_2"
+  op: "NextIteration"
+  input: "while_29/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_29/Exit"
+  op: "Exit"
+  input: "while_29/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_29/Exit_1"
+  op: "Exit"
+  input: "while_29/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_29/Exit_2"
+  op: "Exit"
+  input: "while_29/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_30"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_30"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:30"
+  input: "prepare_expression_resource_30"
+}
+node {
+  name: "agg_prepare_30"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_30"
+  input: "^prepare_seek_iterator_30"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_30"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_30/Enter"
+  op: "Enter"
+  input: "Const_30"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_30/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_30/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_30"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_30/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_30/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_30"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_30/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_30/Merge"
+  op: "Merge"
+  input: "while_30/Enter"
+  input: "while_30/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_30/Merge_1"
+  op: "Merge"
+  input: "while_30/Enter_1"
+  input: "while_30/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_30/Merge_2"
+  op: "Merge"
+  input: "while_30/Enter_2"
+  input: "while_30/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_30/cond_equal/x"
+  op: "Const"
+  input: "^while_30/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_30/cond_equal"
+  op: "Equal"
+  input: "while_30/cond_equal/x"
+  input: "while_30/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_30/LoopCond"
+  op: "LoopCond"
+  input: "while_30/cond_equal"
+}
+node {
+  name: "while_30/Switch"
+  op: "Switch"
+  input: "while_30/Merge"
+  input: "while_30/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_30/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_30/Switch_1"
+  op: "Switch"
+  input: "while_30/Merge_1"
+  input: "while_30/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_30/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_30/Switch_2"
+  op: "Switch"
+  input: "while_30/Merge_2"
+  input: "while_30/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_30/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_30/Identity"
+  op: "Identity"
+  input: "while_30/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_30/Identity_1"
+  op: "Identity"
+  input: "while_30/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_30/Identity_2"
+  op: "Identity"
+  input: "while_30/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_30/seek_docs"
+  op: "SeekOp"
+  input: "while_30/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_30/agg_docs"
+  op: "AggregatorOp"
+  input: "while_30/Identity_2"
+  input: "while_30/seek_docs:1"
+}
+node {
+  name: "while_30/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_30/seek_docs:2"
+  input: "while_30/agg_docs:1"
+}
+node {
+  name: "while_30/NextIteration"
+  op: "NextIteration"
+  input: "while_30/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_30/NextIteration_1"
+  op: "NextIteration"
+  input: "while_30/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_30/NextIteration_2"
+  op: "NextIteration"
+  input: "while_30/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_30/Exit"
+  op: "Exit"
+  input: "while_30/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_30/Exit_1"
+  op: "Exit"
+  input: "while_30/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_30/Exit_2"
+  op: "Exit"
+  input: "while_30/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "prepare_expression_resource_31"
+  op: "PrepareExpressionResourceOp"
+  input: "init_request"
+}
+node {
+  name: "prepare_seek_iterator_31"
+  op: "SeekIteratorPrepareOp"
+  input: "split_ranges:31"
+  input: "prepare_expression_resource_31"
+}
+node {
+  name: "agg_prepare_31"
+  op: "AggPrepareOp"
+  input: "prepare_expression_resource_31"
+  input: "^prepare_seek_iterator_31"
+  attr {
+    key: "json_path"
+    value {
+      s: ""
+    }
+  }
+  attr {
+    key: "relative_path"
+    value {
+      s: ""
+    }
+  }
+}
+node {
+  name: "Const_31"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_31/Enter"
+  op: "Enter"
+  input: "Const_31"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_31/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_31/Enter_1"
+  op: "Enter"
+  input: "prepare_seek_iterator_31"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_31/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_31/Enter_2"
+  op: "Enter"
+  input: "agg_prepare_31"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "frame_name"
+    value {
+      s: "while_31/while_context"
+    }
+  }
+  attr {
+    key: "is_constant"
+    value {
+      b: false
+    }
+  }
+  attr {
+    key: "parallel_iterations"
+    value {
+      i: 1
+    }
+  }
+}
+node {
+  name: "while_31/Merge"
+  op: "Merge"
+  input: "while_31/Enter"
+  input: "while_31/NextIteration"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_31/Merge_1"
+  op: "Merge"
+  input: "while_31/Enter_1"
+  input: "while_31/NextIteration_1"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_31/Merge_2"
+  op: "Merge"
+  input: "while_31/Enter_2"
+  input: "while_31/NextIteration_2"
+  attr {
+    key: "N"
+    value {
+      i: 2
+    }
+  }
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_31/cond_equal/x"
+  op: "Const"
+  input: "^while_31/Merge"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_BOOL
+        tensor_shape {
+        }
+        bool_val: false
+      }
+    }
+  }
+}
+node {
+  name: "while_31/cond_equal"
+  op: "Equal"
+  input: "while_31/cond_equal/x"
+  input: "while_31/Merge"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_31/LoopCond"
+  op: "LoopCond"
+  input: "while_31/cond_equal"
+}
+node {
+  name: "while_31/Switch"
+  op: "Switch"
+  input: "while_31/Merge"
+  input: "while_31/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_31/Merge"
+      }
+    }
+  }
+}
+node {
+  name: "while_31/Switch_1"
+  op: "Switch"
+  input: "while_31/Merge_1"
+  input: "while_31/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_31/Merge_1"
+      }
+    }
+  }
+}
+node {
+  name: "while_31/Switch_2"
+  op: "Switch"
+  input: "while_31/Merge_2"
+  input: "while_31/LoopCond"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+  attr {
+    key: "_class"
+    value {
+      list {
+        s: "loc:@while_31/Merge_2"
+      }
+    }
+  }
+}
+node {
+  name: "while_31/Identity"
+  op: "Identity"
+  input: "while_31/Switch:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_31/Identity_1"
+  op: "Identity"
+  input: "while_31/Switch_1:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_31/Identity_2"
+  op: "Identity"
+  input: "while_31/Switch_2:1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_31/seek_docs"
+  op: "SeekOp"
+  input: "while_31/Identity_1"
+  attr {
+    key: "batch_size"
+    value {
+      i: 10240
+    }
+  }
+}
+node {
+  name: "while_31/agg_docs"
+  op: "AggregatorOp"
+  input: "while_31/Identity_2"
+  input: "while_31/seek_docs:1"
+}
+node {
+  name: "while_31/release_docs"
+  op: "MatchDocReleaseOp"
+  input: "while_31/seek_docs:2"
+  input: "while_31/agg_docs:1"
+}
+node {
+  name: "while_31/NextIteration"
+  op: "NextIteration"
+  input: "while_31/release_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_31/NextIteration_1"
+  op: "NextIteration"
+  input: "while_31/seek_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_31/NextIteration_2"
+  op: "NextIteration"
+  input: "while_31/agg_docs"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_31/Exit"
+  op: "Exit"
+  input: "while_31/Switch"
+  attr {
+    key: "T"
+    value {
+      type: DT_BOOL
+    }
+  }
+}
+node {
+  name: "while_31/Exit_1"
+  op: "Exit"
+  input: "while_31/Switch_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "while_31/Exit_2"
+  op: "Exit"
+  input: "while_31/Switch_2"
+  attr {
+    key: "T"
+    value {
+      type: DT_VARIANT
+    }
+  }
+}
+node {
+  name: "AggMergeOp"
+  op: "AggMergeOp"
+  input: "while/Exit_2"
+  input: "while_1/Exit_2"
+  input: "while_2/Exit_2"
+  input: "while_3/Exit_2"
+  input: "while_4/Exit_2"
+  input: "while_5/Exit_2"
+  input: "while_6/Exit_2"
+  input: "while_7/Exit_2"
+  input: "while_8/Exit_2"
+  input: "while_9/Exit_2"
+  input: "while_10/Exit_2"
+  input: "while_11/Exit_2"
+  input: "while_12/Exit_2"
+  input: "while_13/Exit_2"
+  input: "while_14/Exit_2"
+  input: "while_15/Exit_2"
+  input: "while_16/Exit_2"
+  input: "while_17/Exit_2"
+  input: "while_18/Exit_2"
+  input: "while_19/Exit_2"
+  input: "while_20/Exit_2"
+  input: "while_21/Exit_2"
+  input: "while_22/Exit_2"
+  input: "while_23/Exit_2"
+  input: "while_24/Exit_2"
+  input: "while_25/Exit_2"
+  input: "while_26/Exit_2"
+  input: "while_27/Exit_2"
+  input: "while_28/Exit_2"
+  input: "while_29/Exit_2"
+  input: "while_30/Exit_2"
+  input: "while_31/Exit_2"
+  attr {
+    key: "N"
+    value {
+      i: 32
+    }
+  }
+}
+node {
+  name: "ha3_result"
+  op: "AggResultConstructOp"
+  input: "AggMergeOp"
+}
+node {
+  name: "ha3_search_done"
+  op: "NoOp"
+  input: "^ha3_result"
+}
+versions {
+  producer: 24
+}

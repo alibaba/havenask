@@ -1,0 +1,468 @@
+{
+    "aggregate_sampler_config" : {
+	"aggThreshold" : 2000,
+	"batchSampleMaxCount" : 1000,
+	"sampleStep" : 100000,
+	"maxSortCount" : 10001,
+	"aggBatchMode" : true
+    },
+    "build_option_config" : {
+	"RawDocumentFormat" : "ha3",
+	"NeedSort" : true,
+	"NeedPartition" : true,
+	"MapBufferSize" : 256,
+	"MapReduceRatio" : 8,
+	"DocumentProcessThreadNum" : 1,
+	"DocumentProcessQueueSize" : 250,
+	"IndexDocumentQueueSize" : 250,
+	"EnableSyncBuild" : true,
+	"BuildQps" : 500,
+	"NeedSkip": false,
+	"IndexKeepTime" : 36000,
+	"IndexDumpInterval" : 60,
+	"HashFieldAllowEmpty" : false,
+	"IncDedupOption": "use:yes;ignore_fields:commend",
+	"SortParams":
+	[
+            {
+		"SortFieldName": "category",
+		"SortFieldType": "INT32",
+		"SortPattern": "DESC"
+            },
+            {
+		"SortFieldName": "ends",
+		"SortFieldType": "INT64",
+		"SortPattern": "ASC"
+            }
+	],
+	"NeedParseEnds" : true,
+	"RealtimeBuildDelayTime" : 90
+    },
+    "doc_process_chain_config" : {
+	"modules" : [
+            {
+		"module_name" : "MainseOfflineBuild",
+		"module_path" : "libMainseOfflineBuild.so",
+		"parameters" :
+		{
+		}
+            },
+            {
+		"module_name" : "CommonOfflineBuild",
+		"module_path" : "libCommonOfflineBuild.so",
+		"parameters" :
+		{
+		}
+            }
+	],
+	"document_processor_chain" : [
+            {
+		"class_name" : "ModifiedFieldsDocumentProcessor",
+		"module_name": "",
+		"parameters" :
+		{
+                    "derivative_relationship":"nick:DUP_nick;pidvid:DUP_pidvid;ends:ends_1;zk_rate:zk_time;zk_time:zk_rate;dna_id:DUP_dna_id"
+		}
+            },
+            {
+		"class_name" : "SplitProcessor",
+		"module_name": "MainseOfflineBuild",
+		"parameters" :
+		{
+                    "Fields" : "lptime\u0001disp_flag\u0001properties\u0001provcity\u0001ends",
+                    "Separators" : ",\u0001,\u0001;\u0001;\u0001 "
+		}
+            },
+            {
+		"class_name" : "SplitFieldProcessor",
+		"module_name": "MainseOfflineBuild",
+		"parameters" :
+		{
+                    "SrcFields" : "ends",
+                    "DstFieldsList" : "ends_1"
+		}
+            },
+            {
+		"class_name" : "Duplicator",
+		"module_name": "CommonOfflineBuild",
+		"parameters" :
+		{
+		}
+            },
+            {
+		"class_name" : "NormalizeProcessor",
+		"module_name": "MainseOfflineBuild",
+		"parameters" :
+		{
+                    "NormalizeFields" : "provcity"
+		}
+            },
+            {
+		"class_name" : "NullValueProcessor",
+		"module_name": "MainseOfflineBuild",
+		"parameters" :
+		{
+		}
+            },
+            {
+		"class_name" : "CSTTimeProcessor",
+		"module_name": "MainseOfflineBuild",
+		"parameters" :
+		{
+                    "CSTTimeField" : "starts,ends,old_starts,ends_1"
+		}
+            },
+            {
+		"class_name" : "PackEndsProcessor",
+		"module_name": "MainseOfflineBuild",
+		"parameters" :
+		{
+                    "SrcField" : "ends",
+                    "DstField" : "ends"
+		}
+            },
+            {
+		"class_name" : "PostFeeProcessor",
+		"module_name": "MainseOfflineBuild",
+		"parameters" :
+		{
+                    "PostFeeFields" : "real_post_fee"
+		}
+            },
+            {
+		"class_name" : "ProvCityProcessor",
+		"module_name": "MainseOfflineBuild",
+		"parameters" :
+		{
+                    "ProvCityFields" : "provcity",
+                    "ProvCityPath" : "provcity.txt"
+		}
+            },
+            {
+		"class_name" : "PidvidSpliceProcessor",
+		"module_name": "MainseOfflineBuild",
+		"parameters" :
+		{
+                    "pidvidfields" : "pidvid;dna_id"
+		}
+            },
+            {
+		"class_name" : "NickProcessor",
+		"module_name": "MainseOfflineBuild",
+		"parameters" :
+		{
+                    "HashFields" : "nick;cid"
+		}
+            },
+            {
+		"class_name" : "ZKRateProcessor",
+		"module_name": "MainseOfflineBuild",
+		"parameters" :
+		{
+                    "ZKRateField" : "zk_rate",
+                    "ZKTimeField" : "zk_time"
+		}
+            },
+            {
+		"class_name" : "TokenizeDocumentProcessor",
+		"module_name": "",
+		"parameters" : {}
+            },
+            {
+		"class_name" : "SynonymMergeDocumentProcessor",
+		"module_name" : "MainseOfflineBuild",
+		"parameters" : {
+                    "dict_file_path" : "c2c_same_query.txt.utf_8"
+		}
+            }
+	]
+    },
+    "function_config" : {
+	"modules" : [
+            {
+		"module_name" : "MainseFunction",
+		"module_path" : "libMainseFunction.so",
+		"parameters" : {
+		}
+            },
+            {
+		"module_name" : "CommonFunction",
+		"module_path" : "libCommonFunctions.so",
+		"parameters" : {
+		}
+            }
+	],
+	"functions" : [
+            {
+		"name" : "expiretime",
+		"parameters" : {
+		}
+            },
+            {
+		"name" : "incity",
+		"parameters" : {
+                    "ProvCityPath" : "provcity.txt"
+		}
+            },
+            {
+		"name" : "parentcat",
+		"parameters" : {
+                    "CatRelateTablePath" : "/home/admin/isearch5_data/taobao_data/catrelatetable.dat"
+		}
+            },
+            {
+		"name" : "subcat",
+		"parameters" : {
+                    "SubCatPath" : "/home/admin/isearch5_data/taobao_data/catrelatetable.dat",
+                    "SubCatPath_Bak" : "/home/admin/isearch5_data/taobao_data/catrelatetable.dat.bak"
+		}
+            },
+            {
+		"name" : "olu",
+		"parameters" : {
+                    "swap_dir": "/dev/shm/",
+                    "table_name": "online",
+                    "hash_type": "probing",
+                    "join": "nick"
+		}
+            },
+            {
+		"name" : "get_value_by_id",
+		"parameters" : {
+                    "DefaultValueOfId": "0"
+		}
+            }
+	]
+    },
+    "index_option_config" : {
+	"MaxMemoryUse": 5120,
+	"MaxReopenMemoryUse": 20480,
+	"ReaderKeepAliveTime": 10000,
+	"KeepVersionCount": 20,
+	"MergeStrategy": "balance_tree",
+	"MergeStrategyParam": "conflict-segment-number=3;base-doc-count=10240;max-doc-count=512000;conflict-delete-percent=80;max-valid-doc-count=20000000",
+	"Index" :
+	{
+            "ReadMode" : "mmap",
+            "Parameter" : "lock",
+            "EnableWarmUp" : true
+	},
+	"Attribute" :
+	{
+            "ReadMode" : "mmap",
+            "Parameter" : "lock",
+            "EnableWarmUp" : true
+	},
+	"Summary" :
+	{
+            "ReadMode" : "mmap",
+            "Parameter" : "lock",
+            "EnableWarmUp" : false
+	},
+	"MergeThreadCount" : 1,
+	"RtOptions" :
+	{
+            "KeepVersionCount": 10,
+            "MergeStrategy" : "realtime",
+            "MergeStrategyParam" :"max-small-segment-count=5;merge-size-upperbound=128;merge-size-lowerbound=128",
+            "TrimmerType" : "doc_trimmer",
+            "MaxMemoryUse": 512,
+            "MaxIndexSize": 1024,
+            "ReservedOlderIndex" : true,
+            "Index" :
+            {
+		"ReadMode" : "mmap",
+		"Parameter" : "none",
+		"EnableWarmUp" : false
+            },
+            "Attribute" :
+            {
+		"ReadMode" : "mmap",
+		"Parameter" : "none",
+		"EnableWarmUp" : false
+            },
+            "Summary" :
+            {
+		"ReadMode" : "mmap",
+		"Parameter" : "none",
+		"EnableWarmUp" : false
+            }
+	},
+	"TruncateOptionConfig" :
+	{
+            "TruncateStrategy" : [
+		{
+                    "StrategyName" : "filter_by_meta",
+                    "StrategyType" : "truncate_meta",
+                    "Limit" : 20000,
+                    "DiversityConstrain": {
+			"FilterType" : "FilterByMeta"
+                    }
+		},
+		{
+                    "StrategyName" : "filter_by_timestamp",
+                    "StrategyType" : "truncate_meta",
+                    "DiversityConstrain": {
+			"FilterType" : "FilterByTimeStamp",
+			"FilterParameter" : "beginTime=now;adviseEndTime=23:59:59;minInterval=24"
+                    }
+		}
+            ],
+            "ProfileToStrategyNameMap" : {
+		"desc_static_trans_score" : "filter_by_meta",
+		"desc_tk_trans_score" : "filter_by_meta",
+		"desc_biz30day" : "filter_by_meta",
+		"desc_tk_total_sales" : "filter_by_meta",
+		"desc_uvsum" : "filter_by_meta",
+		"desc_uvsum_suc" : "filter_by_meta",
+		"asc_ends" : "filter_by_timestamp"
+            }
+	}
+    },
+    "rankprofile_config" : {
+	"modules" : [
+            {
+		"module_name" : "AuditionModule",
+		"module_path" : "libScorerAudition.so",
+		"parameters"  : {}
+            },
+            {
+		"module_name": "smurfscorer",
+		"module_path": "libUPRanking.so",
+		"parameters": {}
+            }
+	],
+	"rankprofiles" : [
+            {
+		"rank_profile_name": "DefaultProfile",
+		"scorers" : [
+		    {
+			"scorer_name" : "DefaultScorer",
+			"module_name" : "",
+			"parameters" : {},
+			"rank_size" : "500000"
+		    }
+		],
+		"field_boost" : {}
+            },
+            {
+		"rank_profile_name": "ScorerAudition",
+		"scorers" : [
+                    {
+			"scorer_name" : "ScorerAudition",
+			"module_name" : "AuditionModule",
+			"parameters" : {
+                            "MinDocs" : "3000",
+                            "MLRWeight" : "1"
+			},
+			"rank_size" : "500000"
+                    }
+		],
+		"field_boost" : {}
+            },
+            {
+		"rank_profile_name": "ScorerRank",
+		"scorers" : [
+                    {
+			"scorer_name" : "ScorerAudition",
+			"module_name" : "AuditionModule",
+			"parameters" : {
+                            "MinDocs" : "3000",
+                            "MLRWeight" : "1"
+			},
+			"rank_size" : "500000"
+                    },
+                    {
+			"scorer_name": "TBRelevanceSecondScorer",
+			"module_name": "smurfscorer",
+			"parameters": {
+                            "cluster": "c2c",
+                            "config_path": "UP.xml"
+			},
+			"rank_size": "3000"
+                    }
+		],
+		"field_boost" : {}
+            },
+            {
+		"rank_profile_name": "SearcherCacheProfile",
+		"scorers" : [
+                    {
+			"scorer_name" : "SearcherCacheScorer",
+			"module_name" : "AuditionModule",
+			"parameters" : {
+                            "cache_tag" : "10",
+                            "MinDocs" : "3000",
+                            "MLRWeight" : "1"
+			},
+			"rank_size" : "UNLIMITED"
+                    }
+		],
+		"field_boost" : {}
+            }
+	]
+    },
+    "searcher_cache_config" : {
+	"max_size" : 1024,
+	"max_item_num" : 200000,
+	"inc_doc_limit" : 1000,
+	"inc_deletion_percent" : 100,
+	"latency_limit" : 1
+    },
+    "summary_profile_config" : {
+	"modules" : [
+	],
+	"summary_profiles" : [
+            {
+		"summary_profile_name": "DefaultProfile",
+		"extractor":
+		{
+                    "extractor_name": "DefaultSummaryExtractor",
+                    "module_name": ""
+		}
+            }
+	]
+    },
+     "cluster_config" : {
+	 "cluster_type" : "inc_with_realtime",
+	 "hash_mode" : {
+             "hash_function" : "KINGSO_HASH#720",
+             "hash_field": "nid"
+	 },
+	 "proxy_rule" : {
+             "partition_count" : 100,
+             "replica_count" : 100,
+             "partition_resource" : 100
+	 },
+	 "searcher_rule": {
+             "replica_count" : 2,
+             "partition_resource" : 100,
+             "specified_machine_type": "xxxxx"
+	 },
+	 "query_config": {
+             "default_index" : "phrase",
+             "default_operator" : "AND"
+	 },
+	 "dispatch_config": {
+             "only_use_free_worker" : false,
+             "switch_by_replica" : true,
+             "min_searcher_replica" : 1,
+             "free_worker_use_count_hint" : 0,
+             "min_searcher_replica_for_inc_update" : 1
+	 },
+	 "swift_config" : {
+             "swift_zookeeper_root" : "zfs://10.246.9.194:12181,10.246.22.4:12181,10.234.9.126:12181,10.234.9.44:12181,10.234.9.49:12181/swift_mainse_online",
+             "swift_topic_name" : "mainse",
+             "swift_filter_mode" : "normal_mode",
+             "need_field_filter" : true,
+             "swift_reader_config" : "oneRequestReadCount=100;readBufferSize=10240;compress=true"
+	 },
+	 "deploy_config" :
+	 {
+             "sync_size_limit" : 1048576,
+             "sync_interval"   : 20,
+             "block_size"   : 1048576,
+	     "job_option"     : "useDirectIO:true"
+	 }
+     }
+}

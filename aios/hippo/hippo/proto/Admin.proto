@@ -1,0 +1,471 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+import "hippo/proto/Common.proto";
+package hippo.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+message RoutePolicy {
+    optional string policyId = 1;
+    optional string routeLevel = 2 [default = "APP"];
+    optional string description = 3;
+}
+
+// federation
+message OperateRoutePolicyRequest {
+    optional Operator op = 1;
+    repeated RoutePolicy policies = 2;
+}
+message OperateRoutePolicyResponse {
+    repeated RoutePolicy policies = 1;
+    optional ErrorInfo errorInfo = 2;
+}
+
+message RoutePolicyMapping {
+    optional string applicationId = 1;
+    optional string rolePrefix = 2;
+    optional string policyId = 3;
+}
+
+message OperatePolicyMappingRequest {
+    optional Operator op = 1;
+    repeated RoutePolicyMapping mappings = 2;
+}
+
+message OperatePolicyMappingResponse {
+    repeated RoutePolicyMapping mappings = 1;
+    optional ErrorInfo errorInfo = 2;
+}
+
+message AddClusterRequest {
+    optional ClusterDescription clusterDesc = 1;
+}
+
+message DelClusterRequest {
+    optional string cluster = 1;
+}
+
+message UpdateClusterRequest {
+    optional ClusterDescription clusterDesc = 1;
+}
+
+message GetClusterRequest {
+    repeated string clusters = 1;
+}
+
+message StartClusterRequest {
+    optional string cluster = 1;
+}
+
+message StopClusterRequest {
+    optional string cluster = 1;
+}
+
+message OperateClusterRequest {
+    optional string cluster = 1;
+    optional string state = 2;
+}
+
+message AppFedStat {
+    optional string appId = 1;
+    optional int32 totalCnt = 2;
+    optional int32 pendingCnt = 3;
+}
+
+message ClusterStatus {
+    optional string clusterId = 1;
+    optional ClusterDescription desc = 2;
+    optional int32 k8sPodCnt = 3 [default = 0];
+    optional int32 hippoPodCnt = 4 [default = 0];
+    repeated AppFedStat hippoStats = 5;
+    repeated AppFedStat k8sStats = 6;
+}
+
+message GetClusterResponse {
+    repeated ClusterStatus clusters = 1;
+    optional ErrorInfo errorInfo = 2;
+}
+
+message AddSlaveRequest {
+    repeated SlaveDescription slaves = 1;
+}
+
+message AddSlaveResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message DelSlaveRequest {
+    repeated string slaves = 1;
+}
+
+message DelSlaveResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message OfflineSlaveRequest {
+    repeated string slaves = 1;
+    optional string reason = 2;
+}
+
+message OfflineSlaveResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message OnlineSlaveRequest {
+    repeated string slaves = 1;
+}
+
+message OnlineSlaveResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message FreezeSlaveRequest {
+    repeated string slaves = 1;
+}
+
+message FreezeSlaveResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message AddResourceRequest {
+    repeated string slaveAddress = 1;
+    repeated Resource resources = 2;
+    repeated Resource reservedResources = 3;
+}
+
+message AddResourceResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message DelResourceRequest {
+    repeated string slaveAddress = 1;
+    repeated string resourceNames = 2;
+    repeated string reservedResourceNames = 3;
+}
+
+message DelResourceResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message UpdateResourceRequest {
+    repeated string slaveAddress = 1;
+    repeated Resource resources = 2;
+    repeated Resource reservedResources = 3;    
+}
+
+message UpdateResourceResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message OfflineSlotRequest {
+    repeated SlotId slots = 1;
+}
+
+message OfflineSlotResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message ClearOfflineSlotRequest {
+    repeated SlotId slots = 1;
+    optional bool clearAll = 2 [default = false];
+}
+
+message ClearOfflineSlotResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message UpdateAllReservedResourceRequest {
+    repeated Resource reservedResources = 1;
+}
+
+message UpdateAllReservedResourceResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message UpdateDefaultSlaveRuntimeConfigRequest {
+    optional SlaveRuntimeConfig runtimeConfig = 1;
+}
+
+message UpdateDefaultSlaveRuntimeConfigResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message SlaveRuntimeConfigWithAddress {
+    optional string slaveAddress = 1;
+    optional SlaveRuntimeConfig runtimeConfig = 2;    
+}
+
+message GetDefaultSlaveRuntimeConfigRequest {
+}
+
+message GetDefaultSlaveRuntimeConfigResponse {
+    optional ErrorInfo errorInfo = 1;    
+    optional SlaveRuntimeConfig runtimeConfig = 2;
+}
+
+
+message UpdateSlaveRuntimeConfigRequest {
+    repeated SlaveRuntimeConfigWithAddress runtimeConfigsWithAddr = 1;
+}
+
+message UpdateSlaveRuntimeConfigResponse {
+    optional ErrorInfo errorInfo = 1;    
+}
+
+message DeleteSlaveRuntimeConfigRequest {
+    repeated string slaveAddress = 1;
+}
+
+message DeleteSlaveRuntimeConfigResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message GetSlaveRuntimeConfigRequest {
+    repeated string slaveAddress =1;
+}
+
+message GetSlaveRuntimeConfigResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated SlaveRuntimeConfigWithAddress runtimeConfigsWithAddr = 2;
+}
+
+message AddLabelRequest {
+    repeated string slaveAddress = 1;
+    repeated Parameter labels = 2;
+}
+
+message DelLabelRequest {
+    repeated string slaveAddress = 1;
+    repeated string keys = 2;
+}
+
+message UpdateLabelRequest {
+    repeated string slaveAddress = 1;
+    repeated Parameter labels = 2;
+}
+
+message UpdateSlaveLeaseRatioRequest {
+    repeated string slaveAddress = 1;
+    optional int32 leaseRatio = 2;
+}
+
+message UpdateSlaveVisibilityRequest {
+    repeated string slaveAddress = 1;
+    repeated Visibility visibilities = 2;
+}
+
+message ClearSlaveVisibilityRequest {
+    repeated string slaveAddress = 1;
+}
+
+message AddSlaveVisibilityRequest {
+    repeated string slaveAddress = 1;
+    repeated Visibility visibilities = 2;
+}
+
+message DelSlaveVisibilityRequest {
+    repeated string slaveAddress = 1;
+    repeated Visibility visibilities = 2;
+}
+
+message UpdateSlaveSchedDomainRequest {
+    repeated string slaveAddress = 1;
+    optional string schedDomain = 2;
+}
+
+message AddSlotPreferenceRequest {
+    repeated string slaveAddress = 1;
+    repeated SlotPreferenceConfig preferences = 2;
+}
+
+message DelSlotPreferenceRequest {
+    repeated string slaveAddress = 1;
+    repeated SlotPreferenceConfig preferences = 2;
+}
+
+message UpdateSlotPreferenceRequest {
+    repeated string slaveAddress = 1;
+    repeated SlotPreferenceConfig preferences = 2;
+}
+
+message ClearSlotPreferenceRequest {
+    repeated string slaveAddress = 1;
+}
+
+message UpdateSyncOptionRequest {
+    enum OP {
+	ADD = 0;
+	DEL = 1;
+    };
+    required OP op = 1;
+    required string syncServer = 2;
+    required string confFile = 3;
+    required string hippoKey = 4;
+    optional string yarnKey = 5;
+    optional string defaultValue = 6;
+}
+
+service AdminService {
+    option (arpc.global_service_id) = 5000;
+
+    rpc addSlave(AddSlaveRequest) returns (AddSlaveResponse) {
+	option (arpc.local_method_id) = 1;
+    }
+
+    rpc delSlave(DelSlaveRequest) returns (DelSlaveResponse) {
+	option (arpc.local_method_id) = 2;
+    }
+
+    rpc offlineSlave(OfflineSlaveRequest) returns (OfflineSlaveResponse) {
+	option (arpc.local_method_id) = 3;
+    }
+
+    rpc onlineSlave(OnlineSlaveRequest) returns (OnlineSlaveResponse) {
+	option (arpc.local_method_id) = 4;
+    }
+
+    rpc addResource(AddResourceRequest) returns (AddResourceResponse) {
+	option (arpc.local_method_id) = 5;
+    }
+
+    rpc delResource(DelResourceRequest) returns (DelResourceResponse) {
+	option (arpc.local_method_id) = 6;
+    }
+
+    rpc updateResource(UpdateResourceRequest) returns (UpdateResourceResponse) {
+	option (arpc.local_method_id) = 7;
+    }
+
+    rpc offlineSlot(OfflineSlotRequest) returns (OfflineSlotResponse) {
+	option (arpc.local_method_id) = 8;
+    }
+
+    rpc updateAllReservedResource(UpdateAllReservedResourceRequest) returns (UpdateAllReservedResourceResponse) {
+	option (arpc.local_method_id) = 9;
+    }
+
+    rpc updateSlaveRuntimeConfig(UpdateSlaveRuntimeConfigRequest)
+	returns (UpdateSlaveRuntimeConfigResponse)
+    {
+	option (arpc.local_method_id) = 10;
+    }
+
+    rpc updateDefaultSlaveRuntimeConfig(UpdateDefaultSlaveRuntimeConfigRequest)
+	returns (UpdateDefaultSlaveRuntimeConfigResponse)
+    {
+	option (arpc.local_method_id) = 11;
+    }
+
+    rpc getSlaveRuntimeConfig(GetSlaveRuntimeConfigRequest)
+	returns (GetSlaveRuntimeConfigResponse)
+    {
+	option (arpc.local_method_id) = 12; 
+    }
+
+    rpc getDefaultSlaveRuntimeConfig(GetDefaultSlaveRuntimeConfigRequest)
+	returns (GetDefaultSlaveRuntimeConfigResponse)
+    {
+	option (arpc.local_method_id) = 13; 
+	
+    }
+    rpc clearOfflineSlot(ClearOfflineSlotRequest) returns (ClearOfflineSlotResponse) {
+	option (arpc.local_method_id) = 14;
+    }
+
+    rpc addLabel(AddLabelRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 15;
+    }
+
+    rpc delLabel(DelLabelRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 16;
+    }
+
+    rpc updateLabel(UpdateLabelRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 17;
+    }
+
+    rpc updateSlaveLeaseRatio(UpdateSlaveLeaseRatioRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 18;
+    }
+
+    rpc delSlaveRuntimeConfig(DeleteSlaveRuntimeConfigRequest)
+	returns (DeleteSlaveRuntimeConfigResponse)
+    {
+	option (arpc.local_method_id) = 19;
+    }
+
+    rpc freezeSlave(FreezeSlaveRequest) returns (FreezeSlaveResponse) {
+	option (arpc.local_method_id) = 20;
+    }
+    
+    rpc updateSlaveVisibility(UpdateSlaveVisibilityRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 21;
+    }
+
+    rpc clearSlaveVisibility(ClearSlaveVisibilityRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 22;
+    }
+
+    rpc updateSlaveSchedDomain(UpdateSlaveSchedDomainRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 23;
+    }
+
+    rpc addSlaveVisibility(AddSlaveVisibilityRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 24;
+    }
+    
+    rpc delSlaveVisibility(DelSlaveVisibilityRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 25;
+    }
+
+    rpc addSlotPreference(AddSlotPreferenceRequest) returns (GenericResponse) {
+        option (arpc.local_method_id) = 26;
+    }
+
+    rpc delSlotPreference(DelSlotPreferenceRequest) returns (GenericResponse) {
+        option (arpc.local_method_id) = 27;
+    }
+
+    rpc updateSlotPreference(UpdateSlotPreferenceRequest) returns (GenericResponse) {
+        option (arpc.local_method_id) = 28;
+    }
+
+    rpc clearSlotPreference(ClearSlotPreferenceRequest) returns (GenericResponse) {
+        option (arpc.local_method_id) = 29;
+    }
+
+    // deprecated
+    rpc updateSyncOption(UpdateSyncOptionRequest) returns (GenericResponse) {
+        option (arpc.local_method_id) = 30;
+    }
+
+    rpc addCluster(AddClusterRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 31;
+    }
+    rpc delCluster(DelClusterRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 32;
+    }
+    rpc updateCluster(UpdateClusterRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 33;
+    }
+    rpc getCluster(GetClusterRequest) returns (GetClusterResponse) {
+	option (arpc.local_method_id) = 34;
+    }
+    rpc startCluster(StartClusterRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 35;
+    }
+    rpc stopCluster(StopClusterRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 36;
+    }
+    rpc setClusterState(OperateClusterRequest) returns (GenericResponse) {
+	option (arpc.local_method_id) = 37;
+    }
+    rpc operateRoutePolicy(OperateRoutePolicyRequest) returns (OperateRoutePolicyResponse) {
+	option (arpc.local_method_id) = 38;
+    }
+    rpc operatePolicyMapping(OperatePolicyMappingRequest) returns (OperatePolicyMappingResponse) {
+	option (arpc.local_method_id) = 39;
+    } 
+}

@@ -1,0 +1,10 @@
+#pragma once
+
+#define INDEXLIB_COROUTINE TO_BE_REPLACED
+
+#if INDEXLIB_COROUTINE
+#if !__cpp_impl_coroutine && !__cpp_coroutines
+#error "compile with g++ -fcoroutines or clang++ -fcoroutines-ts"
+#endif
+#endif
+

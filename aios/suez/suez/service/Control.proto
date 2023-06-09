@@ -1,0 +1,19 @@
+import "arpc/proto/rpc_extensions.proto";
+package suez;
+
+option cc_generic_services = true;
+option cc_enable_arenas = true;
+
+message ControlParam {
+    optional bool init = 1;
+    optional bool update = 2;
+    optional bool stop = 3;
+}
+
+service ControlService
+{
+    option (arpc.global_service_id) = 1000;
+    rpc control (ControlParam) returns (ControlParam) {
+	option (arpc.local_method_id) = 1;
+    }
+}

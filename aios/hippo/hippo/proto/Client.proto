@@ -1,0 +1,820 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+import "hippo/proto/Common.proto";
+import "hippo/proto/ApplicationMaster.proto";
+package hippo.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+message UpdateMappingRuleRequest {
+    optional string applicationId = 1;
+    optional string tag = 2;
+    optional ResourceRequest adjustment = 3;
+    repeated PreferenceDescription preferenceDesc = 4;
+}
+
+message UpdateMappingRuleResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message GetMappingRulesRequest {
+   optional string applicationId = 1;
+   optional string tag = 2;
+}
+
+message GetMappingRulesResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated UpdateMappingRuleRequest mappingRules = 2;
+}
+
+message DelMappingRuleRequest {
+    optional string applicationId = 1;
+    optional string tag = 2;
+}
+
+message DelMappingRuleResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message UpdateRulesRequest {
+    optional string rules = 1;
+}
+
+message UpdateRulesResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message GetRulesRequest {
+    optional string tag = 1;
+}
+
+message GetRulesResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional string rules = 2;
+}
+
+message AddQueueRequest {
+    optional QueueDescription queueDescription = 1;
+}
+
+message AddQueueResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message DelQueueRequest {
+    optional string name = 1;
+}
+
+message DelQueueResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message UpdateQueueRequest {
+    optional QueueDescription queueDescription = 1;
+}
+
+message UpdateQueueResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message QueueStatusRequest {
+    optional string name = 1;    
+}
+
+message QueueStatusResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated QueueDescription queueDescriptions = 2;
+}
+
+message MergeQueueRequest {
+    optional string queueFrom = 1;
+    optional string queueTo = 2;
+}
+
+message MergeQueueResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message ListMergedQueuesRequest {
+}
+
+message MergedQueue {
+    optional string queueFrom = 1;
+    optional string queueTo = 2;    
+
+}
+message ListMergedQueuesResponse {
+    repeated MergedQueue mergedQueues = 1;
+    optional ErrorInfo errorInfo = 2;    
+}
+
+message SubmitApplicationRequest {
+    optional ApplicationDescription applicationDescription = 1;
+}
+
+message SubmitApplicationResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message StopApplicationRequest {
+    optional string applicationId = 1;
+    optional int32 reserveTime = 2 [default = 0];
+}
+
+message StopApplicationResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message FreezeApplicationRequest {
+    optional string applicationId = 1;
+}
+
+message FreezeApplicationResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message FreezeAllApplicationRequest {
+}
+
+message FreezeAllApplicationResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message UnFreezeApplicationRequest {
+    optional string applicationId = 1;
+}
+
+message UnFreezeApplicationResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message UnFreezeAllApplicationRequest {
+}
+
+message UnFreezeAllApplicationResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message ForceKillApplicationRequest {
+    optional string applicationId = 1;
+}
+
+message ForceKillApplicationResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message ClearYarnApplicationIdRequest {
+    optional string applicationId = 1;
+}
+
+message ClearYarnApplicationIdResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message ResourcePreferenceRequest {
+    optional string applicationId = 1;
+}
+
+message ResourcePreferenceResponse {
+    repeated PreferenceDescription preferenceDesc = 1;
+}
+
+message UpdateResourcePreferenceRequest {
+    optional string applicationId = 1;
+    repeated PreferenceDescription preferenceDesc = 2;
+}
+
+message UpdateResourcePreferenceResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message ServiceStatusRequest {
+}
+
+message ServiceStatusResponse {
+    optional bool isFrozen = 1;
+}
+
+message SlaveStatusRequest {
+    repeated string slaves = 1;
+    optional bool withDetailInfo = 2 [ default = true ];
+    optional bool withLoadInfo = 3 [ default = false ];
+    optional bool showAllRes = 4 [ default = false ];
+}
+
+message SlaveStatusResponse {
+    repeated SlaveNodeStatus slaveNodeStatus = 1;
+}
+
+message SlaveAllocateWmarkRequest {
+    repeated string slaves = 1;
+}
+
+message SlaveAllocateWmarkResponse {
+    repeated SlaveAllocateWmark wmarks = 1;
+}
+
+message QuotaSummaryRequest {
+    optional string groupId = 1;
+}
+
+message QuotaSummaryResponse {
+    optional QuotaSummary lackingQuota = 1;
+}
+
+message QuotaSummary {
+    optional string groupId = 1;
+    repeated ResourceQuota resourceQuotas = 2;
+}
+
+message ResourceQuota {
+    optional string name = 1;
+    optional int32 amount = 2;
+}
+
+message AppSummaryRequest {
+    optional string applicationId = 1;
+}
+
+message AppSummaryResponse {
+    repeated AppSummary appSummary = 1;
+    optional ErrorInfo errorInfo = 2;
+}
+
+message AppSummary {
+    enum Status {
+	ACTIVE = 0;
+	FROZEN = 1;
+	RESERVE = 2;
+	KILLING = 3;
+	KILLED = 4;
+    };
+    optional string applicationId = 1;
+    optional string user = 2;
+    optional int32 appMasterCount = 3;
+    repeated SlotId appMasterSlots = 4;
+    optional int64 appChecksum = 5;
+    optional ApplicationSlotConfig slotConfig = 6;
+    optional Status status = 7;
+    optional string queue = 8;
+    optional ApplicationDescription.ExclusiveMode exclusiveMode = 9;
+    optional int64 oldSlotPriorityKeepTime = 10;
+    optional Priority priority = 11;
+    optional string groupId = 12;
+    optional uint64 constraintPolicy = 13;  // deprecated
+    optional bool useCpuset = 14;           // deprecated
+    optional ResourceRequest.CpusetMode cpusetMode = 15;
+    optional AppRequireSummary requireSummary = 16;
+    optional string yarnApplicationId = 17; // useless
+    repeated Parameter labels = 18;         // only label app, not slots
+}
+
+message AppRequireSummary {
+    optional int32 requiredCount = 1;
+    optional int32 allocatedCount = 2;
+    optional int32 lackingCount = 3;
+    optional int32 reservedCount = 4;
+}
+
+message AppStatusRequest {
+    optional string applicationId = 1;
+    optional bool onlyRequest = 2 [default = false];
+}
+
+
+message AppStatusResponse {
+    optional ErrorInfo errorInfo = 1;    
+    optional AppSummary appSummary = 2;
+    optional AllocateRequest lastAllocateRequest = 3;
+    repeated ResourceResponse lastAllocateResponse = 4;
+    repeated ResourceResponse stoppingSlots = 5;
+    repeated Parameter labels = 6;         // only label app, not slots
+}
+
+message SlaveNodeStatus {
+    optional string address = 1;
+    optional int32 slotCount = 2;
+    optional bool isOffline = 3;
+    optional SlaveStatus heartbeatStatus = 4;
+    optional int64 lastHeartbeatTime = 5;
+    optional SlaveResource slaveResource = 6;
+    repeated SlotStatus slots = 7;
+    optional string binaryVersion = 8;
+    optional string queue = 9;
+    optional string resourceGroup = 10;
+    optional bool noLongerMatchQueue = 11;
+    optional int64 slaveId = 12;
+    optional SlaveResource usedSlaveResource = 13;
+    optional string offlineReason = 14;
+    repeated Parameter attributes = 15; // deprecated
+    optional int32 restfulHttpPort = 16;
+    repeated LoadInfo loadInfo = 17;
+    repeated Parameter labels = 18;
+    optional int32 leaseRatio = 19;
+    optional SlaveState state = 20;
+    optional int32 slaveHttpPort = 21;
+    repeated Visibility visibilities = 22;
+    optional SlaveHealth health = 23;
+    repeated SlotStatus reservedSlots = 24;
+    optional string targetSchedDomain = 25;
+    optional string currentSchedDomain = 26;
+    repeated SlotPreferenceConfig preferences = 27;
+}
+
+message SlaveAllocateWmark {
+    optional string address = 1;
+    optional int32 cpu = 2;
+    optional int32 predictCpu = 3;
+    optional int32 mem = 4;
+    optional int32 diskSize = 5;
+    optional SlaveResource avail = 6;
+}
+
+message SlotStatus {
+    optional int32 slotId = 1;
+    optional string applicationId = 2;
+    optional string runningApplicationId = 12;
+    optional int64 appChecksum = 3;
+    optional SlotResource slotResource = 4;
+    repeated ProcessStatus processStatus = 5;
+    repeated DataStatus dataStatus = 6;
+    optional string packageChecksum = 7;
+    optional PackageStatus packageStatus = 10;
+    optional string applicationIdInPlan = 11;
+    optional bool systemSlot = 13;
+    optional bool noLongerMatchResourceRequirement = 14;
+    optional bool isStopping = 15;
+    optional Priority priority = 16;
+    repeated Parameter payloads = 17; // deprecated
+    optional SlotResource declareResources = 18;
+    optional bool noLongerMatchWorkDirTag = 19;
+    optional string resourceTag = 20;
+    optional string preDeployPackageChecksum = 21;
+    optional PackageStatus preDeployPackageStatus = 22;
+    optional string cpusets = 23;
+    optional ResourceRequest.CpusetMode cpusetMode = 24;
+    repeated string containerConfigs = 25;
+    optional SlotLoadInfo slotLoadInfo = 26;
+    optional string groupId = 27;
+    repeated Parameter metaTags = 28;
+    optional string requirementId = 29;
+    optional string yarnContainerId = 30;
+    repeated PackageDetail packageDetails = 31;
+    optional bool reclaim = 32;
+}
+
+message UpdateApplicationRequest {
+    optional ApplicationDescription applicationDescription = 1;
+    optional bool force = 2 [ default = false ];
+}
+
+message UpdateApplicationResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message GetAppDescriptionRequest {
+    optional string applicationId = 1;
+}
+
+message GetAppDescriptionResponse {
+    optional  ApplicationDescription appDescription = 1;
+    optional  ErrorInfo errorInfo = 2;
+}
+
+message UpdateAppMasterRequest {
+    optional ApplicationDescription applicationDescription = 1;
+}
+
+message UpdateAppMasterResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message UpdateMasterOptionsRequest {
+    optional bool scheduleSwitch = 1 [ default = false ];
+}
+
+message UpdateMasterOptionsResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message ClearReserveSlotRequest{
+}
+
+message ClearReserveSlotResponse {
+}
+
+message UpdateResourceScoreTableRequest {
+    optional string resourceName = 1;
+    repeated double scoreTable = 2;    
+    optional string queueName = 3 [ default = "default" ];
+}
+
+message UpdateResourceScoreTableResponse {
+    optional ErrorInfo errorInfo = 1;    
+}
+
+message DeleteResourceScoreTableRequest {
+    optional string queueName = 1;
+}
+
+message DeleteResourceScoreTableResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message ListResourceScoreTableRequest {
+}
+
+message ListResourceScoreTableResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional string scoreTables = 2;
+}
+// configs
+message UpdateConfigsRequest {
+    repeated Parameter configs = 1;
+    optional bool cover = 2 [default = false];
+}
+
+message UpdateConfigsResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message GetConfigsRequest {
+    repeated string keys = 1;
+}
+
+message GetConfigsResponse {
+    repeated Parameter configs = 1;
+    optional ErrorInfo errorInfo = 2;
+}
+
+message DelConfigsRequest {
+    repeated string keys = 1;
+    optional bool all = 2 [default = false];
+}
+
+message DelConfigsResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message GetReserveSlotsRequest {
+    optional string appId = 1;
+    optional string tag = 2;
+}
+
+message ReserveInfo {
+    optional SlotId slot = 1;
+    optional int64 expiredTime = 2;
+}
+
+message TagReserveInfo {
+    optional string tag = 1;
+    repeated ReserveInfo slots = 2;
+}
+
+message AppReserveInfo {
+    optional string appId = 1;
+    repeated TagReserveInfo reserveTags = 2;
+}
+
+message GetReserveSlotsResponse {
+    repeated AppReserveInfo reserveApps = 1;
+    optional ErrorInfo errorInfo = 2;
+}
+
+message ClearReserveSlotsRequest {
+    optional string appId = 1;
+    optional string tag = 2;
+    repeated SlotId slots = 3;
+}
+
+message ClearReserveSlotsResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message GetRawRequestsRequest {
+    optional string appId = 1;
+};
+
+message GetRawRequestsResponse {
+    repeated AllocateRequest rawRequests = 1;
+    optional ErrorInfo errorInfo = 2;
+};
+
+message BufferRuleRequire {
+    optional SlotResource slotResource = 1;
+    optional int32 maxInstancePerHost = 2;
+    repeated string specifiedIps = 3;
+    repeated string prohibitedIps = 4;
+};
+
+message FieldInfo {
+    enum Field {
+	APP = 0;
+	WORKDIRTAG = 1;
+	SELF = 2;
+	ALLOCATE = 3;
+	LABEL = 4;
+	RESERVE_APP = 5;
+    APP_SELF = 6;
+    WORKDIRTAG_SELF = 7;
+    };
+    optional Field field = 1 [default = APP];
+    optional string pattern = 2;
+};
+
+message BufferRule {
+    required string ruleId = 1;
+    optional int32 minCount = 2;
+    optional int32 maxCount = 3;
+    optional BufferRuleRequire require = 4;
+    optional string groupId = 5;
+    optional bool forceAllocate = 6 [default = false];
+    repeated FieldInfo fromField = 7;
+    repeated FieldInfo toField = 8;
+    optional int32 ttl = 9;
+};
+
+message AddBufferRuleRequest {
+    repeated BufferRule rules = 1;
+};
+
+message AddBufferRuleResponse {
+    repeated Parameter failedRules = 1;
+};
+
+message UpdateBufferRuleInfo {
+    optional string ruleId = 1;
+    optional int32 minCount = 2;
+    optional int32 maxCount = 3;
+    optional BufferRuleRequire require = 4;
+    optional bool forceAllocate = 5;
+    repeated FieldInfo fromField = 6;
+    repeated FieldInfo toField = 7;
+    optional int32 ttl = 8;
+};
+
+message UpdateBufferRuleRequest {
+    repeated UpdateBufferRuleInfo rules = 1;
+};
+
+message UpdateBufferRuleResponse {
+    repeated Parameter failedRules = 1;
+};
+
+message DeleteBufferRuleRequest {
+    repeated string ruleIds = 1;
+};
+
+message DeleteBufferRuleResponse {
+    optional bool success = 1 [default = true];
+};
+
+message BufferRuleInfo {
+    optional BufferRule rule = 1;
+    optional int64 deadTime = 2;
+    optional int32 poolSize = 3;
+    repeated SlotId slotIds = 4;
+    optional string errorMsg = 5;
+    optional int64 createTime = 6;
+};
+
+message GetBufferRuleRequest {
+    repeated string ruleIds = 1;
+    optional bool detail = 2 [default = false];
+    optional bool onlyAllocate = 3 [default = false];
+};
+
+message GetBufferRuleResponse {
+    repeated BufferRuleInfo ruleInfos = 1;
+};
+
+message ReleaseBufferRuleSlotsRequest {
+    repeated SlotId slotIds = 1;
+};
+
+message ReleaseBufferRuleSlotsResponse {
+};
+
+message GetClusterInfoRequest {
+}
+
+message GetClusterInfoResponse {
+    optional string freeQuotas = 1;
+    optional string quotaCtrls = 2;
+    optional ErrorInfo errorInfo = 10;
+}
+
+service ClientService
+{
+    option (arpc.global_service_id) = 1000;
+
+    rpc submitApplication(SubmitApplicationRequest) returns (SubmitApplicationResponse) {
+	option (arpc.local_method_id) = 1;
+    };
+
+    rpc stopApplication(StopApplicationRequest) returns (StopApplicationResponse) {
+	option (arpc.local_method_id) = 2;
+    }
+
+    rpc forceKillApplication(ForceKillApplicationRequest) returns (ForceKillApplicationResponse) {
+	option (arpc.local_method_id) = 3;
+    }
+
+    rpc getServiceStatus(ServiceStatusRequest) returns (ServiceStatusResponse) {
+	option (arpc.local_method_id) = 4;
+    }
+
+    rpc getSlaveStatus(SlaveStatusRequest) returns (SlaveStatusResponse) {
+	option (arpc.local_method_id) = 5;
+    }
+
+    rpc getAppSummary(AppSummaryRequest) returns (AppSummaryResponse) {
+	option (arpc.local_method_id) = 6;
+    }
+    
+    rpc getAppStatus(AppStatusRequest) returns (AppStatusResponse) {
+	option (arpc.local_method_id) = 7;
+    }
+
+    rpc getAppResourcePreference(ResourcePreferenceRequest) returns (ResourcePreferenceResponse) {
+	option (arpc.local_method_id) = 8;
+    }
+
+    rpc updateAppResourcePreference(UpdateResourcePreferenceRequest) returns (UpdateResourcePreferenceResponse) {
+	option (arpc.local_method_id) = 9;
+    }
+    
+    rpc updateApplication(UpdateApplicationRequest) returns (UpdateApplicationResponse) {
+	option (arpc.local_method_id) = 10;
+    }
+
+    rpc addQueue(AddQueueRequest) returns (AddQueueResponse) {
+	option (arpc.local_method_id) = 11;
+    }
+
+    rpc delQueue(DelQueueRequest) returns (DelQueueResponse) {
+	option (arpc.local_method_id) = 12;
+    }
+
+    rpc updateQueue(UpdateQueueRequest) returns (UpdateQueueResponse) {
+	option (arpc.local_method_id) = 13;
+    }
+    
+    rpc getQueueStatus(QueueStatusRequest) returns (QueueStatusResponse) {
+	option (arpc.local_method_id) = 14;
+    }
+
+    rpc freezeApplication(FreezeApplicationRequest) returns (FreezeApplicationResponse) {
+	option (arpc.local_method_id) = 15;
+    }
+
+    rpc unfreezeApplication(UnFreezeApplicationRequest) returns (UnFreezeApplicationResponse) {
+	option (arpc.local_method_id) = 16;
+    }
+    
+    rpc freezeAllApplication(FreezeAllApplicationRequest) returns (FreezeAllApplicationResponse) {
+	option (arpc.local_method_id) = 17;
+    }
+
+    rpc unfreezeAllApplication(UnFreezeAllApplicationRequest) returns (UnFreezeAllApplicationResponse) {
+	option (arpc.local_method_id) = 18;
+    }
+    
+    rpc updateAppMaster(UpdateAppMasterRequest) returns (UpdateAppMasterResponse) {
+	option (arpc.local_method_id) = 19;
+    }
+
+    rpc updateMasterScheduleSwitch(UpdateMasterOptionsRequest) returns (UpdateMasterOptionsResponse) {
+	option (arpc.local_method_id) = 20;
+    }
+
+    rpc updateRules(UpdateRulesRequest) returns (UpdateRulesResponse) {
+	option (arpc.local_method_id) = 21;
+    }
+
+    rpc getRules(GetRulesRequest) returns (GetRulesResponse) {
+	option (arpc.local_method_id) = 22;
+    }
+
+    rpc mergeQueue(MergeQueueRequest) returns (MergeQueueResponse) {
+	option (arpc.local_method_id) = 23;
+    }
+
+    rpc listMergedQueues(ListMergedQueuesRequest) returns (ListMergedQueuesResponse) {
+	option (arpc.local_method_id) = 24;
+    }
+
+    rpc updateResourceScoreTable(UpdateResourceScoreTableRequest)
+	returns (UpdateResourceScoreTableResponse)
+    {
+	option (arpc.local_method_id) = 25;
+    }
+
+    rpc updateMappingRule(UpdateMappingRuleRequest) returns  (UpdateMappingRuleResponse) {
+    	option (arpc.local_method_id) = 26;
+    }
+
+    rpc getMappingRules(GetMappingRulesRequest) returns (GetMappingRulesResponse) {
+	option (arpc.local_method_id) = 27;
+    }
+
+    rpc delMappingRule(DelMappingRuleRequest) returns (DelMappingRuleResponse) {
+	option (arpc.local_method_id) = 28;
+    }
+
+    rpc getSlaveAllocateWmark(SlaveAllocateWmarkRequest) returns (SlaveAllocateWmarkResponse) {
+	option (arpc.local_method_id) = 29;
+    }
+
+    rpc getQuotaSummary(QuotaSummaryRequest) returns (QuotaSummaryResponse) {
+	option (arpc.local_method_id) = 30;
+    };
+
+    rpc deleteResourceScoreTable(DeleteResourceScoreTableRequest)
+	returns (DeleteResourceScoreTableResponse)
+    {
+	option (arpc.local_method_id) = 31;
+    }
+
+    rpc listResourceScoreTable(ListResourceScoreTableRequest)
+	returns (ListResourceScoreTableResponse)
+    {
+	option (arpc.local_method_id) = 32;
+    }
+
+    // rpc clearReserveSlot(ClearReserveSlotRequest)
+    // 	returns (ClearReserveSlotResponse)
+    // {
+    // 	option (arpc.local_method_id) = 33;
+    // }
+
+    rpc updateConfigs(UpdateConfigsRequest)
+	returns (UpdateConfigsResponse)
+    {
+	option (arpc.local_method_id) = 34;
+    }
+
+    rpc getConfigs(GetConfigsRequest)
+	returns (GetConfigsResponse)
+    {
+	option (arpc.local_method_id) = 35;
+    }
+
+    rpc delConfigs(DelConfigsRequest)
+	returns (DelConfigsResponse)
+    {
+	option (arpc.local_method_id) = 36;
+    }
+
+    rpc getReserveSlots(GetReserveSlotsRequest)
+	returns (GetReserveSlotsResponse)
+    {
+	option (arpc.local_method_id) = 37;
+    }
+
+    rpc clearReserveSlots(ClearReserveSlotsRequest) returns (GenericResponse)
+    {
+        option (arpc.local_method_id) = 38;
+    }
+    rpc getAppDescription(GetAppDescriptionRequest) returns (GetAppDescriptionResponse) {
+	option (arpc.local_method_id) = 39;
+    }
+
+    rpc setLogLevel(SetLoggerLevelRequest) returns (SetLoggerLevelResponse) {
+	option (arpc.local_method_id) = 40;
+    }
+
+    rpc getLastRawRequests(GetRawRequestsRequest) returns (GetRawRequestsResponse) {
+	option (arpc.local_method_id) = 41;
+    }    
+
+    rpc clearYarnApplicationId(ClearYarnApplicationIdRequest) returns (ClearYarnApplicationIdResponse) {
+	option (arpc.local_method_id) = 42;
+    }
+
+    rpc addBufferRule(AddBufferRuleRequest) returns (AddBufferRuleResponse) {
+	option (arpc.local_method_id) = 43;
+    }
+
+    rpc updateBufferRule(UpdateBufferRuleRequest) returns (UpdateBufferRuleResponse) {
+	option (arpc.local_method_id) = 44;
+    }
+
+    rpc deleteBufferRule(DeleteBufferRuleRequest) returns (DeleteBufferRuleResponse) {
+	option (arpc.local_method_id) = 45;
+    }
+
+    rpc getBufferRule(GetBufferRuleRequest) returns (GetBufferRuleResponse) {
+	option (arpc.local_method_id) = 46;
+    }
+
+    rpc releaseBufferRuleSlots(ReleaseBufferRuleSlotsRequest) returns (ReleaseBufferRuleSlotsResponse) {
+	option (arpc.local_method_id) = 47;
+    }
+
+    rpc getClusterInfo(GetClusterInfoRequest) returns (GetClusterInfoResponse) {
+	option (arpc.local_method_id) = 48;
+    }    
+}

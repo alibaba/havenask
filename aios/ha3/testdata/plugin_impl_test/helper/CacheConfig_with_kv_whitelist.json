@@ -1,0 +1,32 @@
+{
+    "FullCacheConfigNotIntoCache": {
+        "Rules" :
+            [   
+            { "conditions" : [ { "clause" : "kvpairs", "key" : "useqrscache", "value" : "no" } ] },
+            { "conditions" : [ { "clause" : "kvpairs", "key" : "latlng" } ] } 
+        ]   
+    },  
+    "FullCacheConfigBlackList" : { 
+        "Rules" :
+        [   
+            { "conditions" : [ { "clause" : "filter", "key" : "nid", "key_flag" : "attribute" } ] },
+            { "conditions" : [ { "clause" : "virtual_attribute", "key" : "endtime2", "key_flag" : "function" } ] },
+            { "conditions" : [ { "clause" : "config", "key" : "hit" } ] },
+            { "conditions" : [ { "clause" : "kvpairs", "key" : "gid" } ] },
+            { "conditions" : [ { "clause" : "kvpairs", "key" : "statistic" } ] }
+        ]   
+    },
+    "AggCacheConfigWhiteList" : { 
+        "Rules" :
+        [   
+            { "conditions" : [ { "clause" : "kvpairs", "key" : "gid" } ] },
+            { "conditions" : [ { "clause" : "kvpairs", "key" : "statistic" } ] }
+        ]   
+    },
+    "KvPairsWhiteList" : {
+	"Rules" : [
+            { "conditions" : [ { "clause" : "kvpairs", "key" : "tagfield" } ] },
+            { "conditions" : [ { "clause" : "kvpairs", "key" : "tagscore" } ] }
+	]
+    }
+}

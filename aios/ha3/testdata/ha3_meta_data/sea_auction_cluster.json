@@ -1,0 +1,14 @@
+{
+  "build_option_config" : {
+  },
+  "cluster_config" : {
+      "cluster_name" : "sea_auction",
+      "hash_mode" : {
+          "hash_field" : "id",
+          "hash_function" : "HASH"
+      },
+      "table_name" : "sea_auction"
+  },
+  "offline_index_config" : {
+  }
+}

@@ -1,0 +1,22 @@
+namespace indexlib.document.proto.kv;
+
+enum OperationType : ubyte { Add = 0, Delete }
+
+table Field {
+    name: string;
+    string_value: string; // "123"
+    integer_value: int64;
+    float_value: float64;
+}
+
+table DocMessage {
+    fields: [Field] (required);
+    type: OperationType = Add;
+    region_name: string;
+}
+
+// table MultiDocMessage {
+//     msg:[DocMessage];
+// }
+
+root_type DocMessage;

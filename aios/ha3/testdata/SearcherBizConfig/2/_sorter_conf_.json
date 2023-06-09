@@ -1,0 +1,39 @@
+{
+"modules":
+  [
+    {
+    "module_name":
+      "",
+    "module_path":
+      "",
+    "parameters":
+      {
+      }
+    }
+  ],
+"sorters":
+  [
+    {
+    "class_name":
+      "DefaultSorter",
+    "module_name":
+      "",
+    "parameters":
+      {
+      },
+    "sorter_name":
+      "DEFAULT"
+    },
+    {
+    "class_name":
+      "NullSorter",
+    "module_name":
+      "",
+    "parameters":
+      {
+      },
+    "sorter_name":
+      "NULL"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+package multi_call;
+
+option cc_enable_arenas = true;
+
+message GigStreamHeader {
+    optional bool eof = 1 [default = true];
+    optional bool has_message = 2;
+    optional bool cancelled = 3 [default = true];
+    optional string msg = 4;
+    optional int64 begin_time = 5;
+    optional int64 peer_time_diff = 6;
+    optional bool async_io = 7 [default = true];
+}

@@ -1,0 +1,17 @@
+{
+    "Loggers":{
+        "/":{
+            "DefaultFileSink":"WARNING"
+        },
+	"/isearch" : {
+	    "IsearchHa2Sink" : "ALL"
+	}
+    },
+    "Sinks":{
+        "IsearchHa2Sink":{
+            "Type":"File",
+            "LogFilePath":"isearch_ha3.LOG",
+            "ColumnNames":"__LOGGER__,__LEVEL__,__FILE__,__FUNCTION__,__LINE__,__THREAD__,__TIME__"
+        }
+    }
+}

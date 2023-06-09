@@ -1,0 +1,85 @@
+include "TsdbColumn.fbs";
+namespace isearch.fbs;
+
+table ByteString {value:[byte];}
+
+// multi value
+table MultiInt8   { value: [byte];   }
+table MultiInt16  { value: [short];  }
+table MultiInt32  { value: [int];    }
+table MultiInt64  { value: [long];   }
+table MultiUInt8  { value: [ubyte];  }
+table MultiUInt16 { value: [ushort]; }
+table MultiUInt32 { value: [uint];   }
+table MultiUInt64 { value: [ulong];  }
+table MultiFloat  { value: [float];  }
+table MultiDouble { value: [double]; }
+table MultiString { value: [string]; }
+table MultiByteString { value: [ByteString]; }
+
+// column base storage
+table Int8Column   { value: [byte];   }
+table Int16Column  { value: [short];  }
+table Int32Column  { value: [int];    }
+table Int64Column  { value: [long];   }
+table UInt8Column  { value: [ubyte];  }
+table UInt16Column { value: [ushort]; }
+table UInt32Column { value: [uint];   }
+table UInt64Column { value: [ulong];  }
+table FloatColumn  { value: [float];  }
+table DoubleColumn { value: [double]; }
+table StringColumn { value: [string]; }
+table ByteStringColumn { value: [ByteString]; }
+
+table MultiInt8Column   { value: [MultiInt8];   }
+table MultiUInt8Column  { value: [MultiUInt8];  }
+table MultiInt16Column  { value: [MultiInt16];  }
+table MultiUInt16Column { value: [MultiUInt16]; }
+table MultiInt32Column  { value: [MultiInt32];  }
+table MultiUInt32Column { value: [MultiUInt32]; }
+table MultiInt64Column  { value: [MultiInt64];  }
+table MultiUInt64Column { value: [MultiUInt64]; }
+table MultiFloatColumn  { value: [MultiFloat];  }
+table MultiDoubleColumn { value: [MultiDouble]; }
+table MultiStringColumn { value: [MultiString]; }
+table MultiByteStringColumn { value: [MultiByteString]; }
+
+// column type
+union ColumnType {
+      Int8Column,
+      Int16Column,
+      Int32Column,
+      Int64Column,
+      UInt8Column,
+      UInt16Column,
+      UInt32Column,
+      UInt64Column,
+      FloatColumn,
+      DoubleColumn,
+      StringColumn,
+      MultiInt8Column,
+      MultiInt16Column,
+      MultiInt32Column,
+      MultiInt64Column,
+      MultiUInt8Column,
+      MultiUInt16Column,
+      MultiUInt32Column,
+      MultiUInt64Column,
+      MultiFloatColumn,
+      MultiDoubleColumn,
+      MultiStringColumn,
+      TsdbDpsColumn,
+      TsdbStringDpsColumn,
+      ByteStringColumn,
+      MultiByteStringColumn,
+}
+
+table Column {
+      name: string;
+      value: ColumnType;
+}
+
+table TwoDimTable {
+      rowCount: uint (id:0);
+      columns: [Column] (id:1);
+}

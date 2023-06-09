@@ -1,0 +1,263 @@
+{
+    "functions" : [
+        {
+          "function_name" : "DINGAUTH",
+          "function_type" : "UDAF",
+          "is_deterministic" : 1,
+          "function_content_version" : "json_default_0.1",
+          "function_content" : {
+              "prototypes" : [ {
+                  "params" : [
+                      { "is_multi" : false, "type" : "string" },
+                      { "is_multi" : false, "type" : "int64" },
+                      { "is_multi" : false, "type" : "int32" },
+                      { "is_multi" : false, "type" : "int32" }
+                  ],
+                  "returns" : [ { "is_multi" : false, "type" : "int32" } ],
+                  "acc_types" : [ { "is_multi" : true, "type" : "uint64" } ]
+              } ]
+          }
+        },
+        {
+          "function_name" : "MATCHINDEX",
+          "function_type" : "UDF",
+          "is_deterministic" : 1,
+          "function_content_version" : "json_default_0.1",
+          "function_content" : {
+              "prototypes" : [
+                  {
+                    "params" : [
+                        { "is_multi" : false, "type" : "string" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : false, "type" : "string" },
+                        { "is_multi" : false, "type" : "string" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" : [
+                        { "is_multi" : false, "type" : "boolean" }
+                    ]
+                  }
+              ]
+          }
+        },
+        {
+          "function_name" : "_query",
+          "function_type" : "UDF",
+          "is_deterministic" : 1,
+          "function_content_version" : "json_default_0.1",
+          "function_content" : {
+              "prototypes" : [
+                  {
+                    "params" : [
+                        { "is_multi" : false, "type" : "string" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : false, "type" : "string" },
+                        { "is_multi" : false, "type" : "string" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" : [
+                        { "is_multi" : false, "type" : "boolean" }
+                    ]
+                  }
+              ]
+          }
+        },
+        {
+          "function_name" : "_contain",
+          "function_type" : "UDF",
+          "is_deterministic" : 1,
+          "function_content_version" : "json_default_0.1",
+          "function_content" : {
+              "prototypes" : [
+                  {
+                    "params" : [
+                        { "is_multi" : false, "type" : "int32" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : true, "type" : "int32" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : false, "type" : "int64" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : true, "type" : "int64" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : false, "type" : "string" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : true, "type" : "string" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" : [
+                        { "is_multi" : false, "type" : "boolean" }
+                    ]
+                  }
+              ]
+          }
+        },
+        {
+          "function_name" : "_notcontain",
+          "function_type" : "UDF",
+          "is_deterministic" : 1,
+          "function_content_version" : "json_default_0.1",
+          "function_content" : {
+              "prototypes" : [
+                  {
+                    "params" : [
+                        { "is_multi" : false, "type" : "int32" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : true, "type" : "int32" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : false, "type" : "int64" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : true, "type" : "int64" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : false, "type" : "string" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : true, "type" : "string" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" : [
+                        { "is_multi" : false, "type" : "boolean" }
+                    ]
+                  }
+              ]
+          }
+        },
+        {
+          "function_name" : "_range",
+          "function_type" : "UDF",
+          "is_deterministic" : 1,
+          "function_content_version" : "json_default_0.1",
+          "function_content" : {
+              "prototypes" : [
+                  {
+                    "params" : [
+                        { "is_multi" : false, "type" : "int32" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : false, "type" : "int64" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : false, "type" : "float" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" :
+                            [ { "is_multi" : false, "type" : "boolean" } ]
+                  },
+                  {
+                    "params" : [
+                        { "is_multi" : false, "type" : "double" },
+                        { "is_multi" : false, "type" : "string" }
+                    ],
+                    "returns" : [
+                        { "is_multi" : false, "type" : "boolean" }
+                    ]
+                  }
+              ]
+          }
+        },
+        {
+          "function_name" : "_multivalue",
+          "function_type" : "UDF",
+          "is_deterministic" : 1,
+          "function_content_version" : "json_default_0.1",
+          "function_content" : {
+              "prototypes" : [
+                  {
+                    "params" : [ { "is_multi" : true, "type" : "int32" } ],
+                    "returns" : [ { "is_multi" : false, "type" : "int32" } ]
+                  },
+                  {
+                    "params" : [ { "is_multi" : true, "type" : "int64" } ],
+                    "returns" : [ { "is_multi" : false, "type" : "int64" } ]
+                  },
+                  {
+                    "params" : [ { "is_multi" : true, "type" : "string" } ],
+                    "returns" : [
+                        { "is_multi" : false, "type" : "string" }
+                    ]
+                  }
+              ]
+          }
+        }
+    ]
+}

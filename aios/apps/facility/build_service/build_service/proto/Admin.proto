@@ -1,0 +1,680 @@
+syntax = "proto2";
+import "arpc/proto/rpc_extensions.proto";
+import "build_service/proto/BasicDefs.proto";
+import "build_service/proto/Heartbeat.proto";
+import "hippo/proto/Common.proto";
+package build_service.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+message AdminErrorInfo {
+    optional AdminErrorCode errorCode = 1;
+    optional string errorMsg = 2;
+}
+
+enum AdminErrorCode {
+    ADMIN_ERROR_NONE = 0;
+    ADMIN_NOT_FOUND = 1;
+    ADMIN_INTERNAL_ERROR = 2;
+    ADMIN_BAD_REQUEST = 3;
+    ADMIN_DUPLICATE = 4;
+}
+
+message InformResponse {
+    repeated string errorMessage = 1;
+    optional string response = 2 [default = ""];
+    optional AdminErrorCode errorCode = 3;
+}
+
+message StartBuildRequest {
+    required string configPath = 1;
+    required BuildId buildId = 2;
+    optional string dataDescriptionKvs = 3;
+    optional string buildMode = 4;
+    optional string debugMode = 5;
+    optional bool jobMode = 6 [default = false];
+    optional string jobId = 7;
+}
+
+message StartBuildResponse {
+    optional uint32 generationId = 1;
+    repeated string errorMessage = 2;
+    optional AdminErrorCode errorCode = 3;
+}
+
+message MigrateRoleRequest {
+    required BuildId buildId = 1;
+    repeated PartitionId pids = 2;
+    repeated string roleNames = 3;
+}
+
+message SuspendBuildRequest {
+    required BuildId buildId = 1;
+    optional bool forceSuspend = 2 [default = false];
+    optional string clusterName = 3 [default = ""];
+    optional string jobId = 4;
+}
+
+message ResumeBuildRequest {
+    required BuildId buildId = 1;
+    optional string clusterName = 2 [default = ""];
+    optional string jobId = 3;
+}
+
+message RollBackRequest {
+    required BuildId buildId = 1;
+    required string clusterName = 2;
+    required int32 versionId = 3;
+    optional int32 startTimestamp = 4 [default = -1];
+    optional string jobId = 5;
+}
+
+message RollBackCheckpointRequest {
+    required BuildId buildId = 1;
+    required string clusterName = 2;
+    required int64 checkpointId = 3;
+    repeated Range ranges = 4;
+}
+
+message CreateSnapshotRequest {
+    required BuildId buildId = 1;
+    required string clusterName = 2;
+    required int32 versionId = 3;
+    optional string jobId = 4;
+}
+
+message RemoveSnapshotRequest {
+    required BuildId buildId = 1;
+    required string clusterName = 2;
+    required int32 versionId = 3;
+    optional string jobId = 4;
+}
+
+message CreateSavepointRequest {
+    required BuildId buildId = 1;
+    required string clusterName = 2;
+    optional int64 savepointId = 3 [default = -1];
+    optional string comment = 4 [default = ""];
+}
+
+message RemoveSavepointRequest {
+    required BuildId buildId = 1;
+    required string clusterName = 2;
+    required int64 savepointId = 3;
+}
+
+message ListCheckpointRequest {
+    required BuildId buildId = 1;
+    required string clusterName = 2;
+    optional bool savepointOnly = 3 [default = false];
+    optional uint32 offset = 4 [default = 0];
+    optional uint32 limit = 5 [default = 10];
+}
+
+message GetCheckpointRequest {
+    required BuildId buildId = 1;
+    required string clusterName = 2;
+    required uint64 checkpointId = 3;
+}
+
+message CommitVersionRequest {
+    required BuildId buildId = 1;
+    required string clusterName = 2;
+    required Range range = 3;
+    optional string versionMeta = 4 [default = ""];
+    optional bool instantPublish = 5 [default = false];
+}
+
+message GetCommittedVersionsRequest {
+    required BuildId buildId = 1;
+    required string clusterName = 2;
+    required Range range = 3;
+    optional uint32 limit = 4 [default = 10];
+}
+
+message StartIndexTaskRequest {
+    required BuildId buildId = 1;
+    required int64 taskId = 2;
+    required string clusterName = 3;
+    optional string OBSOLETE_configPath = 4;
+    required string partitionIndexRoot = 5;
+    required string taskEpochId = 6;
+    required OperationPlan plan = 7;
+    repeated int64 sourceVersionIds = 8;
+    repeated string paramKeys = 9;
+    repeated string paramValues = 10;
+}
+
+message StartTaskRequest {
+    required BuildId buildId = 1;
+    required int64 taskId = 2;
+    required string taskName = 3;
+    optional string taskConfigPath = 4;
+    optional string clusterName = 5 [default = ""];
+    optional string taskParam = 6 [default = ""];
+    optional string jobId = 7;
+}
+
+message TaskInfoRequest {
+    required BuildId buildId = 1;
+    required int64 taskId = 2 [default = -1];
+    optional string jobId = 3;
+}
+
+message StopTaskRequest {
+    required BuildId buildId = 1;
+    required int64 taskId = 2;
+    optional string jobId = 3;
+}
+
+message StopBuildRequest {
+    required string configPath = 1;
+    required BuildId buildId = 2;
+    optional string jobId = 3;
+}
+
+message UpdateConfigRequest {
+    required BuildId buildId = 1;
+    required string configPath = 2;
+    optional string jobId = 3;
+}
+
+message UnloadConfigRequest {
+    required BuildId buildId = 1;
+    required string configPath = 2;
+    optional string jobId = 3;
+}
+
+message CreateVersionRequest {
+    required BuildId buildId = 1;
+    optional string clusterName = 2;
+    optional string mergeConfig = 3;
+    optional string jobId = 4;
+}
+
+message SwitchBuildRequest {
+    required BuildId buildId = 1;
+    optional string jobId = 2;
+}
+
+message StepBuildRequest {
+    required BuildId buildId = 1;
+    optional string jobId = 2;
+}
+
+message CallGraphRequest {
+    required BuildId buildId = 1;
+    required string graphFileName = 2;
+    optional string graphIdentifier = 3;
+    optional string jsonParameterFilePath = 4;
+    optional string jsonParameterString = 5;
+    optional string jobId = 6;
+}
+
+message PrintGraphRequest {
+    required BuildId buildId = 1;
+    optional bool printTaskInfo = 2 [default = false];
+    optional bool writeToLocal = 3 [default = false];
+    optional string clusterName = 4 [default = ""];
+    optional string jobId = 5;
+}
+
+message UpdateGsTemplateRequest {
+    optional string templateFile = 1 [default = ""];
+    optional string templateStr = 2 [default = ""];
+    optional string jobId = 3;
+}
+
+// gs related
+message ServiceInfoRequest {
+    optional string appName = 2;
+    optional bool getHistory = 3 [default = false];
+    optional bool fillTaskHistory = 4 [default = false];
+    optional BuildId buildId = 5;
+    optional bool fillFlowInfo = 6 [default = false];
+    optional bool ignoreTemplate = 7 [default = false];
+    optional bool fillEffectiveIndexInfo = 8 [default = false];
+    optional string jobId = 9;
+}
+
+message Resource {
+    optional string name = 1;
+    optional int32 count = 2;
+}
+
+message TaskPartitionInfo {
+    optional PartitionId pid = 1;
+    optional TaskTarget targetStatus = 2;
+    optional TaskCurrent currentStatus = 3;
+    repeated hippo.proto.AssignedSlot slotInfos = 4;
+    repeated CounterItem counterItems = 5;
+}
+
+// processor
+message ProcessorPartitionInfo {
+    optional PartitionId pid = 1;
+    optional ProcessorTarget targetStatus = 2;
+    optional ProcessorCurrent currentStatus = 3;
+    repeated hippo.proto.AssignedSlot slotInfos = 4;
+    repeated CounterItem counterItems = 5;
+}
+
+message AgentPartitionInfo {
+    optional PartitionId pid = 1;
+    optional AgentTarget targetStatus = 2;
+    optional AgentCurrent currentStatus = 3;
+    repeated hippo.proto.AssignedSlot slotInfos = 4;
+    repeated CounterItem counterItems = 5;
+}
+
+message FatalErrorMsg {
+    optional string roleName = 1;
+    optional string errorMsg = 2;
+}
+
+message ProcessorInfo {
+    optional uint32 partitionCount = 1;
+    optional uint32 parallelNum = 2;
+    optional string dataDescription = 3;
+    optional string processorStep = 4;
+    repeated Resource resources = 5;
+    repeated ProcessorPartitionInfo partitionInfos = 6;
+    repeated FatalErrorMsg fatalErrors = 7;
+    optional string taskStatus = 8;
+}
+
+message AgentNodePlan {
+    required string agentRoleName = 1;
+    repeated string targetRoleName = 2;
+}
+
+message TaskInfo {
+    optional string taskName = 1;
+    repeated TaskPartitionInfo partitionInfos = 2;
+    repeated FatalErrorMsg fatalErrors = 3;
+    optional int64 taskId = 4; //legacy task id not use, use task identifier
+    optional string taskStep = 5;
+    optional string taskInfo = 6;
+    optional string taskIdentifier = 7;
+}
+
+message TaskInfoResponse {
+   required bool taskExist = 1;
+   required TaskInfo taskInfo = 2;
+   repeated string errorMessage = 3;
+   optional AdminErrorCode errorCode = 4;
+}
+
+// GeneralTask begin
+
+message StartGeneralTaskRequest {
+    required BuildId buildId = 1;
+    required string clusterName = 2;
+    required int64 taskId = 3;
+    required string partitionIndexRoot = 4;
+    required string taskEpochId = 5;
+    required int64 sourceVersionId = 6;
+    repeated string paramKeys = 7;
+    repeated string paramValues = 8;
+    required OperationPlan plan = 9;
+    required int64 branchId = 10;
+    optional Range range = 11;
+}
+
+// GeneralTask end
+
+message FlowTaskMeta {
+    optional string taskId = 1;
+    optional string taskType = 2;
+    optional string propertyMapStr = 3;
+}
+
+message FlowMeta {
+    optional string flowId = 1;
+    optional string graphId = 2;
+    optional string scriptInfo = 3;
+    optional string flowStatus = 4;
+    optional string errorMsg = 5;
+    repeated string upstreamFlowInfos = 6;
+    repeated FlowTaskMeta inFlowTaskMetas = 7;
+    optional bool hasFatalError = 8 [default = false];
+    optional string tags = 9;
+}
+
+// builder
+message BuilderPartitionInfo {
+    optional PartitionId pid = 1;
+    optional BuilderTarget targetStatus = 2;
+    optional BuilderCurrent currentStatus = 3;
+    repeated hippo.proto.AssignedSlot slotInfos = 4;
+    repeated CounterItem counterItems = 5;
+}
+
+message BuilderInfo {
+    optional uint32 parallelNum = 1;
+    repeated Resource resources = 2;
+    repeated BuilderPartitionInfo partitionInfos = 3;
+    repeated CounterItem counterItems = 4;
+    optional string taskStatus = 5;
+    optional int64 schemaVersion = 6;
+    optional string buildPhrase = 7;
+}
+
+// merger
+message MergerPartitionInfo {
+    optional PartitionId pid = 1;
+    optional MergerTarget targetStatus = 2;
+    optional MergerCurrent currentStatus = 3;
+    repeated hippo.proto.AssignedSlot slotInfos = 4;
+    repeated CounterItem counterItems = 5;
+}
+
+message MergerInfo {
+    optional uint32 parallelNum = 1;
+    optional string mergeConfigName = 2;
+    repeated Resource resources = 3;
+    repeated MergerPartitionInfo partitionInfos = 4;
+    optional string taskStatus = 5;
+}
+
+message SingleClusterInfo {
+    optional string clusterName = 1;
+    optional uint32 partitionCount = 2;
+    optional int64 lastVersionTimestamp = 3;
+    optional string clusterStep = 4;
+    optional BuilderInfo builderInfo = 5;
+    optional MergerInfo mergerInfo = 6;
+    repeated string pendingMergeTasks = 7;
+    repeated FatalErrorMsg fatalErrors = 8;
+    repeated CheckpointInfo checkpointInfos = 9;
+    optional string schemaName = 10;
+    optional string tableType = 11; // index, kv, kkv...
+    optional string taskStatus = 12;
+    optional int64 currentSchemaVersion = 13;
+    optional TaskInfo taskInfo = 14;
+    optional string lastVersionEffectiveIndexInfo = 15; // indexPartitionSchema::GetEffectiveAddIndexInfo()
+}
+
+message BuildInfo {
+    repeated SingleClusterInfo clusterInfos = 1;
+    optional string taskStatus = 2;
+}
+
+// job
+message JobWorkerPartitionInfo {
+    optional PartitionId pid = 1;
+    optional JobTarget targetStatus = 2;
+    optional JobCurrent currentStatus = 3;
+    repeated hippo.proto.AssignedSlot slotInfos = 4;
+    repeated CounterItem counterItems = 5;
+}
+
+message JobInfo {
+    optional string clusterName = 1;
+    optional uint32 partitionCount = 2;
+    optional uint32 buildParallelNum = 3;
+    optional uint32 dataDescriptionId = 4;
+    optional string dataDescription = 5;
+    optional string mergeConfigName = 6;
+    repeated Resource resources = 7;
+    repeated JobWorkerPartitionInfo partitionInfos = 8;
+    repeated FatalErrorMsg fatalErrors = 9;
+}
+
+message CounterItem {
+    required string name = 1;
+    required int64 value = 2;
+}
+
+message RoleCounterInfo {
+    required string roleName = 1;
+    repeated CounterItem counterItem = 2;
+}
+
+message RoleReleaseInfo {
+    required string roleName = 1;
+    repeated string releaseIps = 2;
+    optional bool reachReleaseLimit = 3;
+}
+
+message IndexInfoRange {
+    optional int64 minValue = 1 [default = -1];
+    optional int64 maxValue = 2 [default = -1];
+}
+
+message IndexInfoSummary {
+    optional IndexInfoRange indexVersionRange = 1;
+    optional IndexInfoRange versionTimestampRange = 2;
+    optional IndexInfoRange startTimestampRange = 3;
+    optional IndexInfoRange finishTimestampRange = 4;
+    optional uint64 indexSize = 5 [default = 0];
+}
+
+message CheckpointInfo {
+    optional int32 versionId = 1 [default = -1];
+    optional uint64 versionTimestamp = 2;
+    optional bool isSnapshot = 3 [default = false];
+    optional string configPath = 4;
+    optional int64 schemaId = 5 [default = 0];
+    optional int64 processorCheckpoint = 6 [default = 0];
+    optional int64 processorDataSourceIdx = 7 [default = 0];
+    optional string ongoingModifyOpIds = 8 [default = ""];
+}
+
+message GenerationInfo {
+    optional BuildId buildId = 1;
+    optional string buildStep = 2;
+    optional string configPath = 3;
+    optional string dataDescriptions = 4;
+
+    // processor
+    optional ProcessorInfo processorInfo = 5;
+
+    // build
+    optional BuildInfo buildInfo = 6;
+
+    // job
+    optional JobInfo jobInfo = 7;
+
+    optional string indexRoot = 8;
+    repeated IndexInfo indexInfos = 9;
+    repeated TaskHistory taskHistorys = 10;
+    repeated IndexInfo fullIndexInfos = 11;
+    repeated RoleCounterInfo roleCounterInfo = 12;
+    optional bool hasFatalError = 13;
+    repeated RoleReleaseInfo roleReleaseInfos = 14;
+    optional string generationFatalErrorMsg = 15;
+    optional IndexInfoSummary indexInfoSummary = 16;
+    optional IndexInfoSummary fullIndexInfoSummary = 17;
+    optional string taskStatus = 18;
+    optional int32 protocolVersion = 19;
+    repeated ProcessorInfo processorInfos = 20;
+    repeated ProcessorInfo oldProcessorInfos = 21;
+
+    // tasks
+    repeated TaskInfo activeTaskInfos = 22;
+    repeated TaskInfo stoppedTaskInfos = 23;
+
+    // flow
+    repeated FlowMeta activeFlowMetas = 24;
+    repeated FlowMeta stoppedFlowMetas = 25;
+    // orphan tasks
+    repeated FlowTaskMeta orphanTaskInfos = 26;
+
+    // agent nodes
+    repeated AgentNodePlan agentNodePlans = 27;
+}
+
+message WorkerHistory {
+    optional string reason = 1;
+    optional uint64 timestamp = 2;
+    optional BuilderPartitionInfo builderInfo = 4;
+    optional MergerPartitionInfo mergerInfo = 5;
+    optional ProcessorPartitionInfo processorInfo = 6;
+    optional JobWorkerPartitionInfo jobInfo = 7;
+}
+
+message RoleHistory {
+    optional PartitionId pid = 1;
+    repeated WorkerHistory workerHistorys = 2;
+}
+
+message TaskHistory {
+    optional uint64 beginTime = 1;
+    optional uint64 endTime = 2;
+    optional PartitionId taskId = 3;
+    repeated RoleHistory roleHistorys = 4;
+}
+
+message GenerationHistoryStore {
+    repeated TaskHistory taskHistorys = 1;
+}
+
+message ServiceInfoResponse {
+    optional string adminAddress = 1;
+    optional string adminConfig = 2;
+    repeated GenerationInfo generationInfos = 3;
+    repeated string errorMessage = 4;
+    optional AdminErrorCode errorCode = 5;
+}
+
+message SetLoggerLevelRequest {
+    enum LogLevel {
+        DISABLE = 0;
+        FATAL   = 1;
+        ERROR   = 2;
+        WARN    = 3;
+        INFO    = 4;
+        DEBUG   = 5;
+        TRACE1  = 6;
+        TRACE2  = 7;
+        TRACE3  = 8;
+        NOTSET  = 9;
+    }
+    required string logger = 1;
+    required LogLevel level = 2;
+}
+
+message CleanVersionsRequest {
+    required BuildId buildId = 1;
+    required string clusterName = 2;
+    required uint32 versionId = 3;
+    optional string jobId = 4;
+}
+
+service AdminService
+{
+    option (arpc.global_service_id) = 700;
+    rpc startBuild ( StartBuildRequest ) returns ( StartBuildResponse ) {
+        option (arpc.local_method_id) = 2;
+    };
+    rpc stopBuild ( StopBuildRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 3;
+    };
+    rpc updateConfig ( UpdateConfigRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 4;
+    };
+    rpc createVersion ( CreateVersionRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 5;
+    };
+    rpc switchBuild ( SwitchBuildRequest ) returns ( InformResponse ) {
+     	option (arpc.local_method_id) = 7;
+    };
+    rpc getServiceInfo ( ServiceInfoRequest ) returns ( ServiceInfoResponse ) {
+        option (arpc.local_method_id) = 6;
+    };
+    rpc stepBuild ( StepBuildRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 8;
+    }
+    rpc setLoggerLevel(SetLoggerLevelRequest) returns (InformResponse) {
+        option (arpc.local_method_id) = 9;
+    }
+    rpc cleanVersions ( CleanVersionsRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 10;
+    }
+    rpc suspendBuild ( SuspendBuildRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 11;
+    }
+    rpc resumeBuild ( ResumeBuildRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 12;
+    }
+    rpc rollBack ( RollBackRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 13;
+    }
+    rpc createSnapshot ( CreateSnapshotRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 14;
+    }
+    rpc removeSnapshot ( RemoveSnapshotRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 15;
+    }
+    rpc startTask ( StartTaskRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 16;
+    }
+    rpc stopTask ( StopTaskRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 17;
+    }
+    rpc getTaskInfo ( TaskInfoRequest ) returns ( TaskInfoResponse ) {
+        option (arpc.local_method_id) = 18;
+    }
+    rpc callGraph ( CallGraphRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 19;
+    }
+    rpc printGraph ( PrintGraphRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 20;
+    }
+    rpc updateGsTemplate ( UpdateGsTemplateRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 21;
+    }
+    rpc startIndexTask ( StartIndexTaskRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 22;
+    }
+    rpc startGeneralTask ( StartGeneralTaskRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 23;
+    }
+    rpc createSavepoint ( CreateSavepointRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 24;
+    }
+    rpc removeSavepoint ( RemoveSavepointRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 25;
+    }
+    rpc listCheckpoint ( ListCheckpointRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 26;
+    }
+    rpc commitVersion ( CommitVersionRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 27;
+    }
+    rpc getCheckpoint ( GetCheckpointRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 28;
+    }
+    rpc migrateTargetRoles ( MigrateRoleRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 29;
+    }
+    rpc getCommittedVersions ( GetCommittedVersionsRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 30;
+    }
+    rpc rollBackCheckpoint ( RollBackCheckpointRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 31;
+    }
+}
+
+message GeneralTaskWalPlan {
+    repeated OperationDescription desc = 1;
+}
+
+message GeneralTaskWalOpRun {
+    required int64 opId = 1;
+    required uint32 nodeId = 2;
+}
+
+message GeneralTaskWalOpFinish {
+    required int64 opId = 1;
+    required string workerEpochId = 2;
+    required string resultInfo = 3;
+}
+
+message GeneralTaskWalRecord {
+    repeated GeneralTaskWalOpFinish opFinish = 1;
+    repeated GeneralTaskWalOpRun opRun = 2;
+    required uint32 parallelNum = 3;
+}

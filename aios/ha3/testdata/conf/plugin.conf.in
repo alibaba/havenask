@@ -1,0 +1,34 @@
+[
+    {
+	"module_name" : "aaa",
+	"module_path" : "/tmp/path/libaaa.so",
+	"parameters" : {
+	    "aaa1" : "aaa1",
+	    "aaa2" : "aaa2"
+	}
+    },
+    {
+	"module_name" : "bbb",
+	"module_path" : "/tmp/path/libbbb.so",
+	"parameters" : {
+	    "bbb1" : "bbb1",
+	    "bbb2" : "bbb2"
+	}
+    },
+    {
+	"module_name" : "ccc",
+	"module_path" : "/tmp/path/libccc.so",
+	"parameters" : {
+	    "ccc1" : "ccc1",
+	    "ccc2" : "ccc2"
+	}
+    },
+    {
+	"module_name" : "mlr",
+	"module_path" : "libfakescorer.so",
+	"parameters" : {
+	    "mlr1" : "mlr1",
+	    "mlr2" : "mlr2"
+	}
+    }
+]

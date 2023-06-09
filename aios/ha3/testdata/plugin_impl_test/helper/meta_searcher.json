@@ -1,0 +1,67 @@
+{
+    "adaptive_dictionaries": [
+        {
+            "adaptive_dictionary_name": "percent", 
+            "dict_type": "PERCENT", 
+            "threshold": 5
+        }, 
+        {
+            "adaptive_dictionary_name": "size", 
+            "dict_type": "INDEX_SIZE"
+        }
+    ], 
+    "attributes": [
+        "field1",
+        "DUP_field2",
+        "field2",
+        "field3",
+        "pack_attr_feature"
+    ], 
+    "fields": [
+        {
+            "field_name": "field1", 
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "field2", 
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "field3", 
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "pack_attr_feature", 
+            "field_type": "INT8",
+            "multi_value": true
+        },
+
+        {
+            "field_name": "DUP_field2", 
+            "field_type": "STRING"
+        }
+    ], 
+    "indexs": [
+        {
+            "index_fields": "field1", 
+            "index_name": "field1", 
+            "index_type": "NUMBER", 
+            "term_frequency_flag": 0
+        },
+        {
+            "index_fields": "field3", 
+            "index_name": "field3", 
+            "index_type": "NUMBER", 
+            "term_frequency_flag": 0
+        }
+    ], 
+    "summarys": {
+        "compress": true, 
+        "summary_fields": [
+            "field1"
+        ]
+    }, 
+    "table_name": "searcher"
+}

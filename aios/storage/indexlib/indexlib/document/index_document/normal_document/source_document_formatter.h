@@ -1,0 +1,68 @@
+/*
+ * Copyright 2014-present Alibaba Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#ifndef __INDEXLIB_SOURCE_DOCUMENT_FORMATTER_H
+#define __INDEXLIB_SOURCE_DOCUMENT_FORMATTER_H
+
+#include <memory>
+
+#include "indexlib/common_define.h"
+#include "indexlib/config/source_schema.h"
+#include "indexlib/document/index_document/normal_document/group_field_formatter.h"
+#include "indexlib/document/index_document/normal_document/serialized_source_document.h"
+#include "indexlib/document/index_document/normal_document/source_document.h"
+#include "indexlib/indexlib.h"
+
+namespace indexlib { namespace document {
+
+class SourceDocumentFormatter
+{
+public:
+    SourceDocumentFormatter() {}
+    SourceDocumentFormatter(const SourceDocumentFormatter& other) = delete;
+    ~SourceDocumentFormatter() {}
+
+public:
+    void Init(const config::SourceSchemaPtr& sourceSchema);
+
+    void SerializeSourceDocument(const SourceDocumentPtr& document, autil::mem_pool::Pool* pool,
+                                 SerializedSourceDocumentPtr& serDoc);
+
+    void DeserializeSourceDocument(const SerializedSourceDocumentPtr& serDoc, SourceDocument* document);
+
+private:
+    void SerializeData(const SourceDocumentPtr& document, autil::mem_pool::Pool* pool,
+                       SerializedSourceDocumentPtr& serDoc);
+
+    void SerializeMeta(const SourceDocumentPtr& document, autil::mem_pool::Pool* pool,
+                       SerializedSourceDocumentPtr& serDoc);
+
+    void SerializeAccessary(const SourceDocumentPtr& document, autil::mem_pool::Pool* pool,
+                            SerializedSourceDocumentPtr& serDoc);
+
+    void Reset();
+
+private:
+    std::vector<GroupFieldFormatterPtr> mGroupFormatterVec;
+    GroupFieldFormatterPtr mMetaFormatter;
+    GroupFieldFormatterPtr mAccessaryFormatter;
+    size_t mGroupCount = 0;
+    IE_LOG_DECLARE();
+};
+
+DEFINE_SHARED_PTR(SourceDocumentFormatter);
+}} // namespace indexlib::document
+
+#endif //__INDEXLIB_SOURCE_DOCUMENT_FORMATTER_H

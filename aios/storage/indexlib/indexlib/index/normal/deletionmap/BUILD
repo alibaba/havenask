@@ -1,0 +1,13 @@
+cc_library(
+    name='deletionmap',
+    srcs=glob(['*.cpp']),
+    hdrs=glob(['*.h']),
+    copts=['-Werror'],
+    include_prefix='indexlib/index/normal/deletionmap/',
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        '//aios/storage/indexlib/index/deletionmap:reader',
+        '//aios/storage/indexlib/indexlib/index:util',
+        '//aios/storage/indexlib/indexlib/index_base'
+    ]
+)

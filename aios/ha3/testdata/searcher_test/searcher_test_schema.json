@@ -1,0 +1,119 @@
+{
+    "table_name": "many",
+    "fields":
+    [
+	{"field_name":"title", "field_type":"TEXT", "analyzer":"default"},
+	{"field_name":"body", "field_type":"TEXT", "analyzer":"default"},
+	{"field_name":"description", "field_type":"TEXT", "analyzer":"default"},
+	{"field_name":"id", "field_type":"INTEGER"},
+	{"field_name":"price", "field_type":"INTEGER"},
+	{"field_name":"type", "field_type":"INTEGER"},
+	{"field_name":"userid", "field_type":"INTEGER"},
+	{"field_name":"int8", "field_type":"INT8"},
+	{"field_name":"int16", "field_type":"INT16"},
+	{"field_name":"int32", "field_type":"INTEGER"},
+	{"field_name":"int64", "field_type":"LONG"},
+	{"field_name":"uint8", "field_type":"UINT8"},
+	{"field_name":"uint16", "field_type":"UINT16"},
+	{"field_name":"uint32", "field_type":"UINT32"},
+	{"field_name":"uint64", "field_type":"UINT64"},
+	{"field_name":"float", "field_type":"FLOAT"},
+	{"field_name":"double", "field_type":"DOUBLE"},
+	{"field_name":"score1", "field_type":"DOUBLE"},
+	{"field_name":"score2", "field_type":"DOUBLE"},
+	{"field_name":"string", "field_type":"STRING"},
+	{"field_name":"shop_id", "field_type":"LONG"},
+	{"field_name":"multi_int32", "field_type":"INTEGER", "multi_value":true},
+	{"field_name":"attr_string", "field_type":"STRING"},
+	{"field_name":"multi_string", "field_type":"STRING", "multi_value":true},
+	{"field_name":"join_field", "field_type":"UINT32"}
+    ],
+    "analyzers":
+    [
+	{
+	    "analyzer_name" : "default",
+	    "tokenizer_configs" :
+	    {
+		"tokenizer_type" : "aliws",
+		"tokenizer_id" : "TAOBAO_CHN"
+	    },
+	    "stopwords" : [".", ",", ";"],
+	    "normalize_options" :
+	    {
+		"case_sensitive" : "true",
+		"traditional_sensitive" : "true",
+		"width_sensitive" : "true"
+	    }
+	}
+    ],
+    "indexs":
+    [
+	{
+	    "index_name": "titleindex",
+            "index_type" : "STRING",
+	    "index_fields":"string"
+	},
+	{
+	    "index_name": "index_name",
+            "index_type" : "NUMBER",
+	    "index_fields":"type"
+	},
+	{
+	    "index_name": "phrase",
+            "index_type" : "PACK",
+	    "index_fields":
+	    [
+		{"field_name":"title", "boost":200000},
+		{"field_name":"body", "boost":200000},
+		{"field_name":"description", "boost":200000}
+	    ]
+	},
+	{
+	    "index_name": "id",
+            "index_type" : "PRIMARYKEY64",
+	    "index_fields": "id",
+	    "has_primary_key_attribute": true
+	}
+    ],
+    "attributes": ["id", "price", "type", "userid", "int8",
+		   "int16", "int32", "int64", "uint8", "uint16", "uint32",
+		   "uint64", "float", "double", "string", "multi_int32", 
+		   "attr_string", "multi_string", "shop_id", "score1", "score2", "join_field"],
+    "summarys":{
+        "summary_fields":["id", "price", "type", "userid"],
+        "compress":false,
+                "summary_groups" : [
+            {
+                "group_name" : "tpp",
+                "compress": false,
+                "summary_fields" : [ "title", "body" ]
+            },
+            {
+                "group_name" : "mainse",
+                "summary_fields" : [ "description" ]
+            }
+        ]
+    },
+    "sub_schema" : {
+	"table_name" : "sub_table",
+	"fields" : [
+	    {"field_name":"sub_price", "field_type":"INT32"},
+	    {"field_name":"sub_expire_time", "field_type":"UINT32"},
+	    {"field_name":"sub_id", "field_type":"INT32"},
+	    {"field_name":"sub_join", "field_type":"INT32"}
+	],
+	"indexs" : [
+	    {
+		"index_name": "sub_index_name",
+		"index_type" : "NUMBER",
+		"index_fields":"sub_price"
+	    },
+	    {
+		"index_name": "sub_pk",
+		"index_type" : "PRIMARYKEY64",
+		"index_fields":"sub_id"
+	    }
+	],
+	"attributes": ["sub_price", "sub_expire_time", "sub_id", "sub_join"]
+    }
+}

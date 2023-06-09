@@ -1,0 +1,50 @@
+{
+    "build_option_config" : {
+        "DocumentProcessQueueSize" : 1000,
+        "DocumentProcessThreadNum" : 10,
+        "IndexDocumentQueueSize" : 1000,
+        "MapBufferSize" : 256,
+        "MapReduceRatio" : 1,
+        "sort_build" : false,
+        "max_recover_time" : 1,
+        "sort_descriptions" : [
+            {
+                "sort_field" : "company_id",
+                "sort_pattern" : "desc"
+            }
+        ]
+    },
+    "cluster_config" : {
+        "builder_rule_config" : {
+            "need_partition" : true
+        },
+        "cluster_name" : "simple",
+        "hash_mode" : {
+            "hash_field" : "id",
+            "hash_function" : "HASH"
+        },
+        "table_name" : "simple"
+    },
+    "realtime" : true,
+    "online_index_config": {
+        "need_read_remote_index" : true,
+        "need_deploy_index" : false
+    },
+    "offline_index_config" : {
+        "build_config" : {
+            "keep_version_count" : 2,
+            "max_memory_use" : 1024
+        },
+        "merge_config" : {
+            "keep_version_count" : 2,
+            "merge_strategy" : "optimize",
+            "merge_strategy_param" : ""
+        }
+    },
+    "swift_config" : {
+        "topic" : {
+            "partition_buffer_size" : 1,
+            "partition_resource" : 1
+        }
+    }
+}

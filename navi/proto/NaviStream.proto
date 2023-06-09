@@ -1,0 +1,67 @@
+syntax = "proto3";
+import "proto/GraphDef.proto";
+
+package navi;
+option cc_enable_arenas = true;
+
+message EdgeOverrideData
+{
+    int32 graph_id = 1;
+    NodePortDef output_port = 2;
+    bytes type = 3;
+    repeated bytes datas = 4;
+}
+
+message TraceBtFilter
+{
+    string file = 1;
+    int32 line = 2;
+}
+
+message RunParams
+{
+    SessionIdDef id = 1;
+    uint32 thread_limit = 2;
+    int64 timeout_ms = 3;
+    string trace_level = 4;
+    bool collect_metric = 5;
+    bool collect_perf = 6;
+    int32 max_inline = 7;
+    repeated EdgeOverrideData override_datas = 8;
+    repeated TraceBtFilter trace_bt_filters = 9;
+    uint64 single_pool_usage_limit = 10;
+    string task_queue_name = 11;
+}
+
+message NaviPortData
+{
+    int32 port_id = 1;
+    int32 to_part_id = 2;
+    int32 from_part_id = 3;
+    bytes type = 4;
+    bool eof = 5;
+    bytes data = 6;
+}
+
+message BorderIdDef {
+    int32 graph_id = 1;
+    int32 peer = 2;
+    int32 io_type = 3;
+}
+
+message NaviBorderData
+{
+    BorderIdDef border_id = 1;
+    repeated NaviPortData port_datas = 2;
+}
+
+message NaviMessage
+{
+    int32 msg_id = 1;
+    GraphDef graph = 2;
+    RunParams params = 3;
+    repeated NaviBorderData border_datas = 4;
+    bytes navi_result = 5;
+    bytes navi_trace = 6;
+    bytes navi_meta_info = 7;
+}

@@ -1,0 +1,45 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+indexlib_cc_library(
+    name='SkipListReader',
+    deps=['//aios/storage/indexlib/file_system:byte_slice_rw']
+)
+indexlib_cc_library(
+    name='PairValueSkipListReader',
+    deps=[
+        ':SkipListReader',
+        '//aios/storage/indexlib/index/common/numeric_compress:EncoderProvider'
+    ]
+)
+indexlib_cc_library(
+    name='TriValueSkipListReader',
+    deps=[
+        ':SkipListReader',
+        '//aios/storage/indexlib/index/common/numeric_compress:EncoderProvider'
+    ]
+)
+indexlib_cc_library(
+    name='InMemPairValueSkipListReader',
+    deps=[
+        ':PairValueSkipListReader',
+        '//aios/storage/indexlib/index/inverted_index/format:BufferedByteSlice',
+        '//aios/storage/indexlib/index/inverted_index/format:BufferedByteSliceReader',
+        '//aios/storage/indexlib/index/inverted_index/format:ShortListOptimizeUtil'
+    ]
+)
+indexlib_cc_library(
+    name='InMemTriValueSkipListReader',
+    deps=[
+        ':TriValueSkipListReader',
+        '//aios/storage/indexlib/index/inverted_index/format:BufferedByteSlice',
+        '//aios/storage/indexlib/index/inverted_index/format:BufferedByteSliceReader'
+    ]
+)
+indexlib_cc_library(
+    name='BufferedSkipListWriter',
+    deps=[
+        '//aios/storage/indexlib/file_system:byte_slice_rw',
+        '//aios/storage/indexlib/index/inverted_index/format:BufferedByteSlice',
+        '//aios/storage/indexlib/index/inverted_index/format:ShortListOptimizeUtil'
+    ]
+)

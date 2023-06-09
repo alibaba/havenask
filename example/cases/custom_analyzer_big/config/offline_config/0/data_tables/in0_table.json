@@ -1,0 +1,29 @@
+{
+    "data_descriptions" : [
+    ],
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "in0"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+            ]
+        }
+    ],
+    "processor_config" : {
+        "processor_queue_size" : 2000,
+        "processor_thread_num" : 30
+    },
+    "processor_rule_config" : {
+        "parallel_num" : 1,
+        "partition_count" : 1
+    }
+}

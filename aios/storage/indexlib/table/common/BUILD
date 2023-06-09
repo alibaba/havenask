@@ -1,0 +1,60 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+indexlib_cc_library(
+    name='CommonTabletLoader',
+    deps=[
+        '//aios/storage/indexlib/base:MemoryQuotaController',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework:TabletLoader'
+    ]
+)
+indexlib_cc_library(
+    name='CommonTabletWriter',
+    deps=[
+        ':TabletWriterResourceCalculator',
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/document:DocumentBatch',
+        '//aios/storage/indexlib/framework:BuildDocumentMetrics',
+        '//aios/storage/indexlib/framework:MetricsManager',
+        '//aios/storage/indexlib/framework:MetricsWrapper',
+        '//aios/storage/indexlib/framework:TabletWriter'
+    ]
+)
+indexlib_cc_library(
+    name='CommonTabletSessionReader',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/framework:TabletReader',
+        '//aios/storage/indexlib/framework/mem_reclaimer:EpochBasedMemReclaimer'
+    ]
+)
+indexlib_cc_library(
+    name='CommonTabletValidator',
+    deps=[
+        '//aios/storage/indexlib/base:MemoryQuotaController',
+        '//aios/storage/indexlib/config:BackgroundTaskConfig',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework:ITablet',
+        '//aios/storage/indexlib/framework:ITabletValidator',
+        '//aios/storage/indexlib/framework:TabletCreator'
+    ]
+)
+indexlib_cc_library(
+    name='SearchUtil',
+    deps=[
+        '//aios/autil:json', '//aios/autil:log', '//aios/autil:string_helper',
+        '//aios/storage/indexlib/base/proto:querier_proto_base'
+    ]
+)
+indexlib_cc_library(
+    name='LSMTabletLoader',
+    deps=[
+        ':CommonTabletLoader', '//aios/storage/indexlib/framework:TabletLoader',
+        '//aios/storage/indexlib/index:interface'
+    ]
+)
+indexlib_cc_library(
+    name='TabletWriterResourceCalculator',
+    deps=['//aios/storage/indexlib/util/memory_control']
+)

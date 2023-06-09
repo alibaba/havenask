@@ -1,0 +1,78 @@
+// See README.txt for information and build instructions.
+syntax = "proto2";
+
+import "google/protobuf/descriptor.proto";
+package arpc;
+option java_package = "com.alibaba.search.common.arpc";
+option cc_enable_arenas = true;
+
+extend google.protobuf.ServiceOptions {
+  //when you use this options in you .proto, it should < 2**16
+  optional uint32 global_service_id = 1000;
+}
+extend google.protobuf.MethodOptions {
+  //when you use this options in you .proto, it should < 2**16
+  optional uint32 local_method_id = 1000;
+}
+
+////////////////////////////////////////////////////
+//example for using options above
+//message Request {
+//    optional string query = 1;
+//}
+//
+//message Response {
+//    optional string result = 1;
+//}
+//
+//service Sample {
+//    option (arpc.global_service_id) = 1234;
+//    rpc Query(Request) returns(Response) {
+//    option (arpc.local_method_id) = 2345;
+//    }
+//}
+///////////////////////////////////////////////////// 
+
+message ErrorMsg {
+    optional bytes error_msg = 1;
+    optional int32 error_code = 2;
+}
+
+message TraceInfo {
+    optional int32 serverQueueSize = 1;
+    optional int64 handleRequestTime = 2;
+    optional int64 workItemWaitProcessTime = 3;
+    optional int64 workItemProcessTime = 4;
+    optional int64 requestOnServerTime = 5;
+    optional int64 rtt = 6;
+    optional int64 ipctrace = 7[deprecated = true];
+    optional bytes userPayload = 32;
+}
+
+enum ErrorCode {
+    ARPC_ERROR_VERSION             = -500;   //"invalid packet version"
+    ARPC_ERROR_DECODE_HEADER       = -501;   //"decode header failure"
+    ARPC_ERROR_METHOD_NOT_FOUND    = -502;   //"method not registered"
+    ARPC_ERROR_QUEUE_FULL          = -503;   //"server queue is full"
+    ARPC_ERROR_SERVER_CLOSED       = -504;   //"server closed"
+    ARPC_ERROR_NONE                = 0;      //""
+    ARPC_ERROR_UNKNOWN             = 1;      //"unknow error. "
+    ARPC_ERROR_RPCCALL_MISMATCH    = 2;      //"rpc call mismatch. "
+    ARPC_ERROR_TIMEOUT             = 3;      //"rpc call timeout. "
+    ARPC_ERROR_BAD_PACKET          = 4;      //"packet is bad. "
+    ARPC_ERROR_CONNECTION_CLOSED   = 5;      //"connection closed. "
+    ARPC_ERROR_DECODE_PACKET       = 6;      //"packet decode error. "
+    ARPC_ERROR_ENCODE_PACKET       = 7;      //"packet encode error. "
+    ARPC_ERROR_UNKNOWN_PACKET      = 8;      //"unknow packet. "
+    ARPC_ERROR_POST_PACKET         = 9;      //"post packet error. "
+    ARPC_ERROR_SYN_CALL            = 10;     //"sync call error. "
+    ARPC_ERROR_NEW_NOTHROW         = 11;     //"new (nothrow) return null. "
+    ARPC_ERROR_PUSH_WORKITEM       = 12;     //"push workitem to queue failed. "
+    ARPC_ERROR_INVALID_VERSION     = 13;     //"invalid packet version. "
+    ARPC_ERROR_NO_RESPONSE_SENT    = 14;     //"server does not send any response. "
+    ARPC_ERROR_RESPONSE_TOO_LARGE  = 15;     //"server's response message too large. "
+    ARPC_ERROR_SERVER_RATE_LIMIT   = 16;     //"server rejected the request because the rate limit was reached."
+    ARPC_ERROR_APPLICATION         = 101;    //"rpc application error"
+    ARPC_ERROR_APP_MIN             = 1024;
+}
+

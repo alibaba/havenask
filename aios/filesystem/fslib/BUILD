@@ -1,0 +1,31 @@
+package(default_visibility=['//aios/filesystem/fslib:__subpackages__'])
+load(
+    '//bazel:defs.bzl', 'gen_conf_lib', 'test_cc_plugin_shared_library',
+    'copy_target_to'
+)
+load(
+    '@rules_cc//examples:experimental_cc_shared_library.bzl',
+    'cc_shared_library'
+)
+load('//bazel:bundle.bzl', 'bundle_files')
+cc_library(
+    name='fslib-framework',
+    deps=[
+        '//aios/filesystem/fslib/fslib:common',
+        '//aios/filesystem/fslib/fslib/fs:fs'
+    ],
+    visibility=['//visibility:public'],
+    alwayslink=1
+)
+copy_target_to(
+    name='fslib_plugin_hdfs',
+    to_copy='//aios/filesystem/fslib/fslib/fs/hdfs:fslib_plugin_hdfs',
+    copy_name='libfslib_plugin_hdfs.so',
+    visibility=['//visibility:public']
+)
+copy_target_to(
+    name='fslib_plugin_http',
+    to_copy='//aios/filesystem/fslib/fslib/fs/http:fslib_plugin_http',
+    copy_name='libfslib_plugin_http.so',
+    visibility=['//visibility:public']
+)

@@ -1,0 +1,50 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(default_visibility=[':__subpackages__'])
+indexlib_cc_library(
+    name='table',
+    srcs=[],
+    hdrs=[],
+    visibility=['//visibility:public'],
+    deps=[':OrcTableFactory', ':reader']
+)
+indexlib_cc_library(
+    name='reader',
+    srcs=[],
+    hdrs=[],
+    visibility=['//visibility:public'],
+    deps=[
+        '//aios/storage/indexlib/index/orc:constants',
+        '//aios/storage/indexlib/index/orc:reader'
+    ]
+)
+indexlib_cc_library(
+    name='OrcTableFactory',
+    deps=[
+        ':OrcTabletLoader',
+        '//aios/storage/indexlib/document/orc:OrcDocumentFactory',
+        '//aios/storage/indexlib/index/orc:factory',
+        '//aios/storage/indexlib/table:builtin_define',
+        '//aios/storage/indexlib/table/normal_table:NormalTableFactory',
+        '//aios/storage/indexlib/table/orc_table:OrcSchemaResolver'
+    ],
+    alwayslink=True
+)
+indexlib_cc_library(
+    name='OrcSchemaResolver',
+    implementation_deps=['//aios/storage/indexlib/indexlib/config'],
+    deps=[
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/config:SchemaResolver',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/config:UnresolvedSchema',
+        '//aios/storage/indexlib/index/orc:config'
+    ]
+)
+indexlib_cc_library(
+    name='OrcTabletLoader',
+    deps=[
+        '//aios/storage/indexlib/config:schema',
+        '//aios/storage/indexlib/table:builtin_define',
+        '//aios/storage/indexlib/table/normal_table:NormalTabletLoader'
+    ]
+)

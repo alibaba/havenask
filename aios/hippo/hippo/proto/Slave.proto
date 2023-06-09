@@ -1,0 +1,342 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+import "hippo/proto/yarn/yarn_protos.proto";
+import "hippo/proto/Common.proto";
+package hippo.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+message Metric {
+    optional string name = 1;
+    optional double value = 2;
+    optional int64 time = 3;
+}
+
+enum MemPolicy {
+    MEM_UNDEFINE = -1;
+    MEM_DEFAULT = 0;
+    MEM_PREFERRED = 1;
+    MEM_BIND = 2;
+    MEM_INTERLEAVE = 3;
+}
+
+message SocketInfo {
+    optional int32 socketIdx = 1;
+    optional uint32 cpuNum = 2 [default = 0]; //该sokcet上使用了多少cpu
+}
+
+message SocketNodePolicy {
+    optional MemPolicy memPolicy = 1 [default = MEM_UNDEFINE];
+    repeated SocketInfo sockets = 2;
+}
+
+message SlotInfo {
+    optional int32 slotId = 1;
+    optional string applicationId = 2;
+    optional int64 appChecksum = 3;
+    repeated ProcessStatus processStatus = 4;
+    repeated DataStatus dataStatus = 5;
+    optional int64 launchSignature = 6;
+    optional string packageChecksum = 7;
+    optional PackageStatus packageStatus = 8;
+    optional SlotResource slotResource = 9;
+    optional string resourceTag = 10;
+    optional bool useCpuset = 11;
+    optional ResourceRequest.CpusetMode cpusetMode = 12;
+    optional string cpusets = 13;
+    optional string preDeployPackageChecksum = 14;
+    optional PackageStatus preDeployPackageStatus = 15;
+    optional Priority priority = 16;
+    optional string workDirTag = 17;
+    repeated Metric metrics = 18;    
+    repeated PackageDetail packageDetails = 19;
+    repeated Parameter status = 20;
+    optional SocketNodePolicy socketPolicy = 21;
+
+}
+
+message SlaveInfo {
+    optional string address = 1;
+    optional SlaveResource resource = 2;
+    repeated SlotInfo slots = 3;
+    optional string binaryVersion = 4;
+    repeated Parameter attributes = 5; // deprecated
+    optional int32 restfulHttpPort = 6;
+    repeated Parameter labels = 7;
+    repeated Metric metrics = 8;
+    optional int32 slaveHttpPort = 9;
+    optional SlaveHealth slaveHealth = 10;
+}
+
+message SlotDetail {
+    optional SlotInfo info = 1;
+    optional string workDir = 2;
+    repeated string containerConfigs = 3;
+    optional string groupId = 4;
+    repeated Parameter labels = 5;
+    repeated Parameter envs = 6;
+}
+
+message SlaveDetail {
+    optional string address = 1;
+    optional SlaveResource resource = 2;
+    repeated SlotDetail slots = 3;
+    optional string binaryVersion = 4;
+    optional string grantedQueue = 5;
+    optional GrantedResource grantedResource = 6;
+    optional bool isOffline = 7;
+    optional int32 cpuShareNum = 8;
+    repeated Parameter labels = 9;
+}
+
+enum SlotState {
+    SS_NORMAL = 0;
+    SS_RESERVE = 1;
+    SS_STOPPING = 2;
+}
+
+enum ExecutionType {
+    ET_GUARANTEED = 0;
+    ET_OPPORTUNISTIC = 1;
+}
+
+message NameAmount {
+    optional string name = 1;
+    optional int32 amount = 2;
+}
+
+message SlotAssignment {
+    optional int32 slotId = 1;
+    optional string applicationId = 2;
+    optional int64 appChecksum = 3;
+    optional string resourceTag = 4;
+    optional ApplicationSlotConfig slotConfig = 5;
+    optional SlotResource slotResource = 6;
+    optional uint64 constraintPolicy = 7;
+    optional bool systemSlot = 8;
+    optional string workDirTag = 9;
+    optional bool useCpuset = 10;
+    optional bool useHostWorkdir = 11 [default = true];
+    optional ResourceRequest.CpusetMode cpusetMode = 12;
+    repeated string containerConfigs = 13;
+    optional int64 declareTime = 14;
+    optional Priority priority = 15;
+    optional SlotState slotState = 16;
+    optional string requirementId = 17;
+    optional yarn.proto.ContainerProto container = 18;
+    optional string groupId = 19;
+    repeated Parameter spec = 20;
+    optional MemPolicy mempolicy = 21;
+}
+
+message SlaveAssignment {
+    repeated SlotAssignment slotAssignments = 1;
+    optional GrantedResource grantedResource = 2; //resource from master
+    optional string grantedQueue = 3;
+    repeated Parameter labels = 4;
+    optional bool isOffline = 5 [default = false];
+}
+
+message SystemConfig {
+    repeated Parameter configs = 1;
+}
+
+message SystemInfo {
+    optional SystemConfig systemConfig = 1;
+    optional SystemStatus systemStatus = 2;
+    optional SlaveRuntimeConfig runtimeConfig = 3;
+}
+
+message ProcessLaunchRequest {
+    optional string applicationId = 1;
+    optional int64 appChecksum = 2; 
+    optional int32 slotId = 3;
+    optional ProcessLaunchContext processContext = 4;
+    optional int64 declareTime = 5;
+    optional string requirementId = 6;
+    optional bool fillExtraInfo = 7 [default = false];
+    optional string k8sPodUID = 8;
+    optional string k8sPodName = 9;
+    optional string k8sNamespace = 10;
+    optional int64  launchSignature = 11;
+    optional string packageChecksum = 12;
+}
+
+message ProcessLaunchResponse {
+    enum ProcessLaunchStatus {
+	SLOT_ACCEPTED = 1;
+	SLOT_DENIED = 2;
+	SLOT_DESTROYED = 3;
+    }
+    optional ProcessLaunchStatus launchStatus = 1;
+    optional string diagnostic = 2;
+    optional ProcessLaunchExtraInfo extraInfo = 3;
+}
+
+message ProcessTerminateRequest {
+    optional int32 slotId = 1;
+    optional string applicationId = 2;
+    optional int64 appChecksum = 3; 
+    optional bool all = 4;
+    repeated string processName = 5;
+}
+
+message ProcessTerminateResponse {
+}
+
+message StopRequest {
+    optional bool cleanUp = 1 [default = false];
+}
+
+message ResetSlotRequest {
+    optional int32 slotId = 1;
+}
+
+message KillSlotRequest {
+    optional int32 slotId = 1;
+}
+
+message GetSlotDetailsRequest {
+}
+
+message GetSlotDetailsResponse {
+    optional SlaveDetail slaveDetail = 1;
+}
+
+
+message GetSlotDetailRequest {
+    optional int32 slotId = 1;
+}
+
+message GetSlotDetailResponse {
+    optional SlotDetail slotDetail = 1;
+}
+
+message RebindAllSlotCpusetRequest {
+}
+
+message RebindAllSlotCpusetResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message SlaveNodeLoadInfoRequest {
+}
+
+message SlaveNodeLoadInfoResponse {
+    optional SlaveNodeLoadInfo slaveNodeLoadInfo = 1;
+}
+
+message SlaveHealthInfoRequest {
+}
+
+message SlaveHealthInfoResponse {
+    optional SlaveHealth slaveHealth = 1;
+}
+
+message HeartbeatRequest {
+    optional SlaveAssignment slaveAssignment = 1;
+    optional SystemInfo systemInfo = 2;
+}
+
+message HeartbeatResponse {
+    optional SlaveInfo slaveInfo = 1;
+    optional bool needReport = 2 [default = true];
+    optional ErrorInfo errorInfo = 3;
+}
+
+message UpdatePackageVersionRequest {
+    repeated string packageURI = 1;
+}
+
+message UpdatePackageVersionResponse {
+}
+
+message CpuAllocatorDebugInfo {
+    optional int32 id = 1;
+    optional int32 cpuWmark = 2 [default = 0];
+    optional double minCpuNumFactor = 3 [default = 0.0];
+    optional double maxCpuNumFactor = 4 [ default = 0.0];
+}
+
+message CpuAllocatorDetail {
+    optional int32 id = 1;
+    optional string grantedCpusets = 2;
+    optional string elasticCpusets = 3;
+}
+
+message CpuAllocatorDebugInfoRequest {
+    optional Operator op = 1 [default = GET];
+    optional string allocator = 2;
+    repeated CpuAllocatorDebugInfo debugs = 3;
+}
+
+message CpuAllocatorDebugInfoResponse {
+    optional string allocator = 1;
+    repeated CpuAllocatorDetail details = 2;
+    repeated CpuAllocatorDebugInfo debugs = 3;
+    optional ErrorInfo errorInfo = 4;
+}
+
+service SlaveService
+{
+    option (arpc.global_service_id) = 2000;
+
+    rpc startProcess(ProcessLaunchRequest) returns (ProcessLaunchResponse) {
+	option (arpc.local_method_id) = 1;
+    }
+
+    rpc stopProcess(ProcessTerminateRequest) returns (ProcessTerminateResponse) {
+	option (arpc.local_method_id) = 2;
+    }
+
+    rpc stop(StopRequest) returns (ErrorInfo) {
+	option (arpc.local_method_id) = 3;
+    }
+
+    rpc resetSlot(ResetSlotRequest) returns (ErrorInfo) {
+	option (arpc.local_method_id) = 4;
+    }
+
+    rpc getSlotDetails(GetSlotDetailsRequest) returns (GetSlotDetailsResponse) {
+	option (arpc.local_method_id) = 101;
+    }
+    
+    rpc getSlotDetail(GetSlotDetailRequest) returns (GetSlotDetailResponse) {
+	option (arpc.local_method_id) = 102;
+    }
+
+    rpc rebindAllSlotCpuset(RebindAllSlotCpusetRequest) returns (RebindAllSlotCpusetResponse) {
+	option (arpc.local_method_id) = 5;
+    }
+
+    // keep for compatibility
+    rpc heartbeat(HeartbeatRequest) returns (HeartbeatResponse) {
+     	option (arpc.local_method_id) = 6;
+    }
+
+    rpc getSlaveNodeLoadInfo(SlaveNodeLoadInfoRequest) returns (SlaveNodeLoadInfoResponse) {
+	option (arpc.local_method_id) = 7;
+    }
+
+    rpc setLogLevel(SetLoggerLevelRequest) returns (SetLoggerLevelResponse) {
+	option (arpc.local_method_id) = 8;
+    }        
+
+    rpc getSlaveHealthInfo(SlaveHealthInfoRequest) returns (SlaveHealthInfoResponse) {
+	option (arpc.local_method_id) = 9;
+    }
+
+    rpc updatePackageVersion(UpdatePackageVersionRequest) returns (UpdatePackageVersionResponse) {
+	option (arpc.local_method_id) = 10;
+    }
+
+    rpc killSlot(KillSlotRequest) returns (ErrorInfo) {
+	option (arpc.local_method_id) = 11;
+    }
+
+    rpc operateCpuAllocator(CpuAllocatorDebugInfoRequest) returns (CpuAllocatorDebugInfoResponse) {
+	option (arpc.local_method_id) = 12;
+    }
+}

@@ -1,0 +1,23 @@
+namespace indexlib.document.proto;
+
+table IndexFieldsData {
+    type: string;
+    data: string;
+}
+
+table PlainDocumentMessage {
+    opType: int32;
+    ttl: uint32;
+    hashId: uint16;
+    timestamp: int64;
+    ingestionTimestamp: int64;
+    source: string;
+    needTrace: bool;
+    traceId: string;
+
+    indexFieldsVec: [IndexFieldsData];
+
+    schemaId: uint32;
+}
+
+root_type PlainDocumentMessage;

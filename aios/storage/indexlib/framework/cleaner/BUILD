@@ -1,0 +1,56 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+indexlib_cc_library(
+    name='TabletReaderCleaner',
+    deps=[
+        '//aios/autil:time', '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework:TabletReaderContainer'
+    ]
+)
+indexlib_cc_library(
+    name='InMemoryIndexCleaner',
+    deps=[
+        '//aios/storage/indexlib/base:NoExceptionWrapper',
+        '//aios/storage/indexlib/base:PathUtil',
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/base:constants',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework:TabletReaderContainer',
+        '//aios/storage/indexlib/framework:Version',
+        '//aios/storage/indexlib/framework:VersionLoader'
+    ]
+)
+indexlib_cc_library(
+    name='OnDiskIndexCleaner',
+    deps=[
+        '//aios/storage/indexlib/base:NoExceptionWrapper',
+        '//aios/storage/indexlib/base:PathUtil',
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/base:constants',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework:Fence',
+        '//aios/storage/indexlib/framework:TabletReaderContainer',
+        '//aios/storage/indexlib/framework:Version',
+        '//aios/storage/indexlib/framework:VersionDeployDescription',
+        '//aios/storage/indexlib/framework:VersionLoader'
+    ]
+)
+indexlib_cc_library(
+    name='ResourceCleaner',
+    deps=[
+        ':InMemoryIndexCleaner', ':TabletReaderCleaner',
+        '//aios/storage/indexlib/file_system'
+    ]
+)
+indexlib_cc_library(
+    name='DropIndexCleaner',
+    deps=[
+        '//aios/storage/indexlib/base:PathUtil',
+        '//aios/storage/indexlib/config:IIndexConfig',
+        '//aios/storage/indexlib/config:schema',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework:Fence'
+    ]
+)

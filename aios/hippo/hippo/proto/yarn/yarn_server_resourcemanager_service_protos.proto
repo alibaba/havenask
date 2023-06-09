@@ -1,0 +1,90 @@
+syntax = "proto2";
+
+import "hippo/proto/yarn/yarn_protos.proto";
+
+package yarn.proto;
+
+enum DecommissionTypeProto {
+    NORMAL = 1;
+    GRACEFUL = 2;
+    FORCEFUL = 3;
+}
+
+enum AttributeMappingOperationTypeProto {
+    REPLACE = 1;
+    ADD = 2;
+    REMOVE = 3;
+}
+
+message NodesToAttributesMappingRequestProto {
+    optional AttributeMappingOperationTypeProto operation = 1 [default = REPLACE];
+    repeated NodeToAttributesProto nodeToAttributes = 2;
+    optional bool failOnUnknownNodes = 3;
+}
+
+message NodesToAttributesMappingResponseProto {
+    optional int32 httpStatusCode = 30;
+}
+
+message AddToClusterNodeLabelsRequestProto {
+    repeated string deprecatedNodeLabels = 1;
+    repeated NodeLabelProto nodeLabels = 2;
+}
+
+message AddToClusterNodeLabelsResponseProto {
+}
+
+message RemoveFromClusterNodeLabelsRequestProto {
+    repeated string nodeLabels = 1;
+}
+
+message RemoveFromClusterNodeLabelsResponseProto {
+}
+
+message ReplaceLabelsOnNodeRequestProto {
+    repeated NodeIdToLabelsProto nodeToLabels = 1;
+    optional bool failOnUnknownNodes = 2;
+}
+
+message ReplaceLabelsOnNodeResponseProto {
+}
+
+message OfflineContainersRequestProto {
+    repeated ContainerIdProto containers = 1;
+}
+
+message OfflineContainersResponseProto {
+    optional string errorMsg = 1;
+}
+
+message OnlineContainersRequestProto {
+    repeated ContainerIdProto containers = 1;
+}
+
+message OnlineContainersResponseProto {
+    optional string errorMsg = 1;
+}
+
+message RefreshNodesRequestProto {
+    optional DecommissionTypeProto decommissionType = 1 [default = NORMAL];
+    optional int32 decommissionTimeout = 2;
+    repeated string nodesToDecommission = 10;
+    repeated string nodesToRecommission = 11;
+}
+
+message RefreshNodesResponseProto {
+}
+
+message UpdateBlacklistRequestProto {
+    repeated string blacklist_additions = 1;
+    repeated string blacklist_removals = 2;
+}
+message UpdateBlacklistResponseProto {
+    optional string message = 1 [default = "Success"];
+}
+
+message GetBlacklistRequestProto {
+}
+message GetBlacklistResponseProto {
+    repeated string blacklist = 1;
+}

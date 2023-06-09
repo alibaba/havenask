@@ -1,0 +1,47 @@
+{
+    "apps":[
+    {
+        "name": "sample_qrs1",
+        "class" : "SampleKvPairProcessor",
+        "type" : "IKVPairsRewriteApp",
+        "parameters": {
+        }
+    },
+    {
+        "name": "sample_qrs2",
+        "class" : "SampleKvPairProcessor",
+        "type" : "IKVPairsRewriteApp",
+        "parameters": {
+        }
+    },
+    {
+        "name": "sample_qrs3",
+        "class": "SampleRequestProcessor",
+        "type" : "IRequestRewriteApp", 
+        "parameters" : {
+        }
+    },
+    {
+        "name": "sample_qrs4",
+        "class": "SampleAggResultProcessor",
+        "type" : "IAggRewriteApp", 
+        "parameters" : {
+        }
+    },
+    {
+        "name": "sample_qrs5",
+        "class": "SampleHitsResultProcessor",
+        "type" : "IHitsRewriteApp", 
+        "parameters" : {
+        }
+    }
+    ],
+    "appgroups" : {
+        "sample_appgroup1" : ["sample_qrs2", "sample_qrs3"],
+        "sample_appgroup2" : ["sample_qrs1", "sample_qrs4"],
+        "sample_appgroup3" : ["sample_qrs5"]
+    },
+    "chains" : {
+        "DEFAULT" : ["sample_appgroup1", "sample_appgroup2", "sample_appgroup3"]
+    }
+}

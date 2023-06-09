@@ -1,0 +1,12 @@
+package(default_visibility=['//aios/ha3:__subpackages__'])
+cc_library(
+    name='sql_ops_aitheta_udf_to_query',
+    srcs=glob(['*.cpp']),
+    hdrs=glob(['*.h']),
+    include_prefix='ha3/sql/ops/scan/builtin',
+    deps=[
+        '//aios/ha3/ha3/sql/ops/scan/builtin:sql_ops_udf_to_query_builtin',
+        '//aios/ha3/ha3/sql/ops/condition:sql_ops_condition',
+        '@org_tensorflow//tensorflow/core:core'
+    ]
+)

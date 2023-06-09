@@ -1,0 +1,70 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+indexlib_cc_library(
+    name='rewriter',
+    srcs=[],
+    hdrs=[],
+    visibility=['//visibility:public'],
+    deps=[
+        ':AddToUpdateDocumentRewriter', ':PackAttributeRewriter',
+        ':SectionAttributeRewriter'
+    ]
+)
+indexlib_cc_library(
+    name='NormalDocumentRewriterBase',
+    deps=[
+        '//aios/autil:log', '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/document:interface',
+        '//aios/storage/indexlib/document/document_rewriter:IDocumentRewriter',
+        '//aios/storage/indexlib/document/normal:NormalDocument'
+    ]
+)
+indexlib_cc_library(
+    name='AddToUpdateDocumentRewriter',
+    deps=[
+        ':NormalDocumentRewriterBase', '//aios/autil:scope',
+        '//aios/storage/indexlib/base:Types',
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/document/normal:AttributeDocumentFieldExtractor',
+        '//aios/storage/indexlib/index/attribute/config',
+        '//aios/storage/indexlib/index/inverted_index/config:InvertedIndexConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateIndexConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateOptionConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateStrategy',
+        '//aios/storage/indexlib/index/summary/config:SummaryIndexConfig',
+        '//aios/storage/indexlib/util:Bitmap',
+        '//aios/storage/indexlib/util:ErrorLogCollector'
+    ]
+)
+indexlib_cc_library(
+    name='SectionAttributeAppender',
+    deps=[
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/document/normal:IndexDocument',
+        '//aios/storage/indexlib/index/common/field_format:attribute_field_format',
+        '//aios/storage/indexlib/index/common/field_format/section_attribute:SectionAttributeFormatter',
+        '//aios/storage/indexlib/index/inverted_index:Types',
+        '//aios/storage/indexlib/index/inverted_index/config:PackageIndexConfig'
+    ]
+)
+indexlib_cc_library(
+    name='SectionAttributeRewriter',
+    deps=[':NormalDocumentRewriterBase', ':SectionAttributeAppender']
+)
+indexlib_cc_library(
+    name='PackAttributeAppender',
+    deps=[
+        '//aios/autil:mem_pool_base',
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/document/normal:AttributeDocument',
+        '//aios/storage/indexlib/index/common/field_format/pack_attribute',
+        '//aios/storage/indexlib/index/kv/config',
+        '//aios/storage/indexlib/table:builtin_define',
+        '//aios/storage/indexlib/util:ErrorLogCollector',
+        '//aios/storage/indexlib/util:MemBuffer'
+    ]
+)
+indexlib_cc_library(
+    name='PackAttributeRewriter',
+    deps=[':NormalDocumentRewriterBase', ':PackAttributeAppender']
+)

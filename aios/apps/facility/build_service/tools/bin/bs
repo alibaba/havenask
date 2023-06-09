@@ -1,0 +1,41 @@
+#!/bin/env python
+# -*- coding: utf-8 -*-
+
+import sys
+import os
+import traceback
+
+def checkToolsConfFileAndImport():
+    curPath = os.path.split(os.path.normpath(__file__))[0]
+    toolsConfFileDir = os.path.realpath(os.path.join(os.path.join(curPath, os.pardir),
+                                    'etc/bs_tools/'))
+    sys.path.append(toolsConfFileDir)
+    toolsConfFilePath = os.path.join(toolsConfFileDir, 'tools_conf.py')
+    if not os.path.exists(toolsConfFilePath):
+        raise Exception('tools_conf.py [%s] not found. " % toolsConfFilePath')
+
+    import tools_conf
+    pythonPath = os.path.join(tools_conf.install_prefix, 'lib/python/site-packages/')
+    if not os.path.exists(pythonPath):
+        raise Exception('%s not exists' % pythonPath)
+
+    if hasattr(tools_conf, "python_path"):        
+        sys.path = [] + tools_conf.python_path + sys.path
+
+    sys.path.append(pythonPath)
+
+def main():
+    try:
+        checkToolsConfFileAndImport()
+        import bs_tools.cmd_context as cmd_context
+        return cmd_context.run(sys.argv)
+    except Exception, e:
+        print e
+        print traceback.print_exc()
+        return False
+
+if __name__ == '__main__':
+    if main():
+        sys.exit(0)
+    else:
+        sys.exit(-1)

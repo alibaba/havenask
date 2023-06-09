@@ -1,0 +1,79 @@
+syntax = "proto2";
+
+package multi_call;
+
+option java_package="com.alibaba.search.gig.proto";
+
+import "multi_call/proto/GigCommonProto.proto";
+
+option cc_enable_arenas = true;
+
+message AverageLatency {
+    optional bool filter_ready = 1 [default = false];
+    optional float latency = 2;
+    optional float load_balance_latency = 3;
+    optional uint64 agent_id = 4;
+    optional int64 version = 5;
+    optional float avg_weight = 6;
+}
+
+message ServerRatioFilter {
+    optional bool filter_ready = 1 [default = false];
+    optional float ratio = 2;
+    optional float load_balance_ratio = 3;
+}
+
+message PropagationStatDef {
+    optional ServerRatioFilter error = 1;
+    optional ServerRatioFilter degrade = 2;
+    optional AverageLatency latency = 3;
+}
+
+message PropagationStats {
+    repeated PropagationStatDef stats = 1;
+}
+
+message GigQueryInfo {
+    optional string gig_query_checksum = 1;
+    optional string biz_name = 2;
+    optional uint32 request_type = 3;
+    optional float latency_limit_ms = 4;
+    optional float error_ratio_limit = 5;
+    optional float degrade_ratio_limit = 6; // deprecated
+    optional float begin_server_degrade_latency = 7;
+    optional float begin_degrade_latency = 8;
+    optional int32 gig_weight = 9;
+    optional float begin_server_degrade_error_ratio = 10;
+    optional float begin_degrade_error_ratio = 11;
+    optional float load_balance_latency_limit_ms = 12;
+    optional PropagationStats propagation_stats = 13;
+    optional uint32 user_request_type = 14;
+    optional GigTraceContext trace_context = 15;
+    optional bool return_meta_env = 16;
+    optional int32 part_id = 17;
+}
+
+message WarmUpStatus {
+    optional bool finished = 1 [default = true];
+}
+
+message GigMetaEnv {
+    optional string platform = 1;
+    optional string hippo_cluster = 2;
+    optional string hippo_app = 3;
+    optional string c2_role = 4;
+    optional string c2_group = 5;
+}
+
+message GigResponseInfo {
+    optional string gig_response_checksum = 1;
+    optional float latency_ms = 2;
+    optional int32 ec = 3 [default = 0];
+    optional ServerRatioFilter error_ratio = 4;
+    optional ServerRatioFilter degrade_ratio = 5;
+    optional AverageLatency avg_latency = 6;
+    optional int32 target_weight = 7 [ default = 100 ];
+    optional WarmUpStatus warm_up_status = 8;
+    optional PropagationStats propagation_stats = 9;
+    optional GigMetaEnv gig_meta_env = 10;
+}

@@ -1,0 +1,15 @@
+{
+    "swift_config" : {
+         "required_field_names" : ["dpv_score", "dpv_score_bt"]
+    },
+    "fields": [
+        { "fieldName": "dpv_score",  "type": "INT32"}, 
+        { "fieldName": "dpv_score_bt",  "type": "INT32"}
+    ],
+    "attribute" : [
+     {
+         "pack_name" : "pack_attr_feature",
+         "pack_fields" : ["dpv_score", "dpv_score_bt"]
+     }
+    ]
+}

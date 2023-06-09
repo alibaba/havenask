@@ -1,0 +1,14 @@
+class Foo {
+      int val;
+      Foo() {
+          val = 3;
+      }
+      
+      static boolean test() {
+          Foo createObj = create();
+          if (createObj != null && createObj.val == 3) {
+             return true;
+          }
+          return false;
+      }
+}

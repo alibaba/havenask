@@ -1,0 +1,50 @@
+{
+    "table_name": "company",
+    "fields": 
+    [
+	{"field_name":"company_id",          "field_type":"INTEGER", "multi_value":true},
+	{"field_name":"company_name",        "field_type":"STRING" },
+	{"field_name":"city",                "field_type":"STRING" },
+	{"field_name":"address",             "field_type":"STRING" },
+	{"field_name":"postcode",            "field_type":"STRING" },
+	{"field_name":"telephone",           "field_type":"STRING" },
+	{"field_name":"account_balance",     "field_type":"float"  },
+	{"field_name":"certification_level", "field_type":"INT8"   }
+    ],
+    "indexs": 
+    [
+	{       
+	    "index_name": "company_id",
+            "index_type": "PRIMARYKEY64",
+            "index_fields": "company_id",
+            "has_primary_key_attribute": false,
+            "term_frequency_flag": 0
+	}
+    ],
+    "attributes": 
+    [
+	"company_id", 
+	"company_name", 
+	"city", 
+	"address", 
+	"postcode", 
+	"telephone", 
+	"account_balance",
+	"certification_level"
+    ],
+    "summarys":
+    { 
+	"summary_fields": 
+	[
+	    "company_id", 
+	    "company_name", 
+	    "city", 
+	    "address", 
+	    "postcode", 
+	    "telephone", 
+	    "account_balance",
+	    "certification_level"
+	],
+	"compress":false
+    }
+}

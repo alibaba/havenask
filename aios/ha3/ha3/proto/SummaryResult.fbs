@@ -1,0 +1,20 @@
+include "TwoDimTable.fbs";
+
+namespace isearch.fbs; 
+
+table FBErrorResult {
+      partitionId: string (id:0);
+      hostName: string (id:1);
+      errorCode: uint (id:2);
+      errorDescription: string (id:3);
+}
+            
+table SummaryResult {
+      totalTime: uint32 (id:0);
+      totalHits: uint32 (id:1);
+      errorResults: [FBErrorResult] (id:2);
+      tracer: string (id:3);
+      summaryTable: TwoDimTable (id:4);
+}
+
+root_type SummaryResult;

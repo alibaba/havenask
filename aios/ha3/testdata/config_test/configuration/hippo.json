@@ -1,0 +1,53 @@
+{
+    "hippo_zookeeper_root" : "path/to/hippo/leader/elector/root",
+    "zookeeper_root" : "zfs://zookeeper/path",
+    "app_name" : "your app name", 
+    "user" : "your user name", 
+    "packages" : [ 
+	{
+	    "type" : "RPM",
+	    "uri" : "ha3 package"
+	},
+	{
+	    "type" : "ARCHIVE",
+	    "uri" : "other packages"
+	}
+    ],
+    "hadoop_home" : "hadoop", 
+    "java_home" : "java", 
+    "classpath" : "conf:etc/hadoop:hadoop-ant-2.0.0-mr1-cdh4.1.2.jar:...", 
+    "preload_path" : "usr/lib64/libtcmalloc_minimal.so.0", 
+    "extern_lib_path" : "extern lib pathes", 
+    "log_conf" : "...",
+    "admin_resource" : {
+	"cpu" : 100,
+	"mem" : 1024
+    },
+    "resource_defines" : {
+	"default" : {
+	    "require" : [  
+		{ "cpu" : 100, "mem" : 1024 }
+	    ],
+	    "count" : 1
+	},
+	"good" : {
+	    "require" : [ 
+		{ "cpu" : 2400, "mem" : 64000 },
+		{ "cpu" : 2400, "mem" : 48000 }
+	    ],
+	    "count" : 100
+	},
+	"bad" : {
+	    "require" : [
+		{ "cpu" : 1600, "mem" : 48000 }
+	    ],
+	    "count" : 50
+	},
+	"summary" : {
+	    "require" : [
+		{ "cpu" : 1600, "mem" : 64000, "ssd" : 1 } 
+	    ],
+	    "count" : 60
+	}
+    }
+}

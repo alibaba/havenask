@@ -1,0 +1,51 @@
+#! /bin/env python
+import glob
+import sys
+import os
+import subprocess
+
+class ClassPathUtil(object):
+    def __init__(self, hadoopHome):
+        self.hadoopHome = hadoopHome
+
+    def getClassPath(self):
+        hadoopBin = os.path.join(self.hadoopHome, "bin/hadoop")
+        cmd = hadoopBin + " classpath"
+        errCode, output = self.runCmd(cmd)
+        if errCode != 0:
+            print "ERROR: failed to run cmd:[%s], error:[%s]" % (cmd, output)
+            return None
+        else:
+            return self.expandClassPath(output)
+                
+    def runCmd(self, cmd):
+        p = subprocess.Popen(cmd, shell=True, close_fds=False, 
+                             stdout=subprocess.PIPE, 
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        if p.returncode != 0:
+            return p.returncode, stderr
+        else:
+            return p.returncode, stdout
+
+    def expandClassPath(self, dirPaths):
+        classPathList = []
+        jarDirs = dirPaths.split(":")
+        for jarDir in jarDirs:
+            classPathList += glob.glob(jarDir)
+        return ":".join(classPathList)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print "Usage: %s hadoop_home" % sys.argv[0]
+        sys.exit(-1)
+
+    hadoopHome = sys.argv[1]
+    classPathUtil = ClassPathUtil(hadoopHome)
+    classPath = classPathUtil.getClassPath()
+    if not classPath:
+        print "failed to getClassPath"
+        sys.exit(-1)
+    else:
+        sys.stdout.write(classPath)
+        sys.exit(0)

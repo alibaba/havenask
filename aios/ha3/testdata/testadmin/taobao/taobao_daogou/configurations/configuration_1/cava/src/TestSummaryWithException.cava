@@ -1,0 +1,24 @@
+import ha3.*;
+
+class TestSummaryWithException {
+    public boolean init(SummaryProvider provider) {
+        return true;
+    }
+
+    public boolean process(SummaryDoc doc) {
+        CString cava_field_not_exist = doc.getFieldValue("cava_field_not_exist");
+        doc.setFieldValue("cava_field_not_exist_2", cava_field_not_exist);
+        doc.clear("cava_field_not_exist");
+
+        CString split = doc.getFieldValue("cava_split");
+        CString [] items = split.split("_");
+        doc.setFieldValue("cava_split2", items[10]); //exception
+        doc.clear("cava_split");
+
+        CString copy = doc.getFieldValue("cava_copy");
+        doc.setFieldValue("cava_copy2", copy);
+        doc.clear("cava_copy");
+        
+        return true;
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "table_name": "company",
+    "fields": 
+    [
+	{"field_name":"company_id",          "field_type":"INTEGER"}
+    ],
+    "indexs": 
+    [
+	{       
+	    "index_name": "company_id",
+            "index_type": "PRIMARYKEY64",
+            "index_fields": "company_id",
+            "has_primary_key_attribute": false,
+            "term_frequency_flag": 0
+	}
+    ],
+    "attributes": 
+    [
+	"company_id"
+    ]
+}

@@ -1,0 +1,24 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+package hippo.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+message GetWorkerVersionRequest {
+}
+
+message GetWorkerVersionResponse {
+    optional string version = 1;
+}
+
+service WorkerStatusService
+{
+    option (arpc.global_service_id) = 6000;
+
+    rpc getWorkerVersion(GetWorkerVersionRequest) returns (GetWorkerVersionResponse) {
+	option (arpc.local_method_id) = 1;
+    }
+}
+

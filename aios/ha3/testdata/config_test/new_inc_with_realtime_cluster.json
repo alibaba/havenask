@@ -1,0 +1,35 @@
+{
+    "cluster_type": "inc_with_realtime",
+    "table_name" : "auctionTable", 
+    "hash_mode" : { 
+        "hash_function" : "md5", 
+        "hash_field": "uri" 
+    }, 
+    "proxy_rule" : { 
+        "replica_count":10, 
+        "partition_count":20, 
+        "partition_resource":30 
+    }, 
+    "searcher_rule": { 
+        "replica_count":10, 
+        "partition_resource":40 
+    },
+    "query_config": { 
+        "default_index": "phrase", 
+        "default_operator": "AND"
+    },
+    "bucket_config": { 
+        "index_clustername": "daogou", 
+        "searcher_port": 1234, 
+        "searcher_port_offset": -10 
+    },
+    "swift_config": {
+	"swift_zookeeper_root" : "zfs://10.250.8.126:2181/admin/serviceName",
+	"swift_topic_name" : "news",
+	"swift_message_mask" : 255,
+	"swift_message_mask_result": 2,
+	"swift_filter_mode" : "generation_mode",
+	"need_field_filter" : true,
+	"required_field_names" : ["CMD", "Field1", "Field2"]
+    }
+}

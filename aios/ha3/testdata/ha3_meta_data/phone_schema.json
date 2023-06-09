@@ -1,0 +1,128 @@
+{
+    "fields": [
+        {
+            "field_name" : "nid",
+            "field_type" : "UINT64"
+        },
+        {
+            "analyzer" : "multi_level_analyzer",
+            "field_name" : "title",
+            "field_type" : "TEXT"
+        },
+        {
+            "field_name" : "price",
+            "field_type" : "DOUBLE"
+        },
+        {
+            "analyzer" : "multi_level_analyzer",
+            "field_name" : "brand",
+            "field_type" : "TEXT"
+        },
+        {
+            "field_name" : "size",
+            "field_type" : "DOUBLE"
+        },
+        {
+            "analyzer" : "multi_level_analyzer",
+            "field_name" : "color",
+            "field_type" : "TEXT"
+        },
+        {
+            "field_name" : "attr_index",
+            "field_type" : "INT32"
+        },
+        {
+            "field_name" : "no_atrr_index",
+            "field_type" : "INT32"
+        },
+        {
+            "field_name" : "attr_no_index",
+            "field_type" : "INT32"
+        },
+        {
+            "field_name" : "no_attr_no_index",
+            "field_type" : "INT32"
+        },
+        {
+            "field_name" : "no_atrr_no_index_summary",
+            "field_type" : "INT32"
+        },
+        {
+            "multi_value" : true,
+            "field_name" : "location",
+            "field_type" : "POLYGON"
+        }
+    ],
+    "indexs" : [
+        {
+            "index_fields": [
+                {
+                    "boost": 1,
+                    "field_name": "title"
+                },
+                {
+                    "boost": 1,
+                    "field_name": "brand"
+                },
+                {
+                    "boost": 1,
+                    "field_name": "color"
+                }
+            ],
+            "index_name": "phrase",
+            "index_type": "EXPACK"
+        },
+        {
+            "index_name": "nid",
+            "index_type": "PRIMARYKEY64",
+            "index_fields": "nid"
+        },
+        {
+            "index_name": "title",
+            "index_type": "TEXT",
+            "index_fields": "title"
+        },
+        {
+            "index_name": "brand",
+            "index_type": "TEXT",
+            "index_fields": "brand"
+        },
+        {
+            "index_name": "color",
+            "index_type": "TEXT",
+            "index_fields": "color"
+        },
+        {
+            "index_name": "attr_index",
+            "index_type": "NUMBER",
+            "index_fields": "attr_index"
+        },
+        {
+            "index_name": "no_attr_index",
+            "index_type": "NUMBER",
+            "index_fields": "no_attr_index"
+        },
+        {
+            "index_name": "location",
+            "index_type": "SPATIAL",
+            "index_fields": "location"
+        }
+    ],
+    "attributes": [
+        "nid",
+        "price",
+        "size",
+        "location",
+        "attr_index",
+        "attr_no_index"
+    ],
+    "summarys": {
+        "summary_fields": [
+            "title",
+            "brand",
+            "color",
+            "no_atrr_no_index_summary"
+        ]
+    },
+    "table_name": "phone"
+}

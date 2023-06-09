@@ -1,0 +1,58 @@
+syntax = "proto2";
+package build_service.proto;
+
+enum RoleType {
+    ROLE_UNKNOWN = -1;
+    ROLE_PROCESSOR = 0;
+    ROLE_BUILDER = 1;
+    ROLE_MERGER = 2;
+    ROLE_JOB = 3;
+    ROLE_ALTER_FIELD = 4;
+    ROLE_TASK = 5;
+    ROLE_AGENT = 6;
+}
+
+enum BuildStep {
+    BUILD_STEP_FULL = 0;
+    BUILD_STEP_INC = 1;
+    NO_BUILD_STEP = 2;
+    BUILD_STEP_IDLE = 3; // inc processor not exist
+}
+
+// [from, to]
+message Range {
+    optional uint32 from = 1 [default = 0];
+    optional uint32 to = 2 [default = 65535];
+}
+
+// builder not require dataTable
+message BuildId {
+    optional string dataTable = 1;
+    optional uint32 generationId = 2;
+    optional string appName = 3;
+}
+
+message PartitionId {
+    optional RoleType role = 1 [default = ROLE_UNKNOWN];
+    optional BuildStep step = 2 [default = BUILD_STEP_FULL];
+    required Range range = 3;
+    required BuildId buildId = 4;
+    // one processor may produce data for multiple clusters
+    repeated string clusterNames = 5;
+    optional string mergeConfigName = 6;
+    optional string taskId = 7;
+    optional uint32 backupId = 8;
+}
+
+// 1 app_name
+// 2 data_table
+// 3 gid
+// 4 role
+// 5 step/merge_config_name
+// 6 from
+// 7 to
+// 8 cluster(processor is empty)
+// 9 taskid
+// 10 backupId
+// "app_name.data_table.1.task.taskId=0-taskName=builderV2.0.65535.clusterName"
+// "app_name.data_table.1.processor.inc.0.65535.1.backup.1"

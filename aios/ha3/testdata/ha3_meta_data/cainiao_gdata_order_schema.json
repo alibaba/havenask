@@ -1,0 +1,218 @@
+{
+  "table_name": "cainiao_gdata_order",
+  "adaptive_dictionaries": [
+    {
+      "adaptive_dictionary_name": "percent",
+      "dict_type": "PERCENT",
+      "threshold": 5
+    },
+    {
+      "adaptive_dictionary_name": "size",
+      "dict_type": "INDEX_SIZE"
+    }
+  ],
+  "fields": [
+    {
+      "field_name": "order_code",
+      "field_type": "STRING"
+    },
+    {
+      "field_name": "order_biz_time",
+      "field_type": "LONG"
+    },
+    {
+      "field_name": "aux_code",
+      "field_type": "STRING"
+    },
+    {
+      "field_name": "aux_type",
+      "field_type": "STRING",
+      "compress_type": "equal"
+    },
+    {
+      "field_name": "biz_source",
+      "field_type": "STRING",
+      "compress_type": "equal"
+    },
+    {
+      "field_name": "biz_type",
+      "field_type": "STRING",
+      "compress_type": "equal"
+    },
+    {
+      "field_name": "gmt_create",
+      "field_type": "LONG"
+    },
+    {
+      "field_name": "gmt_modified",
+      "field_type": "LONG"
+    },
+    {
+      "field_name": "node_count",
+      "field_type": "LONG"
+    },
+    {
+      "field_name": "node_sum",
+      "field_type": "LONG"
+    },
+    {
+      "field_name": "solution_code",
+      "field_type": "STRING"
+    },
+    {
+      "field_name": "DUP_sub_doc_id",
+      "field_type": "STRING"
+    },
+    {
+      "field_name": "DUP_action_code",
+      "field_type": "STRING"
+    },
+    {
+      "field_name": "DUP_start_action_time",
+      "field_type": "LONG"
+    },
+    {
+      "field_name": "DUP_end_action_time",
+      "field_type": "LONG"
+    }
+  ],
+  "indexs": [
+    {
+      "index_name": "order_code",
+      "index_fields": "order_code",
+      "index_type": "PRIMARYKEY64",
+      "is_primary_key_sorted": true,
+      "has_primary_key_attribute": true
+    },
+    {
+      "index_fields": "order_biz_time",
+      "index_name": "order_biz_time",
+      "index_type": "RANGE"
+    },
+    {
+      "index_fields": "aux_code",
+      "index_name": "aux_code",
+      "index_type": "STRING"
+    },
+    {
+      "index_fields": "aux_type",
+      "index_name": "aux_type",
+      "index_type": "STRING",
+      "high_frequency_adaptive_dictionary": "percent"
+    },
+    {
+      "index_fields": "biz_source",
+      "index_name": "biz_source",
+      "index_type": "STRING",
+      "high_frequency_adaptive_dictionary": "percent"
+    },
+    {
+      "index_fields": "biz_type",
+      "index_name": "biz_type",
+      "index_type": "STRING",
+      "high_frequency_adaptive_dictionary": "percent"
+    },
+    {
+      "index_fields": "gmt_create",
+      "index_name": "gmt_create",
+      "index_type": "RANGE"
+    },
+    {
+      "index_fields": "gmt_modified",
+      "index_name": "gmt_modified",
+      "index_type": "RANGE"
+    },
+    {
+      "index_fields": "solution_code",
+      "index_name": "solution_code",
+      "index_type": "STRING",
+      "high_frequency_adaptive_dictionary": "percent"
+    }
+  ],
+  "attributes": [
+    "order_code",
+    "order_biz_time",
+    "aux_code",
+    "aux_type",
+    "biz_source",
+    "biz_type",
+    "gmt_create",
+    "gmt_modified",
+    "node_count",
+    "node_sum",
+    "solution_code"
+  ],
+  "summarys": {
+    "compress": true,
+    "summary_fields": [
+      "order_code",
+      "order_biz_time",
+      "aux_code",
+      "aux_type",
+      "biz_source",
+      "biz_type",
+      "gmt_create",
+      "gmt_modified",
+      "node_count",
+      "node_sum",
+      "solution_code",
+      "DUP_sub_doc_id",
+      "DUP_action_code",
+      "DUP_start_action_time",
+      "DUP_end_action_time"
+    ]
+  },
+  "sub_schema": {
+    "table_name": "im_order_fulfil",
+    "adaptive_dictionaries": [
+      {
+        "adaptive_dictionary_name": "percent",
+        "dict_type": "PERCENT",
+        "threshold": 5
+      },
+      {
+        "adaptive_dictionary_name": "size",
+        "dict_type": "INDEX_SIZE",
+        "threshold": 0
+      }
+    ],
+    "fields": [
+      {
+        "field_name": "sub_doc_id",
+        "field_type": "STRING"
+      },
+      {
+        "field_name": "action_code",
+        "field_type": "STRING"
+      },
+      {
+        "field_name": "start_action_time",
+        "field_type": "LONG"
+      },
+      {
+        "field_name": "end_action_time",
+        "field_type": "LONG"
+      }
+    ],
+    "indexs": [
+      {
+        "index_fields": "sub_doc_id",
+        "index_name": "sub_doc_id",
+        "index_type": "PRIMARYKEY64",
+        "has_primary_key_attribute": true,
+        "is_primary_key_sorted": true
+      },
+      {
+        "index_fields": "action_code",
+        "index_name": "action_code",
+        "index_type": "STRING"
+      }
+    ],
+    "attributes": [
+      "sub_doc_id",
+      "action_code",
+      "start_action_time",
+      "end_action_time"
+    ]
+  }
+}

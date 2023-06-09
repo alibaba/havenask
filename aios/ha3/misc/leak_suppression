@@ -1,0 +1,13 @@
+leak:juce::FileLogger::createDefaultAppLogger
+leak:sap::SapConfigParser::parseConfig
+leak:parse_config_string
+leak:__vasprintf_internal
+leak:getJNIEnv
+leak:dl_open_worker
+leak:libjvm.so
+leak:libcurl.so
+leak:libz.so
+leak:libzip.so
+leak:libpython3.6m.so
+leak:libdadi.so
+leak:libresolv.so.2

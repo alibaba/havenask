@@ -1,0 +1,78 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+indexlib_cc_library(
+    name='table',
+    srcs=[],
+    hdrs=[],
+    visibility=['//visibility:public'],
+    deps=[':AggregationTabletFactory']
+)
+indexlib_cc_library(
+    name='AggregationTabletFactory',
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        ':AggregationSchemaResolver', ':AggregationTabletReader',
+        ':AggregationTabletWriter',
+        '//aios/storage/indexlib/document/aggregation:AggregationDocumentFactory',
+        '//aios/storage/indexlib/framework:ITabletExporter',
+        '//aios/storage/indexlib/index/aggregation:AggregationIndexFactory',
+        '//aios/storage/indexlib/table/aggregation/index_task:AggregationResourceCreator',
+        '//aios/storage/indexlib/table/aggregation/index_task:AggregationTaskOperationCreator',
+        '//aios/storage/indexlib/table/aggregation/index_task:AggregationTaskPlanCreator',
+        '//aios/storage/indexlib/table/common:CommonTabletSessionReader',
+        '//aios/storage/indexlib/table/common:CommonTabletValidator',
+        '//aios/storage/indexlib/table/common:LSMTabletLoader',
+        '//aios/storage/indexlib/table/plain:SingleShardDiskSegment',
+        '//aios/storage/indexlib/table/plain:SingleShardMemSegment'
+    ],
+    alwayslink=True
+)
+indexlib_cc_library(
+    name='AggregationSchemaResolver',
+    deps=[
+        ':AggregationSchemaUtil', '//aios/storage/indexlib/base:FieldTypeUtil',
+        '//aios/storage/indexlib/config:SchemaResolver',
+        '//aios/storage/indexlib/config:UnresolvedSchema',
+        '//aios/storage/indexlib/index/aggregation:AggregationIndexConfig',
+        '//aios/storage/indexlib/index/kv:constants'
+    ]
+)
+indexlib_cc_library(
+    name='AggregationSchemaUtil',
+    srcs=[],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/index/kv/config:KVIndexConfig'
+    ]
+)
+indexlib_cc_library(
+    name='DeleteGenerator',
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        ':AggregationSchemaUtil',
+        '//aios/storage/indexlib/config:IndexConfigHash',
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/index/aggregation:AggregationIndexConfig',
+        '//aios/storage/indexlib/index/aggregation:AggregationIndexFields',
+        '//aios/storage/indexlib/index/aggregation:AggregationKeyHasher',
+        '//aios/storage/indexlib/index/common/field_format/pack_attribute'
+    ]
+)
+indexlib_cc_library(
+    name='AggregationTabletWriter',
+    deps=[
+        ':AggregationSchemaUtil', ':AggregationTabletReader',
+        ':DeleteGenerator', '//aios/storage/indexlib/document:DocumentBatch',
+        '//aios/storage/indexlib/document:PlainDocument',
+        '//aios/storage/indexlib/index/kv:reader',
+        '//aios/storage/indexlib/table/common:CommonTabletWriter'
+    ]
+)
+indexlib_cc_library(
+    name='AggregationTabletReader',
+    deps=[
+        '//aios/storage/indexlib/framework:TabletReader',
+        '//aios/storage/indexlib/index:IIndexFactory'
+    ]
+)

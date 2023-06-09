@@ -1,0 +1,118 @@
+{
+    "build_option_config": {
+        "max_recover_time": 10,
+        "sort_build": false
+    },
+    "cluster_config": {
+        "builder_rule_config": {
+            "build_parallel_num": 3,
+            "inc_build_parallel_num": 1,
+            "need_partition": true,
+            "partition_count": 32
+        },
+        "cluster_name": "cainiao_gdata_order",
+        "hash_mode": {
+            "hash_field": "order_code",
+            "hash_function": "HASH"
+        },
+        "table_name": "cainiao_gdata_order"
+    },
+    "offline_index_config": {
+        "build_config": {
+            "build_total_memory": 20480,
+            "enable_package_file": true,
+            "keep_version_count": 20,
+            "max_memory_use": 20480,
+            "speedup_primary_key_reader": true
+        },
+        "customized_merge_config": {
+            "full": {
+                "merge_config": {
+                    "max_merge_memory_use": 20480,
+                    "keep_version_count": 20,
+                    "merge_strategy": "optimize",
+                    "merge_strategy_param": "",
+                    "merge_thread_count": 12,
+                    "merged_segment_split_strategy": {
+                        "class_name": "time_series",
+                        "module_name": "",
+                        "parameters": {
+                            "attribute": "order_biz_time",
+                            "ranges": "86400,259200,864000,1296000"
+                        }
+                    },
+                    "truncate_strategy": []
+                },
+                "merge_parallel_num": 3
+            },
+            "inc": {
+                "merge_config": {
+                    "max_merge_memory_use": 30720,
+                    "keep_version_count": 20,
+                    "merge_strategy": "time_series",
+                    "merge_strategy_params": {
+                        "input_limits": "max-doc-count=1000000000;sort-field=order_biz_time",
+                        "strategy_conditions": "order_biz_time=[0-86400],output-interval=28800;order_biz_time=[86401-],output-interval=86400",
+                        "output_limits": "max-merged-segment-doc-count=1000000000"
+                    },
+                    "merge_thread_count": 8,
+                    "truncate_strategy": []
+                },
+                "period": "period=900",
+                "merge_parallel_num": 4
+            },
+            "merge-inc": {
+                "merge_config": {
+                    "merge_strategy": "large_time_range_selection",
+                    "merge_strategy_params": {
+                        "input_limits": "attribute-field=order_biz_time",
+                        "strategy_conditions": "input-interval=864000",
+                        "output_limits": ""
+                    },
+                    "merge_thread_count": 4
+                },
+                "period": "daytime=1:00",
+                "merged_segment_split_strategy": {
+                    "class_name": "time_series",
+                    "module_name": "",
+                    "parameters": {
+                        "attribute": "order_biz_time",
+                        "ranges": "86400,259200,864000,1296000"
+                    }
+                },
+                "merge_parallel_num": 2
+            },
+            "merge-inc-optimize": {
+                "merge_config": {
+                    "merge_strategy": "optimize",
+                    "merge_strategy_param": "max-doc-count=1000000000",
+                    "merge_thread_count": 8
+                },
+                "period": "period=172800",
+                "merge_thread_count": 8,
+                "merged_segment_split_strategy": {
+                    "class_name": "time_series",
+                    "module_name": "",
+                    "parameters": {
+                        "attribute": "order_biz_time",
+                        "ranges": "86400,259200,864000,1296000"
+                    }
+                },
+                "merge_parallel_num": 2
+            }
+        },
+        "merge_config": {
+            "keep_version_count": 20
+        }
+    },
+    "swift_config": {
+        "reader_config": "oneRequestReadCount=1000;readBufferSize=1024;decompress=true",
+        "topic": {
+            "partition_count": 32,
+            "partition_max_buffer_size": 8192,
+            "partition_limit": 1,
+            "partition_resource": 1
+        },
+        "writer_config": "functionChain=hashId2partId;compressMsg=true;mode=async|safe;maxBufferSize=2147483648;maxKeepInBufferTime=100000"
+    }
+}

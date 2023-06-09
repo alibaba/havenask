@@ -1,0 +1,37 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+indexlib_cc_library(
+    name='SpatialPostingIterator',
+    deps=[
+        '//aios/autil:memory',
+        '//aios/storage/indexlib/index/inverted_index:BufferedPostingIterator',
+        '//aios/storage/indexlib/index/inverted_index:TermMatchData',
+        '//aios/storage/indexlib/index/inverted_index/format:TermMeta'
+    ]
+)
+indexlib_cc_library(
+    name='SpatialDocValueFilter',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/index/attribute:reader',
+        '//aios/storage/indexlib/index/inverted_index:DocValueFilter'
+    ]
+)
+indexlib_cc_library(
+    name='SpatialIndexReader',
+    deps=[
+        ':SpatialDocValueFilter', ':SpatialPostingIterator',
+        '//aios/storage/indexlib/index/attribute:reader',
+        '//aios/storage/indexlib/index/inverted_index:DocValueFilter',
+        '//aios/storage/indexlib/index/inverted_index:InvertedIndexReaderImpl',
+        '//aios/storage/indexlib/index/inverted_index:PostingIterator',
+        '//aios/storage/indexlib/index/inverted_index:SeekAndFilterIterator'
+    ]
+)
+indexlib_cc_library(
+    name='SpatialIndexMerger',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/index/inverted_index/builtin_index/text:TextIndexMerger'
+    ]
+)

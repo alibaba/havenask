@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package navi;
+option cc_enable_arenas = true;
+
+message TypeDef
+{
+    string name = 1;
+    string attr = 2;
+}
+
+enum InputTypeDef {
+    // require input type
+    IT_REQUIRE = 0;
+    // optional input type
+    IT_REQUIRE_WHEN_CONNECTED = 1;
+    IT_OPTIONAL = 2;
+}
+
+message InputDef
+{
+    string name = 1;
+    InputTypeDef type = 2;
+    TypeDef data_type = 3;
+}
+
+message InputGroupDef
+{
+    string name = 1;
+    InputTypeDef type = 2;
+    TypeDef data_type = 3;
+}
+
+message OutputDef
+{
+    string name = 1;
+    TypeDef data_type = 2;
+}
+
+message OutputGroupDef
+{
+    string name = 1;
+    TypeDef data_type = 2;
+}
+
+message DependResourceDef
+{
+    string name = 1;
+    bool require = 2;
+}
+
+message KernelDef
+{
+    string kernel_name = 1;
+    repeated InputDef inputs = 2;
+    repeated OutputDef outputs = 3;
+    repeated InputGroupDef input_groups = 4;
+    repeated OutputGroupDef output_groups = 5;
+    repeated DependResourceDef depend_resources = 6;
+    int64 version = 7;
+};
+
+enum ResourceLoadType {
+    RLT_INVALID = 0;
+    RLT_DEFAULT = 1;
+    RLT_BUILDIN = 2;
+}
+
+message ResourceDef
+{
+    string resource_name = 1;
+    repeated DependResourceDef depend_resources = 2;
+    ResourceLoadType load_type = 3;
+    int64 version = 4;
+};

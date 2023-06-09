@@ -1,0 +1,34 @@
+syntax = "proto3";
+import "SqlSearchInfo.proto";
+package isearch.sql;
+
+option cc_enable_arenas = true;
+
+enum SqlErrorCode {
+    SQL_ERROR_NONE = 0;
+    SQL_ERROR_BIZ_NOT_EXIST = 1;
+    SQL_ERROR_QUEUE_FULL = 2;
+    SQL_ERROR_SERVICE_NOT_READY = 3;
+    SQL_ERROR_NOT_GIG_CLOSURE = 4;
+    SQL_ERROR_QUEYR_SESSION = 5;
+    SQL_ERROR_PARSE_GRAPH_DEF = 6;
+    SQL_ERROR_TIMEOUT = 7;
+    SQL_ERROR_RESOURCE = 8;
+    SQL_ERROR_RUN_FAILED = 9;
+    SQL_ERROR_CATALOG_NOT_EXIST = 10;
+    SQL_ERROR_CALL_RUN_GRAPH_FAILED = 11;
+}
+
+message SqlErrorInfo {
+    SqlErrorCode errorCode = 1;
+    string errorMsg = 2;
+    int32 multicall_ec = 3;
+
+}
+
+message SqlSearcherResponse {
+    bytes tableData = 1;
+    bytes naviResult = 2;
+    SqlSearchInfo searchInfo = 3;
+    SqlErrorInfo errorInfo = 7;
+}

@@ -1,0 +1,57 @@
+#!/bin/sh
+### link: https://yuque.antfin.com/tgxflt/gs5sir/vsedw7#TrImO
+params=$*
+localPath=${LOCAL_PATH-$(dirname $(cd $(dirname $0); pwd))}
+userPath=$(dirname $localPath)
+fs_util_libpath=${localPath}/lib64:${userPath}/lib64:${localPath}/lib:${userPath}/lib
+
+### fslib
+export FSLIB_DISABLE_PROXY_FILE_SYSTEM=1
+
+### hdfs
+export HADOOP_HOME=${HADOOP_HOME:-"${localPath}/hadoop/hadoop/"}
+export JAVA_HOME=${JAVA_HOME:-"${localPath}/java/jdk/"}
+
+### pangu
+export FSLIB_PANGU_ENABLE_SEQUENTIAL_READAHEAD=${FSLIB_PANGU_ENABLE_SEQUENTIAL_READAHEAD-"true"}
+export FSLIB_PANGU_ENABLE_BUFFER_WRITE=${FSLIB_PANGU_ENABLE_BUFFER_WRITE-"true"}
+
+# if hippo not specified nuwa, use "NUWA-CN-NANTONG-IN-EA120-001"
+if [ "x$HIPPO_ENV_DFS_NUWA" = "x" ]; then
+    export HIPPO_ENV_DFS_NUWA="NUWA-CN-NANTONG-IN-EA120-001"
+fi
+# if hippo not specified link, use dir|alb
+if [ "x$HIPPO_ENV_STORAGE_LINKS" = "x" ]; then
+    export FSLIB_DFS_STORAGE_LINKS=${FSLIB_DFS_STORAGE_LINKS:-"dir|alb"}
+fi
+logPath="${HIPPO_APP_INST_ROOT}/usr/local/etc/apsara/fslib_pangu_plugin_logger.conf"
+# if hippo env not specified or specified path exist, use relative conf path
+if [ ! -f "${HIPPO_APP_INST_ROOT}/usr/local/etc/apsara/fslib_pangu_plugin_conf.json" ]; then
+    export FSLIB_PANGU_CONFIG_PATH=${FSLIB_PANGU_CONFIG_PATH-"${localPath}/etc/apsara/fslib_pangu_plugin_conf.json"}
+    export APSARA_LOG_CONFIG_PATH=${APSARA_LOG_CONFIG_PATH-"${localPath}/etc/apsara/apsara_sync_log_conf.json"}
+    export FSLIB_DFS_CONFIG_PATH=${FSLIB_DFS_CONFIG_PATH-"${localPath}/etc/apsara/fslib_dfs_plugin_conf.json"}
+    logPath="${localPath}/etc/apsara/fslib_pangu_plugin_logger.conf"
+fi
+
+### MAIN
+export LD_LIBRARY_PATH=$fs_util_libpath:$LD_LIBRARY_PATH:$JAVA_HOME/jre/lib/amd64/server/
+
+### add check for hdfs 
+echo $params | grep -q "hdfs://"
+if [ $? -eq 0 ]; then
+    class_path_util=${localPath}/bin/class_path_util
+    if [ ! -f $class_path_util ];then
+	echo "$class_path_util not exist"
+	exit -1
+    fi
+fi
+
+fs_util_bin_cmd=${localPath}/bin/fs_util_bin
+if [ -f ${fs_util_bin_cmd} ]; then
+    ${fs_util_bin_cmd} -l $logPath $params 
+else
+    echo "cannot find fs_util_bin in $localPath/bin" >&2
+    exit 10
+fi
+
+exit $?

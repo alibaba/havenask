@@ -1,0 +1,18 @@
+{
+    "cluster_config" : {
+        "hash_mode" : {
+            "hash_field" : "uri",
+            "hash_function" : "HASH"
+        },
+        "query_config" : {
+            "default_index" : "phrase",
+            "default_operator" : "AND"
+        },
+        "table_name" : "seller"
+    },
+    "rankprofile_config" : {
+    },
+    "searcher_cache_config" : {
+        "wrong_itme" : "1"
+    }
+}

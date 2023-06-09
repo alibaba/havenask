@@ -1,0 +1,18 @@
+{
+    "turing_options_config": {
+        "dependency_table": [
+            "in0"
+        ]
+    }, 
+    "cluster_config": {
+        "table_name": "in0", 
+        "query_config": {
+            "default_operator": "AND", 
+            "default_index": "title"
+        }, 
+        "hash_mode": {
+            "hash_function": "HASH", 
+            "hash_field": "docid"
+        }
+    }
+}

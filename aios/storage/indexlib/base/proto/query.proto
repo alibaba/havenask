@@ -1,0 +1,76 @@
+syntax = "proto2";
+import "value.proto";
+
+package indexlibv2.base;
+
+message AttrCondition {
+    required string indexName         = 1;
+    optional string truncateName      = 2;
+    repeated string values            = 3;
+}
+
+message PartitionQuery {
+    // attributes to return, empty means return everything.
+    repeated string attrs               = 1;
+
+    optional AttrCondition condition    = 2;
+    repeated string pk                  = 3;
+    repeated int64 docid                = 4;
+
+    optional int64 limit                = 5;
+    optional string region              = 6;
+    repeated  string skey               = 7;
+    optional bool ignoreDeletionMap     = 8;
+    optional string truncateName        = 9;
+
+    // for local_debug: 
+    // kv table : murmur hash value
+    // normal table : pk hash value
+    repeated uint64 pkNumber           = 10;
+
+    optional bool needSectionInfo      = 11;
+}
+
+message AttrDef {
+    required string attrName         = 1;
+    required ValueType type          = 2;
+}
+
+message AttrInfo {
+    repeated AttrDef fields          = 1;
+}
+
+message Row {
+    required uint32 docid            = 1;
+    optional string pk               = 2;
+    optional string skey             = 3;
+    repeated AttrValue attrValues    = 4;
+}
+
+message IndexTermMeta {
+    optional int32 docFreq           = 1;
+    optional int32 totalTermFreq     = 2;
+    optional uint32 payload          = 3;
+}
+
+message SectionMeta {
+    optional int32 fieldId           = 1;
+    optional uint32 sectionWeight    = 2;
+    optional uint32 sectionLen       = 3;
+}
+
+message ErrorInfo {
+    optional uint32 statusCode       = 1;
+    optional string message          = 2;
+}
+
+message PartitionResponse {
+    required AttrInfo attrInfo       = 1;
+    repeated Row rows                = 2;
+
+    optional IndexTermMeta termMeta  = 3;
+    repeated float matchValues       = 4;
+
+    optional ErrorInfo error         = 5;
+    repeated SectionMeta sectionMetas = 6;
+}

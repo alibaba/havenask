@@ -1,0 +1,16 @@
+import ha3.*;
+import cava.lang.*;
+
+class testMInt32Performance {
+    static int main() {
+        MInt32 mint = MInt32.create((uint)1111);
+        int a = 0;
+	for (long i = 1; i < 1000000 ; ++i) {
+            for (long j = 0; j < 1111; ++j) {
+                a ^= mint.get((uint)j);
+            }
+        }
+        PrintStream.println(a);
+	return 0;
+    }
+}

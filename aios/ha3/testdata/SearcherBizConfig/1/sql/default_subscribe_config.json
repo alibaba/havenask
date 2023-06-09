@@ -1,0 +1,4 @@
+{
+    "local": [{
+        "part_count": 1, "biz_name": "daogou.default_sql", "version": 123, "part_id": 0, "ip": "100.69.120.1", "support_heartbeat": true, "grpc_port": 12345}]    
+}

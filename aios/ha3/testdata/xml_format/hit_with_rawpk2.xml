@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Root>
+<TotalTime>0.000</TotalTime>
+<SortExprMeta><![CDATA[]]></SortExprMeta>
+<hits numhits="2" totalhits="0" coveredPercent="0.00">
+	<hit cluster_name="" hash_id="0" docid="-1">
+		<fields>
+		</fields>
+		<property>
+		</property>
+		<sortExprValues></sortExprValues>
+		<raw_pk><![CDATA[pk1]]></raw_pk>
+	</hit>
+	<hit cluster_name="" hash_id="0" docid="-1">
+		<fields>
+		</fields>
+		<property>
+		</property>
+		<sortExprValues></sortExprValues>
+		<raw_pk><![CDATA[pk2]]></raw_pk>
+	</hit>
+</hits>
+<AggregateResults>
+</AggregateResults>
+<Error>
+	<ErrorCode>0</ErrorCode>
+	<ErrorDescription></ErrorDescription>
+</Error>
+</Root>

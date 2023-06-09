@@ -1,0 +1,52 @@
+{
+    "Loggers":{
+        "/":{
+            "DefaultFileSink":"WARNING"
+        },
+	"/isearch" : {
+	    "IsearchHa2Sink" : "INFO"
+	},
+	"/heavenask/index_engine" : {
+	    "IndexlibSink" : "INFO"
+	},
+        "/isearch/common/AccessLog":{
+	    "AccessFileSink": "INFO"
+	},
+	"/apsara/pangu":
+   	 {
+         "PanguSink":"INFO"
+    	}
+    },
+    "Sinks":{
+        "IsearchHa2Sink":{
+            "Type":"File",
+	    "MaxLogFileNum":500,
+            "LogFilePath":"isearch_ha3.LOG",
+            "ColumnNames":"__LOGGER__,__LEVEL__,__FILE__,__FUNCTION__,__LINE__,__THREAD__,__TIME__"
+        },
+        "IndexlibSink":{
+            "Type":"File",
+	    "MaxLogFileNum":500,
+            "LogFilePath":"indexlib.LOG",
+            "ColumnNames":"__LOGGER__,__LEVEL__,__FILE__,__FUNCTION__,__LINE__,__THREAD__,__TIME__"
+        },
+	"AccessFileSink":{
+            "Type":"File",
+            "MaxLogFileNum":500,
+            "MaxLogFileSize":100000000,
+            "MaxDaysFromModify":300,
+            "LogFilePath":"Access.LOG",
+            "ColumnNames":" "
+        },
+	"PanguSink":
+	    {
+            "Type":"File",
+            "MaxLogFileNum":500,
+            "MaxLogFileSize":100000000,
+            "MaxDaysFromModify":300,
+            "LogFilePath":"pangu.LOG"
+
+    	    }
+        }
+}
+

@@ -1,0 +1,127 @@
+[
+    {
+        "name" : "POWER",
+        "return_type" : "double",
+        "operand_type" : "numeric_numeric"
+    },
+    {
+        "name" : "SQRT",
+        "return_type" : "double",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "LN",
+        "return_type" : "double",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "LOG10",
+        "return_type" : "double",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "ABS",
+        "return_type" : "arg0",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "ACOS",
+        "return_type" : "double",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "ASIN",
+        "return_type" : "double",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "ATAN",
+        "return_type" : "double",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "ATAN2",
+        "return_type" : "double",
+        "operand_type" : "numeric_numeric"
+    },
+    {
+        "name" : "CBRT",
+        "return_type" : "double",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "COS",
+        "return_type" : "double",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "COT",
+        "return_type" : "double",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "DEGREES",
+        "return_type" : "double",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "EXP",
+        "return_type" : "double",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "RADIANS",
+        "return_type" : "double",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "ROUND",
+        "return_type" : "arg0",
+        "operand_type" : "numeric_optional_integer"
+    },
+    {
+        "name" : "SIGN",
+        "return_type" : "arg0",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "SIN",
+        "return_type" : "double",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "TAN",
+        "return_type" : "double",
+        "operand_type" : "numeric"
+    },
+    {
+        "name" : "TRUNCATE",
+        "return_type" : "arg0",
+        "operand_type" : "numeric_optional_integer"
+    },
+    {
+        "name" : "CHAR_LENGTH",
+        "return_type" : "integer",
+        "operand_type" : "character"
+    },
+    {
+        "name" : "CHARACTER_LENGTH",
+        "return_type" : "integer",
+        "operand_type" : "character"
+    },
+    {
+        "name" : "UPPER",
+        "return_type" : "arg0",
+        "operand_type" : "character"
+    },
+    {
+        "name" : "LOWER",
+        "return_type" : "arg0",
+        "operand_type" : "character"
+    },
+    {
+        "name" : "ROUND",
+        "return_type" : "arg0",
+        "operand_type" : "numeric_optional_integer"
+    }
+]

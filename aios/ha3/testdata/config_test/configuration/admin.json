@@ -1,0 +1,4 @@
+{
+    "can_force_switch" : false,
+    "max_worker_unavailable_seconds" : 17
+}

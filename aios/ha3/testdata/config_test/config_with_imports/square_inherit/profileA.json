@@ -1,0 +1,8 @@
+{
+    "inherit_from" : "square_inherit/base.json",
+    "extractor":
+    {
+        "module_name": "ProfileA",
+	"extractor_name": "Inherit"
+    }
+}

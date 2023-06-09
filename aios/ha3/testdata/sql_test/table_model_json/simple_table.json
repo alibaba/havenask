@@ -1,0 +1,40 @@
+{
+    "tables": [
+        {
+            "catalog_name": "default",
+            "database_name": "default",
+            "table_version": 2,
+            "table_name": "simple",
+            "table_type": "json_default",
+            "table_content_version": "0.1",
+            "table_content": {
+                "table_name": "simple",
+                "table_type": "normal",
+                "fields": [
+                    {
+                        "field_name": "i1",
+                        "field_type": {
+                            "type": "int32"
+                        }
+                    },
+                    {
+                        "field_name": "i2",
+                        "field_type": {
+                            "type": "int32"
+                        }
+                    }
+                ],
+                "distribution": {
+                    "partition_cnt": 1,
+                    "hash_fields": [
+                        "i1"
+                    ],
+                    "hash_function": "HASH64"
+                },
+                "join_info": [
+                ],
+                "properties": {}
+            }
+        }
+    ]
+}

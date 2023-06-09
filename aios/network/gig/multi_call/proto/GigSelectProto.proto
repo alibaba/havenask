@@ -1,0 +1,63 @@
+syntax = "proto2";
+
+package multi_call;
+
+option java_package="com.alibaba.search.gig.proto";
+
+import "multi_call/proto/GigCommonProto.proto";
+
+message GigAgentInitParam {
+    optional string log_prefix = 1;
+}
+
+message GigHostSpec {
+    optional string addr = 1;
+    optional uint32 http_port = 2;
+    optional uint32 arpc_port = 3;
+    optional uint32 tcp_port = 4;
+    optional int32 weight = 5;
+    optional bool valid = 6 [ default = true ];
+    optional uint32 grpc_port = 7;
+}
+
+message GigRequest {
+    optional string cluster_name = 1;
+    optional string biz_name = 2;
+    optional string strategy = 3;
+    optional int64 version = 4;
+    optional int64 source_id = 5;
+}
+
+message GigRequests {
+    repeated GigRequest requests = 1;
+}
+
+message GigSearchResourceInfo {
+    optional int64 resource_ptr = 1;
+    optional GigRequestType type = 2;
+    optional bytes request_agent_info = 3;
+    optional GigHostSpec spec = 4;
+}
+
+message GigSearchResourceInfos {
+    repeated GigSearchResourceInfo infos = 1;
+}
+
+message GigResponseMetric {
+    optional int64 call_begin_time = 1;
+    optional int64 call_end_time = 2;
+    optional int32 ec = 3;
+    optional float e2e_latency = 4;
+    optional float net_latency = 5;
+}
+
+message BizProviderInfos {
+    optional string biz_name = 1;
+    optional string cluster_name = 2;
+    optional int64 version = 3;
+    repeated GigHostSpec specs = 4;
+}
+
+message SubProviderInfos {
+    repeated BizProviderInfos infos = 1;
+}

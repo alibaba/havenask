@@ -1,0 +1,66 @@
+load('@rules_cc//cc:defs.bzl', 'cc_library')
+cc_library(
+    name='reader',
+    srcs=['legacy_index_reader.cpp'],
+    hdrs=[
+        'legacy_index_reader.h', 'legacy_index_reader_interface.h',
+        'multi_field_index_segment_reader.h'
+    ],
+    copts=['-Werror'],
+    include_prefix='indexlib/index/normal/framework',
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        '//aios/storage/indexlib/index/inverted_index:InDocPositionIterator',
+        '//aios/storage/indexlib/index/inverted_index:InDocPositionState',
+        '//aios/storage/indexlib/index/inverted_index:InDocSectionMeta',
+        '//aios/storage/indexlib/index/inverted_index:IndexSegmentReader',
+        '//aios/storage/indexlib/index/inverted_index:InvertedIndexReader',
+        '//aios/storage/indexlib/index/inverted_index:PostingIterator',
+        '//aios/storage/indexlib/index/inverted_index:SectionAttributeReader',
+        '//aios/storage/indexlib/index/inverted_index:TermMatchData',
+        '//aios/storage/indexlib/index/inverted_index/format:DocListFormatOption',
+        '//aios/storage/indexlib/index/inverted_index/format:PositionListFormatOption',
+        '//aios/storage/indexlib/index/inverted_index/format:PostingFormatOption',
+        '//aios/storage/indexlib/indexlib/config',
+        '//aios/storage/indexlib/indexlib/index:util',
+        '//aios/storage/indexlib/indexlib/index/normal/inverted_index/format:index_format_option'
+    ],
+    alwayslink=True
+)
+cc_library(
+    name='writer',
+    srcs=['index_writer.cpp'],
+    hdrs=['index_writer.h'],
+    copts=['-Werror'],
+    include_prefix='indexlib/index/normal/framework',
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/document:DocumentBatch',
+        '//aios/storage/indexlib/framework:Locator',
+        '//aios/storage/indexlib/index:interface',
+        '//aios/storage/indexlib/index/inverted_index:InvertedIndexUtil',
+        '//aios/storage/indexlib/indexlib/config',
+        '//aios/storage/indexlib/indexlib/index:util'
+    ],
+    alwayslink=True
+)
+cc_library(
+    name='merger',
+    srcs=['index_merger.cpp', 'merger_interface.cpp'],
+    hdrs=['index_merger.h', 'index_merger_creator.h', 'merger_interface.h'],
+    copts=['-Werror'],
+    include_prefix='indexlib/index/normal/framework',
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        '//aios/storage/indexlib/indexlib/config',
+        '//aios/storage/indexlib/indexlib/index:util'
+    ],
+    alwayslink=True
+)
+cc_library(
+    name='index_framework',
+    copts=['-Werror'],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[':merger', ':reader', ':writer']
+)

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Root>
+<TotalTime>0.000</TotalTime>
+<SortExprMeta><![CDATA[]]></SortExprMeta>
+<hits numhits="0" totalhits="0" coveredPercent="0.00">
+</hits>
+<AggregateResults>
+	<AggregateResult key='expr1'>
+		<group value='key1'><sum>4444</sum></group>
+	</AggregateResult>
+	<AggregateResult key='expr1&amp;expr2'>
+		<group value='key1&amp;'><sum>4444</sum></group>
+	</AggregateResult>
+	<AggregateResult key='expr1&lt;expr2'>
+		<group value='key1&lt;'><sum>4444</sum></group>
+	</AggregateResult>
+	<AggregateResult key='expr1&gt;expr2'>
+		<group value='key1&gt;'><sum>4444</sum></group>
+	</AggregateResult>
+	<AggregateResult key='&apos;expr1&apos;'>
+		<group value='key1&apos;'><sum>4444</sum></group>
+	</AggregateResult>
+	<AggregateResult key='&quot;expr1&quot;'>
+		<group value='key1&quot;'><sum>4444</sum></group>
+	</AggregateResult>
+</AggregateResults>
+<Error>
+	<ErrorCode>0</ErrorCode>
+	<ErrorDescription></ErrorDescription>
+</Error>
+</Root>

@@ -1,0 +1,78 @@
+syntax = "proto2";
+package isearch.proto;
+option cc_enable_arenas = true;
+
+// [from, to]
+message Range
+{
+	optional uint32 from = 1;
+	optional uint32 to = 2;
+}
+
+enum RoleType
+{
+	ROLE_UNKNOWN = 0;
+	ROLE_QRS = 1;
+	ROLE_PROXY = 2;
+	ROLE_SEARCHER = 3;
+	ROLE_INDEX = 4;
+	ROLE_ADMIN = 5;
+}
+
+enum ClusterType
+{
+	CLUSTER_NORMAL = 0;
+	CLUSTER_INC_WITH_REALTIME = 2;
+}
+
+message PartitionID
+{
+	optional string clusterName = 1;
+	optional RoleType role = 2 [default = ROLE_UNKNOWN];
+	optional Range range = 3;
+	optional uint32 fullVersion = 4;
+	optional uint32 majorConfigVersion = 5;
+}
+
+message RPCStatusResponse
+{
+	enum RPCStatus
+	{
+		RPCSTATUS_SUCCESS = 0;
+		RPCSTATUS_FAILED = 1;
+		RPCSTATUS_DROPPED = 2;
+	}
+
+	optional RPCStatus status = 1;
+	optional int32 errorCode = 2;
+	optional string errorMsg = 3;
+}
+
+message EmptyRequest
+{
+}
+
+enum CompressType {
+    CT_NO_COMPRESS = 0;
+    CT_Z_SPEED_COMPRESS = 1;
+    CT_Z_DEFAULT_COMPRESS = 2;
+    CT_SNAPPY = 3;
+    CT_LZ4 = 4;
+}
+
+enum FormatType {
+    FT_XML = 0;
+    FT_PROTOBUF = 1;
+    FT_FB_SUMMARY = 2;
+    FT_SQL_JSON = 8;
+    FT_SQL_STRING = 9;
+    FT_SQL_FULL_JSON = 10;
+    FT_SQL_FLATBUFFERS = 11;
+    FT_SQL_UNKNOWN = 14;
+    FT_UNKNOWN = 15;
+}
+
+enum ProtocolType {
+    PT_ARPC = 0;
+    PT_GRPC = 1;
+}

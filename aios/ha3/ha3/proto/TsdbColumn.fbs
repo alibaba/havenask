@@ -1,0 +1,14 @@
+namespace isearch.fbs;
+
+struct TsdbDataPoint {
+      ts: int64 (id:0);
+      value: double (id:1);
+}
+table TsdbDataPointSeries { points: [TsdbDataPoint]; }
+table TsdbDpsColumn { value : [TsdbDataPointSeries]; }
+
+table TsdbStringPointSeries {
+      timestamps: [int64] (id: 0);
+      values: [string] (id: 1);
+}
+table TsdbStringDpsColumn { value : [TsdbStringPointSeries]; }

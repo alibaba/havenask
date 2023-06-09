@@ -1,0 +1,16 @@
+package(default_visibility=['//aios/ha3:__subpackages__'])
+cc_library(
+    name='ha3_comparator_headers',
+    hdrs=glob(['*.h']),
+    deps=['@suez_turing.turbojet.turing_ops_util//:suez_turing'],
+    include_prefix='ha3/rank'
+)
+cc_library(
+    name='ha3_comparator',
+    srcs=glob(['*.cpp']),
+    deps=[
+        ':ha3_comparator_headers',
+        '@suez_turing.turbojet.turing_ops_util//:suez_turing',
+        '//aios/ha3/ha3/sql/common:sql_log'
+    ]
+)

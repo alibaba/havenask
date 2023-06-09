@@ -1,0 +1,34 @@
+syntax = "proto2";
+
+package multi_call;
+
+option java_package="com.alibaba.search.gig.proto";
+
+enum GigProtocolType {
+    GIG_PROTOCOL_TCP = 0;
+    GIG_PROTOCOL_ARPC = 1;
+    GIG_PROTOCOL_HTTP = 2;
+    GIG_PROTOCOL_GRPC = 3;
+    GIG_PROTOCOL_GRPC_STREAM = 4;
+    GIG_PROTOCOL_UNKNOWN = 5;
+}
+
+enum GigRequestType {
+    GIG_RT_NORMAL = 0;
+    GIG_RT_PROBE = 1;
+    GIG_RT_COPY = 2;
+}
+
+message GigTraceContext {
+    optional string trace_id = 1;
+    optional string rpc_id = 2;
+    optional string user_data = 3;
+    optional string traceparent = 4;
+    optional string tracestate = 5;
+}
+
+enum GigMetaByTcp {
+    META_BT_NONE = 0;
+    META_BT_APPEND = 1;
+    META_BT_IGRAPH = 2;
+}

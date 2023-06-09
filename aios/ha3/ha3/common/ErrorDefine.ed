@@ -1,0 +1,387 @@
+#pragma once
+#include <cstdint>
+#include <string>
+namespace isearch {
+typedef int32_t ErrorCode;
+%{error_code_first}%
+%{
+0       ERROR_NONE
+1       ERROR_UNKNOWN    "unknow error."
+2       ERROR_GENERAL    "general error."
+3       ERROR_ARPC    "ARPC error."
+4       ERROR_PARTITION_NOT_FOUND    "partition not found."
+5       ERROR_REQUEST_DROPPED    "Dropped Request."
+6       ERROR_SEARCH_RESPONSE    "Validate SearchResponse failed."
+7       ERROR_WORKER_STOPPED    "Worker is stopped."
+9       ERROR_CONFIG_PATH    "Config path is invalid."
+10      ERROR_INDEX_PATH    "Index path is invalid."
+11      ERROR_PARTITION_EXIST    "Partition exists."
+13      ERROR_PARTITION_CREATE    "Partition creates failed."
+14      ERROR_GET_IP    "Get Worker Ip failed."
+15      ERROR_PROVIDER_NOT_FOUND    "No valid provider found."
+16      ERROR_BEGIN_SESSION_FAILED    "begin session failed."
+17      ERROR_RESPONSE_EARLY_TERMINATOR   "response is not returned because early terminator."
+18      ERROR_BIZ_NOT_FOUND    "biz not found."
+19      ERROR_RUN_QRS_GRAPH_FAILED    "run qrs graph failed."
+20      ERROR_RUN_SEARCHER_GRAPH_FAILED    "run searcher graph failed."
+
+1000    ERROR_NO_CONFIG_CLAUSE    "ConfigClause: clause not exist."
+1001    ERROR_CLUSTER_NAME_NOT_EXIST    "ConfigClause: cluster name not exist."
+1002    ERROR_KEY_VALUE_PAIR    "RequestParser: key/value pair parse error."
+1003    ERROR_CLUSTERNAME_WRONG    "ConfigClause: cluster name specified in config clause is wrong."
+1004    ERROR_MULTI_CLUSTERNAME_WITH_DIFFERENT_TABLE    "ConfigClause: multi cluster names specified in config clause have different table schema."
+1005    ERROR_OVER_RETURN_HITS_LIMIT    "ConfigClause: sum of start offset and hits greater than limit."
+1007    ERROR_UNSUPPORT_RESULT_FORMAT    "ConfigClause: unsupport reuslt format."
+1008    ERROR_PB_MATCHDOCS_FORMAT_IN_PHASE2    "ConfigClause: pb matchdocs format can only be used in phase1."
+1009    ERROR_PB_MATCHDOCS_FORMAT_WITH_XML    "ConfigClause: pb matchdocs format can only be used in pb format."
+1010    ERROR_NULL_QUERY    "QueryClause: null query."
+1011    ERROR_NULL_PHRASE_QUERY    "QueryClause: null phrase query."
+1012    ERROR_NO_QUERY_CLAUSE    "QueryClause: clause not exist."
+1013    ERROR_INDEX_NOT_EXIST    "QueryClause: index not exist."
+1014    ERROR_NUMBER_RANGE_ERROR    "QueryClause: number range error."
+1015    ERROR_CLUSTER_SCHEMA_NOT_EXIST    "Cluster's schema not exist"
+1016    ERROR_INDEX_TYPE_INVALID    "QueryClause: index type not right."
+1017    ERROR_INDEX_FIELD_INVALID    "QueryClause: index field not right."
+1018    ERROR_CLUSTER_TABLE_INFO_MANAGER_NOT_EXIST    "Cluster table info manager not exist"
+1019	ERROR_SUB_INDEX_NOT_SUPPORT "QueryClause: sub index not support"
+1020    ERROR_FILTER_EXPRESSION_NOT_BOOL    "FilterClause: attribute expression's ExprResultType is not 'vt_bool'."
+1021    ERROR_INVALID_REFRESH_ATTRIBUTE    "SearcherCacheClause: use not exist attribute!"
+1022	ERROR_NULL_MULTI_TERM_QUERY  "QueryClause: invalid term(&|) query."
+1030    ERROR_SORT_EXPRESSION_TYPE_BOOL    "SortClause: attribute expression's ExprResultType can not be 'vt_bool'."
+1031    ERROR_SORT_NO_DESCRIPTION    "SortClause: sort description not exist."
+1032    ERROR_SORT_SAME_EXPRESSION    "SortClause: two sort description with same expression."
+1033    ERROR_QUERY_INVALID    "QueryClause:query is invalid."
+1040    ERROR_AGG_FUN_EXPR_RESULT_TYPE    "AggregateClause: agg function expression ExprResultType can not be 'vt_bool' or 'vt_string'."
+1041    ERROR_AGG_RANGE_ORDER    "AggregateClause: aggregate range must ascend order."
+1042    ERROR_AGG_RANGE_TYPE    "AggregateClause: aggregate range ExprResultType error."
+1043    ERROR_AGG_FUN_NAME    "AggregateClause: aggregate function name error."
+1044    ERROR_AGG_FUN_NOT_SUPPORT    "Aggregate function is not supported."
+1045    ERROR_AGG_FUN_TYPE_NOT_SUPPORT    "Aggregate function result type is not supported."
+1046    ERROR_AGG_TYPE_NOT_SUPPORT    "Aggregator result type is not supported."
+
+1050    ERROR_EMPTY_QUERY_STRING    "Parse error: Query string is empty."
+1051    ERROR_QUERY_CLAUSE    "Query clause error."
+1052    ERROR_FILTER_CLAUSE    "Filter clause error."
+
+1053    ERROR_AGGREGATE_CLAUSE    "Aggregate clause error."
+1054    ERROR_SORT_CLAUSE    "Sort clause error."
+1055    ERROR_DISTINCT_CLAUSE    "Distinct clause error."
+1056    ERROR_UNKNOWN_CLAUSE    "Error: Unknown clause."
+1057    ERROR_PART_MODE_INVALID_PARTID    "Invalid target partition ids."
+1058    ERROR_HASH_MODE_EMPTY_FIELD    "empty hash field."
+1059    ERROR_HASH_MODE_INVALID_FIELD    "invalid hash field."
+1060    ERROR_NO_DOT_FIELD_BOOST    "RankClause: No dot in field boost."
+1061    ERROR_FIELD_BOOST_CONFIG    "RankClause: Field boost config error."
+1062    ERROR_FIELD_BOOST_NUMBER    "RankClause: Field boost number error."
+1063    ERROR_UNKNOWN_KEY    "RankClause: Unkonwn key."
+1064    ERROR_PKFILTER_CLAUSE    "PKFilter clause error."
+1066    ERROR_PARSE_RANK_HINT    "RankClause: Invalid rank hint."
+1068    ERROR_PARSE_SYNTAX    "Parse syntax error."
+1070    ERROR_DISTINCT_COUNT    "DistinctClause: Distinct number error."
+1071    ERROR_DISTINCT_TIMES    "DistinctClause: Distinct times error."
+1072    ERROR_DISTINCT_RESERVED_FLAG    "DistinctClause: Distinct reserved flag error."
+1073    ERROR_DISTINCT_MISS_KEY    "DistinctClause: Distinct miss key error."
+1074    ERROR_DISTINCT_EXPRESSION_TYPE_BOOL    "DistinctClause: Distinct key expression bool type error."
+1075    ERROR_DISTINCT_GRADE    "DistinctClause: Distinct grade error."
+1076    ERROR_DISTINCT_DESC_COUNT    "DistinctClause: Distinct description count error."
+1077    ERROR_DISTINCT_MAX_ITEM_COUNT    "DistinctClause: Distinct max_item_count error."
+1078    ERROR_DISTINCT_UPDATE_TOTAL_HIT_FLAG    "DistinctClause: Distinct update total hit flag error."
+
+1079    ERROR_AUX_QUERY_CLAUSE    "Aux Query clause error."
+1080    ERROR_AUX_FILTER_CLAUSE    " AuxFilter clause error."
+1081    ERROR_NO_AUX_QUERY_CLAUSE    "AuxQueryClause: clause not exist."
+1082    ERROR_NO_SCAN_JOIN_CLUSTER_NAME "No ScanJoinCluster cannot execute aux query or filter"
+
+1090	ERROR_FETCH_SUMMARY_CLUSTER_NOT_EXIST	"ConfigClause: Fetch summary cluster does not exist."
+1091	ERROR_SUMMARY_CLUSTER_PK_NOT_MATCH	"ConfigClause: PK index does not match summary cluster."
+1092	ERROR_ONLY_SUPPORT_FETCH_SUMMARY_BY_RAWPK	"ConfigClause: Only support fetch summary in different cluster by rawpk."
+1093    ERROR_ONLY_SUPPORT_FETCH_SUMMARY_BY_PK  "ConfigClase: realtime cluster only can fetch summary by pk."
+
+1999    ERROR_SYNTAX_EXPRESSION_SUB_DOC_NOT_SUPPORT  "sub doc attribute is not supported."
+2000    ERROR_ATTRIBUTE_NOT_EXIST    "attribute not exist."
+2001    ERROR_EXPRESSION_LR_TYPE_NOT_MATCH    "left & right expression type not matched."
+2002    ERROR_EXPRESSION_LR_ALL_CONST_VALUE    "left & right expression are both const expression."
+2003    ERROR_CONST_EXPRESSION_TYPE    "const SyntaxExpr's type error."
+2004    ERROR_LOGICAL_EXPR_LR_TYPE_ERROR    "left & right ExprResultType is not vt_bool."
+2005    ERROR_STRING_IN_BINARY_EXPRESSION    "string in binary expression is not supported."
+2006    ERROR_EXPRESSION_RESULT_UNKNOWN_TYPE    "unknow expression result type."
+2007    ERROR_EXPRESSION_WITH_MULTI_VALUE    "binary expression with multivalue is not supported."
+2008    ERROR_STRING_EXPRESSION_NOT_SUPPORT    "string attribute expression is not supported."
+2009    ERROR_SYNTAX_EXPRESSION_TYPE_NOT_SUPPORT    "syntax expression type is not supported."
+2010    ERROR_BIT_UNSUPPORT_TYPE_ERROR    "bit expression type is not supported."
+2011    ERROR_CONST_EXPRESSION_VALUE    "const SyntaxExpr's value error."
+2012    ERROR_ATTRIBUTE_EXIST_IN_SUB_DOC    "attribute exist in sub doc."
+
+2013    ERROR_CLUSTER_CLAUSE
+2015    ERROR_CLUSTER_PART_MODE_CONFIG
+2017    ERROR_CLUSTER_PART_MODE_NAME
+2019    ERROR_CLUSTER_NAME_NOT_EXIST_IN_CLUSTER_CLAUSE    "ClusterClause: cluster name not exist."
+2021    ERROR_HASH_FUNCTION
+2022    ERROR_CONFIG_CLAUSE_START_VALUE
+2023    ERROR_CONFIG_CLAUSE_HIT_VALUE
+2024    ERROR_CONFIG_CLAUSE_RANKSIZE
+2025    ERROR_CONFIG_CLAUSE_RERANKSIZE
+2026    ERROR_CONFIG_CLAUSE_TIMEOUT
+2027    ERROR_CONFIG_CLAUSE_FETCH_SUMMARY_TYPE
+2028    ERROR_CONFIG_CLAUSE_PROTO_FORMAT_OPTION
+2029	ERROR_CONFIG_CLAUSE_RESEARCH_THRESHOLD
+2030    ERROR_CONFIG_CLAUSE_JOIN_TYPE
+2031    ERROR_CONFIG_CLAUSE_SUB_DOC_DISPLAY_TYPE
+2032    ERROR_CONFIG_CLAUSE_VERSION
+2033    ERROR_CONFIG_CLAUSE_TOTALRANKSIZE
+2034    ERROR_CONFIG_CLAUSE_TOTALRERANKSIZE
+2035    ERROR_CONFIG_CLAUSE_FETCH_SUMMARY_GROUP
+2036    ERROR_CONFIG_CLAUSE_HIT_SUMMARY_SCHEMA_CACHE_KEY
+
+2040    ERROR_LAYER_CLAUSE
+2041    ERROR_LAYER_CLAUSE_ATTRIBUTE_NOT_SEQUENCE	"attribute is not sequence in layer clause"
+2042    ERROR_RANGE_LESS_THAN_ZERO			"layer range or value less than 0"
+2050    ERROR_HEALTHCHECK_CLAUSE
+2051    ERROR_HEALTHCHECK_CHECK_FLAG
+2053    ERROR_HEALTHCHECK_CHECK_TIMES
+2054    ERROR_HEALTHCHECK_RECOVER_TIME
+
+2070    ERROR_VIRTUALATTRIBUTE_CLAUSE
+
+2080    ERROR_FETCH_SUMMARY_CLAUSE
+2081    ERROR_FETCH_SUMMARY_GID_FORMAT
+
+2090    ERROR_PARSE_KVPAIR_CLAUSE
+
+2100    ERROR_FUNCTION_NOT_DEFINED    "expr function not defined."
+2101    ERROR_FUNCTION_ARGCOUNT    "expr function argument count error."
+2102    ERROR_FUNCTION_INCOMPATIBLE_PARAMETER    "parameters type is not equal in different cluster for the same function."
+2103    ERROR_FUNCTION_BEGIN_REQUEST    "failed to call the beginRequest of function expression."
+2104    ERROR_FUNCTION_SCOPE_IS_NOT_CORRECT     "function scope is not correct."
+
+2200    ERROR_CACHE_CLAUSE
+2300    ERROR_EXTRA_DISTINCT_CLAUSE
+
+2400    ERROR_OPTIMIZER_CLAUSE
+2401    ERROR_OPTIMIZER_CLAUSE_MISSING_OPTION   "the number of optimizer's option is not correct."
+2500    ERROR_RANK_SORT_CLAUSE
+2501    ERROR_RANK_SORT_CLAUSE_AND_DISTINCT_CLAUSE_CONFLICT    "multi rank Sort round conflict with first round distinct."
+
+2600	ERROR_FINAL_SORT_INVALID_SORT_NAME	"undefined sort name in final sort clause."
+2601	ERROR_FINAL_SORT_PARSE_FAILED		"parse final sort clause failed."
+
+2700	ERROR_LEVEL_CLAUSE
+
+2800	ERROR_MATCHDOC_SCORERS_CREATE_FAILED    "failed to create matchDocScorers."
+
+3500    ERROR_ANALYZER_NOT_EXIST    "Analyzer not exist."
+3501    ERROR_SPECIFIED_ANALYZER_NOT_EXIST    "Specified Analyzer not exist."
+3502    ERROR_INVALID_ANALYZER_GRAMMAR    "error invalid analyzer grammar."
+
+5000    ERROR_CONFIG    "Load config failed."
+5001    ERROR_CONFIG_INIT    "Init config failed."
+5002    ERROR_CONFIG_INIT_FILEIO_ERROR    "Init config failed, file io error."
+5003    ERROR_CONFIG_PARSE    "Parse config failed."
+5006    ERROR_CONFIG_UPDATE    "Update config failed."
+5007    ERROR_CONFIG_INCONSISTENCY_JOIN_CLUSTER_CONFIG "check joiniliary cluster config consistency failed."
+5008    ERROR_CREATE_INDEXPARTITIONWRAPPER_FAIL "create index partition wrapper failed."
+5009    ERROR_DOWNLOADING    "Downloading config."
+
+7000    ERROR_ADMIN_CONTROL    "qrs worker has been stopped."
+7001    ERROR_CONTROL_PARTITION_NOT_FOUND    "admin control command error: partition not found."
+7002    ERROR_COMMAND_NOT_SUPPORTED    "admin control command error: command not supported."
+
+8000    ERROR_SQL_INIT_REQUEST "sql request init failed."
+8001    ERROR_SQL_UNAUTHORIZED "sql request unauthorized."
+8010    ERROR_SQL_PLAN_SERVICE "call sql plan service failed."
+8019    ERROR_SQL_PLAN_SERVICE_TIMEOUT "call sql plan service timeout."
+8020    ERROR_SQL_RUN_GRAPH "run sql graph failed."
+8021    ERROR_SQL_PLAN_GENERATE "generate sql plan failed."
+8029    ERROR_SQL_RUN_GRAPH_TIMEOUT "run sql graph timeout failed."
+8030    ERROR_SQL_TRANSFER_GRAPH "transfer sql graph failed."
+8031    ERROR_SQL_TSDB_FORMAT "tsdb format failed."
+8032    ERROR_SQL_TSDB_TO_JSON "transfer to tsdb json failed."
+8033    ERROR_SQL_PROMETHEUS_FORMAT "prometheus format failed."
+8034    ERROR_SQL_PROMETHEUS_TO_JSON "transfer to prometheus json failed."
+8090    ERROR_SQL_SOFT_FAILURE_NOT_ALLOWED "sql has soft failure, which is not allowed."
+
+10000   ERROR_QRS
+10003   ERROR_QRSWORKER_STOPPED    "qrs worker has been stopped."
+10005   ERROR_QRS_NOT_FOUND_CHAIN    "Not found chain."
+10007   ERROR_QRS_NOT_FOUND_SEARCH_SERVICE    "Search service not ready, partition not load."
+10009   ERROR_QRS_SUMMARY_RESULT_NULL    "Fill summary result is NULL."
+10010   ERROR_QRS_SUMMARY_LACK    "Lack of summary."
+10011   ERROR_QRS_ATTRIBUTE_RESULT_NULL    "Fill attribute result is NULL."
+10012   ERROR_QRS_ATTRIBUTE_CONVERT_RESULT_NULL    "get converted attribute result is NULL."
+10013   ERROR_QRS_FAILED_TO_DOASYNCPROCESSCALL    "Failed to call doAsyncProcessCall."
+10015   ERROR_QRS_SEARCH_ERROR    "Qrs search error."
+10017   ERROR_QRS_PROCESSOR_EXCEPTION    "Some unexpected exception occured."
+11000   ERROR_QRS_PARTITION_INIT
+11001   ERROR_QRS_SESSION_POOL_EXCEED
+11002   ERROR_QRS_MULTI_CALL_ERROR
+
+20000   ERROR_PROXY
+20003   ERROR_NO_CHILDNODE
+20005   ERROR_PARTIAL_SEARCHER    "some searchers have error."
+21000   ERROR_PROXY_PARTITION_INIT
+
+30000   ERROR_SEARCHER
+30001   ERROR_SEARCH_UNKNOWN    "Unknown searcher error."
+30003   ERROR_UNSUPPORT_SEARCH_PHASE    "Search phase is not supported."
+30005   ERROR_NO_RANKPROFILE    "RankProfile not exist."
+30007   ERROR_NO_SUMMARYPROFILE    "SummaryProfile not exist."
+30009   ERROR_SUMMARY_EXTRACTOR_BEGIN_REQUEST    "Summary Extractor beginRequest error."
+30010   ERROR_SUMMARY_DECLARE_ATTRIBUTE "Declare attribute fields to summary error."
+30011   ERROR_SCORER_BEGIN_REQUEST    "Scorer beginRequest error."
+30013   ERROR_CREATE_QUERY_EXECUTOR    "Create QueryExecutor error."
+30015   ERROR_CREATE_HIT_COLLECTOR    "Create HitCollector error."
+30016   ERROR_REOPEN_INDEX    "Reopen index failed."
+30017   ERROR_REOPEN_INDEX_FILEIO_ERROR    "Reopen index failed, file io error."
+30018   ERROR_REOPEN_INDEX_GET_SYS_INFO_ERROR    "Reopen index failed, get sys info error."
+30019   ERROR_REOPEN_INDEX_LACKOFMEM_ERROR    "Reopen index failed, lack of memory error."
+30020   ERROR_REOPEN_INDEX_NEED_FORCE_REOPEN_ERROR    "Reopen index failed, need force reopen."
+30030   ERROR_OTHER_SCORER_WARNING  "Other scorer warning info"
+30031   ERROR_RANK_WARNING  "Rank warning info"
+30032   ERROR_RERANK_WARNING  "Rerank warning info"
+
+30100   ERROR_CREATE_OPTIMIZER_CHAIN    "Fail to create optimizer chain."
+30101   ERROR_OPTIMIZER    "Fail to do optimizer."
+30102	ERROR_SORTER_BEGIN_REQUEST    "Sorter beginRequest error."
+30103	ERROR_SORTER_BEGIN_REQUEST_IN_MERGER    "Sorter beginRequest error in merger."
+30104	ERROR_CREATE_SORTER    "Create Sorter failed."
+30105   ERROR_CACHE_STRATEGY_INIT    "Fail to init CacheStrategy."
+30106	ERROR_CREATE_PK_EXPR	     "Create pkExpr failed."
+
+31000   ERROR_SEARCHER_LOAD_PARTITION    "Searcher loads partition failed."
+31001   ERROR_NOT_FIND_LOCAL_PARTINFO    "Not find local partition info."
+31100   ERROR_SEARCHER_PARTITION_PATH_INIT    "Failed to init searcher partition index path."
+31101   ERROR_INDEX_PARTITION_CREATE    "Failed to create index partition."
+31102   ERROR_INDEX_PARTITION_CREATE_FILEIO_ERROR    "Failed to create index partition, file io error."
+31103   ERROR_INDEX_PARTITION_EXIST    "index partition already exists."
+31107   ERROR_CREATE_ATTRIBUTE_EXPRESSION    "Failed to create attribute expression."
+31109   ERROR_SCHEMA_NOT_EXIST    "schema file not exist."
+31111   ERROR_INVALID_SCHEMA    "Invalid schema."
+31113   ERROR_INDEX_PARTITION_NOT_READY    "index partition not ready."
+
+32000   ERROR_BEGIN_RUNTIME
+32001   ERROR_SEARCH_FETCH_SUMMARY    "Failed to fetch summary."
+32002   ERROR_SEARCH_FETCH_SUMMARY_FILEIO_ERROR    "Failed to fetch summary, file io error."
+32003   ERROR_SEARCH_LOOKUP    "Failed to look up index."
+32004   ERROR_SEARCH_LOOKUP_FILEIO_ERROR    "Failed to look up index, file io error."
+32005   ERROR_SEARCH_SETUP_DISTINCT    "Failed to setup distinct parameters, create key expression or init error."
+32006   ERROR_SEARCH_CREATE_SORT_EXPRESSION    "Failed to create sort expression."
+32007   ERROR_SEARCH_SETUP_AGGREGATOR    "Failed to setup aggregator."
+32008   ERROR_SEARCH_SETUP_FILTER    "Failed to setup filter."
+32011   ERROR_SEARCHER_OUTPOOLQUEUE_TIMEOUT    "outPoolQueue timeout."
+32012   ERROR_LOOKUP_TIMEOUT    "lookup timeout."
+32013   ERROR_SEEKDOC_TIMEOUT    "seekdoc timeout."
+32014   ERROR_RERANK_TIMEOUT    "rerank timeout."
+32015   ERROR_SEARCH_SETUP_VIRTUALATTRIBUTE    "Failed to setup virtual attribute."
+32016   ERROR_SEARCH_SETUP_RANKSORT    "unsupport ranksort without rerank."
+32017   ERROR_FETCH_SUMMARY_TIMEOUT    "fetch summary timeout."
+32018   ERROR_QRS_PROCESS_TIMEOUT    "qrs process timeout."
+32019   ERROR_QRS_OUTPOOLQUEUE_TIMEOUT    "qrs outPoolQueue timeout."
+33000   ERROR_END_RUNTIME
+
+40000   ERROR_ADMIN
+40003   ERROR_DEPLOY_GET_SEGMENT    "Get Segment failed when deploy."
+40004   ERROR_DEPLOY_GET_GENERATION_METAFILE
+40005   ERROR_DEPLOY_ADD_JOB    "AddJob failed when deploy."
+40006   ERROR_DEPLOY_GET_PARTITION_METAFILE
+40007   ERROR_DEPLOY_JOB_FAILED    "Deploy job failed."
+40009   ERROR_DEPLOY_QUEUE_FULL    "Deploy queue is full."
+40010   ERROR_ARPC_RESPONSE_ERROR    "response error."
+40013   ERROR_DEPLOY_MASTER_ADAPTER_INIT    "Init deploy master adapter failed."
+40015   ERROR_DEPLOY_GETSTATUS    "Deploy getstatus failed."
+
+40025   ERROR_DEPLOY_UNKNOWN
+40026   ERROR_DEPLOY_OTHER_REPLICA_SLAVE_NOT_EXIST    "Add job failed, other replica deploy slave not exist."
+40100   ERROR_DEPLOY_SOURCE
+40103   ERROR_DEPLOY_TIMEOUT    "Deploy timeout."
+40200   ERROR_DEPLOY_DEST
+40201   ERROR_DEPLOY_DEST_SLAVE_NOT_EXIST    "Add job failed, deploy slave not exist."
+
+50000   ERROR_VARIABLE_TYPE_NOT_MATCH    "Type of variable is not match."
+50001   ERROR_VARIABLE_NAME_NOT_EXIST    "Required variable is not exist."
+50002   ERROR_VARIABLE_NAME_ALREADY_EXIST    "Variable already exist."
+50003   ERROR_VSA_NOT_SAME
+
+60000   ERROR_BUILD
+60001   ERROR_BUILD_FILE_EOF    "Raw doc file is eof."
+60003   ERROR_BUILD_DOC_PARSE    "Fail to parse raw doc."
+60005   ERROR_BUILD_READ_DOC    "Fail to read raw doc."
+60006   ERROR_BUILD_DECOMPRESS_FAIL    "Fail to decompress."
+60007   ERROR_BUILD_INIT    "Fail to init build."
+60011   ERROR_BUILD_DUMP    "Fail to dump index"
+60013   ERROR_BUILD_DUMP_TIMEOUT    "dump index timeout"
+60015   ERROR_BUILD_REALTIME_REACH_MAX_INDEX_SIZE    "reach max index size in realtime build, suspend it"
+
+60017   ERROR_SWIFT_ADAPTER_INIT    "Error init swift document reader"
+60018   ERROR_SWIFT_DOCUMENT_READER_INIT    "Error init swift document reader"
+60019   ERROR_SWIFT_ADMIN    "swift admin error"
+60021   ERROR_SWIFT_BROKER    "swift broker error"
+60022   ERROR_SWIFT_LONG_TIME_UNCONNECTED    "long time not connect to swift partition"
+60025   ERROR_SWIFT_READ    "swift read message"
+60027   ERROR_SWIFT_EOF    "swift eof"
+60029   ERROR_SWIFT_SKIP    "reader skip some docs."
+
+70000   ERROR_INVALID_WORKERNODE
+70001   ERROR_IOWAIT_BEYOND_THRESHOLD    "IOWait beyond threshold"
+
+80000   ERROR_INDEXLIB_IO    "indexlib io error"
+
+100000	ERROR_NORMAL_FAILED		 "ha3 inner error code."
+
+}%
+
+inline bool IS_ERROR_QUERY_RUNTIME(ErrorCode errorCode) {
+     return errorCode > ERROR_BEGIN_RUNTIME
+     	    && errorCode < ERROR_END_RUNTIME;
+}
+
+const std::string& haErrorCodeToString(ErrorCode errorCode);
+
+struct ErrorInfo
+{
+    ErrorInfo()
+    {
+        this->errorCode = ERROR_NONE;
+        this->errorMsg = "";
+        this->errorTime = 0;
+    }
+    ErrorInfo(ErrorCode errorCode,
+              const std::string &errorMsg,
+              int64_t errorTime)
+    {
+        this->errorCode = errorCode;
+        this->errorMsg = errorMsg;
+        this->errorTime = errorTime;
+    }
+    ErrorCode errorCode;
+    std::string errorMsg;
+    int64_t errorTime;
+};
+
+} //end namespace isearch
+
+
+%file_seperator%
+#include <ha3/common/ErrorDefine.h>
+#include <map>
+
+namespace isearch {
+
+static std::map<ErrorCode, std::string> gCode2MsgMap;
+
+bool initCode2MsgMap() {
+%(ERRORINFO)s
+    return true;
+}
+
+static bool gCode2MsgMapInited = initCode2MsgMap();
+static std::string UNKNOWN_ERROR_MSG = "unknown error.";
+
+const std::string &haErrorCodeToString(ErrorCode errorCode) {
+    std::map<ErrorCode, std::string>::const_iterator it = gCode2MsgMap.find(errorCode);
+    if (it != gCode2MsgMap.end()) {
+        return it->second;
+    }
+
+    return UNKNOWN_ERROR_MSG;
+}
+} //end namespace isearch

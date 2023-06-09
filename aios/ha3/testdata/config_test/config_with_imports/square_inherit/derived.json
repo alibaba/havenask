@@ -1,0 +1,24 @@
+{
+    "inherit_from" : "square_inherit/cluster_common_config.json",
+    "summary_profile_config" : {
+	"modules" : [
+	],
+	"summary_profiles" : [
+            {
+                "inherit_from" : "square_inherit/profileA.json",
+		"extractor":
+		{
+                    "extractor_name": "DefaultExtractor"
+		}
+            },
+            {
+                "inherit_from" : "square_inherit/profileB.json",
+		"extractor":
+		{
+                    "extractor_name": "DefaultExtractor"
+		}
+            }
+	]
+    }
+}
+

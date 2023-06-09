@@ -1,0 +1,103 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(
+    default_visibility=[
+        '//aios/storage/indexlib/table/normal_table:__subpackages__'
+    ]
+)
+indexlib_cc_library(
+    name='OptimizeMergeStrategy',
+    deps=[
+        ':NormalTableMergeStrategyUtil', '//aios/autil:log',
+        '//aios/storage/indexlib/config:MergeConfig',
+        '//aios/storage/indexlib/config:OfflineConfig',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/table/index_task/merger:MergePlan',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategy',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine'
+    ]
+)
+indexlib_cc_library(
+    name='NormalTabletMergeStrategyDefine',
+    deps=['//aios/storage/indexlib/framework:Segment']
+)
+indexlib_cc_library(
+    name='PriorityQueueMergeStrategy',
+    deps=[
+        '//aios/storage/indexlib/table/normal_table:Common',
+        '//aios/storage/indexlib/table/normal_table/config:SegmentGroupConfig',
+        ':NormalTabletMergeStrategyDefine', ':NormalTableMergeStrategyUtil',
+        '//aios/autil:log', '//aios/storage/indexlib/config:MergeConfig',
+        '//aios/storage/indexlib/config:OfflineConfig',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/index:IIndexMerger',
+        '//aios/storage/indexlib/table/index_task/merger:MergePlan',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategy',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine'
+    ]
+)
+indexlib_cc_library(
+    name='BalanceTreeMergeStrategy',
+    deps=[
+        ':NormalTableMergeStrategyUtil', '//aios/autil:log',
+        '//aios/storage/indexlib/config:MergeConfig',
+        '//aios/storage/indexlib/config:MergeStrategyParameter',
+        '//aios/storage/indexlib/config:OfflineConfig',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/table/index_task/merger:MergePlan',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategy',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine'
+    ]
+)
+indexlib_cc_library(
+    name='CombinedMergeStrategy',
+    deps=[
+        ':BalanceTreeMergeStrategy', ':NormalTableMergeStrategyUtil',
+        ':PriorityQueueMergeStrategy', '//aios/autil:log',
+        '//aios/storage/indexlib/config:MergeConfig',
+        '//aios/storage/indexlib/config:OfflineConfig',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/index:IIndexMerger',
+        '//aios/storage/indexlib/table/index_task/merger:MergePlan',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategy',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine',
+        '//aios/storage/indexlib/table/index_task/merger:RealtimeMergeStrategy'
+    ]
+)
+indexlib_cc_library(
+    name='NormalTableMergeStrategyUtil',
+    deps=[
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/index/deletionmap:merger'
+    ]
+)
+indexlib_cc_library(
+    name='SplitStrategy',
+    deps=[
+        ':NormalTableMergeStrategyUtil', ':NormalTabletMergeStrategyDefine',
+        '//aios/autil:log', '//aios/storage/indexlib/config:MergeConfig',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/index:IIndexMerger',
+        '//aios/storage/indexlib/table/normal_table:Common',
+        '//aios/storage/indexlib/table/normal_table/config:SegmentGroupConfig',
+        '//aios/storage/indexlib/table/normal_table/index_task:SingleSegmentDocumentGroupSelector',
+        '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
+        '//aios/storage/indexlib/table/index_task/merger:MergePlan',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategy',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine'
+    ]
+)

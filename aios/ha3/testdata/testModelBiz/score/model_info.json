@@ -1,0 +1,26 @@
+{
+    "biz_name" : "modelA",
+    "zone_name" : "good",
+    "qrs_model_info" : {
+    },
+    "searcher_model_info" : {
+        "input" : [
+            {
+                "node" : "aaa",
+                "type" : "int32"
+            }
+        ],
+        "output" : [
+            {
+                "node" : "bbb",
+                "type" : "float32"
+            },
+            {
+                "node" : "bbb",
+                "type" : "float32"
+            }
+
+        ]
+    },
+    "model_type" : "score"
+}

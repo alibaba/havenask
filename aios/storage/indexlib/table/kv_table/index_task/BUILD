@@ -1,0 +1,88 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+indexlib_cc_library(
+    name='KeyValueOptimizeMergeStrategy',
+    deps=[
+        '//aios/autil:log', '//aios/storage/indexlib/framework:LevelInfo',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:SegmentTopologyInfo',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/table/index_task/merger:MergePlan',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategy',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine'
+    ]
+)
+indexlib_cc_library(
+    name='KVTableTaskPlanCreator',
+    deps=[
+        ':KVTableAlterTablePlanCreator', ':KVTableMergePlanCreator',
+        ':KVTableTaskOperationCreator',
+        '//aios/storage/indexlib/table/index_task:ComplexIndexTaskPlanCreator'
+    ]
+)
+indexlib_cc_library(
+    name='KVTableMergePlanCreator',
+    deps=[
+        ':KVTableMergeDescriptionCreator', ':KeyValueOptimizeMergeStrategy',
+        '//aios/autil:NoCopyable', '//aios/future_lite',
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/config:MergeConfig',
+        '//aios/storage/indexlib/config:OfflineConfig',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework:Version',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskPlan',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskResource',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskResourceManager',
+        '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
+        '//aios/storage/indexlib/table/index_task:SimpleIndexTaskPlanCreator',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategy',
+        '//aios/storage/indexlib/table/index_task/merger:ShardBasedMergeStrategy',
+        '//aios/storage/indexlib/table/kv_table/index_task:KVTableResourceCreator'
+    ]
+)
+indexlib_cc_library(
+    name='KVTableAlterTablePlanCreator',
+    deps=[
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskPlan',
+        '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
+        '//aios/storage/indexlib/table/index_task:SimpleIndexTaskPlanCreator',
+        '//aios/storage/indexlib/table/index_task/merger:EndMergeTaskOperation',
+        '//aios/storage/indexlib/table/index_task/merger:FenceDirDeleteOperation',
+        '//aios/storage/indexlib/table/index_task/merger:MergedVersionCommitOperation'
+    ]
+)
+indexlib_cc_library(
+    name='KVTableResourceCreator',
+    deps=[
+        '//aios/storage/indexlib/framework/index_task:IIndexTaskResourceCreator',
+        '//aios/storage/indexlib/table/index_task/merger:MergePlan'
+    ]
+)
+indexlib_cc_library(
+    name='KVTableTaskOperationCreator',
+    deps=[
+        ':KVIndexMergeOperation',
+        '//aios/storage/indexlib/table/index_task/merger:CommonTaskOperationCreator'
+    ]
+)
+indexlib_cc_library(
+    name='KVIndexMergeOperation',
+    deps=[
+        '//aios/storage/indexlib/index/kv:merger',
+        '//aios/storage/indexlib/table/index_task/merger:MultiShardIndexMergeOperation'
+    ]
+)
+indexlib_cc_library(
+    name='KVTableMergeDescriptionCreator',
+    deps=[
+        '//aios/storage/indexlib/index/kv:constants',
+        '//aios/storage/indexlib/table/index_task/merger:CommonMergeDescriptionCreator',
+        '//aios/storage/indexlib/table/kv_table/index_task:KVTableResourceCreator'
+    ]
+)

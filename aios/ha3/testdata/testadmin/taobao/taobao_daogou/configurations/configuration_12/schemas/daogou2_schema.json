@@ -1,0 +1,63 @@
+{
+    "attributes" : [
+        "id",
+        "company_id",
+        "category_name"
+    ],
+    "fields" : [
+        {
+            "field_name" : "id",
+            "field_type" : "INTEGER"
+        },
+        {
+            "field_name" : "company_id",
+            "field_type" : "INTEGER"
+        },
+        {
+            "analyzer" : "internet_analyzer",
+            "field_name" : "subject",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "internet_analyzer",
+            "field_name" : "keywords",
+            "field_type" : "TEXT"
+        },
+        {
+            "field_name" : "category_name",
+            "field_type" : "STRING"
+        }
+    ],
+    "indexs" : [
+        {
+            "doc_payload_flag" : 1,
+            "index_fields" : [
+                {
+                    "boost" : 100,
+                    "field_name" : "subject"
+                },
+                {
+                    "boost" : 100,
+                    "field_name" : "keywords"
+                }
+            ],
+            "index_name" : "default",
+            "index_type" : "PACK",
+            "position_payload_flag" : 1,
+            "term_payload_flag" : 1
+        },
+        {
+            "index_fields" : "id",
+            "index_name" : "pk",
+            "index_type" : "PRIMARYKEY64"
+        }
+    ],
+    "summarys" : {
+        "compress" : false,
+        "summary_fields" : [
+            "id",
+            "keywords"
+        ]
+    },
+    "table_name" : "daogou"
+}

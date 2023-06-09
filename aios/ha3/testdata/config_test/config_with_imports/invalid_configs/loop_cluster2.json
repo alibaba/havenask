@@ -1,0 +1,6 @@
+{
+    "build_option_config" : {
+	"inherit_from" : "invalid_configs/build_config2.json",
+	"NeedPartition" : "true"
+    }
+}

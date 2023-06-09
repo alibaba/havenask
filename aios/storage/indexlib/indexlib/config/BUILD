@@ -1,0 +1,78 @@
+load('@rules_cc//cc:defs.bzl', 'cc_library')
+filegroup(
+    name='module_info_h',
+    srcs=['module_info.h'],
+    visibility=['//aios/storage/indexlib:__subpackages__']
+)
+filegroup(
+    name='config_headers',
+    srcs=glob(['*.h']),
+    visibility=['//aios/storage/indexlib:__subpackages__']
+)
+cc_library(
+    name='base',
+    srcs=[],
+    hdrs=['configurator_define.h'],
+    copts=['-Werror'],
+    include_prefix='indexlib/config',
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
+    deps=[
+        '//aios/storage/indexlib/index/kv:constants',
+        '//aios/storage/indexlib/indexlib:indexlib_h'
+    ],
+    alwayslink=True
+)
+cc_library(
+    name='config',
+    srcs=glob(['*.cpp', 'impl/*.cpp']),
+    hdrs=glob(['*.h', 'impl/*.h']),
+    copts=['-Werror'],
+    include_prefix='indexlib/config',
+    visibility=['//visibility:public'],
+    deps=[
+        ':base', '//aios/storage/indexlib/config:FileCompressConfig',
+        '//aios/storage/indexlib/indexlib:indexlib_h',
+        '//aios/storage/indexlib/indexlib:indexlib_misc',
+        '//aios/storage/indexlib/indexlib/util:util_all',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/base:Types',
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/index/common:constants',
+        '//aios/storage/indexlib/config:IIndexConfig',
+        '//aios/storage/indexlib/config:FieldConfig',
+        '//aios/storage/indexlib/config:interface',
+        '//aios/storage/indexlib/index/attribute/config',
+        '//aios/storage/indexlib/index/kv/config',
+        '//aios/storage/indexlib/index/inverted_index/config:PayloadConfig',
+        '//aios/storage/indexlib/config:GroupDataParameter',
+        '//aios/storage/indexlib/index/summary/config:SummaryConfig',
+        '//aios/storage/indexlib/index/summary/config:SummaryGroupConfig',
+        '//aios/storage/indexlib/index/summary/config:SummaryIndexConfig',
+        '//aios/storage/indexlib/index/summary:constants',
+        '//aios/storage/indexlib/index/inverted_index/config:InvertedIndexConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:DateLevelFormat',
+        '//aios/storage/indexlib/index/inverted_index/config:SectionAttributeConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:PackageIndexConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:DateIndexConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:RangeIndexConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:SingleFieldIndexConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:SpatialIndexConfig',
+        '//aios/storage/indexlib/config:SortDescription',
+        '//aios/storage/indexlib/config:SortParam',
+        '//aios/storage/indexlib/index/source/config:SourceGroupConfig',
+        '//aios/storage/indexlib/index/kv:constants',
+        '//aios/storage/indexlib/index/primary_key:constants',
+        '//aios/storage/indexlib/index/inverted_index:constants',
+        '//aios/storage/indexlib/index/attribute:constants',
+        '//aios/storage/indexlib/index/deletionmap:constants',
+        '//aios/storage/indexlib/util:status_to_exception',
+        '//aios/storage/indexlib/index/primary_key/config:PrimaryKeyIndexConfig',
+        '//aios/storage/indexlib/table:builtin_define',
+        '//aios/storage/indexlib/table/normal_table:Common',
+        '//aios/storage/indexlib/index/kkv/config:KKVIndexFieldInfo',
+        '//aios/storage/indexlib/index/kkv/config:KKVIndexPreference',
+        '//aios/storage/indexlib/index/kkv/config',
+        '//aios/storage/indexlib/framework:LevelInfo'
+    ],
+    alwayslink=True
+)

@@ -1,0 +1,47 @@
+{
+    "qrs_rule" : {
+    },
+    "modules" : [
+        {   
+            "module_name" : "qrs_processors",
+            "module_path" : "qrs_processor_1.so",
+            "parameters" : {
+                "key": "value",
+                "key2": "value2"
+            }
+        }
+    ],
+    "processors": [
+        {   
+            "processor_name":"FakeStringProcessor",
+            "module_name":"qrs_processor",
+            "parameters": { "k1":"10", "k2":"4"}
+        },
+        {
+            "processor_name":"FakeRequestProcessor1",
+            "module_name":"qrs_processor",
+            "parameters": {"k3":"teststring"}
+        },
+        {   
+            "processor_name":"FakeRequestProcessor2",
+            "module_name":"qrs_processor",
+            "parameters": {"k3":"teststring"}
+        }
+    ],  
+    "chains": [
+        {
+            "chain_name":"web",
+            "plugin_points":
+            [
+                {   
+                    "plugin_point":"RAW_STRING_PROCESS",
+                    "processors": ["FakeStringProcessor"]
+                },
+                {
+                    "plugin_point":"REQUEST_PROCESS",
+                    "processors":["FakeRequestProcessor1", "FakeRequestProcessor2"]
+                }
+            ]
+        }
+    ]
+}

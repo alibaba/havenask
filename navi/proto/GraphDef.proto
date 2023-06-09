@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+package navi;
+option cc_enable_arenas = true;
+
+message BuildinAttrs
+{
+    bool skip_config = 1;
+    bool skip_init = 2;
+    bool stop_after_init = 3;
+    bool skip_delete_kernel = 4;
+}
+
+enum NodeType {
+    NT_NORMAL = 0;
+    NT_SPLIT = 1;
+    NT_MERGE = 2;
+    NT_RESOURCE = 3;
+    NT_FORK = 4;
+    NT_TERMINATOR = 5;
+    NT_FAKE_SPLIT = 6;
+    NT_FAKE_MERGE = 7;
+};
+
+message NodeDef
+{
+    string name = 1;
+    string kernel_name = 2;
+    string json_attrs = 3;
+    map<string, bytes> binary_attrs = 4;
+    map<string, int64> integer_attrs = 5;
+    string device = 6;
+    BuildinAttrs buildin_attrs = 7;
+    NodeType type = 8;
+}
+
+message NodePortDef
+{
+    string node_name = 1;
+    string port_name = 2;
+}
+
+message EdgeDef
+{
+    NodePortDef input = 1;
+    NodePortDef output = 2;
+    bool require = 3;
+}
+
+message LocationDef
+{
+    string biz_name = 1;
+    PartInfoDef part_info = 2;
+    int32 this_part_id = 3;
+    GigInfoDef gig_info = 4;
+}
+
+message BorderEdgeDef
+{
+    int32 edge_id = 1;
+    EdgeDef edge = 2;
+    int32 peer_edge_id = 5;
+    string node = 6;
+}
+
+message PartInfoDef
+{
+    int32 part_count = 1;
+    repeated int32 part_ids = 2;
+}
+
+message GigInfoDef
+{
+    bool enable_probe = 1;
+    map<string, int32> tags = 2;
+}
+
+message PeerInfo
+{
+    int32 graph_id = 1;
+    PartInfoDef part_info = 2;
+}
+
+message BorderDef
+{
+    int32 io_type = 1;
+    PeerInfo peer = 2;
+    repeated BorderEdgeDef edges = 3;
+}
+
+message SessionIdDef
+{
+    uint64 instance = 1;
+    uint32 query_id = 2;
+}
+
+message SubGraphOption {
+    bool inline_mode = 1;
+    bool tester_mode = 2;
+}
+
+message GraphCounterInfo {
+    int64 next_graph_id = 1;
+    int64 next_edge_id = 2;
+}
+
+message SubGraphDef
+{
+    int32 graph_id = 1;
+    repeated NodeDef nodes = 2;
+    repeated EdgeDef edges = 3;
+    LocationDef location = 4;
+    repeated BorderDef borders = 5;
+    SubGraphOption option = 6;
+    map<string, bytes> binary_attrs = 7;
+}
+
+message GraphDef
+{
+    int64 version = 1;
+    repeated SubGraphDef sub_graphs = 2;
+    GraphCounterInfo counter_info = 3;
+}

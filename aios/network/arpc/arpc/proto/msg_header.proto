@@ -1,0 +1,22 @@
+syntax = "proto2";
+
+package arpc;
+option cc_enable_arenas = true;
+
+message RpcMsgHeader{
+    optional bytes method = 1;
+    optional bytes token = 2;
+    optional bool enableTrace = 3;
+    optional int64 ipcTraceId = 4;
+    optional int32 timeout = 5 [default = 0];
+    optional bytes clientId = 6;
+    optional int32 group = 7 [default = 0];
+    optional bytes extheader = 8;
+    optional bytes userPayload = 32;
+}
+
+message RdmaMsgHeader {
+    optional int32 pcode = 1;
+    optional bool enableTrace = 2;
+    optional bytes userPayload = 3;
+}

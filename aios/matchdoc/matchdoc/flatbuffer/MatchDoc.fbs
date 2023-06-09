@@ -1,0 +1,176 @@
+namespace matchdoc;
+
+table MultiUInt8Value {
+      value: [ubyte] (id: 0);
+}
+
+table MultiUInt16Value {
+      value: [ushort] (id: 0);
+}
+
+table MultiUInt32Value {
+      value: [uint] (id: 0);
+}
+
+table MultiUInt64Value {
+      value: [ulong] (id: 0);
+}
+
+table MultiInt8Value {
+      value: [byte] (id: 0);
+}
+
+table MultiInt16Value {
+      value: [short] (id: 0);
+}
+
+table MultiInt32Value {
+      value: [int] (id: 0);
+}
+
+table MultiInt64Value {
+      value: [long] (id: 0);
+}
+
+table MultiFloatValue {
+      value: [float] (id: 0);
+}
+
+table MultiDoubleValue {
+      value: [double] (id: 0);
+}
+
+table MultiStringValue {
+      value: [string] (id: 0);
+}
+
+table UnknownValueColumn {
+      value: byte (id: 0);
+}
+
+table Int8ValueColumn {
+      value: [byte] (id: 0);
+}
+
+table MultiInt8ValueColumn {
+      value: [MultiInt8Value] (id: 0);
+}
+
+table UInt8ValueColumn {
+      value: [ubyte] (id: 0);
+}
+
+table MultiUInt8ValueColumn {
+      value: [MultiUInt8Value] (id: 0);
+}
+
+table Int16ValueColumn {
+      value: [short] (id: 0);
+}
+
+table MultiInt16ValueColumn {
+      value: [MultiInt16Value] (id: 0);
+}
+
+table UInt16ValueColumn {
+      value: [ushort] (id: 0);
+}
+
+table MultiUInt16ValueColumn {
+      value: [MultiUInt16Value] (id: 0);
+}
+
+table Int32ValueColumn {
+      value: [int] (id: 0);
+}
+
+table MultiInt32ValueColumn {
+      value: [MultiInt32Value] (id: 0);
+}
+
+table UInt32ValueColumn {
+      value: [uint] (id: 0);
+}
+
+table MultiUInt32ValueColumn {
+      value: [MultiUInt32Value] (id: 0);
+}
+
+table Int64ValueColumn {
+      value: [long] (id: 0);
+}
+
+table MultiInt64ValueColumn {
+      value: [MultiInt64Value] (id: 0);
+}
+
+table UInt64ValueColumn {
+      value: [ulong] (id: 0);
+}
+
+table MultiUInt64ValueColumn {
+      value: [MultiUInt64Value] (id: 0);
+}
+
+table FloatValueColumn {
+      value: [float] (id: 0);
+}
+
+table MultiFloatValueColumn {
+      value: [MultiFloatValue] (id: 0);
+}
+
+table DoubleValueColumn {
+      value: [double] (id: 0);
+}
+
+table MultiDoubleValueColumn {
+      value: [MultiDoubleValue] (id: 0);
+}
+
+table StringValueColumn {
+      value: [string] (id: 0);
+}
+
+table MultiStringValueColumn {
+      value: [MultiStringValue] (id: 0);
+}
+
+union FieldValueColumn {
+      Int8ValueColumn,
+      UInt8ValueColumn,
+      Int16ValueColumn,
+      UInt16ValueColumn,
+      Int32ValueColumn,
+      UInt32ValueColumn,
+      Int64ValueColumn,
+      UInt64ValueColumn,
+      FloatValueColumn,
+      DoubleValueColumn,
+      StringValueColumn,
+      MultiInt8ValueColumn,
+      MultiUInt8ValueColumn,
+      MultiInt16ValueColumn,
+      MultiUInt16ValueColumn,
+      MultiInt32ValueColumn,
+      MultiUInt32ValueColumn,
+      MultiInt64ValueColumn,
+      MultiUInt64ValueColumn,
+      MultiFloatValueColumn,
+      MultiDoubleValueColumn,
+      MultiStringValueColumn,
+      UnknownValueColumn,
+}
+
+table FieldValueColumnTable {
+      // Union Typefield occupied two id, the first is type id
+      field_value_column: FieldValueColumn (id: 1);
+}
+
+table MatchRecords {
+      field_name: [string] (id: 0);
+      record_columns: [FieldValueColumnTable] (id: 1);
+      doc_count: ulong (id: 2);
+      tracers: [string] (id: 3);
+      table_name: string (id: 4);  
+}

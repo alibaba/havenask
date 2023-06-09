@@ -1,0 +1,17 @@
+{
+    "build_option_config" : {
+    },
+    "cluster_config" : {
+        "table_name" : "simple_khronos",
+        "builder_rule_config" : {
+            "partition_count" : 6
+        },
+        "cluster_name": "simple_khronos",
+        "hash_mode" : {
+            "hash_field" : "serieskey",
+            "hash_function" : "HASH"
+        }
+    },
+    "offline_index_config" : {
+    }
+}

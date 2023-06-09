@@ -1,0 +1,32 @@
+{
+    "processors":[
+        {
+            "name": "sample_summary",
+            "class": "CustomSummaryExtractor",
+            "parameters": {
+            }
+        },
+        {
+            "name": "sample_summary2",
+            "class": "CustomSummaryExtractor",
+            "parameters": {
+            }
+        },
+        {
+            "name": "sample_summary3",
+            "class": "CustomSummaryExtractor",
+            "parameters": {
+            }
+        },
+        {
+            "name": "sample_summary4",
+            "class": "CustomSummaryExtractor",
+            "parameters": {
+            }
+        }
+    ],
+    "chains": {
+        "abstract": ["sample_summary", "sample_summary2", "sample_summary3"],
+        "test": ["sample_summary4", "sample_summary3"]
+    }
+}

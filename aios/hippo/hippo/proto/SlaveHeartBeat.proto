@@ -1,0 +1,17 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+import "hippo/proto/Slave.proto";
+package hippo.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+service SlaveHeartBeatService
+{
+    option (arpc.global_service_id) = 4000;
+    
+    rpc heartbeat(HeartbeatRequest) returns (HeartbeatResponse) {
+	option (arpc.local_method_id) = 1;
+    }
+}

@@ -1,0 +1,20 @@
+{
+    "analyzers":
+    {
+	"default":
+	{
+	    "tokenizer_configs" : 
+	    {
+		"tokenizer_type" : "aliws",
+		"tokenizer_id" : "TAOBAO_CHN"
+	    },
+	    "stopwords" : [wrong_config],
+	    "normalize_options" : 
+	    {
+		"case_sensitive" : false,
+		"traditional_sensitive" : true,
+		"width_sensitive" : true
+	    }
+	}
+    }
+}

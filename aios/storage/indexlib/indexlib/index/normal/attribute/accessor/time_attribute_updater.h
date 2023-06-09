@@ -1,0 +1,56 @@
+/*
+ * Copyright 2014-present Alibaba Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#ifndef __INDEXLIB_TIME_ATTRIBUTE_UPDATER_H
+#define __INDEXLIB_TIME_ATTRIBUTE_UPDATER_H
+
+#include <memory>
+
+#include "indexlib/common_define.h"
+#include "indexlib/index/normal/attribute/accessor/single_value_attribute_updater.h"
+#include "indexlib/indexlib.h"
+
+namespace indexlib { namespace index {
+
+class TimeAttributeUpdater : public SingleValueAttributeUpdater<uint32_t>
+{
+public:
+    TimeAttributeUpdater(util::BuildResourceMetrics* buildResourceMetrics, segmentid_t segId,
+                         const config::AttributeConfigPtr& attrConfig)
+        : SingleValueAttributeUpdater<uint32_t>(buildResourceMetrics, segId, attrConfig)
+    {
+    }
+    ~TimeAttributeUpdater() {}
+
+public:
+    class Creator : public AttributeUpdaterCreator
+    {
+    public:
+        FieldType GetAttributeType() const { return ft_time; }
+
+        AttributeUpdater* Create(util::BuildResourceMetrics* buildResourceMetrics, segmentid_t segId,
+                                 const config::AttributeConfigPtr& attrConfig) const
+        {
+            return new TimeAttributeUpdater(buildResourceMetrics, segId, attrConfig);
+        }
+    };
+};
+
+DEFINE_SHARED_PTR(TimeAttributeUpdater);
+
+///////////////////////////////////////////////////////
+}} // namespace indexlib::index
+
+#endif //__INDEXLIB_TIME_ATTRIBUTE_UPDATER_H

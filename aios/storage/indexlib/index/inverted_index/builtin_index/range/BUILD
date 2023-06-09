@@ -1,0 +1,96 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+indexlib_cc_library(
+    name='RangeMemIndexer',
+    deps=[
+        ':RangeInfo', ':RangeLeafMemReader',
+        '//aios/storage/indexlib/index/inverted_index:InvertedMemIndexer',
+        '//aios/storage/indexlib/index/inverted_index/config:RangeIndexConfig'
+    ]
+)
+indexlib_cc_library(
+    name='RangeInfo',
+    deps=[
+        '//aios/autil:json', '//aios/autil:log',
+        '//aios/storage/indexlib/file_system:interface',
+        '//aios/storage/indexlib/index/inverted_index:Common'
+    ]
+)
+indexlib_cc_library(
+    name='RangeDiskIndexer',
+    deps=[
+        ':RangeLeafReader',
+        '//aios/storage/indexlib/index/inverted_index:InvertedDiskIndexer',
+        '//aios/storage/indexlib/index/inverted_index/config:RangeIndexConfig'
+    ]
+)
+indexlib_cc_library(
+    name='RangeLeafReader',
+    deps=[
+        ':RangeInfo', ':RangeLevelLeafReader',
+        '//aios/storage/indexlib/index/common/field_format/range:RangeFieldEncoder',
+        '//aios/storage/indexlib/index/inverted_index:SegmentPostings'
+    ]
+)
+indexlib_cc_library(
+    name='RangeLevelLeafReader',
+    deps=[
+        '//aios/storage/indexlib/index/common/field_format/range:RangeFieldEncoder',
+        '//aios/storage/indexlib/index/inverted_index:InvertedLeafReader',
+        '//aios/storage/indexlib/index/inverted_index:SegmentPostings'
+    ]
+)
+indexlib_cc_library(
+    name='BuildingRangeIndexReader',
+    deps=[
+        ':RangeLeafMemReader',
+        '//aios/storage/indexlib/index/inverted_index:BuildingIndexReader',
+        '//aios/storage/indexlib/index/inverted_index:SegmentPostings'
+    ]
+)
+indexlib_cc_library(
+    name='RangeIndexReader',
+    deps=[
+        ':BuildingRangeIndexReader', ':RangeLeafReader',
+        '//aios/storage/indexlib/index/attribute:reader',
+        '//aios/storage/indexlib/index/common:AttrTypeTraits',
+        '//aios/storage/indexlib/index/inverted_index:DocValueFilter',
+        '//aios/storage/indexlib/index/inverted_index:InvertedIndexReaderImpl',
+        '//aios/storage/indexlib/index/inverted_index:NumberDocValueFilterTyped',
+        '//aios/storage/indexlib/index/inverted_index:PostingIterator',
+        '//aios/storage/indexlib/index/inverted_index:RangePostingIterator',
+        '//aios/storage/indexlib/index/inverted_index:SeekAndFilterIterator',
+        '//aios/storage/indexlib/index/inverted_index/config:RangeIndexConfig'
+    ]
+)
+indexlib_cc_library(
+    name='RangeLeafMemReader',
+    deps=[
+        ':RangeInfo',
+        '//aios/storage/indexlib/index/common/field_format/range:RangeFieldEncoder',
+        '//aios/storage/indexlib/index/inverted_index:InvertedLeafMemReader'
+    ]
+)
+indexlib_cc_library(
+    name='RangeLevelIndexMerger',
+    deps=[
+        ':OnDiskRangeIndexIteratorCreator',
+        '//aios/storage/indexlib/index/inverted_index:InvertedIndexMerger'
+    ]
+)
+indexlib_cc_library(
+    name='RangeIndexMerger',
+    deps=[
+        ':RangeInfo', ':RangeLevelIndexMerger',
+        '//aios/storage/indexlib/index/inverted_index/builtin_index/pack:OnDiskPackIndexIterator',
+        '//aios/storage/indexlib/index/inverted_index/config:RangeIndexConfig'
+    ]
+)
+indexlib_cc_library(
+    name='OnDiskRangeIndexIteratorCreator',
+    deps=[
+        '//aios/autil:log',
+        '//aios/storage/indexlib/index/inverted_index:OnDiskIndexIteratorCreator',
+        '//aios/storage/indexlib/index/inverted_index/builtin_index/pack:OnDiskPackIndexIterator'
+    ]
+)

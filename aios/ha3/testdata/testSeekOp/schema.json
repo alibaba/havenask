@@ -1,0 +1,32 @@
+{
+    "table_name": "auction",
+    "fields":
+    [
+	{"field_name":"id",      "field_type":"INTEGER"},
+	{"field_name":"company_id",      "field_type":"INTEGER"},
+	{"field_name":"cat_id", "field_type":"INTEGER"},
+	{"field_name":"price", "field_type":"INTEGER"}
+    ],
+    "analyzers":
+    [
+    ],
+    "indexs":
+    [
+	{
+            "index_name": "pk",
+	    "index_type": "PRIMARYKEY64",
+            "index_fields": "id"
+	},
+	{
+            "index_name": "company_id",
+	    "index_type": "NUMBER",
+            "index_fields": "company_id"
+	}
+    ],
+    "attributes": ["id", "company_id", "cat_id"],
+    "summarys":{
+	"summary_fields": ["id", "price"],
+	"compress":false
+    }
+}
+

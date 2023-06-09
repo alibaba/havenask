@@ -1,0 +1,407 @@
+syntax = "proto2";
+import "arpc/proto/rpc_extensions.proto";
+import "build_service/proto/BasicDefs.proto";
+package build_service.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+enum ErrorAdvice {
+     BS_RETRY = 0;
+     BS_STOP = 1;
+     BS_IGNORE = 2;
+     BS_FATAL_ERROR = 3;
+};
+
+enum ServiceErrorCode {
+    SERVICE_ERROR_NONE = 0;
+    SERVICE_ERROR_CONFIG = 1;
+
+    // reader
+    READER_ERROR_INIT_METRICS = 2;
+    READER_ERROR_READ_EXCEPTION = 3;
+    READER_ERROR_CONNECT_SWIFT = 4;
+    READER_ERROR_SWIFT_CREATE_READER = 5;
+    READER_ERROR_SWIFT_SEEK = 6;
+
+    // processor
+    PROCESSOR_ERROR_INIT_METRICS = 1001;
+
+    // builder
+    BUILDER_ERROR_BUILD_FILEIO = 2000;
+    BUILDER_ERROR_MERGE_FILEIO = 2001;
+    BUILDER_ERROR_DUMP_FILEIO = 2002;
+    BUILDER_ERROR_REACH_MAX_RESOURCE = 2003;
+    BUILDER_ERROR_GET_INC_LOCATOR = 2004;
+    BUILDER_ERROR_GET_LAST_LOCATOR = 2005;
+    BUILDER_ERROR_UNKNOWN = 2006;
+
+    // build flow
+    BUILDFLOW_ERROR_CREATE_READER = 3000;
+    BUILDFLOW_ERROR_CREATE_PROCESSOR = 3001;
+    BUILDFLOW_ERROR_CREATE_BUILDER = 3002;
+    BUILDFLOW_ERROR_SEEK = 3003;
+    BUILDFLOW_ERROR_CONNECT_SWIFT = 3004;
+    BUILDFLOW_ERROR_CLUSTER = 3005;
+    BUILDFLOW_ERROR_SWIFT_CREATE_READER = 3006;
+    BUILDFLOW_ERROR_SWIFT_CREATE_WRITER = 3007;
+    BUILDFLOW_ERROR_INIT_SWIFT_PRODUCER = 3008;
+    BUILDFLOW_ERROR_CHECKPOINT_PATH = 3009;
+    BUILDFLOW_ERROR_SWIFT_SEEK = 3010;
+    BUILDFLOW_ERROR_CREATE_DOC_HANDLER = 3011;
+    BUILDFLOW_ERROR_CREATE_SRC_NODE = 3012;
+
+    // merger
+    MERGER_ERROR_FAILED = 4000;
+    SERVICE_ERROR_DOWNLOAD_CONFIG = 5000;
+    // other
+    SERVICE_ADMIN_ERROR = 6000;
+    SERVICE_TASK_ERROR = 6001;
+}
+
+enum InnerCmd {
+    CMD_SUSPEND = 1;
+}
+
+message ErrorInfo {
+    optional ServiceErrorCode errorCode = 1 [default = SERVICE_ERROR_NONE];
+    optional string errorMsg = 2;
+    optional int64 errorTime = 3;
+    optional string address = 4;
+    optional ErrorAdvice advice = 5 [default = BS_IGNORE];
+}
+
+message MergeTask {
+    optional int64 timestamp = 1 [default = -1];
+    optional string mergeConfigName = 2;
+}
+
+enum MergeStep {
+    MS_UNKNOWN = 1;
+    MS_BEGIN_MERGE = 2;
+    MS_DO_MERGE = 3;
+    MS_END_MERGE = 4;
+}
+
+enum WorkerStatus {
+    WS_UNKNOWN = 1;
+    WS_STARTING = 2;
+    WS_STARTED = 3;
+    WS_STOPPED = 4;
+    WS_SUSPEND_READ = 5; //TODO, delete
+    WS_SUSPENDED = 6;
+}
+
+message PBLocator {
+    optional uint64 sourceSignature = 1;
+    optional int64  checkpoint = 2;
+    optional string userData = 3;
+}
+
+message ProcessorTarget {
+    optional string configPath = 1;
+    optional string dataDescription = 2; // kv map in json string
+    optional PBLocator startLocator = 3;
+    optional int64 stopTimestamp = 4; // in us
+    optional int64 suspendTimestamp = 5;
+    optional bool suspendTask = 6 [default = false];
+    optional string targetDescription = 7; //kv map in json string
+}
+
+message LongAddress {
+    optional string ip = 1;
+    optional int32 arpcPort = 2;
+    optional int32 httpPort = 3;
+    optional int64 pid = 4;
+    optional int64 startTimestamp = 5;
+}
+
+message ProgressStatus {
+    optional int64 startTimestamp = 1 [default = -1];
+    optional int64 reportTimestamp = 2 [default = -1];
+    optional int64 progress = 3 [default = -1];
+    optional int64 startpoint = 4 [default = -1];
+    optional int64 locatorTimestamp = 5 [ default = -1];
+}
+
+message MachineStatus {
+    optional int64 currentCpuSpeed = 1 [default = -1];
+    optional int64 avgCpuSpeed = 2 [default = -1];
+    optional int64 medianCpuSpeed = 3 [default = -1];
+    optional int64 emaCpuSpeed = 4 [default = -1];
+    optional int64 emaCpuSpeedNoColdStart = 5 [default = -1];
+    optional uint64 byteInSpeed = 6 [default = 0];
+    optional uint64 byteOutSpeed = 7 [default = 0];
+    optional uint64 pktInSpeed = 8 [default = 0];
+    optional uint64 pktOutSpeed = 9 [default = 0];
+    optional uint64 pktErrSpeed = 10 [default = 0];
+    optional uint64 pktDropSpeed = 11 [default = 0];
+}
+
+message TaskTarget {
+    optional string configPath = 1;
+    optional InnerCmd cmd = 2;
+    optional bytes targetDescription = 3;
+    optional int64 targetTimestamp = 4 [default = -1];
+    optional bool suspendTask = 5 [default = false];
+    optional string taskIdentifier = 6;
+}
+
+message TaskCurrent {
+    optional TaskTarget reachedTarget = 1;
+    repeated ErrorInfo errorInfos = 2;
+    optional WorkerStatus status = 3 [default = WS_UNKNOWN];
+    optional LongAddress longAddress = 4;
+    optional ProgressStatus progressStatus = 5;
+    optional int32 protocolVersion = 6 [default = -1];
+    optional string configPath = 7;
+    optional bytes statusDescription = 8;
+    optional bool isSuspended = 9 [default = false];
+    optional MachineStatus machineStatus = 10;
+}
+
+message OperationDescription {
+    required int64 id = 1;
+    required string type = 2;
+    required int64 memory = 3;
+    repeated int64 depends = 4;
+    repeated string dependWorkerEpochIds = 5;
+    repeated string paramKeys = 6;
+    repeated string paramValues = 7;
+}
+
+enum OperationStatus {
+    OP_PENDING = 0;
+    OP_RUNNING = 1;
+    OP_FINISHED = 2;
+    OP_ERROR = 3;
+}
+
+message OperationResult {
+    required int64 id = 1;
+    required OperationStatus status = 2 [default = OP_PENDING];
+    optional ErrorInfo errorInfo = 3;
+    required string resultInfo = 4 [default = ""];
+}
+
+message OperationPlanRequest {
+    repeated string paramKeys = 1;
+    repeated string paramValues = 2;
+}
+
+message OperationTarget {
+    repeated OperationDescription ops = 1;
+    optional string taskName = 2;
+    optional string taskType = 3;
+}
+
+message OperationPlan {
+    repeated OperationDescription ops = 1;
+    optional OperationDescription endTaskOp = 2;
+    optional string taskName = 3;
+    optional string taskType = 4;
+}
+
+message OperationCurrent {
+    required string workerEpochId = 1;
+    repeated OperationResult opResults = 2;
+    required int64 availableMemory = 3;
+}
+
+message ProcessorCurrent {
+    optional ProcessorTarget targetStatus = 2;
+    optional bool dataSourceFinish = 3 [default = false];
+    optional PBLocator stopLocator = 4;
+    repeated ErrorInfo errorInfos = 5;
+    optional WorkerStatus status = 6 [default = WS_UNKNOWN];
+    optional PBLocator currentLocator = 7;
+    optional LongAddress longAddress = 8;
+    optional ProcessorCounter OBSOLETE_counter = 9;
+    optional ProgressStatus progressStatus = 10;
+    optional bool isSuspended = 11 [default = false];
+    optional int32 protocolVersion = 12 [default = -1];
+    optional string configPath = 13;
+    optional MachineStatus machineStatus = 14;
+}
+
+message ProcessorCounter {
+    optional int64 estimateLeftTime = 1;
+    optional int64 swiftReadDelay = 2;
+}
+
+message RoleCmdInfo {
+    required string roleName = 1;
+    required string processInfo = 2;
+}
+
+message AgentTarget {
+    repeated RoleCmdInfo targetRoles = 1;
+    optional string configPath = 2;
+    optional bool suspendTask = 3 [default = false];
+}
+
+message AgentCurrent {
+    optional AgentTarget targetStatus = 2;
+    repeated ErrorInfo errorInfos = 3;
+    optional WorkerStatus status = 4 [default = WS_UNKNOWN];
+    optional LongAddress longAddress = 5;
+    optional bool isSuspended = 6 [default = false];
+    optional int32 protocolVersion = 7 [default = -1];
+    optional string configPath = 8;
+    optional MachineStatus machineStatus = 9;
+    optional bool serviceReady = 10 [default = false];
+}
+
+message BuilderTarget {
+    optional string configPath = 1;
+    optional int64 startTimestamp = 2;
+    optional int64 stopTimestamp = 3;
+    optional bool suspendTask = 4 [default = false];
+    optional int32 workerPathVersion = 5 [default = -1];
+    optional string targetDescription = 6;
+    optional string reservedVersions = 7;
+}
+
+message BuilderCurrent {
+    optional BuilderTarget targetStatus = 2;
+    repeated ErrorInfo errorInfos = 3;
+    optional WorkerStatus status = 4 [default = WS_UNKNOWN];
+    optional LongAddress longAddress = 5;
+    optional BuilderCounter OBSOLETE_counter = 6;
+    optional ProgressStatus progressStatus = 7;
+    optional bool isSuspended = 8 [default = false];
+    optional int32 protocolVersion = 9 [default = -1];
+    optional string configPath = 10;
+    optional MachineStatus machineStatus = 11;
+}
+
+message BuilderCounter {
+    optional int64 docCount = 1;
+    optional int64 deletedDocCount = 2;
+    optional int64 addCount = 3;
+    optional uint64 deleteCount = 4;
+    optional uint64 updateCount = 5;
+}
+
+message MergerTarget {
+    optional string configPath = 1;
+    optional uint32 partitionCount = 2 [default = 1];
+    optional uint32 buildParallelNum = 3 [default = 1];
+    optional uint32 mergeParallelNum = 4 [default = 1];
+    optional MergeTask mergeTask = 5;
+    optional MergeStep mergeStep = 6;
+    optional bool optimizeMerge = 7  [default = false];
+    optional int32 alignedVersionId = 8 [default = -1];
+    optional bool suspendTask = 9 [default = false];
+    optional int32 workerPathVersion = 10 [default = -1];
+    optional string targetDescription = 11;
+    optional string reservedVersions = 12;
+}
+
+message IndexInfo {
+    optional string clusterName = 1;
+    optional Range range = 2;
+    optional uint32 indexVersion = 3;
+    optional uint64 versionTimestamp = 4;
+    optional uint64 indexSize = 5;
+    optional uint64 startTimestamp = 6;
+    optional uint64 finishTimestamp = 7;
+    optional int64 schemaVersion = 8 [default = 0];
+    optional int64 processorCheckpoint = 9 [default = 0];
+    optional bool isValid = 10 [default = true];
+    optional int64 totalRemainIndexSize = 11 [default = -1];
+    optional int64 processorDataSourceIdx = 12 [default = 0];
+    optional string ongoingModifyOpIds = 13 [default = ""];
+}
+
+message BuilderCheckpoint {
+    optional string clusterName = 1;
+    optional uint64 versionTimestamp = 2;
+    optional int64 processorCheckpoint = 3;
+    optional uint64 builderStartTime = 4;
+    optional uint64 builderStopTime = 5;
+    optional int64 schemaVersion = 6;
+    optional int64 workerPathVersion = 7;
+    optional int64 processorDataSourceIdx = 8 [default = 0];
+    optional int64 versionId = 9 [default = -1];
+}
+
+message MergerCurrent {
+    optional MergerTarget targetStatus = 2;
+    repeated ErrorInfo errorInfos = 3;
+    optional IndexInfo indexInfo = 4;
+    optional LongAddress longAddress = 5;
+    optional MergerCounter OBSOLETE_counter = 6;
+    optional int32 targetVersionId = 7;
+    optional ProgressStatus progressStatus = 8;
+    optional bool isSuspended = 9 [default = false];
+    optional int32 protocolVersion = 10 [default = -1];
+    optional string configPath = 11;
+    optional MachineStatus machineStatus = 12;
+}
+
+message MergerCounter {
+    optional int32 progress = 1;
+}
+
+message JobTarget {
+    optional string configPath = 1;
+    optional uint32 dataSourceId = 2;
+    optional string dataDescription = 3;
+    optional bool suspendTask = 4 [default = false];
+}
+
+message JobCurrent {
+    optional JobTarget targetStatus = 2;
+    repeated ErrorInfo errorInfos = 3;
+    optional WorkerStatus status = 4 [default = WS_UNKNOWN];
+    optional PBLocator currentLocator = 5;
+    optional LongAddress longAddress = 6;
+    optional JobCounter OBSOLETE_counter = 7;
+    optional bool isSuspended = 8 [default = false];
+    optional int32 protocolVersion = 9 [default = -1];
+    optional string configPath = 10;
+    optional MachineStatus machineStatus = 11;
+}
+
+message JobCounter {
+    optional int64 docCount = 1;
+    optional int64 deletedDocCount = 2;
+    optional int64 addCount = 3;
+    optional uint64 deleteCount = 4;
+    optional uint64 updateCount = 5;
+    optional int64 estimateLeftTime = 6;
+    optional int64 swiftReadDelay = 7;
+}
+
+message BSResource {
+    optional bytes name = 1;
+    optional bytes value = 2;
+    optional bytes id = 3;
+}
+
+message TargetRequest {
+    optional bytes roleId = 1;
+    optional bytes targetState = 2;
+    optional PartitionId partitionId = 3;
+    repeated BSResource dependResources = 4;
+    optional bytes dependResourcesStr = 5;
+    optional string requiredIdentifier = 6;
+};
+
+message CurrentResponse {
+    optional bytes roleId = 1;
+    optional bytes currentState = 2;
+    optional PartitionId partitionId = 3;
+    repeated BSResource usingResources = 4;
+    optional bytes usingResourcesStr = 5;
+    optional string identifier = 6;    
+};
+
+service HeartbeatService
+{
+    option (arpc.global_service_id) = 600;
+    rpc heartbeat ( TargetRequest ) returns ( CurrentResponse ) {
+        option (arpc.local_method_id) = 1;
+    };
+}

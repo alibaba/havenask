@@ -1,0 +1,20 @@
+import ha3.*;
+
+class TestSummaryCopy {
+    CString src;
+    CString dest;
+    public TestSummaryCopy() {
+    }
+    public boolean init(SummaryProvider provider) {
+        KVMapApi kvmap = provider.getKVMapApi(); 
+        dest = kvmap.getValue("dest");
+        src = kvmap.getValue("src");
+        return true;
+    }
+    public boolean process(SummaryDoc doc) {
+        CString val = doc.getFieldValue(src);
+        doc.setFieldValue(dest, val);
+        doc.clear(src);
+        return true;
+    }
+}

@@ -1,0 +1,73 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(default_visibility=[':__subpackages__'])
+indexlib_cc_library(
+    name='SKeyWriter',
+    srcs=[],
+    deps=[
+        '//aios/autil:log', '//aios/autil:string_helper',
+        '//aios/storage/indexlib/index/kkv/common:SKeyListInfo'
+    ]
+)
+indexlib_cc_library(
+    name='KKVValueWriter',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/index/common/data_structure:ExpandableValueAccessor'
+    ]
+)
+indexlib_cc_library(
+    name='BuildingSKeyIterator',
+    srcs=[],
+    hdrs=['BuildingSKeyIterator.h'],
+    deps=[
+        ':SKeyWriter',
+        '//aios/storage/indexlib/index/kkv/common:SKeyIteratorBase'
+    ]
+)
+indexlib_cc_library(
+    name='KKVBuildingSegmentReader',
+    srcs=[],
+    hdrs=['KKVBuildingSegmentReader.h'],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        ':KKVBuildingSegmentIterator', '//aios/autil:log', '//aios/autil:time',
+        '//aios/storage/indexlib/base:NoExceptionWrapper',
+        '//aios/storage/indexlib/index/kkv/config'
+    ]
+)
+indexlib_cc_library(
+    name='KKVBuildingSegmentIterator',
+    srcs=[],
+    hdrs=['KKVBuildingSegmentIterator.h'],
+    visibility=['//aios/storage/indexlib/index/kkv:__subpackages__'],
+    deps=[
+        ':BuildingSKeyIterator', ':KKVValueWriter',
+        '//aios/storage/indexlib/index/kkv/common:KKVResultBuffer',
+        '//aios/storage/indexlib/index/kkv/common:KKVSegmentIteratorBase',
+        '//aios/storage/indexlib/index/kkv/config'
+    ]
+)
+indexlib_cc_library(
+    name='kkv_mem_indexer',
+    srcs=['KKVMemIndexer.cpp'],
+    hdrs=['KKVMemIndexer.h'],
+    visibility=['//aios/storage/indexlib/index/kkv:__subpackages__'],
+    deps=[
+        ':KKVBuildingSegmentReader', ':KKVValueWriter', ':SKeyWriter',
+        '//aios/autil:log', '//aios/storage/indexlib/config:IndexConfigHash',
+        '//aios/storage/indexlib/document/kkv:kkv_document',
+        '//aios/storage/indexlib/index:BuildingIndexMemoryUseUpdater',
+        '//aios/storage/indexlib/index:interface',
+        '//aios/storage/indexlib/index/common/field_format/attribute:attribute_convertor',
+        '//aios/storage/indexlib/index/common/field_format/attribute:decoder',
+        '//aios/storage/indexlib/index/common/field_format/pack_attribute',
+        '//aios/storage/indexlib/index/kkv/common:KKVMetricsCollector',
+        '//aios/storage/indexlib/index/kkv/common:KKVSegmentStatistics',
+        '//aios/storage/indexlib/index/kkv/common:KKVTimestampHelper',
+        '//aios/storage/indexlib/index/kkv/common:SKeySearchContext',
+        '//aios/storage/indexlib/index/kkv/common:Trait',
+        '//aios/storage/indexlib/index/kkv/config',
+        '//aios/storage/indexlib/index/kkv/dump:KKVIndexDumper',
+        '//aios/storage/indexlib/index/kkv/pkey_table'
+    ]
+)

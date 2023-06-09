@@ -1,0 +1,31 @@
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+indexlib_cc_library(
+    name='OrcDocumentParser',
+    deps=[
+        ':OrcSingleDocumentParser',
+        '//aios/storage/indexlib/document/normal:NormalDocumentParser'
+    ]
+)
+indexlib_cc_library(
+    name='OrcSingleDocumentParser',
+    deps=[
+        ':OrcExtendDocFieldsConvertor',
+        '//aios/storage/indexlib/document/normal:SingleDocumentParser'
+    ]
+)
+indexlib_cc_library(
+    name='OrcExtendDocFieldsConvertor',
+    deps=[
+        '//aios/storage/indexlib/document/normal:ExtendDocFieldsConvertor',
+        '//aios/storage/indexlib/index/orc:config',
+        '//aios/storage/indexlib/index/attribute:config'
+    ]
+)
+indexlib_cc_library(
+    name='OrcDocumentFactory',
+    deps=[
+        ':OrcDocumentParser',
+        '//aios/storage/indexlib/document/normal:NormalDocumentFactory'
+    ]
+)

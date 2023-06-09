@@ -1,0 +1,171 @@
+{
+    "aggregate_sampler_config" : {
+        "aggThreshold" : 10,
+        "sampleStep" : 2
+    },
+    "cluster_config" : {
+        "cluster_name" : "auction",
+        "hash_mode" : {
+            "hash_field" : "uri",
+            "hash_function" : "HASH"
+        },
+        "join_config" : {
+            "join_infos" : [
+                {
+                    "join_cluster" : "company",
+                    "join_field" : "company_id"
+                }
+            ]
+        },
+        "query_config" : {
+            "default_index" : "phrase",
+            "default_operator" : "AND"
+        },
+        "table_name" : "auction"
+    },
+    "doc_process_chain_config" : {
+        "document_processor_chain" : [
+            {
+                "class_name" : "Ha2Filter",
+                "module_name" : "filter",
+                "parameters" : {
+                    "key" : "value"
+                }
+            }
+        ],
+        "modules" : [
+            {
+                "module_name" : "filter",
+                "module_path" : "auction_filter",
+                "parameters" : {
+                    "key2" : "value2"
+                }
+            }
+        ]
+    },
+    "cava_config" : {
+        "enable" : false,
+	"cava_conf" : "../../../../../../testdata/Ha3CavaTestMain/ha3_cava_config.json",
+        "source_path" : "cava/src"
+    },
+    "final_sorter_config" : {
+        "modules" : [
+            {
+                "module_name" : "fake_sorter",
+                "module_path" : "libfakesorter.so",
+                "parameters" : {
+                    "key" : "value"
+                }
+            }
+        ],
+        "sorters" : [
+            {
+                "module_name" : "fake_sorter",
+                "pararmeters" : {
+                },
+                "sorter_name" : "fake_sorter1"
+            }
+        ]
+    },
+    "function_config" : {
+        "functions" : [
+            {
+                "name" : "notin",
+                "parameters" : {
+                }
+            },
+            {
+                "name" : "minus",
+                "parameters" : {
+                    "key" : "value"
+                }
+            }
+        ],
+        "modules" : [
+            {
+                "module_name" : "funcs",
+                "module_path" : "libha3_example_function_plugin.so",
+                "parameters" : {
+                }
+            }
+        ]
+    },
+    "rankprofile_config" : {
+        "modules" : [
+            {
+                "module_name" : "fake_scorer",
+                "module_path" : "libfakescorer.so",
+                "parameters" : {
+                    "key" : "value"
+                }
+            }
+        ],
+        "rankprofiles" : [
+            {
+                "field_boost" : {
+                    "phrase.body" : 100,
+                    "phrase.detail" : 10,
+                    "phrase.title" : 1000
+                },
+                "rank_profile_name" : "DefaultProfile",
+                "scorers" : [
+                    {
+                        "module_name" : "fake_scorer",
+                        "parameters" : {
+                            "key" : "value"
+                        },
+                        "rank_size" : "UNLIMITED",
+                        "scorer_name" : "FakeScorer"
+                    }
+                ]
+            }
+        ]
+    },
+    "searcher_cache_config" : {
+        "inc_deletion_percent" : 10,
+        "inc_doc_limit" : 2000,
+        "latency_limit" : 2,
+        "max_item_num" : 400000,
+        "max_size" : 2048,
+	"min_allowed_cache_doc_num" : 0,
+	"max_allowed_cache_doc_num" : 100000
+    },
+    "summary_profile_config" : {
+        "modules" : [
+        ],
+        "summary_profiles" : [
+            {
+                "extractor" : {
+                    "extractor_name" : "DefaultSummaryExtractor",
+                    "module_name" : "",
+                    "parameters" : {
+                        "key" : "value"
+                    }
+                },
+                "field_configs" : {
+                    "title" : {
+                        "abstract" : true,
+                        "highlight_prefix" : "<tag>",
+                        "highlight_suffix" : "</tag>",
+                        "max_snippet" : 1,
+                        "max_summary_length" : 150,
+                        "snippet_delimiter" : "..."
+                    }
+                },
+                "summary_profile_name" : "DefaultProfile"
+            },
+            {
+                "extractor" : {
+                    "extractor_name" : "CavaSummaryExtractor",
+                    "module_name" : "",
+                    "parameters" : {
+                        "default_class_name" : "test.SummaryProcessor"
+                    }
+                },
+                "field_configs" : {
+                },
+                "summary_profile_name" : "CavaSummaryProfile"
+            }
+        ]
+    }
+}

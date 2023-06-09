@@ -1,0 +1,51 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+indexlib_cc_library(
+    name='index_task_constant',
+    srcs=[],
+    hdrs=[],
+    visibility=['//visibility:public'],
+    deps=[':IndexTaskConstant']
+)
+indexlib_cc_library(
+    name='merge_task',
+    srcs=[],
+    hdrs=[],
+    visibility=['//visibility:public'],
+    deps=[':LocalTabletMergeController']
+)
+indexlib_cc_library(name='IndexTaskConstant', srcs=[])
+indexlib_cc_library(
+    name='SimpleIndexTaskPlanCreator',
+    deps=[
+        '//aios/storage/indexlib/config:IndexTaskConfig',
+        '//aios/storage/indexlib/framework/index_task:IIndexTaskPlanCreator'
+    ]
+)
+indexlib_cc_library(
+    name='ComplexIndexTaskPlanCreator',
+    deps=[
+        ':IndexTaskConstant', ':SimpleIndexTaskPlanCreator',
+        '//aios/storage/indexlib/config:options',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework:Version',
+        '//aios/storage/indexlib/framework/index_task:IIndexOperationCreator',
+        '//aios/storage/indexlib/framework/index_task:IIndexTaskPlanCreator',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskHistory'
+    ]
+)
+indexlib_cc_library(
+    name='LocalTabletMergeController',
+    deps=[
+        ':IndexTaskConstant', '//aios/alog',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/config:schema',
+        '//aios/storage/indexlib/framework:ITabletMergeController',
+        '//aios/storage/indexlib/framework:TabletFactoryCreator',
+        '//aios/storage/indexlib/framework:VersionValidator',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContextCreator',
+        '//aios/storage/indexlib/framework/index_task:LocalExecuteEngine',
+        '//aios/storage/indexlib/util:Clock'
+    ]
+)

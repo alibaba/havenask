@@ -1,0 +1,24 @@
+{
+    "build_option_config" : {
+        "sort_build" : true,
+        "sort_descriptions" : [
+            {
+                "sort_field" : "nid",
+                "sort_pattern" : "ASC"
+            }
+        ]
+    },
+    "cluster_config" : {
+        "builder_rule_config" : {
+	    "partition_count": 4
+        },
+        "cluster_name" : "phone",
+        "hash_mode" : {
+            "hash_field" : "nid",
+            "hash_function" : "HASH"
+        },
+        "table_name" : "phone"
+    },
+    "offline_index_config" : {
+    }
+}

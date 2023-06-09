@@ -1,0 +1,93 @@
+common --experimental_allow_tags_propagation
+common --experimental_cc_shared_library
+common --incompatible_new_actions_api=false
+common --show_timestamps
+build --linkopt -fuse-ld=gold
+build --experimental_cc_implementation_deps
+build --action_env=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/taobao/java/bin:/sbin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/X11R6/bin
+build --incompatible_disable_nocopts=false
+build --keep_going
+build --define indexlib_coroutine=yes
+build --action_env=BAZEL_CXXOPTS="-fcoroutines"
+build --action_env=TURING_ENGINE_DEV_VERSION
+build --host_action_env=TURING_ENGINE_DEV_VERSION
+build --cxxopt="-std=c++17" --copt="-DGTEST_USE_OWN_TR1_TUPLE=0" --copt="-DEIGEN_MAX_CPP_VER=11"
+build --cxxopt="-Wno-stringop-overflow"
+build --cxxopt="-Wno-stringop-truncation"
+build --cxxopt="-Wno-register"
+build --copt="-mno-avx512f"
+build --copt="-mrdrnd"
+build --copt="-Wall" --copt="-Wno-sign-compare" --copt="-Wno-ignored-attributes"
+build --copt "-Iaios/storage/"
+build --strip="always"
+build --linkopt="-Wl,-export-dynamic"
+build --linkopt="-lpthread -ldl"
+build --define=grpc_no_ares=true
+build --define=fslib_use_async=yes
+build --extra_toolchains=//:toolchain_definition --java_runtime_version=alijdk  --java_header_compilation=false
+build --incompatible_java_common_parameters=false
+build --copt="-fdebug-types-section" # relocation truncated to fit: R_X86_64_32 against `.debug_info'
+test --build_tests_only
+test --test_env="DISABLE_CODEGEN=true"
+test --test_env=HADOOP_HOME
+test --test_env=JAVA_HOME
+test --test_env="WD_WORKDIR=./aios/wunder"
+test --test_env CHECK_CASE_TIMEOUT=false
+test --test_env="TZ=UTC-8"
+test --test_env="LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:$LD_LIBRARY_PATH:$HADOOP_HOME/lib/native/:./aios/fslib:/opt/taobao/java/jre/lib/amd64/server/";
+test --test_env="PRIVATE_TOKEN" --test_env="ORIGIN_TOKEN" --test_env="AONE_TOKEN"
+test --test_env=SLEEP_CPU_FOR_TEST=1
+test --test_env=WAIT_COMPILE_FOR_TEST=1
+build --action_env CC_OPT_FLAGS="-O2"
+build --action_env TF_NEED_PAI_ALIFPGA="0"
+build --action_env TF_NEED_PAI="0"
+build --action_env TF_NEED_PANGU_TEMP="0"
+build --action_env TF_NEED_OPENCL_SYCL="0"
+build --action_env TF_NEED_ROCM="0"
+build --action_env TF_NEED_PAI_TRT="0"
+build --action_env GCC_HOST_COMPILER_PATH="/usr/bin/gcc"
+build --action_env PYTHON_BIN_PATH="/usr/bin/python3"
+build --workspace_status_command "sh ./package/git_commit/git_info.sh"
+build --cxxopt="-std=c++17" --cxxopt="-Wno-register"
+build --config=old_abi
+build --config=havenask
+build:old_abi --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --define use_abi=0
+build:clang --action_env=CC=/usr/bin/clang
+build:clang --action_env=CXX=/usr/bin/clang++
+build:clang --define compiler_type=clang++
+build:clang --repo_env=BAZEL_CXXOPTS="-fcoroutines-ts"
+build:clang --copt -Werror,-Wunused-result
+build:clang --copt -Wall
+build:clang --copt -Wextra
+build:clang --copt -Wno-unused-parameter
+build:clang --copt -Wno-non-c-typedef-for-linkage
+build:clang --copt -Wno-return-type-c-linkage
+build:clang --copt -Wno-sign-compare
+build:clang --copt -Wno-deprecated-copy
+build:clang --copt -Wno-ambiguous-reversed-operator
+build:clang --copt -Wno-deprecated-declarations
+build:clang --copt -Wno-deprecated-anon-enum-enum-conversion
+build:clang --copt -Wno-missing-field-initializers
+build:clang --copt -Wno-deprecated-register
+build:clang --copt -Wno-extern-c-compat
+build:clang --copt -Wno-unknown-warning-option
+build:clang --copt -Wno-cpp
+build:clang --copt -Wno-error=string-plus-int
+build:clang --copt -Wno-error=unused-variable
+build:clang --copt -Wno-unneeded-internal-declaration
+build:clang --copt -Wno-implicit-const-int-float-conversion
+build:clang --copt -Wno-thread-safety-precise
+build:clang --copt -Wno-thread-safety-analysis
+build:clang --copt -Wno-unused-but-set-variable
+build:clang --copt -Wno-unused-but-set-parameter
+build:clang --copt -Wno-null-pointer-subtraction
+build:clang --copt -Wno-string-concatenation
+build:clang --cxxopt -Wno-deprecated-experimental-coroutine
+build:clang --cxxopt -Wno-always-inline-coroutine
+build:clang --copt -Werror
+build:clang --copt -fno-limit-debug-info
+build:clang --linkopt -fuse-ld=lld
+build:clang --linkopt -lstdc++
+build:havenask --define repo_mode=aios_open_source
+build:havenask --copt -DAIOS_OPEN_SOURCE
+test --test_tag_filters=-slow_case,-codegen_case,-one_box --test_env CHECK_CASE_TIMEOUT=false

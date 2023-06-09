@@ -1,0 +1,37 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+import "hippo/proto/Common.proto";
+package hippo.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+message ReserveSlot {
+    optional SlotId slotId = 1;
+    optional int32 reserveTime = 2 [default = 0];//second
+}
+
+message AllocateRequest {
+    optional string applicationId = 1;
+    repeated ResourceRequest require = 2;
+    repeated SlotId release = 3;
+    repeated PreferenceDescription preferenceDesc = 4;
+    optional string queue = 5;
+    repeated SlotPayload slotPayloads= 6;  // depracated
+    repeated ReserveSlot reserveSlot = 7;
+}
+
+message AllocateResponse {
+    repeated ResourceResponse assignedResources = 1;
+    optional ErrorInfo errorInfo = 2;
+    repeated Parameter labels = 3;
+}
+
+service ApplicationMasterService {
+    option (arpc.global_service_id) = 3000;
+    
+    rpc allocate(AllocateRequest) returns (AllocateResponse) {
+	option (arpc.local_method_id) = 1;
+    }
+}

@@ -1,0 +1,37 @@
+{
+    "required_field_names" : ["a", "b", "c", "d", "e", "f"],
+    "fields" : [ 
+        {"fieldName" : "a", "type" : "MINT64"},
+        {"fieldName" : "b", "type" : "INT64"},
+        {"fieldName" : "c", "type" : "MFLOAT"},
+        {"fieldName" : "d", "type" : "MINT64"},
+        {"fieldName" : "e", "type" : "INT64"},
+        {"fieldName" : "f", "type" : "MFLOAT"} 
+    ],
+    "index" : {
+        "pack_name" : "pack_index",
+        "pack_fields" : ["a", "c", "d", "f"]
+    },
+    "summary" : {
+        "pack_name" : "pack_summary_demo",
+        "pack_fields" : ["a", "d"]
+    },
+    "attribute" : [
+        {
+            "pack_name" : "pack_single_high",
+            "pack_fields" : ["a"]
+        },
+        {
+            "pack_name" : "pack_single_mid",
+            "pack_fields" : ["b", "c"]
+        },
+        {
+            "pack_name" : "pack_single_low",
+            "pack_fields" : ["d"]
+        },
+        {
+            "pack_name" : "pack_single_fresh",
+            "pack_fields" : ["e", "f"]
+        }    
+    ]
+} 

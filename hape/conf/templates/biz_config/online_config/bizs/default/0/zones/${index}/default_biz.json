@@ -1,0 +1,19 @@
+{
+
+    "turing_options_config":{
+        "dependency_table": [
+            "${index}"
+        ]
+    },
+    "cluster_config" : {
+        "hash_mode" : {
+            "hash_field" : "docid",
+            "hash_function" : "HASH"
+        },
+        "query_config" : {
+            "default_index" : "title",
+            "default_operator" : "AND"
+        },
+        "table_name" : "${index}"
+    }
+}

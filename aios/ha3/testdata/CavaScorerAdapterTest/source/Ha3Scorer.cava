@@ -1,0 +1,19 @@
+import ha3.*;
+import suez.turing.*;
+
+class Ha3Scorer {
+    Int32Ref idRef;
+    UInt32Ref catRef;
+    static Ha3Scorer create() { return new Ha3Scorer(); }
+    boolean init(ha3.ScorerProvider provider) {
+        IRefManager refManger = provider.getRefManager();
+        idRef = refManger.requireInt32("id");
+        catRef = refManger.requireUInt32("cat");
+        return true;
+    }
+    double process(MatchDoc doc) {
+        int id = idRef.get(doc);
+        uint cat = catRef.get(doc);
+        return id * cat;
+    }
+}

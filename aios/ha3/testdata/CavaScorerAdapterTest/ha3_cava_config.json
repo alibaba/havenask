@@ -1,0 +1,29 @@
+{
+    "pluginConf": {
+	"modules" : [
+            {
+                "name" : "default",
+                "path" : ""
+            }
+	],
+        "ASTRewriters": [
+            {
+                "module" : "default",
+                "class"  : "AddBatchScore",
+                "parameters" : {}
+            }
+	],
+	"TypeExtenders": [
+	],
+	"SemaCheckers": [
+	]
+    },
+    "cavaPreLoads": [
+        "../../testdata/share/cava/ha3",
+        "../../testdata/share/cava/suez",
+        "../../testdata/share/cava/cava",
+        "../../testdata/share/cava/plugins",
+        "../../testdata/share/cava/unsafe"
+    ],
+    "debugIR": false
+}

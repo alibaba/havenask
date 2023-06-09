@@ -1,0 +1,15 @@
+{
+    "modules" : [
+        {
+            "module_name": "tvf",
+            "module_path": "libha3_sql_test_tvf_plugin_lib.so",
+            "parameters": {}
+        }
+    ],
+    "tvf_profiles" : [
+        {
+            "func_name": "echoTvf",
+            "tvf_name": "echoTvf"
+        }
+    ]
+}

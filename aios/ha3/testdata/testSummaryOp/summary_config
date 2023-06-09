@@ -1,0 +1,30 @@
+{                                                               
+	"modules" : [                                         
+         ],                                                     
+        "summary_profiles" : [                                        
+            {                                                           
+                "summary_profile_name": "DefaultProfile",           
+                "extractor" :{                                        
+                        "extractor_name" : "DefaultSummaryExtractor",
+                        "module_name" : "",                         
+                        "parameters" : {                              
+                            "key": "value"                          
+                        }                                               
+                },                                                      
+                "field_configs" : {                                   
+      	            "title" : {                                       
+		    "max_snippet" : 1,                                
+		    "max_summary_length" : 120                        
+	        },                                                      
+	        "body" : {                                            
+		    "max_snippet" : 1,                                
+		    "max_summary_length" : 180                        
+	        },                                                      
+	            "description" : {                                 
+		    "max_snippet" : 1,                                
+		    "max_summary_length" : 0                          
+	        }                                                       
+                }                                                       
+            }                                                           
+          ]                                                             
+}

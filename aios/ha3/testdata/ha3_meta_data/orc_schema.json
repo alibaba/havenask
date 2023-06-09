@@ -1,0 +1,40 @@
+{
+    "attributes" : [
+        "id",
+        "company_id",
+        "keywords"
+    ],
+    "fields" : [
+        {
+            "field_name" : "id",
+            "field_type" : "INTEGER"
+        },
+        {
+            "field_name" : "company_id",
+            "field_type" : "INTEGER"
+        },
+        {
+            "analyzer" : "internet_analyzer",
+            "field_name" : "title",
+            "field_type" : "TEXT"
+        },
+        {
+            "field_name" : "keywords",
+            "field_type" : "STRING"
+        },
+        {
+            "analyzer" : "internet_analyzer",
+            "field_name" : "body",
+            "field_type" : "TEXT"
+        }
+    ],
+    "indexs" : [
+        {
+            "index_fields" : "keywords",
+            "index_name" : "pk",
+            "index_type" : "PRIMARYKEY64"
+        }
+    ],
+    "table_name" : "simple",
+    "table_type" : "orc"
+}

@@ -1,0 +1,8 @@
+{
+    "table_name" : "auctionTable", 
+    "hash_mode" : { 
+        "hash_function" : "md5", 
+        "hash_field": "uri"
+    },
+    "dispatchable" : false
+}

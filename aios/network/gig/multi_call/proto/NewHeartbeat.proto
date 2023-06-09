@@ -1,0 +1,82 @@
+syntax = "proto2";
+
+package multi_call;
+
+option cc_enable_arenas = true;
+
+import "multi_call/proto/GigAgent.proto";
+
+message ServerSpecDef {
+    optional int32 tcp_port = 1;
+    optional int32 arpc_port = 2;
+    optional int32 http_port = 3;
+    optional int32 grpc_port = 4;
+    optional int32 grpc_stream_port = 5;
+    optional int32 rdma_arpc_port = 6;
+}
+
+message ServerIdDef {
+    optional ServerSpecDef spec = 1;
+    optional GigMetaEnv env = 2;
+}
+
+message TopoSignatureDef {
+    optional uint64 topo = 1;
+    optional uint64 meta = 2;
+    optional uint64 tag = 3;
+    optional uint64 publish_id = 4;
+}
+
+message TopoHeartbeatRequest {
+    optional TopoSignatureDef signature = 1;
+}
+
+message NewHeartbeatRequest {
+    optional int64 rpc_version = 1;
+    optional uint64 client_id = 2;
+    optional uint64 server_signature = 3;
+    repeated TopoHeartbeatRequest topo_request = 4;
+}
+
+message BizTagDef {
+    optional string tag = 1;
+    optional int64 version = 2;
+}
+
+message BizTagsDef {
+    repeated BizTagDef tags = 1;
+}
+
+message SingleBizMetaDef {
+    optional string key = 1;
+    optional string value = 2;
+}
+
+message BizMetasDef {
+    repeated SingleBizMetaDef metas = 1;
+}
+
+message BizTopoKeyDef {
+    optional string biz_name = 1;
+    optional int32 part_count = 2;
+    optional int32 part_id = 3;
+    optional int64 version = 4;
+    optional int64 protocol_version = 5;
+}
+
+message BizTopoDef {
+    optional int32 target_weight = 1;
+    optional TopoSignatureDef signature = 2;
+    optional BizTopoKeyDef key = 3;
+    optional BizMetasDef metas = 4;
+    optional BizTagsDef tags = 5;
+    optional PropagationStatDef propagation_stat = 6;
+}
+
+message NewHeartbeatResponse {
+    optional int64 rpc_version = 1;
+    optional uint64 client_id = 2;
+    optional uint64 server_signature = 3;
+    optional ServerIdDef server_id = 4;
+    repeated BizTopoDef topo = 5;
+}

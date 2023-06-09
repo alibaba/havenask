@@ -1,0 +1,78 @@
+{
+    "table_name": "daogou",
+    "fields": 
+     [
+		{
+		"field_name":"id",
+		"field_type":"INTEGER"
+		},
+		{
+		"field_name":"company_id",
+		"field_type":"INTEGER",
+		"multi_value":true
+		},
+		{
+		"field_name":"subject",
+		"field_type":"TEXT",
+		"analyzer":"internet_analyzer"
+		},
+		{
+		"field_name":"keywords",
+		"field_type":"STRING"
+		},
+		{
+		"field_name":"summary",
+		"field_type":"TEXT",
+		"analyzer":"internet_analyzer"
+		},
+		{
+		"field_name":"supply_quantity",
+		"field_type":"FLOAT"
+		},
+		{
+		"field_name":"country",
+		"field_type":"TEXT",
+		"analyzer":"internet_analyzer"
+		},
+		{
+		"field_name":"company_name",
+		"field_type":"TEXT",
+		"analyzer":"internet_analyzer"
+		},
+		{
+		"field_name":"feature_value",
+		"field_type":"TEXT",
+		"analyzer":"internet_analyzer"
+		},
+		{
+		"field_name":"rank_score",
+		"field_type":"INTEGER"
+		},
+		{
+		"field_name":"not_attribute",
+		"field_type":"INTEGER"
+		}
+        ],
+
+	"indexs": 
+	[
+		{
+			"index_name": "default",
+			"index_type" : "PACK",
+			"term_payload_flag" :  1 ,
+			"doc_payload_flag" :  1 ,
+			"position_payload_flag" :  1 ,
+			"index_fields": 
+			[
+				{"field_name":"subject", "boost":100}
+			]
+	        }
+        ],
+
+	"attributes": [ "id", "company_id"],
+	
+         "summarys":{ 
+    		     "summary_fields": ["id", "summary"],
+		     "compress":false
+	}
+}

@@ -1,0 +1,111 @@
+package mock;
+
+class MatchDoc {
+}
+
+class Ha3CavaScorerParam {
+    int scoreDocCount;
+    MatchDoc[] matchDocs;
+    FieldRef reference;
+    Ha3CavaScorerParam() {
+	scoreDocCount = 3;
+	matchDocs = new MatchDoc[3];
+	reference = new FieldRef();
+    }
+    FieldRef getScoreFieldRef() {
+	return reference;
+    }
+    int getScoreDocCount() {
+	return scoreDocCount;
+    }
+    MatchDoc getMatchDoc(int i) {
+	return matchDocs[i];
+    }
+}
+
+
+class MDouble {
+    double []_val;
+    MDouble() {
+	_val = new double[] {1.1, 2.2, 3.3};
+    }
+    MDouble(int len) {
+	_val = new double[len];
+	for (int i =0; i< len; i++) {
+	    _val[i] = 0;
+	}
+    }
+
+    int size() {
+	return _val.length;
+    }
+    double get(int index) {
+	return _val[index];
+    }
+    void set(int index, double val) {
+	if (index < _val.length) {
+	    _val[index] = val;
+	}
+    }
+    static MDouble create(int len) {
+	return new MDouble(len);
+    }
+}
+
+class FieldRef {
+    double _val;
+    MDouble _mval;
+    FieldRef() {
+	_val = 1.1;
+	_mval = new MDouble();
+    }
+    MDouble  getMDouble(MatchDoc doc) {
+	return _mval;
+    }
+    double getDouble(MatchDoc doc) {
+	return _val;
+    }
+    int getType() {
+	return 10;
+    }
+    void set(MatchDoc doc, double val) {
+	_val =  val;
+    }
+    void set(MatchDoc doc, MDouble mval) {
+	_mval =  mval;
+    }
+}
+class RefManager {
+    FieldRef require(CString name) {
+	return new FieldRef();
+    }
+    FieldRef declare(CString name, int type, boolean isMulti) {
+	return new FieldRef();
+    }
+}
+
+class KVMapApi {
+    CString getValue(CString name) {
+	return "tag";
+    }
+}
+
+class IApiProvider {
+    RefManager getRefManager() {
+	return new RefManager();
+    }
+    KVMapApi getKVMapApi() {
+	return new KVMapApi();
+    }
+}
+
+
+class TraceApi {
+    public void queryTrace(CString file, int line, CString msg) {
+	return;
+    }
+}
+
+
+class ScorerProvider {
+}

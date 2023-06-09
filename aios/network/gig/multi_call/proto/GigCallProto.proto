@@ -1,0 +1,100 @@
+syntax = "proto2";
+
+package multi_call;
+
+option java_package="com.alibaba.search.gig.proto";
+
+import "multi_call/proto/GigCommonProto.proto";
+import "multi_call/proto/GigErrorCodeProto.proto";
+
+option cc_enable_arenas = true;
+
+message GigSpec {
+    required string ip = 1;
+    required int32 port = 2;
+}
+
+message Attribute {
+    required string name = 1;
+    required string value = 2;
+}
+
+message PartRequest {
+    optional int32 part_id = 1;
+    optional string body = 2;
+}
+
+message GigRequestPlan {
+    optional string cluster_name = 1;
+    optional string biz_name = 2;
+    optional string strategy = 3;
+    optional uint64 source_id = 4;
+    optional uint32 timeout = 5; // ms
+    optional GigRequestType request_type = 6;
+    optional GigSpec spec = 7;
+    optional int64 version = 8;
+    optional int64 prefer_version = 9;
+    optional int32 part_id = 10 [deprecated=true];
+    repeated PartRequest part_requests = 23;
+    optional GigTraceContext trace_context = 11;
+    repeated Attribute attrs = 12;
+    optional string request_id = 13;
+
+    optional string uri = 14; // http params
+    optional string method = 15;
+    repeated HttpHeader headers = 16;
+    optional bool keep_alive = 17;
+
+    optional uint32 service_id = 18; // arpc params
+    optional uint32 method_id = 19;
+
+    optional GigProtocolType protocol = 20 [default = GIG_PROTOCOL_UNKNOWN];
+    optional bool is_multi = 21 [default = false];
+    optional GigMetaByTcp meta_bt = 22 [default = META_BT_NONE];
+
+    optional bool disable_retry = 24 [default = false];
+    optional bool disable_probe = 25 [default = false];
+}
+
+message BatchGigRequestPlan {
+    repeated GigRequestPlan plans = 1;
+}
+
+message BizInfo {
+    optional string cluster_name = 1;
+    optional string biz_name = 2;
+    optional GigErrorCode status = 3;
+    optional int64 version = 4;
+    optional int32 part_count = 5;
+    optional bool is_complete = 6;
+}
+
+message BatchBizInfo {
+    repeated BizInfo infos = 1;
+}
+
+message HttpHeader {
+    optional string key = 1;
+    optional string value = 2;
+}
+
+message GigResponseHeader {
+    optional GigErrorCode error_code = 1 [default = GIG_ERROR_NONE];
+    optional string error_msg = 2;
+    optional string remote_address = 3; // ip:port
+    repeated HttpHeader headers = 4; // http
+    optional int32 status_code = 5; // http
+    optional string request_id = 6;
+    optional string node_id = 7;
+    optional int32 part_count = 8;
+    optional int32 part_id = 9;
+}
+
+message GigSessionInfo {
+    optional GigTraceContext trace_context = 1;
+}
+
+message GigMultiResponse {
+    repeated GigResponseHeader headers = 1;
+    repeated bytes responses = 2;
+}

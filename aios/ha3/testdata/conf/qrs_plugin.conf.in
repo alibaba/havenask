@@ -1,0 +1,10 @@
+[
+    {
+	"module_name" : "FakeQrsModule",
+	"module_path" : "libha3_fakeqrs_processor.so",
+	"parameters" : {
+	    "key1" : "value1",
+	    "key2" : "value2"
+	}
+    }
+]

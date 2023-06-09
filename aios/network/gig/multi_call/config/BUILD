@@ -1,0 +1,21 @@
+package(default_visibility=['//aios/network/gig:__subpackages__'])
+cc_library(
+    name='config_headers',
+    hdrs=glob(['*.h']),
+    deps=[
+        '//aios/network/gig/multi_call/common:common_headers',
+        '//aios/network/gig/multi_call/util:util_headers',
+        '//aios/network/opentelemetry:opentelemetry'
+    ]
+)
+cc_library(
+    name='config',
+    srcs=glob(['*.cpp']),
+    deps=[
+        ':config_headers', '//aios/network/gig/multi_call/common:common',
+        '//aios/network/gig/multi_call/util:util',
+        '//aios/filesystem/fslib:fslib-framework',
+        '//aios/network/opentelemetry:opentelemetry'
+    ],
+    alwayslink=True
+)

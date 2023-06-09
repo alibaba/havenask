@@ -1,0 +1,20 @@
+{
+    "processors":[
+        {
+            "name": "sample_scorer",
+            "class": "SampleScorer",
+            "parameters": {
+            }
+        },
+        {
+            "name": "sample_scorer2",
+            "class": "SampleScorer",
+            "parameters": {
+            }
+        }
+    ],
+    "chains": {
+        "default": ["sample_scorer"],
+        "test": ["sample_scorer","sample_scorer2"]
+    }
+}

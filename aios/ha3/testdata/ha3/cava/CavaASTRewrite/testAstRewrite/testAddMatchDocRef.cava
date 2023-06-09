@@ -1,0 +1,71 @@
+import mock.*;
+
+class SampleScore {
+    boolean beginRequest(IApiProvider provider) {
+        return true;
+
+    }
+    double score(MatchDoc doc) {
+        // doc get
+        double price = doc.getByField("price","double");
+        double tag = doc.getByKvPairs("key1","double");
+
+        // doc set literal
+        doc.set("distance","double",1.1);
+        System.println(doc.getByField("distance","double"));
+
+        // doc set variable
+        double d = 1.2;
+        doc.set("distance","double",d);
+        System.println(doc.getByField("distance","double"));
+
+        return tag;
+    }
+    static boolean test() {
+           MatchDoc doc = new MatchDoc();
+           SampleScore s = new SampleScore();
+           IApiProvider a = new IApiProvider();
+           s.beginRequest(a);
+           System.println(s.score(doc));
+           return true;
+    }
+}
+
+class MultiScore {
+    boolean beginRequest(IApiProvider provider) {
+        return true;
+
+    }
+    double score(MatchDoc doc) {
+        // doc get
+        MDouble price = doc.getByField("price","MDouble");
+        MDouble tag = doc.getByKvPairs("key1","MDouble");
+        for(int i = 0; i <tag.size(); i++) {
+            System.println(tag.get(i));
+        }
+
+        System.println("============");
+
+        int len = 5;
+        MDouble distances = MDouble.create(len);
+        for(int i = 0; i < len; i++) {
+            distances.set(i, i*1.1);
+        }
+        doc.set("distance","MDouble",distances);
+
+        MDouble d = doc.getByField("distance","MDouble");
+        for(int i = 0; i <d.size(); i++) {
+            System.println(d.get(i));
+        }
+
+        return 10;
+    }
+    static boolean test() {
+           MatchDoc doc = new MatchDoc();
+           MultiScore s = new MultiScore();
+           IApiProvider a = new IApiProvider();
+           s.beginRequest(a);
+           System.println(s.score(doc));
+           return true;
+    }
+}

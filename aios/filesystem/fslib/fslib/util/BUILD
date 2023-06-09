@@ -1,0 +1,12 @@
+package(default_visibility=['//aios/filesystem/fslib:__subpackages__'])
+cc_library(
+    name='util',
+    srcs=glob(['*.cpp']),
+    hdrs=glob(['*.h']),
+    deps=[
+        '//aios/filesystem/fslib/fslib:common',
+        '//aios/kmonitor:kmonitor_cpp_adapter',
+        '//aios/kmonitor:kmonitor_client_cpp'
+    ],
+    include_prefix='fslib/util'
+)

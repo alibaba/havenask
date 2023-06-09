@@ -1,0 +1,21 @@
+import "arpc/proto/rpc_extensions.proto";
+package suez;
+
+option cc_generic_services = true;
+option cc_enable_arenas = true;
+
+message KillSelfRequest {
+    optional int32 killOpt = 1;
+}
+
+message KillSelfResponse {
+    optional bytes errorInfo = 1;
+}
+
+service SelfKiller
+{
+    option (arpc.global_service_id) = 710;
+    rpc killSelf(KillSelfRequest) returns (KillSelfResponse) {
+        option (arpc.local_method_id) = 1;
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "inherit_from" : "section_configs/common/cluster_common_config.json",
+    "MergeStrategy": "optimize",        
+    "MergeStrategyParam": "max-doc-count=20000000",
+    "MergeThreadCount" : 4,
+    "TruncateOptionConfig" :
+    {
+        "TruncateStrategy" : [
+            {
+                "StrategyName" : "filter_by_meta",
+                "StrategyType" : "truncate_meta",
+                "Limit" : 20000,
+                "DiversityConstrain": {
+                    "FilterType" : "FilterByMeta"
+                }
+            },
+            {
+                "StrategyName" : "filter_by_timestamp",
+                "StrategyType" : "truncate_meta",
+                "DiversityConstrain": {
+                    "FilterType" : "FilterByTimeStamp",
+                    "FilterParameter" : "beginTime=now;adviseEndTime=23:59:59;minInterval=24"
+                }
+            }
+        ],
+        "ProfileToStrategyNameMap" : {
+            "desc_static_trans_score" : "filter_by_meta",
+            "desc_tk_trans_score" : "filter_by_meta",
+            "desc_biz30day" : "filter_by_meta",
+            "desc_tk_total_sales" : "filter_by_meta",
+            "desc_uvsum" : "filter_by_meta",
+            "desc_uvsum_suc" : "filter_by_meta",
+            "asc_ends" : "filter_by_timestamp"
+        }
+    }
+}

@@ -1,0 +1,137 @@
+{
+  "modules" : [
+    {
+      "module_name" : "mlr",
+      "module_path" : "libfakescorer.so",
+      "parameters" : {
+        "mlr1" : "mlr1",
+        "mlr2" : "mlr2"
+      }
+    }
+  ],
+  "rankprofiles" : [
+    {
+      "rank_profile_name" : "profile1",
+      "scorers" : [
+        {
+          "scorer_name" : "DefaultScorer",
+	  "module_name" : "",
+	  "parameters" : {
+	    "111" : "221" ,
+            "331" : "441" 
+          },
+	  "rank_size" : "UNLIMITED"
+        },
+        {
+	  "scorer_name" : "DefaultScorer",
+	  "module_name" : "",
+	  "parameters" : {
+	    "112" : "222",
+	    "332" : "442"
+	  },
+	  "rank_size" : "900"
+	},
+	{
+	  "scorer_name" : "FakeDefaultScorer",
+	  "module_name" : "mlr",
+	  "parameters" : {
+	    "113" : "223",
+	    "333" : "443"
+	  },
+	  "rank_size" : "100"
+	}
+      ],
+      "field_boost" : {
+        "fieldbit.phrase.TITLE" : 12345,
+        "fieldbit.phrase.PROPERTIES" : 1234,
+        "fieldbit.keyword.KEYWORDS" : 123
+      }
+    },
+    {
+      "rank_profile_name" : "profile2",
+      "scorers" : [
+        {
+	  "scorer_name" : "FakeDefaultScorer",
+	  "module_name" : "mlr",
+	  "parameters" : {
+	    "111" : "222",
+	    "333" : "444"
+	  },
+	  "rank_size" : "999"
+	},
+	{
+	  "scorer_name" : "DefaultScorer",
+	  "module_name" : "",
+	  "parameters" : {
+	    "111" : "222",
+	    "333" : "444"
+	  },
+	  "rank_size" : "888"
+	}
+      ]
+    },
+    {
+      "rank_profile_name" : "DefaultProfile",
+      "scorers" : [
+        {
+	  "scorer_name" : "DefaultScorer",
+	  "module_name" : "",
+	  "parameters" : {
+	    "111" : "222",
+	    "333" : "444"
+	  },
+	  "rank_size" : "UNLIMITED"
+	}
+      ]
+    },
+    {
+      "rank_profile_name" : "_@_build_in_DebugQueryMatchRankProfile",
+      "scorers" : [
+        {
+	  "scorer_name" : "RecordScorer",
+	  "module_name" : "",
+	  "parameters" : {
+	    "111" : "222",
+	    "333" : "444"
+	  },
+	  "rank_size" : "100"
+	}
+      ]
+    },
+    {
+      "rank_profile_name" : "MultiPhaseProfile",
+      "scorers" : [
+        {
+	  "scorer_name" : "DefaultScorer",
+	  "module_name" : "",
+	  "rank_size" : "UNLIMITED"
+	},
+	{
+	  "scorer_name" : "FakeDefaultScorer",
+	  "module_name" : "mlr",
+	  "rank_size" : "10"
+	},
+	{
+	  "scorer_name" : "DefaultScorer",
+	  "module_name" : "",
+	  "rank_size" : "5"
+	}
+      ]
+    },
+    {
+      "rank_profile_name" : "global_val_profile",
+      "scorers" : [
+        {
+	  "scorer_name" : "DefaultScorer",
+	  "module_name" : "",
+	  "rank_size" : "UNLIMITED"
+	},
+	{
+	  "scorer_name" : "FakeDefaultScorer",
+	  "module_name" : "mlr",
+	  "rank_size" : "10"
+	}
+      ]
+    }
+  ]
+}

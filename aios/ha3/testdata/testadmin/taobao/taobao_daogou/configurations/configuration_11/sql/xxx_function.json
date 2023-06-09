@@ -1,0 +1,34 @@
+{
+    "functions": [
+        {
+            "function_name": "xxx",
+            "function_type": "UDAF",
+            "is_deterministic": 1,
+            "function_content_version": "json_default_0.1",
+            "function_content": {
+                "acc_types": [
+                    {
+                        "is_multi": false,
+                        "type": "int32"
+                    }
+                ],
+                "prototypes": [
+                    {
+                        "params": [
+                            {
+                                "is_multi": false,
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": false,
+                                "type": "int32"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,44 @@
+{
+  "build_option_config": {
+    "DocumentProcessQueueSize": 5000,
+    "DocumentProcessThreadNum": 10,
+    "EnableSyncBuild": false,
+    "IndexDocumentQueueSize": 5000,
+    "RawDocFilePattern": "add/good-part-<48>;del/part-<48>",
+    "inherit_from": "section_configs/common/cluster_common_config.json"
+  },
+  "offline_index_config": {
+    "merge_config": {
+      "merge_thread_count": 4,
+      "truncate_strategy": [
+        {
+          "diversity_constrain": {
+            "filter_type": "FilterByMeta"
+          },
+          "limit": 20000,
+          "strategy_name": "filter_by_meta",
+          "strategy_type": "truncate_meta",
+          "truncate_profiles": [
+            "desc_tk_total_sales",
+            "desc_static_trans_score",
+            "desc_biz30day",
+            "desc_uvsum_suc",
+            "desc_uvsum",
+            "desc_tk_trans_score"
+          ]
+        },
+        {
+          "diversity_constrain": {
+            "filter_parameter": "beginTime=now;adviseEndTime=23:59:59;minInterval=24",
+            "filter_type": "FilterByTimeStamp"
+          },
+          "strategy_name": "filter_by_timestamp",
+          "strategy_type": "truncate_meta",
+          "truncate_profiles": [
+            "asc_ends"
+          ]
+        }
+      ]
+    }
+  }
+}

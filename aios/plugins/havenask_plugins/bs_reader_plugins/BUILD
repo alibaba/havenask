@@ -1,0 +1,61 @@
+package(default_visibility=['//aios/plugins/havenask_plugins:__subpackages__'])
+load(
+    '@rules_cc//examples:experimental_cc_shared_library.bzl',
+    'cc_shared_library'
+)
+load('//bazel:defs.bzl', 'gen_conf_lib')
+load('//bazel:bundle.bzl', 'bundle_files')
+bundle_files(
+    name='bs_reader_plugins_package',
+    prefix='usr/local/lib64',
+    srcs=[':bs_reader_plugins'],
+    deps=[],
+    visibility=['//visibility:public'],
+    tags=['manual']
+)
+cc_shared_library(
+    name='bs_reader_plugins',
+    visibility=['//visibility:public'],
+    roots=[':readers'],
+    preloaded_deps=[
+        '//aios/ha3:havenask', '//aios/apps/facility/build_service:bs_basic',
+        '//aios/apps/facility/build_service:bs_common',
+        '//aios/apps/facility/build_service:bs_workflow',
+        '//aios/storage/indexlib/util/counter:counter'
+    ],
+    static_deps=['@rdkafkacpp//:rdkafkacpp']
+)
+cc_library(
+    name='readers',
+    srcs=glob(['raw_doc_readers/*.cpp']),
+    hdrs=glob(['raw_doc_readers/*.h']),
+    deps=[
+        '//aios/ha3:havenask', '@rdkafkacpp//:rdkafkacpp',
+        '//aios/apps/facility/build_service:bs_basic',
+        '//aios/apps/facility/build_service:bs_common',
+        '//aios/apps/facility/build_service:bs_workflow',
+        '//aios/storage/indexlib/util/counter:counter'
+    ],
+    include_prefix='',
+    visibility=['//visibility:public']
+)
+gen_conf_lib(
+    name='test_h',
+    srcs=['test/test.h.in'],
+    outs=['test/test.h'],
+    args={
+        '@TOP_SRCDIR@':
+            'aios/plugins/havenask_plugins/bs_reader_plugins',
+        '@TOP_BUILDDIR@':
+            '.',
+        '@BUILDDIR@':
+            '.',
+        '@DOTEST_LOGGER_CONF@':
+            'aios/plugins/havenask_plugins/bs_reader_plugins/test/logger.conf',
+        '@INSTALLROOT@':
+            '.'
+    },
+    data=['test/logger.conf'],
+    strip_include_prefix='test',
+    include_prefix='test'
+)

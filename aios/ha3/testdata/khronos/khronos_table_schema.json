@@ -1,0 +1,54 @@
+{
+    "table_name": "simple_table",
+    "table_type": "customized",
+    "customized_table_config" : {
+        "identifier" : "khronos",
+        "plugin_name" : "khronos_table",
+        "parameters":{
+            "tagkv_meta_fields":"ts|tagk|tagv|metric",
+            "granularity":"10s",
+            "data_fields":"ts|serieskey|avg_value",
+            "value_field_suffix" : "value"
+        }
+    },
+    "customized_document_config" :
+    [
+        {
+            "id" : "document.raw_document",
+            "plugin_name" : "khronos_table",
+            "parameters" : {}
+        },
+        {
+            "id" : "document.parser",
+            "plugin_name" : "khronos_table",
+            "parameters" : {}
+        }
+    ],
+    "user_defined_param": {},
+    "fields":[
+        {
+            "field_type":"INT64",
+            "field_name":"ts"
+        },
+        {
+            "field_type":"STRING",
+            "field_name":"serieskey"
+        },
+        {
+            "field_type":"STRING",
+            "field_name":"tagk"
+        },
+        {
+            "field_type":"STRING",
+            "field_name":"tagv"
+        },
+        {
+            "field_type":"STRING",
+            "field_name":"metric"
+        },
+        {
+            "field_type":"FLOAT",
+            "field_name":"avg_value"
+        }
+    ]
+}

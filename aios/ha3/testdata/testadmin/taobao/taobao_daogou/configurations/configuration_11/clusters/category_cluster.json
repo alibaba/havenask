@@ -1,0 +1,49 @@
+{
+    "build_option_config" : {
+        "max_recover_time" : 1
+    },
+    "cluster_config" : {
+        "builder_rule_config" : {
+            "need_partition" : true
+        },
+        "cluster_name" : "category",
+        "cluster_type" : "inc_with_realtime",
+        "dispatchable" : false,
+        "hash_mode" : {
+            "hash_field" : "cat_id",
+            "hash_function" : "HASH"
+        },
+        "proxy_rule" : {
+            "partition_count" : 0,
+            "replica_count" : 0
+        },
+        "query_config" : {
+            "default_index" : "category_name",
+            "default_operator" : "AND"
+        },
+        "searcher_rule" : {
+            "partition_resource" : 0,
+            "replica_count" : 1
+        },
+        "swift_topic_name" : "category",
+        "swift_zookeeper_root" : "",
+        "table_name" : "category"
+    },
+    "offline_index_config" : {
+        "build_config" : {
+            "keep_version_count" : 2,
+            "max_memory_use" : 1024
+        },
+        "merge_config" : {
+            "keep_version_count" : 2,
+            "merge_strategy" : "optimize",
+            "merge_strategy_param" : ""
+        }
+    },
+    "swift_config" : {
+        "topic" : {
+            "partition_buffer_size" : 1,
+            "partition_resource" : 1
+        }
+    }
+}

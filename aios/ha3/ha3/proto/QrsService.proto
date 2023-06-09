@@ -1,0 +1,54 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+import "ha3/proto/BasicDefs.proto";
+package isearch.proto;
+
+option cc_enable_arenas = true;
+option cc_generic_services = true;
+option py_generic_services = true;
+
+message QrsRequest {
+    optional bytes assemblyQuery = 1 [ default = "" ];
+    optional string traceId = 2  [ default = "" ];
+    optional string rpcId = 3  [ default = "" ];
+    optional string userData = 4  [ default = "" ];
+    optional string taskQueueName = 5 [ default = "" ];
+    optional uint32 timeout = 6; // ms
+    optional bytes gigRequestInfo = 7 [ default = "" ];
+    optional ProtocolType protocolType = 8 [ default = PT_ARPC];
+    optional string bizName = 9 [ default = "default"];
+}
+
+message QrsResponse {
+    optional CompressType compressType = 1 [ default = CT_NO_COMPRESS ];
+    optional FormatType formatType = 2 [ default = FT_XML ];
+    optional bytes assemblyResult = 3 [ default = "" ];
+    optional int32 multicall_ec = 4 [ default = 0];
+    optional bytes gigResponseInfo = 5 [ default = "" ];
+}
+
+message SqlClientRequest {
+    optional string request = 1;
+}
+
+message SqlClientResponse {
+    optional bytes assemblyResult = 1 [ default = "" ];
+    optional int32 multicall_ec = 2 [ default = 0];
+}
+
+service QrsService {
+    option (arpc.global_service_id) = 605;
+    rpc search(QrsRequest) returns (QrsResponse) {
+        option(arpc.local_method_id) = 1;
+    };
+    rpc searchSql(QrsRequest) returns (QrsResponse) {
+        option(arpc.local_method_id) = 2;
+    };
+    rpc sqlClientInfo(SqlClientRequest) returns (SqlClientResponse) {
+        option(arpc.local_method_id) = 3;
+    };
+    rpc searchTuring ( QrsRequest ) returns ( QrsResponse ){
+        option (arpc.local_method_id) = 4;
+    };
+}

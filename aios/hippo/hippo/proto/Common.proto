@@ -1,0 +1,598 @@
+syntax = "proto2";
+
+import "hippo/proto/ErrorCode.proto";
+import "hippo/proto/yarn/yarn_protos.proto";
+package hippo.proto;
+
+message ErrorInfo {
+    optional ErrorCode errorCode = 1 [default = ERROR_NONE];
+    optional string errorMsg = 2 [default = ""];
+}
+
+enum Operator {
+    ADD = 0;
+    UPDATE = 1;
+    DEL = 2;
+    GET = 3;
+};
+
+message SlotId {
+    optional string slaveAddress = 1;
+    optional int32 id = 2;
+    optional int64 declareTime = 3; // assigned time
+    optional int32 restfulHttpPort = 4;
+    optional int32 slaveHttpPort = 5;
+    optional string k8sPodUID = 6;
+    optional string k8sPodName = 7;
+    optional string k8sNamespace = 8;
+}
+
+message GenericResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message PreferenceDescription {
+    enum PreferenceType {
+        PREF_ANY = 0;
+        PREF_PREFER = 1;
+        PREF_BETTERNOT = 2;
+        PREF_PROHIBIT = 3;
+    };
+    optional string slaveAddress = 1;
+    optional PreferenceType type = 2 [default = PREF_ANY];
+    optional uint32 leaseMs = 3 [default = 3600000];
+    optional string resourceTag = 4; // TODO: check request
+    optional string diskName = 5;
+    optional bool userDefined = 6 [default = true];
+    optional string  workDirTag = 7;
+}
+
+message Resource {
+    enum Type {
+	SCALAR = 0;
+	TEXT = 1;
+	EXCLUDE_TEXT = 2;
+	QUEUE_NAME = 3;
+	EXCLUSIVE = 4;
+	PREFER_TEXT = 5;
+	PROHIBIT_TEXT = 6;
+	SCALAR_CMP = 7;
+    };
+    optional Type type = 1 [default = SCALAR];
+    optional string name = 2;
+    optional int32 amount = 3; // TODO: expand type
+}
+
+// 0 => system, (0,32]=>prod, (32,)=>non-prod, 33 is a special priority as non-prod platform
+message Priority {
+    enum Level {
+	UNDEFINE = -1;
+	SYSTEM = 0;
+	PROD = 32; // product service
+	NONPROD_MASTER = 64; // offline job's master
+	NONPROD_WORKER = 128; // offline job's worker
+	TEST = 256; // test app
+	NONPROD_PLATFORM = 33;
+    };
+    optional int32 majorPriority = 1 [default = 32]; // for preemption
+    optional int32 minorPriority = 2 [default = 0];  // for allocation sequence, range in [0, 16)
+}
+
+message SlotResource {
+    repeated Resource resources = 1;
+}
+
+message SlaveResource {
+    repeated Resource resources = 1;
+    repeated Resource reservedResources = 2;
+    repeated Resource sysReservedResources = 3;
+}
+
+message GrantedResource {
+    repeated Resource resources = 1;
+}
+
+message SlaveRuntimeConfig {
+    optional bool valid = 1 [default = false];
+    optional int32 cpuUsageSafeRatio = 2 [default = 80];
+    optional int32 elasticMemory = 3 [default = 0]; // MB
+    optional int32 guaranteedCpuForNonProd = 4 [default = 800]; // 8 core
+    optional bool enableMemoryPriority = 5 [default = false];
+    optional bool usePriorityOOM = 6 [default = false];
+    optional bool enableOOMKillAll = 7 [default = false];
+    optional bool memoryUsageCalcInLruView = 8 [default = true];
+    optional bool enableColdMemory = 9 [default = false];
+    repeated string configs = 10; // slave k=v configs
+}
+
+message SlaveDescription {
+    optional string address = 1;
+    optional int32 slotCount = 2 [default = 1];
+    optional SlaveResource slaveResource = 3; // 除cpu，mem之外的自定义资源
+    optional bool isOffline = 4 [default = false];    // Depricated
+    optional int64 slaveId  = 5 [default = 0];
+    repeated int32 needOfflineSlots = 6;              // Deprecated
+    optional SlaveRuntimeConfig runtimeConfig = 7;    // Deprecated
+    optional string offlineReason = 8;                // Depricated
+    repeated Parameter labels = 9;
+    // indicate whether slave can run non-prod slots    
+    optional int32 leaseRatio = 10 [default = 100];
+    optional SlaveState state = 11 [default = ONLINE];
+    repeated Visibility visibilities = 12; // union
+    // indicates this node should be scheduled by other schedulers or clusterManagers,
+    // default value is empty, which means should scheduled by this hippo's default scheduler
+    optional string schedDomain = 13;
+    repeated SlotPreferenceConfig preferences = 14;
+}
+
+enum PreferenceTag {
+    PREF_NORMAL = 0;
+    PREF_RELEASE = 1;
+};
+
+message SlotPreference {
+    optional PreferenceTag preftag = 1 [default = PREF_NORMAL];
+}
+
+message SlotPreferenceConfig {
+    optional string pattern = 1;
+    optional PreferenceTag preftag = 2 [default = PREF_NORMAL];
+}
+
+message Visibility {
+    enum VisibilityScope {
+	GLOBAL = 0;
+	PRIORITY = 1;
+	NAMESPACE = 2;
+	NS_PREFIX = 3;
+	RESOURCE = 4;
+    };
+    enum VisibilityOperator {
+	IN = 0;
+	NOT_IN = 1;
+    };    
+    optional VisibilityScope scope = 1 [default = GLOBAL];
+    optional VisibilityOperator op = 2 [default = IN];
+    optional string pattern = 3;
+    optional int32 limit = 4 [default = 1000000]; // only work for operator IN
+}
+
+message ApplicationSlotConfig {
+    enum WorkDirStyle {
+	APP_STYLE = 0;
+	APP_TAG_STYLE = 1;
+    };
+    optional WorkDirStyle workDirStyle = 1 [default = APP_STYLE];
+    optional string binaryCacheNamespace = 2;
+}
+
+message ResourceRequest {
+    enum AllocateMode {
+	MACHINE = 0;
+	SLOT = 1;
+	AUTO = 2;
+    };
+
+    enum SpreadLevel {
+	UNLIMIT = 0;
+	HOST = 1;
+	FRAME = 2;
+	RACK = 3;
+	ASW = 4;
+	PSW = 5;
+    };
+    enum CpusetMode {
+	NONE = 0;
+	SHARE = 1;
+	RESERVED = 2;
+	EXCLUSIVE = 3;
+    };
+    optional string tag = 1; // resource request的标记，AM用于区分多次申请的c资源
+    repeated SlotResource options = 2; // slot的需求描述，满足任意一个需求即可,不需要指定resouce type
+    optional int32 count = 3;
+    repeated Resource declarations = 4;
+    optional AllocateMode allocateMode = 5 [default = AUTO];
+    optional string queue = 6;
+    optional Priority priority = 7;
+    optional string groupId = 8;
+    repeated Parameter metaTags = 9;
+    optional bool useCpuset = 10 [default = false]; // deprecated
+    optional SpreadLevel spreadLevel = 11 [default = HOST];
+    optional int32 maxInstancePerHost = 12;
+    optional int32 maxInstancePerFrame = 13;
+    optional int32 maxInstancePerRack = 14;
+    optional int32 maxInstancePerASW = 15;
+    optional int32 maxInstancePerPSW = 16;
+    repeated string specifiedIps = 17;
+    repeated string prohibitedIps = 18;
+    optional string requirementId = 19;
+    optional bool strictly = 20;
+    optional CpusetMode cpusetMode = 21;
+    optional bool useHostWorkDir = 22 [default = true];
+    optional string errorMsg = 23;
+    repeated string containerConfigs = 24; // role level configs
+    optional string requestNs = 25; // ns_a/ns_b format
+    repeated Parameter fedPayloads = 26;
+    optional ProcessLaunchContext launchTemplate = 27;
+    optional int64  launchSignature = 28;
+    optional string packageChecksum = 29;
+}
+
+message ApplicationDescription {
+    enum ExclusiveMode {
+	APP = 0;
+	TAG = 1;
+	NONE = 2;
+    };
+    enum Status {
+	ACTIVE = 0;
+	FROZEN = 1;
+	RESERVE = 2;
+	KILLING = 3;
+	KILLED = 4;
+    };
+
+    optional string applicationId = 1;
+    optional int64 appChecksum = 2;
+    optional string user = 3;
+    optional int32 replicaCount = 4 [default = 1];
+    optional SlotResource requiredResource = 5; // AM自己占用的资源
+    optional ProcessLaunchContext processLaunchContext = 6;
+    optional int64 oldSlotPriorityKeepTime = 7 [default = 0]; // second
+    optional ExclusiveMode exclusiveMode = 8 [default = APP];
+    optional ApplicationSlotConfig slotConfig = 9;
+    optional string queue = 10;
+    optional Status status = 11 [default = ACTIVE];
+    optional ResourceRequest.AllocateMode allocateMode = 12 [default = AUTO];
+    optional Priority priority = 13;
+    optional uint64 constraintPolicy = 14; //deprecated
+    optional string groupId = 15;
+    repeated Resource declarations = 16;
+    optional bool useCpuset = 17 [default = false]; // deprecated
+    optional ResourceRequest.CpusetMode cpusetMode = 18;
+    repeated string containerConfigs = 19; // app level configs, format k=v
+    optional int64 reserveTime = 20 [default = 0]; // microsecond
+    optional string requestNs = 21;
+    optional yarn.proto.ApplicationIdProto yarnApplicationId = 22;    // deprecated
+    repeated Parameter labels = 23;     // only used to label app description
+}
+
+message QueueResource {
+    repeated Resource resources = 1;
+    optional int32 minCount = 2;
+    optional int32 maxCount = 3;
+    optional int32 allocatedSlaves = 4;
+    optional int32 overAllocateQuota = 5;
+}
+
+message QueueDescription {
+    enum ScheduleMode {
+	SPREADOUT = 0;
+	PILEUP = 1;
+    };
+    enum QueueType {
+	STATIC_RESOURCE_QUEUE = 0;
+	DYNAMIC_RESOURCE_QUEUE = 1;
+	SYSTEM_QUEUE = 2;
+    }
+    optional string name = 1;
+    repeated QueueResource queueResource = 2;
+    optional QueueType queueType = 3;
+    optional ScheduleMode scheduleMode = 4;
+    optional int32 leaseRatio = 5;
+}
+
+message PodTraceInfo {
+    optional string uid = 1;
+    optional string resourceTag = 2;
+    optional string workdirTag = 3;
+    optional string federatedCluster = 4;
+    optional string errorMsg = 5;
+}
+
+message ResourceResponse {
+    optional string resourceTag = 1;
+    repeated AssignedSlot assignedSlots = 2;
+    optional string errorMsg = 3;
+    repeated PodTraceInfo pendingPods = 4;
+}
+
+message SlaveStatus {
+    enum Status {
+	UNKNOWN = 0;
+	DEAD = 1;
+	ALIVE = 2;
+    };
+    optional Status status = 1;
+}
+
+message SlaveHealth {
+    enum HealthCode {
+	HC_OK = 0;
+	HC_UNKNOWN = 1;
+	HC_NO_PROCESS = 2;
+	HC_RPC_FAIL = 3;
+	HC_CHECK_TIMEOUT = 4;
+	HC_UNHEALTH = 5;
+    }
+    optional bool isHealthy = 1 [default = true]; // 标记slave是否健康，当以下各检查项不正常状态超过设定的持续时间，更新
+    optional HealthCode dp2Status = 2 [default = HC_UNKNOWN];
+    optional HealthCode envGuardStatus = 3 [default = HC_UNKNOWN];
+    optional HealthCode commonStatus = 4 [default = HC_UNKNOWN];
+}
+
+enum SlaveState {
+    ONLINE = 0;
+    OFFLINE = 1;
+    FROZEN = 2;
+}
+
+message SystemStatus {
+    enum Status {
+	ACTIVE = 0;
+	FROZEN = 1;
+    };
+    optional Status status = 1;
+}
+
+message ProcessStatus {
+    enum Status {
+	PS_UNKNOWN = 0;
+	PS_RUNNING = 1;
+	PS_RESTARTING = 2;
+	PS_STOPPING = 3;
+	PS_STOPPED = 4;
+	PS_FAILED = 5;
+	PS_TERMINATED = 6;
+    };
+    optional bool isDaemon = 1;
+    optional Status status = 2;
+    optional string processName = 3;
+    optional int32 restartCount = 4;
+    optional int64 startTime = 5;
+    optional int32 exitCode = 6;
+    optional int32 pid = 7;
+    optional int64 instanceId = 8;
+    repeated Parameter otherInfos = 9;
+}
+
+message PackageDetail {
+    optional int64 taskid = 1;
+    optional string status = 2;
+    optional int64 startTime = 3;
+    optional int64 costTime = 4;
+    optional int64 downloadSize = 5;
+    optional int64 totalSize = 6;
+    optional string srcBaseUri = 7;
+    optional string errMsg = 8;
+    optional string packageName = 9;
+}
+
+message SlotPayload {
+    optional SlotId id = 1;
+    repeated Parameter payloads = 2;
+}
+
+message AssignedSlot {
+    optional SlotId id = 1;
+    optional bool reclaim = 2;
+    optional string applicationId = 3; // appid which holds this slot
+    optional int64 appChecksum = 11;
+    optional SlotResource slotResource = 4;
+    repeated ProcessStatus processStatus = 5;
+    optional SlaveStatus slaveStatus = 6;
+    repeated DataStatus dataStatus = 7;
+    optional int64 launchSignature = 8;
+    optional string packageChecksum = 9;    
+    optional PackageStatus packageStatus = 10;
+    optional bool systemSlot = 12;
+    optional bool noLongerMatchQueue = 13 [default = false];
+    optional bool noLongerMatchResourceRequirement = 14 [default = false];
+    repeated Parameter payloads = 15; // deprecated
+    optional SlotResource declareResources = 16;
+    optional bool noLongerMatchWorkDirTag = 17 [default = false];
+    optional string preDeployPackageChecksum = 18;
+    optional PackageStatus preDeployPackageStatus = 19;
+    optional Priority priority = 20;
+    optional string groupId = 21;
+    repeated Parameter metaTags = 22;
+    optional string requirementId = 23;
+    optional string yarnContainerId = 24;     // deprecated
+    optional SlotPreference slotPreference = 25;
+    repeated PackageDetail packageDetails = 26;
+    optional string uid = 27;
+    optional string k8sPodUID = 28;
+    optional string k8sPodName = 29;
+    optional string k8sNamespace = 30;
+    optional string ip = 31;
+}
+
+message ProcessLaunchContext {
+    repeated PackageInfo requiredPackages = 1;
+    repeated ProcessInfo processes = 2;
+    repeated DataInfo requiredDatas = 3;
+    repeated PackageInfo preDeployPackages = 4;
+    optional string requirementId = 5;
+    repeated Parameter extendInfos = 6;
+}
+
+message ProcessLaunchExtraInfo {
+    repeated Parameter quotaIds = 1;
+    repeated Parameter cgroupPaths = 2;
+    repeated Parameter extendInfos = 3;
+}
+
+message PackageInfo {
+    enum PackageType {
+	UNSUPPORT = 1;
+	FILE = 2;
+	DIR = 3;
+	RPM = 4;
+	ARCHIVE = 5;
+	IMAGE = 6;
+    }
+    
+    enum PackageVisibility {
+	PUBLIC = 1;
+	PRIVATE = 2;
+    }
+
+    optional string packageURI = 1;
+    optional PackageType type = 2;
+    optional PackageVisibility visibility = 3 [default = PUBLIC];
+}
+
+message TrackData {
+    optional string path = 1;
+    optional string matchPattern = 2;
+    optional string logPattern = 3;
+    optional int64 keepTime = 4 [default = 3600]; //s
+    optional int32 limitSize = 5 [default = 1024]; //M
+}
+
+message ProcessInfo {
+    optional bool isDaemon = 1 [default = false];
+    optional string processName = 2;
+    optional string cmd = 3;
+    repeated Parameter envs = 4;
+    repeated Parameter args = 5;
+    optional int64 instanceId = 6;
+    optional int64 stopTimeout = 7 [default = 100]; //s
+    optional int64 restartInterval = 8 [default = 10]; //s
+    optional int64 restartCountLimit = 9 [default = 10];
+    optional int32 procStopSig = 10 [default = 10]; // 10 mean SIGUSR1
+    repeated Parameter otherInfos = 11;
+}
+
+message Parameter {
+    optional string key = 1;
+    optional string value = 2;
+}
+
+message DataInfo {
+    enum DataVisibility {
+	PUBLIC = 1;
+	PRIVATE = 2;
+    }
+    enum DataPathNormalizeType {
+	NONE = 1;
+	COLON_REPLACED = 2;
+    }
+    optional string name = 1;
+    optional string src = 2;
+    optional string dst = 3;
+    optional int32 version = 4;
+    optional int64 attemptId = 5;
+    optional int64 expireTime = 6 [default = 259200]; //default:3 day(3 * 24 * 3600)
+    optional DataVisibility visibility = 7 [default = PRIVATE];
+    optional int32 retryCountLimit = 8 [default = 0]; // -1 means retrying never end
+    optional DataPathNormalizeType normalizeType = 9 [default = NONE];
+}
+
+message DataStatus {
+    enum DeployStatus {
+	UNKNOWN = 0;
+	DEPLOYING = 1;
+	FINISHED = 2;
+	FAILED = 3;
+	STOPPED = 4;
+    };
+    optional string name = 1;
+    optional string src = 2;
+    optional string dst = 3;
+    optional int32 curVersion = 4;
+    optional int32 targetVersion = 5;
+    optional DeployStatus deployStatus = 6;
+    optional ErrorInfo lastErrorInfo = 7;
+    optional int64 attemptId = 8;
+    optional DataInfo.DataVisibility visibility = 9;
+    optional int32 retryCount = 10;
+}
+
+message PackageStatus {
+    enum Status {
+        IS_UNKNOWN = 0;
+        IS_WAITING = 1;
+        IS_INSTALLING = 2;
+        IS_INSTALLED = 3;
+        IS_FAILED = 4;
+        IS_CANCELLED = 5;
+    };
+    optional Status status = 1;
+}
+
+message LoadInfo {
+    optional string name = 1;
+    optional double value = 2;
+    optional string tags = 3;
+}
+
+message ContainerLoadInfo {
+    optional string containerName = 1;
+    optional string containerIp = 2;
+    optional string service = 3;
+    optional int64 updateTime = 4;
+    repeated LoadInfo loadInfo = 5;
+}
+
+message SlotLoadInfo {
+    optional int32 slotId = 1;
+    optional string appId = 2;
+    optional string appRole = 3;
+    optional string cpuSetMode = 4;
+    optional string priority = 5;
+    optional bool isPod = 6;
+    optional int64 updateTime = 7;
+    repeated LoadInfo loadinfo = 8;
+    repeated ContainerLoadInfo containerLoadInfo = 9;
+}
+
+message SlaveLoadInfo {
+    optional string slaveAddr = 1;
+    optional string clusterName = 2;
+    optional string serviceName = 3;
+    optional string machineType = 4;
+    optional int64 updateTime = 5;
+    repeated LoadInfo loadInfo = 6;
+    repeated SlotLoadInfo slotLoadInfo = 7;
+}
+
+message SlaveNodeLoadInfo {
+    optional SlaveLoadInfo slaveLoadInfo = 1;
+}
+
+
+message SetLoggerLevelRequest {
+    enum LogLevel {
+	DISABLE = 0;
+	FATAL   = 1;
+	ERROR   = 2;
+	WARN    = 3;
+	INFO    = 4;
+	DEBUG   = 5;
+	TRACE1  = 6;
+	TRACE2  = 7;
+	TRACE3  = 8;
+	NOTSET  = 9;
+    }
+    required string logger = 1;
+    required LogLevel level = 2;
+}
+
+message SetLoggerLevelResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message ClusterDescription {
+    required string clusterId = 1;
+    optional string driverClass = 2;
+    optional string endpoint = 3;         // fullfill apiserver endpoint
+    optional string serviceAddr = 4;      // fullfill master zk path
+    optional string slaveRunMode = 5;                  // deprecated
+    optional bool conquered = 6 [default = false];     // deprecated
+    optional bool needHeartBeat = 7 [default = false]; // deprecated
+    repeated Parameter specs = 20;
+    optional int64 addedTime = 21;
+    optional string state = 22 [default = "online"];
+}
+

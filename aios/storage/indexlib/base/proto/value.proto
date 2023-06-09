@@ -1,0 +1,67 @@
+syntax = "proto2";
+package indexlibv2.base;
+
+
+enum ValueType {
+    INT_8                = 0;
+    UINT_8               = 1;
+    INT_16               = 2;
+    UINT_16              = 3;
+    INT_32               = 4;
+    UINT_32              = 5;
+    INT_64               = 6;
+    UINT_64              = 7;
+    INT_128              = 8;
+    FLOAT                = 9;
+    DOUBLE               = 10;
+    STRING               = 11;
+}
+
+message MultiInt32Value {
+    repeated int32 value            = 1;
+}
+
+message MultiUInt32Value {
+    repeated uint32 value           = 1;
+}
+
+message MultiInt64Value {
+    repeated int64 value            = 1;
+}
+
+message MultiUInt64Value {
+    repeated uint64 value           = 1;
+}
+
+message MultiFloatValue {
+    repeated float value            = 1;
+}
+
+message MultiDoubleValue {
+    repeated double value           = 1;
+}
+
+message MultiBytesValue {
+    repeated bytes value            = 1;
+}
+
+message AttrValue {
+    required ValueType type         = 127;
+
+    oneof value {
+        int32     int32_value   = 1;
+        uint32    uint32_value  = 2;
+        int64     int64_value   = 3;
+        uint64    uint64_value  = 4;
+        float     float_value   = 5;
+        double    double_value  = 6;
+        bytes     bytes_value   = 7;
+        MultiInt32Value multi_int32_value       = 8;
+        MultiUInt32Value multi_uint32_value     = 9;
+        MultiInt64Value multi_int64_value       = 10;
+        MultiUInt64Value multi_uint64_value     = 11;
+        MultiFloatValue multi_float_value       = 12;
+        MultiDoubleValue multi_double_value     = 13;
+        MultiBytesValue multi_bytes_value       = 14;
+    }
+}

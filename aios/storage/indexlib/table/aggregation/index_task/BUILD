@@ -1,0 +1,24 @@
+load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+indexlib_cc_library(
+    name='AggregationResourceCreator',
+    deps=[
+        '//aios/storage/indexlib/framework/index_task:IIndexTaskResourceCreator',
+        '//aios/storage/indexlib/table/index_task/merger:MergePlan'
+    ]
+)
+indexlib_cc_library(
+    name='AggregationTaskOperationCreator',
+    deps=[
+        '//aios/storage/indexlib/table/index_task/merger:CommonTaskOperationCreator',
+        '//aios/storage/indexlib/table/index_task/merger:IndexMergeOperation'
+    ]
+)
+indexlib_cc_library(
+    name='AggregationTaskPlanCreator',
+    deps=[
+        ':AggregationTaskOperationCreator',
+        '//aios/storage/indexlib/table/index_task:ComplexIndexTaskPlanCreator',
+        '//aios/storage/indexlib/table/kv_table/index_task:KVTableMergePlanCreator'
+    ]
+)

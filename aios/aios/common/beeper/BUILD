@@ -1,0 +1,14 @@
+cc_library(
+    name='beeper',
+    deps=[':havenask_mock_beeper'],
+    visibility=['//visibility:public']
+)
+cc_library(
+    name='havenask_mock_beeper',
+    srcs=glob([]),
+    hdrs=glob(['havenask_mock/**/*.h']),
+    include_prefix='beeper',
+    strip_include_prefix='havenask_mock',
+    deps=[],
+    visibility=['//visibility:public']
+)
