@@ -26,7 +26,7 @@ Havenask delivers the following benefits:
 
 ## Get Started
 
-* Havenask Docker images
+* Havenask Docker images (image platform: amd64)
   * <strong>ha3_runtime</strong>: runtime image allows you to quickly start a search service without compiling.
   * <strong>ha3_dev </strong>: development image includes all libraries necessary for compiling havenask. （[Wiki: Compile Code](https://github.com/alibaba/havenask/wiki/Get-Started-en-1.0.0-beta#compile-code)）
 * Requirements
@@ -121,7 +121,7 @@ Havenask 的核心能力与优势，有以下几点：
 * Havenask Wiki: [https://github.com/alibaba/havenask/wiki](https://github.com/alibaba/havenask/wiki)
 
 ## 开始使用
-* 镜像介绍
+* 镜像介绍（镜像平台: amd64）
    * ha3_runtime：可直接运行的镜像，无需编译代码，包含了问天引擎的可执行文件。
    * ha3_dev：用于开发测试的镜像，里面包含了开发测试时需要的各种依赖库和头文件，如何编译问天引擎请参考[编译代码](https://github.com/alibaba/havenask/wiki/%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B-1.0.0-beta)。
 * 环境要求
