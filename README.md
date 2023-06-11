@@ -28,7 +28,7 @@ Havenask delivers the following benefits:
 
 * Havenask Docker images
   * <strong>ha3_runtime</strong>: runtime image allows you to quickly start a search service without compiling.
-  * <strong>ha3_dev </strong>: development image includes all libraries necessary for compiling havenask. （[Wiki: Compile Code](https://github.com/alibaba/havenask/wiki/Get-Started-en#compile-code)）
+  * <strong>ha3_dev </strong>: development image includes all libraries necessary for compiling havenask. （[Wiki: Compile Code](https://github.com/alibaba/havenask/wiki/Get-Started-en-1.0.0-beta#compile-code)）
 * Requirements
   * Runtime: cpu > 2 cores, memory > 4G, disk > 20G
   * Dev: cpu > 2 cores, memory > 10G, disk > 50G
@@ -78,7 +78,7 @@ python build_demo_data.py /ha3_install
 ```
 python start_demo_searcher.py /ha3_install
 ```
-* havenask container listens on the default port of 45800. Here are some examples. ([More examples](https://github.com/alibaba/havenask/tree/main/example))
+* havenask container listens on the default port of 45800. Here are some examples. ([More examples](https://github.com/alibaba/havenask/tree/1.0.0-beta/example))
 
 
 ```
@@ -165,7 +165,7 @@ python build_demo_data.py /ha3_install
 python start_demo_searcher.py /ha3_install
 ```
 
-引擎的默认查询端口为45800，使用脚本进行查询测试。下面是一些测试query。更多测试case见[example](https://github.com/alibaba/havenask/tree/main/example)
+引擎的默认查询端口为45800，使用脚本进行查询测试。下面是一些测试query。更多测试case见[example](https://github.com/alibaba/havenask/tree/1.0.0-beta/example)
 
 ```
 python curl_http.py 45800 "query=select count(*) from in0&&kvpair=databaseName:in0;timeout:2000"
