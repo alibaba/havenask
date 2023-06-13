@@ -42,7 +42,7 @@ Havenask delivers the following benefits:
 * clone the repository
 ```
 cd ~
-git clone git@github.com:alibaba/havenask.git -b 1.0.0-beta
+git clone git@github.com:alibaba/havenask.git
 cd ~/havenask/docker/havenask
 ```
 
@@ -78,7 +78,7 @@ python build_demo_data.py /ha3_install
 ```
 python start_demo_searcher.py /ha3_install
 ```
-* havenask container listens on the default port of 45800. Here are some examples. ([More examples](https://github.com/alibaba/havenask/tree/1.0.0-beta/example))
+* havenask container listens on the default port of 45800. Here are some examples. ([More examples](https://github.com/alibaba/havenask/tree/main/example))
 
 
 ```
@@ -133,7 +133,7 @@ Havenask 的核心能力与优势，有以下几点：
 克隆仓库
 ```
 cd ~
-git clone git@github.com:alibaba/havenask.git -b 1.0.0-beta
+git clone git@github.com:alibaba/havenask.git
 cd ~/havenask/docker/havenask
 ```
 创建容器，其中CONTAINER_NAME为指定的容器名
@@ -165,7 +165,7 @@ python build_demo_data.py /ha3_install
 python start_demo_searcher.py /ha3_install
 ```
 
-引擎的默认查询端口为45800，使用脚本进行查询测试。下面是一些测试query。更多测试case见[example](https://github.com/alibaba/havenask/tree/1.0.0-beta/example)
+引擎的默认查询端口为45800，使用脚本进行查询测试。下面是一些测试query。更多测试case见[example](https://github.com/alibaba/havenask/tree/main/example)
 
 ```
 python curl_http.py 45800 "query=select count(*) from in0&&kvpair=databaseName:in0;timeout:2000"
