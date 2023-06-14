@@ -1,3 +1,4 @@
+
 ## Introduction
 
 [![Leaderboard](https://img.shields.io/badge/HavenAsk-Check%20Your%20Contribution-orange)](https://opensource.alibaba.com/contribution_leaderboard/details?projectValue=havenask)
@@ -179,3 +180,8 @@ python curl_http.py 45800 "query=select title, subject from in0_summary_ where i
 官方技术交流钉钉群：
 
 ![3293821693450208](https://user-images.githubusercontent.com/590717/206684715-5ab1df49-f919-4d8e-85ee-58b364edef31.jpg)
+
+---
+> **Note**
+> old version：[main-stable-0.4](https://github.com/alibaba/havenask/tree/main-stable-0.4)
+
