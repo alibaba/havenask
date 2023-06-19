@@ -1,3 +1,6 @@
+## Note
+> old version：[main-stable-0.4](https://github.com/alibaba/havenask/tree/main-stable-0.4)  
+> The new and old main branches have a significant difference, and if the sync code branch produces errors, please make them consistent with the current main branch.
 
 ## Introduction
 
@@ -181,7 +184,4 @@ python curl_http.py 45800 "query=select title, subject from in0_summary_ where i
 
 ![3293821693450208](https://user-images.githubusercontent.com/590717/206684715-5ab1df49-f919-4d8e-85ee-58b364edef31.jpg)
 
----
-> **Note**
-> old version：[main-stable-0.4](https://github.com/alibaba/havenask/tree/main-stable-0.4)
 
