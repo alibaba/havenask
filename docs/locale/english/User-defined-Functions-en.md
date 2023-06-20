@@ -1,0 +1,1 @@
+Havenask SQL supports UDF and UDAF custom functions during a search.
