@@ -1,0 +1,1 @@
+The configurations of Havenask consists of offline configurations and online configurations. You can use offline configurations to build indexes and use online configurations to search online.

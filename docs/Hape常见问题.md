@@ -1,0 +1,2 @@
+* [Hape工作目录与日志](https://github.com/alibaba/havenask/wiki/Hape%E5%B7%A5%E4%BD%9C%E7%9B%AE%E5%BD%95%E4%B8%8E%E6%97%A5%E5%BF%97)
+* [Hape问题排查](https://github.com/alibaba/havenask/wiki/Hape%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5)
