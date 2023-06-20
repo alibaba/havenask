@@ -9,7 +9,6 @@
 As a search engine developed by Alibaba Group, Havenask is a large-scale distributed information search system widely used within Alibaba Group. It provides the search services for business across the Alibaba Group such as Taobao, Tmall, Cainiao, Amap, Ele.me, and global services. It offers high-performance and easy-to-use search services with low costs. Havenask also provides flexible customization and development capabilities. Its algorithms can be fast iterated. This way, Havenask enables you to develop intelligent search service tailored for your business and empower business growth.
 
 
-
 Havenask delivers the following benefits:
 
 
