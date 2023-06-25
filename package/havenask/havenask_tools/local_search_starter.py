@@ -40,7 +40,7 @@ class PortListItem:
         self.ports = None
         self.role = None
 
-class PartSearchStartCmd(object):
+class LocalSearchStartCmd(object):
     '''
 local_search_starter.py
     {-i index_dir           | --index=index_dir}
@@ -107,11 +107,6 @@ examples:
         print self.__doc__ % {'prog' : sys.argv[0]}
 
     def addOptions(self):
-        self.parser.add_option('', '--role', action='store', dest='role')
-        self.parser.add_option('', '--part_id', action='store', dest='partitionIndex', type='int')
-        self.parser.add_option('', '--part_count', action='store', dest='partitionCount', type='int')
-        self.parser.add_option('', '--label', action='store', dest='label', type='str')
-        
         self.parser.add_option('-i', '--index', action='store', dest='indexPath')
         self.parser.add_option('-c', '--config', action='store', dest='configPath')
         self.parser.add_option('-p', '--port', action='store', dest='portList')
@@ -149,9 +144,9 @@ examples:
         self.parser.add_option('-m', '--multiBiz', action='store_true', dest='multiBiz')
         self.parser.add_option('-M', '--modelBiz', action='store', dest='modelBiz', default='')
         self.parser.add_option('-L', '--localBizService', action='store_true', dest='localBizService')
-        # https://yuque.alibaba-inc.com/lhubic/wuhf65/aecyg6
+        # xxxx://invalid/lhubic/wuhf65/aecyg6
         self.parser.add_option('', '--kmonSinkAddress', action='store', dest='kmonSinkAddress',
-                               default='11.163.219.136')
+                               default='127.0.0.1')
         self.parser.add_option('', '--specialCatalogList', action='store', dest='specialCatalogList')
         self.parser.add_option('', '--zk_root', action='store', dest='zkRoot', default='LOCAL')
         self.parser.add_option('', '--mode', action='store', dest='mode', default='rw')
@@ -191,16 +186,6 @@ examples:
         return True
 
     def initMember(self, options):
-        self.workDir = os.getcwd()
-        with open("heartbeats/envs_and_args.json", "r") as f:
-            self.envs_and_args = json.load(f)
-                
-        
-        self.label = options.label
-        self.partitionIndex = options.partitionIndex
-        self.partitionCount = options.partitionCount
-        self.role = options.role
-        
         self.searcherReplica = options.searcherReplica
         self.qrsQueue = options.qrsQueue
         self.searcherQueue = options.searcherQueue
@@ -254,7 +239,7 @@ examples:
         self.qrsHttpArpcBindPort = options.qrsHttpArpcBindPort
         self.qrsArpcBindPort = options.qrsArpcBindPort
         self.portList = []
-        self.origin_port_list = map(lambda x:int(x), options.portList.split(","))
+        self.origin_port_list = map(lambda x:int(x), options.portList.split(",")) if options.portList != None else []
         self.searcher_port_list = []
         self.qrs_port_list = None
         self.portStart = 12000
@@ -299,26 +284,23 @@ examples:
         if self.dailyrunMode:
             self.startCmdTemplate += " DAILY_RUN_MODE=true"
             self.startCmdTemplate += " IS_TEST_MODE=true"
-        
-        self.startCmdTemplate += " DISABLE_CODEGEN=true"
-        self.startCmdTemplate += " DISABLE_TURBOJET=true"
+        if self.disableCodeGen:
+            self.startCmdTemplate += " DISABLE_CODEGEN=true"
+        if self.disableTurbojet:
+            self.startCmdTemplate += " DISABLE_TURBOJET=true"
         if self.enablePublishTableTopoInfo:
             self.startCmdTemplate += " ENABLE_PUBLISH_TABLE_TOPO_INFO=true"
 
         self.startCmdTemplate += " HIPPO_APP_INST_ROOT=" + self.binaryPath + " HIPPO_APP_WORKDIR=" + os.getcwd() + " TJ_RUNTIME_TEMP_DIR=" + self.binaryPath
-        for key in self.envs_and_args["envs"]:
-            value = self.envs_and_args["envs"][key]
-            self.startCmdTemplate += " {}={}".format(key, value)
-            
         self.startCmdTemplate += " PATH=$JAVA_HOME/bin:%s LD_LIBRARY_PATH=%s  sap_server_d -l %s -r %s -c %s --port arpc:%d --port http:%d --env httpPort=%d --env gigGrpcPort=0 --env serviceName=%s --env amonitorPath=%s/%s --env roleType=%s --env port=%d --env ip=%s --env userName=admin --env decodeUri=true --env haCompatible=true --env zoneName=%s --env roleName=%s_partition_%d --env partId=0 --env decisionLoopInterval=10000 --env dpThreadNum=1 --env loadThreadNum=4 --env load_biz_thread_num=4 --env kmonitorNormalSamplePeriod=1 --env naviPoolModeAsan=1 --env naviDisablePerf=1 --env WORKER_IDENTIFIER_FOR_CARBON= "
-        
-        for elem in self.envs_and_args["args"]:
-            self.startCmdTemplate += " {} {}".format(elem["key"], elem["value"])
         if self.localBizService:
             self.startCmdTemplate += " --env localBizService=true"
         self.startCmdTemplate += " --env asyncInterExecutorType=simple"
         self.startCmdTemplate += " --env asyncIntraExecutorType=simple"
         self.startCmdTemplate += " --env RS_ALLOW_RELOAD_BY_CONFIG=true"
+        self.startCmdTemplate += " --env FSLIB_LOCAL_ASYNC_CORO_READ=0"
+        self.startCmdTemplate += " --env SLEEP_CPU_FOR_TEST=1"
+
         self.alogConfigPath = os.path.join(self.binaryPath, "usr/local/etc/ha3/ha3_alog.conf")
         self.searchCfg = os.path.join(self.binaryPath, "usr/local/etc/ha3/search_server.cfg")
         self.qrsCfg = os.path.join(self.binaryPath, "usr/local/etc/ha3/qrs_server.cfg")
@@ -378,40 +360,37 @@ examples:
     def start_once(self):
         terminator = TimeoutTerminator(self.timeout)
         searcherTargetInfos = None
-        if self.role == 'searcher':
-            if not self.stopAll():
-                return -1, ("", "stop exist pid failed", -1)
-            if not self.enableLocalAccess:
-                searcher_ret, searcherTargetInfos, createCatalogRequest = self.startSearcher()
-                if searcher_ret != 0:
-                    return searcher_ret, ("", "start searcher failed", -1)
-            else:
-                zoneNames = self._getNeedStartZoneName()
-                if len(zoneNames) > 1:
-                    return -1, ("", "local access mode only support one zone, now zone names " + str(zoneNames), -1)
+        if not self.stopAll():
+            return -1, ("", "stop exist pid failed", -1)
+        if not self.enableLocalAccess:
+            searcher_ret, searcherTargetInfos, createCatalogRequest = self.startSearcher()
+            if searcher_ret != 0:
+                return searcher_ret, ("", "start searcher failed", -1)
+        else:
+            zoneNames = self._getNeedStartZoneName()
+            if len(zoneNames) > 1:
+                return -1, ("", "local access mode only support one zone, now zone names " + str(zoneNames), -1)
 
-            
-            if not self.enableLocalAccess:
-                ret = self.createCatalog(createCatalogRequest)
-                if ret != 0:
-                    return ret, ("", "create catalog failed", -1)
-                ret = self.loadSearcherTarget(searcherTargetInfos, terminator.left_time())
-                if ret != 0:
-                    return ret, ("", "load searcher target failed", -1)
-                
-        if self.role == "qrs":
-            qrs_ret = self.startQrs()
-            if qrs_ret != 0:
-                return qrs_ret, ("", "start qrs failed", -1)
+        qrs_ret = self.startQrs()
+        if qrs_ret != 0:
+            return qrs_ret, ("", "start qrs failed", -1)
 
-            if self.searcherLocalSubscribe:
-                ret = self.subscribeLocalSearchService()
-                if ret != 0:
-                    return ret, ("", "add local subscribe failed", -1)
-
-            ret = self.loadQrsTarget(terminator.left_time())
+        if not self.enableLocalAccess:
+            ret = self.createCatalog(createCatalogRequest)
             if ret != 0:
-                return ret, ("", "load qrs target failed", -1)
+                return ret, ("", "create catalog failed", -1)
+            ret = self.loadSearcherTarget(searcherTargetInfos, terminator.left_time())
+            if ret != 0:
+                return ret, ("", "load searcher target failed", -1)
+
+        if self.searcherLocalSubscribe:
+            ret = self.subscribeLocalSearchService()
+            if ret != 0:
+                return ret, ("", "add local subscribe failed", -1)
+
+        ret = self.loadQrsTarget(terminator.left_time())
+        if ret != 0:
+            return ret, ("", "load qrs target failed", -1)
 
 
         return 0, ("", "", 0)
@@ -428,7 +407,7 @@ examples:
             zoneName = needSubscribeInfo[0]
             bizName = zoneName + ".default_sql"
             local_config = {
-                "part_count": self.partitionCount,
+                "part_count": 1,
                 "biz_name": bizName,
                 "version": 123,
                 "part_id": 0,
@@ -490,12 +469,7 @@ examples:
             print "start searcher with table info failed: ", json.dumps(targetInfos)
             return -1, None, None
         print "wait searcher target load"
-        # self.writeReadyZones()
         return 0, targetInfos, createCatalogRequest
-    
-    # def writeReadyZones(self):
-    #     with open("{}/heartbeats/subscribe_infos.json".format(self.workDir), "w") as fp:
-    #         json.dump(self.gigInfos, fp)
 
     def startQrs(self):
         if not self._startQrs():
@@ -575,9 +549,6 @@ examples:
 
 
     def loadQrsTarget(self, timeout = 300):
-        with open("{}/heartbeats/qrs_subscribe.json".format(self.workDir), "r") as f:
-            self.gigInfos = json.load(f)
-        print("qrs gig infos {}".format(self.gigInfos))
         terminator = TimeoutTerminator(timeout)
         bizs = os.listdir(self.onlineConfigPath)
         bizInfo = {}
@@ -627,12 +598,12 @@ examples:
         if grpcPort != 0:
             externalTableConfig["grpc_port"] = grpcPort
             externalTableConfig["support_heartbeat"] = False
-        # gigInfos["biz_order_seller_online.external"] = externalTableConfig
+        gigInfos["biz_order_seller_online.external"] = externalTableConfig
 
         target = {
             "service_info" : {
                 "cm2_config" : {
-                    "local" : gigInfos
+                    "local" : gigInfos.values()
                 },
                 "part_count" : 1,
                 "part_id" : 0,
@@ -727,19 +698,21 @@ examples:
                 portList = self._getSearcherPortList(count)
                 count += 1
                 zoneName = targetInfo[0]
-                roleName = self.genRoleName(targetInfo[0], self.partitionIndex)
+                partId = targetInfo[1]
+                replicaId = targetInfo[2]
+                roleName = self.genRoleName(targetInfo)
                 if roleName in readyTarget:
                     continue
 
-                target = targetInfo[1]
+                target = targetInfo[3]
                 if self.options.searcherSubscribeConfig:
                     target['service_info']['cm2_config'] = json.loads(self.options.searcherSubscribeConfig)
                 httpArpcPort = portList[0]
                 arpcPort = portList[1]
                 grpcPort = portList[2]
-                # qrsArpcPort = self.getQrsPortList()[1]
-                # arpcAddress = "%s:%d" %(self.ip, qrsArpcPort)
-                # target["catalog_address"] = arpcAddress
+                qrsArpcPort = self.getQrsPortList()[1]
+                arpcAddress = "%s:%d" %(self.ip, qrsArpcPort)
+                target["catalog_address"] = arpcAddress
                 target["target_version"] = self.targetVersion
                 targetStr = json.dumps(target)
                 requestSig = targetStr
@@ -782,8 +755,6 @@ examples:
                             localConfig["support_heartbeat"] = True
                         gigKey = roleName + "_" + splitInfo[0] + "_" + str(splitInfo[2])
                         self.gigInfos[gigKey] = localConfig
-                    with open("{}/heartbeats/subscribe_infos.json".format(self.workDir), "w") as fp:
-                        json.dump(self.gigInfos, fp)
                     readyTarget.add(roleName)
                     print "searcher [%s] is ready for search, topo [%s]" % (roleName, json.dumps(localConfig))
                 if len(targetInfos) == len(readyTarget):
@@ -897,21 +868,23 @@ examples:
         httpArpcPort_list = []
         for targetInfo in targetInfos:
             zoneName = targetInfo[0]
-            roleName = self.genRoleName(zoneName, self.partitionIndex)
+            partId = targetInfo[1]
+            replicaId = targetInfo[2]
+            roleName = self.genRoleName(targetInfo)
             rundir = os.path.join(self.localSearchDir, roleName)
             if not os.path.exists(rundir):
                 os.system("mkdir %s" % rundir)
-            targetCfg = os.path.join(rundir, zoneName + "_%d_search_service_%d.cfg" % (self.partitionIndex, self.portStart))
+            targetCfg = os.path.join(rundir, zoneName + "_%d_search_service_%d.cfg" % (partId, self.portStart))
             cmd = "cp %s %s" % (self.searchCfg, targetCfg)
             print cmd
             os.system("cp %s %s" % (self.searchCfg, targetCfg))
             kmonServiceName = self.serviceName
             if '^' in self.serviceName:
                 # override tags['zone'], tags['role'], tags['host']
-                kmonServiceName = self.serviceName + '@zone^{}@role^{}@host^{}'.format(zoneName, self.partitionIndex, roleName)
+                kmonServiceName = self.serviceName + '@zone^{}@role^{}@host^{}'.format(zoneName, partId, roleName)
             startCmd = self.startCmdTemplate % (self.binPath, self.libPath, self.alogConfigPath,
                                                 self.binaryPath, targetCfg, 0, 0, 0, kmonServiceName, self.amonPath,
-                                                zoneName, "searcher", 0, self.ip, zoneName, zoneName, self.partitionIndex )
+                                                zoneName, "searcher", 0, self.ip, zoneName, zoneName, partId )
             if self.searcherQueue :
                 startCmd += " --env extraTaskQueues=" + self.searcherQueue
             if self.searcherQueueSize :
@@ -1124,114 +1097,116 @@ examples:
                 "tables" : []
             }
             tableGroupTables = {}
-            # atables = []
-            # if self.atableList.has_key(zoneName):
-            #     atables = self.atableList[zoneName].split(",")
-            # atables.append(zoneName)
-            # zoneGid = None
-            # partitions = None
-            # has_offline_index = True
-            # has_realtime = False
-            # if tabletInfos.has_key(zoneName):
-            #     has_offline_index = tabletInfos[zoneName]['has_offline_index']
-            #     has_realtime = True
-            # if has_offline_index:
-            #     zoneGid = self._getMaxGenerationId(self.indexPath, zoneName)
-            #     partitions = self._getPartitions(self.indexPath, zoneName, zoneGid)
-            # else:
-            #     zoneGid = tabletInfos[zoneName]["generationId"]
-            #     partitions = tabletInfos[zoneName]["partitions"]
-            partCnt = self.partitionCount
-            # if self.enableMultiPartition:
-            #     partCnt = 1
-            # maxPartCnt = len(partitions)
-            # tableGroup["meta"]["shard_count"] = partCnt
-
-            tableInfos = {}
-            for tableName in os.listdir(self.indexPath):
-                tablePartition = []
-                curTableGid = None
-                curTablePartitions = None
-
-                has_offline_index = True
-                has_realtime = False
-                if tabletInfos.has_key(tableName):
-                    has_offline_index = tabletInfos[tableName]['has_offline_index']
-                    has_realtime = True
-                if has_offline_index:
-                    curTableGid = self._getMaxGenerationId(self.indexPath, tableName)
-                    curTablePartitions = self._getPartitions(self.indexPath, tableName, curTableGid)
-                else:
-                    curTableGid = tabletInfos[tableName]["generationId"]
-                    curTablePartitions = tabletInfos[tableName]["partitions"]
-                # if not self.enableMultiPartition :
-                #     curTablePartitionCnt = len(curTablePartitions)
-                #     if curTablePartitionCnt == 1:
-                #         tablePartition.append(fullPartition)
-                #     elif curTablePartitionCnt == maxPartCnt:
-                #         tablePartition.append(partitions[partId])
-                #     else:
-                #         raise Exception("table %s : len(curTablePartitions)(%d) != maxPartCnt(%d)" % (tableName, curTablePartitionCnt, maxPartCnt))
-                # else:
-                #     tablePartition = curTablePartitions
-            
-                tablePartition = curTablePartitions
-
-                tableGid = curTableGid
-                zoneDirName = self.genRoleName(zoneName, self.partitionIndex)
-                if inQrs:
-                    zoneDirName = "qrs"
-                tableMode = 0 if not has_realtime else 1 # TM_READ_WRITE
-                tableType = 3 if not has_realtime else 2 # SPT_TABLET
-                tmp = {
-                    tableGid : {
-                        "table_mode" : tableMode,
-                        "table_type" : tableType,
-                        "index_root" : self.createRuntimedirLink(zoneDirName),
-                        "config_path": self.createConfigLink(zoneDirName, 'table', tableName, self.offlineConfigPath),
-                        "total_partition_count":len(curTablePartitions),
-                        "partitions": {
-                        }
-                    }
-                }
-                for partition in tablePartition:
-                    incVersion = -1
-                    if has_offline_index:
-                        incVersion = self._getMaxIndexVersion(self.indexPath, tableName, tableGid, partition)
-                    tmp[tableGid]["partitions"][partition] = {
-                        "inc_version" : incVersion
-                    }
-                tableInfos[tableName] = tmp
-                tableGroupTables[tableName] = self._genCatalogTable(zoneName, zoneName, tableName, tableMode, tableGid)
-            bizs = os.listdir(self.onlineConfigPath)
-            bizInfo = {}
-            if self.enableMultiBiz:
-                for biz in bizs:
-                    onlineConfig = self.genOnlineConfigPath(self.onlineConfigPath, biz)
-                    bizInfo[biz] = {
-                        "config_path" : self.createConfigLink(zoneDirName, 'biz', biz, onlineConfig)
-                    }
-                    if biz in self.modelBiz:
-                        bizInfo[biz]["custom_biz_info"] = {
-                            "biz_type" : "model_biz"
-                        }
+            atables = []
+            if self.atableList.has_key(zoneName):
+                atables = self.atableList[zoneName].split(",")
+            atables.append(zoneName)
+            zoneGid = None
+            partitions = None
+            has_offline_index = True
+            has_realtime = False
+            if tabletInfos.has_key(zoneName):
+                has_offline_index = tabletInfos[zoneName]['has_offline_index']
+                has_realtime = True
+            if has_offline_index:
+                zoneGid = self._getMaxGenerationId(self.indexPath, zoneName)
+                partitions = self._getPartitions(self.indexPath, zoneName, zoneGid)
             else:
-                onlineConfig = self.genOnlineConfigPath(self.onlineConfigPath, bizs[0])
-                bizInfo['default'] = {
-                    "config_path" : self.createConfigLink(zoneDirName, 'biz', 'default', onlineConfig)
+                zoneGid = tabletInfos[zoneName]["generationId"]
+                partitions = tabletInfos[zoneName]["partitions"]
+            fullPartition = "0_65535"
+            partCnt = len(partitions)
+            if self.enableMultiPartition:
+                partCnt = 1
+            maxPartCnt = len(partitions)
+            tableGroup["meta"]["shard_count"] = partCnt
+
+            for replicaId, partId in product(range(replica), range(partCnt)):
+                tableInfos = {}
+                for tableName in atables:
+                    if not tableName:
+                        continue
+                    tablePartition = []
+                    curTableGid = None
+                    curTablePartitions = None
+
+                    has_offline_index = True
+                    has_realtime = False
+                    if tabletInfos.has_key(tableName):
+                        has_offline_index = tabletInfos[tableName]['has_offline_index']
+                        has_realtime = True
+                    if has_offline_index:
+                        curTableGid = self._getMaxGenerationId(self.indexPath, tableName)
+                        curTablePartitions = self._getPartitions(self.indexPath, tableName, curTableGid)
+                    else:
+                        curTableGid = tabletInfos[tableName]["generationId"]
+                        curTablePartitions = tabletInfos[tableName]["partitions"]
+                    if not self.enableMultiPartition :
+                        curTablePartitionCnt = len(curTablePartitions)
+                        if curTablePartitionCnt == 1:
+                            tablePartition.append(fullPartition)
+                        elif curTablePartitionCnt == maxPartCnt:
+                            tablePartition.append(partitions[partId])
+                        else:
+                            raise Exception("table %s : len(curTablePartitions)(%d) != maxPartCnt(%d)" % (tableName, curTablePartitionCnt, maxPartCnt))
+                    else:
+                        tablePartition = curTablePartitions
+
+                    tableGid = curTableGid
+                    zoneDirName = self.genRoleName((zoneName, partId, replicaId))
+                    if inQrs:
+                        zoneDirName = "qrs"
+                    tableMode = 0 if not has_realtime else 1 # TM_READ_WRITE
+                    tableType = 3 if not has_realtime else 2 # SPT_TABLET
+                    tmp = {
+                      tableGid : {
+                          "table_mode" : tableMode,
+                          "table_type" : tableType,
+                          "index_root" : self.createRuntimedirLink(zoneDirName),
+                          "config_path": self.createConfigLink(zoneDirName, 'table', tableName, self.offlineConfigPath),
+                          "total_partition_count":len(curTablePartitions),
+                          "partitions": {
+                          }
+                      }
+                    }
+                    for partition in tablePartition:
+                        incVersion = -1
+                        if has_offline_index:
+                            incVersion = self._getMaxIndexVersion(self.indexPath, tableName, tableGid, partition)
+                        tmp[tableGid]["partitions"][partition] = {
+                            "inc_version" : incVersion
+                        }
+                    tableInfos[tableName] = tmp
+                    tableGroupTables[tableName] = self._genCatalogTable(zoneName, zoneName, tableName, tableMode, tableGid)
+                bizs = os.listdir(self.onlineConfigPath)
+                bizInfo = {}
+                if self.enableMultiBiz:
+                    for biz in bizs:
+                        onlineConfig = self.genOnlineConfigPath(self.onlineConfigPath, biz)
+                        bizInfo[biz] = {
+                            "config_path" : self.createConfigLink(zoneDirName, 'biz', biz, onlineConfig)
+                        }
+                        if biz in self.modelBiz:
+                            bizInfo[biz]["custom_biz_info"] = {
+                                "biz_type" : "model_biz"
+                            }
+                else:
+                    onlineConfig = self.genOnlineConfigPath(self.onlineConfigPath, bizs[0])
+                    bizInfo['default'] = {
+                        "config_path" : self.createConfigLink(zoneDirName, 'biz', 'default', onlineConfig)
+                    }
+                targetInfo = {
+                    "table_info" : tableInfos,
+                    "service_info" : {
+                        "part_count" : partCnt,
+                        "part_id" : partId,
+                        "zone_name": zoneName,
+                        "version" : zoneGid
+                    },
+                    "biz_info" : bizInfo,
+                    "clean_disk" : False
                 }
-            targetInfo = {
-                "table_info" : tableInfos,
-                "service_info" : {
-                    "part_count" : partCnt,
-                    "part_id" : self.partitionIndex,
-                    "zone_name": zoneName,
-                    "version" : curTableGid
-                },
-                "biz_info" : bizInfo,
-                "clean_disk" : False
-            }
-            targetInfos.append((zoneName, targetInfo))
+                targetInfos.append((zoneName, partId, replicaId, targetInfo))
             database = {
                 "dbName" : zoneName,
                 "description" : "",
@@ -1325,11 +1300,14 @@ examples:
             s.close()
         return ports
 
-    def genRoleName(self, zoneName, partId):
-        return '{zoneName}_p{partId}'.format(zoneName = zoneName, partId = partId)
+    def genRoleName(self, targetInfo):
+        zoneName = targetInfo[0]
+        partId = targetInfo[1]
+        replicaId = targetInfo[2]
+        return '{zoneName}_p{partId}_r{replicaId}'.format(zoneName = zoneName, partId = partId, replicaId = replicaId)
 
 if __name__ == '__main__':
-    cmd = PartSearchStartCmd()
+    cmd = LocalSearchStartCmd()
     if len(sys.argv) < 3:
         cmd.usage()
         sys.exit(-1)

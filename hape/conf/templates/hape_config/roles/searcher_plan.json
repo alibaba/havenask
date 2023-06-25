@@ -1,6 +1,6 @@
 {
     "processor_info": {
-        "image": "reg.docker.alibaba-inc.com/aios-open-source/ha3_runtime:1.0-beta1", 
+        "image": "registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.0.0-beta", 
         "envs": {
         }, 
         "args": [
