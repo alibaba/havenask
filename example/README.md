@@ -79,7 +79,7 @@ mkdir ~/havenask/example/<case>/workdir
 ```
 
 
-* 启动havenask。执行时请将下面的目录地址替换为真实的地址。具体参数含义可以执行python <ha3_install>/usr/local/lib/python/site-packages/ha_tools/local_search_starter.py -h查看。启动成功后，会输出qrs的http和arpc端口
+* 启动havenask。执行时请将下面的目录地址替换为真实的地址。具体参数含义可以执行python <ha3_install>/usr/local/lib/python/site-packages/havenask_tools/local_search_starter.py -h查看。启动成功后，会输出qrs的http和arpc端口
 ```
 ### 进入workdir目录，
 cd ~/havenask/example/<case>/workdir
