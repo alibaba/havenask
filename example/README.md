@@ -55,6 +55,11 @@ python curl_http.py 12345 "query=select id,hits from in0 where MATCHINDEX('title
 python curl_http.py 12345 "query=select title, subject from in0_summary_ where id=1 or id=2"
 ```
 
+* 如果想要更新配置，可以执行以下命令。需要注意新config的路径必须与老config不同，否则目标不会下发成功
+```
+python update_demo_seacher.py <ha3_install> <case> <new_config_path>
+```
+
 
 ## 手动测试
 
