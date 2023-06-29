@@ -29,7 +29,8 @@ bundle_files(
         ':havenask_plugin_package', '@iquan_client//:iquan_client_package',
         '@org_tensorflow//:lib_package', '@cm2//:lib_package',
         '@swift//:lib_package',
-        '@suez_turing.turbojet.turing_ops_util//:lib_package'
+        '@suez_turing.turbojet.turing_ops_util//:lib_package',
+        ':havenask_tools_package'
     ],
     visibility=['//visibility:public']
 )
@@ -89,4 +90,19 @@ copy_target_to(
     to_copy='//aios/ha3:havenask',
     copy_name='sap_server_d',
     dests=['bin/']
+)
+
+filegroup(
+    name='havenask_tools_files',
+    srcs=glob(['havenask_tools/*']),
+    visibility=['//visibility:public']
+)
+
+bundle_files(
+    name='havenask_tools_package',
+    prefix='usr/local/lib/python/site-packages/havenask_tools',
+    strip_prefix='/package/havenask/havenask_tools',
+    srcs=[':havenask_tools_files'],
+    deps=[],
+    visibility=['//visibility:public']
 )

@@ -44,7 +44,7 @@ if __name__ == '__main__':
     if not os.path.exists(workDir):
         print('%s not exists, please build index with build_demo_data.py first.')
         sys.exit(-1)
-    cmd = 'cd %s && /usr/bin/python %s/usr/local/lib/python/site-packages/ha_tools/local_search_starter.py --disableTurbojet -i ./runtimedata/ -c %s -p 30468,30480 -b %s --qrsHttpArpcBindPort %s' % (workDir, installRoot, configDir, installRoot, qrsHttpPort)
+    cmd = 'cd %s && /usr/bin/python %s/usr/local/lib/python/site-packages/havenask_tools/local_search_starter.py --disableTurbojet -i ./runtimedata/ -c %s -p 30468,30480 -b %s --qrsHttpArpcBindPort %s' % (workDir, installRoot, configDir, installRoot, qrsHttpPort)
 
     executCmd(cmd)
 

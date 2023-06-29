@@ -12,4 +12,5 @@ rpm/*.log
 *.tgz
 *.tar
 *.so
+hape/conf/generated
 

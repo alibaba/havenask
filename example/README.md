@@ -55,6 +55,11 @@ python curl_http.py 12345 "query=select id,hits from in0 where MATCHINDEX('title
 python curl_http.py 12345 "query=select title, subject from in0_summary_ where id=1 or id=2"
 ```
 
+* 如果想要更新配置，可以执行以下命令。需要注意新config的路径必须与老config不同，否则目标不会下发成功
+```
+python update_demo_seacher.py <ha3_install> <case> <new_config_path>
+```
+
 
 ## 手动测试
 
@@ -74,7 +79,7 @@ mkdir ~/havenask/example/<case>/workdir
 ```
 
 
-* 启动havenask。执行时请将下面的目录地址替换为真实的地址。具体参数含义可以执行python <ha3_install>/usr/local/lib/python/site-packages/ha_tools/local_search_starter.py -h查看。启动成功后，会输出qrs的http和arpc端口
+* 启动havenask。执行时请将下面的目录地址替换为真实的地址。具体参数含义可以执行python <ha3_install>/usr/local/lib/python/site-packages/havenask_tools/local_search_starter.py -h查看。启动成功后，会输出qrs的http和arpc端口
 ```
 ### 进入workdir目录，
 cd ~/havenask/example/<case>/workdir
