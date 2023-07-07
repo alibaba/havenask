@@ -152,6 +152,7 @@ examples:
         # https://yuque.alibaba-inc.com/lhubic/wuhf65/aecyg6
         self.parser.add_option('', '--kmonSinkAddress', action='store', dest='kmonSinkAddress',
                                default='11.163.219.136')
+        self.parser.add_option('', '--kmonitorEnableLogFileSink', action='store_true', dest='kmonitorEnableLogFileSink', default=True)
         self.parser.add_option('', '--specialCatalogList', action='store', dest='specialCatalogList')
         self.parser.add_option('', '--zk_root', action='store', dest='zkRoot', default='LOCAL')
         self.parser.add_option('', '--mode', action='store', dest='mode', default='rw')
@@ -228,6 +229,7 @@ examples:
         self.modelBiz = set(options.modelBiz.split(','))
         self.localBizService = options.localBizService
         self.kmonSinkAddress = options.kmonSinkAddress
+        self.kmonitorEnableLogFileSink = options.kmonitorEnableLogFileSink
         self.specialCatalogList = options.specialCatalogList
         self.zkRoot = options.zkRoot
         self.mode = options.mode
@@ -319,7 +321,7 @@ examples:
         self.startCmdTemplate += " --env asyncInterExecutorType=simple"
         self.startCmdTemplate += " --env asyncIntraExecutorType=simple"
         self.startCmdTemplate += " --env RS_ALLOW_RELOAD_BY_CONFIG=true"
-        self.alogConfigPath = os.path.join(self.binaryPath, "usr/local/etc/ha3/ha3_alog.conf")
+        self.alogConfigPath = os.path.join(self.binaryPath, "usr/local/etc/ha3/havenask_alog.conf")
         self.searchCfg = os.path.join(self.binaryPath, "usr/local/etc/ha3/search_server.cfg")
         self.qrsCfg = os.path.join(self.binaryPath, "usr/local/etc/ha3/qrs_server.cfg")
         self.ip = socket.gethostbyname(socket.gethostname())
@@ -834,6 +836,8 @@ examples:
             startCmd += " --env disableSqlWarmup=true"
         if self.kmonSinkAddress:
             startCmd += " --env kmonitorSinkAddress=" + self.kmonSinkAddress;
+        if self.kmonitorEnableLogFileSink:
+            startCmd += " --env kmonitorEnableLogFileSink=true" 
         if self.specialCatalogList:
             startCmd += " --env specialCatalogList=" + str(self.specialCatalogList)
         if self.enableLocalAccess:
@@ -930,6 +934,8 @@ examples:
                 startCmd += " --env basicTuringBizNames=" + self.basicTuringBizNames
             if self.kmonSinkAddress:
                 startCmd += " --env kmonitorSinkAddress=" + self.kmonSinkAddress;
+            if self.kmonitorEnableLogFileSink:
+                startCmd += " --env kmonitorEnableLogFileSink=true"
             if self.enableMultiPartition:
                 startCmd += " --env enableMultiPartition=true";
             if self.enableLocalAccess:
@@ -1189,7 +1195,7 @@ examples:
                         "table_type" : tableType,
                         "index_root" : self.createRuntimedirLink(zoneDirName),
                         "config_path": self.createConfigLink(zoneDirName, 'table', tableName, self.offlineConfigPath),
-                        "total_partition_count":len(curTablePartitions),
+                        "total_partition_count":self.partitionCount,
                         "partitions": {
                         }
                     }

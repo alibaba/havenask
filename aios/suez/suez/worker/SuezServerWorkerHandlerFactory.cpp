@@ -272,6 +272,7 @@ bool SuezServerWorkerHandlerFactory::initMetrics(const EnvParam &param) {
     metricsConfig.set_tenant_name(param.kmonitorTenant);
     metricsConfig.set_service_name(_kmonMetaInfo.serviceName);
     metricsConfig.set_sink_address((param.kmonitorSinkAddress + ":" + param.kmonitorPort).c_str());
+    metricsConfig.set_enable_log_file_sink((param.kmonitorEnableLogFileSink));
     metricsConfig.set_inited(true);
     metricsConfig.AddGlobalTag("hippo_slave_ip", param.hippoSlaveIp);
     for (auto &pair : _kmonMetaInfo.tagsMap) {
