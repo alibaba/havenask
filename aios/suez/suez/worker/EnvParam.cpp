@@ -52,6 +52,7 @@ EnvParam::EnvParam()
     , reportLoopInterval(1 * 1000 * 1000)
     , discardMetricSampleInterval(60)
     , kmonitorNormalSamplePeriod(-1)
+    , kmonitorEnableLogFileSink(false)
     , asyncInterExecutorThreadNum(10)
     , asyncIntraExecutorThreadNum(10)
     , enableLocalCatalog(false)
@@ -189,6 +190,10 @@ bool EnvParam::init() {
     kmonitorPort = autil::EnvUtil::getEnv(KMONITOR_PORT, "4141");
     kmonitorServiceName = autil::EnvUtil::getEnv(KMONITOR_SERVICE_NAME, "");
     kmonitorSinkAddress = autil::EnvUtil::getEnv(KMONITOR_SINK_ADDRESS, hippoSlaveIp);
+    auto kmonitorEnableLogFileSinkStr = autil::EnvUtil::getEnv(KMONITOR_ENABLE_LOGFILE_SINK, "");
+    if (kmonitorEnableLogFileSinkStr == "true") {
+        kmonitorEnableLogFileSink = true;
+    }
     kmonitorTenant = autil::EnvUtil::getEnv(KMONITOR_TENANT, "default");
     kmonitorMetricsPrefix = autil::EnvUtil::getEnv(KMONITOR_METRICS_PREFIX, "");
     kmonitorGlobalTableMetricsPrefix = autil::EnvUtil::getEnv(KMONITOR_GLOBAL_TABLE_METRICS_PREFIX, "");
@@ -285,6 +290,7 @@ const string EnvParam::toString() const {
        << "reportIndexStatusInterval:" << reportLoopInterval << "; "
        << "kmonitorPort:" << kmonitorPort << "; "
        << "kmonitorSinkAddress:" << kmonitorSinkAddress << "; "
+       << "kmonitorEnableLogFileSink:" << kmonitorEnableLogFileSink << "; "
        << "kmonitorServiceName:" << kmonitorServiceName << "; "
        << "kmonitorTenant:" << kmonitorTenant << "; "
        << "kmonitorMetricsPrefix:" << kmonitorMetricsPrefix << "; "
