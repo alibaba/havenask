@@ -1,5 +1,5 @@
 ## Note
-> old version：[main-stable-0.4](https://github.com/alibaba/havenask/tree/main-stable-0.4)  
+> old version：[main-stable-0.4](https://github.com/alibaba/havenask/tree/main-stable-0.4)
 > The new and old main branches have a significant difference, and if the sync code branch produces errors, please make them consistent with the current main branch.
 
 ## Introduction
@@ -52,13 +52,13 @@ cd ~/havenask/docker/havenask
 
 * create the container. CONTAINER_NAME specifies the name of the container.
 ```
-docker pull havenask/ha3_runtime:1.0.0-beta1
-./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:1.0.0-beta1
+docker pull havenask/ha3_runtime:1.0.0-beta2
+./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:1.0.0-beta2
 ```
 * If the connection to Docker Hub is unstable, you can try to download the images from Alibaba Cloud Container Registry.
 ```
-docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.0.0-beta1
-./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.0.0-beta1
+docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.0.0-beta2
+./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.0.0-beta2
 ```
 
 
@@ -142,13 +142,13 @@ cd ~/havenask/docker/havenask
 ```
 创建容器，其中CONTAINER_NAME为指定的容器名
 ```
-docker pull havenask/ha3_runtime:1.0.0-beta1
-./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:1.0.0-beta1
+docker pull havenask/ha3_runtime:1.0.0-beta2
+./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:1.0.0-beta2
 ```
 如果由于Docker Hub访问不稳定无法下载以上镜像，可以尝试阿里云镜像源
 ```
-docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.0.0-beta1
-./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.0.0-beta1
+docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.0.0-beta2
+./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.0.0-beta2
 ```
 登陆容器
 ```
@@ -183,5 +183,3 @@ python curl_http.py 45800 "query=select title, subject from in0_summary_ where i
 官方技术交流钉钉群：
 
 ![3293821693450208](https://user-images.githubusercontent.com/590717/206684715-5ab1df49-f919-4d8e-85ee-58b364edef31.jpg)
-
-

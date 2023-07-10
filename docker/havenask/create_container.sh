@@ -31,7 +31,7 @@ CONTAINER_NAME=$1
 SCRIPT_PATH=$(realpath "$0")
 SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 IMAGE_REPO="registry.cn-hangzhou.aliyuncs.com/havenask"
-IMAGE_VERSION="1.0.0-beta1"
+IMAGE_VERSION="1.0.0-beta2"
 IMAGE="$IMAGE_REPO/ha3_runtime:$IMAGE_VERSION"
 if [ $# -eq 2 ]; then
     IMAGE=$2
