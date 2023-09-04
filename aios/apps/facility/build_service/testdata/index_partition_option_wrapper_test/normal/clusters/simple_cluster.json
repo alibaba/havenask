@@ -1,0 +1,33 @@
+{
+    "offline_index_config" : {
+        "build_config" : {
+            "keep_version_count" : 4
+        },
+        "inherit_from" : "clusters/merge/inherit.json",
+        "merge_config" : {
+        },
+        "customized_merge_config":
+        {
+            "full" : {
+                "merge_config" : {
+
+                }
+            },
+	    "inc" : {
+                "inherit_from" : "clusters/merge/inherit.json",
+                "period" : "period=1800"
+            },
+	    "inc_merge" : {
+                "merge_config" : {
+
+                },
+                "period" : "daytime=17:30"
+            }
+        }
+    },
+    "online_index_config" : {
+        "build_config" : {
+            "keep_version_count" : 5
+        }
+    }
+}

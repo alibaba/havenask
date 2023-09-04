@@ -18,9 +18,7 @@
 #include "autil/Log.h"
 #include "indexlib/document/IDocument.h"
 #include "indexlib/document/IDocumentBatch.h"
-
 namespace indexlibv2::document {
-
 template <typename DocumentType>
 class TemplateDocumentBatch : public IDocumentBatch
 {
@@ -42,13 +40,19 @@ public:
     void SetMaxTTL(int64_t maxTTL) override { _maxTTL = maxTTL; }
     void DropDoc(int64_t docIdx) override;
     void ReleaseDoc(int64_t docIdx) override;
-    bool IsDropped(int64_t docIdx) const override { return _documentDroppedBitMap.at(docIdx); }
     size_t GetBatchSize() const override { return _documents.size(); }
     size_t GetValidDocCount() const override;
     void AddDocument(DocumentPtr doc) override;
-    std::shared_ptr<IDocument> operator[](int64_t docIdx) const override;
     size_t EstimateMemory() const override { return _estimateMemorySize; };
     size_t GetAddedDocCount() const override;
+
+public:
+    // Try to avoid calling these methods, use IDocumentIterator instead.
+    std::shared_ptr<IDocument> operator[](int64_t docIdx) const override;
+    bool IsDropped(int64_t docIdx) const override { return _documentDroppedBitMap.at(docIdx); }
+
+public:
+    std::shared_ptr<IDocument> TEST_GetDocument(int64_t docIdx) const override { return operator[](docIdx); }
 
 public:
     const std::shared_ptr<DocumentType>& GetTypedDocument(int64_t docIdx) const;
@@ -62,6 +66,10 @@ protected:
     size_t _estimateMemorySize;
     int64_t _maxTimestamp;
     int64_t _maxTTL;
+
+private:
+    template <typename T>
+    friend class DocumentIterator;
 
 protected:
     AUTIL_LOG_DECLARE();

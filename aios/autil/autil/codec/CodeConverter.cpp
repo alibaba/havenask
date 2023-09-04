@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 #include "autil/codec/CodeConverter.h"
-#include "autil/CommonMacros.h"
-#include "autil/codec/CodeConverterTBL.h"
+
 #include <cstddef>
 #include <cstring>
+
+#include "autil/CommonMacros.h"
+#include "autil/codec/CodeConverterTBL.h"
 
 using namespace std;
 namespace autil {
@@ -28,12 +30,14 @@ U16CHAR CodeConverter::convertGBKToUTF16(U16CHAR c) {
     if (c >= GBK_START && c <= GBK_END) {
         ret = gbk2unicode[c - GBK_START];
     }
-    if (ret == 0) return defUniChar;
+    if (ret == 0)
+        return defUniChar;
     return ret;
 }
 
 U16CHAR CodeConverter::convertUTF16ToGBK(U16CHAR c) {
-    if (unicode2gbk[c - 1] != 0) return unicode2gbk[c - 1];
+    if (unicode2gbk[c - 1] != 0)
+        return unicode2gbk[c - 1];
     return defGbkChar;
 }
 
@@ -42,12 +46,14 @@ U16CHAR CodeConverter::convertBig5ToUTF16(U16CHAR c) {
     if (c >= BIG_START && c <= BIG_END) {
         ret = big2unicode[c - BIG_START];
     }
-    if (ret == 0) return defUniChar;
+    if (ret == 0)
+        return defUniChar;
     return ret;
 }
 
 U16CHAR CodeConverter::convertUTF16ToBig5(U16CHAR c) {
-    if (unicode2big[c - 1] != 0) return unicode2big[c - 1];
+    if (unicode2big[c - 1] != 0)
+        return unicode2big[c - 1];
     return defBigChar;
 }
 
@@ -74,10 +80,12 @@ int32_t CodeConverter::convertUTF16ToGBK(U16CHAR *src, uint32_t len, U8CHAR *dst
     for (uint32_t i = 0; i < len; i++) {
         val = CodeConverter::convertUTF16ToGBK(src[i]);
         if (val < 0x80) {
-            if (odx >= buf_len) break;
+            if (odx >= buf_len)
+                break;
             dst[odx++] = val;
         } else {
-            if (odx + 1 >= buf_len) break;
+            if (odx + 1 >= buf_len)
+                break;
             dst[odx++] = val >> 8;
             dst[odx++] = val & 0xFF;
         }
@@ -107,10 +115,12 @@ int32_t CodeConverter::convertUTF16ToBig5(U16CHAR *src, uint32_t len, U8CHAR *ds
     for (uint32_t i = 0; i < len; i++) {
         val = CodeConverter::convertUTF16ToBig5(src[i]);
         if (val < 0x80) {
-            if (odx >= buf_len) break;
+            if (odx >= buf_len)
+                break;
             dst[odx++] = val;
         } else {
-            if (odx + 3 >= buf_len) break;
+            if (odx + 3 >= buf_len)
+                break;
             dst[odx++] = val >> 8;
             dst[odx++] = val & 0xFF;
         }
@@ -134,40 +144,49 @@ static const char trailingBytesForUTF8[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
-static const uint32_t offsetsFromUTF8[6] = {0x00000000UL, 0x00003080UL, 0x000E2080UL,
-                                            0x03C82080UL, 0xFA082080UL, 0x82082080UL};
+static const uint32_t offsetsFromUTF8[6] = {
+    0x00000000UL, 0x00003080UL, 0x000E2080UL, 0x03C82080UL, 0xFA082080UL, 0x82082080UL};
 static const uint8_t firstByteMark[7] = {0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC};
 
 static bool isLegalUTF8(const U8CHAR *source, int32_t length) {
     U8CHAR a;
     const U8CHAR *srcptr = source + length;
     switch (length) {
-        default:
+    default:
+        return false;
+    /* Everything else falls through when "true"... */
+    case 4:
+        if ((a = (*--srcptr)) < 0x80 || a > 0xBF)
             return false;
-        /* Everything else falls through when "true"... */
-        case 4:
-            if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return false;
-        case 3:
-            if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return false;
-        case 2:
-            if ((a = (*--srcptr)) > 0xBF) return false;
-            switch (*source) {
-                /* no fall-through in this inner switch */
-                case 0xE0:
-                    if (a < 0xA0) return false;
-                    break;
-                case 0xF0:
-                    if (a < 0x90) return false;
-                    break;
-                case 0xF4:
-                    if (a > 0x8F) return false;
-                    break;
-                default:
-                    if (a < 0x80) return false;
-            }
-        case 1:
-            if (*source >= 0x80 && *source < 0xC2) return false;
-            if (*source > 0xF4) return false;
+    case 3:
+        if ((a = (*--srcptr)) < 0x80 || a > 0xBF)
+            return false;
+    case 2:
+        if ((a = (*--srcptr)) > 0xBF)
+            return false;
+        switch (*source) {
+        /* no fall-through in this inner switch */
+        case 0xE0:
+            if (a < 0xA0)
+                return false;
+            break;
+        case 0xF0:
+            if (a < 0x90)
+                return false;
+            break;
+        case 0xF4:
+            if (a > 0x8F)
+                return false;
+            break;
+        default:
+            if (a < 0x80)
+                return false;
+        }
+    case 1:
+        if (*source >= 0x80 && *source < 0xC2)
+            return false;
+        if (*source > 0xF4)
+            return false;
     }
     return true;
 }
@@ -185,17 +204,17 @@ int32_t CodeConverter::convertUTF8ToUTF16(U8CHAR *src, uint32_t src_len, U16CHAR
         if (isLegalUTF8(src, extraBytesToRead + 1)) {
             ch = 0;
             switch (extraBytesToRead) {
-                case 3:
-                    ch += *src++;
-                    ch <<= 6;
-                case 2:
-                    ch += *src++;
-                    ch <<= 6;
-                case 1:
-                    ch += *src++;
-                    ch <<= 6;
-                case 0:
-                    ch += *src++;
+            case 3:
+                ch += *src++;
+                ch <<= 6;
+            case 2:
+                ch += *src++;
+                ch <<= 6;
+            case 1:
+                ch += *src++;
+                ch <<= 6;
+            case 0:
+                ch += *src++;
             }
             ch -= offsetsFromUTF8[extraBytesToRead];
         } else {
@@ -251,17 +270,17 @@ int32_t CodeConverter::convertUTF16ToUTF8(U16CHAR *src, uint32_t srcLen, U8CHAR 
         dest += bytesToWrite;
         if (dest < destEnd) {
             switch (bytesToWrite) { /* note: everything falls through. */
-                case 4:
-                    *--dest = (ch | byteMark) & byteMask;
-                    ch >>= 6;
-                case 3:
-                    *--dest = (ch | byteMark) & byteMask;
-                    ch >>= 6;
-                case 2:
-                    *--dest = (ch | byteMark) & byteMask;
-                    ch >>= 6;
-                case 1:
-                    *--dest = ch | firstByteMark[bytesToWrite];
+            case 4:
+                *--dest = (ch | byteMark) & byteMask;
+                ch >>= 6;
+            case 3:
+                *--dest = (ch | byteMark) & byteMask;
+                ch >>= 6;
+            case 2:
+                *--dest = (ch | byteMark) & byteMask;
+                ch >>= 6;
+            case 1:
+                *--dest = ch | firstByteMark[bytesToWrite];
             }
             dest += bytesToWrite;
 
@@ -277,13 +296,13 @@ int32_t CodeConverter::convertUTF16ToUTF8(U16CHAR *src, uint32_t srcLen, U8CHAR 
 #undef UNI_SUR_LOW_END
 
 static const uint32_t s_utf8_head_mask[] = {
-    0x00,  // unused
-    0x00,  // unused
-    0xC0,  // 2 bytes 110XXXXX
-    0xE0,  // 3 bytes 1110XXXX
-    0xF0,  // 4 bytes 11110XXX
-    0xF8,  // 5 bytes 111110XX
-    0xFC,  // 6 bytes 1111110X
+    0x00, // unused
+    0x00, // unused
+    0xC0, // 2 bytes 110XXXXX
+    0xE0, // 3 bytes 1110XXXX
+    0xF0, // 4 bytes 11110XXX
+    0xF8, // 5 bytes 111110XX
+    0xFC, // 6 bytes 1111110X
 };
 
 static inline int32_t unicodeCharToUTF8(uint16_t value, char *buf, int32_t buf_size) {
@@ -292,12 +311,12 @@ static inline int32_t unicodeCharToUTF8(uint16_t value, char *buf, int32_t buf_s
     }
     char word[6];
     word[sizeof(word) - 1] = '\0';
-    if (value < 0x80) {  // deal with one byte
+    if (value < 0x80) { // deal with one byte
         buf[0] = value;
         return 1;
     }
 
-    int32_t j = sizeof(word) - 2;  // deal with multi byte word
+    int32_t j = sizeof(word) - 2; // deal with multi byte word
     int32_t len = 1;
     while (j > 0) {
         U8CHAR ch = value & 0x3f;
@@ -332,5 +351,5 @@ int32_t CodeConverter::convertUnicodeToUTF8(const uint16_t *src, int32_t src_len
     return dcnt;
 }
 
-}
-}
+} // namespace codec
+} // namespace autil

@@ -25,12 +25,12 @@ class Pool;
 }
 namespace indexlibv2::config {
 class IIndexConfig;
-class AttributeConfig;
 } // namespace indexlibv2::config
 
 namespace indexlibv2::index {
 class DocMapper;
-}
+class AttributeConfig;
+} // namespace indexlibv2::index
 
 namespace indexlib::index {
 
@@ -38,7 +38,7 @@ class TruncateAttributeReader : public indexlibv2::index::AttributeDiskIndexer
 {
 public:
     TruncateAttributeReader(const std::shared_ptr<indexlibv2::index::DocMapper>& docMapper,
-                            const std::shared_ptr<indexlibv2::config::AttributeConfig>& attrConfig)
+                            const std::shared_ptr<indexlibv2::index::AttributeConfig>& attrConfig)
         : _docMapper(docMapper)
     {
     }

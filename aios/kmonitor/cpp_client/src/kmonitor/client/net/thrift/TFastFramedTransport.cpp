@@ -5,9 +5,11 @@
  * Author Email: beifei@taobao.com
  */
 
-#include <arpa/inet.h>
-#include "kmonitor/client/net/thrift/TSocket.h"
 #include "kmonitor/client/net/thrift/TFastFramedTransport.h"
+
+#include <arpa/inet.h>
+
+#include "kmonitor/client/net/thrift/TSocket.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 AUTIL_LOG_SETUP(kmonitor, TFastFramedTransport);
@@ -27,13 +29,9 @@ TFastFramedTransport::~TFastFramedTransport() {
     delete[] read_buf_;
 }
 
-bool TFastFramedTransport::IsOpen() {
-    return socket_->IsConnect();
-}
+bool TFastFramedTransport::IsOpen() { return socket_->IsConnect(); }
 
-void TFastFramedTransport::Open() {
-    socket_->Connect();
-}
+void TFastFramedTransport::Open() { socket_->Connect(); }
 
 int32_t TFastFramedTransport::ReadAll() {
     // read message size
@@ -42,9 +40,9 @@ int32_t TFastFramedTransport::ReadAll() {
     if (ret <= 0) {
         return ret;
     }
-    auto tmp_len = *(reinterpret_cast<uint32_t*>(tmp_buf));
+    auto tmp_len = *(reinterpret_cast<uint32_t *>(tmp_buf));
     auto nlen = static_cast<int32_t>(ntohl(tmp_len));
-    
+
     // read message body
     int32_t nread = socket_->Read(read_buf_, nlen);
     if (nread != nlen) {
@@ -61,23 +59,22 @@ uint32_t TFastFramedTransport::ReadEnd() {
     return 0;
 }
 
-
-uint32_t TFastFramedTransport::Read(uint8_t* buf, uint32_t len) {
+uint32_t TFastFramedTransport::Read(uint8_t *buf, uint32_t len) {
     if (read_buf_pos_ + len > read_buf_total_) {
         return 0;
     }
-    memcpy(buf, read_buf_+read_buf_pos_, len);
+    memcpy(buf, read_buf_ + read_buf_pos_, len);
     read_buf_pos_ += len;
     return len;
 }
 
-int TFastFramedTransport::Write(const uint8_t* buf, uint32_t len) {
+int TFastFramedTransport::Write(const uint8_t *buf, uint32_t len) {
     if (write_buf_pos_ + len > buffer_size_) {
-        AUTIL_LOG(WARN, "write_buf_pos[%u] + len[%u] larger than write_buf_size[%u]",
-                     write_buf_pos_, len, buffer_size_);
+        AUTIL_LOG(
+            WARN, "write_buf_pos[%u] + len[%u] larger than write_buf_size[%u]", write_buf_pos_, len, buffer_size_);
         return -1;
     }
-    memcpy(write_buf_+write_buf_pos_, buf, len);
+    memcpy(write_buf_ + write_buf_pos_, buf, len);
     write_buf_pos_ += len;
     return 0;
 }
@@ -85,9 +82,9 @@ int TFastFramedTransport::Write(const uint8_t* buf, uint32_t len) {
 void TFastFramedTransport::Flush() {
     int32_t real_len = write_buf_pos_ - sizeof(int32_t);
     int32_t nlen = (int32_t)htonl((uint32_t)(real_len));
-    //yytodo socket write failed, need retrans or drop
-    memcpy(write_buf_, (uint8_t*)&nlen, sizeof(nlen));
-    socket_->Write((const uint8_t*)write_buf_, write_buf_pos_);
+    // yytodo socket write failed, need retrans or drop
+    memcpy(write_buf_, (uint8_t *)&nlen, sizeof(nlen));
+    socket_->Write((const uint8_t *)write_buf_, write_buf_pos_);
     write_buf_pos_ = sizeof(int32_t);
 
     // check socket state
@@ -106,4 +103,3 @@ void TFastFramedTransport::EncodeFrameSize(int frame_size, uint8_t buf[4]) {
 }
 
 END_KMONITOR_NAMESPACE(kmonitor);
-

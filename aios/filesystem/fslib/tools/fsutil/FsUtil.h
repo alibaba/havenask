@@ -16,10 +16,11 @@
 #ifndef FSLIB_FSUTIL_H
 #define FSLIB_FSUTIL_H
 
-#include "autil/Log.h"
-#include "autil/cipher/AESCipherCommon.h"
 #include <string>
 #include <vector>
+
+#include "autil/Log.h"
+#include "autil/cipher/AESCipherCommon.h"
 #include "fslib/common/common_define.h"
 #include "fslib/common/common_type.h"
 #include "fslib/fs/File.h"
@@ -27,8 +28,7 @@
 
 FSLIB_BEGIN_NAMESPACE(tools);
 
-class FsUtil
-{
+class FsUtil {
 public:
     static std::string GETMETA_CMD;
     static std::string COPY_CMD;
@@ -48,55 +48,49 @@ public:
     static std::string RENAME_CMD;
     static std::string FORWARD_CMD;
     static const int32_t DEFAULT_THREAD_NUM;
+
 public:
     ~FsUtil();
     static void closeFileSystem();
 
 public:
-    static ErrorCode runCopy(const char* srcPath, const char* dstPath,
-                             bool recursive);
-    static ErrorCode runMove(const char* srcPath, const char* dstPath);
-    static ErrorCode runRename(const char* srcPath, const char* dstPath);
-    static ErrorCode runMkDir(const char* dirname, bool recursive);
-    static ErrorCode runListDir(const char* dirname);
-    static ErrorCode runListDirWithRecursive(const char* dirname, 
-            const char* threadNumStr);
-    static ErrorCode runRemove(const char* path);
-    static ErrorCode runMd5Sum(const char* filename);
-    static ErrorCode runCat(const char* filename);
-    static ErrorCode runZCat(const char* filename);
-    static ErrorCode runGetMeta(const char* pathname);
-    static ErrorCode runIsExist(const char* pathname);
-    static ErrorCode runFlock(const char* lockname, const char* script);
-    static ErrorCode runForward(const char* command, const char* pathname, const char* args);
+    static ErrorCode runCopy(const char *srcPath, const char *dstPath, bool recursive);
+    static ErrorCode runMove(const char *srcPath, const char *dstPath);
+    static ErrorCode runRename(const char *srcPath, const char *dstPath);
+    static ErrorCode runMkDir(const char *dirname, bool recursive);
+    static ErrorCode runListDir(const char *dirname);
+    static ErrorCode runListDirWithRecursive(const char *dirname, const char *threadNumStr);
+    static ErrorCode runRemove(const char *path);
+    static ErrorCode runMd5Sum(const char *filename);
+    static ErrorCode runCat(const char *filename);
+    static ErrorCode runZCat(const char *filename);
+    static ErrorCode runGetMeta(const char *pathname);
+    static ErrorCode runIsExist(const char *pathname);
+    static ErrorCode runFlock(const char *lockname, const char *script);
+    static ErrorCode runForward(const char *command, const char *pathname, const char *args);
 
-    static ErrorCode runEncrypt(const char* srcPath, const char* dstPath,
-                                const char* option, bool optionUseBase64);
-    static ErrorCode runDecrypt(const char* srcPath, const char* dstPath,
-                                const char* option, bool optionUseBase64);
-    static ErrorCode runDecryptCat(const char* srcPath,
-                                   const char* option, bool optionUseBase64);
-    static ErrorCode runDecryptZCat(const char* srcPath,
-                                    const char* option, bool optionUseBase64);
-                             
+    static ErrorCode runEncrypt(const char *srcPath, const char *dstPath, const char *option, bool optionUseBase64);
+    static ErrorCode runDecrypt(const char *srcPath, const char *dstPath, const char *option, bool optionUseBase64);
+    static ErrorCode runDecryptCat(const char *srcPath, const char *option, bool optionUseBase64);
+    static ErrorCode runDecryptZCat(const char *srcPath, const char *option, bool optionUseBase64);
+
 private:
-    static void timeToStr(uint64_t time, char* timestr);
-    static ErrorCode getDirMeta(const std::string& dirname, uint32_t& fileCount, 
-                                uint32_t& dirCount, uint64_t& size);
-    static ErrorCode getPathMeta(const std::string& pathname, FileMeta& meta);
-    static ErrorCode getZookeeperNodeMeta(const std::string& pathName,
-            uint32_t& totalNodeCount, uint64_t& size);
-    static bool getCipherOption(autil::cipher::CipherOption& option);
+    static void timeToStr(uint64_t time, char *timestr);
+    static ErrorCode getDirMeta(const std::string &dirname, uint32_t &fileCount, uint32_t &dirCount, uint64_t &size);
+    static ErrorCode getPathMeta(const std::string &pathname, FileMeta &meta);
+    static ErrorCode getZookeeperNodeMeta(const std::string &pathName, uint32_t &totalNodeCount, uint64_t &size);
+    static bool getCipherOption(autil::cipher::CipherOption &option);
 
     template <typename T>
-    static bool getUserConsoleInput(const std::string& hintStr,
-                                    const std::set<std::string>& validInputs,
-                                    const std::string& defaultValue,
-                                    size_t maxInputTimes, T& value);
+    static bool getUserConsoleInput(const std::string &hintStr,
+                                    const std::set<std::string> &validInputs,
+                                    const std::string &defaultValue,
+                                    size_t maxInputTimes,
+                                    T &value);
 };
 
 FSLIB_TYPEDEF_AUTO_PTR(FsUtil);
 
 FSLIB_END_NAMESPACE(tools);
 
-#endif //FSLIB_FSUTIL_H
+#endif // FSLIB_FSUTIL_H

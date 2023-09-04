@@ -17,39 +17,40 @@
 
 #include <string>
 
+#include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/search/PhraseQueryExecutor.h"
 #include "indexlib/index/common/ErrorCode.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/misc/common.h"
 
-#include "ha3/search/PhraseQueryExecutor.h"
-#include "autil/Log.h" // IWYU pragma: keep
-
 namespace isearch {
 namespace search {
 class QueryExecutorRestrictor;
-}  // namespace search
-}  // namespace isearch
+} // namespace search
+} // namespace isearch
 
 namespace isearch {
 namespace search {
 
-class RestrictPhraseQueryExecutor: public PhraseQueryExecutor
-{
+class RestrictPhraseQueryExecutor : public PhraseQueryExecutor {
 public:
     RestrictPhraseQueryExecutor(QueryExecutorRestrictor *restrictor);
     ~RestrictPhraseQueryExecutor() override;
+
 private:
     RestrictPhraseQueryExecutor(const RestrictPhraseQueryExecutor &);
-    RestrictPhraseQueryExecutor& operator=(const RestrictPhraseQueryExecutor &);
+    RestrictPhraseQueryExecutor &operator=(const RestrictPhraseQueryExecutor &);
+
 public:
     const std::string getName() const override {
         return "RestrictorPhraseQueryExecutor";
     }
-    indexlib::index::ErrorCode doSeek(docid_t id, docid_t& result) override;
+    indexlib::index::ErrorCode doSeek(docid_t id, docid_t &result) override;
     void reset() override;
 
 private:
     QueryExecutorRestrictor *_restrictor;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -58,4 +59,3 @@ typedef std::shared_ptr<RestrictPhraseQueryExecutor> RestrictPhraseQueryExecutor
 
 } // namespace search
 } // namespace isearch
-

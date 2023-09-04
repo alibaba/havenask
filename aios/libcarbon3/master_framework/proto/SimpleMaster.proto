@@ -1,0 +1,89 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+package master_framework.simple_master.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+message ErrorInfo {
+    enum ErrorCode {
+	ERROR_NONE = 0;
+	ERROR_INVALID_APP_PLAN = 1;
+	ERROR_SERIALIZE_APP_PLAN = 2;
+	ERROR_UPDATE_ROLE_PROPERTIES = 3;
+    ERROR_SERIALIZE_FAILED = 4;
+    };
+
+    optional ErrorCode errorCode = 1 [default = ERROR_NONE];
+    optional string errorMsg = 2 [default = ""];
+}
+
+message UpdateAppPlanRequest {
+    optional string appPlan = 1;
+}
+
+message UpdateAppPlanResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message UpdateRolePropertiesRequest {
+    optional string roleName = 1;
+    optional string operate = 2; // "set" or "del"
+    optional string jsonKvStr = 3; // '{"key1" : "value1", "key2" : "value2"}'
+}
+
+message UpdateRolePropertiesResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message GetRoleSlotsRequest {
+    optional string roleName = 1;
+}
+
+message GetRoleSlotsResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional bytes slotInfos = 2;
+}
+
+message GetAllRoleSlotsRequest {
+}
+
+message GetAllRoleSlotsResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional bytes roleSlotInfos = 2;
+}
+
+message ReleaseSlotsRequest {
+    optional string slotIds = 1;
+    optional string preference = 2;
+}
+
+message ReleaseSlotsResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+service SimpleMasterService
+{
+    option (arpc.global_service_id) = 1000;
+
+    rpc updateAppPlan(UpdateAppPlanRequest) returns (UpdateAppPlanResponse) {
+	option (arpc.local_method_id) = 1;
+    };
+
+    rpc updateRoleProperties(UpdateRolePropertiesRequest) returns (UpdateRolePropertiesResponse) {
+	option (arpc.local_method_id) = 7;
+    }
+
+    rpc getRoleSlots(GetRoleSlotsRequest) returns (GetRoleSlotsResponse) {
+    option (arpc.local_method_id) = 8;
+    }
+
+    rpc getAllRoleSlots(GetAllRoleSlotsRequest) returns (GetAllRoleSlotsResponse) {
+    option (arpc.local_method_id) = 9;
+    }
+
+    rpc releaseSlots(ReleaseSlotsRequest) returns (ReleaseSlotsResponse) {
+    option (arpc.local_method_id) = 10;
+    }
+}

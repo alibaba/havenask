@@ -121,7 +121,7 @@ public:
 
     uint64_t GetPartitionVersionHashId() const { return mPartitionVersionHashId; }
 
-    int64_t GetLatestDataTimestamp() const;
+    virtual int64_t GetLatestDataTimestamp() const;
 
     const std::vector<segmentid_t>& GetSwitchRtSegments() const { return mSwitchRtSegIds; }
 

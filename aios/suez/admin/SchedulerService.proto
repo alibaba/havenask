@@ -1,0 +1,25 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+package suez;
+
+option cc_generic_services = true;
+
+message EmptyRequest {
+}
+
+message GetSystemInfoRequest {
+    repeated string clusterNames = 1;
+}
+
+message GetSystemInfoResponse {
+    optional string systemInfoStr = 1;
+}
+
+service SchedulerService {
+    option (arpc.global_service_id) = 300;
+
+    rpc getSystemInfo(GetSystemInfoRequest) returns (GetSystemInfoResponse) {
+        option (arpc.local_method_id) = 1;
+    }
+}

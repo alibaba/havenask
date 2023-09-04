@@ -1,0 +1,48 @@
+{
+    "table_name": "auction",
+    "fields": 
+    [
+	{"field_name":"date", "field_type":"uint64"},
+	{"field_name":"date2", "field_type" : "date"},
+	{"field_name":"timestamp", "field_type" : "timestamp"},
+	{"field_name":"time", "field_type" : "time"},
+	{"field_name":"pk", "field_type":"uint64"}
+    ],
+    "indexs": 
+    [
+	{
+            "index_name": "date_index",
+            "index_type" : "DATE",
+            "index_fields": "date",
+            "build_granularity" : "minute",
+            "position_list_flag" : 1,
+            "position_payload_flag" : 1,
+            "term_frequency_flag" : 1,
+            "term_frequency_bitmap" : 1
+	},
+	{
+            "index_name": "date2_index",
+            "index_type" : "DATE",
+            "index_fields": "date2"
+	},
+	{
+            "index_name": "timestamp_index",
+            "index_type" : "DATE",
+            "index_fields": "timestamp"
+	},
+	{
+            "index_name": "time_index",
+            "index_type" : "DATE",
+            "index_fields": "time"
+	},
+	{
+	    "index_name": "pk",
+	    "index_type": "PRIMARYKEY64",
+	    "index_fields": "pk"
+	}
+    ],
+    "attributes": [],
+    "summarys":{ 
+        "summary_fields": []
+    }
+}

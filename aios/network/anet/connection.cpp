@@ -13,41 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "aios/network/anet/timeutil.h"
 #include "aios/network/anet/connection.h"
-#include "aios/network/anet/streamingcontext.h"
-#include "aios/network/anet/channel.h"
-#include "aios/network/anet/channelpool.h"
-#include "aios/network/anet/ipacketstreamer.h"
-#include "aios/network/anet/iserveradapter.h"
-#include "aios/network/anet/socket.h"
-#include "aios/network/anet/iocomponent.h"
-#include "aios/network/anet/log.h"
-#include "aios/network/anet/common.h"
-#include <stdint.h>
-#include "aios/network/anet/stats.h"
-#include "aios/network/anet/threadmutex.h"
+
 #include <assert.h>
+#include <stdint.h>
 #include <string.h>
 #include <sys/socket.h>
 
 #include "aios/network/anet/atomic.h"
+#include "aios/network/anet/channel.h"
+#include "aios/network/anet/channelpool.h"
+#include "aios/network/anet/common.h"
 #include "aios/network/anet/connectionpriority.h"
 #include "aios/network/anet/controlpacket.h"
 #include "aios/network/anet/ilogger.h"
+#include "aios/network/anet/iocomponent.h"
 #include "aios/network/anet/ipackethandler.h"
+#include "aios/network/anet/ipacketstreamer.h"
+#include "aios/network/anet/iserveradapter.h"
+#include "aios/network/anet/log.h"
 #include "aios/network/anet/orderedpacketqueue.h"
 #include "aios/network/anet/packet.h"
+#include "aios/network/anet/socket.h"
+#include "aios/network/anet/stats.h"
+#include "aios/network/anet/streamingcontext.h"
 #include "aios/network/anet/threadcond.h"
+#include "aios/network/anet/threadmutex.h"
+#include "aios/network/anet/timeutil.h"
 #include "autil/EnvUtil.h"
 
 struct sockaddr_in;
 
 BEGIN_ANET_NS();
 
-Connection::Connection(Socket *socket, IPacketStreamer *streamer,
-                       IServerAdapter *serverAdapter)
-{
+Connection::Connection(Socket *socket, IPacketStreamer *streamer, IServerAdapter *serverAdapter) {
     assert(streamer);
     _isServer = false;
     _socket = socket;
@@ -81,25 +80,20 @@ Connection::~Connection() {
     _socketAddrLen = 0;
 }
 
-void Connection::close() {
-    _iocomponent->closeConnection(this);
-}
+void Connection::close() { _iocomponent->closeConnection(this); }
 
-bool Connection::isClosed() {
-    return _closed;
-}
+bool Connection::isClosed() { return _closed; }
 
 bool Connection::isConnected() {
     if (!_iocomponent) {
         return false;
     }
-     return _iocomponent->getState() == IOComponent::ANET_CONNECTED;
+    return _iocomponent->getState() == IOComponent::ANET_CONNECTED;
 }
 
-bool Connection::postPacket(Packet *packet, IPacketHandler *packetHandler,
-                            void *args, bool block) {
+bool Connection::postPacket(Packet *packet, IPacketHandler *packetHandler, void *args, bool block) {
 
-    ANET_LOG(SPAM,"postPacket() through IOC(%p).",_iocomponent);
+    ANET_LOG(SPAM, "postPacket() through IOC(%p).", _iocomponent);
     if (NULL == packet) {
         ANET_LOG(WARN, "packet is NULL, post failed.");
         return false;
@@ -110,7 +104,7 @@ bool Connection::postPacket(Packet *packet, IPacketHandler *packetHandler,
     }
     _outputCond.lock();
     if (isClosed()) {
-        ANET_LOG(WARN,"Connection closed! IOC(%p).",_iocomponent);
+        ANET_LOG(WARN, "Connection closed! IOC(%p).", _iocomponent);
         _outputCond.unlock();
         return false;
     }
@@ -122,44 +116,45 @@ bool Connection::postPacket(Packet *packet, IPacketHandler *packetHandler,
             char remoteAddr[32] = {0};
             _socket->getRemoteAddr(remoteAddr, 32);
             remoteAddr[31] = 0;
-            ANET_LOG(WARN,"disconnect: %s, size:%ld, now: %ld, last: %ld",
-                remoteAddr, _outputQueue.size(), now, _lasttime);
+            ANET_LOG(
+                WARN, "disconnect: %s, size:%ld, now: %ld, last: %ld", remoteAddr, _outputQueue.size(), now, _lasttime);
             _outputCond.unlock();
             return false;
         }
     }
-    if (!_isServer && _queueLimit > 0) {//@fix bug #97
+    if (!_isServer && _queueLimit > 0) { //@fix bug #97
         if (!block && _channelPool.getUseListCount() >= _queueLimit) {
             _outputCond.unlock();
             char remoteAddr[32] = {0};
             _socket->getRemoteAddr(remoteAddr, 32);
             remoteAddr[31] = 0;
-            ANET_LOG(WARN, "QUEUE FULL NO BLOCK! IOC(%p), QueueLimit(%d), RemoteAddr(%s) .",
-                    _iocomponent, (int)_queueLimit, remoteAddr);
-            return false;//will not block
+            ANET_LOG(WARN,
+                     "QUEUE FULL NO BLOCK! IOC(%p), QueueLimit(%d), RemoteAddr(%s) .",
+                     _iocomponent,
+                     (int)_queueLimit,
+                     remoteAddr);
+            return false; // will not block
         }
         while (_channelPool.getUseListCount() >= _queueLimit && !isClosed()) {
-            _waitingThreads ++;
-            ANET_LOG(SPAM,"Before Waiting! IOC(%p).",_iocomponent);
+            _waitingThreads++;
+            ANET_LOG(SPAM, "Before Waiting! IOC(%p).", _iocomponent);
             _outputCond.wait();
-            ANET_LOG(SPAM,"After Waiting! IOC(%p).",_iocomponent);
-            _waitingThreads --;
+            ANET_LOG(SPAM, "After Waiting! IOC(%p).", _iocomponent);
+            _waitingThreads--;
         }
         if (isClosed()) {
-            ANET_LOG(WARN,"Waked up on closing! IOC(%p).", _iocomponent);
+            ANET_LOG(WARN, "Waked up on closing! IOC(%p).", _iocomponent);
             _outputCond.unlock();
             return false;
         }
     }
 
     if (_isServer) {
-        if(_streamer->existPacketHeader()) {
+        if (_streamer->existPacketHeader()) {
             assert(packet->getChannelId());
         }
     } else {
-        uint64_t chid = _streamer->existPacketHeader()
-                        ? 0
-                        : ChannelPool::HTTP_CHANNEL_ID;
+        uint64_t chid = _streamer->existPacketHeader() ? 0 : ChannelPool::HTTP_CHANNEL_ID;
         Channel *channel = _channelPool.allocChannel(chid);
         if (NULL == channel) {
             ANET_LOG(WARN, "Failed to allocate a channel");
@@ -176,15 +171,14 @@ bool Connection::postPacket(Packet *packet, IPacketHandler *packetHandler,
     _outputQueue.push(packet);
     updateQueueStatus(packet, true);
     if (qsize == 0) {
-        ANET_LOG(DEBUG,"IOC(%p)->enableWrite(true)", _iocomponent);
+        ANET_LOG(DEBUG, "IOC(%p)->enableWrite(true)", _iocomponent);
         _iocomponent->enableWrite(true);
     }
     _stats.packetPosted++;
 
     /* We should do the logging before lock is released to prevent
      * racing of packet object. */
-    ANET_LOG(DEBUG,"postPacket() Success! IOC(%p), chid %lu.",_iocomponent,
-             packet->getChannelId());
+    ANET_LOG(DEBUG, "postPacket() Success! IOC(%p), chid %lu.", _iocomponent, packet->getChannelId());
 
     _outputCond.unlock();
     return true;
@@ -197,10 +191,10 @@ public:
         assert(this == args);
         _reply = packet;
         _cond.signal();
-    return FREE_CHANNEL;
+        return FREE_CHANNEL;
     }
 
-    Packet* waitReply() {
+    Packet *waitReply() {
         _cond.lock();
         while (NULL == _reply) {
             _cond.wait();
@@ -209,10 +203,9 @@ public:
         return _reply;
     }
 
-    SynStub() {
-        _reply = NULL;
-    }
+    SynStub() { _reply = NULL; }
     virtual ~SynStub() {}
+
 private:
     ThreadCond _cond;
     Packet *_reply;
@@ -254,7 +247,7 @@ bool Connection::handlePacket(Packet *packet) {
     }
     packetHandler = channel->getHandler();
     args = channel->getArgs();
-    _channelPool.freeChannel(channel);  //fix bug 137
+    _channelPool.freeChannel(channel); // fix bug 137
     if (packetHandler == NULL) {
         packetHandler = _defaultPacketHandler;
     }
@@ -273,24 +266,25 @@ bool Connection::checkTimeout(int64_t now) {
     Channel *list = NULL;
     Channel *channel = NULL;
     IPacketHandler *packetHandler = NULL;
-    Packet *cmdPacket = (now == TimeUtil::MAX)
-                            ? &ControlPacket::ConnectionClosedPacket
-                            : &ControlPacket::TimeoutPacket;
+    Packet *cmdPacket = (now == TimeUtil::MAX) ? &ControlPacket::ConnectionClosedPacket : &ControlPacket::TimeoutPacket;
 
     if (!_isServer && (list = _channelPool.getTimeoutList(now))) {
-        ANET_LOG(SPAM,"Checking channel pool. IOC(%p), CONN(%p)", _iocomponent, this);
+        ANET_LOG(SPAM, "Checking channel pool. IOC(%p), CONN(%p)", _iocomponent, this);
         channel = list;
-        if (!_streamer->existPacketHeader()
-            && cmdPacket == &ControlPacket::TimeoutPacket )
-        {
+        if (!_streamer->existPacketHeader() && cmdPacket == &ControlPacket::TimeoutPacket) {
             _iocomponent->closeAndSetState();
         }
         while (channel != NULL) {
             char buff[32] = {0};
             _socket->getRemoteAddr(buff, 32);
             buff[31] = 0;
-            ANET_LOG(WARN, "Channel timeout (%d ms)! id: %llu, remoteAddr: %s",
-                     channel->getTimeoutMs(), (unsigned long long)channel->getId(), buff);
+            ANET_LOG(WARN,
+                     "Channel timeout (%d ms)! id: %llu, remoteAddr: %s. IOC(%p), CONN(%p).",
+                     channel->getTimeoutMs(),
+                     (unsigned long long)channel->getId(),
+                     buff,
+                     _iocomponent,
+                     this);
             packetHandler = channel->getHandler();
             if (packetHandler == NULL) {
                 packetHandler = _defaultPacketHandler;
@@ -300,7 +294,7 @@ bool Connection::checkTimeout(int64_t now) {
                 packetHandler->handlePacket(cmdPacket, channel->getArgs());
                 afterCallback();
             }
-            _stats.packetTimeout ++;
+            _stats.packetTimeout++;
             ANET_COUNT_PACKET_TIMEOUT(1);
             channel = channel->getNext();
         }
@@ -308,16 +302,23 @@ bool Connection::checkTimeout(int64_t now) {
     }
 
     _outputCond.lock();
-    ANET_LOG(SPAM,"Checking output queue(%lu). IOC(%p), CONN(%p).",
-             _outputQueue.size(), _iocomponent, this);
+    ANET_LOG(SPAM, "Checking output queue(%lu). IOC(%p), CONN(%p).", _outputQueue.size(), _iocomponent, this);
     Packet *packetList = _outputQueue.getTimeoutList(now);
     _outputCond.unlock();
     while (packetList) {
         char buff[32] = {0};
         _socket->getRemoteAddr(buff, 32);
         buff[31] = 0;
-        ANET_LOG(WARN, "Packet Timeout. Now(%ld), Exp(%ld), queue timeout(%d), timeout(%d), remote address(%s)",
-                 now, packetList->getExpireTime(), _queueTimeout, packetList->getTimeoutMs(), buff);
+        ANET_LOG(WARN,
+                 "Packet Timeout. Now(%ld), Exp(%ld), queue timeout(%d), timeout(%d), remote address(%s). IOC(%p), "
+                 "CONN(%p).",
+                 now,
+                 packetList->getExpireTime(),
+                 _queueTimeout,
+                 packetList->getTimeoutMs(),
+                 buff,
+                 _iocomponent,
+                 this);
         Packet *packet = packetList;
         packetList = packetList->getNext();
 
@@ -340,7 +341,7 @@ bool Connection::checkTimeout(int64_t now) {
                     packetHandler = _defaultPacketHandler;
                 }
                 void *args = channel->getArgs();
-                _channelPool.freeChannel(channel);//~Bug #93
+                _channelPool.freeChannel(channel); //~Bug #93
                 if (packetHandler != NULL) {
                     beforeCallback();
                     packetHandler->handlePacket(cmdPacket, args);
@@ -348,7 +349,7 @@ bool Connection::checkTimeout(int64_t now) {
                 }
             }
         }
-        _stats.packetTimeout ++;
+        _stats.packetTimeout++;
         ANET_COUNT_PACKET_TIMEOUT(1);
         packet->free();
     }
@@ -379,7 +380,7 @@ void Connection::openHook() {
 }
 
 void Connection::wakeUpSender() {
-    if  (_queueLimit > 0) {
+    if (_queueLimit > 0) {
         _outputCond.lock();
         size_t queueTotalSize = _channelPool.getUseListCount();
         if (queueTotalSize < _queueLimit || isClosed()) {
@@ -391,42 +392,32 @@ void Connection::wakeUpSender() {
     }
 }
 
-void Connection::beforeCallback() {
-    _iocomponent->unlock();
-}
+void Connection::beforeCallback() { _iocomponent->unlock(); }
 
 void Connection::afterCallback() {
     _iocomponent->lock();
     _stats.packetHandled++;
 }
 
-void Connection::addRef() {
-    _iocomponent->addRef();
-}
+void Connection::addRef() { _iocomponent->addRef(); }
 
-void Connection::subRef() {
-    _iocomponent->subRef();
-}
+void Connection::subRef() { _iocomponent->subRef(); }
 
-int Connection::getRef() {
-    return _iocomponent->getRef();
-}
+int Connection::getRef() { return _iocomponent->getRef(); }
 
 bool Connection::setQueueLimit(size_t limit) {
     if (_streamer->existPacketHeader()) {
-         _queueLimit = limit;
-         return true;
+        _queueLimit = limit;
+        return true;
     }
     if (limit != 1) {
         return false;
     } else {
-        return  true;
+        return true;
     }
 }
 
-size_t Connection::getQueueLimit() {
-    return _queueLimit;
-}
+size_t Connection::getQueueLimit() { return _queueLimit; }
 
 void Connection::resetContext() {
     clearOutputBuffer();
@@ -434,9 +425,7 @@ void Connection::resetContext() {
     _context->reset();
 }
 
-void Connection::updateQueueStatus(Packet *packet,
-                                   bool pushOrPopFlag)
-{
+void Connection::updateQueueStatus(Packet *packet, bool pushOrPopFlag) {
     int64_t spaceUsed = 0;
     if (pushOrPopFlag) {
         atomic_inc(&_outputQueueSize);
@@ -451,61 +440,58 @@ void Connection::updateQueueStatus(Packet *packet,
     ANET_ADD_OUTPUT_QUEUE_SPACE_USED(spaceUsed);
 }
 
-int Connection::setPriority(CONNPRIORITY priority) {
-    return _socket->setPriority(priority);
-}
+int Connection::setPriority(CONNPRIORITY priority) { return _socket->setPriority(priority); }
 
-int Connection::setQosGroup(uint64_t jobid, uint32_t instanceid, uint32_t groupid){
+int Connection::setQosGroup(uint64_t jobid, uint32_t instanceid, uint32_t groupid) {
     _jobId = jobid;
     _insId = instanceid;
     _qosId = groupid;
-    if(_qosId == 0)
+    if (_qosId == 0)
         return 0;
-    if(_iocomponent->getState() == IOComponent::ANET_CONNECTED){
+    if (_iocomponent->getState() == IOComponent::ANET_CONNECTED) {
         int ret = _socket->setQosGroup(_jobId, _insId, _qosId);
-        ANET_ALOG_INFO(logger,"socket %d _jobId=%lu, _insId=%u, _qosId=%u ret=%d", _socket->getSocketHandle(),  _jobId, _insId,  _qosId, ret);
+        ANET_ALOG_INFO(logger,
+                       "socket %d _jobId=%lu, _insId=%u, _qosId=%u ret=%d",
+                       _socket->getSocketHandle(),
+                       _jobId,
+                       _insId,
+                       _qosId,
+                       ret);
         return ret;
     }
     return 0;
 }
-int Connection::setQosGroup(){
+int Connection::setQosGroup() {
     int ret = 0;
-    if(_qosId == 0)
+    if (_qosId == 0)
         return 0;
     ret = _socket->setQosGroup(_jobId, _insId, _qosId);
-    ANET_ALOG_INFO(logger,"socket %d _jobId=%lu, _insId=%u, _qosId=%u ret=%d", _socket->getSocketHandle(),  _jobId, _insId,  _qosId, ret);
+    ANET_ALOG_INFO(logger,
+                   "socket %d _jobId=%lu, _insId=%u, _qosId=%u ret=%d",
+                   _socket->getSocketHandle(),
+                   _jobId,
+                   _insId,
+                   _qosId,
+                   ret);
     return ret;
 }
-uint32_t Connection::getQosGroup(){
-    return _qosId;
-}
-CONNPRIORITY Connection::getPriority() {
-    return (CONNPRIORITY)_socket->getPriority();
-}
+uint32_t Connection::getQosGroup() { return _qosId; }
+CONNPRIORITY Connection::getPriority() { return (CONNPRIORITY)_socket->getPriority(); }
 
-RECONNErr Connection::reconnect() {
-    return _iocomponent->reconnect();
-}
+RECONNErr Connection::reconnect() { return _iocomponent->reconnect(); }
 
-char *Connection::getLocalAddr(char *dest, int len)
-{
-    return _socket->getAddr(dest, len, true);
-}
+char *Connection::getLocalAddr(char *dest, int len) { return _socket->getAddr(dest, len, true); }
 
-char* Connection::getIpAndPortAddr(char *dest, int len) {
-    if (_socketAddr == NULL)
-    {
+char *Connection::getIpAndPortAddr(char *dest, int len) {
+    if (_socketAddr == NULL) {
         _addrMutex.lock();
-        if (_socketAddr == NULL)
-        {
-            if (_socket->getProtocolFamily() == AF_UNIX)
-            {
+        if (_socketAddr == NULL) {
+            if (_socket->getProtocolFamily() == AF_UNIX) {
                 _addrMutex.unlock();
                 return NULL;
             }
             char *buff = new char[32];
-            if (_socket->getAddr(buff, 32) == NULL)
-            {
+            if (_socket->getAddr(buff, 32) == NULL) {
                 _addrMutex.unlock();
                 delete[] buff;
                 return NULL;
@@ -524,10 +510,7 @@ char* Connection::getIpAndPortAddr(char *dest, int len) {
     return dest;
 }
 
-bool Connection::getSockAddr(sockaddr_in &addr)
-{
-    return _socket->getSockAddr(addr);
-}
+bool Connection::getSockAddr(sockaddr_in &addr) { return _socket->getSockAddr(addr); }
 
 bool Connection::setKeepAliveParameter(int idleTime, int keepInterval, int cnt) {
     return _socket->setKeepAliveParameter(idleTime, keepInterval, cnt);

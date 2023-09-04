@@ -15,9 +15,9 @@
  */
 #pragma once
 
-#include <stddef.h>
 #include <memory>
 #include <ostream>
+#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -36,17 +36,18 @@ class QueryVisitor;
 
 typedef std::shared_ptr<Query> QueryPtr;
 
-class Query
-{
+class Query {
 public:
     typedef std::vector<QueryPtr> QueryVector;
     typedef std::vector<TermPtr> TermArray;
+
 public:
     Query();
     Query(const Query &other);
     virtual ~Query();
+
 public:
-    virtual bool operator == (const Query &query) const = 0;
+    virtual bool operator==(const Query &query) const = 0;
     virtual void accept(QueryVisitor *visitor) const = 0;
     virtual void accept(ModifyQueryVisitor *visitor) = 0;
     virtual Query *clone() const = 0;
@@ -54,10 +55,10 @@ public:
     virtual void addQuery(QueryPtr queryPtr) {
         _children.push_back(queryPtr);
     }
-    const std::vector<QueryPtr>* getChildQuery() const {
+    const std::vector<QueryPtr> *getChildQuery() const {
         return &_children;
     }
-    std::vector<QueryPtr>* getChildQuery() {
+    std::vector<QueryPtr> *getChildQuery() {
         return &_children;
     }
     void setQueryRestrictor(bool restrictorFlag) {
@@ -73,35 +74,46 @@ public:
     virtual void deserialize(autil::DataBuffer &dataBuffer);
 
     virtual QueryType getType() const = 0;
-    static Query* createQuery(QueryType type);
-    const std::string& getQueryLabel() const { return _queryLabel; }
-    void setQueryLabel(const std::string &label) { _queryLabel = label; }
-    MatchDataLevel getMatchDataLevel() const { return _matchDataLevel; }
-    void setMatchDataLevel(MatchDataLevel level) { _matchDataLevel = level; }
+    static Query *createQuery(QueryType type);
+    const std::string &getQueryLabel() const {
+        return _queryLabel;
+    }
+    void setQueryLabel(const std::string &label) {
+        _queryLabel = label;
+    }
+    MatchDataLevel getMatchDataLevel() const {
+        return _matchDataLevel;
+    }
+    void setMatchDataLevel(MatchDataLevel level) {
+        _matchDataLevel = level;
+    }
     virtual void setQueryLabelWithDefaultLevel(const std::string &label) = 0;
+
 protected:
     void setQueryLabelBinary(const std::string &label);
     void setQueryLabelTerm(const std::string &label);
     void serializeMDLandQL(autil::DataBuffer &dataBuffer) const;
     void deserializeMDLandQL(autil::DataBuffer &dataBuffer);
+
 protected:
     QueryVector _children;
     bool _queryRestrictor;
     MatchDataLevel _matchDataLevel;
     std::string _queryLabel;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
-std::ostream& operator << (std::ostream& out, const Query& query);
+std::ostream &operator<<(std::ostream &out, const Query &query);
 
 } // namespace common
 } // namespace isearch
 
 namespace autil {
 
-template<>
-inline void DataBuffer::write<isearch::common::Query>(isearch::common::Query const * const &p) {
+template <>
+inline void DataBuffer::write<isearch::common::Query>(isearch::common::Query const *const &p) {
     bool isNull = p;
     write(isNull);
     if (isNull) {
@@ -111,8 +123,8 @@ inline void DataBuffer::write<isearch::common::Query>(isearch::common::Query con
     }
 }
 
-template<>
-inline void DataBuffer::read<isearch::common::Query>(isearch::common::Query* &p) {
+template <>
+inline void DataBuffer::read<isearch::common::Query>(isearch::common::Query *&p) {
     bool isNull;
     read(isNull);
     if (isNull) {
@@ -127,4 +139,4 @@ inline void DataBuffer::read<isearch::common::Query>(isearch::common::Query* &p)
     }
 }
 
-}
+} // namespace autil

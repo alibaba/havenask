@@ -1,0 +1,20 @@
+{
+    "table_name" : "simple_table",
+    "clusters" : ["simple_cluster1", "simple_cluster2"],
+    "modules" : [
+        {
+            "module_name" : "user_module_name",
+            "module_path" : "libuser_module.so",
+            "parameters" : {
+            }
+        }
+    ],
+    "sub_document_processor_chain" : [
+        {
+		    "class_name" : "TokenizeDocumentProcessor",
+		    "module_name": "",
+		    "parameters" : {
+ 		    }
+        }
+	]
+}

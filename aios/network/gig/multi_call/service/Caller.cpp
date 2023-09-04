@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/Caller.h"
+
 #include "aios/network/gig/multi_call/service/CallBack.h"
 #include "aios/network/gig/multi_call/service/SearchServiceProvider.h"
 #include "aios/network/gig/multi_call/service/SearchServiceResource.h"
@@ -30,11 +31,11 @@ Caller::Caller(const ChildNodeReplyPtr &reply,
     : _hasClosure(false)
     , _stopped(false)
     , _reply(reply)
-    , _sessionContext(sessionContext)
-{
+    , _sessionContext(sessionContext) {
 }
 
-Caller::~Caller() {}
+Caller::~Caller() {
+}
 
 void Caller::call(const SearchServiceResourcePtr &resource, bool isRetry) {
     resource->fillRequestQueryInfo(isRetry, _sessionContext->getTracer(),

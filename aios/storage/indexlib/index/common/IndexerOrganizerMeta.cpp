@@ -15,7 +15,7 @@
  */
 #include "indexlib/index/common/IndexerOrganizerMeta.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/framework/TabletData.h"
 

@@ -15,27 +15,27 @@
  */
 #include "fslib/fs/FileSystem.h"
 
-#include "autil/ThreadPool.h"
-#include "autil/StringUtil.h"
 #include "autil/EnvUtil.h"
-#include "kmonitor_adapter/MonitorFactory.h"
-#include "fslib/fs/FileSystemFactory.h"
-#include "fslib/fs/AbstractFileSystem.h"
-#include "fslib/fs/DummyFile.h"
-#include "fslib/fs/ProxyFile.h"
-#include "fslib/fs/FileTraverser.h"
-#include "fslib/fs/MetricReporter.h"
-#include "fslib/util/SafeBuffer.h"
-#include "fslib/util/LongIntervalLog.h"
-#include "fslib/util/MetricTagsHandler.h"
-#include "fslib/config.h"
-#include "fslib/fs/local/LocalFileSystem.h"
-#include "fslib/fs/ProxyFileSystem.h"
-#include "fslib/fs/ErrorGenerator.h"
+#include "autil/StringUtil.h"
+#include "autil/ThreadPool.h"
 #include "fslib/cache/FSCacheModule.h"
 #include "fslib/common/common_define.h"
+#include "fslib/config.h"
+#include "fslib/fs/AbstractFileSystem.h"
+#include "fslib/fs/DummyFile.h"
+#include "fslib/fs/ErrorGenerator.h"
 #include "fslib/fs/ExceptionTrigger.h"
+#include "fslib/fs/FileSystemFactory.h"
+#include "fslib/fs/FileTraverser.h"
+#include "fslib/fs/MetricReporter.h"
 #include "fslib/fs/MockFile.h"
+#include "fslib/fs/ProxyFile.h"
+#include "fslib/fs/ProxyFileSystem.h"
+#include "fslib/fs/local/LocalFileSystem.h"
+#include "fslib/util/LongIntervalLog.h"
+#include "fslib/util/MetricTagsHandler.h"
+#include "fslib/util/SafeBuffer.h"
+#include "kmonitor_adapter/MonitorFactory.h"
 
 using namespace std;
 using namespace autil;
@@ -54,25 +54,27 @@ const string FileSystem::SUFFIX = "__temp__";
 const int32_t FileSystem::DEFAULT_THREAD_NUM = 128;
 const int32_t FileSystem::DEFAULT_THREAD_QUEUE_SIZE = 1024;
 
-#define FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, param1, param2) { \
-        if (toConsole) {                                                \
-            fprintf(stderr, errMsg.c_str(), param1.c_str(), param2.c_str()); \
-        } else {                                                        \
-            AUTIL_LOG(ERROR, errMsg.c_str(), param1.c_str(), param2.c_str()); \
-        }                                                               \
+#define FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, param1, param2)                                                \
+    {                                                                                                                  \
+        if (toConsole) {                                                                                               \
+            fprintf(stderr, errMsg.c_str(), param1.c_str(), param2.c_str());                                           \
+        } else {                                                                                                       \
+            AUTIL_LOG(ERROR, errMsg.c_str(), param1.c_str(), param2.c_str());                                          \
+        }                                                                                                              \
     }
 
-#define FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, param1, param2, param3) { \
-        if (toConsole) {                                                \
-            fprintf(stderr, errMsg.c_str(), param1.c_str(), param2.c_str(), param3.c_str()); \
-        } else {                                                        \
-            AUTIL_LOG(ERROR, errMsg.c_str(), param1.c_str(), param2.c_str(), param3.c_str()); \
-        }                                                               \
+#define FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, param1, param2, param3)                                      \
+    {                                                                                                                  \
+        if (toConsole) {                                                                                               \
+            fprintf(stderr, errMsg.c_str(), param1.c_str(), param2.c_str(), param3.c_str());                           \
+        } else {                                                                                                       \
+            AUTIL_LOG(ERROR, errMsg.c_str(), param1.c_str(), param2.c_str(), param3.c_str());                          \
+        }                                                                                                              \
     }
 
 bool FileSystem::_useMock = false;
 bool FileSystem::_mmapDontDump = ("true" == EnvUtil::getEnv("MMAP_DONTDUMP"));
-ErrorCode FileSystem::GENERATE_ERROR(const string& operation, const string& filename) {
+ErrorCode FileSystem::GENERATE_ERROR(const string &operation, const string &filename) {
     ErrorCode __ec = EC_OK;
     if (unlikely(_useMock)) {
         if (ExceptionTrigger::CanTriggerException(operation, filename, &__ec)) {
@@ -86,11 +88,9 @@ ErrorCode FileSystem::GENERATE_ERROR(const string& operation, const string& file
     return EC_OK;
 }
 
-File* FileSystem::openFile(const string& fileName, Flag flag,
-                           bool useDirectIO, ssize_t fileLength)
-{
-    FSLIB_LONG_INTERVAL_LOG("fileName[%s], flag[%d], useDirectIO[%d], fileLength[%ld]",
-                            fileName.c_str(), flag, useDirectIO, fileLength);
+File *FileSystem::openFile(const string &fileName, Flag flag, bool useDirectIO, ssize_t fileLength) {
+    FSLIB_LONG_INTERVAL_LOG(
+        "fileName[%s], flag[%d], useDirectIO[%d], fileLength[%ld]", fileName.c_str(), flag, useDirectIO, fileLength);
     ErrorCode __ec = EC_OK;
     if (unlikely(_useMock)) {
         if (ExceptionTrigger::CanTriggerException(OPERATION_OPEN_FILE, fileName, &__ec)) {
@@ -101,8 +101,8 @@ File* FileSystem::openFile(const string& fileName, Flag flag,
             return new DummyFile(__ec);
         }
     }
-    File* file = NULL;
-    AbstractFileSystem* fs = NULL;
+    File *file = NULL;
+    AbstractFileSystem *fs = NULL;
     string fsName, fsType;
     ErrorCode ret = parseInternal(fileName, fs);
     if (ret == EC_OK) {
@@ -112,7 +112,7 @@ File* FileSystem::openFile(const string& fileName, Flag flag,
         file = fs->openFile(fileName, flag, fileLength);
         if (unlikely(_useMock)) {
             AUTIL_LOG(TRACE1, "use mock file system %p", fs);
-            File* mockFile = new MockFile(file);
+            File *mockFile = new MockFile(file);
             return mockFile;
         }
         return file;
@@ -122,13 +122,23 @@ File* FileSystem::openFile(const string& fileName, Flag flag,
     return new DummyFile(EC_NOTSUP);
 }
 
-MMapFile* FileSystem::mmapFile(const std::string& fileName, Flag openMode,
-                               char* start, size_t length, int prot,
-                               int mapFlag, off_t offset, ssize_t fileLength)
-{
+MMapFile *FileSystem::mmapFile(const std::string &fileName,
+                               Flag openMode,
+                               char *start,
+                               size_t length,
+                               int prot,
+                               int mapFlag,
+                               off_t offset,
+                               ssize_t fileLength) {
     FSLIB_LONG_INTERVAL_LOG("fileName[%s], openMode[%d], length[%lu], prot[%d], "
                             "mapFlag[%d], offset[%ld], fileLength[%ld]",
-                            fileName.c_str(), openMode, length, prot, mapFlag, offset, fileLength);
+                            fileName.c_str(),
+                            openMode,
+                            length,
+                            prot,
+                            mapFlag,
+                            offset,
+                            fileLength);
     ErrorCode __ec = EC_OK;
     if (unlikely(_useMock)) {
         if (ExceptionTrigger::CanTriggerException(OPERATION_MMAP_FILE, fileName, &__ec)) {
@@ -139,13 +149,12 @@ MMapFile* FileSystem::mmapFile(const std::string& fileName, Flag openMode,
             return new MMapFile(fileName, -1, NULL, -1, -1, __ec);
         }
     }
-    MMapFile* file = NULL;
-    AbstractFileSystem* fs = NULL;
+    MMapFile *file = NULL;
+    AbstractFileSystem *fs = NULL;
 
     ErrorCode ret = parseInternal(fileName, fs);
     if (ret == EC_OK) {
-        file = fs->mmapFile(fileName, openMode, start, length,
-                            prot, mapFlag, offset, fileLength);
+        file = fs->mmapFile(fileName, openMode, start, length, prot, mapFlag, offset, fileLength);
         if (file && _mmapDontDump) {
             file->setDontDump();
         }
@@ -156,12 +165,10 @@ MMapFile* FileSystem::mmapFile(const std::string& fileName, Flag openMode,
     return new MMapFile(fileName, -1, NULL, -1, -1, EC_NOTSUP);
 }
 
-ErrorCode FileSystem::rename(const string& oldFile,
-                             const string& newFile)
-{
+ErrorCode FileSystem::rename(const string &oldFile, const string &newFile) {
     FSLIB_LONG_INTERVAL_LOG("oldFile[%s], newFile[%s]", oldFile.c_str(), newFile.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_RENAME, oldFile);
-    if(unlikely(ret!=EC_OK)){
+    if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
@@ -173,28 +180,34 @@ ErrorCode FileSystem::rename(const string& oldFile,
     oldFsType = getFsType(oldFile);
     newFsType = getFsType(newFile);
     if (oldFsType != newFsType) {
-        AUTIL_LOG(ERROR, "rename old path %s to new path %s fail, not support"
-                  " rename path from different file systems", oldFile.c_str(),
+        AUTIL_LOG(ERROR,
+                  "rename old path %s to new path %s fail, not support"
+                  " rename path from different file systems",
+                  oldFile.c_str(),
                   newFile.c_str());
         return EC_NOTSUP;
-
     }
 
-    AbstractFileSystem* oldFs = NULL;
-    AbstractFileSystem* newFs = NULL;
-
+    AbstractFileSystem *oldFs = NULL;
+    AbstractFileSystem *newFs = NULL;
 
     ret = parseInternal(oldFile, oldFs);
     if (ret != EC_OK) {
-        AUTIL_LOG(ERROR, "rename old path %s to new path %s fail, parse old"
-                  " path fail!", oldFile.c_str(), newFile.c_str());
+        AUTIL_LOG(ERROR,
+                  "rename old path %s to new path %s fail, parse old"
+                  " path fail!",
+                  oldFile.c_str(),
+                  newFile.c_str());
         return ret;
     }
 
     ret = parseInternal(newFile, newFs);
     if (ret != EC_OK) {
-        AUTIL_LOG(ERROR, "rename old path %s to new path %s fail, parse new"
-                  " path fail!", oldFile.c_str(), newFile.c_str());
+        AUTIL_LOG(ERROR,
+                  "rename old path %s to new path %s fail, parse new"
+                  " path fail!",
+                  oldFile.c_str(),
+                  newFile.c_str());
         return ret;
     }
 
@@ -209,18 +222,17 @@ ErrorCode FileSystem::rename(const string& oldFile,
     if (ret == EC_OK) {
         return ret;
     }
-    AUTIL_LOG(WARN, "rename old path %s to new path %s fail, ec[%d]",
-              oldFile.c_str(), newFile.c_str(), ret);
+    AUTIL_LOG(WARN, "rename old path %s to new path %s fail, ec[%d]", oldFile.c_str(), newFile.c_str(), ret);
     return ret;
 }
 
-ErrorCode FileSystem::renameInternal(const PathInfo& oldInfo,
-                                     const PathInfo& newInfo)
-{
+ErrorCode FileSystem::renameInternal(const PathInfo &oldInfo, const PathInfo &newInfo) {
     if (oldInfo._fs != newInfo._fs) {
-        AUTIL_LOG(ERROR, "internal rename old path %s to new path %s fail, "
+        AUTIL_LOG(ERROR,
+                  "internal rename old path %s to new path %s fail, "
                   "not support rename path from different file systems",
-                  oldInfo._path.c_str(), newInfo._path.c_str());
+                  oldInfo._path.c_str(),
+                  newInfo._path.c_str());
         return EC_NOTSUP;
     }
 
@@ -228,21 +240,44 @@ ErrorCode FileSystem::renameInternal(const PathInfo& oldInfo,
     if (ret == EC_OK) {
         return ret;
     }
-    AUTIL_LOG(ERROR, "internal rename old path %s to new path %s fail, "
-              "rename fail!", oldInfo._path.c_str(), newInfo._path.c_str());
+    AUTIL_LOG(ERROR,
+              "internal rename old path %s to new path %s fail, "
+              "rename fail!",
+              oldInfo._path.c_str(),
+              newInfo._path.c_str());
     return ret;
 }
 
-ErrorCode FileSystem::getFileMeta(const string& fileName,
-                                  FileMeta& fileMeta)
-{
+ErrorCode FileSystem::linkInternal(const PathInfo &oldInfo, const PathInfo &newInfo) {
+    if (oldInfo._fs != newInfo._fs) {
+        AUTIL_LOG(ERROR,
+                  "internal link old file path %s to new file path %s fail, "
+                  "not support link file from different file systems",
+                  oldInfo._path.c_str(),
+                  newInfo._path.c_str());
+        return EC_NOTSUP;
+    }
+
+    ErrorCode ret = newInfo._fs->link(oldInfo._path, newInfo._path);
+    if (ret == EC_OK) {
+        return ret;
+    }
+    AUTIL_LOG(ERROR,
+              "internal link old file path %s to new file path %s fail, "
+              "link fail!",
+              oldInfo._path.c_str(),
+              newInfo._path.c_str());
+    return ret;
+}
+
+ErrorCode FileSystem::getFileMeta(const string &fileName, FileMeta &fileMeta) {
     FSLIB_LONG_INTERVAL_LOG("fileName[%s]", fileName.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_GET_FILE_META, fileName);
     if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
 
     ret = parseInternal(fileName, fs);
     if (ret == EC_OK) {
@@ -260,16 +295,14 @@ ErrorCode FileSystem::getFileMeta(const string& fileName,
     return ret;
 }
 
-ErrorCode FileSystem::getPathMeta(const std::string& path,
-                                  PathMeta& pathMeta)
-{
+ErrorCode FileSystem::getPathMeta(const std::string &path, PathMeta &pathMeta) {
     FSLIB_LONG_INTERVAL_LOG("path[%s]", path.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_GET_FILE_META, path);
     if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
 
     ret = parseInternal(path, fs);
     if (ret == EC_OK) {
@@ -286,14 +319,14 @@ ErrorCode FileSystem::getPathMeta(const std::string& path,
     return ret;
 }
 
-ErrorCode FileSystem::isFile(const string& path) {
+ErrorCode FileSystem::isFile(const string &path) {
     FSLIB_LONG_INTERVAL_LOG("path[%s]", path.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_ISFILE, path);
     if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
     ret = parseInternal(path, fs);
     if (ret == EC_OK) {
         ret = fs->isFile(path);
@@ -303,10 +336,7 @@ ErrorCode FileSystem::isFile(const string& path) {
     return ret;
 }
 
-bool FileSystem::generatePath(const string& srcPath,
-                              const string& dstDir,
-                              string& dstPath)
-{
+bool FileSystem::generatePath(const string &srcPath, const string &dstDir, string &dstPath) {
     string relativePath = srcPath;
 
     size_t pos = relativePath.rfind('/');
@@ -323,14 +353,12 @@ bool FileSystem::generatePath(const string& srcPath,
         } else {
             relativePath = relativePath.substr(pos + 1);
         }
-    } //else currently only local could be
+    } // else currently only local could be
 
     return appendPath(dstDir, relativePath, dstPath);
 }
 
-bool FileSystem::appendPath(const string& dstDir, const string& relativeName,
-                            string& dstPath)
-{
+bool FileSystem::appendPath(const string &dstDir, const string &relativeName, string &dstPath) {
     dstPath = dstDir;
     if (dstDir[dstDir.size() - 1] != '/') {
         dstPath.append(1, '/');
@@ -341,7 +369,7 @@ bool FileSystem::appendPath(const string& dstDir, const string& relativeName,
     return true;
 }
 
-ErrorCode FileSystem::copy(const std::string& srcPath, const std::string& dstPath) {
+ErrorCode FileSystem::copy(const std::string &srcPath, const std::string &dstPath) {
     FSLIB_LONG_INTERVAL_LOG("srcPath[%s], dstPath[%s]", srcPath.c_str(), dstPath.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_COPY, srcPath);
     if (unlikely(ret != EC_OK)) {
@@ -349,32 +377,39 @@ ErrorCode FileSystem::copy(const std::string& srcPath, const std::string& dstPat
     }
 
     if (srcPath == dstPath) {
-        AUTIL_LOG(ERROR, "copy src path %s to dst path %s fail, dst path "
-                  "should not equal src path!", srcPath.c_str(),
+        AUTIL_LOG(ERROR,
+                  "copy src path %s to dst path %s fail, dst path "
+                  "should not equal src path!",
+                  srcPath.c_str(),
                   dstPath.c_str());
         return EC_NOTSUP;
     }
 
-    AbstractFileSystem* srcFs;
+    AbstractFileSystem *srcFs;
     ret = parseInternal(srcPath, srcFs);
     if (ret != EC_OK) {
-        AUTIL_LOG(ERROR, "copy src path %s to dst path %s fail, parse src path "
-                  "fail!", srcPath.c_str(), dstPath.c_str());
+        AUTIL_LOG(ERROR,
+                  "copy src path %s to dst path %s fail, parse src path "
+                  "fail!",
+                  srcPath.c_str(),
+                  dstPath.c_str());
         return ret;
     }
 
-    AbstractFileSystem* dstFs;
+    AbstractFileSystem *dstFs;
     ret = parseInternal(dstPath, dstFs);
     if (ret != EC_OK) {
-        AUTIL_LOG(ERROR, "copy src path %s to dst path %s fail, parse dst path "
-                  "fail!", srcPath.c_str(), dstPath.c_str());
+        AUTIL_LOG(ERROR,
+                  "copy src path %s to dst path %s fail, parse dst path "
+                  "fail!",
+                  srcPath.c_str(),
+                  dstPath.c_str());
         return ret;
     }
 
     PathInfo srcInfo(srcFs, srcPath);
     PathInfo dstInfo(dstFs, dstPath);
-    if (isZkLikeFileSystem(srcFs) && !isZkLikeFileSystem(dstFs))
-    {
+    if (isZkLikeFileSystem(srcFs) && !isZkLikeFileSystem(dstFs)) {
         ret = copyZKLikeFsToOtherFs(srcInfo, dstInfo, true, false);
     } else {
         ret = copyAll(srcInfo, dstInfo, true, false);
@@ -383,12 +418,84 @@ ErrorCode FileSystem::copy(const std::string& srcPath, const std::string& dstPat
     return ret;
 }
 
+ErrorCode FileSystem::link(const std::string &srcPath, const std::string &dstPath) {
+    FSLIB_LONG_INTERVAL_LOG("srcPath[%s], dstPath[%s]", srcPath.c_str(), dstPath.c_str());
+    ErrorCode ret = GENERATE_ERROR(OPERATION_LINK, srcPath);
+    if (unlikely(ret != EC_OK)) {
+        return ret;
+    }
 
-ErrorCode FileSystem::copyZKLikeFsToOtherFs(const PathInfo& srcInfo,
-        const PathInfo& dstInfo, bool recursive, bool toConsole)
-{
-    const string& srcPath = srcInfo._path;
-    AbstractFileSystem* srcFs = srcInfo._fs;
+    if (srcPath == dstPath) {
+        AUTIL_LOG(ERROR,
+                  "link src path %s to dst path %s fail, dst path "
+                  "should not equal src path!",
+                  srcPath.c_str(),
+                  dstPath.c_str());
+        return EC_NOTSUP;
+    }
+    AbstractFileSystem *srcFs;
+    ret = parseInternal(srcPath, srcFs);
+    if (ret != EC_OK) {
+        AUTIL_LOG(ERROR,
+                  "link src path %s to dst path %s fail, parse src path "
+                  "fail!",
+                  srcPath.c_str(),
+                  dstPath.c_str());
+        return ret;
+    }
+
+    AbstractFileSystem *dstFs;
+    ret = parseInternal(dstPath, dstFs);
+    if (ret != EC_OK) {
+        AUTIL_LOG(ERROR,
+                  "link src path %s to dst path %s fail, parse dst path "
+                  "fail!",
+                  srcPath.c_str(),
+                  dstPath.c_str());
+        return ret;
+    }
+    PathInfo srcInfo(srcFs, srcPath);
+    PathInfo dstInfo(dstFs, dstPath);
+
+    string dstFileName;
+    bool toConsole = false;
+    if (srcFs->isFile(srcInfo._path) == EC_TRUE) {
+        string fileName;
+        if (dstFs->isDirectory(dstInfo._path) != EC_TRUE) {
+            dstFileName.assign(dstInfo._path);
+        } else {
+            if (!generatePath(srcInfo._path, dstInfo._path, dstFileName)) {
+                string errMsg = "link src <%s> to dst <%s> fail, cannot "
+                                "generate dst filename.\n";
+                FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcPath, dstPath);
+                return EC_PARSEFAIL;
+            }
+        }
+
+        PathInfo newDstInfo(dstFs, dstFileName);
+        ret = linkInternal(srcInfo, newDstInfo);
+        if (ret != EC_OK) {
+            string errMsg = "link src file <%s> to dst file <%s> fail, %s\n";
+            FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcInfo._path, newDstInfo._path, getErrorString(ret));
+            return ret;
+        }
+    } else if (srcFs->isDirectory(srcInfo._path) == EC_TRUE) {
+        std::string errMsg = "link src path <%s> to dst path <%s> fail, not support hard link directory.\n";
+        FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcPath, dstPath);
+        return EC_NOTSUP;
+    } else {
+        string errMsg = "link src <%s> to dst <%s> fail, make sure src "
+                        "does exist\n";
+        FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcPath, dstPath);
+        return EC_NOENT;
+    }
+    return EC_OK;
+}
+
+ErrorCode
+FileSystem::copyZKLikeFsToOtherFs(const PathInfo &srcInfo, const PathInfo &dstInfo, bool recursive, bool toConsole) {
+    const string &srcPath = srcInfo._path;
+    AbstractFileSystem *srcFs = srcInfo._fs;
     FileList fileList;
     bool created = false;
 
@@ -396,22 +503,20 @@ ErrorCode FileSystem::copyZKLikeFsToOtherFs(const PathInfo& srcInfo,
     if (ret != EC_OK) {
         string errMsg = "copy src <%s> to dst <%s> fail, fail to list src node"
                         ", %s\n";
-        FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcInfo._path,
-                dstInfo._path, getErrorString(ret));
+        FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcInfo._path, dstInfo._path, getErrorString(ret));
         return ret;
     }
 
     if (fileList.size() == 0) { // treat it as file
-        ret  = copyFile(srcInfo, dstInfo, toConsole, created);
+        ret = copyFile(srcInfo, dstInfo, toConsole, created);
         if (ret != EC_OK) {
             return ret;
         }
-    } else { //treat it as directory
+    } else { // treat it as directory
         if (!recursive) {
             string errMsg = "copy src <%s> to dst <%s> fail, parameter"
                             " -r is needed while copy directory\n";
-            FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcInfo._path,
-                    dstInfo._path);
+            FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcInfo._path, dstInfo._path);
             return EC_BADARGS;
         }
 
@@ -424,41 +529,35 @@ ErrorCode FileSystem::copyZKLikeFsToOtherFs(const PathInfo& srcInfo,
     return EC_OK;
 }
 
-ErrorCode FileSystem::copyAll(const PathInfo& srcInfo,
-                              const PathInfo& dstInfo,
-                              bool recursive,
-                              bool toConsole)
-{
+ErrorCode FileSystem::copyAll(const PathInfo &srcInfo, const PathInfo &dstInfo, bool recursive, bool toConsole) {
     bool exist = false;
     bool created = false;
     FileList fileList;
     ErrorCode ret = EC_OK;
 
-    const string& srcPath = srcInfo._path;
-    AbstractFileSystem* srcFs = srcInfo._fs;
+    const string &srcPath = srcInfo._path;
+    AbstractFileSystem *srcFs = srcInfo._fs;
 
     if (isZkLikeFileSystem(srcFs)) {
         ret = srcFs->listDir(srcPath, fileList);
         if (ret != EC_OK) {
             string errMsg = "copy src node <%s> to dst <%s> fail, fail to list"
                             " src node, %s\n";
-            FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcPath,
-                    dstInfo._path, getErrorString(ret));
+            FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcPath, dstInfo._path, getErrorString(ret));
             return ret;
         }
 
         if (fileList.size() != 0 && !recursive) {
             string errMsg = "copy src node <%s> to dst <%s> fail, parameter"
                             " -r is needed while copy directory\n";
-            FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcPath,
-                    dstInfo._path);
+            FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcPath, dstInfo._path);
             return EC_BADARGS;
         }
     }
 
     if (srcFs->isFile(srcPath) == EC_TRUE) {
         exist = true;
-        ret  = copyFile(srcInfo, dstInfo, toConsole, created);
+        ret = copyFile(srcInfo, dstInfo, toConsole, created);
         if (ret != EC_OK) {
             return ret;
         }
@@ -469,8 +568,7 @@ ErrorCode FileSystem::copyAll(const PathInfo& srcInfo,
             if (!recursive) {
                 string errMsg = "copy src <%s> to dst <%s> fail, parameter"
                                 " -r is needed while copy directory\n";
-                FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg,
-                        srcPath, dstInfo._path);
+                FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcPath, dstInfo._path);
                 return EC_BADARGS;
             }
 
@@ -478,9 +576,7 @@ ErrorCode FileSystem::copyAll(const PathInfo& srcInfo,
             if (ret != EC_OK) {
                 string errMsg = "copy src dir <%s> to dst <%s> fail, fail to list"
                                 " src dir, %s\n";
-                FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg,
-                        srcInfo._path, dstInfo._path,
-                        getErrorString(ret));
+                FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcInfo._path, dstInfo._path, getErrorString(ret));
                 return ret;
             }
         }
@@ -495,21 +591,17 @@ ErrorCode FileSystem::copyAll(const PathInfo& srcInfo,
     if (!exist) {
         string errMsg = "copy src <%s> to dst <%s> fail, make sure src "
                         "does exist\n";
-        FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcPath,
-                dstInfo._path);
+        FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcPath, dstInfo._path);
         return EC_NOENT;
     }
 
     return EC_OK;
 }
 
-ErrorCode FileSystem::copyFile(const PathInfo& srcInfo,
-                               const PathInfo& dstInfo,
-                               bool toConsole, bool& created)
-{
-    const string& srcPath = srcInfo._path;
-    const string& dstPath = dstInfo._path;
-    AbstractFileSystem* dstFs = dstInfo._fs;
+ErrorCode FileSystem::copyFile(const PathInfo &srcInfo, const PathInfo &dstInfo, bool toConsole, bool &created) {
+    const string &srcPath = srcInfo._path;
+    const string &dstPath = dstInfo._path;
+    AbstractFileSystem *dstFs = dstInfo._fs;
     string dstFileName;
 
     bool isDstExistDirectory = (dstFs->isDirectory(dstPath) == EC_TRUE);
@@ -517,8 +609,7 @@ ErrorCode FileSystem::copyFile(const PathInfo& srcInfo,
         if (!generatePath(srcPath, dstPath, dstFileName)) {
             string errMsg = "copy src <%s> to dst <%s> fail, cannot "
                             "generate dst filename.\n";
-            FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcInfo._path,
-                    dstInfo._path);
+            FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcInfo._path, dstInfo._path);
             return EC_PARSEFAIL;
         }
         if (!isDstExistDirectory) {
@@ -532,8 +623,7 @@ ErrorCode FileSystem::copyFile(const PathInfo& srcInfo,
     if (dstFs->isExist(dstFileName) == EC_TRUE) {
         string errMsg = "copy src <%s> to dst <%s> fail, dst path"
                         " already exist.\n";
-        FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcInfo._path,
-                dstInfo._path);
+        FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcInfo._path, dstInfo._path);
         return EC_EXIST;
     }
 
@@ -541,21 +631,16 @@ ErrorCode FileSystem::copyFile(const PathInfo& srcInfo,
     ErrorCode ret = copyFileInternal(srcInfo, newPathInfo);
     if (ret != EC_OK) {
         string errMsg = "copy src file <%s> to dst file <%s> fail, %s\n";
-        FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcInfo._path,
-                newPathInfo._path, getErrorString(ret));
+        FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcInfo._path, newPathInfo._path, getErrorString(ret));
     }
     return ret;
 }
 
-ErrorCode FileSystem::copyDir(const PathInfo& srcInfo,
-                              const PathInfo& dstInfo,
-                              FileList& fileList,
-                              bool toConsole, bool created,
-                              bool special)
-{
-    const string& srcPath = srcInfo._path;
-    const string& dstPath = dstInfo._path;
-    AbstractFileSystem* dstFs = dstInfo._fs;
+ErrorCode FileSystem::copyDir(
+    const PathInfo &srcInfo, const PathInfo &dstInfo, FileList &fileList, bool toConsole, bool created, bool special) {
+    const string &srcPath = srcInfo._path;
+    const string &dstPath = dstInfo._path;
+    AbstractFileSystem *dstFs = dstInfo._fs;
     ErrorCode ret = EC_OK;
     string dstDir;
 
@@ -563,8 +648,7 @@ ErrorCode FileSystem::copyDir(const PathInfo& srcInfo,
         if (!generatePath(srcPath, dstPath, dstDir)) {
             string errMsg = "copy src <%s> to dst <%s> fail, cannot "
                             "generate dst filename.\n";
-            FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcInfo._path,
-                    dstInfo._path);
+            FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcInfo._path, dstInfo._path);
             return EC_PARSEFAIL;
         }
     } else {
@@ -577,8 +661,7 @@ ErrorCode FileSystem::copyDir(const PathInfo& srcInfo,
         if (ret != EC_OK) {
             string errMsg = "copy src dir <%s> to dst dir <%s> fail, make dst dir"
                             " fail, %s\n";
-            FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcInfo._path,
-                    dstInfo._path, getErrorString(ret));
+            FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcInfo._path, dstInfo._path, getErrorString(ret));
             return ret;
         }
     }
@@ -588,8 +671,7 @@ ErrorCode FileSystem::copyDir(const PathInfo& srcInfo,
         if (!appendPath(srcPath, fileList[i], subSrcPath)) {
             string errMsg = "copy src <%s> to dst <%s> fail, cannot "
                             "generate dst filename.\n";
-            FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcInfo._path,
-                    dstInfo._path);
+            FSLIB_INTERNAL_LOG_TWO_PARAM(toConsole, errMsg, srcInfo._path, dstInfo._path);
             return EC_PARSEFAIL;
         }
         PathInfo newSrcInfo(srcInfo._fs, subSrcPath);
@@ -608,19 +690,17 @@ ErrorCode FileSystem::copyDir(const PathInfo& srcInfo,
     return EC_OK;
 }
 
-ErrorCode FileSystem::move(const string& srcPath, const string& dstPath) {
+ErrorCode FileSystem::move(const string &srcPath, const string &dstPath) {
     FSLIB_LONG_INTERVAL_LOG("srcPath[%s], dstPath[%s]", srcPath.c_str(), dstPath.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_MOVE, srcPath);
-    if(unlikely(ret!=EC_OK)){
+    if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
     return moveInternal(srcPath, dstPath, false);
 }
 
-ErrorCode FileSystem::moveInternal(const string& srcPath, const string& dstPath,
-                                   bool toConsole)
-{
+ErrorCode FileSystem::moveInternal(const string &srcPath, const string &dstPath, bool toConsole) {
     if (srcPath == dstPath) {
         string errMsg = "move fail, dstPath name <%s> should not"
                         " equal srcPath name <%s>\n";
@@ -628,7 +708,7 @@ ErrorCode FileSystem::moveInternal(const string& srcPath, const string& dstPath,
         return EC_NOTSUP;
     }
 
-    AbstractFileSystem* srcFs;
+    AbstractFileSystem *srcFs;
     ErrorCode ret = parseInternal(srcPath, srcFs);
     if (ret != EC_OK) {
         string errMsg = "move src path <%s> to dst path <%s> fail, parse "
@@ -637,7 +717,7 @@ ErrorCode FileSystem::moveInternal(const string& srcPath, const string& dstPath,
         return ret;
     }
 
-    AbstractFileSystem* dstFs;
+    AbstractFileSystem *dstFs;
     ret = parseInternal(dstPath, dstFs);
     if (ret != EC_OK) {
         string errMsg = "move src path <%s> to dst path <%s> fail, parse "
@@ -699,8 +779,7 @@ ErrorCode FileSystem::moveInternal(const string& srcPath, const string& dstPath,
             crossDeviceFlag = true;
         } else if (ret != EC_OK) {
             string errMsg = "rename src file <%s> to dst file <%s> fail, %s\n";
-            FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcInfo._path,
-                    newDstInfo._path, getErrorString(ret));
+            FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcInfo._path, newDstInfo._path, getErrorString(ret));
             return ret;
         }
     } else if (srcFs->isDirectory(srcInfo._path) == EC_TRUE) {
@@ -722,8 +801,7 @@ ErrorCode FileSystem::moveInternal(const string& srcPath, const string& dstPath,
             crossDeviceFlag = true;
         } else if (ret != EC_OK) {
             string errMsg = "rename src dir <%s> to dst dir <%s> fail, %s\n";
-            FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcInfo._path,
-                    newDstInfo._path, getErrorString(ret));
+            FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcInfo._path, newDstInfo._path, getErrorString(ret));
             return ret;
         }
     } else {
@@ -742,27 +820,26 @@ ErrorCode FileSystem::moveInternal(const string& srcPath, const string& dstPath,
         if (ret != EC_OK) {
             string errMsg = "move src path <%s> to dst path <%s> fail, remove "
                             "src path fail, %s\n";
-            FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcPath,
-                    dstPath, getErrorString(ret));
+            FSLIB_INTERNAL_LOG_THREE_PARAM(toConsole, errMsg, srcPath, dstPath, getErrorString(ret));
             return ret;
         }
     }
     return EC_OK;
 }
 
-FileChecksum FileSystem::getFileChecksum(const string& fileName) {
+FileChecksum FileSystem::getFileChecksum(const string &fileName) {
     FSLIB_LONG_INTERVAL_LOG("fileName[%s]", fileName.c_str());
     return 0;
 }
 
-ErrorCode FileSystem::mkDir(const string& dirName, bool recursive) {
+ErrorCode FileSystem::mkDir(const string &dirName, bool recursive) {
     FSLIB_LONG_INTERVAL_LOG("dirName[%s], recursive[%d]", dirName.c_str(), recursive);
     ErrorCode ret = GENERATE_ERROR(OPERATION_MKDIR, dirName);
-    if(unlikely(ret!=EC_OK)){
+    if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
 
     ret = parseInternal(dirName, fs);
     if (ret == EC_OK) {
@@ -773,14 +850,14 @@ ErrorCode FileSystem::mkDir(const string& dirName, bool recursive) {
     return ret;
 }
 
-ErrorCode FileSystem::listDir(const string& dirName, FileList& fileList) {
+ErrorCode FileSystem::listDir(const string &dirName, FileList &fileList) {
     FSLIB_LONG_INTERVAL_LOG("dirName[%s]", dirName.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_LISTDIR, dirName);
-    if(unlikely(ret!=EC_OK)){
+    if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
 
     ret = parseInternal(dirName, fs);
     if (ret == EC_OK) {
@@ -791,14 +868,14 @@ ErrorCode FileSystem::listDir(const string& dirName, FileList& fileList) {
     return ret;
 }
 
-ErrorCode FileSystem::listDir(const string& dirName, EntryList& entryList) {
+ErrorCode FileSystem::listDir(const string &dirName, EntryList &entryList) {
     FSLIB_LONG_INTERVAL_LOG("dirName[%s]", dirName.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_LISTDIR, dirName);
-    if(unlikely(ret!=EC_OK)){
+    if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
 
     ret = parseInternal(dirName, fs);
     if (ret == EC_OK) {
@@ -809,14 +886,14 @@ ErrorCode FileSystem::listDir(const string& dirName, EntryList& entryList) {
     return ret;
 }
 
-ErrorCode FileSystem::listDir(const string& dirName, RichFileList& fileList) {
+ErrorCode FileSystem::listDir(const string &dirName, RichFileList &fileList) {
     FSLIB_LONG_INTERVAL_LOG("dirName[%s]", dirName.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_LISTDIR, dirName);
-    if(unlikely(ret!=EC_OK)){
+    if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
 
     ret = parseInternal(dirName, fs);
     if (ret == EC_OK) {
@@ -827,13 +904,13 @@ ErrorCode FileSystem::listDir(const string& dirName, RichFileList& fileList) {
     return ret;
 }
 
-ErrorCode FileSystem::listDir(const std::string& dirName,
-                              EntryInfoMap& entryInfoMap,
-                              int32_t threadNum, int32_t threadQueueSize)
-{
+ErrorCode FileSystem::listDir(const std::string &dirName,
+                              EntryInfoMap &entryInfoMap,
+                              int32_t threadNum,
+                              int32_t threadQueueSize) {
     FSLIB_LONG_INTERVAL_LOG("dirName[%s]", dirName.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_LISTDIR, dirName);
-    if(unlikely(ret!=EC_OK)){
+    if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
@@ -870,14 +947,14 @@ ErrorCode FileSystem::listDir(const std::string& dirName,
     return ret;
 }
 
-ErrorCode FileSystem::isDirectory(const string& path) {
+ErrorCode FileSystem::isDirectory(const string &path) {
     FSLIB_LONG_INTERVAL_LOG("path[%s]", path.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_ISDIR, path);
-    if(unlikely(ret!=EC_OK)){
+    if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
     ret = parseInternal(path, fs);
     if (ret == EC_OK) {
         return fs->isDirectory(path);
@@ -886,17 +963,15 @@ ErrorCode FileSystem::isDirectory(const string& path) {
     return ret;
 }
 
-
-ErrorCode FileSystem::isLink(const string& path) {
+ErrorCode FileSystem::isLink(const string &path) {
     FSLIB_LONG_INTERVAL_LOG("path[%s]", path.c_str());
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
 
     ErrorCode ret = parseInternal(path, fs);
     if (ret == EC_OK) {
-        ProxyFileSystem* proxyFs = dynamic_cast<ProxyFileSystem*>(fs);
+        ProxyFileSystem *proxyFs = dynamic_cast<ProxyFileSystem *>(fs);
         assert(proxyFs);
-        LocalFileSystem* localFs = dynamic_cast<LocalFileSystem*>(
-            proxyFs ? proxyFs->getFs() : fs);
+        LocalFileSystem *localFs = dynamic_cast<LocalFileSystem *>(proxyFs ? proxyFs->getFs() : fs);
         if (localFs) {
             return localFs->isLink(path);
         } else {
@@ -908,14 +983,14 @@ ErrorCode FileSystem::isLink(const string& path) {
     return ret;
 }
 
-ErrorCode FileSystem::remove(const string& path) {
+ErrorCode FileSystem::remove(const string &path) {
     FSLIB_LONG_INTERVAL_LOG("path[%s]", path.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_REMOVE, path);
-    if(unlikely(ret!=EC_OK)){
+    if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
     ret = parseInternal(path, fs);
     if (ret == EC_OK) {
         return fs->remove(path);
@@ -925,14 +1000,14 @@ ErrorCode FileSystem::remove(const string& path) {
     return ret;
 }
 
-ErrorCode FileSystem::removeFile(const string& path) {
+ErrorCode FileSystem::removeFile(const string &path) {
     FSLIB_LONG_INTERVAL_LOG("path[%s]", path.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_REMOVE, path);
-    if(unlikely(ret!=EC_OK)){
+    if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
     ret = parseInternal(path, fs);
     if (ret == EC_OK) {
         return fs->removeFile(path);
@@ -942,14 +1017,14 @@ ErrorCode FileSystem::removeFile(const string& path) {
     return ret;
 }
 
-ErrorCode FileSystem::removeDir(const string& path) {
+ErrorCode FileSystem::removeDir(const string &path) {
     FSLIB_LONG_INTERVAL_LOG("path[%s]", path.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_REMOVE, path);
-    if(unlikely(ret!=EC_OK)){
+    if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
     ret = parseInternal(path, fs);
     if (ret == EC_OK) {
         return fs->removeDir(path);
@@ -959,18 +1034,18 @@ ErrorCode FileSystem::removeDir(const string& path) {
     return ret;
 }
 
-ErrorCode FileSystem::isExist(const string& path) {
+ErrorCode FileSystem::isExist(const string &path) {
     FSLIB_LONG_INTERVAL_LOG("path[%s]", path.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_ISEXIST, path);
-    if(unlikely(ret!=EC_OK)){
+    if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
 
     ret = parseInternal(path, fs);
     if (ret == EC_OK) {
-      return fs->isExist(path);
+        return fs->isExist(path);
     }
 
     AUTIL_LOG(ERROR, "parse internal for path %s fail!", path.c_str());
@@ -1026,15 +1101,14 @@ string FileSystem::getErrorString(ErrorCode ec) {
     case EC_LOCAL_DISK_NO_SPACE:
         return FSLIB_EC_LOCAL_DISK_NO_SPACE;
     default:
-        return string(FSLIB_ERROR_CODE_NOT_SUPPORT) + " " +
-            autil::StringUtil::toString(ec);
+        return string(FSLIB_ERROR_CODE_NOT_SUPPORT) + " " + autil::StringUtil::toString(ec);
     }
 }
 
-FileLock* FileSystem::getFileLock(const string& fileName) {
+FileLock *FileSystem::getFileLock(const string &fileName) {
     FSLIB_LONG_INTERVAL_LOG("fileName[%s]", fileName.c_str());
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
     ErrorCode ret = parseInternal(fileName, fs);
     if (ret != EC_OK) {
         AUTIL_LOG(ERROR, "parse internal for path %s fail!", fileName.c_str());
@@ -1043,10 +1117,10 @@ FileLock* FileSystem::getFileLock(const string& fileName) {
     return fs->createFileLock(fileName);
 }
 
-FileReadWriteLock* FileSystem::getFileReadWriteLock(const string& fileName) {
+FileReadWriteLock *FileSystem::getFileReadWriteLock(const string &fileName) {
     FSLIB_LONG_INTERVAL_LOG("fileName[%s]", fileName.c_str());
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
     ErrorCode ret = parseInternal(fileName, fs);
     if (ret != EC_OK) {
         AUTIL_LOG(ERROR, "parse internal for path %s fail!", fileName.c_str());
@@ -1055,28 +1129,23 @@ FileReadWriteLock* FileSystem::getFileReadWriteLock(const string& fileName) {
     return fs->createFileReadWriteLock(fileName);
 }
 
-bool FileSystem::getScopedFileLock(const string& fileName,
-                                   ScopedFileLock& scopedLock)
-{
+bool FileSystem::getScopedFileLock(const string &fileName, ScopedFileLock &scopedLock) {
     FSLIB_LONG_INTERVAL_LOG("fileName[%s]", fileName.c_str());
     return scopedLock.init(getFileLock(fileName));
 }
 
-bool FileSystem::getScopedFileReadWriteLock(const string& fileName,
-        const char mode, ScopedFileReadWriteLock& scopedLock)
-{
+bool FileSystem::getScopedFileReadWriteLock(const string &fileName,
+                                            const char mode,
+                                            ScopedFileReadWriteLock &scopedLock) {
     FSLIB_LONG_INTERVAL_LOG("fileName[%s]", fileName.c_str());
     return scopedLock.init(getFileReadWriteLock(fileName), mode);
 }
 
-
-ErrorCode FileSystem::copyFileInternal(const PathInfo& srcInfo,
-                                       const PathInfo& dstInfo)
-{
-    const string& srcDstFile = srcInfo._path;
-    const string& dstDstFile = dstInfo._path;
-    AbstractFileSystem* srcFs = srcInfo._fs;
-    AbstractFileSystem* dstFs = dstInfo._fs;
+ErrorCode FileSystem::copyFileInternal(const PathInfo &srcInfo, const PathInfo &dstInfo) {
+    const string &srcDstFile = srcInfo._path;
+    const string &dstDstFile = dstInfo._path;
+    AbstractFileSystem *srcFs = srcInfo._fs;
+    AbstractFileSystem *dstFs = dstInfo._fs;
 
     if (srcDstFile == dstDstFile) {
         string errMsg = string("can not copy file with same file name %s "
@@ -1114,9 +1183,7 @@ ErrorCode FileSystem::copyFileInternal(const PathInfo& srcInfo,
     }
 
     if (srcFileLen == 0) {
-        if (!isZkLikeFileSystem(srcFs) &&
-            source->read(safeBuffer->getBuffer(), safeBuffer->getSize()) != 0)
-        {
+        if (!isZkLikeFileSystem(srcFs) && source->read(safeBuffer->getBuffer(), safeBuffer->getSize()) != 0) {
             return source->getLastError();
         }
 
@@ -1150,10 +1217,8 @@ ErrorCode FileSystem::copyFileInternal(const PathInfo& srcInfo,
     }
 
     ssize_t readLen = 0;
-    while (!source->isEof() &&
-           (readLen = source->read(safeBuffer->getBuffer(), safeBuffer->getSize())) >= 0)
-    {
-        ssize_t writeLen  = destination->write(safeBuffer->getBuffer(), readLen);
+    while (!source->isEof() && (readLen = source->read(safeBuffer->getBuffer(), safeBuffer->getSize())) >= 0) {
+        ssize_t writeLen = destination->write(safeBuffer->getBuffer(), readLen);
         if (writeLen != readLen) {
             AUTIL_LOG(ERROR, "write file %s fail!", dstDstFile.c_str());
             dstFs->remove(tmpDstDestFile);
@@ -1203,7 +1268,7 @@ ErrorCode FileSystem::readFile(const std::string &filePath, std::string &content
     if (!file->isOpened()) {
         return file->getLastError();
     }
-    const int32_t readSize = 64*1024;
+    const int32_t readSize = 64 * 1024;
     char buf[readSize];
     ssize_t readBytes = -1;
     while ((readBytes = file->read(buf, readSize)) > 0) {
@@ -1240,7 +1305,7 @@ ErrorCode FileSystem::readFile(const std::string &filePath, std::string &content
     // return file->close();
 }
 
-ErrorCode FileSystem::writeFile(const string& srcFileName, const string &content) {
+ErrorCode FileSystem::writeFile(const string &srcFileName, const string &content) {
     FilePtr file(openFile(srcFileName, WRITE));
     if (!file->isOpened()) {
         return file->getLastError();
@@ -1272,8 +1337,7 @@ string FileSystem::joinFilePath(const string &path, const string &subPath) {
     return tmp;
 }
 
-string FileSystem::getParentPath(const string& dir)
-{
+string FileSystem::getParentPath(const string &dir) {
     if (dir.empty()) {
         return "";
     }
@@ -1298,9 +1362,7 @@ string FileSystem::getParentPath(const string& dir)
     return parentDir;
 }
 
-ErrorCode FileSystem::parseInternal(const std::string& srcPath,
-                                    AbstractFileSystem*& fs)
-{
+ErrorCode FileSystem::parseInternal(const std::string &srcPath, AbstractFileSystem *&fs) {
     FsType type;
     if (srcPath.size() == 0) {
         return EC_PARSEFAIL;
@@ -1309,52 +1371,49 @@ ErrorCode FileSystem::parseInternal(const std::string& srcPath,
 
     fs = FileSystemFactory::getInstance()->getFs(type);
     if (fs == NULL) {
-        AUTIL_LOG(ERROR, "parse path %s fail, not support fs with type %s.",
-                  srcPath.c_str(), type.c_str());
+        AUTIL_LOG(ERROR, "parse path %s fail, not support fs with type %s.", srcPath.c_str(), type.c_str());
         return EC_NOTSUP;
     }
 
     return EC_OK;
 }
 
-bool FileSystem::isZkLikeFileSystem(const AbstractFileSystem* fileSystem) {
+bool FileSystem::isZkLikeFileSystem(const AbstractFileSystem *fileSystem) {
     return !(fileSystem->getCapability() & FSC_DISTINCT_FILE_DIR);
 }
 
-bool FileSystem::isOssFileSystem(const AbstractFileSystem* fileSystem) {
+bool FileSystem::isOssFileSystem(const AbstractFileSystem *fileSystem) {
     // OSS do not support rename and copy operation should directly done, instead of copy to
     // a termp file then move it, for performance consideration
     return !(fileSystem->getCapability() & FSC_BUILTIN_RENAME_SUPPORT);
 }
 
 bool FileSystem::reuseThreadPool() {
-    char* str = getenv(FSLIB_LISTDIR_REUSE_THREADPOOL);
+    string str = autil::EnvUtil::getEnv(FSLIB_LISTDIR_REUSE_THREADPOOL);
     bool ret = true;
-    if (str) {
+    if (!str.empty()) {
         autil::StringUtil::parseTrueFalse(str, ret);
     }
     return ret;
 }
 
 int32_t FileSystem::getThreadNum() {
-    char* str = getenv(FSLIB_LISTDIR_THREADNUM);
-    int32_t ret;
-    if (!str || !autil::StringUtil::fromString(str, ret)) {
+    string str = autil::EnvUtil::getEnv(FSLIB_LISTDIR_THREADNUM);
+    int32_t ret = 4;
+    if (str.empty() || !autil::StringUtil::fromString(str, ret)) {
         ret = 4;
     }
     return ret;
 }
 
-ErrorCode FileSystem::forward(const string &command, const string &path,
-                              const string &args, string &output)
-{
+ErrorCode FileSystem::forward(const string &command, const string &path, const string &args, string &output) {
     FSLIB_LONG_INTERVAL_LOG("path[%s]", path.c_str());
     ErrorCode ret = GENERATE_ERROR(OPERATION_FORWARD, path);
-    if(unlikely(ret!=EC_OK)){
+    if (unlikely(ret != EC_OK)) {
         return ret;
     }
 
-    AbstractFileSystem* fs = NULL;
+    AbstractFileSystem *fs = NULL;
 
     ret = parseInternal(path, fs);
     if (ret == EC_OK) {
@@ -1365,130 +1424,90 @@ ErrorCode FileSystem::forward(const string &command, const string &path,
     return ret;
 }
 
-void FileSystem::close()
-{
+void FileSystem::close() {
     FileSystemFactory::getInstance()->close();
     MetricReporter::getInstance()->close();
 }
 
-util::MetricTagsHandlerPtr FileSystem::getMetricTagsHandler()
-{
+util::MetricTagsHandlerPtr FileSystem::getMetricTagsHandler() {
     return MetricReporter::getInstance()->getMetricTagsHandler();
 }
 
-bool FileSystem::setMetricTagsHandler(util::MetricTagsHandlerPtr tagsHandler)
-{
+bool FileSystem::setMetricTagsHandler(util::MetricTagsHandlerPtr tagsHandler) {
     return MetricReporter::getInstance()->updateTagsHandler(tagsHandler);
 }
 
-FSCacheModule* FileSystem::getCacheModule()
-{
-    return FSCacheModule::getInstance();
-}
+FSCacheModule *FileSystem::getCacheModule() { return FSCacheModule::getInstance(); }
 
-void FileSystem::reportQpsMetric(const string& filePath,
-                                 const string& opType,
-                                 double value)
-{
+void FileSystem::reportQpsMetric(const string &filePath, const string &opType, double value) {
     MetricReporter::getInstance()->reportQpsMetric(filePath, opType, value);
 }
 
-void FileSystem::reportErrorMetric(const string& filePath,
-                                   const string& opType,
-                                   double value)
-{
+void FileSystem::reportErrorMetric(const string &filePath, const string &opType, double value) {
     MetricReporter::getInstance()->reportErrorMetric(filePath, opType, value);
 }
 
-void FileSystem::reportLatencyMetric(const string& filePath,
-                                     const string& opType,
-                                     int64_t latency)
-{
+void FileSystem::reportLatencyMetric(const string &filePath, const string &opType, int64_t latency) {
     MetricReporter::getInstance()->reportLatencyMetric(filePath, opType, latency);
 }
 
-void FileSystem::reportDNErrorQps(const std::string& filePath,
-                                  const std::string& opType,
-                                  double value)
-{
+void FileSystem::reportDNErrorQps(const std::string &filePath, const std::string &opType, double value) {
     MetricReporter::getInstance()->reportDNErrorQps(filePath, opType, value);
 }
 
-void FileSystem::reportDNReadErrorQps(const std::string& filePath,
-                                      double value)
-{
+void FileSystem::reportDNReadErrorQps(const std::string &filePath, double value) {
     MetricReporter::getInstance()->reportDNReadErrorQps(filePath, value);
 }
 
-void FileSystem::reportDNReadSpeed(const std::string& filePath,
-                                   double speed)
-{
+void FileSystem::reportDNReadSpeed(const std::string &filePath, double speed) {
     MetricReporter::getInstance()->reportDNReadSpeed(filePath, speed);
 }
 
-void FileSystem::reportDNReadLatency(const std::string& filePath,
-                                     int64_t latency)
-{
+void FileSystem::reportDNReadLatency(const std::string &filePath, int64_t latency) {
     MetricReporter::getInstance()->reportDNReadLatency(filePath, latency);
 }
 
-void FileSystem::reportDNReadAvgLatency(const std::string& filePath,
-                                        int64_t latency)
-{
+void FileSystem::reportDNReadAvgLatency(const std::string &filePath, int64_t latency) {
     MetricReporter::getInstance()->reportDNReadAvgLatency(filePath, latency);
 }
 
-void FileSystem::reportDNWriteErrorQps(const std::string& filePath,
-                                       double value)
-{
+void FileSystem::reportDNWriteErrorQps(const std::string &filePath, double value) {
     MetricReporter::getInstance()->reportDNWriteErrorQps(filePath, value);
 }
 
-void FileSystem::reportDNWriteSpeed(const std::string& filePath,
-                                   double speed)
-{
+void FileSystem::reportDNWriteSpeed(const std::string &filePath, double speed) {
     MetricReporter::getInstance()->reportDNWriteSpeed(filePath, speed);
 }
 
-void FileSystem::reportDNWriteLatency(const std::string& filePath,
-                                     int64_t latency)
-{
+void FileSystem::reportDNWriteLatency(const std::string &filePath, int64_t latency) {
     MetricReporter::getInstance()->reportDNWriteLatency(filePath, latency);
 }
 
-void FileSystem::reportDNWriteAvgLatency(const std::string& filePath,
-                                         int64_t latency)
-{
+void FileSystem::reportDNWriteAvgLatency(const std::string &filePath, int64_t latency) {
     MetricReporter::getInstance()->reportDNWriteAvgLatency(filePath, latency);
 }
 
-void FileSystem::reportMetaCachedPathCount(int64_t fileCount)
-{
+void FileSystem::reportMetaCachedPathCount(int64_t fileCount) {
     MetricReporter::getInstance()->reportMetaCachedPathCount(fileCount);
 }
 
-void FileSystem::reportMetaCacheImmutablePathCount(int64_t fileCount)
-{
+void FileSystem::reportMetaCacheImmutablePathCount(int64_t fileCount) {
     MetricReporter::getInstance()->reportMetaCacheImmutablePathCount(fileCount);
 }
 
-void FileSystem::reportMetaCacheHitQps(const string& filePath, double value)
-{
+void FileSystem::reportMetaCacheHitQps(const string &filePath, double value) {
     MetricReporter::getInstance()->reportMetaCacheHitQps(filePath, value);
 }
 
-void FileSystem::reportDataCachedFileCount(int64_t fileCount)
-{
+void FileSystem::reportDataCachedFileCount(int64_t fileCount) {
     MetricReporter::getInstance()->reportDataCachedFileCount(fileCount);
 }
 
-void FileSystem::reportDataCacheMemUse(int64_t fileCount)
-{
+void FileSystem::reportDataCacheMemUse(int64_t fileCount) {
     MetricReporter::getInstance()->reportDataCacheMemUse(fileCount);
 }
 
-void FileSystem::reportDataCacheHitQps(const string& filePath, double value)
-{
+void FileSystem::reportDataCacheHitQps(const string &filePath, double value) {
     MetricReporter::getInstance()->reportDataCacheHitQps(filePath, value);
 }
 
@@ -1504,6 +1523,5 @@ string FileSystem::getPathFromZkPath(const std::string &zkPath) {
     }
     return tmpStr.substr(pos);
 }
-
 
 FSLIB_END_NAMESPACE(fs);

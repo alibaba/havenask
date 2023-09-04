@@ -236,15 +236,7 @@ RawDocConsumer* FlowFactory::createRawDocBuilderConsumer(const RoleInitParam& in
     if (!builder) {
         return NULL;
     }
-    Processor* processor = nullptr;
-    if (needProcessRawdoc(initParam)) {
-        processor = getProcessor(initParam);
-        if (!processor) {
-            BS_LOG(ERROR, "get processor failed");
-            return nullptr;
-        }
-    }
-    RawDocConsumer* consumer = new RawDocBuilderConsumer(builder, processor);
+    RawDocConsumer* consumer = new RawDocBuilderConsumer(builder);
     auto it = initParam.kvMap.find(config::BUILD_VERSION_TIMESTAMP);
     if (it != initParam.kvMap.end()) {
         int64_t buildVersionTimestamp = -1;
@@ -267,6 +259,7 @@ SwiftProcessedDocProducer* FlowFactory::doCreateSwiftProcessedDocProducer(const 
             string errorMsg = string("can not create SwiftProcessedDocProducer without schema");
             REPORT_ERROR_WITH_ADVICE(SERVICE_ERROR_CONFIG, errorMsg, BS_STOP);
         }
+        // TODO: pass DataLinkMode to SingleSwiftProcessedDocProducerV2 or create a new type producer
         return new SingleSwiftProcessedDocProducerV2(swiftParam, param.schemav2, param.partitionId, _taskScheduler);
     } else {
         if (!param.schema) {
@@ -924,15 +917,6 @@ bool FlowFactory::initCounterMap(RoleInitParam& initParam, BuildFlowMode mode)
         initParam.counterSynchronizer.reset(counterSynchronizer);
         return true;
     }
-}
-
-bool FlowFactory::needProcessRawdoc(const RoleInitParam& initParam)
-{
-    auto it = initParam.kvMap.find(config::REALTIME_PROCESS_RAWDOC);
-    if (it != initParam.kvMap.end() && it->second == "true") {
-        return true;
-    }
-    return false;
 }
 
 }} // namespace build_service::workflow

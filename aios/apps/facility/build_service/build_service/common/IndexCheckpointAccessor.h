@@ -81,11 +81,15 @@ public:
                         std::vector<proto::CheckpointInfo>* checkpointInfos) const;
 
     bool getSchemaChangedStandard(const std::string& clusterName, std::string& changedSchema);
+    void setIndexVisiable(const std::string& clusterName, bool isVisiable);
 
 public:
     static std::set<versionid_t> getReservedVersions(const std::string& clusterName,
                                                      const IndexCheckpointAccessorPtr& indexCkpAccessor,
                                                      const BuilderCheckpointAccessorPtr& builderCkpAccessor);
+
+private:
+    bool isIndexVisiable(const std::string& clusterName) const;
 
 private:
     CheckpointAccessorPtr _accessor;

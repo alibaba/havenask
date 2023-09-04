@@ -15,17 +15,22 @@
  */
 #include "indexlib/config/MergeConfig.h"
 
+#include <mutex>
 #include <unistd.h>
 
 #include "autil/legacy/exception.h"
 #include "autil/legacy/json.h"
 #include "indexlib/config/MergeStrategyParameter.h"
 #include "indexlib/file_system/package/PackageFileTagConfigList.h"
-#include "indexlib/index/inverted_index/config/TruncateStrategy.h"
-// #include "indexlib/file_system/JsonUtil.h"
+#include "indexlib/util/Singleton.h"
 
 namespace indexlibv2::config {
 AUTIL_LOG_SETUP(indexlib.config, MergeConfig);
+
+struct MergeConfigHook : indexlib::util::Singleton<MergeConfigHook> {
+    std::mutex mutex;
+    std::map<std::string, std::pair<MergeConfig::OptionInitHook, MergeConfig::OptionJsonHook>> optionHooks;
+};
 
 struct MergeConfig::Impl {
     std::string mergeStrategyStr = "optimize"; // OPTIMIZE_MERGE_STRATEGY_STR
@@ -35,9 +40,10 @@ struct MergeConfig::Impl {
     bool enablePatchFileArchive = false;
     bool enablePatchFileMeta = false;
     bool enablePackageFile = false;
-    uint32_t packageFileSizeThresholdBytes = 512 * 1024 * 1024;               // 512MB
+    uint32_t packageFileSizeThresholdBytes = 64 * 1024 * 1024; // 64MB
+    uint32_t mergePackageThreadCount = 0;
     indexlib::file_system::PackageFileTagConfigList packageFileTagConfigList; // valid when enablePackageFile == true
-    std::vector<TruncateStrategy> truncateStrategyVec;
+    std::map<std::string, std::any> hookOptions;
 };
 
 void MergeConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
@@ -51,6 +57,7 @@ void MergeConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
     json.Jsonize("enable_package_file", _impl->enablePackageFile, _impl->enablePackageFile);
     json.Jsonize("package_file_size_threshold_bytes", _impl->packageFileSizeThresholdBytes,
                  _impl->packageFileSizeThresholdBytes);
+    json.Jsonize("merge_package_thread_count", _impl->mergePackageThreadCount, _impl->mergePackageThreadCount);
     _impl->packageFileTagConfigList.Jsonize(json);
 
     if (json.GetMode() == FROM_JSON) {
@@ -61,7 +68,9 @@ void MergeConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
             _impl->mergeStrategyParameter.SetLegacyString(legacyStr);
         }
     }
-    json.Jsonize("truncate_strategy", _impl->truncateStrategyVec, _impl->truncateStrategyVec);
+    for (const auto& [_, hook] : MergeConfigHook::GetInstance()->optionHooks) {
+        hook.second(json, _impl->hookOptions);
+    }
     Check();
 }
 
@@ -78,7 +87,12 @@ void MergeConfig::Check() const
     }
 }
 
-MergeConfig::MergeConfig() : _impl(std::make_unique<MergeConfig::Impl>()) {}
+MergeConfig::MergeConfig() : _impl(std::make_unique<MergeConfig::Impl>())
+{
+    for (const auto& [_, hook] : MergeConfigHook::GetInstance()->optionHooks) {
+        hook.first(_impl->hookOptions);
+    }
+}
 MergeConfig::MergeConfig(const MergeConfig& other) : _impl(std::make_unique<MergeConfig::Impl>(*other._impl)) {}
 MergeConfig& MergeConfig::operator=(const MergeConfig& other)
 {
@@ -98,21 +112,33 @@ bool MergeConfig::EnablePatchFileArchive() const { return _impl->enablePatchFile
 
 bool MergeConfig::IsPackageFileEnabled() const { return _impl->enablePackageFile; }
 uint32_t MergeConfig::GetPackageFileSizeThresholdBytes() const { return _impl->packageFileSizeThresholdBytes; }
+uint32_t MergeConfig::GetMergePackageThreadCount() const { return _impl->mergePackageThreadCount; }
 const indexlib::file_system::PackageFileTagConfigList& MergeConfig::GetPackageFileTagConfigList() const
 {
     return _impl->packageFileTagConfigList;
 }
-const std::vector<TruncateStrategy>& MergeConfig::GetTruncateStrategys() const { return _impl->truncateStrategyVec; }
-
-void MergeConfig::TEST_SetTruncateStrategy(const std::string& truncateStrategyStr)
+void MergeConfig::RegisterOptionHook(const std::string& hookName, const OptionInitHook& initHook,
+                                     const OptionJsonHook& jsonHook)
 {
-    TruncateStrategy strategy;
-    try {
-        autil::legacy::FromJsonString(strategy, truncateStrategyStr);
-    } catch (autil::legacy::ExceptionBase& e) {
-        assert(false);
+    std::lock_guard<std::mutex> lock(MergeConfigHook::GetInstance()->mutex);
+    if (const auto& [_, success] =
+            MergeConfigHook::GetInstance()->optionHooks.try_emplace(hookName, initHook, jsonHook);
+        !success) {
+        AUTIL_LOG(ERROR, "hook [%s] already exists", hookName.c_str());
     }
-    _impl->truncateStrategyVec.emplace_back(std::move(strategy));
+}
+const std::any* MergeConfig::GetHookOption(const std::string& name) const
+{
+    auto it = _impl->hookOptions.find(name);
+    if (it != _impl->hookOptions.end()) {
+        return &it->second;
+    }
+    AUTIL_LOG(WARN, "hook option [%s] does not exists", name.c_str());
+    return nullptr;
+}
+std::any* MergeConfig::TEST_GetHookOption(const std::string& name)
+{
+    return const_cast<std::any*>(GetHookOption(name));
 }
 
 void MergeConfig::TEST_SetMergeStrategyParameterStr(const std::string& paramStr)
@@ -136,6 +162,7 @@ void MergeConfig::TEST_SetEnablePatchFileMeta(bool enabled) { _impl->enablePatch
 void MergeConfig::TEST_SetEnablePatchFileArchive(bool enabled) { _impl->enablePatchFileArchive = enabled; }
 void MergeConfig::TEST_SetEnablePackageFile(bool enabled) { _impl->enablePackageFile = enabled; }
 void MergeConfig::TEST_SetPackageFileSizeThresholdBytes(uint32_t size) { _impl->packageFileSizeThresholdBytes = size; }
+void MergeConfig::TEST_SetMergePackageThreadCount(uint32_t count) { _impl->mergePackageThreadCount = count; }
 void MergeConfig::TEST_SetPackageFileTagConfigList(const indexlib::file_system::PackageFileTagConfigList& list)
 {
     _impl->packageFileTagConfigList = list;
@@ -144,13 +171,5 @@ void MergeConfig::TEST_SetMergeStrategyParameter(const MergeStrategyParameter& p
 {
     _impl->mergeStrategyParameter = param;
 }
-void MergeConfig::TEST_AddTruncateStrategy(const TruncateStrategy& strategy)
-{
-    _impl->truncateStrategyVec.emplace_back(strategy);
-}
 
-void MergeConfig::TEST_SetTruncateStrategys(const std::vector<TruncateStrategy>& truncateStrategyVec)
-{
-    _impl->truncateStrategyVec = truncateStrategyVec;
-}
 } // namespace indexlibv2::config

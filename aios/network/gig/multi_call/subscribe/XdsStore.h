@@ -16,12 +16,12 @@
 #ifndef MULTI_CALL_XDSCLIENT_XDSSTORE_H
 #define MULTI_CALL_XDSCLIENT_XDSSTORE_H
 
-#include "aios/network/gig/multi_call/common/common.h"
-#include "aios/network/gig/multi_call/config/MultiCallConfig.h"
-#include "aios/network/gig/multi_call/subscribe/SubscribeService.h"
 #include "aios/apps/facility/cm2/cm_basic/basic_struct/proto/envoy/api/v2/cds.grpc.pb.h"
 #include "aios/apps/facility/cm2/cm_basic/basic_struct/proto/envoy/api/v2/eds.grpc.pb.h"
 #include "aios/apps/facility/cm2/cm_basic/basic_struct/proto/envoy/service/discovery/v2/ads.grpc.pb.h"
+#include "aios/network/gig/multi_call/common/common.h"
+#include "aios/network/gig/multi_call/config/MultiCallConfig.h"
+#include "aios/network/gig/multi_call/subscribe/SubscribeService.h"
 #include "autil/Thread.h"
 
 namespace multi_call {
@@ -30,7 +30,8 @@ namespace multi_call {
 // periodically dump cache. This cache is only read if xdsClient cannot connect
 // to server at startup.
 // Usage: refer to IstioSubscribeService
-class XdsStore {
+class XdsStore
+{
 public:
     static const std::string kResourcePrefix;
 
@@ -54,20 +55,16 @@ public:
     // may be synced, or loaded from cache
     bool isServeable();
 
-    bool updateCDS(bool isFull,
-                   std::shared_ptr<envoy::api::v2::DiscoveryResponse> resp);
+    bool updateCDS(bool isFull, std::shared_ptr<envoy::api::v2::DiscoveryResponse> resp);
 
-    bool updateEDS(bool isFull,
-                   std::shared_ptr<envoy::api::v2::DiscoveryResponse> resp);
+    bool updateEDS(bool isFull, std::shared_ptr<envoy::api::v2::DiscoveryResponse> resp);
 
     // delete the in-memory data for a cluster via its hostname (not resource
     // name).  This is used for deleting a subscribed cluster.
     bool clear(const std::string &hostname);
 
-    static std::set<std::string>
-    hostnamesToResources(const std::set<std::string> &clusters);
-    static std::set<std::string>
-    hostnamesToResources(const std::vector<std::string> &clusters);
+    static std::set<std::string> hostnamesToResources(const std::set<std::string> &clusters);
+    static std::set<std::string> hostnamesToResources(const std::vector<std::string> &clusters);
     //  outbound|0||bizname.clustername => bizname.clustername, if prefix not
     //  exist do nothing
     static std::string resourceToHostname(const std::string &resource);
@@ -80,7 +77,7 @@ public:
 private:
     // key-value pair for a cluster in CDS
     typedef std::map<std::string, std::string> ClusterInfo;
-    typedef std::map<std::string, std::shared_ptr<TopoNode> > TopoNodes;
+    typedef std::map<std::string, std::shared_ptr<TopoNode>> TopoNodes;
     static const std::string kClusterInfoKey;
     static const std::string kDelKey;
 
@@ -96,19 +93,17 @@ private:
     static const std::string kKeyCmnodeMetaInfo;
 
     template <typename T>
-    static T extractValue(const std::map<std::string, std::string> &kv,
-                          const std::string &key, const T &defaultValue);
+    static T extractValue(const std::map<std::string, std::string> &kv, const std::string &key,
+                          const T &defaultValue);
 
     static void fillTopoNode(const std::string &actBizName,
                              const envoy::api::v2::endpoint::LbEndpoint &lbe,
                              std::shared_ptr<TopoNode> topoNode);
 
     void cacheWriter();
-    bool doWriteCache(
-        autil::ThreadMutex *lock,
-        const std::map<std::string, std::shared_ptr< ::google::protobuf::Any> >
-            &cache,
-        const std::string &type);
+    bool doWriteCache(autil::ThreadMutex *lock,
+                      const std::map<std::string, std::shared_ptr<::google::protobuf::Any>> &cache,
+                      const std::string &type);
     // This only called xdsclient init, so no lock needed.
     // type: "cds" or "eds"
     bool doReadCache(const std::string &type);
@@ -119,13 +114,11 @@ private:
     autil::ThreadMutex _cdsMutex;
     // CDS
     std::map<std::string, ClusterInfo> _clusterInfoMap;
-    std::map<std::string, std::shared_ptr< ::google::protobuf::Any> >
-        _cdsHostnameResourceCache;
+    std::map<std::string, std::shared_ptr<::google::protobuf::Any>> _cdsHostnameResourceCache;
     autil::ThreadMutex _edsMutex;
     // EDS
     std::map<std::string, TopoNodes> _topoNodesMap;
-    std::map<std::string, std::shared_ptr< ::google::protobuf::Any> >
-        _edsHostnameResourceCache;
+    std::map<std::string, std::shared_ptr<::google::protobuf::Any>> _edsHostnameResourceCache;
     // TODO (guanming.fh) is it possible not creating new EDS objects when only
     // status changes?
 

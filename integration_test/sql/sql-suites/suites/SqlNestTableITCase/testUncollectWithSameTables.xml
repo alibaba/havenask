@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="testUncollectWithSameTables">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT field_int32+1 as output, sub_string FROM simple4, UNNEST(simple4.sub_simple4_table) where field_int64 > 8 union all select field_int32+10 as output, sub_string FROM simple4, UNNEST(simple4.sub_simple4_table) where field_int32 > 5
+]]>
+</Element>
+        </Resource>
+        <Resource name="bug-fix">isearch/iquan#81014</Resource>
+        <Resource name="kvpair">
+          databaseName:simple4;timeout:10000;formatType:json
+        </Resource>
+        <Resource name="column_names">"output", "sub_string"</Resource>
+        <Resource name="column_types">int32, multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+18, "sub_str1"
+18, "sub_str2"
+18, "sub_str3"
+10, "sub_str1"
+10, "sub_str2"
+10, "sub_str3"
+11, "sub_str1"
+11, "sub_str2"
+11, "sub_str3"
+16, "sub_str1"
+16, "sub_str2"
+16, "sub_str3"
+17, "sub_str1"
+17, "sub_str2"
+17, "sub_str3"
+19, "sub_str1"
+19, "sub_str2"
+19, "sub_str3"
+20, "sub_str1"
+20, "sub_str2"
+20, "sub_str3"
+]]>
+</Resource>
+    <Resource name="plan">
+<![CDATA[
+SinkOp#6(type=api)
+    LimitOp#5(limit=100)
+        ExchangeOp#4(distribution={type:SINGLETON})
+            LimitOp#3(limit=100)
+                UnionOp#2(all=true,block=false)
+                    TableScanOp#0(catalog_name=default,db_name=simple4,limit=2147483647,nest_table_attrs=[{nest_field_counts=[6],nest_field_names=[$sub_simple4_table],output_fields=[$sub_id,$sub_int,$sub_string,$sub_float,$sub_multi_int32,$sub_multi_string],table_name=sub_simple4_table,with_ordinality=false}],output_fields=[$output,$sub_string],push_down_ops=[{attrs:{condition:{op:>,params:[$field_int64,8],type:OTHER},output_field_exprs:{$output:{op:+,params:[$field_int32,1],type:OTHER}},output_fields:[$output,$sub_string]},op_name:CalcOp}],table_name=simple4,table_type=normal,use_nest_table=true)
+                    TableScanOp#1(catalog_name=default,db_name=simple4,limit=2147483647,nest_table_attrs=[{nest_field_counts=[6],nest_field_names=[$sub_simple4_table],output_fields=[$sub_id,$sub_int,$sub_string,$sub_float,$sub_multi_int32,$sub_multi_string],table_name=sub_simple4_table,with_ordinality=false}],output_fields=[$output,$sub_string],push_down_ops=[{attrs:{condition:{op:>,params:[$field_int32,5],type:OTHER},output_field_exprs:{$output:{op:+,params:[$field_int32,10],type:OTHER}},output_fields:[$output,$sub_string]},op_name:CalcOp}],table_name=simple4,table_type=normal,use_nest_table=true)
+]]>
+</Resource>
+</TestCase>
+</Root>

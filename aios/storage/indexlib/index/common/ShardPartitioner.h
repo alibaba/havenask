@@ -21,7 +21,7 @@
 #include "indexlib/util/KeyHasherTyped.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::index {
@@ -33,7 +33,7 @@ public:
     virtual ~ShardPartitioner();
 
 public:
-    Status Init(const std::shared_ptr<config::TabletSchema>& schema, uint32_t shardCount);
+    Status Init(const std::shared_ptr<config::ITabletSchema>& schema, uint32_t shardCount);
     Status Init(indexlib::HashFunctionType keyHasherType, uint32_t shardCount);
     Status Init(uint32_t shardCount);
     bool GetShardIdx(const autil::StringView& key, uint32_t& shardIdx)
@@ -53,7 +53,7 @@ public:
     void GetShardIdx(uint64_t keyHash, uint32_t& shardIdx);
 
 private:
-    virtual void InitKeyHasherType(const std::shared_ptr<config::TabletSchema>& schema) {};
+    virtual void InitKeyHasherType(const std::shared_ptr<config::ITabletSchema>& schema) {};
 
 protected:
     indexlib::HashFunctionType _keyHasherType = indexlib::hft_unknown;

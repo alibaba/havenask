@@ -15,19 +15,18 @@
  */
 #include "ha3/search/WeakAndQueryExecutor.h"
 
-#include <assert.h>
 #include <algorithm>
+#include <assert.h>
 #include <cstddef>
 #include <memory>
 #include <utility>
 
 #include "autil/CommonMacros.h"
+#include "autil/Log.h"
 #include "autil/StringUtil.h"
-
 #include "ha3/isearch.h"
 #include "ha3/search/MultiQueryExecutor.h"
 #include "ha3/search/QueryExecutorHeap.h"
-#include "autil/Log.h"
 
 using namespace std;
 
@@ -36,20 +35,18 @@ namespace search {
 AUTIL_LOG_SETUP(ha3, WeakAndQueryExecutor);
 
 WeakAndQueryExecutor::WeakAndQueryExecutor(uint32_t minShouldMatch)
-    : _count(0)
-{
+    : _count(0) {
     _minShouldMatch = max(1u, minShouldMatch);
 }
 
-WeakAndQueryExecutor::~WeakAndQueryExecutor() {
-}
+WeakAndQueryExecutor::~WeakAndQueryExecutor() {}
 
-void WeakAndQueryExecutor::doNthElement(std::vector<QueryExecutorEntry>& heap) {
+void WeakAndQueryExecutor::doNthElement(std::vector<QueryExecutorEntry> &heap) {
     // sort minShoudMatch elements
     uint32_t i = 1;
     for (; i < _minShouldMatch; ++i) {
-        if (heap[i].docId > heap[i+1].docId) {
-            swap(heap[i], heap[i+1]);
+        if (heap[i].docId > heap[i + 1].docId) {
+            swap(heap[i], heap[i + 1]);
         } else {
             break;
         }
@@ -60,11 +57,10 @@ void WeakAndQueryExecutor::doNthElement(std::vector<QueryExecutorEntry>& heap) {
     assert(i == _minShouldMatch);
     assert(_count >= _minShouldMatch);
     // heap adjustDown
-    adjustDown(1, _count-_minShouldMatch+1, heap.data()+_minShouldMatch-1);
+    adjustDown(1, _count - _minShouldMatch + 1, heap.data() + _minShouldMatch - 1);
 }
 
-indexlib::index::ErrorCode WeakAndQueryExecutor::doSeek(docid_t id, docid_t& result)
-{
+indexlib::index::ErrorCode WeakAndQueryExecutor::doSeek(docid_t id, docid_t &result) {
     docid_t docId = INVALID_DOCID;
     do {
         auto ec = getQueryExecutor(_sortNHeap[1].entryId)->seek(id, docId);
@@ -91,9 +87,8 @@ void WeakAndQueryExecutor::reset() {
     addQueryExecutors(_queryExecutors);
 }
 
-indexlib::index::ErrorCode WeakAndQueryExecutor::seekSubDoc(docid_t docId, docid_t subDocId,
-        docid_t subDocEnd, bool needSubMatchdata, docid_t& result)
-{
+indexlib::index::ErrorCode WeakAndQueryExecutor::seekSubDoc(
+    docid_t docId, docid_t subDocId, docid_t subDocEnd, bool needSubMatchdata, docid_t &result) {
     if (!_hasSubDocExecutor) {
         docid_t currSubDocId = END_DOCID;
         if (getDocId() == docId && subDocId < subDocEnd) {
@@ -125,10 +120,10 @@ indexlib::index::ErrorCode WeakAndQueryExecutor::seekSubDoc(docid_t docId, docid
         return indexlib::index::ErrorCode::OK;
     }
     result = subDocId;
-    return indexlib::index::ErrorCode::OK;    
+    return indexlib::index::ErrorCode::OK;
 }
 
-void WeakAndQueryExecutor::addQueryExecutors(const vector<QueryExecutor*> &queryExecutors) {
+void WeakAndQueryExecutor::addQueryExecutors(const vector<QueryExecutor *> &queryExecutors) {
     _hasSubDocExecutor = false;
     _queryExecutors = queryExecutors;
     _sortNHeap.clear();
@@ -140,7 +135,7 @@ void WeakAndQueryExecutor::addQueryExecutors(const vector<QueryExecutor*> &query
         _hasSubDocExecutor = _hasSubDocExecutor || queryExecutors[i]->hasSubDocExecutor();
         QueryExecutorEntry newEntry;
         newEntry.docId = INVALID_DOCID;
-        newEntry.entryId = _count ++;
+        newEntry.entryId = _count++;
         _sortNHeap.push_back(newEntry);
         _sortNHeapSub.push_back(newEntry);
     }
@@ -154,9 +149,9 @@ bool WeakAndQueryExecutor::isMainDocHit(docid_t docId) const {
     }
     const QueryExecutorVector &queryExecutors = getQueryExecutors();
     for (QueryExecutorVector::const_iterator it = queryExecutors.begin();
-         it != queryExecutors.end(); ++it)
-    {
-        if(!(*it)->isMainDocHit(docId)) {
+         it != queryExecutors.end();
+         ++it) {
+        if (!(*it)->isMainDocHit(docId)) {
             return false;
         }
     }
@@ -172,8 +167,8 @@ df_t WeakAndQueryExecutor::getDF(GetDFType type) const {
 }
 
 string WeakAndQueryExecutor::toString() const {
-    return autil::StringUtil::toString(_minShouldMatch) +
-        "WEAKAND" + MultiQueryExecutor::toString();
+    return autil::StringUtil::toString(_minShouldMatch) + "WEAKAND"
+           + MultiQueryExecutor::toString();
 }
 
 } // namespace search

@@ -25,15 +25,15 @@ AUTIL_LOG_SETUP(ha3, ErrorResult);
 using namespace std;
 
 ErrorResult::ErrorResult(ErrorCode errorCode,
-                         const string& errMsg,
-                         const string& partitionID,
-                         const string& hostName) :
-    _errorCode(errorCode), _errorMsg(errMsg),
-    _partitionID(partitionID), _hostName(hostName)
-{
-}
+                         const string &errMsg,
+                         const string &partitionID,
+                         const string &hostName)
+    : _errorCode(errorCode)
+    , _errorMsg(errMsg)
+    , _partitionID(partitionID)
+    , _hostName(hostName) {}
 
-ErrorResult& ErrorResult::operator = (const ErrorResult &other) {
+ErrorResult &ErrorResult::operator=(const ErrorResult &other) {
     if (this != &other) {
         _errorCode = other._errorCode;
         _errorMsg = other._errorMsg;
@@ -43,12 +43,11 @@ ErrorResult& ErrorResult::operator = (const ErrorResult &other) {
     return *this;
 }
 
-ErrorResult::~ErrorResult() {
-}
+ErrorResult::~ErrorResult() {}
 
 void ErrorResult::resetError(ErrorCode errorCode, const string &errMsg) {
     _errorCode = errorCode;
-    _errorMsg  = errMsg;
+    _errorMsg = errMsg;
 }
 
 string ErrorResult::getErrorDescription() const {
@@ -67,11 +66,10 @@ string ErrorResult::getErrorDescription() const {
 string ErrorResult::toXMLString() {
     stringstream ss;
     ss << "<Error>" << endl
-       << "\t<PartitionID>" << _partitionID <<"</PartitionID>" << endl
-       << "\t<HostName>" << _hostName <<"</HostName>" << endl
+       << "\t<PartitionID>" << _partitionID << "</PartitionID>" << endl
+       << "\t<HostName>" << _hostName << "</HostName>" << endl
        << "\t<ErrorCode>" << getErrorCode() << "</ErrorCode>" << endl
-       << "\t<ErrorDescription>" << CDATA_BEGIN_STRING
-       << getErrorDescription() << CDATA_END_STRING
+       << "\t<ErrorDescription>" << CDATA_BEGIN_STRING << getErrorDescription() << CDATA_END_STRING
        << "</ErrorDescription>" << endl
        << "</Error>" << endl;
     return ss.str();
@@ -84,7 +82,7 @@ string ErrorResult::toJsonString() {
         ss << "\"partId\": " + _partitionID << "," << endl;
     }
     if (!_hostName.empty()) {
-        ss << "\"hostname\": " + _hostName << "," <<endl;
+        ss << "\"hostname\": " + _hostName << "," << endl;
     }
     ss << "\"errorCode\": " + std::to_string(getErrorCode()) << "," << endl
        << "\"errorMsg\": " + getErrorDescription() << endl

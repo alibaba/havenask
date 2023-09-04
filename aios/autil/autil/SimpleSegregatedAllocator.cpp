@@ -31,14 +31,10 @@ SimpleSegregatedAllocator::SimpleSegregatedAllocator() {
     _memChunk = NULL;
 }
 
-SimpleSegregatedAllocator::~SimpleSegregatedAllocator() {
-    release();
-}
+SimpleSegregatedAllocator::~SimpleSegregatedAllocator() { release(); }
 
-bool SimpleSegregatedAllocator::init(uint32_t requestSize,
-                                     uint32_t maxRequestChunk) 
-{
-    _requestSize = ((requestSize > sizeof(void*) ) ? requestSize : sizeof(void*));
+bool SimpleSegregatedAllocator::init(uint32_t requestSize, uint32_t maxRequestChunk) {
+    _requestSize = ((requestSize > sizeof(void *)) ? requestSize : sizeof(void *));
     _chunkSize = (uint64_t)maxRequestChunk * _requestSize;
     release();
     if (!allocateChunk()) {
@@ -47,19 +43,14 @@ bool SimpleSegregatedAllocator::init(uint32_t requestSize,
     return true;
 }
 
-void* SimpleSegregatedAllocator::segregate(void* pChunk, uint64_t nChunkSize, 
-        uint32_t requestedSize, void* pEndNode)
-{
-    char* pOld = static_cast<char*>(pChunk) + 
-                 ((nChunkSize - requestedSize)/requestedSize ) * requestedSize;
-    nextOf(pOld) = pEndNode;///pOld point to the end node
-    //only one partition
-    if(pOld == pChunk) {
+void *SimpleSegregatedAllocator::segregate(void *pChunk, uint64_t nChunkSize, uint32_t requestedSize, void *pEndNode) {
+    char *pOld = static_cast<char *>(pChunk) + ((nChunkSize - requestedSize) / requestedSize) * requestedSize;
+    nextOf(pOld) = pEndNode; /// pOld point to the end node
+    // only one partition
+    if (pOld == pChunk) {
         return pChunk;
     }
-    for(char* pIter = pOld - requestedSize; pIter != pChunk; 
-        pOld = pIter,pIter -= requestedSize)
-    {
+    for (char *pIter = pOld - requestedSize; pIter != pChunk; pOld = pIter, pIter -= requestedSize) {
         nextOf(pIter) = pOld;
     }
     nextOf(pChunk) = pOld;
@@ -67,7 +58,7 @@ void* SimpleSegregatedAllocator::segregate(void* pChunk, uint64_t nChunkSize,
 }
 
 bool SimpleSegregatedAllocator::allocateChunk() {
-    void* pChunk = ::malloc(_chunkSize);
+    void *pChunk = ::malloc(_chunkSize);
     if (!pChunk) {
         AUTIL_LOG(ERROR, "Malloc chunk: [size: %lu] FAILED", _chunkSize);
         return false;
@@ -87,25 +78,20 @@ void SimpleSegregatedAllocator::release() {
     }
 }
 
-void* SimpleSegregatedAllocator::allocate(uint32_t /*size*/) {
-    void* const pRet = _first;
-    if (!pRet)
-    {
+void *SimpleSegregatedAllocator::allocate(uint32_t /*size*/) {
+    void *const pRet = _first;
+    if (!pRet) {
         return NULL;
     }
     _first = nextOf(_first);
     return pRet;
 }
 
-void SimpleSegregatedAllocator::free(void* const pAddr)
-{
+void SimpleSegregatedAllocator::free(void *const pAddr) {
     nextOf(pAddr) = _first;
     _first = pAddr;
 }
 
-uint32_t SimpleSegregatedAllocator::getRequestSize() const  {
-    return _requestSize;
-}
+uint32_t SimpleSegregatedAllocator::getRequestSize() const { return _requestSize; }
 
-}
-
+} // namespace autil

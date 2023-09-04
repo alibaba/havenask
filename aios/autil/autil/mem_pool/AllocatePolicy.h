@@ -15,26 +15,26 @@
  */
 #pragma once
 
-#include <stddef.h>
 #include <memory>
+#include <stddef.h>
 
 #include "autil/mem_pool/MemoryChunk.h"
 
-namespace autil { namespace mem_pool {
+namespace autil {
+namespace mem_pool {
 
-
-class AllocatePolicy
-{
+class AllocatePolicy {
 public:
     AllocatePolicy() {}
     virtual ~AllocatePolicy() {}
+
 public:
-        /**
+    /**
      * alloc a chunk
      * @param nBytes number of bytes to allocate
      * @return allocated chunk
      */
-    virtual MemoryChunk* allocate(size_t nBytes) = 0;
+    virtual MemoryChunk *allocate(size_t nBytes) = 0;
 
     /**
      * release allocated chunks
@@ -79,5 +79,5 @@ public:
     virtual bool isInChunk(const void *ptr) const = 0;
 };
 
-}}
-
+} // namespace mem_pool
+} // namespace autil

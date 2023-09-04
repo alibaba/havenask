@@ -1,0 +1,11 @@
+{
+    "user_name" : "user_name",
+    "service_name" : "service_name",
+    "index_root" : "$template",
+    "swift_root" : "zfs://root/",
+    "hippo_root" : "path/to/hippo/leader/elector/root",
+    "zookeeper_root" : "path/to/zk/root",
+    "amonitor_port" : 10086 /* default is for 10086 */,
+    "send_message_address" : "tcp:10.101.169.123:3088",
+    "message_collector_topic" : "testhttp"
+}

@@ -58,10 +58,13 @@ NetworkTrafficEstimater::NetworkTrafficEstimater(indexlib::util::MetricProviderP
 
 bool NetworkTrafficEstimater::Start()
 {
+    _isStarted = true;
     _loopThreadPtr =
         LoopThread::createLoopThread(std::bind(&NetworkTrafficEstimater::WorkLoop, this),
                                      STAT_INTERVAL_IN_SECONDS * 2 * 1000 * 1000, "network_traffic_estimater_workloop");
-    _isStarted = (_loopThreadPtr.get() != nullptr) ? true : false;
+    if (_loopThreadPtr.get() == nullptr) {
+        _isStarted = false;
+    }
     return _isStarted;
 }
 
@@ -101,17 +104,24 @@ void NetworkTrafficEstimater::WorkLoop()
     int64_t beginTs = autil::TimeUtility::currentTimeInMicroSeconds();
     struct NetworkTrafficInfo totalTraffic1;
     CollectNetworkTraffic(&totalTraffic1);
-    sleep(STAT_INTERVAL_IN_SECONDS);
+    for (int64_t i = 0; i < STAT_INTERVAL_IN_SECONDS; ++i) {
+        if (!_isStarted) {
+            BS_LOG(INFO, "already in stop progress, skip current loop");
+            return;
+        }
+        sleep(1);
+    }
     struct NetworkTrafficInfo totalTraffic2;
     CollectNetworkTraffic(&totalTraffic2);
     totalTraffic2 = totalTraffic2 - totalTraffic1;
-
-    _byteInSpeed = totalTraffic2.byteIn / STAT_INTERVAL_IN_SECONDS;
-    _byteOutSpeed = totalTraffic2.byteOut / STAT_INTERVAL_IN_SECONDS;
-    _pktInSpeed = totalTraffic2.pktIn / STAT_INTERVAL_IN_SECONDS;
-    _pktOutSpeed = totalTraffic2.pktOut / STAT_INTERVAL_IN_SECONDS;
-    _pktErrSpeed = (totalTraffic2.pktErrIn + totalTraffic2.pktErrOut) / STAT_INTERVAL_IN_SECONDS;
-    _pktDropSpeed = (totalTraffic2.pktDropIn + totalTraffic2.pktDropOut) / STAT_INTERVAL_IN_SECONDS;
+    int64_t currentTs = autil::TimeUtility::currentTimeInMicroSeconds();
+    int64_t collectTimeInSecond = autil::TimeUtility::us2sec(currentTs - beginTs);
+    _byteInSpeed = totalTraffic2.byteIn / collectTimeInSecond;
+    _byteOutSpeed = totalTraffic2.byteOut / collectTimeInSecond;
+    _pktInSpeed = totalTraffic2.pktIn / collectTimeInSecond;
+    _pktOutSpeed = totalTraffic2.pktOut / collectTimeInSecond;
+    _pktErrSpeed = (totalTraffic2.pktErrIn + totalTraffic2.pktErrOut) / collectTimeInSecond;
+    _pktDropSpeed = (totalTraffic2.pktDropIn + totalTraffic2.pktDropOut) / collectTimeInSecond;
 
     if (_metricProvider) {
         REPORT_METRIC(_byteInSpeedMetric, _byteInSpeed);
@@ -121,7 +131,6 @@ void NetworkTrafficEstimater::WorkLoop()
         REPORT_METRIC(_pktErrSpeedMetric, _pktErrSpeed);
         REPORT_METRIC(_pktDropSpeedMetric, _pktErrSpeed);
     }
-    int64_t currentTs = autil::TimeUtility::currentTimeInMicroSeconds();
     BS_LOG(INFO,
            "network traffic: bytin[%lu], bytout[%lu], pktin[%lu], pktout[%lu], pkterr[%lu], pktdrp[%lu],"
            " workloop took %.1f ms.",

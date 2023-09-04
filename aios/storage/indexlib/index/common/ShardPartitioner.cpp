@@ -40,7 +40,7 @@ Status ShardPartitioner::Init(indexlib::HashFunctionType keyHasherType, uint32_t
 
 Status ShardPartitioner::Init(uint32_t shardCount) { return Init(indexlib::hft_unknown, shardCount); }
 
-Status ShardPartitioner::Init(const std::shared_ptr<config::TabletSchema>& schema, uint32_t shardCount)
+Status ShardPartitioner::Init(const std::shared_ptr<config::ITabletSchema>& schema, uint32_t shardCount)
 {
     assert(schema);
     assert(shardCount > 1);

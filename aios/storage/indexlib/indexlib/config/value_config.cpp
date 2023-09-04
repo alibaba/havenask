@@ -36,7 +36,7 @@ ValueConfig::~ValueConfig() {}
 
 void ValueConfig::Init(const vector<AttributeConfigPtr>& attrConfigs)
 {
-    vector<std::shared_ptr<indexlibv2::config::AttributeConfig>> attrConfigsV2;
+    vector<std::shared_ptr<indexlibv2::index::AttributeConfig>> attrConfigsV2;
     attrConfigsV2.reserve(attrConfigs.size());
     for (const auto& attrConfig : attrConfigs) {
         attrConfigsV2.emplace_back(attrConfig);

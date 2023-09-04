@@ -17,7 +17,7 @@
 
 #include "indexlib/base/Status.h"
 #include "indexlib/config/IIndexConfig.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/index/DocMapper.h"
 #include "indexlib/index/attribute/AttributeDiskIndexer.h"
@@ -29,7 +29,7 @@ namespace indexlib::index {
 AUTIL_LOG_SETUP(indexlib.index, TruncateAttributeReaderCreator);
 
 TruncateAttributeReaderCreator::TruncateAttributeReaderCreator(
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& tabletSchema,
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& tabletSchema,
     const indexlibv2::index::IIndexMerger::SegmentMergeInfos& segmentMergeInfos,
     const std::shared_ptr<indexlibv2::index::DocMapper>& docMapper)
     : _tabletSchema(tabletSchema)
@@ -78,7 +78,7 @@ TruncateAttributeReaderCreator::CreateAttributeReader(const std::string& fieldNa
     return attrReader;
 }
 
-std::shared_ptr<indexlibv2::config::AttributeConfig>
+std::shared_ptr<indexlibv2::index::AttributeConfig>
 TruncateAttributeReaderCreator::GetAttributeConfig(const std::string& fieldName) const
 {
     auto indexConfig = _tabletSchema->GetIndexConfig(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR, fieldName);
@@ -86,6 +86,6 @@ TruncateAttributeReaderCreator::GetAttributeConfig(const std::string& fieldName)
         AUTIL_LOG(ERROR, "get attribute config failed, fieldName[%s]", fieldName.c_str());
         return nullptr;
     }
-    return std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(indexConfig);
+    return std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(indexConfig);
 }
 } // namespace indexlib::index

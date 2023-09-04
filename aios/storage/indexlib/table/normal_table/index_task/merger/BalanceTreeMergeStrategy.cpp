@@ -133,7 +133,7 @@ Status BalanceTreeMergeStrategy::CheckParam(const framework::IndexTaskContext* c
                   framework::LevelMeta::TopologyToStr(levelInfo->GetTopology()).c_str());
         return Status::InvalidArgs();
     }
-    auto mergeConfig = context->GetTabletOptions()->GetOfflineConfig().GetMergeConfig();
+    auto mergeConfig = context->GetMergeConfig();
     assert(mergeConfig.GetMergeStrategyStr() == GetName() or
            mergeConfig.GetMergeStrategyStr() == MergeStrategyDefine::COMBINED_MERGE_STRATEGY_NAME);
     auto [st, params] = ExtractParams(mergeConfig.GetMergeStrategyParameter());

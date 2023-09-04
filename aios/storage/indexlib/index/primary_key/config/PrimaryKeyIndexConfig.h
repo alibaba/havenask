@@ -59,7 +59,7 @@ public:
     void EnableBloomFilterForPkReader(uint32_t multipleNum);
     bool IsParallelLookupOnBuild() const;
     void EnableParallelLookupOnBuild();
-    std::shared_ptr<config::AttributeConfig> GetPKAttributeConfig() const;
+    std::shared_ptr<index::AttributeConfig> GetPKAttributeConfig() const;
     void SetPrimaryKeyAttributeFlag(bool flag);
     bool HasPrimaryKeyAttribute() const;
 

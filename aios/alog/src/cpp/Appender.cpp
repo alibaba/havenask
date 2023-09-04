@@ -681,7 +681,7 @@ void* FileAppender :: compressHook(void *p)
     }
     if(cacheLimit > 0)
     {
-        if(posix_memalign(&tmp, 512, CHUNK) != 0)
+        if(posix_memalign(&tmp, stbuf.st_blksize, CHUNK) != 0)
         {
             fprintf(stderr, "posix_memalignes error: %s\n", strerror(errno));
             ::close(source);

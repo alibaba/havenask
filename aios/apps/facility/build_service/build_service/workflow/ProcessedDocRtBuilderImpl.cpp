@@ -248,7 +248,7 @@ void ProcessedDocRtBuilderImpl::reportFreshnessWhenSuspendBuild()
 
     assert(_producer);
     static const std::string emptyDocSource("");
-    _producer->reportFreshnessMetrics(latestLocator.GetOffset(), /* no more msg */ false, emptyDocSource,
+    _producer->reportFreshnessMetrics(latestLocator.GetOffset().first, /* no more msg */ false, emptyDocSource,
                                       /* report fast queue delay */ true);
 }
 

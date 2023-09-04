@@ -24,10 +24,11 @@ namespace multi_call {
 
 struct MetricLimits {
     MetricLimits()
-        : errorRatioLimit(MAX_PERCENT),
-          latencyUpperLimitMs(DEFAULT_LATENCY_UPPER_LIMIT_MS),
-          latencyUpperLimitPercent(DEFAULT_LATENCY_UPPER_LIMIT_PERCENT),
-          fullDegradeLatency(DEFAULT_DEGRADE_LATENCY) {}
+        : errorRatioLimit(MAX_PERCENT)
+        , latencyUpperLimitMs(DEFAULT_LATENCY_UPPER_LIMIT_MS)
+        , latencyUpperLimitPercent(DEFAULT_LATENCY_UPPER_LIMIT_PERCENT)
+        , fullDegradeLatency(DEFAULT_DEGRADE_LATENCY) {
+    }
     bool operator==(const MetricLimits &rhs) const {
         return errorRatioLimit == rhs.errorRatioLimit &&
                latencyUpperLimitMs == rhs.latencyUpperLimitMs &&
@@ -48,10 +49,14 @@ struct ControllerChain;
 
 struct ControllerFeedBack {
     ControllerFeedBack(QueryResultStatistic &stat_)
-        : mirrorResponse(false), stat(stat_), bestChain(NULL),
-          maxWeight(MAX_WEIGHT_FLOAT), minWeight(MIN_WEIGHT_FLOAT),
-          bestLoadBalanceLatency(INVALID_FILTER_VALUE),
-          bestLoadBalanceDegradeRatio(INVALID_FILTER_VALUE) {}
+        : mirrorResponse(false)
+        , stat(stat_)
+        , bestChain(NULL)
+        , maxWeight(MAX_WEIGHT_FLOAT)
+        , minWeight(MIN_WEIGHT_FLOAT)
+        , bestLoadBalanceLatency(INVALID_FILTER_VALUE)
+        , bestLoadBalanceDegradeRatio(INVALID_FILTER_VALUE) {
+    }
     ControllerFeedBack &operator=(const ControllerFeedBack &) = delete;
 
 private:

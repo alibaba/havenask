@@ -99,7 +99,7 @@ public:
     // override from IDiskIndexer
     Status Open(const std::shared_ptr<config::IIndexConfig>& indexConfig,
                 const std::shared_ptr<indexlib::file_system::IDirectory>& attrDirectory) override;
-    virtual size_t EvaluateCurrentMemUsed() override;
+    size_t EvaluateCurrentMemUsed() override;
 
 public:
     bool IsInMemory() const override { return false; }
@@ -229,7 +229,7 @@ Status MultiValueAttributeDiskIndexer<T>::Open(const std::shared_ptr<config::IIn
     }
 
     autil::ScopedTime2 timer;
-    _attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+    _attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
     assert(_attrConfig != nullptr);
     _fieldPrinter.reset(new AttributeFieldPrinter());
     _fieldPrinter->Init(_attrConfig->GetFieldConfig());
@@ -281,6 +281,11 @@ Status MultiValueAttributeDiskIndexer<T>::Open(const std::shared_ptr<config::IIn
         RETURN_IF_STATUS_ERROR(status, "");
         _fileStream = indexlib::file_system::FileStreamCreator::CreateConcurrencyFileStream(dataFile, nullptr);
         _data = (uint8_t*)dataFile->GetBaseAddress();
+        if (_data == nullptr && dataFile->GetLength() == 0) {
+            RETURN_STATUS_ERROR(InternalError, "invalid attribute %s file [%s], file length is 0",
+                                ATTRIBUTE_DATA_FILE_NAME.c_str(), attrPath.c_str());
+        }
+
         status = _offsetReader.Init(_attrConfig, fieldDir, _docCount, _indexerParam.disableUpdate);
         RETURN_IF_STATUS_ERROR(status, "init offset reader failed, segId[%d]", _indexerParam.segmentId);
 

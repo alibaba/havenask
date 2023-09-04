@@ -43,11 +43,14 @@ CompressOperationBlock::CompressOperationBlock(const CompressOperationBlock& oth
 CompressOperationBlock::~CompressOperationBlock() {}
 
 void CompressOperationBlock::Init(size_t operationCount, const char* compressBuffer, size_t compressSize,
-                                  int64_t opMinTimeStamp, int64_t opMaxTimeStamp)
+                                  indexlibv2::base::Progress::Offset opMinOffset,
+                                  indexlibv2::base::Progress::Offset opMaxOffset,
+                                  const OperationMeta::BlockMeta& blockMeta)
 {
     _operationCount = operationCount;
-    _minTimestamp = opMinTimeStamp;
-    _maxTimestamp = opMaxTimeStamp;
+    _minOffset = opMinOffset;
+    _maxOffset = opMaxOffset;
+    _blockMeta = blockMeta;
 
     assert(compressBuffer);
     assert(compressSize > 0);
@@ -96,7 +99,7 @@ CompressOperationBlock::CreateOperationBlockForRead(const OperationFactory& opFa
 
     for (size_t i = 0; i < _operationCount; ++i) {
         size_t opSize = 0;
-        auto [status, operation] = opFactory.DeserializeOperation(baseAddr, pool, opSize);
+        auto [status, operation] = opFactory.DeserializeOperation(baseAddr, pool, opSize, _blockMeta.hasConcurrentIdx);
         if (!status.IsOK()) {
             AUTIL_LOG(ERROR, "deserialize operation log fail");
             return std::make_pair(status, nullptr);
@@ -109,7 +112,7 @@ CompressOperationBlock::CreateOperationBlockForRead(const OperationFactory& opFa
 }
 
 Status CompressOperationBlock::Dump(const std::shared_ptr<file_system::FileWriter>& fileWriter,
-                                    size_t maxOpSerializeSize)
+                                    size_t maxOpSerializeSize, bool hasConcurrentIdx)
 {
     assert(fileWriter);
     auto [status, writeSize] = fileWriter->Write(_compressDataBuffer, _compressDataLen).StatusWith();

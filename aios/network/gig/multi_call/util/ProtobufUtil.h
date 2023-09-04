@@ -16,13 +16,15 @@
 #ifndef ISEARCH_MULTI_CALL_PROTOBUFUTIL_H
 #define ISEARCH_MULTI_CALL_PROTOBUFUTIL_H
 
-#include "aios/network/gig/multi_call/common/common.h"
 #include <grpc++/impl/codegen/byte_buffer.h>
 #include <grpc++/impl/codegen/proto_utils.h>
 
+#include "aios/network/gig/multi_call/common/common.h"
+
 namespace multi_call {
 
-class GrpcByteBufferSource : public grpc::protobuf::io::ZeroCopyInputStream {
+class GrpcByteBufferSource : public grpc::protobuf::io::ZeroCopyInputStream
+{
 public:
     GrpcByteBufferSource();
     bool Init(const grpc::ByteBuffer &src); // Can be called multiple times.
@@ -43,7 +45,8 @@ private:
     grpc::protobuf::int64 byte_count_;
 };
 
-class GrpcByteBufferSourceByteReader {
+class GrpcByteBufferSourceByteReader
+{
 public:
     GrpcByteBufferSourceByteReader(GrpcByteBufferSource &source);
     ~GrpcByteBufferSourceByteReader();
@@ -58,37 +61,30 @@ private:
 };
 
 // compatible util
-class ProtobufCompatibleUtil {
+class ProtobufCompatibleUtil
+{
 public:
     static bool getErrorCodeField(const google::protobuf::Message *message,
-                                  const std::string &fieldName,
-                                  MultiCallErrorCode &ec);
-    static void setErrorCodeField(google::protobuf::Message *message,
-                                  const std::string &fieldName,
+                                  const std::string &fieldName, MultiCallErrorCode &ec);
+    static void setErrorCodeField(google::protobuf::Message *message, const std::string &fieldName,
                                   MultiCallErrorCode ec);
     static bool getGigMetaField(const google::protobuf::Message *message,
-                                const std::string &fieldName,
-                                std::string &meta);
-    static void setGigMetaField(google::protobuf::Message *message,
-                                const std::string &fieldName,
+                                const std::string &fieldName, std::string &meta);
+    static void setGigMetaField(google::protobuf::Message *message, const std::string &fieldName,
                                 const std::string &meta);
     static bool getStringField(const google::protobuf::Message *message,
-                               const std::string &fieldName,
-                               std::string &value);
+                               const std::string &fieldName, std::string &value);
     static bool getEagleeyeField(const google::protobuf::Message *message,
-                                 const std::string &traceIdField,
-                                 const std::string &rpcIdField,
-                                 const std::string &userDataField,
-                                 std::string &traceId, std::string &rpcId,
-                                 std::string &userData);
+                                 const std::string &traceIdField, const std::string &rpcIdField,
+                                 const std::string &userDataField, std::string &traceId,
+                                 std::string &rpcId, std::string &userData);
 
 private:
-    static bool
-    getFieldAndReflection(const google::protobuf::Message *message,
-                          const std::string &fieldName,
-                          google::protobuf::FieldDescriptor::Type type,
-                          const google::protobuf::Reflection *&reflection,
-                          const google::protobuf::FieldDescriptor *&field);
+    static bool getFieldAndReflection(const google::protobuf::Message *message,
+                                      const std::string &fieldName,
+                                      google::protobuf::FieldDescriptor::Type type,
+                                      const google::protobuf::Reflection *&reflection,
+                                      const google::protobuf::FieldDescriptor *&field);
 };
 
 } // namespace multi_call

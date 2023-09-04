@@ -24,7 +24,8 @@
 
 namespace multi_call {
 
-class CallDelegationThread {
+class CallDelegationThread
+{
 public:
     CallDelegationThread(const SearchServiceManagerPtr &searchServiceManagerPtr,
                          const WorkerMetricReporterPtr &metricReporter,
@@ -42,9 +43,13 @@ private:
 public:
     bool start();
     void stop();
-    bool isStarted() const { return _thread != NULL; }
+    bool isStarted() const {
+        return _thread != NULL;
+    }
     void pushWorkItem(CallDelegationWorkItem *workItem);
-    int64_t getProcessInterval() const { return _processInterval; }
+    int64_t getProcessInterval() const {
+        return _processInterval;
+    }
 
 private:
     void workLoop();
@@ -62,6 +67,7 @@ private:
     uint64_t _queueMaxSize;
     uint64_t _dropRequestCount;
     uint64_t _totalRequestCount;
+
 private:
     AUTIL_LOG_DECLARE();
 };

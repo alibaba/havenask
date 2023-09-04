@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 #include "matchdoc/Reference.h"
+
 #include <sstream>
 
 namespace matchdoc {
 
-ReferenceMeta::ReferenceMeta()
-    : allocateSize(0)
-    , needDestruct(true)
-    , useAlias(false)
-    , serializeLevel(0)
-    , optFlag(0)
-{
-}
+ReferenceMeta::ReferenceMeta() : allocateSize(0), needDestruct(true), useAlias(false), serializeLevel(0), optFlag(0) {}
 
 bool ReferenceMeta::isAutilMultiValueType() const {
     if (!valueType.isBuiltInType() || valueType.isStdType()) {
@@ -54,8 +48,7 @@ void ReferenceMeta::serialize(autil::DataBuffer &dataBuffer) const {
     dataBuffer.write(valueType.getType());
 }
 
-void ReferenceMeta::deserialize(autil::DataBuffer &dataBuffer,
-                                autil::mem_pool::Pool* pool) {
+void ReferenceMeta::deserialize(autil::DataBuffer &dataBuffer, autil::mem_pool::Pool *pool) {
     dataBuffer.read(vt);
     dataBuffer.read(allocateSize);
     dataBuffer.read(needDestruct);
@@ -71,54 +64,39 @@ void ReferenceMeta::deserialize(autil::DataBuffer &dataBuffer,
 }
 
 bool ReferenceMeta::operator==(const ReferenceMeta &other) const {
-    return vt == other.vt
-        && allocateSize == other.allocateSize
-        && needDestruct == other.needDestruct
-        && useAlias == other.useAlias
-        && serializeLevel == other.serializeLevel
-        && name == other.name
-        && alias == other.alias
-        && valueType.getTypeIgnoreConstruct() == other.valueType.getTypeIgnoreConstruct();
+    return vt == other.vt && allocateSize == other.allocateSize && needDestruct == other.needDestruct &&
+           useAlias == other.useAlias && serializeLevel == other.serializeLevel && name == other.name &&
+           alias == other.alias && valueType.getTypeIgnoreConstruct() == other.valueType.getTypeIgnoreConstruct();
 }
 
-bool ReferenceMeta::operator!=(const ReferenceMeta &other) const {
-    return !(*this == other);
-}
+bool ReferenceMeta::operator!=(const ReferenceMeta &other) const { return !(*this == other); }
 
 ///////////////////////////////////////////////////////////////////////
+ReferenceBase::ReferenceBase(const VariableType &type, const std::string &groupName)
+    : _offset(INVALID_OFFSET), _mountOffset(INVALID_OFFSET), _docStorage(0), _current(NULL), _groupName(groupName) {
+    meta.vt = type;
+}
+
 ReferenceBase::ReferenceBase(const VariableType &type,
+                             VectorStorage *docStorage,
+                             uint32_t allocateSize,
                              const std::string &groupName)
-    : _offset(INVALID_OFFSET)
-    , _mountOffset(INVALID_OFFSET)
-    , _docStorage(0)
-    , _current(NULL)
-    , _groupName(groupName)
-{
-    meta.vt = type;
-}
+    : ReferenceBase(type, docStorage, docStorage->getDocSize(), allocateSize, groupName) {}
 
-ReferenceBase::ReferenceBase(const VariableType &type, DocStorage *docStorage,
-                             uint32_t allocateSize, const std::string &groupName)
-    : _offset(docStorage->getDocSize())
-    , _mountOffset(INVALID_OFFSET)
-    , _docStorage(docStorage)
-    , _current(NULL)
-    , _groupName(groupName)
-{
-    meta.vt = type;
-    meta.allocateSize = allocateSize;
-}
-
-
-ReferenceBase::ReferenceBase(const VariableType &type, DocStorage *docStorage,
-                             uint32_t offset, uint64_t mountOffset, uint32_t allocateSize,
+ReferenceBase::ReferenceBase(const VariableType &type,
+                             VectorStorage *docStorage,
+                             uint32_t offset,
+                             uint32_t allocateSize,
                              const std::string &groupName)
-    : _offset(offset)
-    , _mountOffset(mountOffset)
-    , _docStorage(docStorage)
-    , _current(NULL)
-    , _groupName(groupName)
-{
+    : ReferenceBase(type, docStorage, offset, INVALID_OFFSET, allocateSize, groupName) {}
+
+ReferenceBase::ReferenceBase(const VariableType &type,
+                             VectorStorage *docStorage,
+                             uint32_t offset,
+                             uint64_t mountOffset,
+                             uint32_t allocateSize,
+                             const std::string &groupName)
+    : _offset(offset), _mountOffset(mountOffset), _docStorage(docStorage), _current(NULL), _groupName(groupName) {
     meta.vt = type;
     meta.allocateSize = allocateSize;
     if (isMount()) {
@@ -126,22 +104,39 @@ ReferenceBase::ReferenceBase(const VariableType &type, DocStorage *docStorage,
     }
 }
 
-ReferenceBase::~ReferenceBase() {
-}
+ReferenceBase::~ReferenceBase() {}
 
 std::string ReferenceBase::toDebugString() const {
-        std::stringstream ss;
-        ss << "offset (" << _offset << ") "
-           << "mount offset (" << _mountOffset << ") "
-           << "type (" << meta.vt << ") "
-           << "allocateSize (" << meta.allocateSize << ") "
-           << "needDestruct (" << meta.needDestruct << ") "
-           << "serializeLevel (" << int(meta.serializeLevel) << ") "
-           << "name (" << meta.name << ") "
-           << "valueType (" << meta.valueType.toInt() << ") "
-           << "group name (" << _groupName << ") " << std::endl;
-        return ss.str();
-    }
-
-
+    std::stringstream ss;
+    ss << "offset (" << _offset << ") "
+       << "mount offset (" << _mountOffset << ") "
+       << "type (" << meta.vt << ") "
+       << "allocateSize (" << meta.allocateSize << ") "
+       << "needDestruct (" << meta.needDestruct << ") "
+       << "serializeLevel (" << int(meta.serializeLevel) << ") "
+       << "name (" << meta.name << ") "
+       << "valueType (" << meta.valueType.toInt() << ") "
+       << "group name (" << _groupName << ") " << std::endl;
+    return ss.str();
 }
+
+ReferenceBase *ReferenceBase::copyWith(const ReferenceMeta &meta,
+                                       VectorStorage *docStorage,
+                                       uint64_t offset,
+                                       uint64_t mountOffset,
+                                       const std::string &groupName) const {
+    ReferenceBase *copy = createInstance();
+    copy->_offset = offset;
+    copy->_mountOffset = mountOffset;
+    copy->_docStorage = docStorage;
+    copy->_groupName = groupName;
+    copy->meta = meta;
+    copy->meta.optFlag = 0; // should remove this flag
+    return copy;
+}
+
+bool ReferenceBase::equals(const ReferenceBase &other) const {
+    return meta == other.meta && _offset == other._offset && _mountOffset == other._mountOffset;
+}
+
+} // namespace matchdoc

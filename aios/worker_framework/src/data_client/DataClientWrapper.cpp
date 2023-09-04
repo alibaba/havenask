@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "fslib/util/FileUtil.h"
 #include "worker_framework/DataClientWrapper.h"
 
 #include <cstdlib>
@@ -22,16 +21,16 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "autil/EnvUtil.h"
 #include "autil/Log.h"
 #include "autil/StringUtil.h"
+#include "fslib/util/FileUtil.h"
 #include "worker_framework/DataItem.h"
 
 using namespace std;
 using namespace fslib;
 using namespace fslib::fs;
 using namespace fslib::util;
-
-
 
 using namespace worker_framework;
 namespace worker_framework {
@@ -246,12 +245,7 @@ bool DataClientWrapper::isLocalDiskError(fslib::ErrorCode ec) const {
 }
 
 bool DataClientWrapper::getEnv(const string &name, string *value) {
-    char *v = getenv(name.c_str());
-    if (v == NULL) {
-        return false;
-    }
-    *value = string(v);
-    return true;
+    return autil::EnvUtil::getEnvWithoutDefault(name, *value);
 }
 
 DataClientWrapper::DownloadMode DataClientWrapper::strToDownloadMode(const string &downloadMode) {

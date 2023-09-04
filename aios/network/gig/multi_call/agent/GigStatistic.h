@@ -16,26 +16,27 @@
 #ifndef ISEARCH_MULTI_CALL_GIGSTATISTIC_H
 #define ISEARCH_MULTI_CALL_GIGSTATISTIC_H
 
+#include <unordered_map>
+
 #include "aios/network/gig/multi_call/agent/WarmUpStrategy.h"
 #include "aios/network/gig/multi_call/common/common.h"
 #include "autil/Lock.h"
 #include "autil/LoopThread.h"
-#include <unordered_map>
 
 namespace multi_call {
 
 class BizStat;
 
-class GigStatistic {
+class GigStatistic
+{
 public:
     GigStatistic(const std::string &logPrefix = "");
     ~GigStatistic();
-    std::shared_ptr<BizStat> getBizStat(
-            const std::string &bizName,
-            PartIdTy partId = INVALID_PART_ID);
+    std::shared_ptr<BizStat> getBizStat(const std::string &bizName,
+                                        PartIdTy partId = INVALID_PART_ID);
     WarmUpStrategy *getWarmUpStrategy(const std::string &warmUpStrategy);
-    void updateWarmUpStrategy(const std::string &warmUpStrategy,
-                              int64_t timeoutInSecond, int64_t queryCountLimit);
+    void updateWarmUpStrategy(const std::string &warmUpStrategy, int64_t timeoutInSecond,
+                              int64_t queryCountLimit);
     void init();
     void start();
     void stop();
@@ -45,6 +46,7 @@ public:
     bool stopped(const std::string &bizName, PartIdTy partId = INVALID_PART_ID);
     bool longTimeNoQuery(int64_t second);
     bool longTimeNoQuery(const std::string &bizName, int64_t second);
+    const std::string &getLogPrefix() const;
 
 private:
     std::shared_ptr<BizStat> newBizStat();
@@ -52,12 +54,13 @@ private:
     void updateStartStat(const std::string &bizName, PartIdTy partId, bool started);
     void logThread();
     std::vector<std::shared_ptr<BizStat>> getBizStatVec(const std::string &bizName) const;
+
 private:
-    static bool
-    longTimeNoQuery(const std::vector<std::shared_ptr<BizStat> > &statVec,
-                    int64_t second);
+    static bool longTimeNoQuery(const std::vector<std::shared_ptr<BizStat>> &statVec,
+                                int64_t second);
     typedef std::unordered_map<std::string, std::unordered_map<PartIdTy, std::shared_ptr<BizStat>>>
         BizStatMap;
+
 private:
     std::string _logPrefix;
     mutable autil::ReadWriteLock _lock;

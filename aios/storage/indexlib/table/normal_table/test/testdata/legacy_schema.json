@@ -1,0 +1,56 @@
+{
+    "fields" : [
+        {
+            "field_name" : "id",
+            "field_type" : "INTEGER"
+        },
+        {
+            "field_name" : "company_id",
+            "field_type" : "INT64"
+        },
+        {
+            "field_name" : "price",
+            "field_type" : "DOUBLE"
+        },
+        {
+            "field_name" : "multi_int",
+            "field_type" : "INT32",
+	        "separator" : ",",
+            "multi_value" : true
+        },
+        {
+            "field_name" : "multi_double",
+            "field_type" : "DOUBLE",
+            "multi_value" : true
+        },
+        {
+            "field_name" : "multi_company_id",
+            "field_type" : "STRING",
+	        "separator" : ",",
+            "multi_value" : true
+        },
+        {
+            "field_name" : "keywords",
+            "field_type" : "STRING"
+        }
+    ],
+    "indexs" : [
+        {
+            "index_fields" : "id",
+            "index_name" : "pk",
+            "index_type" : "PRIMARYKEY64",
+            "pk_storage_type" : "block_array",
+            "has_primary_key_attribute" : true
+        }
+    ],
+    "attributes":[
+            "id",
+            "company_id",
+            "price",
+            "multi_int",
+            "multi_double",
+            "keywords",
+            "multi_company_id"
+    ],
+    "table_name" : "simple"
+}

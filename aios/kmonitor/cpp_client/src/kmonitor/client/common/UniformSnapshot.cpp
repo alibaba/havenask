@@ -5,16 +5,16 @@
  * Author Email: beifei@taobao.com
  */
 
+#include "kmonitor/client/common/UniformSnapshot.h"
+
+#include <algorithm>
 #include <math.h>
 #include <vector>
-#include <algorithm>
-#include "kmonitor/client/common/UniformSnapshot.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
-
 UniformSnapshot::UniformSnapshot(const double *measurements, int32_t size) {
-    values_ = new std::vector<double>(measurements, measurements+size);
+    values_ = new std::vector<double>(measurements, measurements + size);
     std::sort(values_->begin(), values_->end());
 }
 
@@ -44,10 +44,9 @@ double UniformSnapshot::GetValue(double quantile) {
         return values_->at(values_->size() - 1);
     }
 
-    double lower = values_->at(index-1);
+    double lower = values_->at(index - 1);
     double upper = values_->at(index);
     return lower + (pos - floor(pos)) * (upper - lower);
 }
 
 END_KMONITOR_NAMESPACE(kmonitor);
-

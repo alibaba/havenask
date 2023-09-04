@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/SearchServiceResource.h"
+
 #include "aios/network/gig/multi_call/interface/HttpRequest.h"
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
 #include "aios/network/gig/multi_call/service/SearchServiceReplica.h"
@@ -27,9 +28,11 @@ namespace multi_call {
 
 AUTIL_LOG_SETUP(multi_call, SearchServiceResource);
 
-SearchServiceResource::SearchServiceResource(const std::string &bizName, const string &requestId, SourceIdTy sourceId,
-                                             const RequestPtr &request, const SearchServiceReplicaPtr &replica,
-                                             const SearchServiceProviderPtr &provider, RequestType requestType)
+SearchServiceResource::SearchServiceResource(const std::string &bizName, const string &requestId,
+                                             SourceIdTy sourceId, const RequestPtr &request,
+                                             const SearchServiceReplicaPtr &replica,
+                                             const SearchServiceProviderPtr &provider,
+                                             RequestType requestType)
     : _bizName(bizName)
     , _requestId(requestId)
     , _sourceId(sourceId)
@@ -40,13 +43,13 @@ SearchServiceResource::SearchServiceResource(const std::string &bizName, const s
     , _partIdIndex(INVALID_PART_ID)
     , _callBeginTime(0)
     , _disableRetry(false)
-    , _hasError(false)
-{
+    , _hasError(false) {
     assert(_request);
     assert(_provider);
 }
 
-SearchServiceResource::~SearchServiceResource() {}
+SearchServiceResource::~SearchServiceResource() {
+}
 
 void SearchServiceResource::updateHealthStatus(bool isRetry) {
     const auto &providerPtr = getProvider(isRetry);
@@ -68,8 +71,7 @@ void SearchServiceResource::updateHealthStatus(bool isRetry) {
 
 void SearchServiceResource::initFeedBack(const FlowControlConfig &config,
                                          const SearchServiceReplicaPtr &replica,
-                                         ControllerFeedBack &feedBack)
-{
+                                         ControllerFeedBack &feedBack) {
     feedBack.minWeight = config.minWeight;
     auto &metricLimits = feedBack.metricLimits;
     metricLimits.errorRatioLimit = config.errorRatioLimit;
@@ -86,8 +88,7 @@ void SearchServiceResource::updateMirrorResponse(ControllerFeedBack &feedBack) {
     const auto &propagationStats = feedBack.stat.agentInfo->propagation_stats();
     for (int32_t i = 0; i < propagationStats.stats_size(); i++) {
         const auto &propagationStat = propagationStats.stats(i);
-        auto provider = _replica->getProviderByAgentId(
-            propagationStat.latency().agent_id());
+        auto provider = _replica->getProviderByAgentId(propagationStat.latency().agent_id());
         if (!provider) {
             continue;
         }
@@ -99,8 +100,7 @@ void SearchServiceResource::updateMirrorResponse(ControllerFeedBack &feedBack) {
 void SearchServiceResource::updateProviderFromHeartbeat(const SearchServiceReplicaPtr &replica,
                                                         const SearchServiceProviderPtr &provider,
                                                         const PropagationStatDef &propagationStat,
-                                                        int64_t netLatencyUs)
-{
+                                                        int64_t netLatencyUs) {
     if (!replica || !provider) {
         return;
     }
@@ -120,11 +120,9 @@ void SearchServiceResource::updateProviderFromHeartbeat(const SearchServiceRepli
     AUTIL_LOG(DEBUG, "update from heartbeat success, provider: %s", provider->getNodeId().c_str());
 }
 
-bool SearchServiceResource::prepareForRetry(
-    const SearchServiceProviderPtr &retryProvider) {
-    auto retryResponse =
-        createResponse(_response->getPartCount(), _response->getPartId(),
-                       _response->getVersion(), retryProvider);
+bool SearchServiceResource::prepareForRetry(const SearchServiceProviderPtr &retryProvider) {
+    auto retryResponse = createResponse(_response->getPartCount(), _response->getPartId(),
+                                        _response->getVersion(), retryProvider);
     if (!retryResponse) {
         return false;
     }
@@ -133,9 +131,8 @@ bool SearchServiceResource::prepareForRetry(
     return true;
 }
 
-bool SearchServiceResource::init(
-    PartIdTy partCount, PartIdTy partId, VersionTy version,
-    const FlowControlConfigPtr &flowControlConfig) {
+bool SearchServiceResource::init(PartIdTy partCount, PartIdTy partId, VersionTy version,
+                                 const FlowControlConfigPtr &flowControlConfig) {
     auto response = createResponse(partCount, partId, version, _provider);
     if (!response) {
         return false;
@@ -145,9 +142,9 @@ bool SearchServiceResource::init(
     return true;
 }
 
-ResponsePtr SearchServiceResource::createResponse(
-    PartIdTy partCount, PartIdTy partId, VersionTy version,
-    const SearchServiceProviderPtr &provider) {
+ResponsePtr SearchServiceResource::createResponse(PartIdTy partCount, PartIdTy partId,
+                                                  VersionTy version,
+                                                  const SearchServiceProviderPtr &provider) {
     auto response = _request->newResponse();
     if (!response) {
         return ResponsePtr();
@@ -192,8 +189,7 @@ ResponsePtr SearchServiceResource::stealReturnedResponse() {
         // response
         ret = _response;
         _response.reset();
-    } else if (_retryResponse && _retryResponse->isReturned() &&
-               !_retryResponse->isFailed()) {
+    } else if (_retryResponse && _retryResponse->isReturned() && !_retryResponse->isFailed()) {
         // retryResponse
         ret = _retryResponse;
         _retryResponse.reset();
@@ -209,9 +205,7 @@ ResponsePtr SearchServiceResource::stealReturnedResponse() {
     return ret;
 }
 
-const SearchServiceProviderPtr &SearchServiceResource::getProvider(
-        bool isRetry) const
-{
+const SearchServiceProviderPtr &SearchServiceResource::getProvider(bool isRetry) const {
     return isRetry ? _retryProvider : _provider;
 }
 
@@ -245,8 +239,10 @@ void SearchServiceResource::createClientSpan(const opentelemetry::TracerPtr &tra
             if (protocol == MC_PROTOCOL_HTTP) {
                 auto httpRequest = dynamic_cast<HttpRequest *>(_request.get());
                 if (httpRequest) {
-                    span->setAttribute("gig.http.keep_alive", httpRequest->isKeepAlive() ? "true" : "false");
-                    span->setAttribute("gig.http.method", httpRequest->getHttpMethod() == HM_POST ? "POST" : "GET");
+                    span->setAttribute("gig.http.keep_alive",
+                                       httpRequest->isKeepAlive() ? "true" : "false");
+                    span->setAttribute("gig.http.method",
+                                       httpRequest->getHttpMethod() == HM_POST ? "POST" : "GET");
                 }
             }
             span->setAttribute("gig.timeout_ms", StringUtil::toString(_request->getTimeout()));
@@ -265,9 +261,7 @@ void SearchServiceResource::createClientSpan(const opentelemetry::TracerPtr &tra
 }
 
 void SearchServiceResource::fillSpan(const opentelemetry::TracerPtr &tracer,
-                                     const opentelemetry::SpanPtr &serverSpan,
-                                     RequestType type)
-{
+                                     const opentelemetry::SpanPtr &serverSpan, RequestType type) {
     // only start child rpc trace for normal request
     if (isNormalRequest() && type == RT_NORMAL) {
         createClientSpan(tracer);
@@ -282,8 +276,7 @@ void SearchServiceResource::fillSpan(const opentelemetry::TracerPtr &tracer,
 void SearchServiceResource::fillRequestQueryInfo(bool isRetry,
                                                  const opentelemetry::TracerPtr &tracer,
                                                  const opentelemetry::SpanPtr &serverSpan,
-                                                 RequestType type)
-{
+                                                 RequestType type) {
     if (!isRetry) {
         if (_hasQueryInfoFilled) {
             return;
@@ -302,25 +295,21 @@ void SearchServiceResource::fillRequestQueryInfo(bool isRetry,
     _request->setBizName(_bizName);
     _request->setPartId(getPartId());
     _request->setRequestType(_requestType);
-    auto latencyLimit =
-        _flowControlConfig->fullDegradeLatency *
-        (1.0f + _flowControlConfig->latencyUpperLimitPercent);
+    auto latencyLimit = _flowControlConfig->fullDegradeLatency *
+                        (1.0f + _flowControlConfig->latencyUpperLimitPercent);
     auto loadBalanceLatencyLimit = latencyLimit;
     auto errorRatioLimit = INVALID_FILTER_VALUE;
     auto bestChain = _replica->getBestChain();
     if (bestChain) {
-        errorRatioLimit = bestChain->errorRatioController.getLegalLimit(
-                _flowControlConfig) *
-                          SATURATION_FACTOR;
-        latencyLimit = min(
-                latencyLimit,
-                bestChain->latencyController.getLegalLimit(_flowControlConfig) *
-                SATURATION_FACTOR);
+        errorRatioLimit =
+            bestChain->errorRatioController.getLegalLimit(_flowControlConfig) * SATURATION_FACTOR;
+        latencyLimit =
+            min(latencyLimit,
+                bestChain->latencyController.getLegalLimit(_flowControlConfig) * SATURATION_FACTOR);
         loadBalanceLatencyLimit =
             min(loadBalanceLatencyLimit,
-                bestChain->latencyController.getLoadBalanceLegalLimit(
-                        _flowControlConfig) *
-                SATURATION_FACTOR);
+                bestChain->latencyController.getLoadBalanceLegalLimit(_flowControlConfig) *
+                    SATURATION_FACTOR);
     }
     _request->setLatencyLimit(latencyLimit);
     _request->setLoadBalanceLatencyLimit(loadBalanceLatencyLimit);
@@ -329,14 +318,10 @@ void SearchServiceResource::fillRequestQueryInfo(bool isRetry,
     auto replicaAvgWeight = _replica->getAvgWeight();
     auto realWeight = providerWeight / replicaAvgWeight * MAX_WEIGHT_FLOAT;
     _request->setProviderWeight(realWeight);
-    _request->setBeginServerDegradeLatency(
-            _flowControlConfig->beginServerDegradeLatency);
-    _request->setBeginDegradeLatency(
-            _flowControlConfig->beginDegradeLatency);
-    _request->setBeginServerDegradeErrorRatio(
-            _flowControlConfig->beginServerDegradeErrorRatio);
-    _request->setBeginDegradeErrorRatio(
-            _flowControlConfig->beginDegradeErrorRatio);
+    _request->setBeginServerDegradeLatency(_flowControlConfig->beginServerDegradeLatency);
+    _request->setBeginDegradeLatency(_flowControlConfig->beginDegradeLatency);
+    _request->setBeginServerDegradeErrorRatio(_flowControlConfig->beginServerDegradeErrorRatio);
+    _request->setBeginDegradeErrorRatio(_flowControlConfig->beginDegradeErrorRatio);
     _request->setProviderAttributes(&provider->getNodeAttributeMap());
     if (!provider->getNodeMetaEnv().valid()) {
         _request->setReturnMetaEnv(true);

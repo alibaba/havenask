@@ -33,20 +33,18 @@ namespace search {
 
 AUTIL_LOG_SETUP(ha3, PhraseQueryExecutor);
 PhraseQueryExecutor::PhraseQueryExecutor()
-    : _lastMatchedDocId(INVALID_DOCID)
-{
-}
+    : _lastMatchedDocId(INVALID_DOCID) {}
 
-PhraseQueryExecutor::~PhraseQueryExecutor() {
-}
+PhraseQueryExecutor::~PhraseQueryExecutor() {}
 
-void PhraseQueryExecutor::addTermQueryExecutors(const vector<TermQueryExecutor*> &termQueryExecutors) {
+void PhraseQueryExecutor::addTermQueryExecutors(
+    const vector<TermQueryExecutor *> &termQueryExecutors) {
     _termExecutors = termQueryExecutors;
-    vector<QueryExecutor*> queryExecutors(termQueryExecutors.begin(), termQueryExecutors.end());
+    vector<QueryExecutor *> queryExecutors(termQueryExecutors.begin(), termQueryExecutors.end());
     AndQueryExecutor::addQueryExecutors(queryExecutors);
 }
 
-indexlib::index::ErrorCode PhraseQueryExecutor::doSeek(docid_t id, docid_t& result) {
+indexlib::index::ErrorCode PhraseQueryExecutor::doSeek(docid_t id, docid_t &result) {
     if (unlikely(_hasSubDocExecutor)) {
         return AndQueryExecutor::doSeek(id, result);
     }
@@ -73,24 +71,24 @@ indexlib::index::ErrorCode PhraseQueryExecutor::doSeek(docid_t id, docid_t& resu
             tmpid++;
         } else {
             result = END_DOCID;
-            return indexlib::index::ErrorCode::OK;            
+            return indexlib::index::ErrorCode::OK;
         }
-    } while(true);
+    } while (true);
 
     result = END_DOCID;
     return indexlib::index::ErrorCode::OK;
 }
 
-indexlib::index::ErrorCode PhraseQueryExecutor::seekSubDoc(docid_t docId, docid_t subDocId, 
-                           docid_t subDocEnd, bool needSubMatchdata, docid_t& result)
-{
+indexlib::index::ErrorCode PhraseQueryExecutor::seekSubDoc(
+    docid_t docId, docid_t subDocId, docid_t subDocEnd, bool needSubMatchdata, docid_t &result) {
     if (likely(!_hasSubDocExecutor)) {
         return AndQueryExecutor::seekSubDoc(docId, subDocId, subDocEnd, needSubMatchdata, result);
     }
     docid_t tmpid = subDocId;
     docid_t tmpResult = INVALID_DOCID;
     do {
-        auto ec = AndQueryExecutor::seekSubDoc(docId, tmpid, subDocEnd, needSubMatchdata, tmpResult);
+        auto ec
+            = AndQueryExecutor::seekSubDoc(docId, tmpid, subDocEnd, needSubMatchdata, tmpResult);
         IE_RETURN_CODE_IF_ERROR(ec);
         tmpid = tmpResult;
         if (tmpid != END_DOCID) {
@@ -105,30 +103,27 @@ indexlib::index::ErrorCode PhraseQueryExecutor::seekSubDoc(docid_t docId, docid_
             if (isPhraseFreq) {
                 _lastMatchedDocId = tmpid;
                 result = tmpid;
-                return IE_OK;                
+                return IE_OK;
             }
             tmpid++;
         } else {
             result = END_DOCID;
             return indexlib::index::ErrorCode::OK;
         }
-    } while(true);
-    
+    } while (true);
+
     result = END_DOCID;
     return indexlib::index::ErrorCode::OK;
 }
 
-void PhraseQueryExecutor::addRelativePostion(int32_t termPos, int32_t postingMark)
-{
+void PhraseQueryExecutor::addRelativePostion(int32_t termPos, int32_t postingMark) {
     _termReleativePos.push_back(termPos);
     _postingsMark.push_back(postingMark);
 }
 
-
 string PhraseQueryExecutor::toString() const {
     return "PHRASE" + MultiQueryExecutor::toString();
 }
-
 
 } // namespace search
 } // namespace isearch

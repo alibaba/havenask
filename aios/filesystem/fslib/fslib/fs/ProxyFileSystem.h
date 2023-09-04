@@ -21,73 +21,78 @@
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class ProxyFileSystem : public AbstractFileSystem
-{
+class ProxyFileSystem : public AbstractFileSystem {
 public:
-    ProxyFileSystem(AbstractFileSystem* fs);
+    ProxyFileSystem(AbstractFileSystem *fs);
     virtual ~ProxyFileSystem();
 
 public:
-    virtual File* openFile(const std::string& fileName, Flag flag) override;
-    virtual File* openFile(const std::string& fileName, Flag flag, ssize_t fileLength) override;
+    virtual File *openFile(const std::string &fileName, Flag flag) override;
+    virtual File *openFile(const std::string &fileName, Flag flag, ssize_t fileLength) override;
 
-    virtual MMapFile* mmapFile(const std::string& fileName, Flag openMode,
-                               char* start, size_t length, int prot,
-                               int mapFlag, off_t offset) override;
-    virtual MMapFile* mmapFile(const std::string& fileName, Flag openMode,
-                               char* start, size_t length, int prot,
-                               int mapFlag, off_t offset, ssize_t fileLength) override;
+    virtual MMapFile *mmapFile(const std::string &fileName,
+                               Flag openMode,
+                               char *start,
+                               size_t length,
+                               int prot,
+                               int mapFlag,
+                               off_t offset) override;
+    virtual MMapFile *mmapFile(const std::string &fileName,
+                               Flag openMode,
+                               char *start,
+                               size_t length,
+                               int prot,
+                               int mapFlag,
+                               off_t offset,
+                               ssize_t fileLength) override;
 
-    virtual ErrorCode rename(const std::string& oldFileName,
-                             const std::string& newFileName) override;
+    virtual ErrorCode rename(const std::string &oldFileName, const std::string &newFileName) override;
 
-    virtual ErrorCode getFileMeta(const std::string& fileName,
-                                  FileMeta& fileMeta) override;
+    virtual ErrorCode link(const std::string &oldFileName, const std::string &newFileName) override;
 
-    virtual ErrorCode isFile(const std::string& path) override;
+    virtual ErrorCode getFileMeta(const std::string &fileName, FileMeta &fileMeta) override;
 
-    virtual FileChecksum getFileChecksum(const std::string& fileName) override;
+    virtual ErrorCode isFile(const std::string &path) override;
 
-    virtual ErrorCode mkDir(const std::string& dirName,
-                            bool recursive = false) override;
+    virtual FileChecksum getFileChecksum(const std::string &fileName) override;
 
-    virtual ErrorCode listDir(const std::string& dirName,
-                              FileList& fileList) override;
+    virtual ErrorCode mkDir(const std::string &dirName, bool recursive = false) override;
 
-    virtual ErrorCode isDirectory(const std::string& path) override;
+    virtual ErrorCode listDir(const std::string &dirName, FileList &fileList) override;
 
-    virtual ErrorCode remove(const std::string& path) override;
-    virtual ErrorCode removeFile(const std::string& path) override;
-    virtual ErrorCode removeDir(const std::string& path) override;
+    virtual ErrorCode isDirectory(const std::string &path) override;
 
-    virtual ErrorCode isExist(const std::string& path) override;
+    virtual ErrorCode remove(const std::string &path) override;
+    virtual ErrorCode removeFile(const std::string &path) override;
+    virtual ErrorCode removeDir(const std::string &path) override;
 
-    virtual ErrorCode listDir(const std::string& dirName,
-                              EntryList& entryList) override;
+    virtual ErrorCode isExist(const std::string &path) override;
 
-    virtual ErrorCode listDir(const std::string& dirName, RichFileList& fileList) override;
+    virtual ErrorCode listDir(const std::string &dirName, EntryList &entryList) override;
 
-    virtual FileReadWriteLock* createFileReadWriteLock(
-            const std::string& fileName) override;
+    virtual ErrorCode listDir(const std::string &dirName, RichFileList &fileList) override;
 
-    virtual FileLock* createFileLock(const std::string& fileName) override;
+    virtual FileReadWriteLock *createFileReadWriteLock(const std::string &fileName) override;
+
+    virtual FileLock *createFileLock(const std::string &fileName) override;
 
     virtual FileSystemCapability getCapability() const override;
 
     virtual ErrorCode getPathMeta(const std::string &path, PathMeta &pathMeta) override;
 
     // forward command to real file system
-    virtual ErrorCode forward(const std::string &command, const std::string &path,
-                              const std::string &args, std::string &output) override;
+    virtual ErrorCode
+    forward(const std::string &command, const std::string &path, const std::string &args, std::string &output) override;
 
 public:
-    AbstractFileSystem* getFs() const;
+    AbstractFileSystem *getFs() const;
+
 private:
-    AbstractFileSystem* _fs;
+    AbstractFileSystem *_fs;
 };
 
 FSLIB_TYPEDEF_AUTO_PTR(ProxyFileSystem);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_PROXYFILESYSTEM_H
+#endif // FSLIB_PROXYFILESYSTEM_H

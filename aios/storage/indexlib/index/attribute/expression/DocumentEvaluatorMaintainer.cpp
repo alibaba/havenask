@@ -17,7 +17,8 @@
 
 #include "expression/framework/AttributeExpressionCreator.h"
 #include "expression/function/FunctionInterfaceManager.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/MutableJson.h"
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/attribute/expression/AtomicExpressionCreator.h"
 #include "indexlib/index/attribute/expression/BuiltinFunctionFactory.h"
@@ -38,7 +39,7 @@ DocumentEvaluatorMaintainer::~DocumentEvaluatorMaintainer()
 }
 
 Status DocumentEvaluatorMaintainer::Init(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                                         const std::shared_ptr<config::TabletSchema>& schema,
+                                         const std::shared_ptr<config::ITabletSchema>& schema,
                                          const std::vector<std::string>& functionNames)
 {
     AUTIL_LOG(INFO, "init for functions [%s] begin", autil::legacy::ToJsonString(functionNames, true).c_str());
@@ -81,7 +82,7 @@ Status DocumentEvaluatorMaintainer::Init(const std::vector<std::shared_ptr<frame
 std::shared_ptr<DocumentEvaluatorBase> DocumentEvaluatorMaintainer::CreateEvaluator(const std::string& functionName)
 {
     auto [status, attributeFunctionConfig] =
-        _schema->GetSetting<AttributeFunctionConfig>(ATTRIBUTE_FUNCTION_CONFIG_KEY);
+        _schema->GetRuntimeSettings().GetValue<AttributeFunctionConfig>(ATTRIBUTE_FUNCTION_CONFIG_KEY);
     if (!status.IsOK()) {
         AUTIL_LOG(ERROR, "get function configs failed");
         return nullptr;

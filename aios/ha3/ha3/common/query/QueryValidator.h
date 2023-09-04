@@ -35,22 +35,22 @@ class OrQuery;
 class PhraseQuery;
 class RankQuery;
 class TermQuery;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 namespace suez {
 namespace turing {
 class IndexInfos;
-}  // namespace turing
-}  // namespace suez
+} // namespace turing
+} // namespace suez
 
 namespace isearch {
 namespace qrs {
 
-class QueryValidator : public common::QueryVisitor
-{
+class QueryValidator : public common::QueryVisitor {
 public:
     QueryValidator(const suez::turing::IndexInfos *indexInfos);
     virtual ~QueryValidator();
+
 public:
     bool validate(const common::Query *query) {
         reset();
@@ -60,7 +60,7 @@ public:
     ErrorCode getErrorCode() const {
         return _errorCode;
     }
-    const std::string& getErrorMsg() const {
+    const std::string &getErrorMsg() const {
         return _errorMsg;
     }
     virtual void visitTermQuery(const common::TermQuery *query);
@@ -71,23 +71,28 @@ public:
     virtual void visitRankQuery(const common::RankQuery *query);
     virtual void visitNumberQuery(const common::NumberQuery *query);
     virtual void visitMultiTermQuery(const common::MultiTermQuery *query);
+
 private:
     bool validateIndexName(const std::string &indexName);
     bool validateIndexFields(const std::string &indexName,
                              const common::RequiredFields &requiredFields);
-    void validateAdvancedQuery(const common::Query* query);
+    void validateAdvancedQuery(const common::Query *query);
     void validateTerms(const std::vector<common::TermPtr> &termArray,
-                       const ErrorCode ec, std::string &errorMsg,
+                       const ErrorCode ec,
+                       std::string &errorMsg,
                        bool validateTermEmpty = true);
 
-template<typename T>
-    bool checkNullQuery(const T* query);
+    template <typename T>
+    bool checkNullQuery(const T *query);
+
 private:
     void reset();
+
 private:
     const suez::turing::IndexInfos *_indexInfos;
     ErrorCode _errorCode;
     std::string _errorMsg;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -96,4 +101,3 @@ typedef std::shared_ptr<QueryValidator> QueryValidatorPtr;
 
 } // namespace qrs
 } // namespace isearch
-

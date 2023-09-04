@@ -18,10 +18,10 @@
 
 #include <iostream>
 
-#include "alog/Logger.h"
-#include "alog/Configurator.h"
 #include "aios/network/anet/alogadapter.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
+#include "alog/Configurator.h"
+#include "alog/Logger.h"
 #include "alog/Version.h"
 
 #if !defined ALOG_VERSION || ALOG_VERSION < 010101
@@ -31,14 +31,8 @@
 ARPC_BEGIN_NAMESPACE(arpc);
 
 extern ILogger *arpclogger;
-inline ILogger *GetArpcLogger()
-{
-    return arpclogger;
-}
-inline void SetArpcLogger(ILogger *l)
-{
-    arpclogger = l;
-}
+inline ILogger *GetArpcLogger() { return arpclogger; }
+inline void SetArpcLogger(ILogger *l) { arpclogger = l; }
 
 #define ARPC_LOG_CONFIG(config) (arpc::arpclogger->logSetup(config))
 #define ARPC_LOG_SHUTDOWN() (arpc::arpclogger->logTearDown())

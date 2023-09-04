@@ -19,7 +19,6 @@
 #include "indexlib/index_base/segment/segment_data.h"
 
 using namespace std;
-using namespace indexlib::codegen;
 
 namespace indexlib { namespace index {
 IE_LOG_SETUP(index, KVSegmentReader);
@@ -85,7 +84,7 @@ bool KVSegmentReader::doCollectAllCode()
 
 void KVSegmentReader::TEST_collectCodegenResult(CodegenCheckers& checkers, std::string id)
 {
-    CodegenCheckerPtr checker(new CodegenChecker);
+    codegen::CodegenCheckerPtr checker(new codegen::CodegenChecker);
     COLLECT_TYPE_DEFINE(checker, KVSegmentReaderBase);
     COLLECT_TYPE_DEFINE(checker, HashTableCompressVarSegmentReaderType);
     COLLECT_TYPE_DEFINE(checker, HashTableVarSegmentReaderType);

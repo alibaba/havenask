@@ -32,19 +32,19 @@ class OrQuery;
 class PhraseQuery;
 class RankQuery;
 class TermQuery;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace common {
 
-class QueryFlatten : public common::QueryVisitor
-{
+class QueryFlatten : public common::QueryVisitor {
 public:
     QueryFlatten();
     virtual ~QueryFlatten();
+
 public:
-    void flatten(common::Query* query) {
+    void flatten(common::Query *query) {
         DELETE_AND_SET_NULL(_visitedQuery);
         query->accept(this);
     }
@@ -58,11 +58,14 @@ public:
     virtual void visitNumberQuery(const common::NumberQuery *query);
     virtual void visitMultiTermQuery(const common::MultiTermQuery *query);
 
-    common::Query* stealQuery();
+    common::Query *stealQuery();
+
 private:
     void flatten(common::Query *resultQuery, const common::Query *srcQuery);
+
 private:
     common::Query *_visitedQuery;
+
 private:
     AUTIL_LOG_DECLARE();
 };

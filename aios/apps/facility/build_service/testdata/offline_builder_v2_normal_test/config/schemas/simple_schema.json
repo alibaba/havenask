@@ -1,0 +1,36 @@
+{
+  "attributes": [
+    "string1",
+    "pk"
+  ],
+  "fields": [
+    {
+      "field_name": "string1",
+      "field_type": "string",
+      "updatable_multi_value": true,
+      "enable_null": true
+    },
+    {
+      "field_name": "pk",
+      "field_type": "STRING"
+    }
+  ],
+  "indexs": [
+    {
+      "has_primary_key_attribute": false,
+      "index_fields": "pk",
+      "index_name": "pk",
+      "index_type": "PRIMARYKEY64",
+      "is_primary_key_sorted": true
+    },
+    {
+      "index_fields": "string1",
+      "index_name": "string1",
+      "index_type": "STRING",
+      "term_frequency_flag": 0,
+      "index_updatable": true
+    }
+  ],
+  "table_name": "simple",
+  "table_type": "normal"
+}

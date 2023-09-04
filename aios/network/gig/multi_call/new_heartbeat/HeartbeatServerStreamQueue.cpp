@@ -20,10 +20,7 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, HeartbeatServerStreamQueue);
 
-HeartbeatServerStreamQueue::HeartbeatServerStreamQueue(size_t id)
-    : _id(id)
-    , _run(true)
-{
+HeartbeatServerStreamQueue::HeartbeatServerStreamQueue(size_t id) : _id(id), _run(true) {
 }
 
 HeartbeatServerStreamQueue::~HeartbeatServerStreamQueue() {
@@ -147,4 +144,4 @@ void HeartbeatServerStreamQueue::removeStream(const std::vector<int64_t> &stream
     setStreamMap(newMap);
 }
 
-}
+} // namespace multi_call

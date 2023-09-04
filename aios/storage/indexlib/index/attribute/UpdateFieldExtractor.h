@@ -71,6 +71,7 @@ public:
     void Init(const std::shared_ptr<config::IIndexConfig>& primaryKeyIndexConfig,
               const std::vector<std::shared_ptr<config::IIndexConfig>>& attrConfigs,
               const std::vector<std::shared_ptr<config::FieldConfig>>& fields);
+    void Reset();
 
 public:
     bool GetFieldValue(const std::shared_ptr<indexlib::document::AttributeDocument>& attrDoc, fieldid_t fieldId,
@@ -89,7 +90,7 @@ private:
 
 private:
     std::shared_ptr<indexlibv2::index::PrimaryKeyIndexConfig> _primaryKeyIndexConfig;
-    std::vector<std::shared_ptr<config::AttributeConfig>> _attrConfigs;
+    std::vector<std::shared_ptr<AttributeConfig>> _attrConfigs;
     std::vector<std::shared_ptr<config::FieldConfig>> _fields;
 
     FieldVector _fieldVector;

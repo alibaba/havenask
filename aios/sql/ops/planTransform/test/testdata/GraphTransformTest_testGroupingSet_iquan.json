@@ -1,0 +1,437 @@
+{
+  "exec_params" : { },
+  "optimize_infos" : { },
+  "rel_plan" : [ {
+    "attrs" : {
+      "catalog_name" : "default",
+      "db_name" : "db1",
+      "limit" : 2147483647,
+      "output_fields" : [ "$i1", "$i2", "$d3" ],
+      "output_fields_hash" : 1879021373,
+      "output_fields_internal" : [ "$i1", "$i2", "$d3" ],
+      "output_fields_internal_type" : [ "INTEGER", "INTEGER", "DOUBLE" ],
+      "output_fields_type" : [ "INTEGER", "INTEGER", "DOUBLE" ],
+      "push_down_ops" : [ {
+        "attrs" : {
+          "output_fields" : [ "$i1", "$i2", "$d3" ],
+          "output_fields_type" : [ "INTEGER", "INTEGER", "DOUBLE" ]
+        },
+        "op_name" : "CalcOp"
+      } ],
+      "table_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$i1", "$i2" ],
+          "hash_function" : "HASH",
+          "hash_params" : {
+            "routing_ratio" : "0.5"
+          }
+        },
+        "partition_cnt" : 64
+      },
+      "table_meta" : {
+        "field_meta" : [ {
+          "field_name" : "$i1",
+          "field_type" : "int32",
+          "index_name" : "i1",
+          "index_type" : "number"
+        }, {
+          "field_name" : "$i2",
+          "field_type" : "int32",
+          "index_name" : "i2",
+          "index_type" : "number"
+        }, {
+          "field_name" : "$d3",
+          "field_type" : "double"
+        } ]
+      },
+      "table_name" : "t1",
+      "table_type" : "normal",
+      "use_nest_table" : false,
+      "used_fields" : [ "$i1", "$i2", "$d3" ]
+    },
+    "id" : 0,
+    "inputs" : {
+      "input" : [ ]
+    },
+    "op_name" : "TableScanOp",
+    "outputs" : [ 1, 5, 9 ]
+  }, {
+    "attrs" : {
+      "agg_funcs" : [ {
+        "approximate" : false,
+        "distinct" : false,
+        "filter_arg" : -1,
+        "input" : [ "$d3" ],
+        "name" : "SUM",
+        "output" : [ "$sum$0" ],
+        "type" : "PARTIAL"
+      } ],
+      "group_fields" : [ "$i1" ],
+      "output_fields" : [ "$i1", "$sum$0" ],
+      "output_fields_hash" : -711108236,
+      "output_fields_type" : [ "INTEGER", "DOUBLE" ],
+      "reuse_inputs" : [ 0 ],
+      "scope" : "PARTIAL"
+    },
+    "id" : 1,
+    "inputs" : {
+      "input" : [ 0 ]
+    },
+    "op_name" : "AggregateOp",
+    "outputs" : [ 2 ],
+    "reuse_inputs" : [ 0 ]
+  }, {
+    "attrs" : {
+      "catalog_name" : "default",
+      "db_name" : "db1",
+      "distribution" : {
+        "type" : "SINGLETON"
+      },
+      "input_fields" : [ "$i1", "$sum$0" ],
+      "input_fields_type" : [ "INTEGER", "DOUBLE" ],
+      "output_fields_hash" : -711108236,
+      "partition_pruning" : {
+        "catalog_name" : "default",
+        "db_name" : "db1",
+        "table_distribution" : {
+          "hash_mode" : {
+            "hash_fields" : [ "$i1", "$i2" ],
+            "hash_function" : "HASH",
+            "hash_params" : {
+              "routing_ratio" : "0.5"
+            }
+          },
+          "partition_cnt" : 64
+        },
+        "table_name" : "t1",
+        "table_type" : "normal"
+      },
+      "table_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$i1", "$i2" ],
+          "hash_function" : "HASH",
+          "hash_params" : {
+            "routing_ratio" : "0.5"
+          }
+        },
+        "partition_cnt" : 64
+      },
+      "table_name" : "t1",
+      "table_type" : "normal"
+    },
+    "id" : 2,
+    "inputs" : {
+      "input" : [ 1 ]
+    },
+    "op_name" : "ExchangeOp",
+    "outputs" : [ 3 ]
+  }, {
+    "attrs" : {
+      "agg_funcs" : [ {
+        "approximate" : false,
+        "distinct" : false,
+        "filter_arg" : -1,
+        "input" : [ "$sum$0" ],
+        "name" : "SUM",
+        "output" : [ "$sp" ],
+        "type" : "FINAL"
+      } ],
+      "group_fields" : [ "$i1" ],
+      "output_fields" : [ "$i1", "$sp" ],
+      "output_fields_hash" : 81691998,
+      "output_fields_type" : [ "INTEGER", "DOUBLE" ],
+      "scope" : "FINAL"
+    },
+    "id" : 3,
+    "inputs" : {
+      "input" : [ 2 ]
+    },
+    "op_name" : "AggregateOp",
+    "outputs" : [ 4 ]
+  }, {
+    "attrs" : {
+      "output_field_exprs" : {
+        "$i2" : {
+          "cast_type" : "INTEGER",
+          "op" : "CAST",
+          "params" : [ null ],
+          "type" : "UDF"
+        }
+      },
+      "output_fields" : [ "$i1", "$i2", "$sp" ],
+      "output_fields_hash" : 345746251,
+      "output_fields_type" : [ "INTEGER", "INTEGER", "DOUBLE" ]
+    },
+    "id" : 4,
+    "inputs" : {
+      "input" : [ 3 ]
+    },
+    "op_name" : "CalcOp",
+    "outputs" : [ 13 ]
+  }, {
+    "attrs" : {
+      "agg_funcs" : [ {
+        "approximate" : false,
+        "distinct" : false,
+        "filter_arg" : -1,
+        "input" : [ "$d3" ],
+        "name" : "SUM",
+        "output" : [ "$sum$0" ],
+        "type" : "PARTIAL"
+      } ],
+      "group_fields" : [ "$i2" ],
+      "output_fields" : [ "$i2", "$sum$0" ],
+      "output_fields_hash" : 533656245,
+      "output_fields_type" : [ "INTEGER", "DOUBLE" ],
+      "reuse_inputs" : [ 0 ],
+      "scope" : "PARTIAL"
+    },
+    "id" : 5,
+    "inputs" : {
+      "input" : [ 0 ]
+    },
+    "op_name" : "AggregateOp",
+    "outputs" : [ 6 ],
+    "reuse_inputs" : [ 0 ]
+  }, {
+    "attrs" : {
+      "catalog_name" : "default",
+      "db_name" : "db1",
+      "distribution" : {
+        "type" : "SINGLETON"
+      },
+      "input_fields" : [ "$i2", "$sum$0" ],
+      "input_fields_type" : [ "INTEGER", "DOUBLE" ],
+      "output_fields_hash" : 533656245,
+      "partition_pruning" : {
+        "catalog_name" : "default",
+        "db_name" : "db1",
+        "table_distribution" : {
+          "hash_mode" : {
+            "hash_fields" : [ "$i1", "$i2" ],
+            "hash_function" : "HASH",
+            "hash_params" : {
+              "routing_ratio" : "0.5"
+            }
+          },
+          "partition_cnt" : 64
+        },
+        "table_name" : "t1",
+        "table_type" : "normal"
+      },
+      "table_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$i1", "$i2" ],
+          "hash_function" : "HASH",
+          "hash_params" : {
+            "routing_ratio" : "0.5"
+          }
+        },
+        "partition_cnt" : 64
+      },
+      "table_name" : "t1",
+      "table_type" : "normal"
+    },
+    "id" : 6,
+    "inputs" : {
+      "input" : [ 5 ]
+    },
+    "op_name" : "ExchangeOp",
+    "outputs" : [ 7 ]
+  }, {
+    "attrs" : {
+      "agg_funcs" : [ {
+        "approximate" : false,
+        "distinct" : false,
+        "filter_arg" : -1,
+        "input" : [ "$sum$0" ],
+        "name" : "SUM",
+        "output" : [ "$sp" ],
+        "type" : "FINAL"
+      } ],
+      "group_fields" : [ "$i2" ],
+      "output_fields" : [ "$i2", "$sp" ],
+      "output_fields_hash" : -327132227,
+      "output_fields_type" : [ "INTEGER", "DOUBLE" ],
+      "scope" : "FINAL"
+    },
+    "id" : 7,
+    "inputs" : {
+      "input" : [ 6 ]
+    },
+    "op_name" : "AggregateOp",
+    "outputs" : [ 8 ]
+  }, {
+    "attrs" : {
+      "output_field_exprs" : {
+        "$i1" : {
+          "cast_type" : "INTEGER",
+          "op" : "CAST",
+          "params" : [ null ],
+          "type" : "UDF"
+        }
+      },
+      "output_fields" : [ "$i1", "$i2", "$sp" ],
+      "output_fields_hash" : 345746251,
+      "output_fields_type" : [ "INTEGER", "INTEGER", "DOUBLE" ]
+    },
+    "id" : 8,
+    "inputs" : {
+      "input" : [ 7 ]
+    },
+    "op_name" : "CalcOp",
+    "outputs" : [ 13 ]
+  }, {
+    "attrs" : {
+      "agg_funcs" : [ {
+        "approximate" : false,
+        "distinct" : false,
+        "filter_arg" : -1,
+        "input" : [ "$d3" ],
+        "name" : "SUM",
+        "output" : [ "$sum$0" ],
+        "type" : "PARTIAL"
+      } ],
+      "output_fields" : [ "$sum$0" ],
+      "output_fields_hash" : 527080422,
+      "output_fields_type" : [ "DOUBLE" ],
+      "reuse_inputs" : [ 0 ],
+      "scope" : "PARTIAL"
+    },
+    "id" : 9,
+    "inputs" : {
+      "input" : [ 0 ]
+    },
+    "op_name" : "AggregateOp",
+    "outputs" : [ 10 ],
+    "reuse_inputs" : [ 0 ]
+  }, {
+    "attrs" : {
+      "catalog_name" : "default",
+      "db_name" : "db1",
+      "distribution" : {
+        "type" : "SINGLETON"
+      },
+      "input_fields" : [ "$sum$0" ],
+      "input_fields_type" : [ "DOUBLE" ],
+      "output_fields_hash" : 527080422,
+      "partition_pruning" : {
+        "catalog_name" : "default",
+        "db_name" : "db1",
+        "table_distribution" : {
+          "hash_mode" : {
+            "hash_fields" : [ "$i1", "$i2" ],
+            "hash_function" : "HASH",
+            "hash_params" : {
+              "routing_ratio" : "0.5"
+            }
+          },
+          "partition_cnt" : 64
+        },
+        "table_name" : "t1",
+        "table_type" : "normal"
+      },
+      "table_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$i1", "$i2" ],
+          "hash_function" : "HASH",
+          "hash_params" : {
+            "routing_ratio" : "0.5"
+          }
+        },
+        "partition_cnt" : 64
+      },
+      "table_name" : "t1",
+      "table_type" : "normal"
+    },
+    "id" : 10,
+    "inputs" : {
+      "input" : [ 9 ]
+    },
+    "op_name" : "ExchangeOp",
+    "outputs" : [ 11 ]
+  }, {
+    "attrs" : {
+      "agg_funcs" : [ {
+        "approximate" : false,
+        "distinct" : false,
+        "filter_arg" : -1,
+        "input" : [ "$sum$0" ],
+        "name" : "SUM",
+        "output" : [ "$sp" ],
+        "type" : "FINAL"
+      } ],
+      "output_fields" : [ "$sp" ],
+      "output_fields_hash" : -2067552212,
+      "output_fields_type" : [ "DOUBLE" ],
+      "scope" : "FINAL"
+    },
+    "id" : 11,
+    "inputs" : {
+      "input" : [ 10 ]
+    },
+    "op_name" : "AggregateOp",
+    "outputs" : [ 12 ]
+  }, {
+    "attrs" : {
+      "output_field_exprs" : {
+        "$i1" : {
+          "cast_type" : "INTEGER",
+          "op" : "CAST",
+          "params" : [ null ],
+          "type" : "UDF"
+        },
+        "$i2" : {
+          "cast_type" : "INTEGER",
+          "op" : "CAST",
+          "params" : [ null ],
+          "type" : "UDF"
+        }
+      },
+      "output_fields" : [ "$i1", "$i2", "$sp" ],
+      "output_fields_hash" : 345746251,
+      "output_fields_type" : [ "INTEGER", "INTEGER", "DOUBLE" ]
+    },
+    "id" : 12,
+    "inputs" : {
+      "input" : [ 11 ]
+    },
+    "op_name" : "CalcOp",
+    "outputs" : [ 13 ]
+  }, {
+    "attrs" : {
+      "all" : true,
+      "block" : false,
+      "output_fields_hash" : 345746251
+    },
+    "id" : 13,
+    "inputs" : {
+      "input" : [ 4, 8, 12 ]
+    },
+    "op_name" : "UnionOp",
+    "outputs" : [ 14 ]
+  }, {
+    "attrs" : {
+      "limit" : 20,
+      "offset" : 0,
+      "output_fields_hash" : 345746251
+    },
+    "id" : 14,
+    "inputs" : {
+      "input" : [ 13 ]
+    },
+    "op_name" : "LimitOp",
+    "outputs" : [ 15 ]
+  }, {
+    "attrs" : {
+      "output_fields_hash" : 345746251,
+      "type" : "api"
+    },
+    "id" : 15,
+    "inputs" : {
+      "input" : [ 14 ]
+    },
+    "op_name" : "SinkOp"
+  } ],
+  "rel_plan_version" : "plan_version_0.0.1"
+}

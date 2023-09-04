@@ -1,0 +1,14 @@
+{
+    "app_info" : {
+	"config_path" : "app_path/version/1",
+	"keep_count" : 123
+    },
+    "biz_info" : {
+	"biz3" : {
+	    "config_path" : "biz_path3/version/1"
+	},
+	"biz4" : {
+	    "config_path" : "biz_path4/version/1"
+	}
+    }
+}

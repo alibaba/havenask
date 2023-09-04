@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="simple_kkv_left_join">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT id, normal.company_id, company_name FROM normal LEFT JOIN kkv1 ON normal.id = kkv1.company_id AND normal.id + kkv1.company_id > 5
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"id", "company_id", "company_name"</Resource>
+        <Resource name="column_types">int32, int32, multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:normal;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1, 1, ""
+2, 1, ""
+3, 2, "LG"
+4, 2, "SAMSUNG"
+5, 3, "HUAWEI"
+6, 3, "XIAOMI"
+7, 4, ""
+8, 4, ""
+9, 5, ""
+10, 5, ""
+11, 6, ""
+12, 6, ""
+13, 8, ""
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#5(type=api)
+    ExchangeOp#4(distribution={type:SINGLETON})
+        LimitOp#3(limit=100)
+            CalcOp#2(output_fields=[$id,$company_id,$company_name])
+                LookupJoinOp#1(build_node={catalog_name:default,db_name:normal,limit:2147483647,output_fields:[$company_id,$company_name],push_down_ops:[{attrs:{output_fields:[$company_id,$company_name]},op_name:CalcOp}],table_name:kkv1,table_type:kkv,use_nest_table:false},condition=AND(=($id,$company_id0),>(+($id,$company_id0),5)),equi_condition==($id,$company_id0),is_equi_join=true,is_internal_build=false,join_type=LEFT,left_is_build=false,output_fields=[$id,$company_id,$company_id0,$company_name],remaining_condition=>(+($id,$company_id0),5),semi_join_type=LEFT)
+                    TableScanOp#0(catalog_name=default,db_name=normal,limit=2147483647,output_fields=[$id,$company_id],push_down_ops=[{attrs:{output_fields:[$id,$company_id]},op_name:CalcOp}],table_name=normal,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

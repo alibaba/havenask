@@ -27,7 +27,7 @@ public:
     ~KKVSchemaResolver();
 
 private:
-    Status Check(const config::TabletSchema& schema) override;
+    Status Check(const config::TabletSchema& schema) const override;
     Status LegacySchemaToTabletSchema(const indexlib::config::IndexPartitionSchema& legacySchema,
                                       config::UnresolvedSchema* schema) override;
     Status ResolveLegacySchema(const std::string& indexPath, indexlib::config::IndexPartitionSchema* schema) override;
@@ -35,7 +35,7 @@ private:
 
 private:
     static Status ResolvePkStoreConfig(config::UnresolvedSchema* schema);
-    void ResolveGeneralizedValue(config::UnresolvedSchema* schema);
+    Status ResolveGeneralValue(config::UnresolvedSchema* schema);
     Status FillIndexConfigs(const indexlib::config::IndexPartitionSchema& legacySchema,
                             config::UnresolvedSchema* schema);
     void FillTTLToSettings(const indexlib::config::IndexPartitionSchema& legacySchema,

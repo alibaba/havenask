@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 
 #include "autil/Log.h" // IWYU pragma: keep
 #include "matchdoc/MatchDoc.h"
@@ -24,20 +24,21 @@
 namespace suez {
 namespace turing {
 class JoinDocIdConverterCreator;
-}  // namespace turing
-}  // namespace suez
+} // namespace turing
+} // namespace suez
 
 namespace isearch {
 namespace search {
 
-class JoinFilter
-{
+class JoinFilter {
 public:
     JoinFilter(suez::turing::JoinDocIdConverterCreator *convertFactory, bool forceStrongJoin);
     ~JoinFilter();
+
 private:
     JoinFilter(const JoinFilter &);
-    JoinFilter& operator=(const JoinFilter &);
+    JoinFilter &operator=(const JoinFilter &);
+
 public:
     bool pass(matchdoc::MatchDoc doc) {
         return doPass(doc, false);
@@ -48,12 +49,15 @@ public:
     uint32_t getFilteredCount() const {
         return _filteredCount;
     }
+
 private:
     bool doPass(matchdoc::MatchDoc doc, bool isSub);
+
 private:
     suez::turing::JoinDocIdConverterCreator *_convertFactory;
     uint32_t _filteredCount;
     bool _forceStrongJoin;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -62,4 +66,3 @@ typedef std::shared_ptr<JoinFilter> JoinFilterPtr;
 
 } // namespace search
 } // namespace isearch
-

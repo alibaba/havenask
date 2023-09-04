@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "aios/network/arpc/arpc/anet/ANetApp.h"
+
 #include <cstddef>
 #include <iosfwd>
 #include <string>
 #include <vector>
 
-#include "aios/network/arpc/arpc/util/Log.h"
-#include "aios/network/arpc/arpc/anet/ANetApp.h"
 #include "aios/network/anet/anet.h"
 #include "aios/network/anet/connectionpriority.h"
 #include "aios/network/anet/defaultpacketstreamer.h"
 #include "aios/network/anet/runnable.h"
 #include "aios/network/anet/transport.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 
 using namespace std;
 using namespace anet;
@@ -33,9 +34,7 @@ using namespace anet;
 ARPC_BEGIN_NAMESPACE(arpc);
 ARPC_DECLARE_AND_SETUP_LOGGER(ANetApp);
 
-ANetApp::ANetApp(Transport *transport)
-    : _streamer(&_factory)
-{
+ANetApp::ANetApp(Transport *transport) : _streamer(&_factory) {
     _ownTransport = false;
 
     if (transport == NULL) {
@@ -46,8 +45,7 @@ ANetApp::ANetApp(Transport *transport)
     }
 }
 
-ANetApp::~ANetApp()
-{
+ANetApp::~ANetApp() {
     if (_ownTransport) {
         StopPrivateTransport();
         delete _transport;
@@ -55,31 +53,21 @@ ANetApp::~ANetApp()
     }
 }
 
-
-IOComponent *ANetApp::Listen(const std::string &address,
-                             IServerAdapter *serverAdapter,
-                             int timeout,
-                             int maxIdleTime,
-                             int backlog)
-{
-    return _transport->listen(address.c_str(), &_streamer, serverAdapter,
-                              timeout, maxIdleTime, backlog);
+IOComponent *
+ANetApp::Listen(const std::string &address, IServerAdapter *serverAdapter, int timeout, int maxIdleTime, int backlog) {
+    return _transport->listen(address.c_str(), &_streamer, serverAdapter, timeout, maxIdleTime, backlog);
 }
 
-Connection *ANetApp::Connect(const std::string &address, bool autoReconn, anet::CONNPRIORITY prio)
-{
+Connection *ANetApp::Connect(const std::string &address, bool autoReconn, anet::CONNPRIORITY prio) {
     return _transport->connect(address.c_str(), &_streamer, autoReconn, prio);
 }
 
-Connection *ANetApp::Connect(const std::string &address,
-                             const std::string &bindAddr, bool autoReconn, anet::CONNPRIORITY prio)
-{
+Connection *
+ANetApp::Connect(const std::string &address, const std::string &bindAddr, bool autoReconn, anet::CONNPRIORITY prio) {
     return _transport->connectWithAddr(bindAddr.c_str(), address.c_str(), &_streamer, autoReconn, prio);
 }
 
-bool ANetApp::StartPrivateTransport() {
-    return StartPrivateTransport("Arpc");
-}
+bool ANetApp::StartPrivateTransport() { return StartPrivateTransport("Arpc"); }
 
 bool ANetApp::StartPrivateTransport(const std::string &name) {
     if (!_ownTransport) {
@@ -91,8 +79,7 @@ bool ANetApp::StartPrivateTransport(const std::string &name) {
     return true;
 }
 
-bool ANetApp::StopPrivateTransport()
-{
+bool ANetApp::StopPrivateTransport() {
     if (!_ownTransport) {
         return false;
     }
@@ -110,4 +97,3 @@ void ANetApp::dump(std::ostringstream &out) {
 }
 
 ARPC_END_NAMESPACE(arpc);
-

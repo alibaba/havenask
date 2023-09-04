@@ -1,0 +1,41 @@
+#import(Tool)
+#import(Log)
+
+function graphDef()
+    local clusterNames = Tool.strToList(Graph.parameter["clusterNames"], ";")
+    for i, clusterName in ipairs(clusterNames)
+    do
+        local incBuildTag = clusterName..":IncBuild"
+        local incBuildFlowIds = Graph.getFlowIdByTag(incBuildTag)
+        for i, v in ipairs(incBuildFlowIds)
+        do
+            local flow = Graph.getFlow(v)
+            if (flow ~= nil) 
+            then
+               flow:suspendFlow()
+            end
+        end
+        local fullBuildTag = clusterName..":FullBuild"
+        local fullBuildFlowIds = Graph.getFlowIdByTag(fullBuildTag)
+        for i, v in ipairs(fullBuildFlowIds)
+        do
+            local flow = Graph.getFlow(v)
+            if (flow ~= nil) 
+            then
+               flow:suspendFlow()
+            end
+        end
+        local alterFieldTag = clusterName..":AlterField"
+        local alterFieldFlowIds = Graph.getFlowIdByTag(alterFieldTag)
+        for i, v in ipairs(alterFieldFlowIds)
+        do
+            local flow = Graph.getFlow(v)
+            if (flow ~= nil) 
+            then
+               flow:suspendFlow()
+            end
+        end
+        
+    end
+    return true
+end

@@ -19,8 +19,8 @@
 #include "aios/network/gig/multi_call/config/FlowControlConfig.h"
 #include "aios/network/gig/multi_call/service/ReplicaController.h"
 #include "aios/network/gig/multi_call/util/ConsistentHash.h"
-#include "aios/network/gig/multi_call/util/RandomHash.h"
 #include "aios/network/gig/multi_call/util/DiffCounter.h"
+#include "aios/network/gig/multi_call/util/RandomHash.h"
 #include "autil/Lock.h"
 
 namespace multi_call {
@@ -29,7 +29,8 @@ struct ControllerChain;
 class FlowControlParam;
 struct SnapshotBizInfo;
 
-class SearchServiceReplica {
+class SearchServiceReplica
+{
 public:
     SearchServiceReplica(const MiscConfigPtr &miscConfig);
     ~SearchServiceReplica();
@@ -40,8 +41,7 @@ private:
 
 public:
     bool constructConsistentHash(bool multiVersion);
-    bool addSearchServiceProvider(
-        const SearchServiceProviderPtr &searchServiceProviderPtr);
+    bool addSearchServiceProvider(const SearchServiceProviderPtr &searchServiceProviderPtr);
     SearchServiceProviderPtr getProviderByHashKey(SourceIdTy key, const FlowControlParam &param,
                                                   const MatchTagMapPtr &matchTagMap,
                                                   SearchServiceProviderPtr &probeProvider,
@@ -56,16 +56,26 @@ public:
                              PropagationStats &propagationStats);
     ControllerChain *getBestChain() const;
     float getAvgWeight() const;
-    ReplicaController *getReplicaController() { return &_replicaController; }
+    ReplicaController *getReplicaController() {
+        return &_replicaController;
+    }
     WeightTy getReplicaWeight();
     bool hasHealthProvider() const;
     bool hasStartedProvider() const;
     void toString(std::string &debugStr);
     void fillReplicaInfo(SnapshotBizInfo &bizInfo) const;
-    void setPartId(PartIdTy partId) { _partId = partId; }
-    PartIdTy getPartId() const { return _partId; }
-    bool isCopyReplica() const { return _serviceVector.empty(); }
-    size_t getNormalProviderCount() const { return _serviceVector.size(); }
+    void setPartId(PartIdTy partId) {
+        _partId = partId;
+    }
+    PartIdTy getPartId() const {
+        return _partId;
+    }
+    bool isCopyReplica() const {
+        return _serviceVector.empty();
+    }
+    size_t getNormalProviderCount() const {
+        return _serviceVector.size();
+    }
     size_t getHeartbeatHealthCount() const;
     VersionTy getProtocalVersion() const {
         if (!_serviceVector.empty()) {
@@ -77,18 +87,17 @@ public:
         _bizName = bizName;
     }
     FlowControlConfigPtr getLastFlowControlConfig() const;
+    MetaMapPtr getOneMeta() const;
+
 private:
     SearchServiceProviderPtr
     findNextProviderInRing(const SearchServiceProviderVector &serviceVector,
                            ConsistentHash::Iterator it);
     bool needDegrade(uint64_t key, const FlowControlParam &param,
-                     SearchServiceProviderPtr &probeProvider,
-                     RequestType &type);
-    bool needDegrade(uint64_t key, const FlowControlParam &param,
-                     float percent);
+                     SearchServiceProviderPtr &probeProvider, RequestType &type);
+    bool needDegrade(uint64_t key, const FlowControlParam &param, float percent);
     bool needProbe(const SearchServiceProviderPtr &provider,
-                   const FlowControlConfigPtr &flowControlConfig,
-                   RequestType &type);
+                   const FlowControlConfigPtr &flowControlConfig, RequestType &type);
     SearchServiceProviderPtr
     getProviderFromConsistHash(const SearchServiceProviderVector &serviceVector, SourceIdTy key,
                                const FlowControlParam &param,
@@ -100,13 +109,11 @@ private:
     uint32_t getRandomHashWeights(const SearchServiceProviderVector &serviceVector,
                                   std::vector<RandomHashNode> &weights) const;
     bool getDegradeCoverPercent(const FlowControlConfigPtr &flowControlConfig,
-                                float &baseAvgLatency, float &baseErrorRatio,
-                                float &percent);
+                                float &baseAvgLatency, float &baseErrorRatio, float &percent);
     bool getLatencyCoverPercent(const FlowControlConfigPtr &flowControlConfig,
                                 float &baseAvgLatency, float &percent);
-    bool
-    getErrorRatioCoverPercent(const FlowControlConfigPtr &flowControlConfig,
-                              float &baseErrorRatio, float &percent);
+    bool getErrorRatioCoverPercent(const FlowControlConfigPtr &flowControlConfig,
+                                   float &baseErrorRatio, float &percent);
     SearchServiceProviderPtr
     getProviderFromAllByRandomHash(const SearchServiceProviderVector &serviceVector,
                                    SourceIdTy key);
@@ -120,9 +127,11 @@ private:
                                   SearchServiceProviderVector &requireVec,
                                   SearchServiceProviderVector &preferVec);
     void trySetLastFlowControlConfig(const FlowControlConfigPtr &config);
+
 private:
     static bool doFillPropagationStat(const SearchServiceProviderPtr &provider,
                                       PropagationStatDef &propagationStat);
+
 private:
     typedef std::map<std::string, SearchServiceProviderPtr> ProviderMap;
 
@@ -142,6 +151,7 @@ private:
     DiffCounter _queryCounter;
     mutable autil::ReadWriteLock _lastFlowControlConfigLock;
     FlowControlConfigPtr _lastFlowControlConfig;
+
 private:
     AUTIL_LOG_DECLARE();
 };

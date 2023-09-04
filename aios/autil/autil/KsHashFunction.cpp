@@ -24,8 +24,7 @@ using namespace std;
 namespace autil {
 AUTIL_DECLARE_AND_SETUP_LOGGER(autil, KsHashFunction);
 
-uint32_t KsHashFunction::getHashId(const std::string& str) const
-{
+uint32_t KsHashFunction::getHashId(const std::string &str) const {
     uint64_t value = 0;
     bool ret = StringUtil::fromString(str, value);
     if (!ret) {
@@ -46,5 +45,4 @@ uint32_t KsHashFunction::getHashId(uint32_t key, uint32_t rangeBefore, uint32_t 
     return (2 * tempHashId + 1) * rangeAfter / rangeBefore / 2;
 }
 
-}
-
+} // namespace autil

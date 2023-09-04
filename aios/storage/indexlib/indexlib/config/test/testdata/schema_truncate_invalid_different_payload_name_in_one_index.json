@@ -1,0 +1,196 @@
+{
+    "table_name": "auction",
+    "dictionaries": [
+        {
+            "dictionary_name": "top10",
+            "content": "of;a;an"
+        },
+        {
+            "dictionary_name": "top100",
+            "content": "0;1;2;a;an"
+        },
+        {
+            "dictionary_name": "topNum",
+            "content": "0;1;2;9;11"
+        }
+    ],
+    "fields": [
+        {
+            "field_name": "title",
+            "field_type": "TEXT",
+            "analyzer": "taobao_analyzer"
+        },
+        {
+            "field_name": "user_name",
+            "field_type": "STRING",
+            "uniq_encode": true
+        },
+        {
+            "field_name": "user_id",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "price",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "biz30day",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "nid",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "sales",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "catid",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "body",
+            "field_type": "TEXT",
+            "analyzer": "taobao_analyzer"
+        },
+        {
+            "field_name": "category",
+            "field_type": "INTEGER",
+            "multi_value": true,
+            "uniq_encode": true
+        },
+        {
+            "field_name": "nick_name",
+            "field_type": "INTEGER",
+            "multi_value": true,
+            "uniq_encode": true
+        }
+    ],
+    "indexs": [
+        {
+            "index_name": "phrase",
+            "index_type": "PACK",
+            "term_payload_flag": 1,
+            "doc_payload_flag": 1,
+            "position_payload_flag": 1,
+            "position_list_flag": 1,
+            "term_frequency_bitmap": 0,
+            "high_frequency_dictionary": "top10",
+            "high_frequency_term_posting_type": "both",
+            "has_truncate": true,
+            "index_fields": [
+                {
+                    "field_name": "title",
+                    "boost": 1000
+                },
+                {
+                    "field_name": "body",
+                    "boost": 10
+                }
+            ]
+        },
+        {
+            "index_name": "title",
+            "index_type": "TEXT",
+            "term_payload_flag": 1,
+            "doc_payload_flag": 1,
+            "position_payload_flag": 1,
+            "position_list_flag": 1,
+            "term_frequency_bitmap": 0,
+            "high_frequency_dictionary": "top10",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "title"
+        },
+        {
+            "index_name": "category",
+            "index_type": "NUMBER",
+            "index_fields": "category",
+            "term_payload_flag": 1,
+            "doc_payload_flag": 1,
+            "has_truncate": true,
+            "use_truncate_profiles": "",
+            "high_frequency_dictionary": "topNum",
+            "high_frequency_term_posting_type": "both"
+        },
+        {
+            "index_name": "catid",
+            "index_type": "NUMBER",
+            "index_fields": "catid",
+            "term_payload_flag": 1,
+            "doc_payload_flag": 1,
+            "has_truncate": true,
+            "use_truncate_profiles": "",
+            "high_frequency_dictionary": "topNum",
+            "high_frequency_term_posting_type": "both"
+        },
+        {
+            "index_name": "body",
+            "index_type": "TEXT",
+            "index_fields": "body",
+            "term_payload_flag": 1,
+            "doc_payload_flag": 1,
+            "has_truncate": true,
+            "use_truncate_profiles": "desc_price1;desc_price2",
+            "high_frequency_dictionary": "topNum",
+            "high_frequency_term_posting_type": "both"
+        },
+        {
+            "index_name": "nick_name",
+            "index_type": "NUMBER",
+            "index_fields": "nick_name",
+            "term_payload_flag": 1,
+            "doc_payload_flag": 1,
+            "has_truncate": true,
+            "use_truncate_profiles": "desc_biz30day",
+            "high_frequency_dictionary": "topNum",
+            "high_frequency_term_posting_type": "both"
+        }
+    ],
+    "attributes": [
+        "user_id",
+        "user_name",
+        "category",
+        "price",
+        "biz30day",
+        "nid",
+        "sales"
+    ],
+    "summarys": {
+        "summary_fields": [
+            "title",
+            "user_name",
+            "user_id",
+            "price"
+        ],
+        "compress_block_size": 5
+    },
+    "truncate_profiles": [
+        {
+            "truncate_profile_name": "desc_price1",
+            "sort_descriptions": "-price",
+            "payload_name": "payload1"
+        },
+        {
+            "truncate_profile_name": "desc_price2",
+            "sort_descriptions": "-price",
+            "payload_name": "payload2"
+        },
+        {
+            "truncate_profile_name": "desc_biz30day",
+            "sort_descriptions": "biz30day;+nid"
+        },
+        {
+            "truncate_profile_name": "desc_sales",
+            "sort_descriptions": "sales"
+        },
+        {
+            "truncate_profile_name": "asc_biz30day",
+            "sort_descriptions": "+biz30day;+nid"
+        },
+        {
+            "truncate_profile_name": "galaxy_weight",
+            "sort_descriptions": ""
+        }
+    ]
+}

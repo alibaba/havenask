@@ -20,14 +20,12 @@
 #include <cstring>
 #include <memory>
 #include <stdexcept>
+#include <stdint.h>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include <type_traits>
-
-#include <stdint.h>
 
 namespace autil {
 
@@ -65,26 +63,22 @@ public:
     BasicSpan &operator=(BasicSpan &&) noexcept = default;
 
     /* default construct */
-    constexpr BasicSpan() noexcept : _data { nullptr }, _size { 0 } { }
+    constexpr BasicSpan() noexcept : _data{nullptr}, _size{0} {}
 
     template <typename It>
-    constexpr BasicSpan(It first, size_type count) :
-        _data { &*first }, _size { count } {
+    constexpr BasicSpan(It first, size_type count) : _data{&*first}, _size{count} {
         /* TODO: satisfy concept `std::contiguous_iterator<T>` */
         /* https://en.cppreference.com/w/cpp/container/span/span :: (2) */
     }
 
     template <typename It>
-    constexpr BasicSpan(It first, It last) :
-        _data { &*first }, _size { size_type(last - first) } {
+    constexpr BasicSpan(It first, It last) : _data{&*first}, _size{size_type(last - first)} {
         /* https://en.cppreference.com/w/cpp/container/span/span :: (3) */
     }
 
-    template <typename U,
-              bool A = true,
-              std::enable_if_t<(A && std::is_const_v<T>), int> = 0>
-    constexpr BasicSpan(const BasicSpan<std::remove_const_t<T>, U> &other) noexcept :
-        _data { other.data() }, _size { other.size() } { }
+    template <typename U, bool A = true, std::enable_if_t<(A && std::is_const_v<T>), int> = 0>
+    constexpr BasicSpan(const BasicSpan<std::remove_const_t<T>, U> &other) noexcept
+        : _data{other.data()}, _size{other.size()} {}
 
 public:
     /* iterators */
@@ -119,34 +113,24 @@ public:
 
 public:
     /* subviews */
-    constexpr Self first(size_type count) const { return { _data, count }; }
+    constexpr Self first(size_type count) const { return {_data, count}; }
 
-    constexpr Self last(size_type count) const {
-        return { _data + (_size - count), count };
-    }
+    constexpr Self last(size_type count) const { return {_data + (_size - count), count}; }
 
-    constexpr Self subspan(size_type offset) const {
-        return subspan(offset, _size - offset);
-    }
+    constexpr Self subspan(size_type offset) const { return subspan(offset, _size - offset); }
 
-    constexpr Self subspan(size_type offset, size_type count) const {
-        return { _data + offset, count };
-    }
+    constexpr Self subspan(size_type offset, size_type count) const { return {_data + offset, count}; }
 
 public:
     /* adapter */
-    template <
-        typename V,
-        typename U = std::decay_t<V>,
-        typename = std::enable_if_t<!std::is_same_v<U, Self>>,
-        typename = std::void_t<decltype(SpanAdapter<U>::from(std::declval<V &&>()))>>
-    BasicSpan(V &&other) noexcept(
-        noexcept(SpanAdapter<U>::from(std::declval<V &&>()))) :
-        BasicSpan { SpanAdapter<U>::from(std::forward<V>(other)) } { }
+    template <typename V,
+              typename U = std::decay_t<V>,
+              typename = std::enable_if_t<!std::is_same_v<U, Self>>,
+              typename = std::void_t<decltype(SpanAdapter<U>::from(std::declval<V &&>()))>>
+    BasicSpan(V &&other) noexcept(noexcept(SpanAdapter<U>::from(std::declval<V &&>())))
+        : BasicSpan{SpanAdapter<U>::from(std::forward<V>(other))} {}
 
-    template <
-        typename U,
-        typename = std::void_t<decltype(SpanAdapter<U>::to(std::declval<Self>()))>>
+    template <typename U, typename = std::void_t<decltype(SpanAdapter<U>::to(std::declval<Self>()))>>
     operator U() const noexcept(noexcept(SpanAdapter<U>::to(std::declval<Self>()))) {
         return SpanAdapter<U>::to(static_cast<const Self &>(*this));
     }
@@ -155,19 +139,15 @@ public:
               bool A = true,
               typename U = std::decay_t<V>,
               typename = std::enable_if_t<A && !std::is_same_v<U, Self>>,
-              typename = std::void_t<
-                  decltype(ExplicitSpanAdapter<U>::from(std::declval<V &&>()))>>
-    explicit BasicSpan(V &&other) noexcept(
-        noexcept(ExplicitSpanAdapter<U>::from(std::declval<V &&>()))) :
-        BasicSpan { ExplicitSpanAdapter<U>::from(std::forward<V>(other)) } { }
+              typename = std::void_t<decltype(ExplicitSpanAdapter<U>::from(std::declval<V &&>()))>>
+    explicit BasicSpan(V &&other) noexcept(noexcept(ExplicitSpanAdapter<U>::from(std::declval<V &&>())))
+        : BasicSpan{ExplicitSpanAdapter<U>::from(std::forward<V>(other))} {}
 
     template <typename U,
               bool A = true,
               typename = std::enable_if_t<A>,
-              typename = std::void_t<
-                  decltype(ExplicitSpanAdapter<U>::to(std::declval<Self>()))>>
-    explicit operator U() const
-        noexcept(noexcept(ExplicitSpanAdapter<U>::to(std::declval<Self>()))) {
+              typename = std::void_t<decltype(ExplicitSpanAdapter<U>::to(std::declval<Self>()))>>
+    explicit operator U() const noexcept(noexcept(ExplicitSpanAdapter<U>::to(std::declval<Self>()))) {
         return ExplicitSpanAdapter<U>::to(static_cast<const Self &>(*this));
     }
 
@@ -196,8 +176,7 @@ public:
     using size_type = typename BasicSpan<CharT, Self>::size_type;
     using BasicSpan<CharT, Self>::BasicSpan;
 
-    explicit constexpr StringViewImpl(CharT *s) :
-        BasicSpan<CharT, Self> { s, std::char_traits<char>::length(s) } {
+    explicit constexpr StringViewImpl(CharT *s) : BasicSpan<CharT, Self>{s, std::char_traits<char>::length(s)} {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/basic_string_view :: (4) */
     }
 
@@ -222,16 +201,15 @@ public:
     constexpr Self substr(size_type pos = 0, size_type count = npos) const {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/substr */
         auto v = u8span().substr(pos, count);
-        return { (CharT *)v.data(), v.size() };
+        return {(CharT *)v.data(), v.size()};
     }
 
     friend std::ostream &operator<<(std::ostream &os, const StringViewImpl &v) {
-        return os << std::string_view { v.data(), v.size() };
+        return os << std::string_view{v.data(), v.size()};
     }
 
     /* find */
-    constexpr size_type find(const StringViewImpl &v,
-                             size_type pos = 0) const noexcept {
+    constexpr size_type find(const StringViewImpl &v, size_type pos = 0) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find :: (1) */
         return u8span().find(v.u8span(), pos);
     }
@@ -241,9 +219,7 @@ public:
         return u8span().find(ch, pos);
     }
 
-    constexpr size_type find(const char *s,
-                             size_type pos,
-                             size_type count) const noexcept {
+    constexpr size_type find(const char *s, size_type pos, size_type count) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find :: (3) */
         return u8span().find((const U8 *)s, pos, count);
     }
@@ -254,8 +230,7 @@ public:
     }
 
     /* rfind */
-    constexpr size_type rfind(const StringViewImpl &v,
-                              size_type pos = npos) const noexcept {
+    constexpr size_type rfind(const StringViewImpl &v, size_type pos = npos) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/rfind :: (1) */
         return u8span().rfind(v.u8span(), pos);
     }
@@ -265,9 +240,7 @@ public:
         return u8span().rfind(c, pos);
     }
 
-    constexpr size_type rfind(const char *s,
-                              size_type pos,
-                              size_type count) const noexcept {
+    constexpr size_type rfind(const char *s, size_type pos, size_type count) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/rfind :: (3) */
         return u8span().rfind((const U8 *)s, pos, count);
     }
@@ -278,8 +251,7 @@ public:
     }
 
     /* find_first_of */
-    constexpr size_type find_first_of(const StringViewImpl &v,
-                                      size_type pos = 0) const noexcept {
+    constexpr size_type find_first_of(const StringViewImpl &v, size_type pos = 0) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find_first_of :: (1) */
         return u8span().find_first_of(v.u8span(), pos);
     }
@@ -289,22 +261,18 @@ public:
         return u8span().find_first_of(ch, pos);
     }
 
-    constexpr size_type find_first_of(const char *s,
-                                      size_type pos,
-                                      size_type count) const noexcept {
+    constexpr size_type find_first_of(const char *s, size_type pos, size_type count) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find_first_of :: (3) */
         return u8span().find_first_of((const U8 *)s, pos, count);
     }
 
-    constexpr size_type find_first_of(const char *s,
-                                      size_type pos = 0) const noexcept {
+    constexpr size_type find_first_of(const char *s, size_type pos = 0) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find_first_of :: (4) */
         return u8span().find_first_of((const U8 *)s, pos);
     }
 
     /* find_last_of */
-    constexpr size_type find_last_of(const StringViewImpl &v,
-                                     size_type pos = npos) const noexcept {
+    constexpr size_type find_last_of(const StringViewImpl &v, size_type pos = npos) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find_last_of :: (1) */
         return u8span().find_last_of(v.u8span(), pos);
     }
@@ -314,22 +282,18 @@ public:
         return u8span().find_last_of(c, pos);
     }
 
-    constexpr size_type find_last_of(const char *s,
-                                     size_type pos,
-                                     size_type count) const noexcept {
+    constexpr size_type find_last_of(const char *s, size_type pos, size_type count) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find_last_of :: (3) */
         return u8span().find_last_of((const U8 *)s, pos, count);
     }
 
-    constexpr size_type find_last_of(const char *s,
-                                     size_type pos = npos) const noexcept {
+    constexpr size_type find_last_of(const char *s, size_type pos = npos) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find_last_of :: (4) */
         return u8span().find_last_of((const U8 *)s, pos);
     }
 
     /* find_first_not_of */
-    constexpr size_type find_first_not_of(const StringViewImpl &v,
-                                          size_type pos = 0) const noexcept {
+    constexpr size_type find_first_not_of(const StringViewImpl &v, size_type pos = 0) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find_first_not_of :: (1) */
         return u8span().find_first_not_of(v.u8span(), pos);
     }
@@ -339,41 +303,33 @@ public:
         return u8span().find_first_not_of(ch, pos);
     }
 
-    constexpr size_type find_first_not_of(const char *s,
-                                          size_type pos,
-                                          size_type count) const noexcept {
+    constexpr size_type find_first_not_of(const char *s, size_type pos, size_type count) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find_first_not_of :: (3) */
         return u8span().find_first_not_of((const U8 *)s, pos, count);
     }
 
-    constexpr size_type find_first_not_of(const char *s,
-                                          size_type pos = 0) const noexcept {
+    constexpr size_type find_first_not_of(const char *s, size_type pos = 0) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find_first_not_of :: (4) */
         return u8span().find_first_not_of((const U8 *)s, pos);
     }
 
     /* find_last_not_of */
-    constexpr size_type find_last_not_of(const StringViewImpl &v,
-                                         size_type pos = npos) const noexcept {
+    constexpr size_type find_last_not_of(const StringViewImpl &v, size_type pos = npos) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find_last_not_of :: (1) */
         return u8span().find_last_not_of(v.u8span(), pos);
     }
 
-    constexpr size_type find_last_not_of(char c,
-                                         size_type pos = npos) const noexcept {
+    constexpr size_type find_last_not_of(char c, size_type pos = npos) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find_last_not_of :: (2) */
         return u8span().find_last_not_of(c, pos);
     }
 
-    constexpr size_type find_last_not_of(const char *s,
-                                         size_type pos,
-                                         size_type count) const noexcept {
+    constexpr size_type find_last_not_of(const char *s, size_type pos, size_type count) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find_last_not_of :: (3) */
         return u8span().find_last_not_of((const U8 *)s, pos, count);
     }
 
-    constexpr size_type find_last_not_of(const char *s,
-                                         size_type pos = npos) const noexcept {
+    constexpr size_type find_last_not_of(const char *s, size_type pos = npos) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/find_last_not_of :: (4) */
         return u8span().find_last_not_of((const U8 *)s, pos);
     }
@@ -382,100 +338,112 @@ public:
     /* operations (c++20) */
     constexpr bool starts_with(const StringViewImpl &sv) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/starts_with :: (1) */
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L356 */
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L356
+         */
         return this->substr(0, sv.size()) == sv;
     }
 
     constexpr bool starts_with(char c) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/starts_with :: (2) */
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L360 */
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L360
+         */
         return !this->empty() && StdU8CharTraitsType::eq((U8)this->front(), (U8)c);
     }
 
     constexpr bool starts_with(const char *s) const {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/starts_with :: (3) */
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L364 */
-        return starts_with(Self { s });
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L364
+         */
+        return starts_with(Self{s});
     }
 
     constexpr bool ends_with(const StringViewImpl &sv) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/ends_with :: (1) */
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L368 */
-        return this->size() >= sv.size() &&
-               this->substr(this->size() - sv.size()) == sv;
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L368
+         */
+        return this->size() >= sv.size() && this->substr(this->size() - sv.size()) == sv;
     }
 
     constexpr bool ends_with(char c) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/ends_with :: (2) */
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L377 */
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L377
+         */
         return !this->empty() && StdU8CharTraitsType::eq((U8)this->back(), (U8)c);
     }
 
     constexpr bool ends_with(const char *s) const {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/ends_with :: (3) */
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L381 */
-        return ends_with(Self { s });
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L381
+         */
+        return ends_with(Self{s});
     }
 
 public:
     /* operations (c++23) */
     constexpr bool contains(const StringViewImpl &sv) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/contains :: (1) */
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L388 */
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L388
+         */
         return this->find(sv) != npos;
     }
 
     constexpr bool contains(char c) const noexcept {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/contains :: (2) */
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L392 */
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L392
+         */
         return this->find(c) != npos;
     }
 
     constexpr bool contains(const char *s) const {
         /* https://en.cppreference.com/w/cpp/string/basic_string_view/contains :: (3) */
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L396 */
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L396
+         */
         return this->find(s) != npos;
     }
 
 public:
     /* compare */
     inline bool operator==(const StringViewImpl &rhs) const noexcept {
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L540 */
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L540
+         */
         return this->size() == rhs.size() && compare(rhs) == 0;
     }
 
-    friend inline bool operator==(const StringViewImpl &self,
-                                  const char *other) noexcept {
-        return self == Self { other };
+    friend inline bool operator==(const StringViewImpl &self, const char *other) noexcept {
+        return self == Self{other};
     }
 
-    friend inline bool operator==(const char *self,
-                                  const StringViewImpl &other) noexcept {
-        return Self { self } == other;
+    friend inline bool operator==(const char *self, const StringViewImpl &other) noexcept {
+        return Self{self} == other;
     }
 
     inline bool operator!=(const StringViewImpl &rhs) const noexcept {
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L575 */
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L575
+         */
         return !(*this == rhs);
     }
 
     inline bool operator<(const StringViewImpl &rhs) const noexcept {
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L594 */
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L594
+         */
         return compare(rhs) < 0;
     }
 
     inline bool operator>(const StringViewImpl &rhs) const noexcept {
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L613 */
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L613
+         */
         return compare(rhs) > 0;
     }
 
     inline bool operator<=(const StringViewImpl &rhs) const noexcept {
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L632 */
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L632
+         */
         return compare(rhs) <= 0;
     }
 
     inline bool operator>=(const StringViewImpl &rhs) const noexcept {
-        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L651 */
+        /* https://github.com/gcc-mirror/gcc/blob/27239e13b1ba383e2706231917062aa6e14150a8/libstdc%2B%2B-v3/include/std/string_view#L651
+         */
         return compare(rhs) >= 0;
     }
 
@@ -491,50 +459,43 @@ public:
 
 public:
     /* extensions */
-    std::string to_string() const { return { this->data(), this->size() }; }
+    std::string to_string() const { return {this->data(), this->size()}; }
 
 public:
     /* legacy StringView operations */
-    [[deprecated(
-        "`StringView` is never guaranteed to be zero-terminated, "
-        "naming this method to `c_str()` may lead to misuse or potential error. "
-        "please confirm your use case is correct, "
-        "or you may use `data()` to access the underlying buffer.")]]
-    CharT *c_str() const { return this->data(); }
+    [[deprecated("`StringView` is never guaranteed to be zero-terminated, "
+                 "naming this method to `c_str()` may lead to misuse or potential error. "
+                 "please confirm your use case is correct, "
+                 "or you may use `data()` to access the underlying buffer.")]] CharT *
+    c_str() const {
+        return this->data();
+    }
 
     template <typename... Args>
     [[deprecated("please use `substr()` instead, "
                  "note that boundary check has been removed")]] Self
-        subString(Args &&...args) const {
+    subString(Args &&...args) const {
         return this->substr(std::forward<Args>(args)...);
     }
 
-    [[deprecated(
-        "please use `to_string()` or explicit type-cast instead")]] std::string
-        toString() const {
-        return to_string();
-    }
+    std::string toString() const { return to_string(); }
 
-    [[deprecated("please use lvalue assignment instead")]] void reset(
-        CharT *data,
-        size_type size) {
+    [[deprecated("please use lvalue assignment instead")]] void reset(CharT *data, size_type size) {
         this->_data = data;
         this->_size = size;
     }
 
 protected:
     /* uint8 char traits adapter */
-    /* FIXME: these functions ought to be constexpr, but legacy usage treated the 
-       string_view as unsigned chars, but unfortunately, reinterpret_cast<> is 
-       not allowed during compile time evaluation, so the constexpr usage is 
+    /* FIXME: these functions ought to be constexpr, but legacy usage treated the
+       string_view as unsigned chars, but unfortunately, reinterpret_cast<> is
+       not allowed during compile time evaluation, so the constexpr usage is
        ill formed, currently */
     [[gnu::always_inline]] constexpr const U8 *u8data() const noexcept {
         return reinterpret_cast<const U8 *>(this->data());
     }
 
-    [[gnu::always_inline]] constexpr StdU8StringViewType u8span() const noexcept {
-        return { u8data(), this->size() };
-    }
+    [[gnu::always_inline]] constexpr StdU8StringViewType u8span() const noexcept { return {u8data(), this->size()}; }
 };
 
 template <typename T, typename Self>
@@ -543,7 +504,7 @@ public:
     using BasicSpan<T, Self>::BasicSpan;
 
     template <std::size_t N>
-    constexpr SpanOrStringView(T (&arr)[N]) noexcept : BasicSpan<T, Self> { arr, N } {
+    constexpr SpanOrStringView(T (&arr)[N]) noexcept : BasicSpan<T, Self>{arr, N} {
         /* https://en.cppreference.com/w/cpp/container/span/span :: (4) */
     }
 
@@ -553,27 +514,19 @@ public:
         return std::equal(this->begin(), this->end(), rhs.begin(), rhs.end());
     }
 
-    inline bool operator!=(const SpanOrStringView &rhs) const {
-        return !(*this == rhs);
-    }
+    inline bool operator!=(const SpanOrStringView &rhs) const { return !(*this == rhs); }
 
     inline bool operator<(const SpanOrStringView &rhs) const {
-        return std::lexicographical_compare(
-            this->begin(), this->end(), rhs.begin(), rhs.end());
+        return std::lexicographical_compare(this->begin(), this->end(), rhs.begin(), rhs.end());
     }
 
     inline bool operator>(const SpanOrStringView &rhs) const {
-        return std::lexicographical_compare(
-            rhs.begin(), rhs.end(), this->begin(), this->end());
+        return std::lexicographical_compare(rhs.begin(), rhs.end(), this->begin(), this->end());
     }
 
-    inline bool operator<=(const SpanOrStringView &rhs) const {
-        return !(*this > rhs);
-    }
+    inline bool operator<=(const SpanOrStringView &rhs) const { return !(*this > rhs); }
 
-    inline bool operator>=(const SpanOrStringView &rhs) const {
-        return !(*this < rhs);
-    }
+    inline bool operator>=(const SpanOrStringView &rhs) const { return !(*this < rhs); }
 };
 
 template <typename Self>
@@ -588,7 +541,7 @@ public:
     using StringViewImpl<const char, Self>::StringViewImpl;
 };
 
-}    // namespace detail
+} // namespace detail
 
 template <typename T>
 class Span : public detail::SpanOrStringView<T, Span<T>> {
@@ -605,65 +558,56 @@ using MutableStringView = Span<char>;
 /* adapters */
 template <typename T>
 struct SpanAdapter<std::vector<T>> {
-    [[gnu::always_inline]] inline static Span<T> from(
-        std::vector<T> &other) noexcept {
-        return { other.data(), other.size() };
+    [[gnu::always_inline]] inline static Span<T> from(std::vector<T> &other) noexcept {
+        return {other.data(), other.size()};
     }
 
-    [[gnu::always_inline]] inline static ConstSpan<T> from(
-        const std::vector<T> &other) noexcept {
-        return { other.data(), other.size() };
+    [[gnu::always_inline]] inline static ConstSpan<T> from(const std::vector<T> &other) noexcept {
+        return {other.data(), other.size()};
     }
 };
 
 template <typename T>
 struct ExplicitSpanAdapter<std::vector<T>> {
-    [[gnu::always_inline]] inline static std::vector<T> to(
-        const Span<T> &other) noexcept {
-        return { other.begin(), other.end() };
+    [[gnu::always_inline]] inline static std::vector<T> to(const Span<T> &other) noexcept {
+        return {other.begin(), other.end()};
     }
 };
 
 template <typename T, std::size_t N>
 struct SpanAdapter<std::array<T, N>> {
-    [[gnu::always_inline]] inline static Span<T> from(
-        std::array<T, N> &other) noexcept {
-        return { other.data(), other.size() };
+    [[gnu::always_inline]] inline static Span<T> from(std::array<T, N> &other) noexcept {
+        return {other.data(), other.size()};
     }
 
-    [[gnu::always_inline]] inline static ConstSpan<T> from(
-        const std::array<T, N> &other) noexcept {
-        return { other.data(), other.size() };
+    [[gnu::always_inline]] inline static ConstSpan<T> from(const std::array<T, N> &other) noexcept {
+        return {other.data(), other.size()};
     }
 };
 
 template <>
 struct SpanAdapter<std::string> {
-    [[gnu::always_inline]] inline static StringView from(
-        const std::string &other) noexcept {
-        return { other.data(), other.size() };
+    [[gnu::always_inline]] inline static StringView from(const std::string &other) noexcept {
+        return {other.data(), other.size()};
     }
 };
 
 template <>
 struct ExplicitSpanAdapter<std::string> {
-    [[gnu::always_inline]] inline static std::string to(
-        const StringView &other) noexcept {
-        return { other.data(), other.size() };
+    [[gnu::always_inline]] inline static std::string to(const StringView &other) noexcept {
+        return {other.data(), other.size()};
     }
 };
 
 template <>
 struct SpanAdapter<std::string_view> {
-    [[gnu::always_inline]] inline static StringView from(
-        const std::string_view &other) noexcept {
-        return { other.data(), other.size() };
+    [[gnu::always_inline]] inline static StringView from(const std::string_view &other) noexcept {
+        return {other.data(), other.size()};
     }
 
-    [[gnu::always_inline]] inline static std::string_view to(
-        const StringView &other) noexcept {
-        return { other.data(), other.size() };
+    [[gnu::always_inline]] inline static std::string_view to(const StringView &other) noexcept {
+        return {other.data(), other.size()};
     }
 };
 
-} // autil
+} // namespace autil

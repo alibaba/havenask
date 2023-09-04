@@ -1,31 +1,36 @@
 package(default_visibility=['//aios/filesystem/fslib:__subpackages__'])
-load(
-    '//bazel:defs.bzl', 'gen_conf_lib', 'test_cc_plugin_shared_library',
-    'copy_target_to'
-)
-load(
-    '@rules_cc//examples:experimental_cc_shared_library.bzl',
-    'cc_shared_library'
-)
-load('//bazel:bundle.bzl', 'bundle_files')
+load('//bazel:defs.bzl', 'copy_target_to')
 cc_library(
     name='fslib-framework',
+    visibility=['//visibility:public'],
     deps=[
         '//aios/filesystem/fslib/fslib:common',
-        '//aios/filesystem/fslib/fslib/fs:fs'
+        '//aios/filesystem/fslib/fslib/fs'
     ],
-    visibility=['//visibility:public'],
     alwayslink=1
 )
 copy_target_to(
     name='fslib_plugin_hdfs',
-    to_copy='//aios/filesystem/fslib/fslib/fs/hdfs:fslib_plugin_hdfs',
     copy_name='libfslib_plugin_hdfs.so',
+    to_copy='//aios/filesystem/fslib/fslib/fs/hdfs:fslib_plugin_hdfs',
+    visibility=['//visibility:public']
+)
+copy_target_to(
+    name='fslib_plugin_zfs',
+    copy_name='libfslib_plugin_zfs.so',
+    to_copy='//aios/filesystem/fslib/fslib/fs/zookeeper:fslib_plugin_zfs',
     visibility=['//visibility:public']
 )
 copy_target_to(
     name='fslib_plugin_http',
-    to_copy='//aios/filesystem/fslib/fslib/fs/http:fslib_plugin_http',
     copy_name='libfslib_plugin_http.so',
+    to_copy='//aios/filesystem/fslib/fslib/fs/http:fslib_plugin_http',
+    visibility=['//visibility:public']
+)
+copy_target_to(
+    name='fslib_plugin_mock',
+    testonly=True,
+    copy_name='libfslib_plugin_mock.so',
+    to_copy='//aios/filesystem/fslib/fslib/fs/mock:fslib_plugin_mock',
     visibility=['//visibility:public']
 )

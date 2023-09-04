@@ -21,12 +21,15 @@
 
 namespace indexlib::config {
 class FileCompressConfig;
-class FileCompressConfig;
 class CompressTypeOption;
 } // namespace indexlib::config
 
-namespace indexlibv2::config {
+namespace indexlibv2::index {
 class AttributeConfig;
+}
+
+namespace indexlibv2::config {
+class FileCompressConfigV2;
 
 class SectionAttributeConfig : public autil::legacy::Jsonizable
 {
@@ -46,13 +49,14 @@ public:
     bool operator==(const SectionAttributeConfig& other) const;
     bool operator!=(const SectionAttributeConfig& other) const;
 
-    std::shared_ptr<AttributeConfig> CreateAttributeConfig(const std::string& indexName) const;
+    std::shared_ptr<index::AttributeConfig> CreateAttributeConfig(const std::string& indexName) const;
 
     static std::string IndexNameToSectionAttributeName(const std::string& indexName);
     static std::string SectionAttributeNameToIndexName(const std::string& attrName);
 
     void SetFileCompressConfig(const std::shared_ptr<indexlib::config::FileCompressConfig>& compressConfig);
-
+    void SetFileCompressConfigV2(const std::shared_ptr<config::FileCompressConfigV2>& compressConfigV2);
+    std::shared_ptr<config::FileCompressConfigV2> GetFileCompressConfigV2() const;
     std::shared_ptr<indexlib::config::FileCompressConfig> GetFileCompressConfig() const;
     indexlib::config::CompressTypeOption GetCompressType() const;
 

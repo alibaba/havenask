@@ -15,30 +15,31 @@
  */
 #pragma once
 
-#include "ha3/queryparser/BinaryQueryExpr.h"
 #include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/queryparser/BinaryQueryExpr.h"
 
 namespace isearch {
 namespace queryparser {
 class QueryExpr;
 class QueryExprEvaluator;
-}  // namespace queryparser
-}  // namespace isearch
+} // namespace queryparser
+} // namespace isearch
 
 namespace isearch {
 namespace queryparser {
 
-class RankQueryExpr : public BinaryQueryExpr
-{
+class RankQueryExpr : public BinaryQueryExpr {
 public:
-    RankQueryExpr(QueryExpr *a, QueryExpr *b) : BinaryQueryExpr(a, b) {}
+    RankQueryExpr(QueryExpr *a, QueryExpr *b)
+        : BinaryQueryExpr(a, b) {}
     ~RankQueryExpr() {}
+
 public:
     void evaluate(QueryExprEvaluator *qee);
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
 } // namespace queryparser
 } // namespace isearch
-

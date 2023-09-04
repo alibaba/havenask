@@ -17,12 +17,10 @@
 
 #include <stddef.h>
 
-
 namespace autil {
 
 template <class T>
-class DoubleLinkListNode
-{
+class DoubleLinkListNode {
 public:
     DoubleLinkListNode();
 
@@ -31,6 +29,7 @@ public:
 
 private:
     DoubleLinkListNode(const DoubleLinkListNode &);
+
 public:
     DoubleLinkListNode<T> *_nextListNode;
     DoubleLinkListNode<T> *_prevListNode;
@@ -38,17 +37,15 @@ public:
 };
 
 ////////////////////////////////////////////////////
-template<class T>
-DoubleLinkListNode<T>::DoubleLinkListNode()
-{
+template <class T>
+DoubleLinkListNode<T>::DoubleLinkListNode() {
     reset();
 }
 
-template<class T>
+template <class T>
 inline void DoubleLinkListNode<T>::reset() {
     _nextListNode = NULL;
     _prevListNode = NULL;
 }
 
-}
-
+} // namespace autil

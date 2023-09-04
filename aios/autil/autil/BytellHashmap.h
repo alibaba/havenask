@@ -34,9 +34,7 @@ struct sherwood_v8_constants {
     static constexpr int8_t magic_for_list_entry = int8_t(0b10000000);
 
     static constexpr int8_t bits_for_distance = int8_t(0b01111111);
-    inline static int distance_from_metadata(int8_t metadata) {
-        return metadata & bits_for_distance;
-    }
+    inline static int distance_from_metadata(int8_t metadata) { return metadata & bits_for_distance; }
 
     static constexpr int num_jump_distances = 126;
     // jump distances chosen like this:
@@ -46,7 +44,7 @@ struct sherwood_v8_constants {
     // 3. add 44 more triangular numbers at a much steeper growth rate
     // to get a sequence that allows large jumps so that a table
     // with 10000 sequential numbers doesn't endlessly re-allocate
-    static constexpr size_t jump_distances[num_jump_distances] {
+    static constexpr size_t jump_distances[num_jump_distances]{
         0,
         1,
         2,
@@ -222,9 +220,7 @@ struct sherwood_v8_block {
         return -1;
     }
 
-    void fill_control_bytes(int8_t value) {
-        std::fill(std::begin(control_bytes), std::end(control_bytes), value);
-    }
+    void fill_control_bytes(int8_t value) { std::fill(std::begin(control_bytes), std::end(control_bytes), value); }
 };
 
 template <typename T,
@@ -262,17 +258,14 @@ public:
                                const ArgumentHash &hash = ArgumentHash(),
                                const ArgumentEqual &equal = ArgumentEqual(),
                                const ArgumentAlloc &alloc = ArgumentAlloc())
-        : ByteAlloc(alloc)
-        , Hasher(hash)
-        , Equal(equal) {
+        : ByteAlloc(alloc), Hasher(hash), Equal(equal) {
         lazy_bucket_count = bucket_count;
     }
     sherwood_v8_table(size_type bucket_count, const ArgumentAlloc &alloc)
         : sherwood_v8_table(bucket_count, ArgumentHash(), ArgumentEqual(), alloc) {}
     sherwood_v8_table(size_type bucket_count, const ArgumentHash &hash, const ArgumentAlloc &alloc)
         : sherwood_v8_table(bucket_count, hash, ArgumentEqual(), alloc) {}
-    explicit sherwood_v8_table(const ArgumentAlloc &alloc)
-        : ByteAlloc(alloc) {}
+    explicit sherwood_v8_table(const ArgumentAlloc &alloc) : ByteAlloc(alloc) {}
     template <typename It>
     sherwood_v8_table(It first,
                       It last,
@@ -309,10 +302,7 @@ public:
     sherwood_v8_table(const sherwood_v8_table &other)
         : sherwood_v8_table(other, AllocatorTraits::select_on_container_copy_construction(other.get_allocator())) {}
     sherwood_v8_table(const sherwood_v8_table &other, const ArgumentAlloc &alloc)
-        : ByteAlloc(alloc)
-        , Hasher(other)
-        , Equal(other)
-        , _max_load_factor(other._max_load_factor) {
+        : ByteAlloc(alloc), Hasher(other), Equal(other), _max_load_factor(other._max_load_factor) {
         rehash_for_other_container(other);
         try {
             insert(other.begin(), other.end());
@@ -382,15 +372,9 @@ public:
         deallocate_data(entries, num_slots_minus_one);
     }
 
-    const allocator_type &get_allocator() const {
-        return static_cast<const allocator_type &>(*this);
-    }
-    const ArgumentEqual &key_eq() const {
-        return static_cast<const ArgumentEqual &>(*this);
-    }
-    const ArgumentHash &hash_function() const {
-        return static_cast<const ArgumentHash &>(*this);
-    }
+    const allocator_type &get_allocator() const { return static_cast<const allocator_type &>(*this); }
+    const ArgumentEqual &key_eq() const { return static_cast<const ArgumentEqual &>(*this); }
+    const ArgumentHash &hash_function() const { return static_cast<const ArgumentHash &>(*this); }
 
     template <typename ValueType>
     struct templated_iterator {
@@ -401,9 +385,7 @@ public:
 
     public:
         templated_iterator() {}
-        templated_iterator(BlockPointer entries, size_t index)
-            : current(entries)
-            , index(index) {}
+        templated_iterator(BlockPointer entries, size_t index) : current(entries), index(index) {}
 
         using iterator_category = std::forward_iterator_tag;
         using value_type = ValueType;
@@ -414,9 +396,7 @@ public:
         friend bool operator==(const templated_iterator &lhs, const templated_iterator &rhs) {
             return lhs.index == rhs.index;
         }
-        friend bool operator!=(const templated_iterator &lhs, const templated_iterator &rhs) {
-            return !(lhs == rhs);
-        }
+        friend bool operator!=(const templated_iterator &lhs, const templated_iterator &rhs) { return !(lhs == rhs); }
 
         templated_iterator &operator++() {
             do {
@@ -433,40 +413,26 @@ public:
             return copy;
         }
 
-        ValueType &operator*() const {
-            return current->data[index % BlockSize];
-        }
-        ValueType *operator->() const {
-            return current->data + index % BlockSize;
-        }
+        ValueType &operator*() const { return current->data[index % BlockSize]; }
+        ValueType *operator->() const { return current->data + index % BlockSize; }
 
-        operator templated_iterator<const value_type>() const {
-            return {current, index};
-        }
+        operator templated_iterator<const value_type>() const { return {current, index}; }
     };
     using iterator = templated_iterator<value_type>;
     using const_iterator = templated_iterator<const value_type>;
 
     iterator begin() {
         size_t num_slots = num_slots_minus_one ? num_slots_minus_one + 1 : 0;
-        return ++iterator {entries + num_slots / BlockSize, num_slots};
+        return ++iterator{entries + num_slots / BlockSize, num_slots};
     }
     const_iterator begin() const {
         size_t num_slots = num_slots_minus_one ? num_slots_minus_one + 1 : 0;
-        return ++iterator {entries + num_slots / BlockSize, num_slots};
+        return ++iterator{entries + num_slots / BlockSize, num_slots};
     }
-    const_iterator cbegin() const {
-        return begin();
-    }
-    iterator end() {
-        return {entries - 1, std::numeric_limits<size_t>::max()};
-    }
-    const_iterator end() const {
-        return {entries - 1, std::numeric_limits<size_t>::max()};
-    }
-    const_iterator cend() const {
-        return end();
-    }
+    const_iterator cbegin() const { return begin(); }
+    iterator end() { return {entries - 1, std::numeric_limits<size_t>::max()}; }
+    const_iterator end() const { return {entries - 1, std::numeric_limits<size_t>::max()}; }
+    const_iterator cend() const { return end(); }
 
     inline iterator find(const FindKey &key) {
         size_t index = hash_object(key);
@@ -493,12 +459,8 @@ public:
             index = hash_policy.keep_in_range(index, num_slots_minus_one);
         }
     }
-    inline const_iterator find(const FindKey &key) const {
-        return const_cast<sherwood_v8_table *>(this)->find(key);
-    }
-    size_t count(const FindKey &key) const {
-        return find(key) == end() ? 0 : 1;
-    }
+    inline const_iterator find(const FindKey &key) const { return const_cast<sherwood_v8_table *>(this)->find(key); }
+    size_t count(const FindKey &key) const { return find(key) == end() ? 0 : 1; }
     std::pair<iterator, iterator> equal_range(const FindKey &key) {
         iterator found = find(key);
         if (found == end())
@@ -541,22 +503,14 @@ public:
         }
     }
 
-    std::pair<iterator, bool> insert(const value_type &value) {
-        return emplace(value);
-    }
-    std::pair<iterator, bool> insert(value_type &&value) {
-        return emplace(std::move(value));
-    }
+    std::pair<iterator, bool> insert(const value_type &value) { return emplace(value); }
+    std::pair<iterator, bool> insert(value_type &&value) { return emplace(std::move(value)); }
     template <typename... Args>
     iterator emplace_hint(const_iterator, Args &&...args) {
         return emplace(std::forward<Args>(args)...).first;
     }
-    iterator insert(const_iterator, const value_type &value) {
-        return emplace(value).first;
-    }
-    iterator insert(const_iterator, value_type &&value) {
-        return emplace(std::move(value)).first;
-    }
+    iterator insert(const_iterator, const value_type &value) { return emplace(value).first; }
+    iterator insert(const_iterator, value_type &&value) { return emplace(std::move(value)).first; }
 
     template <typename It>
     void insert(It begin, It end) {
@@ -564,13 +518,11 @@ public:
             emplace(*begin);
         }
     }
-    void insert(std::initializer_list<value_type> il) {
-        insert(il.begin(), il.end());
-    }
+    void insert(std::initializer_list<value_type> il) { insert(il.begin(), il.end()); }
 
     void rehash(size_t num_items) {
-        num_items
-            = std::max(num_items, static_cast<size_t>(std::ceil(num_elements / static_cast<double>(_max_load_factor))));
+        num_items =
+            std::max(num_items, static_cast<size_t>(std::ceil(num_elements / static_cast<double>(_max_load_factor))));
         if (num_items == 0) {
             reset_to_empty_state();
             return;
@@ -681,7 +633,7 @@ public:
         }
 
         if (begin_it.current->control_bytes[begin_it.index % BlockSize] == Constants::magic_for_empty)
-            return ++iterator {begin_it.current, begin_it.index};
+            return ++iterator{begin_it.current, begin_it.index};
         else
             return {begin_it.current, begin_it.index};
     }
@@ -714,9 +666,7 @@ public:
         num_elements = 0;
     }
 
-    void shrink_to_fit() {
-        rehash_for_other_container(*this);
-    }
+    void shrink_to_fit() { rehash_for_other_container(*this); }
 
     void swap(sherwood_v8_table &other) {
         using std::swap;
@@ -727,34 +677,18 @@ public:
             swap(static_cast<ByteAlloc &>(*this), static_cast<ByteAlloc &>(other));
     }
 
-    size_t size() const {
-        return num_elements;
-    }
-    size_t max_size() const {
-        return (AllocatorTraits::max_size(*this)) / sizeof(T);
-    }
-    size_t bucket_count() const {
-        return num_slots_minus_one ? num_slots_minus_one + 1 : 0;
-    }
-    size_type max_bucket_count() const {
-        return (AllocatorTraits::max_size(*this)) / sizeof(T);
-    }
+    size_t size() const { return num_elements; }
+    size_t max_size() const { return (AllocatorTraits::max_size(*this)) / sizeof(T); }
+    size_t bucket_count() const { return num_slots_minus_one ? num_slots_minus_one + 1 : 0; }
+    size_type max_bucket_count() const { return (AllocatorTraits::max_size(*this)) / sizeof(T); }
     size_t bucket(const FindKey &key) const {
         return hash_policy.index_for_hash(hash_object(key), num_slots_minus_one);
     }
-    float load_factor() const {
-        return static_cast<double>(num_elements) / (num_slots_minus_one + 1);
-    }
-    void max_load_factor(float value) {
-        _max_load_factor = value;
-    }
-    float max_load_factor() const {
-        return _max_load_factor;
-    }
+    float load_factor() const { return static_cast<double>(num_elements) / (num_slots_minus_one + 1); }
+    void max_load_factor(float value) { _max_load_factor = value; }
+    float max_load_factor() const { return _max_load_factor; }
 
-    bool empty() const {
-        return num_elements == 0;
-    }
+    bool empty() const { return num_elements == 0; }
 
 protected:
     BlockPointer entries = BlockType::empty_block();
@@ -791,64 +725,36 @@ protected:
         BlockPointer block = nullptr;
 
         LinkedListIt() {}
-        LinkedListIt(size_t index, BlockPointer block)
-            : index(index)
-            , block(block) {}
+        LinkedListIt(size_t index, BlockPointer block) : index(index), block(block) {}
 
-        iterator it() const {
-            return {block, index};
-        }
-        int index_in_block() const {
-            return index % BlockSize;
-        }
+        iterator it() const { return {block, index}; }
+        int index_in_block() const { return index % BlockSize; }
         bool is_direct_hit() const {
             return (metadata() & Constants::bits_for_direct_hit) == Constants::magic_for_direct_hit;
         }
-        bool is_empty() const {
-            return metadata() == Constants::magic_for_empty;
-        }
-        bool has_next() const {
-            return jump_index() != 0;
-        }
-        int8_t jump_index() const {
-            return Constants::distance_from_metadata(metadata());
-        }
-        int8_t metadata() const {
-            return block->control_bytes[index_in_block()];
-        }
-        void set_metadata(int8_t metadata) {
-            block->control_bytes[index_in_block()] = metadata;
-        }
+        bool is_empty() const { return metadata() == Constants::magic_for_empty; }
+        bool has_next() const { return jump_index() != 0; }
+        int8_t jump_index() const { return Constants::distance_from_metadata(metadata()); }
+        int8_t metadata() const { return block->control_bytes[index_in_block()]; }
+        void set_metadata(int8_t metadata) { block->control_bytes[index_in_block()] = metadata; }
 
         LinkedListIt next(sherwood_v8_table &table) const {
             int8_t distance = jump_index();
-            size_t next_index = table.hash_policy.keep_in_range(index + Constants::jump_distances[distance],
-                                                                table.num_slots_minus_one);
+            size_t next_index =
+                table.hash_policy.keep_in_range(index + Constants::jump_distances[distance], table.num_slots_minus_one);
             return {next_index, table.entries + next_index / BlockSize};
         }
         void set_next(int8_t jump_index) {
             int8_t &metadata = block->control_bytes[index_in_block()];
             metadata = (metadata & ~Constants::bits_for_distance) | jump_index;
         }
-        void clear_next() {
-            set_next(0);
-        }
+        void clear_next() { set_next(0); }
 
-        value_type &operator*() const {
-            return block->data[index_in_block()];
-        }
-        bool operator!() const {
-            return !block;
-        }
-        explicit operator bool() const {
-            return block != nullptr;
-        }
-        bool operator==(const LinkedListIt &other) const {
-            return index == other.index;
-        }
-        bool operator!=(const LinkedListIt &other) const {
-            return !(*this == other);
-        }
+        value_type &operator*() const { return block->data[index_in_block()]; }
+        bool operator!() const { return !block; }
+        explicit operator bool() const { return block != nullptr; }
+        bool operator==(const LinkedListIt &other) const { return index == other.index; }
+        bool operator!=(const LinkedListIt &other) const { return !(*this == other); }
     };
 
     template <typename... Args>
@@ -935,8 +841,8 @@ protected:
 
     std::pair<int8_t, LinkedListIt> find_free_index(LinkedListIt parent) const {
         for (int8_t jump_index = 1; jump_index < Constants::num_jump_distances; ++jump_index) {
-            size_t index
-                = hash_policy.keep_in_range(parent.index + Constants::jump_distances[jump_index], num_slots_minus_one);
+            size_t index =
+                hash_policy.keep_in_range(parent.index + Constants::jump_distances[jump_index], num_slots_minus_one);
             BlockPointer block = entries + index / BlockSize;
             if (block->control_bytes[index % BlockSize] == Constants::magic_for_empty)
                 return {jump_index, {index, block}};
@@ -995,13 +901,13 @@ public:
 
         operator iterator() {
             if (it->control_bytes[index % BlockSize] == Constants::magic_for_empty)
-                return ++iterator {it, index};
+                return ++iterator{it, index};
             else
                 return {it, index};
         }
         operator const_iterator() {
             if (it->control_bytes[index % BlockSize] == Constants::magic_for_empty)
-                return ++iterator {it, index};
+                return ++iterator{it, index};
             else
                 return {it, index};
         }
@@ -1061,12 +967,8 @@ public:
     using Table::Table;
     bytell_hash_map() {}
 
-    inline V &operator[](const K &key) {
-        return emplace(key, convertible_to_value()).first->second;
-    }
-    inline V &operator[](K &&key) {
-        return emplace(std::move(key), convertible_to_value()).first->second;
-    }
+    inline V &operator[](const K &key) { return emplace(key, convertible_to_value()).first->second; }
+    inline V &operator[](K &&key) { return emplace(std::move(key), convertible_to_value()).first->second; }
     V &at(const K &key) {
         auto found = this->find(key);
         if (found == this->end())
@@ -1081,9 +983,7 @@ public:
     }
 
     using Table::emplace;
-    std::pair<typename Table::iterator, bool> emplace() {
-        return emplace(key_type(), convertible_to_value());
-    }
+    std::pair<typename Table::iterator, bool> emplace() { return emplace(key_type(), convertible_to_value()); }
     template <typename M>
     std::pair<typename Table::iterator, bool> insert_or_assign(const key_type &key, M &&m) {
         auto emplace_result = emplace(key, std::forward<M>(m));
@@ -1119,15 +1019,11 @@ public:
         }
         return true;
     }
-    friend bool operator!=(const bytell_hash_map &lhs, const bytell_hash_map &rhs) {
-        return !(lhs == rhs);
-    }
+    friend bool operator!=(const bytell_hash_map &lhs, const bytell_hash_map &rhs) { return !(lhs == rhs); }
 
 private:
     struct convertible_to_value {
-        operator V() const {
-            return V();
-        }
+        operator V() const { return V(); }
     };
 };
 
@@ -1162,18 +1058,10 @@ public:
     std::pair<typename Table::iterator, bool> emplace(Args &&...args) {
         return Table::emplace(T(std::forward<Args>(args)...));
     }
-    std::pair<typename Table::iterator, bool> emplace(const key_type &arg) {
-        return Table::emplace(arg);
-    }
-    std::pair<typename Table::iterator, bool> emplace(key_type &arg) {
-        return Table::emplace(arg);
-    }
-    std::pair<typename Table::iterator, bool> emplace(const key_type &&arg) {
-        return Table::emplace(std::move(arg));
-    }
-    std::pair<typename Table::iterator, bool> emplace(key_type &&arg) {
-        return Table::emplace(std::move(arg));
-    }
+    std::pair<typename Table::iterator, bool> emplace(const key_type &arg) { return Table::emplace(arg); }
+    std::pair<typename Table::iterator, bool> emplace(key_type &arg) { return Table::emplace(arg); }
+    std::pair<typename Table::iterator, bool> emplace(const key_type &&arg) { return Table::emplace(std::move(arg)); }
+    std::pair<typename Table::iterator, bool> emplace(key_type &&arg) { return Table::emplace(std::move(arg)); }
 
     friend bool operator==(const bytell_hash_set &lhs, const bytell_hash_set &rhs) {
         if (lhs.size() != rhs.size())
@@ -1184,9 +1072,7 @@ public:
         }
         return true;
     }
-    friend bool operator!=(const bytell_hash_set &lhs, const bytell_hash_set &rhs) {
-        return !(lhs == rhs);
-    }
+    friend bool operator!=(const bytell_hash_set &lhs, const bytell_hash_set &rhs) { return !(lhs == rhs); }
 };
 
 } // end namespace autil

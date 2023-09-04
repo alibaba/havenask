@@ -1,12 +1,4 @@
-load('//bazel:bundle.bzl', 'bundle_files', 'bundle_tar')
-load(
-    '@rules_cc//examples:experimental_cc_shared_library.bzl',
-    'cc_shared_library'
-)
-load(
-    '//bazel:defs.bzl', 'copy_target_to', 'gen_conf_lib', 'gen_cpp_code',
-    'hdrs_pkg'
-)
+load('//bazel:defs.bzl', 'hdrs_pkg')
 cc_library(
     name='indexlib_h',
     hdrs=['misc/common.h'],
@@ -112,26 +104,6 @@ genrule(
     visibility=['//aios/storage/indexlib:__subpackages__']
 )
 cc_library(
-    name='indexlib_codegen',
-    srcs=glob(['codegen/*.cpp', 'codegen/codegen_example/*.cpp']),
-    hdrs=(
-        glob(['codegen/*.h', 'codegen/codegen_example/*.h']) +
-        [':codegen_config_h']
-    ),
-    copts=['-Werror'],
-    include_prefix='indexlib',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
-    deps=[
-        ':indexlib_h', ':indexlib_misc', ':indexlib_plugin', '//aios/autil:json'
-    ]
-)
-bundle_tar(
-    name='codegen_package_tar',
-    srcs=['//aios/storage/indexlib:codegen_package'],
-    extension='tar',
-    visibility=[':__subpackages__']
-)
-cc_library(
     name='indexlib_plugin_config',
     hdrs=[
         'misc/common.h', '//aios/storage/indexlib/indexlib/config:module_info_h'
@@ -217,68 +189,21 @@ cc_library(
     alwayslink=True
 )
 cc_library(
-    name='indexlib_headers_without_codegen_config',
-    hdrs=([
-        '//aios/storage/indexlib/indexlib/config:config_headers',
-        '//aios/storage/indexlib/indexlib/index_base:index_base_headers',
-        '//aios/storage/indexlib/indexlib/index:index_headers',
-        '//aios/storage/indexlib/indexlib/common:common_headers',
-        '//aios/storage/indexlib/indexlib/util:util_headers',
-        '//aios/storage/indexlib/indexlib/document:document_headers',
-        'common_define.h', 'indexlib.h', 'index_define.h'
-    ] + glob([
-        'test/*.h', 'codegen/*.h', 'codegen/codegen_example/*.h', 'plugin/*.h',
-        'misc/*.h'
-    ])),
+    name='indexlib_testbase_helper',
     copts=['-Werror'],
     include_prefix='indexlib',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
+    deps=['//aios/storage/indexlib/indexlib/test:testbase_helper']
+)
+cc_library(
+    name='indexlib_testbase',
+    srcs=[],
+    copts=['-Werror'],
+    include_prefix='indexlib',
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
-        '//aios/aios/common/beeper', '//aios/autil:pack_data',
-        '//aios/filesystem/fslib:fslib-framework', '//aios/future_lite',
-        '//aios/kmonitor:kmonitor_client_cpp',
-        '//aios/storage/indexlib/base:FieldTypeUtil',
-        '//aios/storage/indexlib/base:Progress',
-        '//aios/storage/indexlib/file_system',
-        '//aios/storage/indexlib/file_system:byte_slice_rw',
-        '//aios/storage/indexlib/index/attribute:constants',
-        '//aios/storage/indexlib/index/common:constants',
-        '//aios/storage/indexlib/index/inverted_index:constants',
-        '//aios/storage/indexlib/index/kkv:constants',
-        '//aios/storage/indexlib/index/kv:constants',
-        '//aios/storage/indexlib/index/operation_log:constants',
-        '//aios/storage/indexlib/index/primary_key:constants',
-        '//aios/storage/indexlib/index/source:constants',
-        '//aios/storage/indexlib/index/summary:constants',
-        '//aios/storage/indexlib/util:all'
-    ]
-)
-bundle_files(
-    name='codegen_clang_include_package',
-    srcs=[':codegen_clang_include'],
-    prefix='usr/local/codegen_clang_include/indexlib',
-    strip_prefix='.',
-    visibility=['//aios/storage/indexlib:__subpackages__']
-)
-filegroup(
-    name='codegen_clang_include',
-    srcs=glob(['codegen/tool_code/clang_include/*.h'])
-)
-bundle_files(
-    name='codegen_source_code_package',
-    srcs=glob(['codegen/codegen_example/*.h', 'codegen/codegen_example/*.cpp']),
-    prefix='usr/local/codegen_source_code/indexlib',
-    strip_prefix='.',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
-    deps=[
-        '//aios/storage/indexlib/indexlib/index:index_source_code_for_codegen'
-    ]
-)
-filegroup(name='codegen_bin', srcs=glob(['codegen/tool_code/codegen/codegen']))
-bundle_files(
-    name='codegen_bin_package',
-    srcs=[':codegen_bin'],
-    prefix='usr/local/bin/',
-    strip_prefix='codegen/tool_code/codegen',
-    visibility=['//aios/storage/indexlib:__subpackages__']
+        '//aios/storage/indexlib/indexlib/test:testbase_helper',
+        '@com_google_protobuf//:protobuf'
+    ],
+    alwayslink=True
 )

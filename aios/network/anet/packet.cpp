@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 #include "aios/network/anet/packet.h"
-#include "aios/network/anet/timeutil.h"
 
 #include "aios/network/anet/channel.h"
 #include "aios/network/anet/common.h"
 #include "aios/network/anet/ipackethandler.h"
-
+#include "aios/network/anet/timeutil.h"
 
 BEGIN_ANET_NS();
 
@@ -32,8 +31,7 @@ Packet::Packet() {
     memset(&_packetHeader, 0, sizeof(PacketHeader));
 }
 
-Packet::~Packet() {
-}
+Packet::~Packet() {}
 
 void Packet::setChannel(Channel *channel) {
     if (channel) {
@@ -43,20 +41,16 @@ void Packet::setChannel(Channel *channel) {
     }
 }
 
-void Packet::setPcode(int32_t pcode) {
-    _packetHeader._pcode = pcode;
-}
+void Packet::setPcode(int32_t pcode) { _packetHeader._pcode = pcode; }
 
-int32_t Packet::getPcode() {
-    return _packetHeader._pcode;
-}
+int32_t Packet::getPcode() { return _packetHeader._pcode; }
 
 void Packet::setExpireTime(int milliseconds) {
-    if (milliseconds < 0)  {
+    if (milliseconds < 0) {
         _expireTime = TimeUtil::PRE_MAX;
     } else if (milliseconds == 0) {
         _expireTime = 0;
-    } else {/**@todo this design is not testing friendly*/
+    } else { /**@todo this design is not testing friendly*/
         _timeoutMs = milliseconds;
         _expireTime = TimeUtil::getTime() + static_cast<int64_t>(milliseconds) * static_cast<int64_t>(1000);
     }

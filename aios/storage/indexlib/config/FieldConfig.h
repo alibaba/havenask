@@ -53,7 +53,7 @@ public:
     bool SupportSort() const;
     const std::string& GetAnalyzerName() const;
     bool IsVirtual() const;
-    bool IsBuiltInField() const;
+
     const autil::legacy::json::JsonMap& GetUserDefinedParam() const;
 
 public:
@@ -70,7 +70,6 @@ public:
     void SetNullFieldLiteralString(const std::string& nullStr);
     void SetAnalyzerName(const std::string& analyzerName);
     void SetVirtual(bool isVirtual);
-    void SetBuiltInField(bool isBuiltIn);
     void SetUserDefinedParam(const autil::legacy::json::JsonMap& param);
 
 public:
@@ -107,7 +106,6 @@ public:
     inline static const std::string FIELD_DEFAULT_NULL_STRING_VALUE = "default_null_string";
     inline static const std::string FIELD_ANALYZER = "analyzer";
     inline static const std::string FIELD_VIRTUAL = "virtual";
-    inline static const std::string FIELD_IS_BUILT_IN = "built_in_field";
 
 private:
     struct Impl;

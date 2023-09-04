@@ -20,4 +20,11 @@ inline const std::string INVERTED_INDEX_TYPE_STR = "inverted_index";
 inline const std::string INVERTED_INDEX_PATH = "index";
 inline const std::string OPTIMIZE_MERGE = "optimize_merge";
 inline const std::string RANGE_INFO_FILE_NAME = "range_info";
+inline const std::string GENERAL_INVERTED_INDEX_TYPE_STR = "general_inverted_index"; // pk + inverted + ann
 } // namespace indexlib::index
+
+//////////////////////////////////////////////////////////////////////
+namespace indexlibv2::index {
+using indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR;
+using indexlib::index::INVERTED_INDEX_TYPE_STR;
+} // namespace indexlibv2::index

@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="summary_mix">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT nid, brand, price, size FROM phone_summary_ WHERE nid in (1, 2) or nid = 3 order by nid limit 100
+]]>
+</Element>
+        </Resource>
+        <Resource name="kvpair">
+          databaseName:phone;
+        </Resource>
+        <Resource name="column_names">"nid", "brand", "price", "size"</Resource>
+        <Resource name="column_types">uint64, multi_char, double, double</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1, "Huawei", 3599, 5.9
+2, "Huawei", 4388, 5.5
+3, "Xiaomi", 899, 5.0
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#4(type=api)
+    SortOp#3(directions=[ASC],limit=100,order_fields=[$nid])
+        ExchangeOp#2(distribution={type:SINGLETON})
+            SortOp#1(directions=[ASC],limit=100,order_fields=[$nid])
+                TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$nid,$brand,$price,$size],push_down_ops=[{attrs:{condition:{op:IN,params:[$nid,1,2,3],type:OTHER},output_fields:[$nid,$brand,$price,$size]},op_name:CalcOp}],table_name=phone,table_type=summary,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

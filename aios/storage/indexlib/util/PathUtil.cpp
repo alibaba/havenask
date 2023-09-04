@@ -15,6 +15,7 @@
  */
 #include "indexlib/util/PathUtil.h"
 
+#include "autil/EnvUtil.h"
 #include "fslib/fslib.h"
 
 using namespace std;
@@ -202,7 +203,7 @@ bool PathUtil::SupportMmap(const string& path) noexcept
 bool PathUtil::SupportPanguInlineFile(const string& path) noexcept
 {
     fslib::FsType fsType = fslib::fs::FileSystem::getFsType(path);
-    return fsType == "mpangu" || getenv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE");
+    return fsType == "mpangu" || autil::EnvUtil::hasEnv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE");
 }
 
 string PathUtil::AddFsConfig(const string& srcPath, const string& configStr) noexcept

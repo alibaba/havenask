@@ -21,19 +21,15 @@ FSLIB_BEGIN_NAMESPACE(fs);
 
 AUTIL_DECLARE_AND_SETUP_LOGGER(fs, DllWrapper);
 
-DllWrapper::DllWrapper(const std::string &dllPath ) {
+DllWrapper::DllWrapper(const std::string &dllPath) {
     AUTIL_LOG(TRACE3, "dllPath[%s]", dllPath.c_str());
     _dllPath = dllPath;
     _handle = NULL;
 }
 
-bool DllWrapper::initLibFile(){
-    return true;
-}
+bool DllWrapper::initLibFile() { return true; }
 
-DllWrapper::~DllWrapper() {
-    dlclose();
-}
+DllWrapper::~DllWrapper() { dlclose(); }
 
 bool DllWrapper::dlopen() {
     if (!initLibFile()) {
@@ -42,8 +38,8 @@ bool DllWrapper::dlopen() {
     }
 
     AUTIL_LOG(INFO, "dlopen(%s)", _dllPath.c_str());
-//    _handle = ::dlopen(_dllPath.c_str(), RTLD_NOW|RTLD_DEEPBIND|RTLD_LOCAL);
-    _handle = ::dlopen(_dllPath.c_str(), RTLD_NOW|RTLD_NODELETE);
+    //    _handle = ::dlopen(_dllPath.c_str(), RTLD_NOW|RTLD_DEEPBIND|RTLD_LOCAL);
+    _handle = ::dlopen(_dllPath.c_str(), RTLD_NOW | RTLD_NODELETE);
 
     if (!_handle) {
         AUTIL_LOG(ERROR, "open lib fail: [%s]", dlerror().c_str());
@@ -59,14 +55,14 @@ bool DllWrapper::dlclose() {
         _handle = NULL;
     }
 
-    return ret == 0 ;
+    return ret == 0;
 }
 
-void* DllWrapper::dlsym(const string &symName) {
+void *DllWrapper::dlsym(const string &symName) {
     if (!_handle) {
         return NULL;
     }
-    
+
     return ::dlsym(_handle, symName.c_str());
 }
 
@@ -80,8 +76,6 @@ string DllWrapper::dlerror() {
     return _lastError;
 }
 
-string DllWrapper::getLocalLibPath(){
-    return _dllPath;
-}
+string DllWrapper::getLocalLibPath() { return _dllPath; }
 
 FSLIB_END_NAMESPACE(fs);

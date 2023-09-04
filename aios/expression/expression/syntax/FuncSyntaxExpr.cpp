@@ -35,9 +35,11 @@ FuncSyntaxExpr::FuncSyntaxExpr(const std::string &funcName,
         if (expr->getSyntaxType() == SYNTAX_EXPR_TYPE_CONST_VALUE) {
             expr->setSyntaxType(SYNTAX_EXPR_TYPE_FUNC_ARGUMENT);
         }
+        _syntaxDepth = std::max(_syntaxDepth , expr->getSyntaxDepth());
     }
-    
+
     if (!_funcName.empty()) {
+        _syntaxDepth++;
         initExprString();
     }
 }
@@ -56,7 +58,7 @@ bool FuncSyntaxExpr::operator == (const SyntaxExpr *expr) const {
     assert(expr);
     const FuncSyntaxExpr *checkExpr =
         dynamic_cast<const FuncSyntaxExpr*>(expr);
-    
+
     if (!checkExpr) {
         return false;
     }
@@ -137,6 +139,10 @@ void FuncSyntaxExpr::deserialize(autil::DataBuffer &dataBuffer)
     {
         dataBuffer.read(_exprs);
     }
+    for(SubExprType::iterator i = _exprs.begin(); i != _exprs.end(); ++i) {
+        _syntaxDepth = std::max(_syntaxDepth , (*i)->getSyntaxDepth());
+    }
+    _syntaxDepth++;
     initExprString();
 }
 

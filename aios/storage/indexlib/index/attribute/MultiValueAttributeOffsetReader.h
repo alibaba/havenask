@@ -45,7 +45,7 @@ public:
     MultiValueAttributeOffsetReader& operator=(MultiValueAttributeOffsetReader& other) = delete;
     ~MultiValueAttributeOffsetReader() = default;
 
-    Status Init(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+    Status Init(const std::shared_ptr<AttributeConfig>& attrConfig,
                 const std::shared_ptr<indexlib::file_system::IDirectory>& attrDirectory, uint32_t docCount,
                 bool disableUpdate);
 
@@ -67,7 +67,7 @@ private:
     VarLenDataParam _varLenDataParam;
     MultiValueAttributeCompressOffsetReader _compressOffsetReader;
     MultiValueAttributeUnCompressOffsetReader _unCompressOffsetReader;
-    std::shared_ptr<config::AttributeConfig> _attrConfig;
+    std::shared_ptr<AttributeConfig> _attrConfig;
     std::shared_ptr<AttributeMetrics> _attributeMetrics;
 
 private:

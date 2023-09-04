@@ -15,9 +15,9 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <algorithm>
 #include <vector>
 
 #include "autil/LockFree.h"
@@ -26,9 +26,8 @@ namespace autil {
 
 static const size_t kLockFreeQueueFull = 0xFFFFFFFF;
 
-template<typename T>
-class LockFreeQueue
-{
+template <typename T>
+class LockFreeQueue {
     struct Node {
         uint64_t mPrev;
         uint64_t mNext;
@@ -49,10 +48,7 @@ private:
     bool AcquireNode(Node **node, bool allocateIfBufferEmpty = true);
     void ReleaseNode(Node *node);
     void FixList(uint64_t tail, uint64_t head);
-    inline static Node *ConvertToNode(uint64_t pointer)
-    {
-        return static_cast<Node *>(detail::GetPointer(pointer));
-    }
+    inline static Node *ConvertToNode(uint64_t pointer) { return static_cast<Node *>(detail::GetPointer(pointer)); }
 
 private:
     static const uint64_t kNullPointer = 0xFFFF000000000000;
@@ -63,9 +59,8 @@ private:
     __attribute__((aligned(64))) uint64_t mFreeNodeHead;
 };
 
-template<typename T>
-LockFreeQueue<T>::LockFreeQueue()
-{
+template <typename T>
+LockFreeQueue<T>::LockFreeQueue() {
     mSize = 0;
     mFreeNodeHead = kNullPointer;
 
@@ -77,13 +72,11 @@ LockFreeQueue<T>::LockFreeQueue()
     mTail = mHead;
 }
 
-template<typename T>
-LockFreeQueue<T>::~LockFreeQueue()
-{
+template <typename T>
+LockFreeQueue<T>::~LockFreeQueue() {
     T elem;
 
-    while (Pop(&elem)) {
-    }
+    while (Pop(&elem)) {}
 
     Node *node = 0;
 
@@ -95,9 +88,8 @@ LockFreeQueue<T>::~LockFreeQueue()
     delete node;
 }
 
-template<typename T>
-size_t LockFreeQueue<T>::Push(const T &elem)
-{
+template <typename T>
+size_t LockFreeQueue<T>::Push(const T &elem) {
     uint64_t tail;
     Node *node = 0;
     AcquireNode(&node);
@@ -120,9 +112,8 @@ size_t LockFreeQueue<T>::Push(const T &elem)
     return ret;
 }
 
-template<typename T>
-bool LockFreeQueue<T>::Pop(T *elem)
-{
+template <typename T>
+bool LockFreeQueue<T>::Pop(T *elem) {
     uint64_t tail, head, prev_of_first;
 
     while (true) {
@@ -146,8 +137,7 @@ bool LockFreeQueue<T>::Pop(T *elem)
 
                 Node *ppof = ConvertToNode(prev_of_first);
                 *elem = ppof->mValue;
-                uint64_t newhead =
-                    detail::MakePointer(ppof, detail::GetNextTag(head));
+                uint64_t newhead = detail::MakePointer(ppof, detail::GetNextTag(head));
 
                 if (AtomicCompareExchange(&mHead, newhead, head)) {
                     ReleaseNode(phead);
@@ -163,36 +153,31 @@ bool LockFreeQueue<T>::Pop(T *elem)
     return true;
 }
 
-template<typename T>
-void LockFreeQueue<T>::FixList(uint64_t tail, uint64_t head)
-{
+template <typename T>
+void LockFreeQueue<T>::FixList(uint64_t tail, uint64_t head) {
     uint64_t current, next;
     current = tail;
     while (head == mHead && current != head) {
         Node *pcurrent = ConvertToNode(current);
         next = pcurrent->mNext;
         Node *pnext = ConvertToNode(next);
-        pnext->mPrev =
-            detail::MakePointer(pcurrent, detail::GetPrevTag(current));
+        pnext->mPrev = detail::MakePointer(pcurrent, detail::GetPrevTag(current));
         current = detail::MakePointer(pnext, detail::GetPrevTag(current));
     }
 }
 
 template <typename T>
-size_t LockFreeQueue<T>::Size() const
-{
+size_t LockFreeQueue<T>::Size() const {
     return AtomicGet(&mSize);
 }
 
 template <typename T>
-bool LockFreeQueue<T>::Empty() const
-{
+bool LockFreeQueue<T>::Empty() const {
     return Size() == 0;
 }
 
-template<typename T>
-bool LockFreeQueue<T>::AcquireNode(Node **node, bool allocateIfBufferEmpty)
-{
+template <typename T>
+bool LockFreeQueue<T>::AcquireNode(Node **node, bool allocateIfBufferEmpty) {
     Node *pnode;
     uint64_t head;
     uint64_t newhead;
@@ -219,9 +204,8 @@ bool LockFreeQueue<T>::AcquireNode(Node **node, bool allocateIfBufferEmpty)
     return true;
 }
 
-template<typename T>
-void LockFreeQueue<T>::ReleaseNode(Node *node)
-{
+template <typename T>
+void LockFreeQueue<T>::ReleaseNode(Node *node) {
     // put this node into the head atomical
     node->mValue = T();
     uint64_t head;

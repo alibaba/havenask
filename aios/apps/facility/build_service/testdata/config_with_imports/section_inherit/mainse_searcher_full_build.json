@@ -1,0 +1,51 @@
+{
+    "build_option_config" : {
+	"inherit_from" : "section_configs/common/common_build_config.json",
+	"RawDocumentFormat" : "isearch",
+	"RawDocFilePattern" : "lasttable_common/good-part-<720>.gz;lasttable_mall/good-part-<720>.gz",
+	"DocumentProcessThreadNum" : 8,
+	"DocumentProcessQueueSize" : 5000,
+	"IndexDocumentQueueSize" : 5000,
+	"EnableSyncBuild" : false
+    },
+    "index_option_config" : {
+	"inherit_from" : "section_configs/common/common_index_option_config.json",
+	"MergeStrategy": "optimize",
+	"MergeStrategyParam": "",
+	"MergeThreadCount" : 4,
+	"TruncateOptionConfig" :
+	{
+            "TruncateStrategy" : [
+		{
+                    "StrategyName" : "distinct_sort",
+                    "Threshold" : 100000,
+                    "Limit" : 50000,
+                    "DiversityConstrain": {
+			"DistinctField" : "user_id",
+			"DistinctCount" : 20000,
+			"DistinctExpandLimit" : 150000
+                    }
+		},
+		{
+                    "StrategyName" : "distinct_sort_for_ends",
+                    "Threshold" : 120000,
+                    "Limit" : 80000,
+                    "DiversityConstrain": {
+			"DistinctField" : "user_id",
+			"DistinctCount" : 32000,
+			"DistinctExpandLimit" : 180000
+                    }
+		}
+            ],
+            "ProfileToStrategyNameMap" : {
+		"desc_static_trans_score" : "distinct_sort",
+		"desc_tk_trans_score" : "distinct_sort",
+		"desc_biz30day" : "distinct_sort",
+		"desc_tk_total_sales" : "distinct_sort",
+		"desc_uvsum" : "distinct_sort",
+		"desc_uvsum_suc" : "distinct_sort",
+		"asc_ends" : "distinct_sort"
+            }
+	}
+    }
+}

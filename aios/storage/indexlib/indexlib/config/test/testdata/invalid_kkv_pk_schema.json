@@ -1,0 +1,30 @@
+{
+    "table_name": "kkv_table",
+    "table_type": "kkv",
+    "fields": [
+        { "field_name": "nid", "field_type": "INT64" },
+        { "field_name": "pidvid", "field_type": "INT64", "multi_value": true },
+        { "field_name": "timestamp", "field_type": "INT64" }
+    ],
+    "indexs":
+    [
+        {
+            "index_name": "nid",
+            "index_type": "NUMBER",
+            "index_fields": "nid",
+            "index_preference":
+            {
+                "type" : "PERF",
+                "parameters":
+                {
+                    "hash_dict": { "type": "dense"},
+                    "suffix_key": {"file_compressor": "zstd", "file_compressor_buffer_size": 4096 },
+                    "value": { "file_compressor": "lz4", "file_compressor_buffer_size": 4096 }
+                },
+                "value_inline" : false
+            }
+        }
+    ],
+    "attributes": [ "nid", "pidvid", "timestamp" ],
+    "enable_ttl": true
+}

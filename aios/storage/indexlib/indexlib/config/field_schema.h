@@ -25,7 +25,9 @@
 #include "indexlib/indexlib.h"
 
 DECLARE_REFERENCE_CLASS(config, FieldSchemaImpl);
-
+namespace indexlibv2 { namespace config {
+class LegacySchemaConvertor;
+}} // namespace indexlibv2::config
 namespace indexlib { namespace config {
 
 class IndexPartitionSchemaImpl;
@@ -83,6 +85,7 @@ private:
     const std::vector<std::shared_ptr<FieldConfig>>& GetFieldConfigs() const;
 
     friend class indexlib::config::IndexPartitionSchemaImpl;
+    friend class indexlibv2::config::LegacySchemaConvertor;
 
 private:
     IE_LOG_DECLARE();

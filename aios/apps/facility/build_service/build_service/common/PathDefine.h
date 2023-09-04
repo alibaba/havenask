@@ -69,6 +69,9 @@ public:
     static std::string getGenerationStopFile(const std::string& zkRoot, const proto::BuildId& buildId);
     static std::string getPartitionZkRoot(const std::string& zkRoot, const proto::PartitionId& pid,
                                           bool ignoreBackupId = false);
+    static std::string getRoleZkPath(const std::string& generationRoot, const proto::PartitionId& pid,
+                                     bool ignoreBackupId);
+
     static bool getAllGenerations(const std::string& adminZkRoot, std::vector<proto::BuildId>& buildIds);
     static std::string getLocalConfigPath();
     static std::string getLocalDataPath();
@@ -110,6 +113,8 @@ public:
     static const std::string CHECK_POINT_STATUS_FILE;
     static const std::string ZK_GENERATION_INDEX_INFOS;
     static const std::string ZK_SERVICE_INFO_TEMPLATE;
+    static const std::string ZK_GLOBAL_AGENT_CONFIG;
+    static const std::string ZK_GLOBAL_AGENT_TARGET_INFO;
     static const std::string WORKER_RUNTIMEDATA_PATH;
     static const std::string ZK_SCHEDULE_TIMESTAMP_FILE;
 

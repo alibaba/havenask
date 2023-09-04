@@ -25,14 +25,19 @@
 
 namespace multi_call {
 
-class GigJavaClosure : public Closure {
+class GigJavaClosure : public Closure
+{
 public:
-    GigJavaClosure(JavaCallback callback, long callbackId,
-                   const GigRequestGeneratorPtr &generator)
-        : _callback(callback), _callbackId(callbackId),
-          _arena(generator->getProtobufArena()), _isMulti(generator->isMulti()),
-          _requestId(generator->getRequestId()) {}
-    virtual ~GigJavaClosure() { _arena.reset(); }
+    GigJavaClosure(JavaCallback callback, long callbackId, const GigRequestGeneratorPtr &generator)
+        : _callback(callback)
+        , _callbackId(callbackId)
+        , _arena(generator->getProtobufArena())
+        , _isMulti(generator->isMulti())
+        , _requestId(generator->getRequestId()) {
+    }
+    virtual ~GigJavaClosure() {
+        _arena.reset();
+    }
 
 private:
     GigJavaClosure(const GigJavaClosure &);
@@ -40,18 +45,22 @@ private:
 
 public:
     virtual void Run() override;
-    virtual bool extractResponse(ResponsePtr response,
-                                 GigResponseHeader *responseHeader,
+    virtual bool extractResponse(ResponsePtr response, GigResponseHeader *responseHeader,
                                  const char *&body, size_t &bodySize) = 0;
-    bool extract(ResponsePtr response, GigResponseHeader *responseHeader,
-                 const char *&body, size_t &bodySize);
+    bool extract(ResponsePtr response, GigResponseHeader *responseHeader, const char *&body,
+                 size_t &bodySize);
 
 public:
-    ReplyPtr &getReply() { return _reply; }
-    bool isMulti() const { return _isMulti; }
+    ReplyPtr &getReply() {
+        return _reply;
+    }
+    bool isMulti() const {
+        return _isMulti;
+    }
     void setSpan(const opentelemetry::SpanPtr &span) {
         _span = span;
     }
+
 protected:
     JavaCallback _callback;
     long _callbackId;

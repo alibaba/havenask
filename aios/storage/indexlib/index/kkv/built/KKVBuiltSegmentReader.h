@@ -134,14 +134,8 @@ template <typename SKeyType>
 inline size_t KKVBuiltSegmentReader<SKeyType>::EvaluateCurrentMemUsed()
 {
     size_t pkeyMemUse = _pkeyTable->GetTotalMemoryUse();
-    size_t skeyMemUse = indexlib::file_system::ReaderOption::DEFAULT_BUFFER_SIZE;
-    if (IsSkeyInMemory()) {
-        skeyMemUse = _skeyReader->GetLength();
-    }
-    size_t valueMemUse = indexlib::file_system::ReaderOption::DEFAULT_BUFFER_SIZE;
-    if (IsValueInMemory()) {
-        valueMemUse = _valueReader->GetLength();
-    }
+    size_t skeyMemUse = _skeyReader->EvaluateCurrentMemUsed();
+    size_t valueMemUse = _valueReader ? _valueReader->EvaluateCurrentMemUsed() : 0;
     return pkeyMemUse + skeyMemUse + valueMemUse;
 }
 

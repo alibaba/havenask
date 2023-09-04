@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='KKVTableResourceCreator',
     srcs=[],
     hdrs=[],
@@ -8,7 +8,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/kv_table/index_task:KVTableResourceCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVTableTaskPlanCreator',
     deps=[
         ':KKVTableTaskOperationCreator',
@@ -17,14 +17,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/kv_table/index_task:KVTableMergePlanCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVTableTaskOperationCreator',
     deps=[
         ':KKVIndexMergeOperation',
         '//aios/storage/indexlib/table/index_task/merger:CommonTaskOperationCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVIndexMergeOperation',
     deps=[
         '//aios/storage/indexlib/index/kkv/merge:kkv_index_merger',

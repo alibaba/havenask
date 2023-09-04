@@ -1,10 +1,10 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentMergePlan',
     deps=['//aios/autil:json', '//aios/storage/indexlib/framework:TabletData']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MergePlan',
     deps=[
         ':SegmentMergePlan', '//aios/autil:json',
@@ -17,8 +17,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task:IndexTaskConstant'
     ]
 )
-indexlib_cc_library(name='MergeStrategy', deps=[':MergePlan'])
-indexlib_cc_library(
+strict_cc_library(name='MergeStrategy', deps=[':MergePlan'])
+strict_cc_library(
     name='CommonTaskOperationCreator',
     deps=[
         ':EndMergeTaskOperation', ':FenceDirDeleteOperation',
@@ -29,7 +29,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework/index_task:IndexOperationDescription'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='CommonMergeDescriptionCreator',
     deps=[
         ':EndMergeTaskOperation', ':FenceDirDeleteOperation',
@@ -40,8 +40,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task:IndexTaskConstant'
     ]
 )
-indexlib_cc_library(name='MergeStrategyDefine', deps=['//aios/autil:log'])
-indexlib_cc_library(
+strict_cc_library(name='MergeStrategyDefine', deps=['//aios/autil:log'])
+strict_cc_library(
     name='ShardBasedMergeStrategy',
     deps=[
         ':MergePlan', ':MergeStrategy', ':MergeStrategyDefine',
@@ -54,7 +54,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/deletionmap:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiShardIndexMergeOperation',
     deps=[
         ':IndexMergeOperation', ':MergePlan', ':MergeStrategy',
@@ -69,7 +69,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/plain:MultiShardDiskSegment'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='RealtimeMergeStrategy',
     srcs=['RealtimeMergeStrategy.cpp'],
     hdrs=['RealtimeMergeStrategy.h'],
@@ -86,7 +86,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/deletionmap:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SpecificSegmentsMergeStrategy',
     deps=[
         ':MergePlan', ':MergeStrategy', ':MergeStrategyDefine',
@@ -100,10 +100,10 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/deletionmap:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexMergeOperation',
     deps=[
-        ':MergePlan', ':MergeUtil', '//aios/autil:log',
+        ':MergePlan', '//aios/autil:log',
         '//aios/storage/indexlib/base:PathUtil',
         '//aios/storage/indexlib/framework:Segment',
         '//aios/storage/indexlib/framework:TabletData',
@@ -117,10 +117,10 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task:IndexTaskConstant'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MergedVersionCommitOperation',
     deps=[
-        ':MergePlan', ':MergeUtil', '//aios/autil:log',
+        ':MergePlan', '//aios/autil:log',
         '//aios/storage/indexlib/config:TabletOptions',
         '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/framework:VersionCommitter',
@@ -131,14 +131,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework/index_task:IndexOperationDescription',
         '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
         '//aios/storage/indexlib/framework/index_task:IndexTaskResourceManager',
-        '//aios/storage/indexlib/index/inverted_index/config:TruncateIndexNameMapper'
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateIndexNameMapper',
+        '//aios/storage/indexlib/table/index_task:VersionResource'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MergedSegmentMoveOperation',
     deps=[
-        ':MergePlan', ':MergeUtil', '//aios/autil:log',
-        '//aios/storage/indexlib/file_system',
+        ':MergePlan', '//aios/autil:log', '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/framework:Segment',
         '//aios/storage/indexlib/framework/index_task:IndexOperation',
         '//aios/storage/indexlib/framework/index_task:IndexOperationDescription',
@@ -148,7 +148,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task:IndexTaskConstant'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PathMoveOperation',
     deps=[
         '//aios/autil:log', '//aios/storage/indexlib/file_system',
@@ -157,7 +157,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework/index_task:IndexTaskContext'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='EndMergeTaskOperation',
     deps=[
         '//aios/autil:log', '//aios/storage/indexlib/file_system',
@@ -171,23 +171,12 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task:IndexTaskConstant'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='FenceDirDeleteOperation',
     deps=[
         '//aios/autil:log', '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/framework/index_task:IndexOperation',
         '//aios/storage/indexlib/framework/index_task:IndexOperationDescription',
         '//aios/storage/indexlib/framework/index_task:IndexTaskContext'
-    ]
-)
-indexlib_cc_library(
-    name='MergeUtil',
-    deps=[
-        '//aios/autil:log', '//aios/storage/indexlib/config:MergeConfig',
-        '//aios/storage/indexlib/config:TabletOptions',
-        '//aios/storage/indexlib/framework:Segment',
-        '//aios/storage/indexlib/framework:TabletData',
-        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
-        '//aios/storage/indexlib/index:IIndexMerger'
     ]
 )

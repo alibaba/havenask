@@ -34,17 +34,16 @@ namespace search {
 AUTIL_LOG_SETUP(ha3, OrQueryExecutor);
 
 OrQueryExecutor::OrQueryExecutor() {
-    _count = 0;    
+    _count = 0;
 }
 
-OrQueryExecutor::~OrQueryExecutor() { 
-}
+OrQueryExecutor::~OrQueryExecutor() {}
 
 void OrQueryExecutor::accept(ExecutorVisitor *visitor) const {
     visitor->visitOrExecutor(this);
 }
 
-indexlib::index::ErrorCode OrQueryExecutor::doSeek(docid_t id, docid_t& result) {
+indexlib::index::ErrorCode OrQueryExecutor::doSeek(docid_t id, docid_t &result) {
     docid_t docId = INVALID_DOCID;
     do {
         auto ec = getQueryExecutor(_qeMinHeap[1].entryId)->seek(id, docId);
@@ -52,7 +51,7 @@ indexlib::index::ErrorCode OrQueryExecutor::doSeek(docid_t id, docid_t& result) 
         _qeMinHeap[1].docId = docId;
         adjustDown(1, _count, _qeMinHeap.data());
     } while (id > _qeMinHeap[1].docId);
-    result =  _qeMinHeap[1].docId;
+    result = _qeMinHeap[1].docId;
     return indexlib::index::ErrorCode::OK;
 }
 
@@ -61,9 +60,8 @@ void OrQueryExecutor::reset() {
     addQueryExecutors(_queryExecutors);
 }
 
-indexlib::index::ErrorCode OrQueryExecutor::seekSubDoc(docid_t docId, docid_t subDocId,
-                                    docid_t subDocEnd, bool needSubMatchdata, docid_t& result)
-{
+indexlib::index::ErrorCode OrQueryExecutor::seekSubDoc(
+    docid_t docId, docid_t subDocId, docid_t subDocEnd, bool needSubMatchdata, docid_t &result) {
     if (!_hasSubDocExecutor) {
         docid_t currSubDocId = END_DOCID;
         if (getDocId() == docId && subDocId < subDocEnd) {
@@ -78,8 +76,8 @@ indexlib::index::ErrorCode OrQueryExecutor::seekSubDoc(docid_t docId, docid_t su
     const QueryExecutorVector &queryExecutors = getQueryExecutors();
     docid_t minSubDocId = END_DOCID;
     for (QueryExecutorVector::const_iterator it = queryExecutors.begin();
-         it != queryExecutors.end(); ++it)
-    {
+         it != queryExecutors.end();
+         ++it) {
         docid_t ret = INVALID_DOCID;
         auto ec = (*it)->seekSub(docId, subDocId, subDocEnd, needSubMatchdata, ret);
         IE_RETURN_CODE_IF_ERROR(ec);
@@ -91,7 +89,7 @@ indexlib::index::ErrorCode OrQueryExecutor::seekSubDoc(docid_t docId, docid_t su
     return indexlib::index::ErrorCode::OK;
 }
 
-void OrQueryExecutor::addQueryExecutors(const vector<QueryExecutor*> &queryExecutors) {
+void OrQueryExecutor::addQueryExecutors(const vector<QueryExecutor *> &queryExecutors) {
     _hasSubDocExecutor = false;
     _queryExecutors = queryExecutors;
     _qeMinHeap.clear();
@@ -102,7 +100,7 @@ void OrQueryExecutor::addQueryExecutors(const vector<QueryExecutor*> &queryExecu
         _hasSubDocExecutor = _hasSubDocExecutor || queryExecutors[i]->hasSubDocExecutor();
         QueryExecutorEntry newEntry;
         newEntry.docId = INVALID_DOCID;
-        newEntry.entryId = _count ++;
+        newEntry.entryId = _count++;
         _qeMinHeap.push_back(newEntry);
     }
 }
@@ -113,15 +111,14 @@ bool OrQueryExecutor::isMainDocHit(docid_t docId) const {
     }
     const QueryExecutorVector &queryExecutors = getQueryExecutors();
     for (QueryExecutorVector::const_iterator it = queryExecutors.begin();
-         it != queryExecutors.end(); ++it)
-    {
-        if((*it)->getDocId() == docId && (*it)->isMainDocHit(docId)) {
+         it != queryExecutors.end();
+         ++it) {
+        if ((*it)->getDocId() == docId && (*it)->isMainDocHit(docId)) {
             return true;
         }
     }
     return false;
 }
-
 
 df_t OrQueryExecutor::getDF(GetDFType type) const {
     df_t sumDF = 0;
@@ -137,4 +134,3 @@ string OrQueryExecutor::toString() const {
 
 } // namespace search
 } // namespace isearch
-

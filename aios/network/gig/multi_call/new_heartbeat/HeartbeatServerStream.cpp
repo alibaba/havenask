@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/new_heartbeat/HeartbeatServerStream.h"
+
 #include "aios/network/gig/multi_call/new_heartbeat/HeartbeatServerManager.h"
 #include "aios/network/gig/multi_call/new_heartbeat/ServerTopoMap.h"
 #include "aios/network/gig/multi_call/proto/NewHeartbeat.pb.h"
@@ -25,8 +26,7 @@ HeartbeatServerStream::HeartbeatServerStream(const HeartbeatServerManagerPtr &ma
     : _clientId(manager->getNewId())
     , _serverTopoMap(manager->getServerTopoMap())
     , _inited(false)
-    , _cancelled(false)
-{
+    , _cancelled(false) {
     AUTIL_LOG(DEBUG, "new client connection received, clientId [%lu], this [%p] manager [%p]",
               _clientId, this, manager.get());
 }
@@ -82,8 +82,7 @@ void HeartbeatServerStream::setClientSignatureMap(const SignatureMapPtr &newMap)
 }
 
 void HeartbeatServerStream::receiveCancel(const multi_call::GigStreamMessage &message,
-                                          multi_call::MultiCallErrorCode ec)
-{
+                                          multi_call::MultiCallErrorCode ec) {
     _inited = true;
     _cancelled = true;
     AUTIL_LOG(INFO, "cancel message received, clientId: %lu", _clientId);
@@ -158,4 +157,4 @@ void HeartbeatServerStream::fillResponse(NewHeartbeatResponse &response) {
     }
 }
 
-}
+} // namespace multi_call

@@ -35,19 +35,27 @@ public:
                                               const std::shared_ptr<IDirectory>& outputDirectory,
                                               const std::string& parentDirName,
                                               const MergePackageMeta& mergePackageMeta,
-                                              uint32_t packagingThresholdBytes) noexcept;
+                                              uint32_t packagingThresholdBytes, uint32_t threadCount) noexcept;
     static FSResult<void> CleanSrcIndexFiles(const std::shared_ptr<IDirectory>& directoryToClean,
                                              const std::shared_ptr<IDirectory>& directoryWithPackagingPlan) noexcept;
     static FSResult<bool> IsPackageConversionDone(const std::shared_ptr<IDirectory>& directory);
 
 public:
-    static FSResult<void> LoadOrGeneratePackagingPlan(const std::shared_ptr<IDirectory>& outputDirectory,
+    static FSResult<void> LoadOrGeneratePackagingPlan(const std::shared_ptr<IDirectory>& workingDirectory,
+                                                      const std::shared_ptr<IDirectory>& outputDirectory,
+                                                      const std::string& parentDirName,
                                                       const MergePackageMeta& mergePackageMeta,
                                                       int32_t packagingThresholdBytes, PackagingPlan* plan) noexcept;
     static FSResult<void> MoveOrCopyIndexToPackages(const std::shared_ptr<IDirectory>& currentFenceDirectory,
                                                     const std::shared_ptr<IDirectory>& outputDirectory,
-                                                    const PackagingPlan& packagingPlan) noexcept;
-    static FSResult<void> GeneratePackageMeta(const std::shared_ptr<IDirectory>& outputDirectory,
+                                                    const PackagingPlan& packagingPlan, uint32_t threadCount,
+                                                    uint64_t hashMatcher) noexcept;
+    static FSResult<void> MoveOrCopyIndexToPackagesMultiThread(const std::shared_ptr<IDirectory>& currentFenceDirectory,
+                                                               const std::shared_ptr<IDirectory>& outputDirectory,
+                                                               const PackagingPlan& packagingPlan,
+                                                               uint32_t threadCount) noexcept;
+    static FSResult<void> GeneratePackageMeta(const std::shared_ptr<IDirectory>& workingDirectory,
+                                              const std::shared_ptr<IDirectory>& outputDirectory,
                                               const std::string& parentDirName,
                                               const PackagingPlan& packagingPlan) noexcept;
 
@@ -68,6 +76,8 @@ private:
     static size_t GetAlignedFileSize(size_t fileSize);
     static void FinalizeFilstListToPackage(size_t packageIndex, const std::string& tag,
                                            FileListToPackage* fileListToPackage) noexcept;
+    static FSResult<void> ValidatePackageFiles(const std::shared_ptr<IDirectory>& outputDirectory,
+                                               const PackagingPlan& packagingPlan) noexcept;
 
 private:
     AUTIL_LOG_DECLARE();

@@ -52,7 +52,7 @@ public:
 
     template <typename Fetcher, typename Src>
     static bool GetAttributeValue(Fetcher* const attrFetcher, const Src attrIndex,
-                                  const std::shared_ptr<indexlibv2::config::AttributeConfig>& attrConfig,
+                                  const std::shared_ptr<indexlibv2::index::AttributeConfig>& attrConfig,
                                   indexlibv2::base::AttrValue& rattrvalue)
     {
         auto fieldType = attrConfig->GetFieldType();

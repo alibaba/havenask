@@ -1,0 +1,42 @@
+{
+    "topic": "mainse",
+    "fields": [
+        {
+            "name": "CMD",
+            "type": "string"
+        },
+        {
+            "name": "timestamp",
+            "type": "string"
+        },
+        {
+            "name": "price",
+            "type": "string"
+        },
+        {
+            "name": "title",
+            "type": "string"
+        },
+        {
+            "name": "phone_series",
+            "subFields": [
+                {
+                    "name": "iphone",
+                    "type": "string"
+                },
+                {
+                    "name": "huawei",
+                    "type": "string"
+                },
+                {
+                    "name": "xiaomi",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "image_path",
+            "type": "string"
+        }
+    ]
+}

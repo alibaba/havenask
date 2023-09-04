@@ -182,6 +182,7 @@ IndexAccessoryReader::GetSortPattern(const std::shared_ptr<PackageIndexConfig>& 
 
     auto attrConfig = sectionAttrConf->CreateAttributeConfig(indexConfig->GetIndexName());
     if (!attrConfig) {
+        assert(false);
         return indexlibv2::config::sp_nosort;
     }
 

@@ -35,7 +35,7 @@ void GigRequestGenerator::generate(PartIdTy partCnt, PartRequestMap &requestMap)
 }
 
 bool GigRequestGenerator::generatePartRequests(const char *body, int len,
-        const GigRequestPlan &requestPlan) {
+                                               const GigRequestPlan &requestPlan) {
 
     std::string bodyStr(body, len);
     _request = generateRequest(bodyStr, requestPlan);
@@ -55,8 +55,7 @@ bool GigRequestGenerator::generatePartRequests(const char *body, int len,
             continue;
         }
         if (partRequest.has_body()) {
-            _partRequests[partId] =
-                generateRequest(partRequest.body(), requestPlan);
+            _partRequests[partId] = generateRequest(partRequest.body(), requestPlan);
         } else {
             _partRequests[partId] = _request;
         }
@@ -64,4 +63,4 @@ bool GigRequestGenerator::generatePartRequests(const char *body, int len,
     return true;
 }
 
-}
+} // namespace multi_call

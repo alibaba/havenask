@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stddef.h>
-#include <cassert>
-#include <algorithm>
-#include <ostream>
-
-#include "aios/network/arpc/arpc/RPCServer.h"
 #include "aios/network/arpc/arpc/RPCServerList.h"
-#include "aios/network/arpc/arpc/util/Log.h"
+
+#include <algorithm>
+#include <cassert>
+#include <ostream>
+#include <stddef.h>
+
+#include "aios/autil/autil/Lock.h"
 #include "aios/network/anet/ilogger.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
-#include "aios/autil/autil/Lock.h"
+#include "aios/network/arpc/arpc/RPCServer.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 
 using namespace std;
 
@@ -31,26 +32,22 @@ ARPC_BEGIN_NAMESPACE(arpc);
 
 static int RPCServerCount = 0;
 
-RPCServerListT &getRPCServerList()
-{
+RPCServerListT &getRPCServerList() {
     static RPCServerListT RPCServerList;
     return RPCServerList;
 }
 
-autil::ThreadMutex &getRPCServerListMutex()
-{
+autil::ThreadMutex &getRPCServerListMutex() {
     static autil::ThreadMutex RPCServerListMutex;
     return RPCServerListMutex;
 }
 
-int getRPCServerCount()
-{
+int getRPCServerCount() {
     autil::ScopedLock lock(getRPCServerListMutex());
     return RPCServerCount;
 }
 
-bool addRPCServerToList(RPCServer *s)
-{
+bool addRPCServerToList(RPCServer *s) {
     bool added = false;
     int i = 0;
     RPCServerListT &list = getRPCServerList();
@@ -79,8 +76,7 @@ bool addRPCServerToList(RPCServer *s)
     return added;
 }
 
-bool delRPCServerFromList(RPCServer *s)
-{
+bool delRPCServerFromList(RPCServer *s) {
     bool deleted = false;
     RPCServerListT &list = getRPCServerList();
     autil::ThreadMutex &mutex = getRPCServerListMutex();
@@ -98,8 +94,7 @@ bool delRPCServerFromList(RPCServer *s)
     return deleted;
 }
 
-int findRPCServerFromList(RPCServer *s)
-{
+int findRPCServerFromList(RPCServer *s) {
     int rc = -1;
     RPCServerListT &list = getRPCServerList();
     autil::ThreadMutex &mutex = getRPCServerListMutex();
@@ -116,14 +111,13 @@ int findRPCServerFromList(RPCServer *s)
     return rc;
 }
 
-int dumpRPCServerList(ostringstream &out)
-{
+int dumpRPCServerList(ostringstream &out) {
     RPCServerListT &list = getRPCServerList();
     autil::ThreadMutex &mutex = getRPCServerListMutex();
 
     int count = getRPCServerCount();
     out << "===============================Dump of RPCServers===============================" << endl
-        << "Total count of RPCServers: " << count  << endl;
+        << "Total count of RPCServers: " << count << endl;
 
     if (count == MAX_RPCSERVERS) {
         out << "[Warning]: RPCServer count is up to limit(" << MAX_RPCSERVERS << ")." << endl
@@ -133,7 +127,8 @@ int dumpRPCServerList(ostringstream &out)
     autil::ScopedLock lock(mutex);
 
     for (int i = 0; i < MAX_RPCSERVERS; ++i) {
-        if (list[i] != NULL) list[i]->dump(out);
+        if (list[i] != NULL)
+            list[i]->dump(out);
     }
 
     return 0;

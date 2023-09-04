@@ -15,11 +15,11 @@
  */
 #pragma once
 
-#include <memory>
+#include <stddef.h>
+#include <stdint.h>
 #include <string>
 
-enum IquanErrorCode
-{
+enum IquanErrorCode {
     IQUAN_OK = 0,
     IQUAN_FAIL = -1,
     IQUAN_OOM = -2,
@@ -63,6 +63,7 @@ enum IquanErrorCode
     IQUAN_FAILED_TO_OPTIMIZE_GRAPH = -40,
     IQUAN_GET_FROM_CACHE_FAILED = -41,
     IQUAN_LAYER_TABLE_ERROR = -42,
+    IQUAN_NO_JVM_ENV = -43,
 };
 
 #define IQUAN_TYPEDEF_PTR(x) typedef std::shared_ptr<x> x##Ptr;
@@ -75,20 +76,20 @@ enum IquanErrorCode
 #define unlikely(x) __builtin_expect((x), false)
 #endif
 
-#define IQUAN_RETURN_ERROR_IF_NULL(obj, errorCode, errorMessage)                                                       \
-    if (unlikely(!obj.get())) {                                                                                        \
-        return Status(errorCode, errorMessage);                                                                        \
+#define IQUAN_RETURN_ERROR_IF_NULL(obj, errorCode, errorMessage)                                   \
+    if (unlikely(!obj.get())) {                                                                    \
+        return Status(errorCode, errorMessage);                                                    \
     }
 
-#define IQUAN_ENSURE(rc)                                                                                               \
-    if (unlikely(!rc.ok())) {                                                                                          \
-        return rc;                                                                                                     \
+#define IQUAN_ENSURE(rc)                                                                           \
+    if (unlikely(!rc.ok())) {                                                                      \
+        return rc;                                                                                 \
     }
 
-#define IQUAN_ENSURE_FUNC(func)                                                                                        \
-    {                                                                                                                  \
-        Status rc = func;                                                                                              \
-        IQUAN_ENSURE(rc)                                                                                               \
+#define IQUAN_ENSURE_FUNC(func)                                                                    \
+    {                                                                                              \
+        Status rc = func;                                                                          \
+        IQUAN_ENSURE(rc)                                                                           \
     }
 
 constexpr char BINARY_PATH[] = "binaryPath";
@@ -97,12 +98,13 @@ constexpr char BINARY_PATH[] = "binaryPath";
 constexpr char IQUAN_TABLE_TYPE_EXTERNAL[] = "external";
 constexpr char IQUAN_TABLE_TYPE_NORMAL[] = "normal";
 constexpr char IQUAN_TABLE_TYPE_CUSTOMIZED[] = "customized";
+constexpr char IQUAN_TABLE_TYPE_KHRONOS[] = "khronos";
 constexpr char IQUAN_TABLE_TYPE_KKV[] = "kkv";
 constexpr char IQUAN_TABLE_TYPE_KV[] = "kv";
 constexpr char IQUAN_TABLE_TYPE_SUMMARY[] = "summary";
 constexpr char IQUAN_TABLE_TYPE_KHRONOS_META[] = "khronos_meta";
-constexpr char IQUAN_TABLE_TYPE_KHRONOS_DATA[] = "khronos_data";
 constexpr char IQUAN_TABLE_TYPE_KHRONOS_SERIES_DATA[] = "khronos_series_data";
+constexpr char IQUAN_TABLE_TYPE_KHRONOS_SERIES_DATA_V3[] = "khronos_series_data_v3";
 constexpr char IQUAN_TABLE_TYPE_ORC[] = "orc";
 constexpr char IQUAN_TABLE_TYPE_AGGREGATION[] = "aggregation";
 
@@ -133,6 +135,7 @@ constexpr char KHRONOS_INDEX_TYPE_SERIES_VALUE[] = "khronos_series_value_dict";
 constexpr char KHRONOS_INDEX_TYPE_SERIES_STRING[] = "khronos_series_string_dict";
 constexpr char KHRONOS_INDEX_TYPE_TAGS[] = "khronos_tags";
 constexpr char KHRONOS_META_TABLE_NAME[] = "khronos_meta";
+constexpr char KHRONOS_META_TABLE_NAME_V3_SUFFIX[] = "_meta";
 constexpr char KHRONOS_DATA_TABLE_NAME_DEFAULT[] = "__default__";
 constexpr char KHRONOS_DATA_TABLE_NAME_SERIES[] = "series";
 constexpr char KHRONOS_PARAM_KEY_VALUE_FIELD_SUFFIX[] = "value_field_suffix";
@@ -146,6 +149,7 @@ constexpr char KINGSO_HASH_SEPARATOR[] = "#";
 constexpr char KINGSO_HASH_PARTITION_CNT[] = "partition_cnt";
 
 constexpr char SQL_DEFAULT_CATALOG_NAME[] = "default";
+constexpr char SQL_DEFAULT_DATABASE_NAME[] = "default";
 constexpr char SQL_DEFAULT_EXTERNAL_DATABASE_NAME[] = "remote";
 
 constexpr char PK64_INDEX_TYPE[] = "PRIMARYKEY64";
@@ -204,14 +208,6 @@ constexpr char IQUAN_SQL_OPTIMIZER_PLAN_GET_CACHE[] = "sql.optimizer.plan.get.ca
 constexpr char IQUAN_SQL_OPTIMIZER_PLAN_PUT_CACHE[] = "sql.optimizer.plan.put.cache";
 
 namespace iquan {
-// op name
-constexpr char EXCHANGE_OP[] = "Exchange";
-constexpr char SCAN_OP[] = "ScanKernel";
-constexpr char ASYNC_SCAN_OP[] = "AsyncScanKernel";
-constexpr char KHRONOS_SCAN_OP[] = "KhronosTableScanKernel";
-constexpr char TABLET_ORC_SCAN_OP[] = "TabletOrcScanKernel";
-constexpr char UNION_OP[] = "UnionKernel";
-constexpr char HASH_JOIN_OP[] = "HashJoinKernel";
 
 // parallel
 constexpr char PARALLEL_NUM_ATTR[] = "parallel_num";

@@ -29,26 +29,27 @@
 namespace autil {
 namespace mem_pool {
 class Pool;
-}  // namespace mem_pool
-}  // namespace autil
+} // namespace mem_pool
+} // namespace autil
 namespace isearch {
 namespace search {
 class BitmapTermQueryExecutor;
-}  // namespace search
-}  // namespace isearch
+} // namespace search
+} // namespace isearch
 
 namespace isearch {
 namespace search {
 class ExecutorVisitor;
 
-class BitmapAndQueryExecutor : public MultiQueryExecutor
-{
+class BitmapAndQueryExecutor : public MultiQueryExecutor {
 public:
     BitmapAndQueryExecutor(autil::mem_pool::Pool *pool);
     ~BitmapAndQueryExecutor();
+
 private:
     BitmapAndQueryExecutor(const BitmapAndQueryExecutor &);
-    BitmapAndQueryExecutor& operator=(const BitmapAndQueryExecutor &);
+    BitmapAndQueryExecutor &operator=(const BitmapAndQueryExecutor &);
+
 public:
     void addQueryExecutors(const std::vector<QueryExecutor *> &queryExecutors) override;
     const std::string getName() const override {
@@ -58,18 +59,24 @@ public:
     df_t getDF(GetDFType type) const override;
     bool isMainDocHit(docid_t docId) const override;
 
-    indexlib::index::ErrorCode seekSubDoc(docid_t docId, docid_t subDocId,
-                       docid_t subDocEnd, bool needSubMatchdata, docid_t& result) override;    
+    indexlib::index::ErrorCode seekSubDoc(docid_t docId,
+                                          docid_t subDocId,
+                                          docid_t subDocEnd,
+                                          bool needSubMatchdata,
+                                          docid_t &result) override;
+
 public:
     std::string toString() const override;
+
 private:
-    indexlib::index::ErrorCode doSeek(docid_t docId, docid_t& result) override;
+    indexlib::index::ErrorCode doSeek(docid_t docId, docid_t &result) override;
 
 private:
     autil::mem_pool::Pool *_pool;
     QueryExecutor *_seekQueryExecutor;
-    std::vector<BitmapTermQueryExecutor*> _bitmapTermExecutors;
-    BitmapTermQueryExecutor** _firstExecutor;
+    std::vector<BitmapTermQueryExecutor *> _bitmapTermExecutors;
+    BitmapTermQueryExecutor **_firstExecutor;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -78,4 +85,3 @@ typedef std::shared_ptr<BitmapAndQueryExecutor> BitmapAndQueryExecutorPtr;
 
 } // namespace search
 } // namespace isearch
-

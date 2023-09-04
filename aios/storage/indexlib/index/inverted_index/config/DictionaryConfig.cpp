@@ -40,10 +40,8 @@ DictionaryConfig::~DictionaryConfig() {}
 
 void DictionaryConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
 {
-    if (json.GetMode() == autil::legacy::Jsonizable::TO_JSON) {
-        json.Jsonize(DICTIONARY_NAME, _impl->dictName);
-        json.Jsonize(DICTIONARY_CONTENT, _impl->content);
-    }
+    json.Jsonize(DICTIONARY_NAME, _impl->dictName, _impl->dictName);
+    json.Jsonize(DICTIONARY_CONTENT, _impl->content, _impl->content);
 }
 Status DictionaryConfig::CheckEqual(const DictionaryConfig& other) const
 {

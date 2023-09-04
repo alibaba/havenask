@@ -17,8 +17,8 @@
 
 #include <limits.h>
 
-#include "autil/TimeUtility.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "fslib/common/common_type.h"
 #include "fslib/fs/File.h"
 #include "fslib/fs/FileSystem.h"
@@ -63,8 +63,8 @@ void FileRecorder::newRecord(const string &content, const string &dirname, const
             }
         }
     }
-    string filename = TimeUtility::currentTimeString("%Y-%m-%d-%H-%M-%S") + "_" +
-                      StringUtil::toString(id) + string("_") + suffix;
+    string filename =
+        TimeUtility::currentTimeString("%Y-%m-%d-%H-%M-%S") + "_" + StringUtil::toString(id) + string("_") + suffix;
     string finalPath = FileSystem::joinFilePath(dir, filename);
     string formatContent = content;
     FileSystem::writeFile(finalPath, formatContent);
@@ -74,4 +74,4 @@ bool FileRecorder::hasSuffix(const string &str, const string &suffix) {
     return str.size() >= suffix.size() && str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
-}
+} // namespace autil

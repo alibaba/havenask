@@ -19,6 +19,7 @@
 #include "indexlib/config/index_partition_schema.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/FileSystemCreator.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/index/normal/inverted_index/customized_index/index_plugin_resource.h"
 #include "indexlib/index_base/index_meta/segment_file_list_wrapper.h"
 #include "indexlib/index_base/patch/partition_patch_index_accessor.h"

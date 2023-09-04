@@ -1,0 +1,24 @@
+{
+    "inherit_from_external" : "$ROOT_PATH/cluster_common_config.json",
+    "cluster_config" : {
+        "inherit_from_external" : "$ROOT_PATH/section.json",
+	"table_name" : "mainse_searcher",
+    	"cluster_type" : "original",
+	"searcher_rule" : {
+	    "inherit_from_external" : "$ROOT_PATH/subsection.json"
+	}
+    },
+    "summary_profile_config" : {
+	"modules" : [
+	],
+	"summary_profiles" : [
+            {
+                "inherit_from_external" : "$ROOT_PATH/skip_level.json",
+		"extractor":
+		{
+                    "extractor_name": "DefaultExtractor"
+		}
+            }
+	]
+    }
+}

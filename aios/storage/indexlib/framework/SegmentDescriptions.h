@@ -36,6 +36,12 @@ public:
                   const std::set<segmentid_t>& newSegmentsHint);
 
 public:
+    static std::string GetSegmentDirName(segmentid_t segmentId, uint32_t levelIdx = 0)
+    {
+        return std::string(SEGMENT_FILE_NAME_PREFIX) + "_" + std::to_string(segmentId) + "_level_" +
+               std::to_string(levelIdx);
+    }
+
     std::string GetSegmentDir(segmentid_t segId) const;
     void SetLevelInfo(std::shared_ptr<LevelInfo>& levelInfo) { _levelInfo = levelInfo; }
     const std::shared_ptr<LevelInfo>& GetLevelInfo() const { return _levelInfo; }

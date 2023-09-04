@@ -1,0 +1,33 @@
+{
+    "analyzers":
+    {
+	"aliws":
+	{
+	    "tokenizer_configs" :
+	    {
+		"tokenizer_type" : "aliws",
+		"tokenizer_id" : "TAOBAO_CHN",
+                "use_extend_retrieve" : "false"
+	    },
+	    "stopwords" : [ ".", ",", "-", "mm", "#" ],
+	    "normalize_options" :
+	    {
+		"case_sensitive" : false
+	    }
+	},
+	"extendAnalyzer":
+	{
+	    "tokenizer_configs" :
+	    {
+		"tokenizer_type" : "aliws",
+		"tokenizer_id" : "TAOBAO_CHN",
+                "use_extend_retrieve" : "true"
+	    },
+	    "stopwords" : [ ".", ",", "-", "mm" ],
+	    "normalize_options" :
+	    {
+		"case_sensitive" : false
+	    }
+	}
+    }
+}

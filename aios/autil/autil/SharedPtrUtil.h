@@ -15,27 +15,24 @@
  */
 #pragma once
 
+#include <memory>
 #include <stdint.h>
 #include <unistd.h>
-#include <memory>
-
 
 namespace autil {
 
-class SharedPtrUtil
-{
+class SharedPtrUtil {
 private:
     SharedPtrUtil();
     ~SharedPtrUtil();
+
 private:
     SharedPtrUtil(const SharedPtrUtil &);
-    SharedPtrUtil& operator = (const SharedPtrUtil &);
+    SharedPtrUtil &operator=(const SharedPtrUtil &);
+
 public:
     template <class T>
-    static bool waitUseCount(const std::shared_ptr<T> &ptr,
-                             uint32_t expectUseCount = 1,
-                             int64_t timeout = -1)
-    {
+    static bool waitUseCount(const std::shared_ptr<T> &ptr, uint32_t expectUseCount = 1, int64_t timeout = -1) {
         const int64_t interval = 10 * 1000;
         while (ptr.use_count() > expectUseCount) {
             if (timeout != -1) {
@@ -48,9 +45,8 @@ public:
         }
         return true;
     }
-private:
 
+private:
 };
 
-}
-
+} // namespace autil

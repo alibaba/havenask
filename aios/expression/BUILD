@@ -1,4 +1,4 @@
-load('//bazel:defs.bzl', 'genlex', 'genyacc', 'test_cc_plugin_shared_library')
+load('//bazel:defs.bzl', 'genlex', 'genyacc')
 genlex(name='scanner', src='expression/syntax/Scanner.ll')
 genyacc(name='parser', src='expression/syntax/BisonParser.yy')
 cc_library(

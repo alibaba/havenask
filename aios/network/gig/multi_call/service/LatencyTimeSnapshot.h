@@ -14,7 +14,8 @@
 
 namespace multi_call {
 
-class LatencyTimeSnapshot {
+class LatencyTimeSnapshot
+{
 public:
     LatencyTimeSnapshot();
     ~LatencyTimeSnapshot();
@@ -24,8 +25,7 @@ private:
     LatencyTimeSnapshot &operator=(const LatencyTimeSnapshot &);
 
 public:
-    void updateLatencyTimeWindow(const std::string &bizName,
-                                 int64_t windowSize);
+    void updateLatencyTimeWindow(const std::string &bizName, int64_t windowSize);
     LatencyTimeWindowPtr getLatencyTimeWindow(const std::string &bizName);
     int64_t getAvgLatency(const std::string &bizName);
     int64_t pushLatency(const std::string &bizName, int64_t latency);

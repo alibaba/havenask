@@ -18,7 +18,7 @@
 namespace indexlibv2::framework {
 AUTIL_LOG_SETUP(indexlib.framework, TabletReader);
 
-TabletReader::TabletReader(const std::shared_ptr<config::TabletSchema>& schema) : _schema(schema) {}
+TabletReader::TabletReader(const std::shared_ptr<config::ITabletSchema>& schema) : _schema(schema) {}
 TabletReader::~TabletReader()
 {
     for (auto iter = _indexReaderMap.begin(); iter != _indexReaderMap.end(); iter++) {
@@ -37,7 +37,7 @@ Status TabletReader::Search(const std::string& jsonQuery, std::string& result) c
                                jsonQuery.c_str(), typeid(*this).name());
 }
 
-std::shared_ptr<config::TabletSchema> TabletReader::GetSchema() const { return _schema; }
+std::shared_ptr<config::ITabletSchema> TabletReader::GetSchema() const { return _schema; }
 
 std::shared_ptr<index::IIndexReader> TabletReader::GetIndexReader(const std::string& indexType,
                                                                   const std::string& indexName) const

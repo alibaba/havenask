@@ -24,7 +24,8 @@ namespace multi_call {
 
 class Closure;
 
-class TerminateNotifier {
+class TerminateNotifier
+{
 public:
     TerminateNotifier();
     ~TerminateNotifier();
@@ -38,7 +39,9 @@ public:
     void dec(int partIdIndex);
     void setClosure(Closure *closure);
     Closure *stealClosure();
-    bool canTerminate() const { return _partitionCount == 0; }
+    bool canTerminate() const {
+        return _partitionCount == 0;
+    }
 
 private:
     void incPartitionsByIndex(int index);

@@ -1,0 +1,20 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "simple_cluster"
+            ],
+            "table_name" : "simple_table",
+            "document_processor_chain" : [
+                {
+                    "class_name" : "ModifiedFieldsDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+            ]
+        }
+   ]
+}

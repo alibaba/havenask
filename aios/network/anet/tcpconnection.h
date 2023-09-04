@@ -17,11 +17,11 @@
 #define ANET_TCPCONNECTION_H_
 #include <stdint.h>
 
-#include "aios/network/anet/databuffer.h"
 #include "aios/network/anet/connection.h"
-#include "aios/network/anet/log.h"
+#include "aios/network/anet/databuffer.h"
 #include "aios/network/anet/ilogger.h"
 #include "aios/network/anet/iocomponent.h"
+#include "aios/network/anet/log.h"
 #include "aios/network/anet/packet.h"
 #include "aios/network/anet/socket.h"
 
@@ -34,8 +34,8 @@ class IServerAdapter;
 
 class TCPConnection : public Connection {
     friend class TCPConnectionTest_testWriteData_Test;
-public:
 
+public:
     TCPConnection(Socket *socket, IPacketStreamer *streamer, IServerAdapter *serverAdapter);
 
     ~TCPConnection();
@@ -57,69 +57,63 @@ public:
     /*
      * 设置写完是否主动关闭
      */
-    void setWriteFinishClose(bool v) {
-        _writeFinishClose = v;
-    }
-    void setWriteFinishShutdown(bool v) {
-        _writeFinishShutdown = v;
-    }
+    void setWriteFinishClose(bool v) { _writeFinishClose = v; }
+    void setWriteFinishShutdown(bool v) { _writeFinishShutdown = v; }
 
     /*
      * 清空output的buffer
      */
-    void clearOutputBuffer(); 
+    void clearOutputBuffer();
 
     /*
      * 清空output的buffer
      */
-    void clearInputBuffer() {
-        _input.clear();
-    }
+    void clearInputBuffer() { _input.clear(); }
 
     void addInputBufferSpaceAllocated(int64_t size);
     void addOutputBufferSpaceAllocated(int64_t size);
-    int64_t getInputBufferSpaceAllocated() {
-        return _inputBufferSpaceAllocated;
-    };
-    int64_t getOutputBufferSpaceAllocated() { 
-        return _outputBufferSpaceAllocated;
-    };
+    int64_t getInputBufferSpaceAllocated() { return _inputBufferSpaceAllocated; };
+    int64_t getOutputBufferSpaceAllocated() { return _outputBufferSpaceAllocated; };
 
     void shrinkInputBuffer();
     void shrinkOutputBuffer();
 
-    int64_t getMaxRecvPacketSize() {
-        return _maxRecvPacketSize;
-    }
-    int64_t getMaxSendPacketSize() {
-        return _maxSendPacketSize;
-    }
+    int64_t getMaxRecvPacketSize() { return _maxRecvPacketSize; }
+    int64_t getMaxSendPacketSize() { return _maxSendPacketSize; }
 
-    void clearMaxRecvPacketSize() {
-        _maxRecvPacketSize = 0;
-    }
-    void clearMaxSendPacketSize() {
-        _maxSendPacketSize = 0;
-    }
-    int setQosGroup(uint64_t jobid, uint32_t instanceid, uint32_t groupid){
+    void clearMaxRecvPacketSize() { _maxRecvPacketSize = 0; }
+    void clearMaxSendPacketSize() { _maxSendPacketSize = 0; }
+    int setQosGroup(uint64_t jobid, uint32_t instanceid, uint32_t groupid) {
         _jobId = jobid;
         _insId = instanceid;
         _qosId = groupid;
-        if(_qosId == 0)
+        if (_qosId == 0)
             return 0;
-        if(_iocomponent->getState() == IOComponent::ANET_CONNECTED){
+        if (_iocomponent->getState() == IOComponent::ANET_CONNECTED) {
             int ret = _socket->setQosGroup(_jobId, _insId, _qosId);
-            ANET_ALOG_INFO(logger,"socket %d _jobId=%lu, _insId=%u, _qosId=%u ret=%d", _socket->getSocketHandle(),  _jobId, _insId,  _qosId, ret); 
+            ANET_ALOG_INFO(logger,
+                           "socket %d _jobId=%lu, _insId=%u, _qosId=%u ret=%d",
+                           _socket->getSocketHandle(),
+                           _jobId,
+                           _insId,
+                           _qosId,
+                           ret);
             return ret;
         }
-       return 0;
+        return 0;
     }
-    int setQosGroup(){
+    int setQosGroup() {
         int ret = 0;
-        if(_qosId == 0)
+        if (_qosId == 0)
             return 0;
         ret = _socket->setQosGroup(_jobId, _insId, _qosId);
-        ANET_ALOG_INFO(logger,"socket %d _jobId=%lu, _insId=%u, _qosId=%u ret=%d", _socket->getSocketHandle(),  _jobId, _insId,  _qosId, ret); 
+        ANET_ALOG_INFO(logger,
+                       "socket %d _jobId=%lu, _insId=%u, _qosId=%u ret=%d",
+                       _socket->getSocketHandle(),
+                       _jobId,
+                       _insId,
+                       _qosId,
+                       ret);
         return ret;
     }
 
@@ -133,7 +127,7 @@ protected:
     int64_t _inputBufferSpaceAllocated;
     int64_t _outputBufferSpaceAllocated;
 
-    /* 
+    /*
      * These two variables are used to track the max recv/send packet size,
      * and will be reset to 0 at every shrink interval in timeout thread.
      */
@@ -141,6 +135,6 @@ protected:
     int64_t _maxSendPacketSize;
 };
 
-}
+} // namespace anet
 
 #endif /*TCPCONNECTION_H_*/

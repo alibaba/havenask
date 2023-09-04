@@ -22,20 +22,20 @@
 
 namespace matchdoc {
 class MatchDoc;
-}  // namespace matchdoc
+} // namespace matchdoc
 
 namespace isearch {
 namespace search {
 class QueryExecutor;
 
 class MatchDataCollectorCenter {
-    public:
+public:
     MatchDataCollectorCenter() = default;
     ~MatchDataCollectorCenter() = default;
     void reset() {
         _matchDataCollectorVec.clear();
     }
-    void subscribe(MatchDataCollectorBase* matchDataCollector) {
+    void subscribe(MatchDataCollectorBase *matchDataCollector) {
         _matchDataCollectorVec.push_back(matchDataCollector);
     }
     void collectAll(search::QueryExecutor *queryExecutor, const matchdoc::MatchDoc &matchDoc) {
@@ -46,8 +46,9 @@ class MatchDataCollectorCenter {
     bool isEmpty() {
         return _matchDataCollectorVec.empty();
     }
+
 private:
-    std::vector<MatchDataCollectorBase*> _matchDataCollectorVec;
+    std::vector<MatchDataCollectorBase *> _matchDataCollectorVec;
 };
 
 typedef std::shared_ptr<MatchDataCollectorCenter> MatchDataCollectorCenterPtr;

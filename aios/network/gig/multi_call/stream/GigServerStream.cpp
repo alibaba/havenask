@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/stream/GigServerStream.h"
+
 #include "aios/network/gig/multi_call/grpc/server/GrpcServerStreamHandler.h"
 
 using namespace std;
@@ -22,9 +23,11 @@ namespace multi_call {
 
 AUTIL_DECLARE_AND_SETUP_LOGGER(multi_call, GigServerStream);
 
-GigServerStream::GigServerStream() {}
+GigServerStream::GigServerStream() {
+}
 
-GigServerStream::~GigServerStream() {}
+GigServerStream::~GigServerStream() {
+}
 
 void GigServerStream::setHandler(const GigStreamHandlerBasePtr &handler) {
     _handler = handler;
@@ -46,9 +49,11 @@ std::string GigServerStream::getPeer() const {
     return serverHandler->getPeer();
 }
 
-bool GigServerStream::send(PartIdTy partId, bool eof,
-                           google::protobuf::Message *message) {
+bool GigServerStream::send(PartIdTy partId, bool eof, google::protobuf::Message *message) {
     auto sendMessage = GigStreamHandlerBase::createSendBufferMessage(eof, false, message);
+    if (eof) {
+        _handler->endReceive();
+    }
     return _handler->send(sendMessage);
 }
 

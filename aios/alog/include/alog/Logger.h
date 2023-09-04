@@ -122,6 +122,8 @@ public:
     void
     logVaList(uint32_t level, const char *filename, int line, const char *function, const char *format, va_list ap);
 
+    void logVaList(uint32_t level, const char *format, va_list ap);
+
     /**
      *@brief output a message like printf() function in c language, and output the __FILE__, __FUNCTION__, __LINE__
      *informations

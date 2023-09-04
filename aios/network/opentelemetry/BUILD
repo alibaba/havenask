@@ -1,5 +1,4 @@
 package(default_visibility=['//aios/network/opentelemetry:__subpackages__'])
-load('//bazel:defs.bzl', 'cc_proto')
 cc_library(
     name='opentelemetry',
     deps=[':opentelemetry_havenask_mock'],

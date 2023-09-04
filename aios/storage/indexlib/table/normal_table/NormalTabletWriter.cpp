@@ -21,6 +21,7 @@
 #include "future_lite/Future.h"
 #include "indexlib/config/BuildOptionConfig.h"
 #include "indexlib/config/TabletSchema.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/document_rewriter/DocumentRewriteChain.h"
 #include "indexlib/document/extractor/IDocumentInfoExtractorFactory.h"
@@ -46,12 +47,20 @@ using namespace indexlib::config;
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, NormalTabletWriter);
 
-NormalTabletWriter::NormalTabletWriter(const std::shared_ptr<config::TabletSchema>& schema,
+NormalTabletWriter::NormalTabletWriter(const std::shared_ptr<config::ITabletSchema>& schema,
                                        const config::TabletOptions* options)
     : CommonTabletWriter(schema, options)
 {
 }
-NormalTabletWriter::~NormalTabletWriter() {}
+NormalTabletWriter::~NormalTabletWriter() { Close(); }
+
+void NormalTabletWriter::Close()
+{
+    if (_parallelBuilder != nullptr) {
+        _parallelBuilder->WaitFinish();
+    }
+    _parallelBuilder = nullptr;
+}
 
 Status NormalTabletWriter::Open(const std::shared_ptr<framework::TabletData>& tabletData,
                                 const BuildResource& buildResource, const OpenOptions& openOptions)
@@ -60,11 +69,12 @@ Status NormalTabletWriter::Open(const std::shared_ptr<framework::TabletData>& ta
         if (_parallelBuilder == nullptr) {
             return Status::InternalError("parallel builder is not intialized");
         }
+        AUTIL_LOG(INFO, "switch build mode from [%d] to [%d]", (int)(_parallelBuilder->GetBuildMode()),
+                  (int)(openOptions.GetBuildMode()));
         return _parallelBuilder->SwitchBuildMode(openOptions.GetBuildMode());
     }
     auto status = CommonTabletWriter::Open(tabletData, buildResource, openOptions);
     RETURN_IF_STATUS_ERROR(status, "open normal tablet writer failed");
-    _normalBuildingSegment = std::dynamic_pointer_cast<NormalMemSegment>(_buildingSegment);
 
     std::tie(status, _documentRewriteChain) = NormalDocumentRewriteChainCreator::Create(_schema);
     RETURN_STATUS_DIRECTLY_IF_ERROR(status);
@@ -80,29 +90,42 @@ Status NormalTabletWriter::Open(const std::shared_ptr<framework::TabletData>& ta
             return status;
         }
     }
+    _normalBuildingSegment = std::dynamic_pointer_cast<NormalMemSegment>(_buildingSegment);
+    _buildingSegmentBaseDocId = 0;
+    auto slice = _buildTabletData->CreateSlice();
+    for (const auto& seg : slice) {
+        if (seg->GetSegmentStatus() == Segment::SegmentStatus::ST_BUILT ||
+            seg->GetSegmentStatus() == Segment::SegmentStatus::ST_DUMPING) {
+            _buildingSegmentBaseDocId += seg->GetSegmentInfo()->GetDocCount();
+        }
+    }
+
     _parallelBuilder = std::make_unique<indexlib::table::NormalTabletParallelBuilder>();
-    RETURN_IF_STATUS_ERROR(_parallelBuilder->Init(_normalBuildingSegment, buildResource.consistentModeBuildThreadPool,
+    RETURN_IF_STATUS_ERROR(_parallelBuilder->Init(_normalBuildingSegment, _options,
+                                                  buildResource.consistentModeBuildThreadPool,
                                                   buildResource.inconsistentModeBuildThreadPool),
                            "init parallel builder failed[%s]", status.ToString().c_str());
+    AUTIL_LOG(INFO, "switch build mode from [%d] to [%d]", (int)(_parallelBuilder->GetBuildMode()),
+              (int)(openOptions.GetBuildMode()));
     RETURN_STATUS_DIRECTLY_IF_ERROR(_parallelBuilder->SwitchBuildMode(openOptions.GetBuildMode()));
     if (openOptions.GetBuildMode() != OpenOptions::BuildMode::STREAM) {
-        RETURN_IF_STATUS_ERROR(_parallelBuilder->PrepareForWrite(_schema, _tabletData),
+        RETURN_IF_STATUS_ERROR(_parallelBuilder->PrepareForWrite(_schema, _buildTabletData),
                                "prepare parallel builder failed");
     }
-    return PrepareBuiltinIndex(_buildTabletData);
+    RETURN_IF_STATUS_ERROR(PrepareBuiltinIndex(_buildTabletData), "prepare builtin index failed");
+    return Status::OK();
 }
 
 void NormalTabletWriter::DispatchDocIds(document::IDocumentBatch* batch)
 {
-    int64_t baseDocId = _normalBuildingSegment->GetSegmentInfo()->docCount;
-    auto docIdDiapatcher =
-        std::make_unique<indexlib::table::NormalDocIdDispatcher>(_schema->GetTableName(), _pkReader, baseDocId);
-    for (size_t i = 0; i < batch->GetBatchSize(); ++i) {
-        if (!batch->IsDropped(i)) {
-            auto normalDoc = std::dynamic_pointer_cast<document::NormalDocument>((*batch)[i]);
-            if (normalDoc) {
-                docIdDiapatcher->DispatchDocId(normalDoc);
-            }
+    auto docIdDiapatcher = std::make_unique<indexlib::table::NormalDocIdDispatcher>(
+        _schema->GetTableName(), _pkReader, _buildingSegmentBaseDocId,
+        /*currentSegmentDocCount=*/_normalBuildingSegment->GetSegmentInfo()->docCount);
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(batch);
+    while (iter->HasNext()) {
+        auto normalDoc = std::dynamic_pointer_cast<document::NormalDocument>(iter->Next());
+        if (normalDoc) {
+            docIdDiapatcher->DispatchDocId(normalDoc);
         }
     }
 }
@@ -156,27 +179,25 @@ Status NormalTabletWriter::PrepareModifier(const std::shared_ptr<framework::Tabl
 }
 
 std::vector<std::shared_ptr<document::IDocumentBatch>>
-NormalTabletWriter::SplitDocumentBatch(document::IDocumentBatch* batch) const
+NormalTabletWriter::SplitDocumentBatch(document::IDocumentBatch* batch)
 {
     std::vector<size_t> splitSizeVec;
     CalculateDocumentBatchSplitSize(batch, splitSizeVec);
 
-    size_t basePos = 0;
     std::vector<std::shared_ptr<document::IDocumentBatch>> subDocBatches;
     subDocBatches.reserve(splitSizeVec.size());
 
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(batch);
     for (size_t i = 0; i < splitSizeVec.size(); i++) {
         size_t curBatchSize = splitSizeVec[i];
         if (curBatchSize <= 0) {
             continue;
         }
-
         auto subDocBatch = std::shared_ptr<document::IDocumentBatch>(batch->Create());
-        for (auto j = 0; j < curBatchSize; j++) {
-            while (batch->IsDropped(basePos)) {
-                ++basePos;
-            }
-            subDocBatch->AddDocument((*batch)[basePos++]);
+        size_t j = 0;
+        while (iter->HasNext() && j < curBatchSize) {
+            subDocBatch->AddDocument(iter->Next());
+            j++;
         }
         subDocBatches.emplace_back(std::move(subDocBatch));
     }
@@ -184,24 +205,21 @@ NormalTabletWriter::SplitDocumentBatch(document::IDocumentBatch* batch) const
 }
 
 void NormalTabletWriter::CalculateDocumentBatchSplitSize(document::IDocumentBatch* batch,
-                                                         std::vector<size_t>& splitSizeVec) const
+                                                         std::vector<size_t>& splitSizeVec)
 {
     std::unordered_set<std::string> pkInBatch;
     size_t curBatchSize = 0;
-    for (size_t i = 0; i < batch->GetBatchSize(); ++i) {
-        if (batch->IsDropped(i)) {
-            continue;
-        }
-        auto normalDoc = std::dynamic_pointer_cast<indexlibv2::document::NormalDocument>((*batch)[i]);
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(batch);
+    while (iter->HasNext()) {
+        auto normalDoc = std::dynamic_pointer_cast<indexlibv2::document::NormalDocument>(iter->Next());
         const std::string& pkStr = normalDoc->GetPrimaryKey();
         auto iter = pkInBatch.find(pkStr);
         if (iter != pkInBatch.end()) {
             splitSizeVec.push_back(curBatchSize);
             curBatchSize = 0;
             pkInBatch.clear();
-        } else {
-            pkInBatch.insert(pkStr);
         }
+        pkInBatch.insert(pkStr);
         curBatchSize++;
     }
     if (curBatchSize > 0) {
@@ -276,18 +294,11 @@ void NormalTabletWriter::UpdateNormalTabletInfo()
         return;
     }
     const auto& lastRtSegment = *slice.rbegin();
-    segmentid_t lastRtSegId = lastRtSegment->GetSegmentId();
     size_t lastRtSegDocCount = lastRtSegment->GetSegmentInfo()->docCount;
-    auto dumpingSlices = _tabletData->CreateSlice(framework::Segment::SegmentStatus::ST_DUMPING);
-    segmentid_t refindRtSegment = INVALID_SEGMENTID;
-    if (!dumpingSlices.empty()) {
-        refindRtSegment = (*(dumpingSlices.begin()))->GetSegmentId();
-    } else {
-        refindRtSegment = (*slice.begin())->GetSegmentId();
-    }
-    _normalTabletInfoHolder->UpdateNormalTabletInfo(lastRtSegId, lastRtSegDocCount, refindRtSegment);
+    _normalTabletInfoHolder->UpdateNormalTabletInfo(lastRtSegDocCount);
 }
 
+// TODO(yonghao.fyh): unordered doc in batch may cause data consistent problem, add check
 void NormalTabletWriter::ValidateDocumentBatch(document::IDocumentBatch* batch)
 {
     bool onlyDeleteDoc = true;
@@ -297,7 +308,7 @@ void NormalTabletWriter::ValidateDocumentBatch(document::IDocumentBatch* batch)
         }
         if (_versionLocator.IsSameSrc((*batch)[i]->GetLocatorV2(), true)) {
             auto docInfo = (*batch)[i]->GetDocInfo();
-            if (_versionLocator.IsFasterThan(docInfo.hashId, docInfo.timestamp) ==
+            if (_versionLocator.IsFasterThan(docInfo.hashId, {docInfo.timestamp, docInfo.concurrentIdx}) ==
                 framework::Locator::LocatorCompareResult::LCR_FULLY_FASTER) {
                 batch->DropDoc(i);
             }

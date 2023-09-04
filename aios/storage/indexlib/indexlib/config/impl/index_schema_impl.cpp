@@ -339,7 +339,10 @@ void IndexSchemaImpl::LoadTruncateTermInfo(const file_system::DirectoryPtr& meta
         const string& indexName = indexConfig->GetIndexName();
         vector<string> truncNames;
         if (truncMapper.Lookup(indexName, truncNames)) {
-            indexConfig->LoadTruncateTermVocabulary(folder, truncNames);
+            auto status = indexConfig->LoadTruncateTermVocabulary(folder, truncNames);
+            if (!status.IsOK()) {
+                INDEXLIB_THROW(util::ExceptionBase, "load trunate term vocabulary failed.");
+            }
         }
         iter++;
     }

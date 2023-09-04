@@ -15,43 +15,31 @@
  */
 #ifndef ARPC_RPCMESSAGESERIALIZABLE_H
 #define ARPC_RPCMESSAGESERIALIZABLE_H
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 
+#include "aios/network/anet/databufferserializable.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/arpc/arpc/util/Log.h"
-#include "aios/network/anet/databufferserializable.h"
 #include "google/protobuf/arena.h"
 
 ARPC_BEGIN_NAMESPACE(arpc);
 
-class RPCMessageSerializable : public anet::DataBufferSerializable
-{
+class RPCMessageSerializable : public anet::DataBufferSerializable {
 public:
-    RPCMessageSerializable(RPCMessage *header, RPCMessage *body,
-                           const std::shared_ptr<google::protobuf::Arena> &arena);
+    RPCMessageSerializable(RPCMessage *header, RPCMessage *body, const std::shared_ptr<google::protobuf::Arena> &arena);
     ~RPCMessageSerializable();
+
 public:
     virtual bool serialize(anet::DataBuffer *outputBuffer) const;
     virtual bool deserialize(anet::DataBuffer *inputBuffer, int length = 0);
-    static bool serializeMessage(const RPCMessage *message,
-                                 anet::DataBuffer *outputBuffer);
+    static bool serializeMessage(const RPCMessage *message, anet::DataBuffer *outputBuffer);
 
-    static bool deserializeMessage(anet::DataBuffer *inputBuffer,
-                                   RPCMessage *message,
-                                   int32_t &leftPacketDataLen);
-    RPCMessage *getHeader()
-    {
-        return _header;
-    }
-    RPCMessage *getBody()
-    {
-        return _body;
-    }
-    virtual int64_t getSpaceUsed()
-    {
-        return _header->SpaceUsed() + _body->SpaceUsed();
-    }
+    static bool deserializeMessage(anet::DataBuffer *inputBuffer, RPCMessage *message, int32_t &leftPacketDataLen);
+    RPCMessage *getHeader() { return _header; }
+    RPCMessage *getBody() { return _body; }
+    virtual int64_t getSpaceUsed() { return _header->SpaceUsed() + _body->SpaceUsed(); }
+
 private:
     std::shared_ptr<google::protobuf::Arena> _arena;
     RPCMessage *_header;
@@ -60,4 +48,4 @@ private:
 
 ARPC_END_NAMESPACE(arpc);
 
-#endif //ARPC_RPCMESSAGESERIALIZABLE_H
+#endif // ARPC_RPCMESSAGESERIALIZABLE_H

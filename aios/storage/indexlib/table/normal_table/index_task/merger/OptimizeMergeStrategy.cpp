@@ -48,7 +48,7 @@ OptimizeMergeStrategy::CreateMergePlan(const framework::IndexTaskContext* contex
         AUTIL_LOG(ERROR, "topology not supported, only support sequence topology");
         return std::make_pair(Status::Corruption("Topology not supported, only support sequence topology"), nullptr);
     }
-    auto mergeConfig = context->GetTabletOptions()->GetOfflineConfig().GetMergeConfig();
+    auto mergeConfig = context->GetMergeConfig();
     if (mergeConfig.GetMergeStrategyStr() == GetName()) {
         auto [status, params] = ExtractParams(mergeConfig.GetMergeStrategyParameter());
         if (!status.IsOK()) {

@@ -16,10 +16,11 @@
 #ifndef ISEARCH_MULTI_CALL_HTTPCONNECTION_H
 #define ISEARCH_MULTI_CALL_HTTPCONNECTION_H
 
+#include <list>
+
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/service/Connection.h"
 #include "autil/Lock.h"
-#include <list>
 
 namespace anet {
 class Connection;
@@ -28,11 +29,10 @@ class Transport;
 
 namespace multi_call {
 
-class HttpConnection : public Connection,
-                       public std::enable_shared_from_this<HttpConnection> {
+class HttpConnection : public Connection, public std::enable_shared_from_this<HttpConnection>
+{
 public:
-    HttpConnection(anet::Transport *transport, const std::string &spec,
-                   size_t queueSize);
+    HttpConnection(anet::Transport *transport, const std::string &spec, size_t queueSize);
     ~HttpConnection();
 
 private:

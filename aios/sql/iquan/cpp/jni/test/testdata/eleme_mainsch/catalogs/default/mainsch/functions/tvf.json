@@ -1,0 +1,327 @@
+{
+  "functions": [
+    {
+      "catalog_name": "default",
+      "database_name": "mainsch",
+      "function_version": 300,
+      "function_name": "printTableTvf",
+      "function_type": "TVF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+          "normal_scope": true,
+          "enable_shuffle": false
+        },
+        "distribution": {
+          "partition_cnt": 1
+        },
+        "prototypes": [
+          {
+            "params": {
+              "scalars": [
+                {
+                  "type": "string"
+                }
+              ],
+              "tables": [
+                {
+                  "auto_infer": true,
+                  "input_fields": [
+                  ],
+                  "check_fields": [
+                  ]
+                }
+              ]
+            },
+            "returns": {
+              "new_fields": [
+              ],
+              "tables": [
+                {
+                  "auto_infer": true,
+                  "field_names": [
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "mainsch",
+      "function_version": 300,
+      "function_name": "rankTvf",
+      "function_type": "TVF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+          "normal_scope": true,
+          "enable_shuffle": false
+        },
+        "distribution": {
+          "partition_cnt": 1
+        },
+        "prototypes": [
+          {
+            "params": {
+              "scalars": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "tables": [
+                {
+                  "auto_infer": true,
+                  "input_fields": [
+                  ],
+                  "check_fields": [
+                  ]
+                }
+              ]
+            },
+            "returns": {
+              "new_fields": [
+              ],
+              "tables": [
+                {
+                  "auto_infer": true,
+                  "field_names": [
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "mainsch",
+      "function_version": 300,
+      "function_name": "one_part_tvf_enable_shuffle",
+      "function_type": "TVF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+          "normal_scope": true,
+          "enable_shuffle": true
+        },
+        "distribution": {
+          "partition_cnt": 1
+        },
+        "prototypes": [
+          {
+            "params": {
+              "scalars": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "int32"
+                }
+              ],
+              "tables": [
+                {
+                  "auto_infer": true,
+                  "input_fields": [
+                  ],
+                  "check_fields": [
+                    {
+                      "field_name": "i1",
+                      "field_type": {
+                        "type": "int32"
+                      }
+                    },
+                    {
+                      "field_name": "i2",
+                      "field_type": {
+                        "type": "int32"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "returns": {
+              "new_fields": [
+                {
+                  "field_name": "new_int64_1",
+                  "field_type": {
+                    "type": "int64"
+                  }
+                },
+                {
+                  "field_name": "new_int32_1",
+                  "field_type": {
+                    "type": "int32"
+                  }
+                }
+              ],
+              "tables": [
+                {
+                  "auto_infer": false,
+                  "field_names": [
+                    "i1",
+                    "i2"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "mainsch",
+      "function_version": 300,
+      "function_name": "multi_part_tvf",
+      "function_type": "TVF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+          "normal_scope": true,
+          "enable_shuffle": false
+        },
+        "distribution": {
+          "partition_cnt": 10
+        },
+        "prototypes": [
+          {
+            "params": {
+              "scalars": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "int32"
+                }
+              ],
+              "tables": [
+                {
+                  "auto_infer": true,
+                  "input_fields": [
+                  ],
+                  "check_fields": [
+                    {
+                      "field_name": "i1",
+                      "field_type": {
+                        "type": "int32"
+                      }
+                    },
+                    {
+                      "field_name": "i2",
+                      "field_type": {
+                        "type": "int32"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "returns": {
+              "new_fields": [
+                {
+                  "field_name": "new_int64_1",
+                  "field_type": {
+                    "type": "int64"
+                  }
+                },
+                {
+                  "field_name": "new_int32_1",
+                  "field_type": {
+                    "type": "int32"
+                  }
+                }
+              ],
+              "tables": [
+                {
+                  "auto_infer": false,
+                  "field_names": [
+                    "i1",
+                    "i2"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "mainsch",
+      "function_version": 300,
+      "function_name": "multi_part_tvf_two_phase",
+      "function_type": "TVF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+          "normal_scope": false
+        },
+        "distribution": {
+          "partition_cnt": 10
+        },
+        "prototypes": [
+          {
+            "params": {
+              "scalars": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "int32"
+                }
+              ],
+              "tables": [
+                {
+                  "auto_infer": true,
+                  "input_fields": [
+                  ],
+                  "check_fields": [
+                    {
+                      "field_name": "i1",
+                      "field_type": {
+                        "type": "int32"
+                      }
+                    },
+                    {
+                      "field_name": "i2",
+                      "field_type": {
+                        "type": "int32"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "returns": {
+              "new_fields": [
+              ],
+              "tables": [
+                {
+                  "auto_infer": true,
+                  "field_names": [
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

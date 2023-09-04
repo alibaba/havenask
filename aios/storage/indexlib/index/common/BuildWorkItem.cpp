@@ -21,7 +21,7 @@ namespace indexlib::index {
 AUTIL_LOG_SETUP(indexlib.index, BuildWorkItem);
 
 BuildWorkItem::BuildWorkItem(const std::string& name, BuildWorkItemType type,
-                             indexlibv2::document::IDocumentBatch* documentBatch)
+                             const indexlibv2::document::IDocumentBatch* documentBatch)
     : _name(name)
     , _type(type)
     , _documentBatch(documentBatch)

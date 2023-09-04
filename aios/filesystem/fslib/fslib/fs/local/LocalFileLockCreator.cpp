@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 #include "fslib/fs/local/LocalFileLockCreator.h"
-#include "fslib/fs/local/LocalFileReadWriteLock.h"
+
 #include "fslib/fs/local/LocalFileLock.h"
+#include "fslib/fs/local/LocalFileReadWriteLock.h"
 
 using namespace std;
 FSLIB_BEGIN_NAMESPACE(fs);
-//AUTIL_DECLARE_AND_SETUP_LOGGER(fs, LocalFileLockCreator);
+// AUTIL_DECLARE_AND_SETUP_LOGGER(fs, LocalFileLockCreator);
 
-FileReadWriteLock* LocalFileLockCreator::createFileReadWriteLock(
-        const string& fileName) 
-{
+FileReadWriteLock *LocalFileLockCreator::createFileReadWriteLock(const string &fileName) {
     return new LocalFileReadWriteLock(fileName);
 }
 
-FileLock* LocalFileLockCreator::createFileLock(const string& fileName) 
-{
-    return new LocalFileLock(fileName);
-}
+FileLock *LocalFileLockCreator::createFileLock(const string &fileName) { return new LocalFileLock(fileName); }
 
 FSLIB_END_NAMESPACE(fs);
-

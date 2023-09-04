@@ -15,7 +15,8 @@
  */
 #include "indexlib/table/normal_table/index_task/SingleSegmentDocumentGroupSelector.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/MutableJson.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/framework/index_task/IndexTaskResourceManager.h"
 #include "indexlib/index/attribute/expression/DocumentEvaluator.h"
@@ -67,7 +68,7 @@ SingleSegmentDocumentGroupSelector::Dump(const std::shared_ptr<framework::IndexT
 }
 
 Status SingleSegmentDocumentGroupSelector::Init(const std::shared_ptr<framework::Segment>& segment,
-                                                const std::shared_ptr<config::TabletSchema>& schema)
+                                                const std::shared_ptr<config::ITabletSchema>& schema)
 {
     AUTIL_LOG(INFO, "init SingleSegmentDocumentGroupSelector for segment [%d] begin", segment->GetSegmentId());
     _segmentId = segment->GetSegmentId();
@@ -75,7 +76,8 @@ Status SingleSegmentDocumentGroupSelector::Init(const std::shared_ptr<framework:
     _evaluatorMatainer.reset(new index::DocumentEvaluatorMaintainer);
     std::vector<std::shared_ptr<framework::Segment>> segments({segment});
 
-    auto [status, segmentGroupConfig] = schema->GetSetting<SegmentGroupConfig>(NORMAL_TABLE_GROUP_CONFIG_KEY);
+    auto [status, segmentGroupConfig] =
+        schema->GetRuntimeSettings().GetValue<SegmentGroupConfig>(NORMAL_TABLE_GROUP_CONFIG_KEY);
     RETURN_IF_STATUS_ERROR(status, "get group config failed");
     auto functionNames = segmentGroupConfig.GetFunctionNames();
     assert(!functionNames.empty());

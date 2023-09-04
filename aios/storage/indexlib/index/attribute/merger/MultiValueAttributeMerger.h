@@ -18,7 +18,7 @@
 #include "autil/EnvUtil.h"
 #include "autil/Log.h"
 #include "indexlib/config/IIndexConfig.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/file/FileWriter.h"
@@ -38,10 +38,6 @@
 #include "indexlib/index/common/FileCompressParamHelper.h"
 #include "indexlib/index/common/data_structure/VarLenDataParamHelper.h"
 #include "indexlib/index/common/data_structure/VarLenDataWriter.h"
-#include "indexlib/index/inverted_index/Common.h"
-#include "indexlib/index/inverted_index/InvertedDiskIndexer.h"
-#include "indexlib/index/inverted_index/MultiShardInvertedDiskIndexer.h"
-#include "indexlib/index/inverted_index/config/SectionAttributeConfig.h"
 #include "indexlib/util/MemBuffer.h"
 #include "indexlib/util/SimplePool.h"
 
@@ -72,31 +68,33 @@ public:
 protected:
     virtual Status PrepareOutputDatas(const std::shared_ptr<DocMapper>& docMapper,
                                       const std::vector<std::shared_ptr<framework::SegmentMeta>>& targetSegments);
-
     virtual void DestroyOutputDatas();
     virtual Status CloseFiles();
     virtual Status ReadData(docid_t docId, const DiskIndexerWithCtx& diskIndexerWithCtx, uint8_t* dataBuf,
                             uint32_t dataBufLen, uint32_t& dataLen);
+    virtual Status MergeData(const std::shared_ptr<DocMapper>& docMapper,
+                             const IIndexMerger::SegmentMergeInfos& segMergeInfos);
+    virtual std::pair<Status, std::shared_ptr<IIndexer>>
+    GetIndexerFromSegment(const std::shared_ptr<framework::Segment>& segment,
+                          const std::shared_ptr<AttributeConfig>& attrConfig);
 
     void ReserveMemBuffers(const std::vector<DiskIndexerWithCtx>& diskIndexers);
 
+private:
+    void ReleaseMemBuffers();
     Status DumpDataInfoFile();
     Status CreateDiskIndexers(const SegmentMergeInfos& segMergeInfos);
     void EnsureReadCtx();
     Status MergePatches(const SegmentMergeInfos segmentMergeInfos);
-    virtual Status MergeData(const std::shared_ptr<DocMapper>& docMapper,
-                             const IIndexMerger::SegmentMergeInfos& segMergeInfos);
-    void ReleaseMemBuffers();
-    std::pair<Status, std::shared_ptr<IIndexer>>
-    GetIndexerFromSegment(const std::shared_ptr<framework::Segment>& segment,
-                          const std::shared_ptr<config::AttributeConfig>& attrConfig);
 
 protected:
     std::vector<DiskIndexerWithCtx> _diskIndexers;
+    SegmentOutputMapper<OutputData> _segOutputMapper;
     indexlib::util::MemBuffer _dataBuf;
+
+private:
     indexlib::util::SimplePool _pool;
     autil::mem_pool::UnsafePool _readPool;
-    SegmentOutputMapper<OutputData> _segOutputMapper;
     size_t _switchLimit;
 
 private:
@@ -146,30 +144,9 @@ Status MultiValueAttributeMerger<T>::DoMerge(const SegmentMergeInfos& segMergeIn
 template <typename T>
 inline std::pair<Status, std::shared_ptr<IIndexer>>
 MultiValueAttributeMerger<T>::GetIndexerFromSegment(const std::shared_ptr<framework::Segment>& segment,
-                                                    const std::shared_ptr<config::AttributeConfig>& attrConfig)
+                                                    const std::shared_ptr<AttributeConfig>& attrConfig)
 {
-    auto configType = attrConfig->GetConfigType();
-    indexlib::file_system::FSResult<std::shared_ptr<indexlib::file_system::IDirectory>> fsResult;
-    if (configType != config::AttributeConfig::ct_section) {
-        return segment->GetIndexer(attrConfig->GetIndexType(), attrConfig->GetIndexName());
-    }
-
-    auto invertedIndexName =
-        indexlibv2::config::SectionAttributeConfig::SectionAttributeNameToIndexName(attrConfig->GetAttrName());
-    auto [status, diskIndexer] = segment->GetIndexer(indexlib::index::INVERTED_INDEX_TYPE_STR, invertedIndexName);
-    RETURN2_IF_STATUS_ERROR(status, nullptr, "get inverted indexer faile for section attribute [%s]",
-                            attrConfig->GetIndexName().c_str());
-    const auto& invertedDiskIndexer = std::dynamic_pointer_cast<indexlib::index::InvertedDiskIndexer>(diskIndexer);
-    if (invertedDiskIndexer && invertedDiskIndexer->GetMultiSliceAttributeDiskIndexer()) {
-        return std::make_pair(Status::OK(), invertedDiskIndexer->GetMultiSliceAttributeDiskIndexer());
-    }
-    const auto& multiShardIndexer =
-        std::dynamic_pointer_cast<indexlib::index::MultiShardInvertedDiskIndexer>(diskIndexer);
-    if (multiShardIndexer && multiShardIndexer->GetMultiSliceAttributeDiskIndexer()) {
-        return std::make_pair(Status::OK(), multiShardIndexer->GetMultiSliceAttributeDiskIndexer());
-    }
-    AUTIL_LOG(ERROR, "un-known inverted disk indexer");
-    return std::make_pair(Status::Corruption("un-known inverted disk indexer"), nullptr);
+    return segment->GetIndexer(attrConfig->GetIndexType(), attrConfig->GetIndexName());
 }
 
 template <typename T>
@@ -221,18 +198,9 @@ Status MultiValueAttributeMerger<T>::PrepareOutputDatas(
 
         assert(segmentMeta.segmentDir != nullptr);
         auto segIDir = segmentMeta.segmentDir->GetIDirectory();
-        std::shared_ptr<indexlib::file_system::IDirectory> attributeDir;
-        Status status;
-        config::AttributeConfig::ConfigType configType = _attributeConfig->GetConfigType();
-        if (configType == config::AttributeConfig::ct_section) {
-            std::tie(status, attributeDir) =
-                segIDir->MakeDirectory(indexlib::index::INVERTED_INDEX_PATH, indexlib::file_system::DirectoryOption())
-                    .StatusWith();
-        } else {
-            std::tie(status, attributeDir) =
-                segIDir->MakeDirectory(index::ATTRIBUTE_INDEX_TYPE_STR, indexlib::file_system::DirectoryOption())
-                    .StatusWith();
-        }
+        auto [status, attributeDir] =
+            segIDir->MakeDirectory(_attributeConfig->GetIndexCommonPath(), indexlib::file_system::DirectoryOption())
+                .StatusWith();
         RETURN_IF_STATUS_ERROR(status, "make diretory fail. file: [%s], error: [%s]",
                                index::ATTRIBUTE_INDEX_TYPE_STR.c_str(), status.ToString().c_str());
         std::string attrPath = _attributeConfig->GetAttrName() + "/" + _attributeConfig->GetSliceDir();

@@ -8,11 +8,12 @@
 #ifndef KMONITOR_CLIENT_METRICLEVEL_H_
 #define KMONITOR_CLIENT_METRICLEVEL_H_
 
-#include <set>
 #include <map>
+#include <set>
 #include <string>
-#include "kmonitor/client/common/Common.h"
+
 #include "autil/Log.h"
+#include "kmonitor/client/common/Common.h"
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 enum MetricLevel : unsigned int {
@@ -44,32 +45,30 @@ struct MetricLevelConfig {
 constexpr int64_t DEFAULT_LEVEL_TIME_MS = MetricLevelConfig{}.period[NORMAL] * 1000;
 
 class MetricLevelManager {
- public:
+public:
     MetricLevelManager();
     ~MetricLevelManager();
 
- public:
-    void AddMetricLevel(const std::string& metric_name, MetricLevel level);
-    void RemoveMetricLevel(const std::string& metric_name);
+public:
+    void AddMetricLevel(const std::string &metric_name, MetricLevel level);
+    void RemoveMetricLevel(const std::string &metric_name);
     std::set<std::string> GetMetric(MetricLevel level);
     static std::set<MetricLevel> GetLevel(int second);
     static unsigned int GetLevelPeriod(MetricLevel level);
     static void SetGlobalLevelConfig(const MetricLevelConfig &config);
 
- private:
+private:
     MetricLevelManager(const MetricLevelManager &);
-    MetricLevelManager& operator=(const MetricLevelManager &);
+    MetricLevelManager &operator=(const MetricLevelManager &);
 
- private:
+private:
     std::map<std::string, MetricLevel> metric_map_;
-    std::map<MetricLevel, std::set<std::string> > level_map_;
-    
- private:
+    std::map<MetricLevel, std::set<std::string>> level_map_;
+
+private:
     AUTIL_LOG_DECLARE();
 };
 
-
-
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_METRICLEVEL_H_
+#endif // KMONITOR_CLIENT_METRICLEVEL_H_

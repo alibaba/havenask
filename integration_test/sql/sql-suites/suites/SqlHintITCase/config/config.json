@@ -1,0 +1,50 @@
+{
+    "tables" : [
+        {
+            "table_name" : "t1",
+            "is_main_table" : true,
+            "data_path" : "data/t1.dat"
+        },
+        {
+            "table_name" : "t2",
+            "is_main_table" : false,
+            "data_path" : "data/t2.dat"
+        },
+        {
+            "table_name" : "tj_item_raw",
+            "is_main_table" : false,
+            "data_path" : "data/tj_item_raw.dat"
+        },
+        {
+            "table_name" : "tj_item",
+            "is_main_table" : false,
+            "data_path" : "data/tj_item.dat"
+        },
+        {
+            "table_name" : "tj_relation_raw",
+            "is_main_table" : false,
+            "data_path" : "data/tj_relation_raw.dat"
+        },
+        {
+            "table_name" : "tj_relation",
+            "is_main_table" : false,
+            "data_path" : "data/tj_relation.dat"
+        },
+        {
+            "table_name" : "tj_shop_aux",
+            "is_main_table" : false,
+            "data_path" : "data/tj_shop_aux.dat"
+        },
+        {
+            "table_name" : "tj_shop_raw",
+            "is_main_table" : false,
+            "data_path" : "data/tj_shop_raw.dat"
+        },
+        {
+            "table_name" : "tj_shop",
+            "is_main_table" : false,
+            "data_path" : "data/tj_shop.dat"
+        }
+    ],
+    "config_path" : "config/config_multi_iquan_table"
+}

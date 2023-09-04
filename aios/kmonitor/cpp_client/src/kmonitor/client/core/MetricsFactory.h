@@ -9,22 +9,23 @@
 #define KMONITOR_CLIENT_CORE_METRICSFACTORY_H_
 
 #include <string>
-#include "kmonitor/client/common/Common.h"
+
 #include "kmonitor/client/MetricType.h"
+#include "kmonitor/client/common/Common.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 class Metric;
 
 class MetricsFactory {
- public:
+public:
     static Metric *CreateMetric(const std::string &name, MetricType metric_type);
 
- private:
+private:
     MetricsFactory(const MetricsFactory &);
     MetricsFactory &operator=(const MetricsFactory &);
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_CORE_METRICSFACTORY_H_
+#endif // KMONITOR_CLIENT_CORE_METRICSFACTORY_H_

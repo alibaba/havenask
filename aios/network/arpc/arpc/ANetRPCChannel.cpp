@@ -13,39 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <google/protobuf/arena.h>
-#include <new>
+#include "aios/network/arpc/arpc/ANetRPCChannel.h"
+
 #include <cassert>
 #include <cstddef>
+#include <google/protobuf/arena.h>
 #include <memory>
+#include <new>
 #include <string>
 
-#include "aios/network/arpc/arpc/util/Log.h"
-#include "aios/network/anet/delaydecodepacket.h"
-#include "aios/network/arpc/arpc/proto/rpc_extensions.pb.h"
-#include "aios/network/arpc/arpc/MessageSerializable.h"
-#include "aios/network/arpc/arpc/PacketArg.h"
-#include "aios/network/arpc/arpc/ANetRPCChannel.h"
-#include "aios/network/arpc/arpc/UtilFun.h"
 #include "aios/network/anet/connectionpriority.h"
+#include "aios/network/anet/delaydecodepacket.h"
 #include "aios/network/anet/ilogger.h"
 #include "aios/network/anet/packet.h"
 #include "aios/network/arpc/arpc/ANetRPCController.h"
-#include "aios/network/arpc/arpc/anet/ClientPacketHandler.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
+#include "aios/network/arpc/arpc/MessageSerializable.h"
+#include "aios/network/arpc/arpc/PacketArg.h"
 #include "aios/network/arpc/arpc/RPCChannelBase.h"
-#include "aios/network/arpc/arpc/Tracer.h"
 #include "aios/network/arpc/arpc/SyncClosure.h"
+#include "aios/network/arpc/arpc/Tracer.h"
+#include "aios/network/arpc/arpc/UtilFun.h"
+#include "aios/network/arpc/arpc/anet/ClientPacketHandler.h"
+#include "aios/network/arpc/arpc/metric/ClientRPCStats.h"
+#include "aios/network/arpc/arpc/proto/rpc_extensions.pb.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 
 using namespace std;
 using namespace anet;
 ARPC_BEGIN_NAMESPACE(arpc);
 ARPC_DECLARE_AND_SETUP_LOGGER(ANetRPCChannel);
 
-ANetRPCChannel::ANetRPCChannel(Connection *pConnection,
-                               ANetRPCMessageCodec *messageCodec,
-                               bool block)
-{
+ANetRPCChannel::ANetRPCChannel(Connection *pConnection, ANetRPCMessageCodec *messageCodec, bool block) {
     _pConnection = pConnection;
 
     if (_pConnection) {
@@ -63,8 +62,7 @@ ANetRPCChannel::ANetRPCChannel(Connection *pConnection,
 ANetRPCChannel::~ANetRPCChannel() {
     if (_pConnection) {
         _pConnection->close();
-        SharedClientPacketHandler *sharedHandler =
-            getSharedHandlerFromConnection();
+        SharedClientPacketHandler *sharedHandler = getSharedHandlerFromConnection();
         if (sharedHandler != NULL) {
             sharedHandler->cleanChannel();
             sharedHandler->subRef();
@@ -79,8 +77,7 @@ void ANetRPCChannel::CallMethod(const RPCMethodDescriptor *method,
                                 RPCController *controller,
                                 const RPCMessage *request,
                                 RPCMessage *response,
-                                RPCClosure *done)
-{
+                                RPCClosure *done) {
     version_t version = GetVersion();
     ANetRPCController *pController = (ANetRPCController *)controller;
     SetTraceFlag(pController);
@@ -89,13 +86,21 @@ void ANetRPCChannel::CallMethod(const RPCMethodDescriptor *method,
     context->callId = _messageCodec->GenerateCallId(method, version);
     context->request = (RPCMessage *)request;
     context->enableTrace = pController->GetTraceFlag();
-    context->userPayload = pController->GetTracer().getUserPayload();
+
+    auto &tracer = pController->GetTracer();
+    context->userPayload = tracer.getUserPayload();
+
+    auto rpcStats = _metricReporter != nullptr ? _metricReporter->makeRPCStats() : nullptr;
+    tracer.setClientRPCStats(rpcStats);
+    tracer.BeginCallMethod();
+
     if (!response->GetArena()) {
         context->arena.reset(new google::protobuf::Arena());
         pController->setProtoArena(context->arena);
     }
 
     Packet *packet = _messageCodec->EncodeRequest(context, version);
+    tracer.EndEncodeRequest();
 
     if (packet == NULL) {
         SetError(pController, ARPC_ERROR_ENCODE_PACKET);
@@ -104,8 +109,7 @@ void ANetRPCChannel::CallMethod(const RPCMethodDescriptor *method,
         return;
     }
 
-    RpcReqArg *pArg =
-        new (nothrow) RpcReqArg(pController, response, done, context);
+    RpcReqArg *pArg = new (nothrow) RpcReqArg(pController, response, done, context);
 
     if (pArg == NULL) {
         ARPC_LOG(ERROR, "new RpcReqArg return NULL");
@@ -123,21 +127,26 @@ void ANetRPCChannel::CallMethod(const RPCMethodDescriptor *method,
     }
 }
 
-void ANetRPCChannel::SyncCall(Packet *pPack,  RpcReqArg *pArg)
-{
+void ANetRPCChannel::SyncCall(Packet *pPack, RpcReqArg *pArg) {
     SyncClosure syncDone;
     pArg->sClosure = &syncDone;
     AsyncCall(pPack, pArg);
     syncDone.WaitReply();
 }
 
-bool ANetRPCChannel::AsyncCall(Packet *pPack, RpcReqArg *pArg)
-{
+bool ANetRPCChannel::AsyncCall(Packet *pPack, RpcReqArg *pArg) {
     ANetRPCController *pController = pArg->sController;
     pController->GetTracer().BeginPostRequest();
     pPack->setExpireTime(pController->GetExpireTime());
     pArg->sVersion = pPack->getPacketVersion();
+
+    auto stats = pController->GetTracer().getClientRPCStats();
     bool ret = PostPacket(pPack, NULL, pArg, _block);
+
+    // rpc controler and tracer may destory on other callback thread
+    if (stats != nullptr) {
+        stats->markRequestSendDone();
+    }
 
     if (!ret) {
         ARPC_LOG(WARN, "post packet error");
@@ -158,25 +167,22 @@ bool ANetRPCChannel::AsyncCall(Packet *pPack, RpcReqArg *pArg)
     return true;
 }
 
-SharedClientPacketHandler* ANetRPCChannel::getSharedHandlerFromConnection() {
+SharedClientPacketHandler *ANetRPCChannel::getSharedHandlerFromConnection() {
     if (_pConnection == NULL) {
         return NULL;
     }
-    return dynamic_cast<SharedClientPacketHandler*> (
-            _pConnection->getDefaultPacketHandler());
+    return dynamic_cast<SharedClientPacketHandler *>(_pConnection->getDefaultPacketHandler());
 }
 
-bool ANetRPCChannel::needRepostPacket(
-    ErrorCode errorCode, version_t remoteVersion,
-    version_t postedPacketVersion) const
-{
+bool ANetRPCChannel::needRepostPacket(ErrorCode errorCode,
+                                      version_t remoteVersion,
+                                      version_t postedPacketVersion) const {
     if (errorCode == ARPC_ERROR_NONE) {
         return false;
     }
 
     if (errorCode == ARPC_ERROR_RPCCALL_MISMATCH) {
-        if (remoteVersion == ARPC_VERSION_0 &&
-                postedPacketVersion > ARPC_VERSION_0) {
+        if (remoteVersion == ARPC_VERSION_0 && postedPacketVersion > ARPC_VERSION_0) {
             return true;
         } else {
             return false;
@@ -194,14 +200,17 @@ bool ANetRPCChannel::needRepostPacket(
     return false;
 }
 
-bool ANetRPCChannel::CheckResponsePacket(Packet *packet, RpcReqArg *pArgs)
-{
+bool ANetRPCChannel::CheckResponsePacket(Packet *packet, RpcReqArg *pArgs) {
     uint32_t pcode = packet->getPcode();
     ErrorCode errorCode = (ErrorCode)(pcode & (~ADVANCE_PACKET_MASK));
     version_t remoteVersion = packet->getPacketVersion();
 
-    ARPC_LOG(TRACE1, "check response packet, pcode [%d], errorcode [%d], "
-             "remoteversion [%d]", pcode, errorCode, remoteVersion);
+    ARPC_LOG(TRACE1,
+             "check response packet, pcode [%d], errorcode [%d], "
+             "remoteversion [%d]",
+             pcode,
+             errorCode,
+             remoteVersion);
 
     if (!needRepostPacket(errorCode, remoteVersion, pArgs->sVersion)) {
         return true;
@@ -212,8 +221,7 @@ bool ANetRPCChannel::CheckResponsePacket(Packet *packet, RpcReqArg *pArgs)
     Packet *newPacket = _messageCodec->EncodeRequest(context, remoteVersion);
 
     if (newPacket == NULL) {
-        ARPC_LOG(ERROR, "encode repost packet falied. packetVersion [%d]",
-                 remoteVersion);
+        ARPC_LOG(ERROR, "encode repost packet falied. packetVersion [%d]", remoteVersion);
         return true;
     }
 
@@ -223,18 +231,13 @@ bool ANetRPCChannel::CheckResponsePacket(Packet *packet, RpcReqArg *pArgs)
     return false;
 }
 
-bool ANetRPCChannel::PostPacket(Packet *packet,
-                                IPacketHandler *packetHandler,
-                                void *args, bool block)
-{
+bool ANetRPCChannel::PostPacket(Packet *packet, IPacketHandler *packetHandler, void *args, bool block) {
     if (_pConnection) {
-        SharedClientPacketHandler *sharedHandler =
-            getSharedHandlerFromConnection();
+        SharedClientPacketHandler *sharedHandler = getSharedHandlerFromConnection();
         if (sharedHandler != NULL) {
             sharedHandler->addRef();
         }
-        bool ret =  _pConnection->postPacket(packet, 
-                                        packetHandler, args, block);
+        bool ret = _pConnection->postPacket(packet, packetHandler, args, block);
         if (!ret) {
             if (sharedHandler) {
                 sharedHandler->subRef();
@@ -246,9 +249,7 @@ bool ANetRPCChannel::PostPacket(Packet *packet,
     return false;
 }
 
-
-bool ANetRPCChannel::ChannelConnected()
-{
+bool ANetRPCChannel::ChannelConnected() {
     if (_pConnection) {
         return _pConnection->isConnected();
     }
@@ -256,8 +257,7 @@ bool ANetRPCChannel::ChannelConnected()
     return false;
 }
 
-bool ANetRPCChannel::ChannelBroken()
-{
+bool ANetRPCChannel::ChannelBroken() {
     if (_pConnection) {
         return _pConnection->isClosed();
     }
@@ -273,6 +273,10 @@ std::string ANetRPCChannel::getRemoteAddr() const {
         return std::string(addr.data());
     }
     return std::string();
+}
+
+void ANetRPCChannel::SetMetricReporter(const std::shared_ptr<ClientMetricReporter> &metricReporter) {
+    _metricReporter = metricReporter;
 }
 
 ARPC_END_NAMESPACE(arpc);

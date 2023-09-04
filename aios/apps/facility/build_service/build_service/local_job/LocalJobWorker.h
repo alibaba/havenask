@@ -27,7 +27,7 @@ class LocalBrokerFactory;
 class LocalJobWorker
 {
 public:
-    LocalJobWorker();
+    LocalJobWorker(bool useV2Build = false);
     ~LocalJobWorker();
 
 private:
@@ -44,6 +44,10 @@ private:
     bool parallelRunMergeTask(size_t instanceCount, const std::string& jobParams, task_base::TaskBase::Mode mode,
                               bool isTablet = false);
     bool downloadConfig(const std::string& configPath, std::string& localConfigPath);
+
+private:
+    bool _resetEnv = false;
+    bool _useV2Build = false;
 
 private:
     BS_LOG_DECLARE();

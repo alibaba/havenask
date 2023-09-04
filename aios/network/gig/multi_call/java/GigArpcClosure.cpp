@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/java/GigArpcClosure.h"
+
 #include "aios/network/gig/multi_call/java/GigArpcResponse.h"
 #include "aios/network/gig/multi_call/java/GigJavaUtil.h"
 
@@ -24,15 +25,15 @@ AUTIL_LOG_SETUP(multi_call, GigArpcClosure);
 
 GigArpcClosure::GigArpcClosure(JavaCallback callback, long callbackId,
                                const GigRequestGeneratorPtr &generator)
-    : GigJavaClosure(callback, callbackId, generator) {}
+    : GigJavaClosure(callback, callbackId, generator) {
+}
 
-GigArpcClosure::~GigArpcClosure() {}
+GigArpcClosure::~GigArpcClosure() {
+}
 
-bool GigArpcClosure::extractResponse(ResponsePtr response,
-                                     GigResponseHeader *responseHeader,
+bool GigArpcClosure::extractResponse(ResponsePtr response, GigResponseHeader *responseHeader,
                                      const char *&body, size_t &bodySize) {
-    GigArpcResponsePtr gigArpcResponse =
-        dynamic_pointer_cast<GigArpcResponse>(response);
+    GigArpcResponsePtr gigArpcResponse = dynamic_pointer_cast<GigArpcResponse>(response);
     if (!gigArpcResponse) {
         string errStr = "gig arpc response is null";
         AUTIL_LOG(ERROR, "%s", errStr.c_str());
@@ -49,10 +50,8 @@ bool GigArpcClosure::extractResponse(ResponsePtr response,
         AUTIL_LOG(ERROR,
                   "arpc response data is empty, ec [%d], err [%s], biz [%s], "
                   "remote [%s]",
-                  gigArpcResponse->getErrorCode(),
-                  gigArpcResponse->errorString().c_str(),
-                  gigArpcResponse->getBizName().c_str(),
-                  gigArpcResponse->getSpecStr().c_str());
+                  gigArpcResponse->getErrorCode(), gigArpcResponse->errorString().c_str(),
+                  gigArpcResponse->getBizName().c_str(), gigArpcResponse->getSpecStr().c_str());
         return false;
     }
 }

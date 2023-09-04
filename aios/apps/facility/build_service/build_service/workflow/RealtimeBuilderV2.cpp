@@ -288,6 +288,9 @@ RealtimeBuilderImplV2* RealtimeBuilderV2::createRealtimeBuilderImpl(const proto:
     if (iter->second == config::REALTIME_SERVICE_MODE) {
         return new ProcessedDocRtBuilderImplV2(_configPath, _tablet, _builderResource, _tasker.get());
     }
+    if (iter->second == config::REALTIME_SERVICE_NPC_MODE) {
+        return new ProcessedDocRtBuilderImplV2(_configPath, _tablet, _builderResource, _tasker.get());
+    }
     assert(false);
     // TODO(hanyao): add service mode and job mode
     BS_LOG(ERROR, "[%s] invalid realtime mode, can not create realtime builder impl",

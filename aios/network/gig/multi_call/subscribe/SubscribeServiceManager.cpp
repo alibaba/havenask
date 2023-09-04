@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/subscribe/SubscribeServiceManager.h"
+
 #include "aios/network/gig/multi_call/subscribe/CM2SubscribeService.h"
 #include "aios/network/gig/multi_call/subscribe/IstioSubscribeService.h"
 #include "aios/network/gig/multi_call/subscribe/LocalSubscribeService.h"
@@ -25,9 +26,11 @@ namespace multi_call {
 
 AUTIL_LOG_SETUP(multi_call, SubscribeServiceManager);
 
-SubscribeServiceManager::SubscribeServiceManager() {}
+SubscribeServiceManager::SubscribeServiceManager() {
+}
 
-SubscribeServiceManager::~SubscribeServiceManager() {}
+SubscribeServiceManager::~SubscribeServiceManager() {
+}
 
 bool SubscribeServiceManager::clusterInfoNeedUpdate() {
     autil::ScopedReadLock lock(_subLock);
@@ -39,12 +42,12 @@ bool SubscribeServiceManager::clusterInfoNeedUpdate() {
     return false;
 }
 
-bool SubscribeServiceManager::getClusterInfoMap(TopoNodeVec &topoNodeVec, HeartbeatSpecVec &heartbeatSpecs) {
+bool SubscribeServiceManager::getClusterInfoMap(TopoNodeVec &topoNodeVec,
+                                                HeartbeatSpecVec &heartbeatSpecs) {
     autil::ScopedReadLock lock(_subLock);
     for (const auto &service : _subServiceVec) {
         if (!service->isEnable()) {
-            AUTIL_LOG(DEBUG, "disabled subscribe service type:%u",
-                      service->getType());
+            AUTIL_LOG(DEBUG, "disabled subscribe service type:%u", service->getType());
             continue;
         }
         if (!service->getClusterInfoMap(topoNodeVec, heartbeatSpecs)) {
@@ -58,8 +61,7 @@ bool SubscribeServiceManager::getClusterInfoMap(TopoNodeVec &topoNodeVec, Heartb
     return true;
 }
 
-bool SubscribeServiceManager::addSubscribeService(
-    const SubscribeConfig &config) {
+bool SubscribeServiceManager::addSubscribeService(const SubscribeConfig &config) {
     bool cm2Enabled = false;
     bool vipEnabled = false;
     bool istioEnabled = false;
@@ -75,8 +77,7 @@ bool SubscribeServiceManager::addSubscribeService(
             for (auto &cm2Config : cm2Configs) {
                 auto service = SubscribeServiceFactory::createCm2Sub(cm2Config);
                 if (!service->init()) {
-                    AUTIL_LOG(ERROR,
-                              "CM2 subscribe wrapper init failed, config [%s]!",
+                    AUTIL_LOG(ERROR, "CM2 subscribe wrapper init failed, config [%s]!",
                               ToJsonString(cm2Config, true).c_str());
                     _subServiceVec.clear();
                     return false;
@@ -103,13 +104,10 @@ bool SubscribeServiceManager::addSubscribeService(
         std::vector<IstioConfig> istioConfigs;
         if (config.getIstioConfigs(istioConfigs)) {
             for (auto &istioConfig : istioConfigs) {
-                auto service = SubscribeServiceFactory::createIstioSub(
-                    istioConfig, reporter);
+                auto service = SubscribeServiceFactory::createIstioSub(istioConfig, reporter);
                 if (!service->init()) {
-                    AUTIL_LOG(
-                        ERROR,
-                        "istio subscribe wrapper init failed, config [%s]!",
-                        ToJsonString(istioConfig, true).c_str());
+                    AUTIL_LOG(ERROR, "istio subscribe wrapper init failed, config [%s]!",
+                              ToJsonString(istioConfig, true).c_str());
                     _subServiceVec.clear();
                     return false;
                 }
@@ -118,8 +116,7 @@ bool SubscribeServiceManager::addSubscribeService(
         }
     }
     if (localEnabled) {
-        _subServiceVec.push_back(
-            SubscribeServiceFactory::createLocalSub(config.localConfig));
+        _subServiceVec.push_back(SubscribeServiceFactory::createLocalSub(config.localConfig));
     }
     if (_subServiceVec.empty()) {
         if (!config.allowEmptySub) {
@@ -132,8 +129,7 @@ bool SubscribeServiceManager::addSubscribeService(
     return true;
 }
 
-bool SubscribeServiceManager::addSubscribe(
-    const SubscribeClustersConfig &gigSubConf) {
+bool SubscribeServiceManager::addSubscribe(const SubscribeClustersConfig &gigSubConf) {
     bool result = true;
     bool cm2Add = false;
     bool vipAdd = false;
@@ -153,8 +149,7 @@ bool SubscribeServiceManager::addSubscribe(
             if (!vipSubService) {
                 result = false;
             }
-            result &=
-                vipSubService->addSubscribeDomainConfig(gigSubConf.vipDomains);
+            result &= vipSubService->addSubscribeDomainConfig(gigSubConf.vipDomains);
             vipAdd = true;
         } else if (subService->getType() == ST_ISTIO && gigSubConf.hasIstioSub()) {
             result &= subService->addSubscribe(gigSubConf.istioBizClusters);
@@ -178,8 +173,7 @@ bool SubscribeServiceManager::addSubscribe(
     return result;
 }
 
-bool SubscribeServiceManager::deleteSubscribe(
-    const SubscribeClustersConfig &gigSubConf) {
+bool SubscribeServiceManager::deleteSubscribe(const SubscribeClustersConfig &gigSubConf) {
     bool result = true;
     bool cm2Del = false;
     bool vipDel = false;
@@ -191,8 +185,7 @@ bool SubscribeServiceManager::deleteSubscribe(
                 dynamic_pointer_cast<CM2SubscribeService>(subService);
             result &= cm2SubService->deleteSubscribe(gigSubConf.cm2Clusters);
             cm2SubService->deleteTopoCluster(gigSubConf.cm2Clusters);
-            result &=
-                cm2SubService->deleteSubscribe(gigSubConf.cm2NoTopoClusters);
+            result &= cm2SubService->deleteSubscribe(gigSubConf.cm2NoTopoClusters);
             cm2Del = true;
         } else if (subService->getType() == ST_VIP) {
             VIPSubscribeServicePtr vipSubService =
@@ -200,8 +193,7 @@ bool SubscribeServiceManager::deleteSubscribe(
             if (!vipSubService) {
                 result = false;
             }
-            result &= vipSubService->deleteSubscribeDomainConfig(
-                gigSubConf.vipDomains);
+            result &= vipSubService->deleteSubscribeDomainConfig(gigSubConf.vipDomains);
             vipDel = true;
         } else if (subService->getType() == ST_ISTIO) {
             result &= subService->deleteSubscribe(gigSubConf.istioBizClusters);

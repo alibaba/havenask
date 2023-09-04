@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "autil/StringUtil.h"
 #include "fslib/util/MetricTagsHandler.h"
+
+#include "autil/StringUtil.h"
 
 using namespace std;
 using namespace kmonitor;
@@ -27,13 +28,11 @@ string MetricTagsHandler::PARAMS_SEP = "?";
 char MetricTagsHandler::INVAILD_CHAR = ':';
 char MetricTagsHandler::ESCAPE_CHAR = '-';
 
-MetricTagsHandler::MetricTagsHandler()
-{}
+MetricTagsHandler::MetricTagsHandler() {}
 
 MetricTagsHandler::~MetricTagsHandler() {}
 
-void MetricTagsHandler::getTags(const string& filePath, MetricsTags& tags) const
-{
+void MetricTagsHandler::getTags(const string &filePath, MetricsTags &tags) const {
     size_t found = filePath.find(PROXY_BEGIN);
     if (found == string::npos) {
         tags.AddTag(FSLIB_METRIC_TAGS_DFS_TYPE, FSLIB_FS_LOCAL_FILESYSTEM_NAME);
@@ -55,8 +54,7 @@ void MetricTagsHandler::getTags(const string& filePath, MetricsTags& tags) const
     if (dfsName.empty()) {
         return;
     }
-    autil::StringUtil::replace(dfsName, MetricTagsHandler::INVAILD_CHAR,
-                               MetricTagsHandler::ESCAPE_CHAR);
+    autil::StringUtil::replace(dfsName, MetricTagsHandler::INVAILD_CHAR, MetricTagsHandler::ESCAPE_CHAR);
     tags.AddTag(FSLIB_METRIC_TAGS_DFS_NAME, dfsName);
 }
 

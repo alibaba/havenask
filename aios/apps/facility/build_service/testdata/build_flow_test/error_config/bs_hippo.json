@@ -1,0 +1,92 @@
+{
+    "packages" : [
+        {
+            "packageURI" : "hdfs://10.101.193.227:9000/dailyrun/bs_dailyrun_zhoujie//_external_2019-04-20-11-37-02.tar",
+            "type" : "ARCHIVE"
+        },
+        {
+            "packageURI" : "hdfs://10.101.193.227:9000/dailyrun/bs_dailyrun/AliWS-1.4.0.0-20180808.tar",
+            "type" : "ARCHIVE"
+        },
+        {
+            "packageURI" : "hdfs://10.101.193.227:9000/dailyrun/bs_dailyrun/binary/hadoop.tar",
+            "type" : "ARCHIVE"
+        }
+    ],
+    "role_customize" : [
+        {
+            "_bs_role" : "admin",
+            "priority" : {
+                "major_priority" : 32,
+                "minor_priority" : 0
+            },
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        {
+                            "amount" : 0,
+                            "name" : "cpu"
+                        },
+                        {
+                            "amount" : 1024,
+                            "name" : "mem"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "_bs_role" : ".*",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        {
+                            "amount" : 0,
+                            "name" : "cpu"
+                        },
+                        {
+                            "amount" : 1024,
+                            "name" : "mem"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "role_default" : {
+        "count" : 1,
+        "priority" : {
+            "major_priority" : 64,
+            "minor_priority" : 0
+        },
+        "processInfos" : [
+            {
+                "args" : [
+                    [
+                        "-l",
+                        "$HIPPO_APP_INST_ROOT/usr/local/etc/bs/bs_test_alog.conf"
+                    ]
+                ],
+                "envs" : [
+                    [
+                        "HADOOP_HOME",
+                        "$HIPPO_APP_INST_ROOT/hippo_hadoop_root/usr/local/hadoop/hadoop/"
+                    ],
+                    [
+                        "LD_LIBRARY_PATH",
+                        "/opt/taobao/java/jre/lib/amd64/server/"
+                    ],
+                    [
+                        "HADOOP_JAVA_PLATFORM_OPTS",
+                        "-XX:-UsePerfData"
+                    ],
+                    [
+                        "fill_counter_info",
+                        "true"
+                    ]
+                ],
+                "isDaemon" : true
+            }
+        ]
+    }
+}

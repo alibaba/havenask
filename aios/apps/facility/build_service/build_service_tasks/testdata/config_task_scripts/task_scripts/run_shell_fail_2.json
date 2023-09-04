@@ -1,0 +1,11 @@
+{
+    "script_type" : "shell",
+    "script_file" : "run_shell_fail_2.sh",
+    "resources" : [
+	{ "path" : "bin", "type" : "binary" },
+	{ "path" : "lib", "type" : "library" }
+    ],
+    "arguments" : "",
+    "partition_count" : 1,
+    "parallel_num" : 3
+}

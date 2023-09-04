@@ -10,34 +10,32 @@
 
 #include <string>
 #include <vector>
+
 #include "kmonitor/client/common/Common.h"
 #include "kmonitor/client/core/MetricsRecord.h"
-
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 class MetricsRecord;
 
 class MetricsCollector {
- public:
+public:
     MetricsCollector();
     ~MetricsCollector();
-    
-    MetricsRecord *AddRecord(const std::string &name,
-                             const MetricsTagsPtr &tags,
-                             int64_t curTime);
+
+    MetricsRecord *AddRecord(const std::string &name, const MetricsTagsPtr &tags, int64_t curTime);
 
     void Clear();
     const MetricsRecords &GetRecords() const;
 
- private:
+private:
     MetricsCollector(const MetricsCollector &);
     MetricsCollector &operator=(const MetricsCollector &);
 
- private:
+private:
     MetricsRecords records_;
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_CORE_METRICSCOLLECTOR_H_
+#endif // KMONITOR_CLIENT_CORE_METRICSCOLLECTOR_H_

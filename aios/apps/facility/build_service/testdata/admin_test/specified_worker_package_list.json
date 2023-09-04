@@ -1,0 +1,27 @@
+[
+    {
+        "packageURI":"specified_bs_package",
+        "type":"ARCHIVE"
+        
+    },
+    {
+        "packageURI":"specified_other_package",
+        "type":"ARCHIVE"
+        
+    },
+    {
+        "packageURI":"specified_other_package_2",
+        "type":"ARCHIVE"
+        
+    },
+    {
+        "packageURI":"reg.docker",
+        "type":"IMAGE"
+        
+    },
+    {
+        "packageURI":"specified_other_package_3",
+        "type":"ARCHIVE"
+        
+    }   
+]

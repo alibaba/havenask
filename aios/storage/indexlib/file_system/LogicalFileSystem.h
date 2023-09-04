@@ -70,11 +70,11 @@ public:
 
     FSResult<void>
     MountVersion(const std::string& physicalRoot, versionid_t versionId, const std::string& logicalPath,
-                 MountDirOption mountOption,
+                 MountOption mountOption,
                  const std::shared_ptr<indexlib::file_system::LifecycleTable>& lifecycleTable) noexcept override;
 
     FSResult<void> MountDir(const std::string& physicalRoot, const std::string& physicalPath,
-                            const std::string& logicalPath, MountDirOption mountOption,
+                            const std::string& logicalPath, MountOption mountOption,
                             bool enableLazyMount) noexcept override;
     FSResult<void> MountFile(const std::string& physicalRoot, const std::string& physicalPath,
                              const std::string& logicalPath, FSMountType mountType, int64_t length,
@@ -83,7 +83,7 @@ public:
 
     // mv all files in the @physicalDirs to @logicalPath
     FSResult<void> MergeDirs(const std::vector<std::string>& physicalDirs, const std::string& logicalPath,
-                             bool mergePackageFiles, FenceContext* fenceContext) noexcept override;
+                             const MergeDirsOption& mergeDirsOption) noexcept override;
     FSResult<void> CopyToOutputRoot(const std::string& logicalPath, bool mayNonExist) noexcept override;
 
 public:
@@ -99,7 +99,6 @@ public:
     FSResult<void> RemoveDirectory(const std::string& rawPath, const RemoveOption& removeOption) noexcept override;
     FSResult<void> Rename(const std::string& rawSrcPath, const std::string& rawDestPath,
                           FenceContext* fenceContext) noexcept override;
-
     FSResult<bool> IsExist(const std::string& rawPath) const noexcept override;
     FSResult<bool> IsDir(const std::string& rawPath) const noexcept override;
     FSResult<size_t> GetFileLength(const std::string& rawPath) const noexcept override;

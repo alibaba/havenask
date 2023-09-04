@@ -17,7 +17,7 @@
 
 #include <queue>
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/deletionmap/Common.h"
@@ -29,13 +29,13 @@
 namespace indexlibv2 { namespace table {
 AUTIL_LOG_SETUP(indexlib.table, SortedReclaimMap);
 
-Status SortedReclaimMap::Init(const std::shared_ptr<config::TabletSchema>& schema,
+Status SortedReclaimMap::Init(const std::shared_ptr<config::ITabletSchema>& schema,
                               const config::SortDescriptions& sortDescs, const SegmentMergePlan& segMergePlan,
                               const std::shared_ptr<framework::TabletData>& tabletData,
                               const SegmentSplitHandler& segmentSplitHandler)
 {
     int64_t before = autil::TimeUtility::currentTimeInSeconds();
-    std::vector<std::shared_ptr<indexlibv2::config::AttributeConfig>> attrConfigs;
+    std::vector<std::shared_ptr<indexlibv2::index::AttributeConfig>> attrConfigs;
     std::vector<config::SortPattern> sortPatterns;
     for (size_t i = 0; i < sortDescs.size(); ++i) {
         const std::string& fieldName = sortDescs[i].GetSortFieldName();
@@ -44,7 +44,7 @@ Status SortedReclaimMap::Init(const std::shared_ptr<config::TabletSchema>& schem
             AUTIL_LOG(ERROR, "Sort Field [%s] not exist in attribute!", fieldName.c_str());
             return Status::Corruption();
         }
-        auto attrConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(indexConfig);
+        auto attrConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(indexConfig);
         assert(attrConfig);
         if (attrConfig->IsMultiValue()) {
             AUTIL_LOG(ERROR, "Sort Field [%s] should not be multi value!", fieldName.c_str());
@@ -68,7 +68,7 @@ Status SortedReclaimMap::Init(const std::shared_ptr<config::TabletSchema>& schem
 
 Status SortedReclaimMap::TEST_Init(
     segmentid_t baseSegmentId, const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& srcSegments,
-    const std::vector<std::shared_ptr<indexlibv2::config::AttributeConfig>>& attrConfigs,
+    const std::vector<std::shared_ptr<indexlibv2::index::AttributeConfig>>& attrConfigs,
     const std::vector<config::SortPattern>& sortPatterns, const SegmentSplitHandler& segmentSplitHandler)
 {
     return SortByWeightInit(0, baseSegmentId, srcSegments, attrConfigs, sortPatterns, segmentSplitHandler);
@@ -77,7 +77,7 @@ Status SortedReclaimMap::TEST_Init(
 Status SortedReclaimMap::SortByWeightInit(
     size_t targetSegmentCount, segmentid_t baseSegmentId,
     const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& srcSegments,
-    const std::vector<std::shared_ptr<indexlibv2::config::AttributeConfig>>& attrConfigs,
+    const std::vector<std::shared_ptr<indexlibv2::index::AttributeConfig>>& attrConfigs,
     const std::vector<indexlibv2::config::SortPattern>& sortPatterns, const SegmentSplitHandler& segmentSplitHandler)
 {
     AUTIL_LOG(INFO, "begin sortByWeight init");
@@ -162,7 +162,7 @@ Status SortedReclaimMap::SortByWeightInit(
 }
 
 void SortedReclaimMap::InitMultiComparator(
-    const std::vector<std::shared_ptr<indexlibv2::config::AttributeConfig>>& attrConfigs,
+    const std::vector<std::shared_ptr<indexlibv2::index::AttributeConfig>>& attrConfigs,
     const std::vector<config::SortPattern>& sortPatterns,
     const std::shared_ptr<indexlib::index::MultiComparator>& multiComparator,
     const std::shared_ptr<indexlib::index::DocInfoAllocator>& docInfoAllocator) const
@@ -184,7 +184,7 @@ void SortedReclaimMap::InitMultiComparator(
 
 Status SortedReclaimMap::InitMultiAttrEvaluator(
     const std::pair<docid_t, std::shared_ptr<framework::Segment>>& srcSegment,
-    const std::vector<std::shared_ptr<indexlibv2::config::AttributeConfig>>& attrConfigs,
+    const std::vector<std::shared_ptr<indexlibv2::index::AttributeConfig>>& attrConfigs,
     const std::shared_ptr<indexlib::index::DocInfoAllocator>& docInfoAllocator,
     const std::shared_ptr<indexlib::index::MultiAttributeEvaluator>& multiEvaluatorPtr) const
 {

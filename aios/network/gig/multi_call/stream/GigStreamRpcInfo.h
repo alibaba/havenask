@@ -49,8 +49,7 @@ public:
     bool isLack() const;
 
 public:
-    friend std::ostream &operator<<(std::ostream &os,
-                                    const GigStreamRpcInfo &rpcInfo);
+    friend std::ostream &operator<<(std::ostream &os, const GigStreamRpcInfo &rpcInfo);
 
 public:
     bool operator==(const GigStreamRpcInfo &other) const;
@@ -69,13 +68,14 @@ public:
     bool isRetry = false;
 };
 
-class GigStreamRpcRecord {
+class GigStreamRpcRecord
+{
 public:
     void begin();
     void eof();
     void cancel();
-    void snapshot(GigStreamRpcStatus &status, int64_t &beginTs,
-                  int64_t &endTs) const;
+    void snapshot(GigStreamRpcStatus &status, int64_t &beginTs, int64_t &endTs) const;
+
 private:
     int64_t _beginTs = 0;
     int64_t _endTs = 0;
@@ -83,7 +83,8 @@ private:
     mutable autil::ReadWriteLock _lock;
 };
 
-class GigStreamRpcInfoController {
+class GigStreamRpcInfoController
+{
 public:
     GigStreamRpcInfoController(PartIdTy partId);
     ~GigStreamRpcInfoController();
@@ -119,29 +120,26 @@ typedef std::vector<GigStreamRpcInfo> GigStreamRpcInfoVec;
 typedef std::pair<std::string, std::string> GigStreamRpcInfoKey;
 typedef std::map<GigStreamRpcInfoKey, GigStreamRpcInfoVec> GigStreamRpcInfoMap;
 
-void calcStreamRpcConverage(const GigStreamRpcInfoMap &rpcInfo,
-                            size_t &usedRpcCount, size_t &lackRpcCount);
+void calcStreamRpcConverage(const GigStreamRpcInfoMap &rpcInfo, size_t &usedRpcCount,
+                            size_t &lackRpcCount);
 
-void calcStreamRpcConverage(const GigStreamRpcInfoVec &rpcInfoVec,
-                            size_t &usedRpcCount, size_t &lackRpcCount);
+void calcStreamRpcConverage(const GigStreamRpcInfoVec &rpcInfoVec, size_t &usedRpcCount,
+                            size_t &lackRpcCount);
 
 } // namespace multi_call
 
 template <>
-struct fmt::formatter<multi_call::GigStreamRpcInfo>
-    : autil::FormatterWithDefaultParse {
+struct fmt::formatter<multi_call::GigStreamRpcInfo> : autil::FormatterWithDefaultParse {
     template <typename FormatContext>
-    auto format(const multi_call::GigStreamRpcInfo &rpcInfo,
-                FormatContext &ctx) {
-        return format_to(
-            ctx.out(),
-            "[part:{} durUs:{} SS:{} RS:{} SPEC:{} SC:{} "
-            "RC:{} SBT:{} SET:{} RBT:{} RET:{} Retry:{}]",
-            rpcInfo.partId, rpcInfo.receiveEndTs - rpcInfo.sendBeginTs,
-            convertGigStreamRpcStatus(rpcInfo.sendStatus),
-            convertGigStreamRpcStatus(rpcInfo.receiveStatus), rpcInfo.spec,
-            rpcInfo.sendCount, rpcInfo.receiveCount, rpcInfo.sendBeginTs,
-            rpcInfo.sendEndTs, rpcInfo.receiveBeginTs, rpcInfo.receiveEndTs,
-            rpcInfo.isRetry);
+    auto format(const multi_call::GigStreamRpcInfo &rpcInfo, FormatContext &ctx) {
+        return format_to(ctx.out(),
+                         "[part:{} durUs:{} SS:{} RS:{} SPEC:{} SC:{} "
+                         "RC:{} SBT:{} SET:{} RBT:{} RET:{} Retry:{}]",
+                         rpcInfo.partId, rpcInfo.receiveEndTs - rpcInfo.sendBeginTs,
+                         convertGigStreamRpcStatus(rpcInfo.sendStatus),
+                         convertGigStreamRpcStatus(rpcInfo.receiveStatus), rpcInfo.spec,
+                         rpcInfo.sendCount, rpcInfo.receiveCount, rpcInfo.sendBeginTs,
+                         rpcInfo.sendEndTs, rpcInfo.receiveBeginTs, rpcInfo.receiveEndTs,
+                         rpcInfo.isRetry);
     }
 };

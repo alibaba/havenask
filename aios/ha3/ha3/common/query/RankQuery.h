@@ -25,28 +25,28 @@
 
 namespace autil {
 class DataBuffer;
-}  // namespace autil
+} // namespace autil
 namespace isearch {
 namespace common {
 class ModifyQueryVisitor;
 class QueryVisitor;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace common {
 
-class RankQuery : public Query
-{
+class RankQuery : public Query {
 public:
     RankQuery(const std::string &label);
     RankQuery(const RankQuery &other);
     ~RankQuery();
+
 public:
     void addQuery(QueryPtr queryPtr) override;
     void addQuery(QueryPtr queryPtr, uint32_t rankBoost);
 
-    bool operator == (const Query& query) const override;
+    bool operator==(const Query &query) const override;
     void accept(QueryVisitor *visitor) const override;
     void accept(ModifyQueryVisitor *visitor) override;
     Query *clone() const override;
@@ -66,9 +66,11 @@ public:
     void setQueryLabelWithDefaultLevel(const std::string &label) override {
         setQueryLabelBinary(label);
     }
+
 private:
     typedef std::vector<uint32_t> RankBoostVecor;
     RankBoostVecor _rankBoosts;
+
 private:
     AUTIL_LOG_DECLARE();
 };

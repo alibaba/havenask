@@ -45,6 +45,13 @@ std::vector<std::string> SegmentGroupConfig::Impl::GetFunctionNames() const
 
 SegmentGroupConfig::SegmentGroupConfig() : _impl(std::make_unique<Impl>()) {}
 SegmentGroupConfig::SegmentGroupConfig(const SegmentGroupConfig& other) : _impl(std::make_unique<Impl>(*other._impl)) {}
+SegmentGroupConfig& SegmentGroupConfig::operator=(const SegmentGroupConfig& other)
+{
+    if (this != &other) {
+        _impl = std::make_unique<SegmentGroupConfig::Impl>(*other._impl);
+    }
+    return *this;
+}
 SegmentGroupConfig::~SegmentGroupConfig() {}
 
 void SegmentGroupConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)

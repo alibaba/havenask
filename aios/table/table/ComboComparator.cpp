@@ -19,19 +19,14 @@
 #include <stddef.h>
 
 #include "autil/mem_pool/PoolBase.h"
-
 #include "table/Comparator.h"
 
 namespace table {
 
-ComboComparator::ComboComparator()
-{
-}
+ComboComparator::ComboComparator() {}
 
 ComboComparator::~ComboComparator() {
-    for (ComparatorVector::iterator it = _cmpVector.begin();
-         it != _cmpVector.end(); it++)
-    {
+    for (ComparatorVector::iterator it = _cmpVector.begin(); it != _cmpVector.end(); it++) {
         POOL_DELETE_CLASS(*it);
     }
     _cmpVector.clear();
@@ -53,4 +48,4 @@ bool ComboComparator::compare(Row a, Row b) const {
     return false;
 }
 
-}
+} // namespace table

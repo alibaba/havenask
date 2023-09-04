@@ -16,20 +16,22 @@
 #ifndef ISEARCH_MULTI_CALL_GRPCSERVERWORKER_H
 #define ISEARCH_MULTI_CALL_GRPCSERVERWORKER_H
 
-#include "autil/LockFreeThreadPool.h"
+#include <grpc++/alarm.h>
+
 #include "aios/network/gig/multi_call/agent/GigAgent.h"
 #include "aios/network/gig/multi_call/config/MultiCallConfig.h"
 #include "aios/network/gig/multi_call/grpc/server/GrpcCallData.h"
 #include "aios/network/gig/multi_call/rpc/GigRpcWorker.h"
 #include "aios/network/gig/multi_call/util/RandomGenerator.h"
+#include "autil/LockFreeThreadPool.h"
 #include "autil/Thread.h"
-#include <grpc++/alarm.h>
 
 namespace multi_call {
 
 class GigRpcServer;
 
-class GrpcServerWorker : public GigRpcWorker {
+class GrpcServerWorker : public GigRpcWorker
+{
 public:
     GrpcServerWorker(GigRpcServer &owner);
     ~GrpcServerWorker();
@@ -48,8 +50,7 @@ public:
 
 private:
     // virtual for ut
-    virtual grpc::SslServerCredentialsOptions
-    getSslOptions(const SecureConfig &secureConfig) const;
+    virtual grpc::SslServerCredentialsOptions getSslOptions(const SecureConfig &secureConfig) const;
     void workLoop(size_t idx, ServerCompletionQueueStatusPtr cqsPtr);
 
 public:
@@ -62,7 +63,7 @@ private:
     GrpcServerDescription _desc;
     RandomGenerator _randomGenerator;
     std::vector<autil::ThreadPtr> _workThreads;
-    std::vector< ::grpc::Alarm *> _shutdownAlarms;
+    std::vector<::grpc::Alarm *> _shutdownAlarms;
     std::vector<ServerCompletionQueueStatusPtr> _completionQueues;
     grpc::ServerBuilder _builder;
     std::unique_ptr<grpc::Server> _server;

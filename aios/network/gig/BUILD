@@ -5,7 +5,6 @@ cc_library(
     deps=[
         '//aios/network/gig/multi_call/interface:interface_headers',
         '//aios/network/gig/multi_call/service:service_public_headers',
-        '//aios/network/gig/multi_call/heartbeat:heartbeat_public_headers',
         '//aios/network/gig/multi_call/rpc:rpc_public_headers',
         '//aios/network/gig/multi_call/arpc:arpc_public_headers',
         '//aios/network/gig/multi_call/agent:agent_public_headers',
@@ -22,7 +21,6 @@ cc_library(
         '//aios/network/gig/multi_call/metric:metric',
         '//aios/network/gig/multi_call/agent:agent',
         '//aios/network/gig/multi_call/rpc:rpc',
-        '//aios/network/gig/multi_call/heartbeat:heartbeat',
         '//aios/network/gig/multi_call/new_heartbeat:new_heartbeat',
         '//aios/network/gig/multi_call/java:java'
     ],

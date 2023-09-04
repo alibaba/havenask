@@ -1,0 +1,40 @@
+sub_graphs {
+  nodes {
+    name: "6"
+    kernel_name: "sql.LookupJoinKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10006}"
+  }
+  nodes {
+    name: "ph_0"
+    kernel_name: "navi.placeholder"
+  }
+  edges {
+    input {
+      node_name: "ph_0"
+      port_name: "navi.placeholder_out"
+    }
+    output {
+      node_name: "6"
+      port_name: "input0"
+    }
+    require: true
+  }
+  location {
+    biz_name: "db3.default_sql"
+    part_info {
+    }
+    this_part_id: -1
+    gig_info {
+      enable_probe: true
+    }
+  }
+  binary_attrs {
+    key: "table_distribution"
+    value: "{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":8}"
+  }
+  scopes: 0
+  next_scope_id: 1
+}
+counter_info {
+  next_graph_id: 1
+}

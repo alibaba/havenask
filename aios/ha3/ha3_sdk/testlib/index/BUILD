@@ -1,0 +1,17 @@
+package(default_visibility=['//aios/ha3:__subpackages__'])
+cc_library(
+    name='ha3_sdk_testlib_index',
+    srcs=glob(['*.cpp']),
+    hdrs=glob(['*.h']),
+    include_prefix='ha3_sdk/testlib/index',
+    visibility=['//visibility:public'],
+    deps=[
+        '//aios/filesystem/fslib:fslib-framework',
+        '//aios/ha3/ha3/search/filter:ha3_filter',
+        '//aios/ha3/ha3/search/query_executor:ha3_query_executor',
+        '//aios/storage/indexlib/index/primary_key:util',
+        '//aios/storage/indexlib/indexlib:indexlib_testlib',
+        '//aios/storage/indexlib/indexlib/partition:reader_sdk'
+    ],
+    alwayslink=True
+)

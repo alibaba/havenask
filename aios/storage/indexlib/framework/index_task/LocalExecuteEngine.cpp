@@ -84,7 +84,7 @@ future_lite::coro::Lazy<Status> LocalExecuteEngine::ScheduleTask(const IndexTask
                                                                  IndexTaskContext* context)
 {
     // TODO(hanyao): run task in another thread/executor
-    auto planStr = indexlib::file_system::JsonUtil::ToString(taskPlan).Value();
+    auto planStr = indexlib::file_system::JsonUtil::ToString(taskPlan, true).Value();
     AUTIL_LOG(INFO, "start task plan[%s]", planStr.c_str());
     auto nodeMap = InitNodeMap(taskPlan);
     if (nodeMap.size() != taskPlan.GetOpDescs().size()) {

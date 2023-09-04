@@ -16,21 +16,19 @@
 #ifndef ISEARCH_MULTI_CALL_COMMON_H
 #define ISEARCH_MULTI_CALL_COMMON_H
 
-#include <memory>
 #include <limits>
+#include <memory>
 #include <unordered_set>
 
-#include "autil/Log.h"
-#include "autil/Lock.h"
-#include "autil/CommonMacros.h"
 #include "aios/network/gig/multi_call/common/ErrorCode.h"
+#include "autil/CommonMacros.h"
+#include "autil/Lock.h"
+#include "autil/Log.h"
 
-namespace google {
-namespace protobuf {
+namespace google { namespace protobuf {
 class Message;
 class Arena;
-} // namespace protobuf
-} // namespace google
+}} // namespace google::protobuf
 
 namespace multi_call {
 
@@ -259,8 +257,10 @@ struct CompatibleFieldInfo {
 
     // suez request default eagleeye field
     CompatibleFieldInfo()
-        : eagleeyeTraceId("traceId"), eagleeyeRpcId("rpcId"),
-          eagleeyeUserData("userData") {}
+        : eagleeyeTraceId("traceId")
+        , eagleeyeRpcId("rpcId")
+        , eagleeyeUserData("userData") {
+    }
 };
 
 struct ObjectPool {
@@ -270,15 +270,14 @@ struct ObjectPool {
 
 MULTI_CALL_TYPEDEF_PTR(ObjectPool);
 
-#define REPORT_METRICS(METHOD)                                                 \
-    do {                                                                       \
-        if (_metricReporterManager) {                                          \
-            const auto &reporter =                                             \
-                _metricReporterManager->getWorkerMetricReporter();             \
-            if (reporter) {                                                    \
-                reporter->METHOD(1.0);                                         \
-            }                                                                  \
-        }                                                                      \
+#define REPORT_METRICS(METHOD)                                                                     \
+    do {                                                                                           \
+        if (_metricReporterManager) {                                                              \
+            const auto &reporter = _metricReporterManager->getWorkerMetricReporter();              \
+            if (reporter) {                                                                        \
+                reporter->METHOD(1.0);                                                             \
+            }                                                                                      \
+        }                                                                                          \
     } while (0)
 
 } // namespace multi_call

@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/SearchServiceManager.h"
+
+#include <typeinfo>
+#include <unordered_set>
+
+#include "aios/network/gig/multi_call/new_heartbeat/ClientTopoInfoMap.h"
+#include "aios/network/gig/multi_call/new_heartbeat/HeartbeatClientManager.h"
 #include "aios/network/gig/multi_call/service/SearchServiceProvider.h"
 #include "aios/network/gig/multi_call/service/SearchServiceReplica.h"
-#include "aios/network/gig/multi_call/new_heartbeat/HeartbeatClientManager.h"
-#include "aios/network/gig/multi_call/new_heartbeat/ClientTopoInfoMap.h"
 #include "aios/network/gig/multi_call/util/FileRecorder.h"
 #include "aios/network/gig/multi_call/util/SharedPtrUtil.h"
 #include "autil/StringUtil.h"
 #include "autil/legacy/any.h"
-#include <typeinfo>
-#include <unordered_set>
 
 using namespace std;
 using namespace autil;
@@ -41,7 +43,7 @@ SearchServiceManager::SearchServiceManager(SearchService *searchService)
     , _heartbeatClientManager(new HeartbeatClientManager(searchService, this))
     , _onlyHeartbeatSub(false)
     , _heartbeatVersion(INVALID_VERSION_ID)
-{
+    , _callback(nullptr) {
 }
 
 SearchServiceManager::~SearchServiceManager() {
@@ -83,9 +85,9 @@ bool SearchServiceManager::init(const MultiCallConfig &mcConfig) {
     }
     // TODO: wait all heartbeat return once
     updateStaticParam();
-    auto updateThread = LoopThread::createLoopThread(
-        std::bind(&SearchServiceManager::update, this),
-        _miscConfig->updateTimeInterval, "GigUpdate", true);
+    auto updateThread =
+        LoopThread::createLoopThread(std::bind(&SearchServiceManager::update, this),
+                                     _miscConfig->updateTimeInterval, "GigUpdate", true);
     if (!updateThread) {
         AUTIL_LOG(ERROR, "Create update thread failed.");
         return false;
@@ -127,8 +129,7 @@ SearchServiceSnapshotPtr SearchServiceManager::getSearchServiceSnapshot() const 
     return _searchServiceSnapshotPtr;
 }
 
-void SearchServiceManager::setSearchServiceSnapshot(
-    const SearchServiceSnapshotPtr &snapshot) {
+void SearchServiceManager::setSearchServiceSnapshot(const SearchServiceSnapshotPtr &snapshot) {
     SearchServiceSnapshotPtr tmpSnapshotPtr;
     {
         ScopedReadWriteLock lock(_snapshotLock, 'w');
@@ -151,8 +152,7 @@ void SearchServiceManager::startLogThread() {
         interval = _miscConfig->snapshotInterval * 1000 * 1000;
     }
     auto snapshotLogThreadPtr = LoopThread::createLoopThread(
-        std::bind(&SearchServiceManager::logThread, this), interval,
-        "GigSnapLog");
+        std::bind(&SearchServiceManager::logThread, this), interval, "GigSnapLog");
     if (!snapshotLogThreadPtr) {
         AUTIL_LOG(WARN, "start snapshot thread failed");
     }
@@ -181,8 +181,7 @@ void SearchServiceManager::logThread() {
     reportMetrics();
 }
 
-void SearchServiceManager::logSnapshot(
-    const SearchServiceSnapshotPtr &newSnapshot) {
+void SearchServiceManager::logSnapshot(const SearchServiceSnapshotPtr &newSnapshot) {
     if (_miscConfig->snapshotLogCount == 0) {
         return;
     }
@@ -190,9 +189,8 @@ void SearchServiceManager::logSnapshot(
         newSnapshot->toString(_newSnapshotStr);
     }
     if (_newSnapshotStr != _snapshotStr) {
-        FileRecorder::recordSnapshot(
-            _newSnapshotStr, _miscConfig->snapshotLogCount,
-            "gig_snapshot/client/" + _miscConfig->logPrefix);
+        FileRecorder::recordSnapshot(_newSnapshotStr, _miscConfig->snapshotLogCount,
+                                     "gig_snapshot/client/" + _miscConfig->logPrefix);
         _snapshotStr.swap(_newSnapshotStr);
     }
     _newSnapshotStr.clear();
@@ -234,8 +232,7 @@ bool SearchServiceManager::initHeartbeat() {
 void SearchServiceManager::updateStaticParam() {
     SearchServiceProvider::updateStaticParam(_miscConfig);
     RandomGenerator::setUseHDRandom(true);
-    AUTIL_LOG(INFO, "use hardware random: %d",
-              (int)RandomGenerator::useHDRandom());
+    AUTIL_LOG(INFO, "use hardware random: %d", (int)RandomGenerator::useHDRandom());
     ControllerParam::logParam();
 }
 
@@ -243,6 +240,35 @@ void SearchServiceManager::notifyUpdate() const {
     auto updateThread = getUpdateThread();
     if (updateThread) {
         updateThread->runOnce();
+    }
+}
+
+bool SearchServiceManager::setSnapshotChangeCallback(SnapshotChangeCallback *callback) {
+    {
+        autil::ScopedLock scope(_callbackLock);
+        if (_callback) {
+            AUTIL_LOG(ERROR,
+                      "callback [%p] already registered, new [%p], call steal before register",
+                      _callback, callback);
+            return false;
+        }
+        _callback = callback;
+    }
+    if (getSearchServiceSnapshot()) {
+        runSnapshotChangeCallback();
+    }
+    return true;
+}
+
+void SearchServiceManager::stealSnapshotChangeCallback() {
+    autil::ScopedLock scope(_callbackLock);
+    _callback = nullptr;
+}
+
+void SearchServiceManager::runSnapshotChangeCallback() {
+    autil::ScopedLock scope(_callbackLock);
+    if (_callback) {
+        _callback->Run();
     }
 }
 
@@ -284,8 +310,8 @@ void SearchServiceManager::createSnapshot() {
         SearchServiceSnapshotPtr snapshot = getSearchServiceSnapshot();
         if (!snapshot) {
             // set empty snapshot
-            snapshot.reset(new SearchServiceSnapshot(
-                _connectionManager, _metricReporterManager, _miscConfig));
+            snapshot.reset(
+                new SearchServiceSnapshot(_connectionManager, _metricReporterManager, _miscConfig));
             setSearchServiceSnapshot(snapshot);
         }
         return;
@@ -308,6 +334,7 @@ void SearchServiceManager::createSnapshot() {
     if (createSnapshot(topoNodeVec)) {
         _onlyHeartbeatSub = onlyHeartbeatSub;
         _heartbeatVersion = heartbeatVersion;
+        runSnapshotChangeCallback();
     }
 }
 
@@ -333,18 +360,18 @@ bool SearchServiceManager::createSnapshot(const TopoNodeVec &topoNodeVec) {
 }
 
 void SearchServiceManager::constructBizInfoMap(const TopoNodeVec &topoNodeVec,
-                                               BizInfoMap &bizInfoMap)
-{
+                                               BizInfoMap &bizInfoMap) {
     bizInfoMap.clear();
     for (const auto &topoNode : topoNodeVec) {
         bizInfoMap[topoNode.bizName].insert(topoNode);
     }
 }
 
-SearchServiceSnapshotPtr SearchServiceManager::constructSnapshot(
-    const BizInfoMap &bizInfoMap, const SearchServiceSnapshotPtr &oldSnapshot) {
-    SearchServiceSnapshotPtr snapshot(new SearchServiceSnapshot(
-        _connectionManager, _metricReporterManager, _miscConfig));
+SearchServiceSnapshotPtr
+SearchServiceManager::constructSnapshot(const BizInfoMap &bizInfoMap,
+                                        const SearchServiceSnapshotPtr &oldSnapshot) {
+    SearchServiceSnapshotPtr snapshot(
+        new SearchServiceSnapshot(_connectionManager, _metricReporterManager, _miscConfig));
     snapshot->setLatencyTimeSnapshot(_latencyTimeSnapshot);
     if (!snapshot->init(bizInfoMap, oldSnapshot)) {
         return SearchServiceSnapshotPtr();
@@ -376,7 +403,7 @@ bool SearchServiceManager::getSpecSet(std::set<std::string> &specSet) const {
 
 void SearchServiceManager::reportMetrics() {
     auto snapshot = getSearchServiceSnapshot();
-    if (!snapshot) {
+    if ((!snapshot) || (!_metricReporterManager)) {
         return;
     }
     SnapshotInfoCollector snapshotInfoCollector;
@@ -384,18 +411,15 @@ void SearchServiceManager::reportMetrics() {
     _metricReporterManager->reportSnapshotInfo(snapshotInfoCollector);
 }
 
-bool SearchServiceManager::addSubscribeService(
-    const SubscribeConfig &subServiceConf) {
+bool SearchServiceManager::addSubscribeService(const SubscribeConfig &subServiceConf) {
     return _subscribeServiceManager->addSubscribeService(subServiceConf);
 }
 
-bool SearchServiceManager::addSubscribe(
-    const SubscribeClustersConfig &gigSubConf) {
+bool SearchServiceManager::addSubscribe(const SubscribeClustersConfig &gigSubConf) {
     return _subscribeServiceManager->addSubscribe(gigSubConf);
 }
 
-bool SearchServiceManager::deleteSubscribe(
-    const SubscribeClustersConfig &gigSubConf) {
+bool SearchServiceManager::deleteSubscribe(const SubscribeClustersConfig &gigSubConf) {
     return _subscribeServiceManager->deleteSubscribe(gigSubConf);
 }
 

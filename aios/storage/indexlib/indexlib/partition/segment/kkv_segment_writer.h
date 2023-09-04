@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
 #include "indexlib/common/field_format/attribute/attribute_convertor_factory.h"
@@ -346,8 +347,7 @@ template <typename SKeyType>
 void KKVSegmentWriter<SKeyType>::InitStorePkey()
 {
     bool storePKey = false;
-    char* needStorePKeyValue = getenv(NEED_STORE_PKEY_VALUE);
-    if (needStorePKeyValue && autil::StringUtil::fromString(std::string(needStorePKeyValue), storePKey)) {
+    if (autil::EnvUtil::getEnvWithoutDefault(NEED_STORE_PKEY_VALUE, storePKey)) {
         mNeedStorePKeyValue = storePKey;
     }
 

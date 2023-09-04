@@ -227,12 +227,12 @@ size_t SegmentLockSizeCalculator::CalculateAttributeSize(const DirectoryPtr& dir
     auto packIter = packAttrConfigs->Begin();
     for (; packIter != packAttrConfigs->End(); packIter++) {
         const PackAttributeConfigPtr& packConfig = *(packIter);
-        const string& packAttrName = packConfig->GetAttrName();
+        const string& packAttrName = packConfig->GetPackName();
         DirectoryPtr packAttrDir = attributeDir->GetDirectory(packAttrName, false);
         size_t size = CalculateSingleAttributeSize(packAttrDir);
         totalSize += size;
         if (counter) {
-            counter->CreateStateCounter(packConfig->GetAttrName())->Set(size);
+            counter->CreateStateCounter(packConfig->GetPackName())->Set(size);
         }
     }
     return totalSize;
@@ -271,7 +271,7 @@ size_t SegmentLockSizeCalculator::CalculateAttributeDiffSize(const DirectoryPtr&
     auto packIter = packAttrConfigs->Begin();
     for (; packIter != packAttrConfigs->End(); packIter++) {
         const PackAttributeConfigPtr& packConfig = *(packIter);
-        const string& packAttrName = packConfig->GetAttrName();
+        const string& packAttrName = packConfig->GetPackName();
         DirectoryPtr packAttrDir = attributeDir->GetDirectory(packAttrName, false);
         size_t size = CalculateSingleAttributeDiffSize(packAttrDir, oldTemperature, newTemperature);
         totalSize += size;

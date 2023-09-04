@@ -18,6 +18,7 @@
 #include "autil/HashAlgorithm.h"
 #include "autil/Log.h"
 #include "indexlib/config/IndexConfigHash.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/kv/KVDocumentBatch.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/IDirectory.h"
@@ -64,12 +65,9 @@ Status KVMemIndexerBase::Build(document::IDocumentBatch* docBatch)
     if (kvDocBatch == nullptr) {
         return Status::InternalError("only support KVDocumentBatch for kv index");
     }
-
-    for (size_t i = 0; i < kvDocBatch->GetBatchSize(); ++i) {
-        if (kvDocBatch->IsDropped(i)) {
-            continue;
-        }
-        auto kvDoc = std::dynamic_pointer_cast<document::KVDocument>((*kvDocBatch)[i]);
+    auto iter = indexlibv2::document::DocumentIterator<document::KVDocument>::Create(kvDocBatch);
+    while (iter->HasNext()) {
+        auto kvDoc = std::dynamic_pointer_cast<document::KVDocument>(iter->Next());
         auto curIndexNameHash = kvDoc->GetIndexNameHash();
         if (curIndexNameHash != 0 && indexNameHash != curIndexNameHash) {
             continue;
@@ -175,10 +173,10 @@ void KVMemIndexerBase::FillStatistics(const std::shared_ptr<indexlib::framework:
 void KVMemIndexerBase::UpdateMemUse(BuildingIndexMemoryUseUpdater* memUpdater)
 {
     MemoryUsage memUsage;
-    UpdateMemoryUsage(memUsage);
+    FillMemoryUsage(memUsage);
     memUpdater->UpdateCurrentMemUse(memUsage.buildMemory);
     memUpdater->EstimateDumpTmpMemUse(memUsage.dumpMemory);
-    memUpdater->EstimateDumpedFileSize(memUsage.dumpedFileSize);
+    // value use BufferFileWriter now, so we do not need EstimateDumpedFileSize
 }
 
 std::string KVMemIndexerBase::GetIndexName() const { return _indexConfig->GetIndexName(); }
@@ -189,7 +187,7 @@ void KVMemIndexerBase::Seal() {}
 Status KVMemIndexerBase::BuildSingleField(DocOperateType docType, const KVIndexFields::SingleField& singleField)
 {
     if (IsFull()) {
-        return Status::NeedDump();
+        return Status::NeedDump("IsFull");
     }
 
     switch (docType) {

@@ -17,17 +17,14 @@
 
 #include <memory>
 
-#include "autil/cache/cache.h"
 #include "autil/Span.h"
+#include "autil/cache/cache.h"
 
 namespace autil {
 
 class CacheItemRet {
 public:
-    CacheItemRet(CacheBase::Handle* handle, CacheBase *cache)
-        : _handle(handle)
-        , _cache(cache)
-    {}
+    CacheItemRet(CacheBase::Handle *handle, CacheBase *cache) : _handle(handle), _cache(cache) {}
 
     ~CacheItemRet() {
         if (_handle != nullptr) {
@@ -37,13 +34,11 @@ public:
     }
 
 public:
-    operator bool() const {
-        return _handle != nullptr;
-    }
+    operator bool() const { return _handle != nullptr; }
 
     template <typename CacheItem>
-    CacheItem* GetCacheItem() const {
-        return _handle != nullptr ? reinterpret_cast<CacheItem*>(_cache->Value(_handle)) : nullptr;
+    CacheItem *GetCacheItem() const {
+        return _handle != nullptr ? reinterpret_cast<CacheItem *>(_cache->Value(_handle)) : nullptr;
     }
 
 private:
@@ -66,16 +61,12 @@ public:
         return CacheItemRet{handle, _internal.get()};
     }
 
-    void invalidate(const autil::StringView &key) {
-        return _internal->Erase(key);
-    }
+    void invalidate(const autil::StringView &key) { return _internal->Erase(key); }
 
-    CacheBase *getImpl() const {
-        return _internal.get();
-    }
+    CacheBase *getImpl() const { return _internal.get(); }
 
 private:
     std::shared_ptr<CacheBase> _internal;
 };
 
-}
+} // namespace autil

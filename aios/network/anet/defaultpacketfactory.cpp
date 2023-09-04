@@ -18,17 +18,16 @@
  * Author: zhangli
  * Create time: 2008-12-25 11:38:19
  * $Id$
- * 
+ *
  * Description: ***add description here***
- * 
+ *
  */
 
 #include "aios/network/anet/defaultpacketfactory.h"
+
 #include "aios/network/anet/defaultpacket.h"
 
 namespace anet {
-Packet *DefaultPacketFactory::createPacket(int pcode) {
-    return new DefaultPacket;
-}
+Packet *DefaultPacketFactory::createPacket(int pcode) { return new DefaultPacket; }
 
-}/*end namespace anet*/
+} /*end namespace anet*/

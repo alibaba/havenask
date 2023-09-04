@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="agg_count_star">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT COUNT(*) FROM phone
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"COUNT(*)"</Resource>
+        <Resource name="column_types">uint64</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+10
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#4(type=api)
+    ExchangeOp#3(distribution={type:SINGLETON})
+        LimitOp#2(limit=100)
+            AggregateOp#1(agg_funcs=[{approximate:false,distinct:false,filter_arg:-1,name:COUNT,output:[$COUNT(*)],type:NORMAL}],scope=NORMAL)
+                TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$$f0],push_down_ops=[{attrs:{output_field_exprs:{$$f0:0},output_fields:[$$f0]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

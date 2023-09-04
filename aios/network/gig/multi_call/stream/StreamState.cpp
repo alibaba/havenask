@@ -21,10 +21,19 @@ namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, StreamState);
 
 StreamState::StreamState()
-    : _finishStatus(FS_INIT), _ec(MULTI_CALL_ERROR_NONE), _sendEof(false),
-      _sendFinished(false), _receiveEof(false), _receiveFinished(false),
-      _initFailed(false), _cancelled(false), _finished(false),
-      _receiveCancel(false), _disableReceive(false), _handlerId(0) {}
+    : _finishStatus(FS_INIT)
+    , _ec(MULTI_CALL_ERROR_NONE)
+    , _sendEof(false)
+    , _sendFinished(false)
+    , _receiveEof(false)
+    , _receiveFinished(false)
+    , _initFailed(false)
+    , _cancelled(false)
+    , _finished(false)
+    , _receiveCancel(false)
+    , _disableReceive(false)
+    , _handlerId(0) {
+}
 
 StreamState::~StreamState() {
     if ((FS_INIT != _finishStatus) && (FS_FINISHED != _finishStatus)) {
@@ -176,8 +185,7 @@ void StreamState::setErrorCode(MultiCallErrorCode ec) {
     }
     autil::ScopedWriteLock lock(_lock);
     if (_ec <= MULTI_CALL_ERROR_DEC_WEIGHT) {
-        AUTIL_LOG(DEBUG, "[%p] setErrorCode, ec [%s]", (void *)_handlerId,
-                  translateErrorCode(ec));
+        AUTIL_LOG(DEBUG, "[%p] setErrorCode, ec [%s]", (void *)_handlerId, translateErrorCode(ec));
         logState();
         _ec = ec;
     }
@@ -198,7 +206,9 @@ bool StreamState::hasError() const {
     return _ec > MULTI_CALL_ERROR_DEC_WEIGHT;
 }
 
-void StreamState::setHandlerId(int64_t handlerId) { _handlerId = handlerId; }
+void StreamState::setHandlerId(int64_t handlerId) {
+    _handlerId = handlerId;
+}
 
 const char *StreamState::getOpString(HandlerOp op) {
     switch (op) {
@@ -242,25 +252,21 @@ const char *StreamState::getStatusString(FinishStatus status) {
 
 void StreamState::logState(bool useError) const {
     if (useError) {
-        AUTIL_LOG(
-            ERROR,
-            "[%p] ec: %s, finishStatus: %s, sendEof: %d, "
-            "sendFinished: %d, receiveEof: %d, receiveFinished: %d, "
-            "initFailed: %d, cancelled: %d, finished: %d, disableReceive: %d",
-            (void *)_handlerId, translateErrorCode(_ec),
-            StreamState::getStatusString(_finishStatus), _sendEof,
-            _sendFinished, _receiveEof, _receiveFinished, _initFailed,
-            _cancelled, _finished, _disableReceive);
+        AUTIL_LOG(ERROR,
+                  "[%p] ec: %s, finishStatus: %s, sendEof: %d, "
+                  "sendFinished: %d, receiveEof: %d, receiveFinished: %d, "
+                  "initFailed: %d, cancelled: %d, finished: %d, disableReceive: %d",
+                  (void *)_handlerId, translateErrorCode(_ec),
+                  StreamState::getStatusString(_finishStatus), _sendEof, _sendFinished, _receiveEof,
+                  _receiveFinished, _initFailed, _cancelled, _finished, _disableReceive);
     } else {
-        AUTIL_LOG(
-            DEBUG,
-            "[%p] ec: %s, finishStatus: %s, sendEof: %d, "
-            "sendFinished: %d, receiveEof: %d, receiveFinished: %d, "
-            "initFailed: %d, cancelled: %d, finished: %d, disableReceive: %d",
-            (void *)_handlerId, translateErrorCode(_ec),
-            StreamState::getStatusString(_finishStatus), _sendEof,
-            _sendFinished, _receiveEof, _receiveFinished, _initFailed,
-            _cancelled, _finished, _disableReceive);
+        AUTIL_LOG(DEBUG,
+                  "[%p] ec: %s, finishStatus: %s, sendEof: %d, "
+                  "sendFinished: %d, receiveEof: %d, receiveFinished: %d, "
+                  "initFailed: %d, cancelled: %d, finished: %d, disableReceive: %d",
+                  (void *)_handlerId, translateErrorCode(_ec),
+                  StreamState::getStatusString(_finishStatus), _sendEof, _sendFinished, _receiveEof,
+                  _receiveFinished, _initFailed, _cancelled, _finished, _disableReceive);
     }
 }
 

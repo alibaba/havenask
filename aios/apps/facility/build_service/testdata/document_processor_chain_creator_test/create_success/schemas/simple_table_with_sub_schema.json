@@ -1,0 +1,88 @@
+{
+    "table_name": "auction",
+    "fields":
+    [
+        {"field_name":"title",        "field_type":"TEXT",   "analyzer":"multi_level_analyzer"},
+        {"field_name":"price2",       "field_type":"INTEGER"},
+        {"field_name":"id",       "field_type":"INTEGER"}
+
+    ],
+
+    "indexs":
+    [
+        {
+            "index_name": "title",
+            "index_type": "TEXT",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "position_payload_flag" : 1,
+            "position_list_flag" : 1,
+            "index_analyzer" : "multi_level_analyzer",
+            "index_fields": "title"
+        },
+	{
+	    "index_name": "pk",
+	    "index_type": "PRIMARYKEY64",
+	    "index_fields": "id"
+	},
+	{
+	    "index_name": "phrase",
+	    "index_type": "PACK",
+	    "index_fields":
+	    [
+		{"field_name":"title", "boost":1000}
+	    ]
+	}
+    ],
+
+    "attributes": ["price2"],
+
+    "summarys":{
+        "summary_fields": ["title",  "price2"],
+        "compress_block_size": 5
+    },
+
+    "sub_schema": {
+         "table_name": "auction1",
+    	 "fields":
+         [
+             {"field_name":"sub_title",        "field_type":"TEXT",   "analyzer":"multi_level_analyzer"},
+             {"field_name":"sub_price2",       "field_type":"INTEGER"},
+	     {"field_name":"sub_id",       "field_type":"INTEGER"}
+
+         ],
+
+        "indexs":
+        [
+            {
+                "index_name": "sub_title",
+                "index_type": "TEXT",
+                "term_payload_flag" :  1 ,
+                "doc_payload_flag" :  1 ,
+                "position_payload_flag" : 1,
+                "position_list_flag" : 1,
+    		"term_frequency_bitmap": 0,
+                "index_analyzer" : "multi_level_analyzer",
+                "index_fields": "sub_title"
+            },
+	    {
+	    	"index_name": "sub_pk",
+	    	"index_type": "PRIMARYKEY128",
+	    	"index_fields": "sub_id"
+	    },
+	    {
+		"index_name": "sub_phrase",
+		"index_type": "PACK",
+		"index_fields":
+		[
+		    {"field_name":"sub_title", "boost":1000}
+		]
+	    }
+        ],
+    
+        "attributes": ["sub_price2"],
+    	"summarys":{      
+        }
+    }	
+}
+    

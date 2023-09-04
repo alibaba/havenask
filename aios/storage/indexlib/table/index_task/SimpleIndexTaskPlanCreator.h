@@ -29,10 +29,9 @@ namespace indexlibv2::table {
 class SimpleIndexTaskPlanCreator : public framework::IIndexTaskPlanCreator
 {
 public:
-    SimpleIndexTaskPlanCreator(const std::string& taskName);
+    SimpleIndexTaskPlanCreator(const std::string& taskName, const std::map<std::string, std::string>& params);
     ~SimpleIndexTaskPlanCreator();
 
-public:
     virtual std::string ConstructLogTaskType() const = 0;
     virtual std::string ConstructLogTaskId(const framework::IndexTaskContext* taskContext,
                                            const framework::Version& targetVersion) const = 0;
@@ -49,6 +48,7 @@ protected:
 
 protected:
     std::string _taskName;
+    std::map<std::string, std::string> _params;
 
 private:
     AUTIL_LOG_DECLARE();

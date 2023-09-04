@@ -15,6 +15,7 @@
  */
 #include "indexlib/partition/build_document_metrics.h"
 
+#include "autil/EnvUtil.h"
 #include "indexlib/document/document.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
 namespace indexlib { namespace partition {
@@ -75,13 +76,11 @@ util::MetricPtr BuildDocumentMetrics::DeclareMetric(const std::string metricName
 void BuildDocumentMetrics::RegisterMetrics()
 {
     static std::string build_document_metrics_interval = "build_document_metrics_interval_us";
-    const char* param = getenv(build_document_metrics_interval.c_str());
     int32_t interval = 0;
-    if (param != nullptr and autil::StringUtil::fromString(std::string(param), interval)) {
+    if (autil::EnvUtil::getEnvWithoutDefault(build_document_metrics_interval, interval)) {
         _periodicReportIntervalUS = interval;
     }
-    IE_LOG(INFO, "build_document_metrics_interval %s interval %u isKVorKKV[%d]", param, _periodicReportIntervalUS,
-           _isKVorKKV);
+    IE_LOG(INFO, "build_document_metrics_interval  %u isKVorKKV[%d]", _periodicReportIntervalUS, _isKVorKKV);
 
     if (_metricProvider == nullptr) {
         return;

@@ -16,9 +16,9 @@
 #ifndef ANET_DIRECT_PACKET_STREAMER_H_
 #define ANET_DIRECT_PACKET_STREAMER_H_
 
-#include "aios/network/anet/defaultpacketstreamer.h"
 #include <stdint.h>
 
+#include "aios/network/anet/defaultpacketstreamer.h"
 #include "aios/network/anet/ipacketfactory.h"
 
 namespace anet {
@@ -47,6 +47,7 @@ public:
 class DirectPacketStreamer : public DefaultPacketStreamer {
     friend class DirectPacketStreamerTest_testGetPacketInfo_Test;
     friend class DirectPacketStreamerTest_testGetPlaceholderFromChannel_Test;
+
 public:
     DirectPacketStreamer();
     ~DirectPacketStreamer();
@@ -55,21 +56,22 @@ public:
     using DefaultPacketStreamer::encode;
     bool encode(Packet *packet, DataBuffer *output, DirectPayload &payloadToWrite);
     bool processData(DataBuffer *dataBuffer, StreamingContext *context) override;
-    bool readPayload(DataBuffer *input, Socket *socket, ChannelPool *channelPool,
-                     DirectStreamingContext *context, int &socketReadLen);
+    bool readPayload(DataBuffer *input,
+                     Socket *socket,
+                     ChannelPool *channelPool,
+                     DirectStreamingContext *context,
+                     int &socketReadLen);
 
 private:
     using DefaultPacketStreamer::getPacketInfo;
-    bool getPacketInfo(DataBuffer *input, PacketHeader *header, DirectPacketHeader *directHeader,
-                       bool *broken);
-    const DirectPlaceholder &getPlaceholderFromChannel(ChannelPool *channelPool,
-                                                       uint64_t channelId);
+    bool getPacketInfo(DataBuffer *input, PacketHeader *header, DirectPacketHeader *directHeader, bool *broken);
+    const DirectPlaceholder &getPlaceholderFromChannel(ChannelPool *channelPool, uint64_t channelId);
     Packet *decode(DataBuffer *input, PacketHeader *header) override;
 
 private:
     DirectPacketFactory _directPacketFactory;
 };
 
-}  // namespace anet
+} // namespace anet
 
-#endif  // ANET_DIRECT_PACKET_STREAMER_H_
+#endif // ANET_DIRECT_PACKET_STREAMER_H_

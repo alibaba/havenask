@@ -44,7 +44,7 @@ void MultiPackAttributeReader::Open(const index_base::PartitionDataPtr& partitio
         auto packIter = packAttrConfigs->Begin();
         for (; packIter != packAttrConfigs->End(); packIter++) {
             const PackAttributeConfigPtr& packConfig = *packIter;
-            const string& packName = packConfig->GetAttrName();
+            const string& packName = packConfig->GetPackName();
             PackAttributeReaderPtr packAttrReader;
             PackAttributeReader* hintPackAttributeReader = nullptr;
             size_t packId = packConfig->GetPackAttrId();

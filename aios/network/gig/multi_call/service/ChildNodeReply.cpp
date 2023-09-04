@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/ChildNodeReply.h"
+
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
 #include "autil/TimeUtility.h"
 
@@ -36,13 +37,13 @@ ChildNodeReply::ChildNodeReply(const FlowConfigSnapshotPtr &flowConfigSnapshot,
     , _callDelegationStatPrepared(false)
     , _etTime(numeric_limits<int64_t>::max())
     , _startDetectionTime(numeric_limits<int64_t>::max())
-    , _singleRetryEnabled(false)
-{
+    , _singleRetryEnabled(false) {
     assert(_replyInfoCollector);
     _startTime = TimeUtility::currentTime();
 }
 
-ChildNodeReply::~ChildNodeReply() {}
+ChildNodeReply::~ChildNodeReply() {
+}
 
 size_t ChildNodeReply::fillResponses(vector<ResponsePtr> &responseVec) {
     vector<LackResponseInfo> lackInfos;
@@ -60,9 +61,8 @@ void ChildNodeReply::endStreamQuery() {
         }
         auto response = searchResourcePtr->getReturnedResponse();
         if (response) {
-            _replyInfoCollector->setBizLatency(
-                bizName, response->callUsedTime(), response->rpcUsedTime(),
-                response->netLatency());
+            _replyInfoCollector->setBizLatency(bizName, response->callUsedTime(),
+                                               response->rpcUsedTime(), response->netLatency());
             _replyInfoCollector->addResponseSize(bizName, response->size());
 
             if (singleRetryEnabled && !response->isFailed()) {
@@ -84,7 +84,8 @@ void ChildNodeReply::endStreamQuery() {
     reportMetrics();
 }
 
-size_t ChildNodeReply::fillResponses(std::vector<ResponsePtr> &responseVec, std::vector<LackResponseInfo> &lackInfos) {
+size_t ChildNodeReply::fillResponses(std::vector<ResponsePtr> &responseVec,
+                                     std::vector<LackResponseInfo> &lackInfos) {
     for (const auto &searchResourcePtr : _searchResourceVec) {
         assert(searchResourcePtr->isNormalRequest());
         bool singleRetryEnabled = searchResourcePtr->singleRetryEnabled();
@@ -97,14 +98,12 @@ size_t ChildNodeReply::fillResponses(std::vector<ResponsePtr> &responseVec, std:
         auto response = searchResourcePtr->stealReturnedResponse();
         if (response) {
             responseVec.push_back(response);
-            _replyInfoCollector->setBizLatency(
-                bizName, response->callUsedTime(), response->rpcUsedTime(),
-                response->netLatency());
+            _replyInfoCollector->setBizLatency(bizName, response->callUsedTime(),
+                                               response->rpcUsedTime(), response->netLatency());
             _replyInfoCollector->addResponseSize(bizName, response->size());
 
             if (singleRetryEnabled && !response->isFailed()) {
-                _latencyTimeSnapshot->pushLatency(bizName,
-                                                  response->callUsedTime());
+                _latencyTimeSnapshot->pushLatency(bizName, response->callUsedTime());
             }
 
             // statistic error or timeout request
@@ -130,9 +129,8 @@ size_t ChildNodeReply::fillResponses(std::vector<ResponsePtr> &responseVec, std:
     return _expectProviderCount - responseVec.size();
 }
 
-void ChildNodeReply::reportLinkMetric(
-    const SearchServiceResourcePtr &searchResourcePtr,
-    const ResponsePtr &responsePtr) {
+void ChildNodeReply::reportLinkMetric(const SearchServiceResourcePtr &searchResourcePtr,
+                                      const ResponsePtr &responsePtr) {
     if (!_metricReporterManager) {
         return;
     }
@@ -150,16 +148,14 @@ void ChildNodeReply::reportLinkMetric(
         }
     }
     _metricReporterManager->reportLinkMetric(
-        getMetaEnv(searchResourcePtr, responsePtr),
-        _replyInfoCollector->getSessionBiz(), searchResourcePtr->getBizName(),
-        _replyInfoCollector->getSessionSrc(),
-        _replyInfoCollector->getSessionSrcAb(),
-        _replyInfoCollector->getStressTest(), latency, isTimeout, isError);
+        getMetaEnv(searchResourcePtr, responsePtr), _replyInfoCollector->getSessionBiz(),
+        searchResourcePtr->getBizName(), _replyInfoCollector->getSessionSrc(),
+        _replyInfoCollector->getSessionSrcAb(), _replyInfoCollector->getStressTest(), latency,
+        isTimeout, isError);
 }
 
-MetaEnv
-ChildNodeReply::getMetaEnv(const SearchServiceResourcePtr &searchResourcePtr,
-                           const ResponsePtr &responsePtr) {
+MetaEnv ChildNodeReply::getMetaEnv(const SearchServiceResourcePtr &searchResourcePtr,
+                                   const ResponsePtr &responsePtr) {
     auto provider = searchResourcePtr->getProvider(false);
     if (provider) {
         MetaEnv metaEnv = provider->getNodeMetaEnv();
@@ -191,14 +187,12 @@ SearchServiceResourceVector ChildNodeReply::getUnReturnedResourceVec() {
     return resourceVec;
 }
 
-void ChildNodeReply::updateDetectInfo(const std::string &bizName,
-                                      bool retryEnabled) {
+void ChildNodeReply::updateDetectInfo(const std::string &bizName, bool retryEnabled) {
     int64_t currentTime = TimeUtility::currentTime();
     doUpdateDetectInfo(currentTime, bizName, retryEnabled);
 }
 
-void ChildNodeReply::doUpdateDetectInfo(int64_t currentTime,
-                                        const string &bizName,
+void ChildNodeReply::doUpdateDetectInfo(int64_t currentTime, const string &bizName,
                                         bool retryEnabled) {
     if (_callDelegationStatPrepared) {
         if (_startDetectionTime == numeric_limits<int64_t>::max()) {
@@ -222,15 +216,15 @@ bool ChildNodeReply::shouldEt(int64_t currentTime) {
     if (_etTime == numeric_limits<int64_t>::max()) {
         if (_callDelegationStatistic.hasEnoughResultForEt()) {
             int64_t costTime = currentTime - _startTime;
-            int64_t etWaitTime = std::max(
-                costTime * _callDelegationStatistic.getEtWaitTimeFactor(),
-                _callDelegationStatistic.getEtMinWaitTimeInMicroSeconds());
+            int64_t etWaitTime =
+                std::max(costTime * _callDelegationStatistic.getEtWaitTimeFactor(),
+                         _callDelegationStatistic.getEtMinWaitTimeInMicroSeconds());
             if (etWaitTime + costTime >= _rpcTimeout) {
                 return false;
             }
             _etTime = etWaitTime + currentTime;
-            AUTIL_LOG(DEBUG, "query should early terminate [%ld] after %ld us",
-                      _etTime, etWaitTime);
+            AUTIL_LOG(DEBUG, "query should early terminate [%ld] after %ld us", _etTime,
+                      etWaitTime);
         } else {
             return false;
         }
@@ -238,22 +232,22 @@ bool ChildNodeReply::shouldEt(int64_t currentTime) {
     return _etTime <= currentTime;
 }
 
-bool ChildNodeReply::collectStatistic(const string &bizName, size_t providerCount, bool disableRetry) {
+bool ChildNodeReply::collectStatistic(const string &bizName, size_t providerCount,
+                                      bool disableRetry) {
     const auto &clusterResponse = _clusterResponseMap[bizName];
-    auto flowControlConfig = _flowConfigSnapshot->getFlowControlConfig(
-        clusterResponse.flowControlStrategy);
+    auto flowControlConfig =
+        _flowConfigSnapshot->getFlowControlConfig(clusterResponse.flowControlStrategy);
     if (!flowControlConfig) {
-        AUTIL_LOG(ERROR, "can not find flow control config for biz [%s]",
-                  bizName.c_str());
+        AUTIL_LOG(ERROR, "can not find flow control config for biz [%s]", bizName.c_str());
         return false;
     }
-    _callDelegationStatistic.collectStatistic(bizName, providerCount, flowControlConfig, disableRetry);
+    _callDelegationStatistic.collectStatistic(bizName, providerCount, flowControlConfig,
+                                              disableRetry);
     return true;
 }
 
-void ChildNodeReply::prepareCallDelegationStatistic(
-    const vector<string> &bizNameVec,
-    const vector<string> &flowControlStrategyVec) {
+void ChildNodeReply::prepareCallDelegationStatistic(const vector<string> &bizNameVec,
+                                                    const vector<string> &flowControlStrategyVec) {
     assert(bizNameVec.size() == flowControlStrategyVec.size());
     _callDelegationStatistic.prepareCollectStatistic(bizNameVec);
     for (size_t i = 0; i < bizNameVec.size(); i++) {
@@ -266,16 +260,14 @@ void ChildNodeReply::prepareCallDelegationStatistic(
     _callDelegationStatPrepared = true;
 }
 
-void ChildNodeReply::getRetryBizs(int64_t currentTime,
-                                  map<string, int32_t> &retryBizInfos) {
+void ChildNodeReply::getRetryBizs(int64_t currentTime, map<string, int32_t> &retryBizInfos) {
     for (auto &response : _clusterResponseMap) {
         const auto &bizName = response.first;
         auto &clusterRsp = response.second;
         if (clusterRsp.retried) {
             continue;
         }
-        const BizStatistic &stat =
-            _callDelegationStatistic.getBizStatistic(bizName);
+        const BizStatistic &stat = _callDelegationStatistic.getBizStatistic(bizName);
         if (0 == stat.expectNum) {
             continue;
         }
@@ -313,21 +305,19 @@ void ChildNodeReply::getRetryBizs(int64_t currentTime,
         int64_t timeout = min(_etTime, _startTime + _rpcTimeout);
         int64_t estimateRetryEndTime = latency + currentTime;
         if (estimateRetryEndTime <= timeout) {
-            if (_retryLimitChecker->canRetry(strategy,
-                                             currentTime / FACTOR_S_TO_US,
+            if (_retryLimitChecker->canRetry(strategy, currentTime / FACTOR_S_TO_US,
                                              configPtr->retryLimitPerSecond)) {
                 retryBizInfos[bizName] = retryMinProviderWeight;
                 if (1 == stat.expectNum) {
-                    _latencyTimeSnapshot->updateLatencyTimeWindow(
-                        bizName, configPtr->latencyTimeWindowSize);
+                    _latencyTimeSnapshot->updateLatencyTimeWindow(bizName,
+                                                                  configPtr->latencyTimeWindowSize);
                 }
             }
         }
     }
 }
 
-void ChildNodeReply::updateRetryBizs(
-    const map<string, int32_t> &retryBizInfos) {
+void ChildNodeReply::updateRetryBizs(const map<string, int32_t> &retryBizInfos) {
     for (const auto &info : retryBizInfos) {
         auto it = _clusterResponseMap.find(info.first);
         if (_clusterResponseMap.end() != it) {
@@ -347,8 +337,7 @@ void ChildNodeReply::setEtInfo(const EtInfo &etInfo) {
     for (const auto &response : _clusterResponseMap) {
         const auto &bizName = response.first;
         const auto &strategy = response.second.flowControlStrategy;
-        const auto &configPtr =
-            _flowConfigSnapshot->getFlowControlConfig(strategy);
+        const auto &configPtr = _flowConfigSnapshot->getFlowControlConfig(strategy);
         if (configPtr && configPtr->etEnabled()) {
             _replyInfoCollector->setEtInfo(bizName, etInfo);
         }

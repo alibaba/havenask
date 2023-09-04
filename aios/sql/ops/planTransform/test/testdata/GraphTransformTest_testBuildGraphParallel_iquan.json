@@ -1,0 +1,68 @@
+{
+    "rel_plan_version" : "fake version",
+    "rel_plan" : [
+        {
+            "id" : 2,
+            "op_name" : "ScanKernel",
+            "inputs" : {
+
+            },
+            "attrs" : {
+                "db_name" : "db1",
+                "table_name" : "table",
+                "condition" : "cond",
+                "index_infos" : {
+                    "$index2" : {
+                        "type" : "TEXT",
+                        "name" : "index_2"
+                    }
+                },
+                "output_fields" : [
+                    "$attr1",
+                    "$attr2",
+                    "$id"
+                ],
+                "limit" : 100
+            }
+        },
+        {
+            "id" : 1,
+            "op_name" : "ExchangeKernel",
+            "inputs" : {
+                "input0" : [
+                    2
+                ]
+            },
+            "outputs" :  [0],
+            "attrs" : {
+                "db_name" : "db1",
+                "table_name" : "table",
+                "condition" : "cond",
+                "index_infos" : {
+                    "$index2" : {
+                        "type" : "TEXT",
+                        "name" : "index_2"
+                    }
+                },
+                "output_fields" : [
+                    "$attr1",
+                    "$attr2",
+                    "$id"
+                ],
+                "limit" : 100
+            }
+        },
+        {
+            "id" : 0,
+            "op_name" : "UnionKernel",
+            "inputs" : {
+                "input0" : [
+                    1
+                ]
+            },
+            "attrs" : {
+                "db_name" : "db"
+            }
+        }
+    ]
+}

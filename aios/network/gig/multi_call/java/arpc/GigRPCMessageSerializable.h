@@ -16,15 +16,17 @@
 #ifndef ISEARCH_MULTI_CALL_GIGRPCMESSAGESERIALIZABLE_H
 #define ISEARCH_MULTI_CALL_GIGRPCMESSAGESERIALIZABLE_H
 
+#include <string>
+
 #include "aios/network/anet/databufferserializable.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/gig/multi_call/common/common.h"
 #include "google/protobuf/arena.h"
-#include <string>
 
 namespace multi_call {
 
-class GigRPCMessageSerializable : public anet::DataBufferSerializable {
+class GigRPCMessageSerializable : public anet::DataBufferSerializable
+{
 public:
     GigRPCMessageSerializable(RPCMessage *header, std::string *body);
     ~GigRPCMessageSerializable();
@@ -38,10 +40,8 @@ public:
     virtual bool deserialize(anet::DataBuffer *inputBuffer, int length = 0);
 
 private:
-    bool serializeStringMessage(const std::string *message,
-                                anet::DataBuffer *outputBuffer) const;
-    bool deserializeStringMessage(anet::DataBuffer *inputBuffer,
-                                  std::string *message,
+    bool serializeStringMessage(const std::string *message, anet::DataBuffer *outputBuffer) const;
+    bool deserializeStringMessage(anet::DataBuffer *inputBuffer, std::string *message,
                                   int32_t &leftPacketDataLen);
 
 private:

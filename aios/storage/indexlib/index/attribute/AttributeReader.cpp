@@ -15,7 +15,7 @@
  */
 #include "indexlib/index/attribute/AttributeReader.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/TabletData.h"
 
 namespace indexlibv2::index {
@@ -23,7 +23,7 @@ AUTIL_LOG_SETUP(indexlib.index, AttributeReader);
 
 namespace {
 bool UseDefaultValue(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                     std::vector<std::shared_ptr<indexlibv2::config::TabletSchema>> schemas)
+                     std::vector<std::shared_ptr<indexlibv2::config::ITabletSchema>> schemas)
 {
     if (schemas.size() <= 1) {
         return false;
@@ -44,10 +44,13 @@ Status AttributeReader::Open(const std::shared_ptr<config::IIndexConfig>& indexC
     AUTIL_LOG(DEBUG, "Start opening attribute(%s).", indexConfig->GetIndexName().c_str());
     std::vector<IndexerInfo> indexers;
     auto segments = tabletData->CreateSlice();
+    assert(tabletData->GetOnDiskVersionReadSchema());
     auto readSchemaId = tabletData->GetOnDiskVersionReadSchema()->GetSchemaId();
     docid_t baseDocId = 0;
 
     for (const auto& segment : segments) {
+        assert(segment->GetSegmentSchema());
+        assert(segment->GetSegmentInfo());
         auto segmentSchemaId = segment->GetSegmentSchema()->GetSchemaId();
         auto docCount = segment->GetSegmentInfo()->GetDocCount();
         if (segment->GetSegmentStatus() == framework::Segment::SegmentStatus::ST_BUILT && docCount == 0) {
@@ -88,7 +91,7 @@ Status AttributeReader::Open(const std::shared_ptr<config::IIndexConfig>& indexC
     return status;
 }
 
-Status AttributeReader::OpenWithSegments(const std::shared_ptr<config::AttributeConfig>& indexConfig,
+Status AttributeReader::OpenWithSegments(const std::shared_ptr<AttributeConfig>& indexConfig,
                                          std::vector<std::shared_ptr<framework::Segment>> segments)
 {
     assert(indexConfig != nullptr);

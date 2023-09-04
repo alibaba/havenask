@@ -18,10 +18,12 @@
 #include "build_service/common_define.h"
 #include "build_service/proto/Admin.pb.h"
 #include "build_service/proto/BuildTaskCurrentInfo.h"
+#include "build_service/util/LocatorUtil.h"
 #include "build_service/util/Log.h"
 #include "build_service/util/RangeUtil.h"
 #include "fslib/util/FileUtil.h"
 #include "indexlib/framework/VersionMeta.h"
+#include "indexlib/framework/index_task/Constant.h"
 #include "indexlib/util/PathUtil.h"
 
 namespace build_service { namespace common {
@@ -82,16 +84,18 @@ public:
                              int64_t createTime)
         : versionId(versionMeta.GetVersionId())
         , readSchemaId(versionMeta.GetReadSchemaId())
-        , maxTimestamp(versionMeta.GetMaxLocatorTs())
-        , minTimestamp(versionMeta.GetMinLocatorTs())
         , from(range.from())
         , to(range.to())
         , createTime(createTime)
         , indexSize(versionMeta.GetIndexSize())
         , fenceName(versionMeta.GetFenceName())
         , versionLine(versionMeta.GetVersionLine())
+        , indexTaskQueue(versionMeta.GetIndexTaskQueue())
         , isRollbackVersion(false)
     {
+        int8_t streamIdx = -1;
+        util::LocatorUtil::DecodeOffset(versionMeta.GetMaxLocatorTs(), &streamIdx, &maxTimestamp);
+        util::LocatorUtil::DecodeOffset(versionMeta.GetMinLocatorTs(), &streamIdx, &minTimestamp);
     }
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override
@@ -107,6 +111,7 @@ public:
         json.Jsonize("fence_name", fenceName, fenceName);
         json.Jsonize("version_line", versionLine, versionLine);
         json.Jsonize("is_rollback_version", isRollbackVersion, isRollbackVersion);
+        json.Jsonize("index_task_queue", indexTaskQueue, indexTaskQueue);
     }
     indexlibv2::versionid_t versionId = indexlibv2::INVALID_VERSIONID;
     indexlibv2::schemaid_t readSchemaId = indexlibv2::INVALID_SCHEMAID;
@@ -118,6 +123,7 @@ public:
     int64_t indexSize = 0;
     std::string fenceName;
     indexlibv2::framework::VersionLine versionLine;
+    std::vector<indexlibv2::framework::IndexTaskMeta> indexTaskQueue;
     bool isRollbackVersion = false;
 };
 
@@ -157,6 +163,18 @@ struct PathInfo {
         if (tmpPath != "") {
             path = tmpPath;
         }
+    }
+};
+
+struct PartitionLevelBulkloadState : public autil::legacy::Jsonizable {
+    std::string state = indexlibv2::framework::IndexTaskMeta::UNKNOWN;
+    std::string comment = "";
+    indexlib::versionid_t committedVersionId = indexlib::INVALID_VERSIONID;
+    void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
+    {
+        json.Jsonize("committed_version_id", committedVersionId, committedVersionId);
+        json.Jsonize("state", state, state);
+        json.Jsonize("comment", comment, comment);
     }
 };
 

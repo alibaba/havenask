@@ -1,0 +1,16 @@
+{
+    "truncate_strategy" : [
+        {
+            "strategy_name" : "distinct_sort",
+            "threshold" : 4,
+            "limit" : 2,
+	    "truncate_profiles" :
+	    [
+		"desc_date",
+                "asc_time",
+                "asc_timestamp"
+	    ]
+        }
+    ]
+}
+

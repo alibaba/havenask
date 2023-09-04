@@ -356,9 +356,9 @@ void SingleTruncateIndexWriter::AcquireLastDocValue(const PostingIteratorPtr& po
         double doubleValue = 0;
         if (autil::StringUtil::fromString(value, doubleValue)) {
             if (mDesc) {
-                value = autil::StringUtil::toString((int64_t)(doubleValue - 1));
+                value = autil::StringUtil::toString(floor(doubleValue));
             } else {
-                value = autil::StringUtil::toString((int64_t)(doubleValue + 1));
+                value = autil::StringUtil::toString(ceil(doubleValue));
             }
         }
     }

@@ -29,6 +29,8 @@ class IResource;
 
 // version resource: will reclaim with tabletData
 // segment resource: will reclaim with segment
+// inherited resource: will not reclaim, but can be updated
+// can not add resource with the same name in version/segment/inherited resource
 class ResourceMap : private autil::NoCopyable
 {
 public:
@@ -44,17 +46,25 @@ public:
     Status AddSegmentResource(const std::string& name, segmentid_t segmentId,
                               const std::shared_ptr<IResource>& resource);
 
+    Status AddInheritedResource(const std::string& name, const std::shared_ptr<IResource>& resource);
+
     void ReclaimSegmentResource(const std::set<segmentid_t>& reservedSegments);
     size_t CurrentMemmoryUse() const;
+
+    // will only clone segment resource and inherited resource
     std::shared_ptr<ResourceMap> Clone() const;
 
     void TEST_Clear();
     void TEST_RemoveResource(const std::string& name);
 
 private:
+    std::shared_ptr<IResource> GetResourceWithoutLock(const std::string& name) const;
+
+private:
     mutable std::mutex _resourceMutex;
-    // when segmentid is INVALID, represent version resource, othervise segment resource
-    std::map<std::string, std::pair<segmentid_t, std::shared_ptr<IResource>>> _resource;
+    std::map<std::string, std::shared_ptr<IResource>> _versionResource;
+    std::map<std::string, std::shared_ptr<IResource>> _inheritedResource;
+    std::map<std::string, std::pair<segmentid_t, std::shared_ptr<IResource>>> _segmentResource;
     AUTIL_LOG_DECLARE();
 };
 

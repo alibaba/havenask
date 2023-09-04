@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 #include "autil/metric/Disk.h"
-#include "autil/metric/MetricUtil.h"
-#include "autil/TimeUtility.h"
 
-#include <string.h>
-#include <stdlib.h>
 #include <fstream>
+#include <stdlib.h>
+#include <string.h>
+
+#include "autil/TimeUtility.h"
+#include "autil/metric/MetricUtil.h"
 
 #define DELTA 0.000001
 
@@ -29,13 +30,12 @@ namespace autil {
 namespace metric {
 
 const string Disk::DISK_PROC_STAT("/proc/diskstats");
-Disk::Disk() { 
+Disk::Disk() {
     _statsFile = DISK_PROC_STAT;
     _timeDiff = 0;
 }
 
-Disk::~Disk() { 
-}
+Disk::~Disk() {}
 
 void Disk::update() {
     _prevStat = _curStat;
@@ -78,12 +78,12 @@ void Disk::adjust() {
     }
 }
 
-/* 
+/*
   /proc/diststats
   8    0 sda 102565 18526 2736611 1407028 13504206 62919269 611496896 1542334754 0 49788906 1543822002
-  
+
   Field  1 -- # of reads completed
-  Field  2 -- # of reads merged, 
+  Field  2 -- # of reads merged,
   Field  3 -- # of sectors read
   Field  4 -- # of milliseconds spent reading
   Field  5 -- # of writes completed
@@ -95,12 +95,8 @@ void Disk::adjust() {
   Field 11 -- weighted # of milliseconds spent doing I/Os
 */
 
-
-const char* Disk::skipAndFilter(const char *str, const char *pattern,
-                                int32_t filterReverseIdx,
-								char filterLeftRange,
-                                char filterRightRange)
-{
+const char *Disk::skipAndFilter(
+    const char *str, const char *pattern, int32_t filterReverseIdx, char filterLeftRange, char filterRightRange) {
     const char *p = strstr(str, pattern);
     if (p == NULL) {
         return NULL;
@@ -127,12 +123,13 @@ void Disk::parseDiskStat(const char *str, DiskStat &diskStat) {
         p = skipAndFilter(str, "cciss", 2, 'p', 'p');
     }
     if (p == NULL) {
-        return ;
+        return;
     }
 
-#define EXTRACT_FILED(field) {\
-        diskStat.field += strtoul(p, NULL, 10); \
-        p = MetricUtil::skipToken(p);        \
+#define EXTRACT_FILED(field)                                                                                           \
+    {                                                                                                                  \
+        diskStat.field += strtoul(p, NULL, 10);                                                                        \
+        p = MetricUtil::skipToken(p);                                                                                  \
     }
 
     EXTRACT_FILED(reads);
@@ -147,9 +144,7 @@ void Disk::parseDiskStat(const char *str, DiskStat &diskStat) {
 #undef EXTRACT_FILED
 }
 
-void Disk::setDiskStatsFile(const string &file) {
-    _statsFile = file;
-}
+void Disk::setDiskStatsFile(const string &file) { _statsFile = file; }
 
-}
-}
+} // namespace metric
+} // namespace autil

@@ -40,7 +40,8 @@ MultiSwiftProcessedDocProducer::MultiSwiftProcessedDocProducer(std::vector<commo
     for (auto& param : params) {
         assert(param.reader);
         _singleProducers.push_back(new SingleSwiftProcessedDocProducer(param, schema, partitionId, taskScheduler));
-        indexlibv2::base::Progress progress = indexlibv2::base::Progress(param.from, param.to, INVALID_TIMESTAMP);
+        indexlibv2::base::Progress progress =
+            indexlibv2::base::Progress(param.from, param.to, indexlibv2::base::Progress::INVALID_OFFSET);
         _progress.push_back({progress});
     }
 }
@@ -78,7 +79,7 @@ bool MultiSwiftProcessedDocProducer::init(indexlib::util::MetricProviderPtr metr
         }
     }
     for (size_t i = 0; i < _parallelNum; i++) {
-        _progress[i][0].offset = startTimestamp;
+        _progress[i][0].offset = {startTimestamp, 0};
     }
     return true;
 }
@@ -168,15 +169,19 @@ bool MultiSwiftProcessedDocProducer::seek(const common::Locator& locator)
         uint32_t to = singleProgressVec[singleProgressVec.size() - 1].to;
         auto seekLocator = locator;
         if (!seekLocator.ShrinkToRange(from, to)) {
-            BS_LOG(ERROR, "seek producer idx [%lu] locator [%s] failed, range from [%u] to [%u]", parallelId,
-                   seekLocator.DebugString().c_str(), from, to);
+            BS_LOG(ERROR, "seek producer [%lu/%u][%u ~ %u] locator [%s] failed", parallelId, _parallelNum, from, to,
+                   seekLocator.DebugString().c_str());
             return false;
+        }
+        if (seekLocator.GetProgress().empty()) {
+            BS_LOG(ERROR, "skip seek producer [%lu/%u][%u ~ %u], empty progress", parallelId, _parallelNum, from, to);
+            continue;
         }
         auto [success, actualLocator] = _singleProducers[parallelId]->seekAndGetLocator(seekLocator);
         if (success) {
             _progress[parallelId] = actualLocator.GetProgress();
         } else {
-            BS_LOG(ERROR, "seek producer idx [%lu] failed", parallelId);
+            BS_LOG(ERROR, "seek producer [%lu/%u][%u ~ %u] failed", parallelId, _parallelNum, from, to);
             return false;
         }
     }
@@ -222,7 +227,7 @@ bool MultiSwiftProcessedDocProducer::needUpdateCommittedCheckpoint() const
     return true;
 }
 
-bool MultiSwiftProcessedDocProducer::updateCommittedCheckpoint(int64_t checkpoint)
+bool MultiSwiftProcessedDocProducer::updateCommittedCheckpoint(const indexlibv2::base::Progress::Offset& checkpoint)
 {
     assert(_singleProducers.size() == _parallelNum);
 

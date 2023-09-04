@@ -21,10 +21,7 @@ namespace opentelemetry {
 
 class TraceUtil {
 public:
-    static std::string joinMap(const std::map<std::string, std::string>& m,
-                               char first = ':',
-                               char second = ';');
-
+    static std::string joinMap(const std::map<std::string, std::string> &m, char first = ':', char second = ';');
 };
 
-}
+} // namespace opentelemetry

@@ -30,7 +30,7 @@ template <typename T>
 class SingleValueAttributePatchMerger : public AttributePatchMerger
 {
 public:
-    SingleValueAttributePatchMerger(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+    SingleValueAttributePatchMerger(const std::shared_ptr<AttributeConfig>& attrConfig,
                                     const std::shared_ptr<SegmentUpdateBitmap>& segmentUpdateBitmap)
         : AttributePatchMerger(attrConfig, segmentUpdateBitmap)
     {

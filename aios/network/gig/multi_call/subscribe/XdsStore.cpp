@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/subscribe/XdsStore.h"
-#include "fslib/util/FileUtil.h"
-#include "autil/legacy/base64.h"
-#include "autil/EnvUtil.h"
+
 #include <unistd.h>
+
+#include "autil/EnvUtil.h"
+#include "autil/legacy/base64.h"
+#include "fslib/util/FileUtil.h"
 
 using namespace std;
 using namespace autil;
@@ -48,9 +50,9 @@ const string XdsStore::kKeyCmnodeMetaInfo = "cmnodeMetaInfoBase64";
 
 int XdsStore::_rdmaPortDiff = 0;
 
-XdsStore::XdsStore(const IstioConfig &config,
-                   const IstioMetricReporterPtr reporter)
-    : _config(config), _metricReporter(reporter) {
+XdsStore::XdsStore(const IstioConfig &config, const IstioMetricReporterPtr reporter)
+    : _config(config)
+    , _metricReporter(reporter) {
     _lastUpdateTimestamp = 0;
     _lastQueryTimestamp = 0;
     _stop = false;
@@ -58,12 +60,13 @@ XdsStore::XdsStore(const IstioConfig &config,
     _rdmaPortDiff = autil::EnvUtil::getEnv(GIG_RDMA_PORT_DIFF_KEY, _rdmaPortDiff);
 }
 
-XdsStore::~XdsStore() {}
+XdsStore::~XdsStore() {
+}
 
 bool XdsStore::init() {
     if (_config.writeCache) {
-        _cacheThread = autil::Thread::createThread(
-            std::bind(&XdsStore::cacheWriter, this), "writeCache");
+        _cacheThread =
+            autil::Thread::createThread(std::bind(&XdsStore::cacheWriter, this), "writeCache");
         if (!_cacheThread) {
             AUTIL_LOG(ERROR, "Failed create cache writing thread.");
             return false;
@@ -100,8 +103,7 @@ set<std::string> XdsStore::hostnamesToResources(const set<string> &clusters) {
     return ret;
 }
 
-set<std::string>
-XdsStore::hostnamesToResources(const vector<string> &clusters) {
+set<std::string> XdsStore::hostnamesToResources(const vector<string> &clusters) {
     set<std::string> ret;
     for (const string &cls : clusters) {
         ret.insert(hostnameToResource(cls));
@@ -133,15 +135,14 @@ bool XdsStore::clear(const string &hostname) {
     return true;
 }
 
-bool XdsStore::updateCDS(
-    bool isFull, std::shared_ptr<envoy::api::v2::DiscoveryResponse> resp) {
+bool XdsStore::updateCDS(bool isFull, std::shared_ptr<envoy::api::v2::DiscoveryResponse> resp) {
     const auto &resources = resp->resources();
     std::map<std::string, ClusterInfo> toAdd;
-    std::map<std::string, std::shared_ptr<Any> > toCache;
+    std::map<std::string, std::shared_ptr<Any>> toCache;
     std::set<std::string> toDel;
     ClusterInfo tmpCluster;
     string hostname;
-    std::map<std::string, std::string> tags = { { "xdsType", "cds" } };
+    std::map<std::string, std::string> tags = {{"xdsType", "cds"}};
 
     for (const auto &resource : resources) {
         Cluster cluster;
@@ -202,8 +203,7 @@ bool XdsStore::updateCDS(
     {
         autil::ScopedLock lock(_edsMutex);
         for (auto &del : toDel) {
-            AUTIL_LOG(INFO, "Del bizcluster [%s] in EDS due to CDS response.",
-                      del.c_str());
+            AUTIL_LOG(INFO, "Del bizcluster [%s] in EDS due to CDS response.", del.c_str());
             _topoNodesMap.erase(del);
             _edsHostnameResourceCache.erase(del);
             _cacheChanged = true;
@@ -212,15 +212,16 @@ bool XdsStore::updateCDS(
     return true;
 }
 
-bool XdsStore::isServeable() { return _lastUpdateTimestamp.load() != 0; }
+bool XdsStore::isServeable() {
+    return _lastUpdateTimestamp.load() != 0;
+}
 
 template <typename T>
-T XdsStore::extractValue(const std::map<std::string, std::string> &kv,
-                         const std::string &key, const T &defaultValue) {
+T XdsStore::extractValue(const std::map<std::string, std::string> &kv, const std::string &key,
+                         const T &defaultValue) {
     T value;
     auto iter = kv.find(key);
-    if (iter != kv.end() &&
-        autil::StringUtil::fromString(iter->second, value)) {
+    if (iter != kv.end() && autil::StringUtil::fromString(iter->second, value)) {
         return value;
     }
     return defaultValue;
@@ -245,8 +246,7 @@ void XdsStore::fillTopoNode(const std::string &hostname, const LbEndpoint &lbe,
     topoNode->partId = extractValue(metadata, kKeyPartID, 0);
     topoNode->version = extractValue(metadata, kKeyVersion, DEFAULT_VERSION_ID);
     topoNode->weight = extractValue(metadata, kKeyWeight, MAX_WEIGHT);
-    topoNode->supportHeartbeat =
-        extractValue(metadata, kKeySupportHearbeat, false);
+    topoNode->supportHeartbeat = extractValue(metadata, kKeySupportHearbeat, false);
     int32_t grpcPort = extractValue(metadata, kKeyGrpcPort, INVALID_PORT);
     topoNode->spec.ports[MC_PROTOCOL_GRPC] = grpcPort;
     std::string protocol = extractValue(metadata, kKeyProtocol, std::string());
@@ -274,37 +274,31 @@ void XdsStore::fillTopoNode(const std::string &hostname, const LbEndpoint &lbe,
         topoNode->isValid = false;
     }
     if (!topoNode->isValid) {
-        AUTIL_LOG(DEBUG, "topoNode is inValid hostname [%s] ip [%s]",
-                  hostname.c_str(), ip.c_str());
+        AUTIL_LOG(DEBUG, "topoNode is inValid hostname [%s] ip [%s]", hostname.c_str(), ip.c_str());
     }
-    string metainfoBase64 =
-        extractValue(metadata, kKeyCmnodeMetaInfo, std::string());
+    string metainfoBase64 = extractValue(metadata, kKeyCmnodeMetaInfo, std::string());
     if (!metainfoBase64.empty()) {
         string metainfoStr = autil::legacy::Base64DecodeFast(metainfoBase64);
         cm_basic::NodeMetaInfo metaInfo;
         if (!metaInfo.ParseFromString(metainfoStr)) {
-            AUTIL_LOG(ERROR,
-                      "Error on parse cmnode metainfo parse from string [%s].",
+            AUTIL_LOG(ERROR, "Error on parse cmnode metainfo parse from string [%s].",
                       metainfoStr.c_str());
         }
         topoNode->fillNodeMeta(metaInfo);
     }
 }
 
-bool XdsStore::updateEDS(
-    bool isFull, std::shared_ptr<envoy::api::v2::DiscoveryResponse> resp) {
+bool XdsStore::updateEDS(bool isFull, std::shared_ptr<envoy::api::v2::DiscoveryResponse> resp) {
     const auto &resources = resp->resources();
     std::map<std::string, TopoNodes> toAdd;
-    std::map<std::string, std::shared_ptr<Any> > toCache;
+    std::map<std::string, std::shared_ptr<Any>> toCache;
     TopoNodes tmpNodes;
     string hostname;
     kmonitor::MetricsTagsPtr kmTagsFull;
     kmonitor::MetricsTagsPtr kmTagsInc;
     if (_metricReporter) {
-        kmTagsFull = _metricReporter->GetMetricsTags(
-            { { "xdsType", "eds" }, { "op_type", "full" } });
-        kmTagsInc = _metricReporter->GetMetricsTags(
-            { { "xdsType", "eds" }, { "op_type", "inc" } });
+        kmTagsFull = _metricReporter->GetMetricsTags({{"xdsType", "eds"}, {"op_type", "full"}});
+        kmTagsInc = _metricReporter->GetMetricsTags({{"xdsType", "eds"}, {"op_type", "inc"}});
     }
     auto tags = kmTagsFull;
     for (const auto &resource : resources) {
@@ -314,8 +308,7 @@ bool XdsStore::updateEDS(
         hostname = resourceToHostname(cla.cluster_name());
         for (const auto &endpoint : cla.endpoints()) {
             for (auto &lbe : endpoint.lb_endpoints()) {
-                const string &ip =
-                    lbe.endpoint().address().socket_address().address();
+                const string &ip = lbe.endpoint().address().socket_address().address();
                 if (ip.empty()) {
                     AUTIL_LOG(WARN,
                               "Error endpoint with empty IP, hostname [%s], "
@@ -330,9 +323,7 @@ bool XdsStore::updateEDS(
                 fillTopoNode(hostname, lbe, tmpNodes[key]);
                 if (!tmpNodes[key]->generateNodeId()) {
                     tmpNodes.erase(key);
-                    AUTIL_LOG(ERROR,
-                              "Failed topoNode.generateNodeId(), key [%s]",
-                              key.c_str());
+                    AUTIL_LOG(ERROR, "Failed topoNode.generateNodeId(), key [%s]", key.c_str());
                 }
             }
         }
@@ -413,10 +404,9 @@ void XdsStore::cacheWriter() {
 // we build the resource to a envoy::api::v2::DiscoveryResponse>
 bool XdsStore::doWriteCache(
     autil::ThreadMutex *mutex,
-    const std::map<std::string, std::shared_ptr< ::google::protobuf::Any> >
-        &cache,
+    const std::map<std::string, std::shared_ptr<::google::protobuf::Any>> &cache,
     const string &type) {
-    std::map<std::string, std::shared_ptr< ::google::protobuf::Any> > cacheCopy;
+    std::map<std::string, std::shared_ptr<::google::protobuf::Any>> cacheCopy;
     // TODO add metric
     {
         autil::ScopedLock lock(*mutex);
@@ -434,8 +424,7 @@ bool XdsStore::doWriteCache(
         string filename = _config.cacheFile + "." + type;
         if (FileUtil::isExist(filename)) {
             // overwrite if target file exists
-            FileUtil::renameFile(filename,
-                                           filename + std::string(".bak"));
+            FileUtil::renameFile(filename, filename + std::string(".bak"));
         }
         string content;
         Rsp.SerializeToString(&content);
@@ -471,6 +460,8 @@ bool XdsStore::doReadCache(const std::string &type) {
     return false;
 }
 
-bool XdsStore::loadCache() { return doReadCache("cds") && doReadCache("eds"); };
+bool XdsStore::loadCache() {
+    return doReadCache("cds") && doReadCache("eds");
+};
 
 } // namespace multi_call

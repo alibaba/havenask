@@ -22,19 +22,19 @@
 namespace autil {
 namespace codec {
 
-class EncodeConverter
-{
+class EncodeConverter {
 public:
     EncodeConverter();
     ~EncodeConverter();
+
 public:
     static int32_t utf8ToUtf16(const char *in, int32_t length, uint16_t *out);
     static int32_t utf16ToUtf8(const uint16_t *in, int32_t length, char *out);
     static int32_t utf8ToUtf16Len(const char *in, int32_t length);
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
-}
-}
-
+} // namespace codec
+} // namespace autil

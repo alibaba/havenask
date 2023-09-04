@@ -18,13 +18,16 @@
 #include <string>
 
 #include "autil/legacy/jsonizable.h"
-#include "iquan/common/Common.h"
 
 namespace iquan {
 
 class KMonConfig : public autil::legacy::Jsonizable {
 public:
-    KMonConfig() : serviceName(""), tenantName("default"), flumeAddress("127.0.0.1:4141"), autoRecycle(true) {}
+    KMonConfig()
+        : serviceName("")
+        , tenantName("default")
+        , flumeAddress("127.0.0.1:4141")
+        , autoRecycle(true) {}
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("service_name", serviceName, serviceName);

@@ -19,16 +19,16 @@ using namespace std;
 
 namespace multi_call {
 
-void ProtobufByteBufferUtil::serializeToBuffer(
-    const google::protobuf::Message &src, grpc::ByteBuffer *dst) {
+void ProtobufByteBufferUtil::serializeToBuffer(const google::protobuf::Message &src,
+                                               grpc::ByteBuffer *dst) {
     grpc::Slice s(src.ByteSizeLong());
     src.SerializeWithCachedSizesToArray(const_cast<uint8_t *>(s.begin()));
     grpc::ByteBuffer buffer(&s, 1);
     dst->Swap(&buffer);
 }
 
-bool ProtobufByteBufferUtil::deserializeFromBuffer(
-    const grpc::ByteBuffer &src, google::protobuf::Message *dst) {
+bool ProtobufByteBufferUtil::deserializeFromBuffer(const grpc::ByteBuffer &src,
+                                                   google::protobuf::Message *dst) {
     GrpcByteBufferSource stream;
     if (!stream.Init(src)) {
         return false;
@@ -36,9 +36,8 @@ bool ProtobufByteBufferUtil::deserializeFromBuffer(
     return dst->ParseFromZeroCopyStream(&stream);
 }
 
-void ProtobufByteBufferUtil::serializeToBuffer(
-    const google::protobuf::Message *header,
-    const grpc::Slice *msg, grpc::ByteBuffer *dst) {
+void ProtobufByteBufferUtil::serializeToBuffer(const google::protobuf::Message *header,
+                                               const grpc::Slice *msg, grpc::ByteBuffer *dst) {
     size_t headerSize = header->ByteSizeLong();
     grpc::Slice sliceArray[3];
     {
@@ -48,8 +47,7 @@ void ProtobufByteBufferUtil::serializeToBuffer(
     }
     {
         grpc::Slice headerSlice(headerSize);
-        header->SerializeWithCachedSizesToArray(
-            const_cast<uint8_t *>(headerSlice.begin()));
+        header->SerializeWithCachedSizesToArray(const_cast<uint8_t *>(headerSlice.begin()));
         sliceArray[1] = headerSlice;
     }
     if (nullptr != msg) {
@@ -62,9 +60,9 @@ void ProtobufByteBufferUtil::serializeToBuffer(
     }
 }
 
-bool ProtobufByteBufferUtil::deserializeFromBuffer(
-    const grpc::ByteBuffer &src, google::protobuf::Message *header,
-    google::protobuf::Message *msg) {
+bool ProtobufByteBufferUtil::deserializeFromBuffer(const grpc::ByteBuffer &src,
+                                                   google::protobuf::Message *header,
+                                                   google::protobuf::Message *msg) {
     GrpcByteBufferSource stream;
     if (!stream.Init(src)) {
         return false;
@@ -82,8 +80,7 @@ bool ProtobufByteBufferUtil::deserializeFromBuffer(
     return msg->ParseFromZeroCopyStream(&stream);
 }
 
-bool ProtobufByteBufferUtil::getHeaderLength(GrpcByteBufferSource &stream,
-                                             size_t &headerLength) {
+bool ProtobufByteBufferUtil::getHeaderLength(GrpcByteBufferSource &stream, size_t &headerLength) {
     GrpcByteBufferSourceByteReader reader(stream);
     uint8_t *ptr = (uint8_t *)&headerLength;
     for (size_t i = 0; i < LENGTH_SIZE; i++) {

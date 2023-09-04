@@ -61,12 +61,12 @@ public:
                 metricCollector.EndQuery();
             }
             // NOTE: get the sum of each metric collector
-            int64_t sstable_latency = 0;
+            int64_t sstableLatency = 0;
             for (auto& metricsCollector : _metricsCollectors) {
                 *_readOptions.metricsCollector += metricsCollector;
-                sstable_latency = std::max(sstable_latency, metricsCollector.GetSSTableLatency());
+                sstableLatency = std::max(sstableLatency, metricsCollector.GetSSTableLatency());
             }
-            _readOptions.metricsCollector->setSSTableLatency(sstable_latency);
+            _readOptions.metricsCollector->setSSTableLatency(sstableLatency);
         }
     }
 
@@ -75,10 +75,10 @@ public:
         if (_readOptions.metricsCollector && cursor < _metricsCollectors.size()) {
             auto& metricsCollector = _metricsCollectors[cursor];
             metricsCollector.EndQuery();
+            auto sstableLatency =
+                std::max(_readOptions.metricsCollector->GetSSTableLatency(), metricsCollector.GetSSTableLatency());
             *_readOptions.metricsCollector += metricsCollector;
-            if (_readOptions.metricsCollector->GetSSTableLatency() < metricsCollector.GetSSTableLatency()) {
-                _readOptions.metricsCollector->setSSTableLatency(metricsCollector.GetSSTableLatency());
-            }
+            _readOptions.metricsCollector->setSSTableLatency(sstableLatency);
         }
     }
 

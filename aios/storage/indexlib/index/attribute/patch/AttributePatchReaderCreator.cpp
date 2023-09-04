@@ -23,7 +23,7 @@ namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, AttributePatchReaderCreator);
 
 std::shared_ptr<AttributePatchReader>
-AttributePatchReaderCreator::Create(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+AttributePatchReaderCreator::Create(const std::shared_ptr<AttributeConfig>& attrConfig)
 {
     if (!attrConfig->IsAttributeUpdatable()) {
         return nullptr;
@@ -44,7 +44,7 @@ AttributePatchReaderCreator::Create(const std::shared_ptr<config::AttributeConfi
 }
 
 std::shared_ptr<AttributePatchReader>
-AttributePatchReaderCreator::CreateMultiValuePatchReader(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+AttributePatchReaderCreator::CreateMultiValuePatchReader(const std::shared_ptr<AttributeConfig>& attrConfig)
 {
 #define CREATE_MULTI_VALUE_PATCH_READER_BY_TYPE(field_type)                                                            \
     case field_type: {                                                                                                 \
@@ -79,7 +79,7 @@ AttributePatchReaderCreator::CreateMultiValuePatchReader(const std::shared_ptr<c
 }
 
 std::shared_ptr<AttributePatchReader>
-AttributePatchReaderCreator::CreateSingleValuePatchReader(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+AttributePatchReaderCreator::CreateSingleValuePatchReader(const std::shared_ptr<AttributeConfig>& attrConfig)
 {
 #define CREATE_SINGLE_VALUE_PATCH_READER_BY_TYPE(field_type)                                                           \
     case field_type: {                                                                                                 \

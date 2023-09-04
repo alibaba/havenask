@@ -1,0 +1,26 @@
+{
+    "table_name": "auction",
+    "fields": 
+    [
+        {"field_name":"date", "field_type":"int64"},
+        {"field_name":"pk", "field_type":"uint64"}
+    ],
+    "indexs": 
+    [
+     	{
+	    "index_name": "date_index",
+        "index_type" : "DATE",
+	    "index_fields": "date",
+	    "build_granularity" : "minute"
+	    },
+	    {
+	    "index_name": "pk",
+        "index_type": "PRIMARYKEY64",
+        "index_fields": "pk"
+        }
+    ],
+    "attributes": [],
+    "summarys":{ 
+        "summary_fields": []
+    }
+}

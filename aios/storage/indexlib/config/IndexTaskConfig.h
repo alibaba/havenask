@@ -18,6 +18,7 @@
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/config/MergeConfig.h"
 
 namespace indexlib { namespace legacy { namespace config {
 class OfflineMergeConfig;
@@ -106,6 +107,8 @@ public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override;
 
 public:
+    void FillMergeConfig(const std::string& name, const indexlibv2::config::MergeConfig& mergeConfig);
+    void RewriteWithDefaultMergeConfig(const indexlibv2::config::MergeConfig& mergeConfig);
     void FillLegacyMergeConfig(const std::string& name,
                                const indexlib::legacy::config::OfflineMergeConfig& mergeConfig);
 

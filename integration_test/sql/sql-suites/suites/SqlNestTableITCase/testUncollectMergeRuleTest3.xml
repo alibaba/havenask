@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="testUncollectMergeRuleTest3">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT sub_int FROM simple4, unnest(simple4.sub_simple4_table) where sub_int > 2
+]]>
+</Element>
+        </Resource>
+        <Resource name="kvpair">
+          databaseName:simple4;timeout:10000;formatType:json
+        </Resource>
+        <Resource name="column_names">"sub_int"</Resource>
+        <Resource name="column_types">int64</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+3
+3
+3
+3
+3
+3
+3
+3
+3
+3
+3
+3
+3
+3
+3
+]]>
+</Resource>
+    <Resource name="plan">
+<![CDATA[
+SinkOp#3(type=api)
+    LimitOp#2(limit=100)
+        ExchangeOp#1(distribution={type:SINGLETON})
+            TableScanOp#0(catalog_name=default,db_name=simple4,limit=100,nest_table_attrs=[{nest_field_counts=[6],nest_field_names=[$sub_simple4_table],output_fields=[$sub_id,$sub_int,$sub_string,$sub_float,$sub_multi_int32,$sub_multi_string],table_name=sub_simple4_table,with_ordinality=false}],output_fields=[$sub_int],push_down_ops=[{attrs:{condition:{op:>,params:[$sub_int,2],type:OTHER},output_fields:[$sub_int]},op_name:CalcOp}],table_name=simple4,table_type=normal,use_nest_table=true)
+]]>
+</Resource>
+</TestCase>
+</Root>

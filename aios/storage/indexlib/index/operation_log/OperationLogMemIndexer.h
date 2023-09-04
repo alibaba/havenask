@@ -103,6 +103,7 @@ protected:
     mutable autil::RecursiveThreadMutex _dataLock;
 
 private:
+    std::atomic<size_t> _currentMemoryUse;
     segmentid_t _segmentid = INVALID_SEGMENTID;
     bool _isSealed = false;
 

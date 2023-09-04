@@ -49,7 +49,7 @@ public:
               const BuildFlowThreadResource& threadResource = BuildFlowThreadResource());
 
     BuildFlow(const util::SwiftClientCreatorPtr& swiftClientCreator,
-              std::shared_ptr<indexlibv2::config::TabletSchema> schema, const BuildFlowThreadResource& threadResource);
+              std::shared_ptr<indexlibv2::config::ITabletSchema> schema, const BuildFlowThreadResource& threadResource);
 
     virtual ~BuildFlow();
 
@@ -137,7 +137,7 @@ private:
 private:
     AsyncStarter _starter;
     indexlib::config::IndexPartitionSchemaPtr _schema;
-    std::shared_ptr<indexlibv2::config::TabletSchema> _schemav2;
+    std::shared_ptr<indexlibv2::config::ITabletSchema> _schemav2;
     util::SwiftClientCreatorPtr _swiftClientCreator;
     std::vector<std::unique_ptr<Workflow>> _dataFlows;
     FlowFactory* _factory;

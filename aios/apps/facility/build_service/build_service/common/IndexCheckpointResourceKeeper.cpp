@@ -240,4 +240,19 @@ void IndexCheckpointResourceKeeper::syncResources(const std::string& applyer, co
     }
 }
 
+bool IndexCheckpointResourceKeeper::updateResource(const KeyValueMap& params)
+{
+    auto iter = params.find("visiable");
+    if (iter != params.end()) {
+        auto value = iter->second;
+        bool isTrue = false;
+        if (!StringUtil::parseTrueFalse(value, isTrue)) {
+            BS_LOG(ERROR, "parse true of false failed st r[%s]", value.c_str());
+            return false;
+        }
+        _checkpointAccessor->setIndexVisiable(_clusterName, isTrue);
+    }
+    return true;
+}
+
 }} // namespace build_service::common

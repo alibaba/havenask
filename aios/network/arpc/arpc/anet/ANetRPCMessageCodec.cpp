@@ -16,26 +16,26 @@
 #include "aios/network/arpc/arpc/anet/ANetRPCMessageCodec.h"
 
 #include <assert.h>
+#include <cstddef>
 #include <google/protobuf/arena.h>
 #include <google/protobuf/message.h>
-#include <stdint.h>
-#include <cstddef>
 #include <memory>
 #include <new>
+#include <stdint.h>
 #include <string>
 
-#include "aios/network/arpc/arpc/MessageSerializable.h"
-#include "aios/network/arpc/arpc/RPCMessageSerializable.h"
-#include "aios/network/arpc/arpc/PacketArg.h"
-#include "aios/network/arpc/arpc/RPCServer.h"
-#include "aios/network/arpc/arpc/proto/msg_header.pb.h"
 #include "aios/network/anet/advancepacket.h"
 #include "aios/network/anet/databufferserializable.h"
 #include "aios/network/anet/delaydecodepacket.h"
 #include "aios/network/anet/ilogger.h"
+#include "aios/network/anet/ipacketfactory.h"
 #include "aios/network/anet/packet.h"
 #include "aios/network/anet/runnable.h"
-#include "aios/network/anet/ipacketfactory.h"
+#include "aios/network/arpc/arpc/MessageSerializable.h"
+#include "aios/network/arpc/arpc/PacketArg.h"
+#include "aios/network/arpc/arpc/RPCMessageSerializable.h"
+#include "aios/network/arpc/arpc/RPCServer.h"
+#include "aios/network/arpc/arpc/proto/msg_header.pb.h"
 #include "aios/network/arpc/arpc/proto/rpc_extensions.pb.h"
 #include "aios/network/arpc/arpc/util/Log.h"
 
@@ -44,19 +44,11 @@ using namespace std;
 ARPC_BEGIN_NAMESPACE(arpc);
 ARPC_DECLARE_AND_SETUP_LOGGER(ANetRPCMessageCodec);
 
-ANetRPCMessageCodec::ANetRPCMessageCodec(IPacketFactory *packetFactory)
-    : _packetFactory(packetFactory)
-{
+ANetRPCMessageCodec::ANetRPCMessageCodec(IPacketFactory *packetFactory) : _packetFactory(packetFactory) {}
 
-}
+ANetRPCMessageCodec::~ANetRPCMessageCodec() {}
 
-ANetRPCMessageCodec::~ANetRPCMessageCodec()
-{
-}
-
-Packet *ANetRPCMessageCodec::EncodeRequest(const CodecContext *context,
-        version_t version) const
-{
+Packet *ANetRPCMessageCodec::EncodeRequest(const CodecContext *context, version_t version) const {
     assert(context);
     DataBufferSerializable *serializable = NULL;
     uint32_t pcode = 0;
@@ -80,11 +72,10 @@ Packet *ANetRPCMessageCodec::EncodeRequest(const CodecContext *context,
         msgHeader->set_enabletrace(context->enableTrace);
         msgHeader->set_userpayload(context->userPayload);
 
-        if(context->qosId !=0 )
+        if (context->qosId != 0)
             msgHeader->set_group(context->qosId);
 
-        serializable = new (nothrow) RPCMessageSerializable(msgHeader,
-                (RPCMessage *)context->request, context->arena);
+        serializable = new (nothrow) RPCMessageSerializable(msgHeader, (RPCMessage *)context->request, context->arena);
 
     } else {
         ARPC_LOG(ERROR, "Invalid version [%d]", version);
@@ -107,9 +98,7 @@ Packet *ANetRPCMessageCodec::EncodeRequest(const CodecContext *context,
     return packet;
 }
 
-CodecContext *ANetRPCMessageCodec::DecodeRequest(Packet *packet,
-        const RPCServer *rpcServer, version_t version) const
-{
+CodecContext *ANetRPCMessageCodec::DecodeRequest(Packet *packet, const RPCServer *rpcServer, version_t version) const {
     CodecContext *context = new CodecContext;
 
     if (version > ARPC_VERSION_CURRENT) {
@@ -119,9 +108,8 @@ CodecContext *ANetRPCMessageCodec::DecodeRequest(Packet *packet,
 
     CallId callId;
     callId.intId = packet->getPacketHeader()->_pcode;
-    RPCServer::ServiceMethodPair serviceMethodPair =
-        rpcServer->GetRpcCall(callId);
-    RPCService *rpcService = serviceMethodPair.first;
+    RPCServer::ServiceMethodPair serviceMethodPair = rpcServer->GetRpcCall(callId);
+    RPCService *rpcService = serviceMethodPair.first.second;
     RPCMethodDescriptor *rpcMethodDes = serviceMethodPair.second;
 
     if (rpcService == NULL || rpcMethodDes == NULL) {
@@ -130,13 +118,13 @@ CodecContext *ANetRPCMessageCodec::DecodeRequest(Packet *packet,
     }
 
     context->rpcService = rpcService;
+    context->rpcServicePtr = serviceMethodPair.first.first;
     context->rpcMethodDes = rpcMethodDes;
 
     context->arena.reset(new google::protobuf::Arena());
     DelayDecodePacket *delayDecodePacket = (DelayDecodePacket *)packet;
     RpcMsgHeader *msgHeader = NULL;
-    RPCMessage *request =
-        rpcService->GetRequestPrototype(rpcMethodDes).New(context->arena.get());
+    RPCMessage *request = rpcService->GetRequestPrototype(rpcMethodDes).New(context->arena.get());
     DataBufferSerializable *serializable = NULL;
 
     if (version == ARPC_VERSION_0) {
@@ -157,18 +145,15 @@ CodecContext *ANetRPCMessageCodec::DecodeRequest(Packet *packet,
     if (msgHeader) {
         context->enableTrace = msgHeader->enabletrace();
         context->userPayload = msgHeader->userpayload();
-        if(msgHeader->has_group())
-            context->qosId= msgHeader->group();
+        if (msgHeader->has_group())
+            context->qosId = msgHeader->group();
     }
 
     context->request = request;
     return context;
 }
 
-
-Packet *ANetRPCMessageCodec::createPacket(uint32_t pcode,
-                                   DataBufferSerializable *serializable) const
-{
+Packet *ANetRPCMessageCodec::createPacket(uint32_t pcode, DataBufferSerializable *serializable) const {
     Packet *pPack = _packetFactory->createPacket(pcode);
 
     if (pPack == NULL) {
@@ -186,10 +171,9 @@ Packet *ANetRPCMessageCodec::createPacket(uint32_t pcode,
 }
 
 Packet *ANetRPCMessageCodec::EncodeResponse(RPCMessage *response,
-                                     Tracer *tracer,
-                                     version_t version,
-                                     const std::shared_ptr<google::protobuf::Arena> &arena) const
-{
+                                            Tracer *tracer,
+                                            version_t version,
+                                            const std::shared_ptr<google::protobuf::Arena> &arena) const {
     assert(tracer);
     uint32_t pcode = 0;
     DataBufferSerializable *pSeri = NULL;
@@ -201,8 +185,7 @@ Packet *ANetRPCMessageCodec::EncodeResponse(RPCMessage *response,
         pcode |= ADVANCE_PACKET_MASK;
 
         if (tracer->GetTraceFlag()) {
-            TraceInfo *traceInfo = tracer->ExtractServerTraceInfo(
-                    getArena(response, arena));
+            TraceInfo *traceInfo = tracer->ExtractServerTraceInfo(getArena(response, arena));
             pSeri = new RPCMessageSerializable(traceInfo, response, arena);
         } else {
             pSeri = new MessageSerializable(response, arena);
@@ -212,10 +195,9 @@ Packet *ANetRPCMessageCodec::EncodeResponse(RPCMessage *response,
         return NULL;
     }
 
-    Packet *packet =  createPacket(pcode, pSeri);
+    Packet *packet = createPacket(pcode, pSeri);
     packet->setPacketVersion(version);
     return packet;
 }
 
 ARPC_END_NAMESPACE(arpc);
-

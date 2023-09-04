@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="partial_pk_index_join">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT normal.id, normal.company_id, normal.auction_id FROM normal JOIN kv1 ON normal.id = kv1.cat_id AND normal.auction_id =kv1.auction_count
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"id", "company_id", "auction_id"</Resource>
+        <Resource name="column_types">int32, int32, int32</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:normal;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1, 1, 50000
+3, 2, 5000
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#5(type=api)
+    ExchangeOp#4(distribution={type:SINGLETON})
+        LimitOp#3(limit=100)
+            CalcOp#2(output_fields=[$id,$company_id,$auction_id])
+                LookupJoinOp#1(build_node={catalog_name:default,db_name:normal,limit:2147483647,output_fields:[$cat_id,$auction_count],push_down_ops:[{attrs:{output_fields:[$cat_id,$auction_count]},op_name:CalcOp}],table_name:kv1,table_type:kv,use_nest_table:false},condition=AND(=($id,$cat_id),=($auction_id,$auction_count)),equi_condition=AND(=($id,$cat_id),=($auction_id,$auction_count)),is_equi_join=true,is_internal_build=false,join_type=INNER,left_is_build=false,output_fields=[$id,$company_id,$auction_id,$cat_id,$auction_count],semi_join_type=INNER)
+                    TableScanOp#0(catalog_name=default,db_name=normal,limit=2147483647,output_fields=[$id,$company_id,$auction_id],push_down_ops=[{attrs:{output_fields:[$id,$company_id,$auction_id]},op_name:CalcOp}],table_name=normal,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

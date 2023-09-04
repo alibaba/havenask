@@ -25,11 +25,10 @@
 #include "autil/Log.h"
 #include "autil/mem_pool/Pool.h"
 
+namespace autil {
+namespace mem_pool {
 
-namespace autil { namespace mem_pool {
-
-class RecyclePool : public Pool
-{
+class RecyclePool : public Pool {
 public:
 #if __cplusplus >= 201103L
     typedef std::unordered_map<size_t, void *> HashMap;
@@ -37,36 +36,35 @@ public:
     typedef std::tr1::unordered_map<size_t, void *> HashMap;
 #endif
 public:
-    RecyclePool(ChunkAllocatorBase* allocator, size_t chunkSize,
-                size_t alignSize = 1);
+    RecyclePool(ChunkAllocatorBase *allocator, size_t chunkSize, size_t alignSize = 1);
     RecyclePool(size_t chunkSize, size_t alignSize = 1);
     ~RecyclePool();
 
 private:
-    RecyclePool(const RecyclePool&);
-    void operator=(const RecyclePool&);
+    RecyclePool(const RecyclePool &);
+    void operator=(const RecyclePool &);
 
 public:
     /**
      * numBytes >= 8
      */
-    virtual void* allocate(size_t numBytes) override;
+    virtual void *allocate(size_t numBytes) override;
 
     /*
      * only less than 64k memory block can be deallocated
      */
-    virtual void deallocate(void* ptr, size_t size) override;
+    virtual void deallocate(void *ptr, size_t size) override;
     virtual void release() override;
     virtual size_t reset() override;
 
     size_t getFreeSize() const;
 
 public:
-    //for test
-    HashMap& getFreeList();
+    // for test
+    HashMap &getFreeList();
 
 private:
-    static void*& nextOf(void* ptr);
+    static void *&nextOf(void *ptr);
 
 private:
     size_t _freeSize;
@@ -77,22 +75,18 @@ private:
 };
 
 //////////////////////////////////////////////////
-//implementation
+// implementation
 
-inline void*& RecyclePool::nextOf(void *ptr)
-{
-    return *(static_cast<void **>(ptr));
-}
+inline void *&RecyclePool::nextOf(void *ptr) { return *(static_cast<void **>(ptr)); }
 
-inline void* RecyclePool::allocate(size_t numBytes)
-{
+inline void *RecyclePool::allocate(size_t numBytes) {
     size_t allocSize = alignBytes(numBytes, _alignSize);
     if (allocSize < 8) {
         allocSize = 8;
     }
     HashMap::iterator it = _freeList.find(allocSize);
     if (it != _freeList.end()) {
-        void* ptr = it->second;
+        void *ptr = it->second;
         if (ptr != NULL) {
             SanitizerUtil::UnpoisonMemoryRegion(ptr, allocSize);
             _freeList[allocSize] = nextOf(ptr);
@@ -104,8 +98,7 @@ inline void* RecyclePool::allocate(size_t numBytes)
     return Pool::allocate(allocSize);
 }
 
-inline void RecyclePool::deallocate(void *ptr, size_t size)
-{
+inline void RecyclePool::deallocate(void *ptr, size_t size) {
     if (!ptr || size == 0) {
         return;
     }
@@ -125,31 +118,23 @@ inline void RecyclePool::deallocate(void *ptr, size_t size)
     SanitizerUtil::PoisonMemoryRegion(ptr, allocSize);
 }
 
-inline void RecyclePool::release()
-{
+inline void RecyclePool::release() {
     _freeSize = 0;
     _freeList.clear();
 
     Pool::release();
 }
 
-inline size_t RecyclePool::reset()
-{
+inline size_t RecyclePool::reset() {
     _freeSize = 0;
     _freeList.clear();
 
     return Pool::reset();
 }
 
-inline size_t RecyclePool::getFreeSize() const
-{
-    return _freeSize;
-}
+inline size_t RecyclePool::getFreeSize() const { return _freeSize; }
 
-inline RecyclePool::HashMap& RecyclePool::getFreeList()
-{
-    return _freeList;
-}
+inline RecyclePool::HashMap &RecyclePool::getFreeList() { return _freeList; }
 
-}}
-
+} // namespace mem_pool
+} // namespace autil

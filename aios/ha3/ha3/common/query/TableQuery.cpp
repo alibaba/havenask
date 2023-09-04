@@ -15,9 +15,9 @@
  */
 #include "ha3/common/TableQuery.h"
 
+#include <ostream>
 #include <stddef.h>
 #include <sys/types.h>
-#include <ostream>
 
 #include "autil/DataBuffer.h"
 #include "ha3/common/ColumnTerm.h"
@@ -28,15 +28,13 @@ namespace isearch {
 namespace common {
 AUTIL_LOG_SETUP(ha3, TableQuery);
 
-TableQuery::TableQuery(
-    const std::string &label,
-    QueryOperator rowOp,
-    QueryOperator columnOp,
-    QueryOperator multiValueOp)
+TableQuery::TableQuery(const std::string &label,
+                       QueryOperator rowOp,
+                       QueryOperator columnOp,
+                       QueryOperator multiValueOp)
     : _rowOp(rowOp)
     , _columnOp(columnOp)
-    , _multiValueOp(multiValueOp)
-{
+    , _multiValueOp(multiValueOp) {
     setQueryLabelTerm(label);
 }
 
@@ -46,25 +44,23 @@ TableQuery::~TableQuery() {
     }
 }
 
-bool TableQuery::operator == (const Query& query) const {
+bool TableQuery::operator==(const Query &query) const {
     if (&query == this) {
         return true;
     }
     if (query.getQueryName() != getQueryName()) {
         return false;
     }
-    auto p = dynamic_cast<const TableQuery*>(&query);
-    if (! p) {
+    auto p = dynamic_cast<const TableQuery *>(&query);
+    if (!p) {
         return false;
     }
     const auto &tableQuery = *p;
     if (getQueryLabel() != tableQuery.getQueryLabel()) {
         return false;
     }
-    if (_rowOp != tableQuery._rowOp ||
-        _columnOp != tableQuery._columnOp ||
-        _multiValueOp != tableQuery._multiValueOp)
-    {
+    if (_rowOp != tableQuery._rowOp || _columnOp != tableQuery._columnOp
+        || _multiValueOp != tableQuery._multiValueOp) {
         return false;
     }
     const TermArray &terms2 = tableQuery._terms;
@@ -74,7 +70,7 @@ bool TableQuery::operator == (const Query& query) const {
     TermArray::const_iterator it1 = _terms.begin();
     TermArray::const_iterator it2 = terms2.begin();
     for (; it1 != _terms.end(); it1++, it2++) {
-        if (!( (**it1) == (**it2) )) {
+        if (!((**it1) == (**it2))) {
             return false;
         }
     }
@@ -91,7 +87,7 @@ void TableQuery::accept(ModifyQueryVisitor *visitor) {
 
 Query *TableQuery::clone() const {
     auto p = new TableQuery(*this);
-    for (auto& term : p->_terms) {
+    for (auto &term : p->_terms) {
         auto newTerm = term->clone();
         term = newTerm;
     }
@@ -100,16 +96,15 @@ Query *TableQuery::clone() const {
 
 std::string TableQuery::toString() const {
     std::stringstream ss;
-    ss << "TableQuery:rowOp:" << _rowOp
-        << ":columnOp:" << _columnOp
-        << ":multiValueOp:" << _multiValueOp;
+    ss << "TableQuery:rowOp:" << _rowOp << ":columnOp:" << _columnOp
+       << ":multiValueOp:" << _multiValueOp;
     if (!_queryLabel.empty()) {
         ss << "@" << _queryLabel;
     }
     if (getMatchDataLevel() != MDL_NONE) {
         ss << "$" << getMatchDataLevel();
     }
-    ss << ":[" ;
+    ss << ":[";
     for (auto term : _terms) {
         ss << term->toString() << ", ";
     }

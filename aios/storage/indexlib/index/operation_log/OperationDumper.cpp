@@ -59,7 +59,8 @@ Status OperationDumper::Dump(const file_system::DirectoryPtr& directory, autil::
 
     const OperationMeta::BlockMetaVec& blockMetas = _operationMeta.GetBlockMetaVec();
     for (size_t i = 0; i < _opBlockVec.size(); i++) {
-        RETURN_IF_STATUS_ERROR(_opBlockVec[i]->Dump(dataFileWriter, blockMetas[i].maxOperationSerializeSize),
+        RETURN_IF_STATUS_ERROR(_opBlockVec[i]->Dump(dataFileWriter, blockMetas[i].maxOperationSerializeSize,
+                                                    blockMetas[i].hasConcurrentIdx),
                                "dump operation failed");
     }
 
@@ -95,13 +96,6 @@ Status OperationDumper::CheckOperationBlocks() const
         }
     }
     return Status::OK();
-}
-size_t OperationDumper::GetDumpSize(OperationBase* op)
-{
-    return sizeof(uint8_t)    // 1 byte(operation type)
-           + sizeof(int64_t)  // 8 byte timestamp
-           + sizeof(uint16_t) // 1 byte hash id
-           + op->GetSerializeSize();
 }
 
 } // namespace indexlib::index

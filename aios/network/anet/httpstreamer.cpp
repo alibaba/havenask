@@ -18,25 +18,26 @@
  * Author: zhangli
  * Create time: 2008-12-12 20:02:45
  * $Id: httpstreamer.cpp 15760 2008-12-30 08:03:52Z zhangli $
- * 
+ *
  * Description: ***add description here***
- * 
+ *
  */
 
 #include "aios/network/anet/httpstreamer.h"
-#include "aios/network/anet/httpstreamingcontext.h"
-#include "aios/network/anet/databuffer.h"
-#include "aios/network/anet/log.h"
-#include "aios/network/anet/aneterror.h"
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "aios/network/anet/aneterror.h"
+#include "aios/network/anet/databuffer.h"
 #include "aios/network/anet/defaultpacketstreamer.h"
 #include "aios/network/anet/httppacket.h"
+#include "aios/network/anet/httpstreamingcontext.h"
 #include "aios/network/anet/ilogger.h"
 #include "aios/network/anet/ipacketfactory.h"
+#include "aios/network/anet/log.h"
 #include "aios/network/anet/packet.h"
 #include "aios/network/anet/streamingcontext.h"
 
@@ -46,34 +47,29 @@ const size_t HTTPStreamer::URI_LIMIT = 1024 * 64;
 const size_t HTTPStreamer::PKG_LIMIT = 67108864;
 const size_t HTTPStreamer::HEADERS_LIMIT = 128;
 const char HTTPStreamer::_table[256] = {
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,1,0,1,1,1,1,1,0,0,1,1,0,1,1,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,
-    0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,0,1,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1,
+    1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-HTTPStreamer::HTTPStreamer(IPacketFactory *factory) 
-  : DefaultPacketStreamer(factory) 
-{
+HTTPStreamer::HTTPStreamer(IPacketFactory *factory) : DefaultPacketStreamer(factory) {
     _existPacketHeader = false;
     _pkgLimit = 0;
 }
 
-bool HTTPStreamer::processData(DataBuffer *dataBuffer, 
-                               StreamingContext *context) 
-{
-    ANET_LOG(SPAM,"Begin process Data");
-    
+bool HTTPStreamer::processData(DataBuffer *dataBuffer, StreamingContext *context) {
+    ANET_LOG(SPAM, "Begin process Data");
+
     HTTPStreamingContext *httpContext;
-    httpContext = dynamic_cast<HTTPStreamingContext*>(context);
+    httpContext = dynamic_cast<HTTPStreamingContext *>(context);
     assert(httpContext);
     switch (httpContext->_step) {
     case HTTPStreamingContext::HSS_START_LINE:
-        ANET_LOG(SPAM,"HTTPStreamingContext::HSS_START_LINE");
+        ANET_LOG(SPAM, "HTTPStreamingContext::HSS_START_LINE");
         if (processStartLine(dataBuffer, httpContext)) {
             ANET_LOG(SPAM, "processStartLine finished!");
             httpContext->_step = HTTPStreamingContext::HSS_MESSAGE_HEADER;
@@ -82,7 +78,7 @@ bool HTTPStreamer::processData(DataBuffer *dataBuffer,
             break;
         }
     case HTTPStreamingContext::HSS_MESSAGE_HEADER:
-        ANET_LOG(SPAM,"HTTPStreamingContext::HSS_MESSAGE_HEADER");
+        ANET_LOG(SPAM, "HTTPStreamingContext::HSS_MESSAGE_HEADER");
         if (processHeaders(dataBuffer, httpContext)) {
             ANET_LOG(SPAM, "processHeaders finished!");
             httpContext->_step = HTTPStreamingContext::HSS_MESSAGE_BODY;
@@ -91,42 +87,37 @@ bool HTTPStreamer::processData(DataBuffer *dataBuffer,
             break;
         }
     case HTTPStreamingContext::HSS_MESSAGE_BODY:
-        ANET_LOG(SPAM,"HTTPStreamingContext::HSS_MESSAGE_BODY");
+        ANET_LOG(SPAM, "HTTPStreamingContext::HSS_MESSAGE_BODY");
         if (processBody(dataBuffer, httpContext)) {
             ANET_LOG(SPAM, "processBody finished!");
             httpContext->setCompleted(true);
         }
         break;
     default:
-        ANET_LOG(WARN,"SHOULD NOT come here: DEFAULT");
+        ANET_LOG(WARN, "SHOULD NOT come here: DEFAULT");
         break;
     }
 
     if (httpContext->isEndOfFile()) {
-        HTTPPacket *packet = dynamic_cast<HTTPPacket*>(httpContext->getPacket());
-        if ((packet && HTTPPacket::PT_REQUEST == packet->getPacketType())
-            || (!httpContext->isCompleted() && !httpContext->isBroken())) 
-        {
+        HTTPPacket *packet = dynamic_cast<HTTPPacket *>(httpContext->getPacket());
+        if ((packet && HTTPPacket::PT_REQUEST == packet->getPacketType()) ||
+            (!httpContext->isCompleted() && !httpContext->isBroken())) {
             ANET_LOG(SPAM, "set broken packet(%p)", packet);
-            //error !!! when broken
+            // error !!! when broken
             context->setErrorNo(AnetError::CONNECTION_CLOSED);
         }
-    }    
+    }
     return httpContext->isBroken() != true;
 }
 
-StreamingContext* HTTPStreamer::createContext() {
-    return new HTTPStreamingContext;
-}
+StreamingContext *HTTPStreamer::createContext() { return new HTTPStreamingContext; }
 
-bool HTTPStreamer::processStartLine(DataBuffer *databuffer, 
-                                    HTTPStreamingContext *context) 
-{
+bool HTTPStreamer::processStartLine(DataBuffer *databuffer, HTTPStreamingContext *context) {
     char *pdata = databuffer->getData();
     char *pend = pdata + databuffer->getDataLen();
     char *cr = NULL;
     size_t length = 0;
-    if (!findCRLF(pdata, pend, cr,  length)) {
+    if (!findCRLF(pdata, pend, cr, length)) {
         if ((size_t)databuffer->getDataLen() > getPkgLimit()) {
             context->setErrorNo(AnetError::PKG_TOO_LARGE);
         } else {
@@ -141,31 +132,30 @@ bool HTTPStreamer::processStartLine(DataBuffer *databuffer,
     }
 
     assert(!context->getPacket());
-    HTTPPacket *packet = dynamic_cast<HTTPPacket*>(_factory->createPacket(0));
+    HTTPPacket *packet = dynamic_cast<HTTPPacket *>(_factory->createPacket(0));
     assert(packet);
     context->setPacket(packet);
 
     bool rc = false;
     if (strncmp(pdata, "HTTP/", 5) == 0) {
-        rc =  processStatusLine(context, pdata, cr);
+        rc = processStatusLine(context, pdata, cr);
     } else {
-        rc =  processRequestLine(context, pdata, cr);
+        rc = processRequestLine(context, pdata, cr);
     }
     databuffer->drainData(length);
     context->_drainedLength += length;
     return rc;
 }
 
-bool HTTPStreamer::processRequestLine(HTTPStreamingContext *context, 
-                                      char *start, char *end) {
-    char *p  = findNextWhiteSpace(start, end);
+bool HTTPStreamer::processRequestLine(HTTPStreamingContext *context, char *start, char *end) {
+    char *p = findNextWhiteSpace(start, end);
     if (p == end) {
         context->setErrorNo(AnetError::INVALID_DATA);
-        ANET_LOG(WARN ,"Broken stream! Only one token in start line!");
+        ANET_LOG(WARN, "Broken stream! Only one token in start line!");
         return false;
     }
     *p = '\0';
-    HTTPPacket *packet = dynamic_cast<HTTPPacket*>(context->getPacket());
+    HTTPPacket *packet = dynamic_cast<HTTPPacket *>(context->getPacket());
     assert(packet);
     if (!isValidToken(start, p)) {
         context->setErrorNo(AnetError::INVALID_DATA);
@@ -175,13 +165,13 @@ bool HTTPStreamer::processRequestLine(HTTPStreamingContext *context,
     packet->setPacketType(HTTPPacket::PT_REQUEST);
     packet->setMethod(start);
     start = skipWhiteSpaces(p + 1, end);
-    if ( start == end) {
+    if (start == end) {
         context->setErrorNo(AnetError::INVALID_DATA);
         ANET_LOG(WARN, "Broken stream! Only one token in request line!");
         return false;
     }
-        
-    //now processing URI
+
+    // now processing URI
     p = findNextWhiteSpaceAndReplaceZero(start, end);
     if (p == end) {
         context->setErrorNo(AnetError::INVALID_DATA);
@@ -194,9 +184,9 @@ bool HTTPStreamer::processRequestLine(HTTPStreamingContext *context,
         return false;
     }
     packet->setURI(start);
-        
+
     start = skipWhiteSpaces(p + 1, end);
-    if (strcmp(start, "HTTP/1.0") == 0 ) {
+    if (strcmp(start, "HTTP/1.0") == 0) {
         packet->setVersion(HTTPPacket::HTTP_1_0);
     } else if (strcmp(start, "HTTP/1.1") == 0) {
         packet->setVersion(HTTPPacket::HTTP_1_1);
@@ -209,24 +199,22 @@ bool HTTPStreamer::processRequestLine(HTTPStreamingContext *context,
     return true;
 }
 
-bool HTTPStreamer::processStatusLine(HTTPStreamingContext *context, 
-                                      char *start, char *end) 
-{
+bool HTTPStreamer::processStatusLine(HTTPStreamingContext *context, char *start, char *end) {
     if (end - start < 128) {
         ANET_LOG(SPAM, "Status Line: |%s|", start);
     }
-    char *p  = findNextWhiteSpace(start, end);
+    char *p = findNextWhiteSpace(start, end);
     if (p == end) {
         context->setErrorNo(AnetError::INVALID_DATA);
-        ANET_LOG(WARN ,"Broken stream! Only one token in start line!");
+        ANET_LOG(WARN, "Broken stream! Only one token in start line!");
         return false;
     }
     *p = '\0';
-    HTTPPacket *packet = dynamic_cast<HTTPPacket*>(context->getPacket());
+    HTTPPacket *packet = dynamic_cast<HTTPPacket *>(context->getPacket());
     assert(packet);
 
     packet->setPacketType(HTTPPacket::PT_RESPONSE);
-    if (strcmp(start, "HTTP/1.0") == 0 ) {
+    if (strcmp(start, "HTTP/1.0") == 0) {
         packet->setVersion(HTTPPacket::HTTP_1_0);
     } else if (strcmp(start, "HTTP/1.1") == 0) {
         packet->setVersion(HTTPPacket::HTTP_1_1);
@@ -237,19 +225,19 @@ bool HTTPStreamer::processStatusLine(HTTPStreamingContext *context,
         return false;
     }
     start = skipWhiteSpaces(p + 1, end);
-    if ( start == end) {
+    if (start == end) {
         context->setErrorNo(AnetError::INVALID_DATA);
         ANET_LOG(WARN, "Broken stream! Only one token in status line!");
         return false;
     }
 
-    //now processing status-code
+    // now processing status-code
     p = findNextWhiteSpace(start, end);
-//     if (p == end) {
-//         context->setErrorNo(AnetError::INVALID_DATA);
-//         ANET_LOG(WARN, "Broken stream! Only two tokens in statusa line!");
-//         return false;
-//     }
+    //     if (p == end) {
+    //         context->setErrorNo(AnetError::INVALID_DATA);
+    //         ANET_LOG(WARN, "Broken stream! Only two tokens in statusa line!");
+    //         return false;
+    //     }
     if (p != end) {
         *p = '\0';
     }
@@ -260,7 +248,7 @@ bool HTTPStreamer::processStatusLine(HTTPStreamingContext *context,
     }
     int statusCode = atoi(start);
     packet->setStatusCode(statusCode);
-    ANET_LOG(SPAM,"status code(%d),start(%p),end(%p)", statusCode, p, end);
+    ANET_LOG(SPAM, "status code(%d),start(%p),end(%p)", statusCode, p, end);
     if (p == end) {
         return true;
     }
@@ -274,17 +262,14 @@ bool HTTPStreamer::processStatusLine(HTTPStreamingContext *context,
 /**
  * @ret: true: parser completed! false: parser not complete;
  */
-bool HTTPStreamer::processHeaders(DataBuffer *databuffer, 
-                                  HTTPStreamingContext *context) {
+bool HTTPStreamer::processHeaders(DataBuffer *databuffer, HTTPStreamingContext *context) {
     if (processHeadersOrTrailers(databuffer, context)) {
         return messageHeadersEnd(context);
     }
     return false;
 }
 
-bool HTTPStreamer::processBody(DataBuffer *databuffer,
-                               HTTPStreamingContext *context) 
-{
+bool HTTPStreamer::processBody(DataBuffer *databuffer, HTTPStreamingContext *context) {
     switch (context->_encodingType) {
     case HTTPStreamingContext::HET_NO_BODY:
         return true;
@@ -299,13 +284,11 @@ bool HTTPStreamer::processBody(DataBuffer *databuffer,
     }
 }
 
-bool HTTPStreamer::processLengthBody(DataBuffer *databuffer,
-                                     HTTPStreamingContext *context) 
-{
-    HTTPPacket *packet = dynamic_cast<HTTPPacket*>(context->getPacket());
+bool HTTPStreamer::processLengthBody(DataBuffer *databuffer, HTTPStreamingContext *context) {
+    HTTPPacket *packet = dynamic_cast<HTTPPacket *>(context->getPacket());
     assert(packet);
     size_t bufferLength = databuffer->getDataLen();
-    if (bufferLength >= context->_dataLength) {//we have enough data
+    if (bufferLength >= context->_dataLength) { // we have enough data
         packet->appendBody(databuffer->getData(), context->_dataLength);
         databuffer->drainData(context->_dataLength);
         context->_drainedLength += context->_dataLength;
@@ -319,31 +302,27 @@ bool HTTPStreamer::processLengthBody(DataBuffer *databuffer,
     }
 }
 
-bool HTTPStreamer::processEOFBody(DataBuffer *databuffer, 
-                                  HTTPStreamingContext *context) 
-{
-    HTTPPacket *packet = dynamic_cast<HTTPPacket*>(context->getPacket());
+bool HTTPStreamer::processEOFBody(DataBuffer *databuffer, HTTPStreamingContext *context) {
+    HTTPPacket *packet = dynamic_cast<HTTPPacket *>(context->getPacket());
     assert(packet);
     packet->appendBody(databuffer->getData(), databuffer->getDataLen());
     databuffer->clear();
     return context->isEndOfFile();
 }
 
-bool HTTPStreamer::processChunkedBody(DataBuffer *databuffer, 
-                                      HTTPStreamingContext *context) 
-{
+bool HTTPStreamer::processChunkedBody(DataBuffer *databuffer, HTTPStreamingContext *context) {
     do {
         switch (context->_chunkState) {
         case HTTPStreamingContext::CHUNK_SIZE:
             ANET_LOG(SPAM, "Process Chunk Size");
             if (!processChunkSize(databuffer, context)) {
                 return false;
-            } 
-            //use switch() to determinate whether this is the lastChunk;
+            }
+            // use switch() to determinate whether this is the lastChunk;
             break;
         case HTTPStreamingContext::CHUNK_DATA:
             ANET_LOG(SPAM, "Process Chunk Data");
-            if (!processLengthBody(databuffer,context)) {
+            if (!processLengthBody(databuffer, context)) {
                 ANET_LOG(SPAM, "Process Chunk Data NOT finished");
                 return false;
             }
@@ -366,12 +345,10 @@ bool HTTPStreamer::processChunkedBody(DataBuffer *databuffer,
             ANET_LOG(ERROR, "We SHOULD NOT get here!");
             return false;
         }
-    } while(true);
+    } while (true);
 }
 
-bool HTTPStreamer::processChunkSize(DataBuffer *databuffer,
-                                    HTTPStreamingContext *context) 
-{
+bool HTTPStreamer::processChunkSize(DataBuffer *databuffer, HTTPStreamingContext *context) {
     char *pstart = databuffer->getData();
     char *pend = pstart + databuffer->getDataLen();
     char *cr = NULL;
@@ -390,15 +367,15 @@ bool HTTPStreamer::processChunkSize(DataBuffer *databuffer,
         context->setErrorNo(AnetError::PKG_TOO_LARGE);
         return false;
     }
-    
+
     pstart = skipWhiteSpaces(pstart, cr);
     int chunkSize = -1;
     char c = 0;
-    sscanf(pstart, "%x%c", &chunkSize, &c); 
-    if(chunkSize < 0 || (0 != c && ';' != c)) {
-      context->setErrorNo(AnetError::INVALID_DATA);
-      ANET_LOG(WARN,"Invalid data in chunk size, %d,%c", chunkSize, c);
-      return false;
+    sscanf(pstart, "%x%c", &chunkSize, &c);
+    if (chunkSize < 0 || (0 != c && ';' != c)) {
+        context->setErrorNo(AnetError::INVALID_DATA);
+        ANET_LOG(WARN, "Invalid data in chunk size, %d,%c", chunkSize, c);
+        return false;
     }
 
     context->_dataLength = chunkSize;
@@ -407,7 +384,7 @@ bool HTTPStreamer::processChunkSize(DataBuffer *databuffer,
     ANET_LOG(SPAM, "Chunk size:%lu", context->_dataLength);
     if (context->_dataLength == 0) {
         ANET_LOG(SPAM, "Last Chunk Found!");
-        context->_chunkState = HTTPStreamingContext::TRAILER;        
+        context->_chunkState = HTTPStreamingContext::TRAILER;
         return true;
     }
 
@@ -420,22 +397,20 @@ bool HTTPStreamer::processChunkSize(DataBuffer *databuffer,
     return true;
 }
 
-bool HTTPStreamer::getCRLF(DataBuffer *databuffer,
-                           HTTPStreamingContext *context) 
-{
+bool HTTPStreamer::getCRLF(DataBuffer *databuffer, HTTPStreamingContext *context) {
     char *pdata = databuffer->getData();
     size_t length = databuffer->getDataLen();
     if (length < 1) {
         return false;
     }
-    
-    //ANET_LOG(SPAM, "length(%lu)|%c|%c|", length, *pdata, *(pdata+1));
+
+    // ANET_LOG(SPAM, "length(%lu)|%c|%c|", length, *pdata, *(pdata+1));
 
     if (length == 1) {
         if ('\n' == *pdata) {
-        databuffer->drainData(1);
-        context->_drainedLength += 1;
-        return true;
+            databuffer->drainData(1);
+            context->_drainedLength += 1;
+            return true;
         } else if ('\r' != *pdata) {
             context->setErrorNo(AnetError::INVALID_DATA);
             return false;
@@ -444,26 +419,25 @@ bool HTTPStreamer::getCRLF(DataBuffer *databuffer,
             context->_drainedLength += 1;
             return false;
         }
-    } 
-    
+    }
+
     if ('\n' == *pdata) {
         databuffer->drainData(1);
         context->_drainedLength += 1;
-        return true;        
+        return true;
     }
 
-    if ('\r' == *pdata && '\n' == *(pdata +1)) {
+    if ('\r' == *pdata && '\n' == *(pdata + 1)) {
         databuffer->drainData(2);
         context->_drainedLength += 2;
-        return true;        
-    }        
+        return true;
+    }
     context->setErrorNo(AnetError::INVALID_DATA);
     return false;
 }
 
-bool HTTPStreamer::processHeadersOrTrailers(DataBuffer *databuffer, 
-        HTTPStreamingContext *context) {
-    HTTPPacket *packet = dynamic_cast<HTTPPacket*>(context->getPacket());
+bool HTTPStreamer::processHeadersOrTrailers(DataBuffer *databuffer, HTTPStreamingContext *context) {
+    HTTPPacket *packet = dynamic_cast<HTTPPacket *>(context->getPacket());
     assert(packet);
     while (1) {
         char *pstart = databuffer->getData();
@@ -484,15 +458,15 @@ bool HTTPStreamer::processHeadersOrTrailers(DataBuffer *databuffer,
         }
         ANET_LOG(SPAM, "a header line completed");
         *cr = '\0';
-        if (cr == pstart) { //a empty line
+        if (cr == pstart) { // a empty line
             databuffer->drainData(drainLength);
             context->_drainedLength += drainLength;
             return true;
         }
         processPerHeaderLine(pstart, cr, packet);
         databuffer->drainData(drainLength);
-        context->_headersCount ++;
-        if(context->_headersCount > HTTPStreamer::HEADERS_LIMIT) {
+        context->_headersCount++;
+        if (context->_headersCount > HTTPStreamer::HEADERS_LIMIT) {
             context->setErrorNo(AnetError::TOO_MANY_HEADERS);
         }
         context->_drainedLength += drainLength;
@@ -502,27 +476,27 @@ bool HTTPStreamer::processHeadersOrTrailers(DataBuffer *databuffer,
 
 bool HTTPStreamer::messageHeadersEnd(HTTPStreamingContext *context) {
     ANET_LOG(SPAM, "Message-Headers END");
-    HTTPPacket *packet = dynamic_cast<HTTPPacket*>(context->getPacket());
+    HTTPPacket *packet = dynamic_cast<HTTPPacket *>(context->getPacket());
     assert(packet);
     const char *encodingType = packet->getHeader("Transfer-Encoding");
     if (NULL == encodingType) {
         const char *contentLength = packet->getHeader("Content-Length");
         if (NULL == contentLength) {
-            if (HTTPPacket::PT_RESPONSE  == packet->getPacketType()) {
+            if (HTTPPacket::PT_RESPONSE == packet->getPacketType()) {
                 ANET_LOG(SPAM, "Set HTTPStreamingContext::HET_EOF");
                 context->_encodingType = HTTPStreamingContext::HET_EOF;
-            } else { //fix ticket #146
+            } else { // fix ticket #146
                 ANET_LOG(SPAM, "Set HTTPStreamingContext::HET_NO_BODY");
                 context->_encodingType = HTTPStreamingContext::HET_NO_BODY;
             }
             return true;
         } else {
-            if (!isValidDigits(contentLength) ) {
+            if (!isValidDigits(contentLength)) {
                 ANET_LOG(ERROR, "error content length! %s", contentLength);
                 context->setErrorNo(AnetError::INVALID_DATA);
                 return false;
             }
-            int  length = atoi(contentLength);
+            int length = atoi(contentLength);
             if (length > 0) {
                 ANET_LOG(SPAM, "Set HTTPStreamingContext::HET_LENGTH");
                 context->_encodingType = HTTPStreamingContext::HET_LENGTH;
@@ -534,7 +508,7 @@ bool HTTPStreamer::messageHeadersEnd(HTTPStreamingContext *context) {
             } else {
                 ANET_LOG(SPAM, "Set HTTPStreamingContext::HET_NO_BODY");
                 context->_encodingType = HTTPStreamingContext::HET_NO_BODY;
-            }            
+            }
             return true;
         }
     } else {
@@ -547,24 +521,23 @@ bool HTTPStreamer::messageHeadersEnd(HTTPStreamingContext *context) {
             return false;
         }
     }
-
 }
 
-bool HTTPStreamer::findCRLF(char *start, char *end, char *&CR,  size_t &length) {
+bool HTTPStreamer::findCRLF(char *start, char *end, char *&CR, size_t &length) {
     length = 0;
     while (start < end) {
-        length ++;
+        length++;
         if ('\n' == *start) {
             break;
         }
-        start ++;
+        start++;
     }
     if (start == end) {
         return false;
     }
 
     if (length > 1 && '\r' == *(start - 1)) {
-        CR = start -1;
+        CR = start - 1;
     } else {
         CR = start;
     }
@@ -576,29 +549,27 @@ bool HTTPStreamer::findCRLF(char *start, char *end, char *&CR,  size_t &length) 
  * will not drain data in the databuffer
  * @ret: true: not broken; false: broken
  */
-bool HTTPStreamer::processPerHeaderLine(char *pstart, char *pend, 
-                                        HTTPPacket *packet) 
-{
+bool HTTPStreamer::processPerHeaderLine(char *pstart, char *pend, HTTPPacket *packet) {
     char *key = pstart;
     char *value = NULL;
     while (pstart < pend) {
         if (':' == *pstart) {
             break;
         }
-        pstart ++;
+        pstart++;
     }
     if (pstart >= pend) {
         ANET_LOG(WARN, "lack \":\" in header");
         return false;
     }
     *pstart = 0;
-    pstart ++;
+    pstart++;
     trim(pstart, pend, true, true);
     replaceZero(pstart, pend);
     value = pstart;
     *pend = 0;
     packet->addHeader(key, value);
-    
+
     return true;
 }
 
@@ -607,49 +578,49 @@ void HTTPStreamer::replaceZero(char *begin, char *end) {
         if (0 == *begin) {
             *begin = ' ';
         }
-        begin ++;
+        begin++;
     }
 }
 
 void HTTPStreamer::trim(char *&begin, char *&end, bool left, bool right) {
     if (left) {
-        while (begin < end && (' ' == *begin || '\t' == *begin) ) {
-            begin ++;
+        while (begin < end && (' ' == *begin || '\t' == *begin)) {
+            begin++;
         }
     }
     if (right) {
-        while (begin < end && (' ' == *(end-1) || '\t' == *(end-1)) ) {
-            end --;
+        while (begin < end && (' ' == *(end - 1) || '\t' == *(end - 1))) {
+            end--;
         }
     }
 }
 
-char* HTTPStreamer::findNextWhiteSpace(char *begin, char *end) {
+char *HTTPStreamer::findNextWhiteSpace(char *begin, char *end) {
     while (begin < end) {
-        if ( ' ' == *begin || '\t' == *begin ) {
+        if (' ' == *begin || '\t' == *begin) {
             break;
         }
-        begin ++;
+        begin++;
     }
     return begin;
 }
 
-char* HTTPStreamer::findNextWhiteSpaceAndReplaceZero(char *begin, char *end ) {
+char *HTTPStreamer::findNextWhiteSpaceAndReplaceZero(char *begin, char *end) {
     while (begin < end) {
-        if ( ' ' == *begin || '\t' == *begin ) {
+        if (' ' == *begin || '\t' == *begin) {
             break;
         }
         if ('\0' == *begin) {
             *begin = ' ';
         }
-        begin ++;
+        begin++;
     }
     return begin;
 }
 
-char* HTTPStreamer::skipWhiteSpaces(char *begin, char *end ) {
-    while (begin < end && (' ' == *begin || '\t' == *begin )) {
-        begin ++;
+char *HTTPStreamer::skipWhiteSpaces(char *begin, char *end) {
+    while (begin < end && (' ' == *begin || '\t' == *begin)) {
+        begin++;
     }
     return begin;
 }
@@ -659,21 +630,21 @@ bool HTTPStreamer::isValidStatusCode(char *p) {
     if (strlen(p) != 3) {
         return false;
     }
-    return  isdigit(p[0]) && isdigit(p[1]) &&isdigit(p[2]);
+    return isdigit(p[0]) && isdigit(p[1]) && isdigit(p[2]);
 }
 
 bool HTTPStreamer::isValidToken(char *begin, char *end) {
-    while  (begin < end) {
+    while (begin < end) {
         if (!isTokenCharacter(*begin)) {
             return false;
         }
-        begin ++;
+        begin++;
     }
     return true;
 }
 
 bool HTTPStreamer::isValidDigits(const char *dist) {
-    for (size_t i = 0; i < strlen(dist); i ++) {
+    for (size_t i = 0; i < strlen(dist); i++) {
         if (!isdigit(dist[i])) {
             return false;
         }
@@ -681,15 +652,13 @@ bool HTTPStreamer::isValidDigits(const char *dist) {
     return true;
 }
 
-void HTTPStreamer::setPkgLimit(size_t size){
-    _pkgLimit = size;
-}
+void HTTPStreamer::setPkgLimit(size_t size) { _pkgLimit = size; }
 
-size_t HTTPStreamer::getPkgLimit() const{
+size_t HTTPStreamer::getPkgLimit() const {
     if (_pkgLimit == 0) {
         return PKG_LIMIT;
     }
     return _pkgLimit;
 }
 
-}/*end namespace anet*/
+} /*end namespace anet*/

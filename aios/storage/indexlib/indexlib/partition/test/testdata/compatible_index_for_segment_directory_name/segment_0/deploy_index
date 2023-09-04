@@ -1,0 +1,23 @@
+{
+"deploy_file_metas":
+  [
+    {
+    "file_length":
+      -1,
+    "path":
+      "package_file.__data__0"
+    },
+    {
+    "file_length":
+      -1,
+    "path":
+      "package_file.__meta__"
+    },
+    {
+    "file_length":
+      -1,
+    "path":
+      "segment_info"
+    }
+  ]
+}

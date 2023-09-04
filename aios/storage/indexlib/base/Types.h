@@ -36,7 +36,8 @@ enum DocOperateType {
     SKIP_DOC = 8,
     DELETE_SUB_DOC = 16,
     CHECKPOINT_DOC = 32,
-    ALTER_DOC = 64
+    ALTER_DOC = 64,
+    BULKLOAD_DOC = 128
 };
 } // namespace indexlib::global_enum_namespace
 

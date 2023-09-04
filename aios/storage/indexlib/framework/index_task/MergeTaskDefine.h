@@ -48,4 +48,42 @@ struct MergeTaskStatus {
     MergeTaskStatus() = default;
 };
 
+enum class Action { ADD = 0, SUSPEND = 1, ABORT = 2, OVERWRITE = 3, UNKNOWN = 128 };
+
+class ActionConvertUtil
+{
+public:
+    static std::string ActionToStr(Action action)
+    {
+        switch (action) {
+        case Action::ADD:
+            return "add";
+        case Action::SUSPEND:
+            return "suspend";
+        case Action::ABORT:
+            return "abort";
+        case Action::OVERWRITE:
+            return "overwrite";
+        case Action::UNKNOWN:
+            return "unknown";
+        default:
+            return "unknown";
+        }
+    }
+    static Action StrToAction(const std::string& actionStr)
+    {
+        if (actionStr == "add") {
+            return Action::ADD;
+        } else if (actionStr == "suspend") {
+            return Action::SUSPEND;
+        } else if (actionStr == "abort") {
+            return Action::ABORT;
+        } else if (actionStr == "overwrite") {
+            return Action::OVERWRITE;
+        } else {
+            return Action::UNKNOWN;
+        }
+    }
+};
+
 } // namespace indexlibv2::framework

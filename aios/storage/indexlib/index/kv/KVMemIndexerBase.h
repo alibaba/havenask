@@ -59,7 +59,7 @@ public:
     bool IsValidDocument(document::IDocument* doc) override;
     bool IsValidField(const document::IIndexFields* fields) override;
     void FillStatistics(const std::shared_ptr<indexlib::framework::SegmentMetrics>& segmentMetrics) override;
-    void UpdateMemUse(BuildingIndexMemoryUseUpdater* memUpdater) override;
+    void UpdateMemUse(BuildingIndexMemoryUseUpdater* memUpdater) override final;
     std::string GetIndexName() const override;
     autil::StringView GetIndexType() const override;
     uint64_t GetIndexNameHash() const;
@@ -77,7 +77,7 @@ private:
     virtual Status Delete(uint64_t key, uint32_t timestamp) = 0;
     virtual Status DoDump(autil::mem_pool::PoolBase* pool,
                           const std::shared_ptr<indexlib::file_system::Directory>& directory) = 0;
-    virtual void UpdateMemoryUsage(MemoryUsage& memoryUsage) const = 0;
+    virtual void FillMemoryUsage(MemoryUsage& memoryUsage) const = 0;
     virtual void DoFillStatistics(SegmentStatistics& stat) const = 0;
 
 private:

@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/ArpcConnection.h"
+
+#include <typeinfo>
+
 #include "aios/network/arpc/arpc/ANetRPCChannelManager.h"
 #include "aios/network/arpc/arpc/RPCChannelBase.h"
 #include "aios/network/gig/multi_call/interface/ArpcRequest.h"
@@ -23,7 +26,6 @@
 #include "aios/network/gig/multi_call/service/ProtocolCallBack.h"
 #include "aios/network/gig/multi_call/service/SearchServiceResource.h"
 #include "aios/network/gig/multi_call/util/ProtobufUtil.h"
-#include <typeinfo>
 
 using namespace std;
 using namespace autil;
@@ -33,26 +35,27 @@ AUTIL_LOG_SETUP(multi_call, ArpcConnection);
 
 ArpcConnection::ArpcConnection(const ANetRPCChannelManagerPtr &channelManager,
                                const std::string &spec, size_t queueSize)
-    : ArpcConnectionBase(spec, MC_PROTOCOL_ARPC, queueSize),
-      _channelManager(channelManager) {}
+    : ArpcConnectionBase(spec, MC_PROTOCOL_ARPC, queueSize)
+    , _channelManager(channelManager) {
+}
 
-ArpcConnection::~ArpcConnection() {}
+ArpcConnection::~ArpcConnection() {
+}
 
 RPCChannelPtr ArpcConnection::createArpcChannel() {
     ScopedReadWriteLock lock(_channelLock, 'w');
     if (_rpcChannel && !_rpcChannel->ChannelBroken()) {
         return _rpcChannel;
     }
-    auto arpcChannel = _channelManager->OpenChannel(
-        _spec.c_str(), false, _queueSize, RPC_CONNECTION_TIMEOUT, false);
+    auto arpcChannel = _channelManager->OpenChannel(_spec.c_str(), false, _queueSize,
+                                                    RPC_CONNECTION_TIMEOUT, false);
     if (!arpcChannel) {
         AUTIL_LOG(ERROR, "create arpc channel to %s failed", _spec.c_str());
         return RPCChannelPtr();
     }
     auto baseChannel = dynamic_cast<arpc::RPCChannelBase *>(arpcChannel);
     if (!baseChannel) {
-        AUTIL_LOG(ERROR, "cast base channel failed, spec is [%s]",
-                  _spec.c_str());
+        AUTIL_LOG(ERROR, "cast base channel failed, spec is [%s]", _spec.c_str());
         return RPCChannelPtr();
     }
     _rpcChannel.reset(baseChannel);
@@ -69,8 +72,7 @@ RPCChannelPtr ArpcConnection::getChannel() {
     return createArpcChannel();
 }
 
-void ArpcConnection::post(const RequestPtr &request,
-                          const CallBackPtr &callBack) {
+void ArpcConnection::post(const RequestPtr &request, const CallBackPtr &callBack) {
     if (!request) {
         callBack->run(NULL, MULTI_CALL_REPLY_ERROR_REQUEST, string(), string());
         return;

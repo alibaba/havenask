@@ -27,6 +27,7 @@
 #include "indexlib/file_system/load_config/LoadConfig.h"
 #include "indexlib/file_system/load_config/LoadConfigList.h"
 #include "indexlib/framework/SegmentDescriptions.h"
+#include "indexlib/framework/TabletSchemaLoader.h"
 #include "indexlib/framework/Version.h"
 #include "indexlib/framework/VersionLoader.h"
 #include "indexlib/framework/hooks/ITabletDeployerHook.h"
@@ -110,18 +111,21 @@ static indexlib::file_system::LoadConfigList RewriteLoadConfigList(const std::st
     indexlib::file_system::LoadConfigList loadConfigList = tabletOptions.GetLoadConfigList();
     loadConfigList.SetDefaultRootPath(localPath, remotePath);
 
-    if (tabletOptions.IsLegacy()) {
-        auto hook = indexlib::framework::TabletHooksCreator::GetInstance()->CreateTabletDeployerHook(
-            indexlib::LEGACY_TABLE_TYPE);
-        if (!hook) {
-            AUTIL_LOG(ERROR, "hook for table [%s] does not register", indexlib::LEGACY_TABLE_TYPE.c_str());
-            assert(false);
-        } else {
-            hook->RewriteLoadConfigList(rootPath, tabletOptions, versionId, localPath, remotePath, &loadConfigList);
+    std::string tableType = indexlib::LEGACY_TABLE_TYPE;
+    if (!tabletOptions.IsLegacy()) {
+        auto rootDir = indexlib::file_system::IDirectory::GetPhysicalDirectory(rootPath);
+        auto schema = framework::TabletSchemaLoader::GetSchema(rootDir, DEFAULT_SCHEMAID);
+        if (!schema) {
+            AUTIL_LOG(ERROR, "load schema failed from path [%s]", rootPath.c_str());
+            return loadConfigList;
         }
-        return loadConfigList;
+        tableType = schema->GetTableType();
     }
-    // TODO: support other table
+    auto hook = indexlib::framework::TabletHooksCreator::GetInstance()->CreateTabletDeployerHook(tableType);
+    if (hook) {
+        AUTIL_LOG(INFO, "rewrite load config list for table [%s] by hook", tableType.c_str());
+        hook->RewriteLoadConfigList(rootPath, tabletOptions, versionId, localPath, remotePath, &loadConfigList);
+    }
     return loadConfigList;
 }
 
@@ -219,6 +223,11 @@ static bool FillDeployIndexMetaByBaseVersion(versionid_t baseVersionId, const st
         return false;
     }
     auto lifecycleStrategy = indexlib::framework::LifecycleStrategyFactory::CreateStrategy(lifecycleConfig, {});
+    if (lifecycleStrategy == nullptr) {
+        AUTIL_LOG(ERROR, "cannot create lifecycleStrategy, versionId[%d], raw[%s], local[%s], remote[%s]",
+                  baseVersionId, rawPath.c_str(), localPath.c_str(), remotePath.c_str());
+        return false;
+    }
     // to compatible with old-format version.done file
     if (!FillDeployIndexMetaById(baseVersionId, localPath, localPath, remotePath, baseTabletOptions, lifecycleStrategy,
                                  nullptr, baseLocalDeployIndexMetaVec, baseRemoteDeployIndexMetaVec) &&
@@ -265,6 +274,13 @@ bool TabletDeployer::GetDeployIndexMeta(const GetDeployIndexMetaInputParams& inp
     auto lifecycleStrategy = indexlib::framework::LifecycleStrategyFactory::CreateStrategy(
         lifecycleConfig,
         {{indexlib::file_system::LifecyclePatternBase::CURRENT_TIME, std::to_string(versionDeployDesp.deployTime)}});
+    if (lifecycleStrategy == nullptr) {
+        AUTIL_LOG(
+            ERROR,
+            "get target deploy index meta [%d] failed due to NULL lifecycleStrategy, raw[%s], local[%s], remote[%s]",
+            targetVersionId, rawPath.c_str(), localPath.c_str(), remotePath.c_str());
+        return false;
+    }
     // get target DeployIndexMetaVec
     indexlib::file_system::DeployIndexMetaVec targetLocalDeployIndexMetaVec;
     indexlib::file_system::DeployIndexMetaVec targetRemoteDeployIndexMetaVec;

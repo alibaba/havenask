@@ -24,12 +24,12 @@ namespace indexlibv2::table {
 class NormalDiskSegment : public plain::PlainDiskSegment
 {
 public:
-    NormalDiskSegment(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    NormalDiskSegment(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                       const framework::SegmentMeta& segmentMeta, const framework::BuildResource& buildResource);
     ~NormalDiskSegment();
 
 public:
-    size_t EstimateMemUsed(const std::shared_ptr<config::TabletSchema>& schema) override;
+    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override;
 
 private:
     std::pair<Status, std::vector<plain::DiskIndexerItem>>
@@ -39,7 +39,7 @@ private:
                       const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
                       index::IIndexFactory* indexFactory) override;
     bool NeedDrop(const std::string& indexType, const std::string& indexName,
-                  const std::vector<std::shared_ptr<config::TabletSchema>>& schemas) override;
+                  const std::vector<std::shared_ptr<config::ITabletSchema>>& schemas) override;
 
 private:
     AUTIL_LOG_DECLARE();

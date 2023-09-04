@@ -16,10 +16,11 @@
 #ifndef ISEARCH_MULTI_CALL_CALLBACK_H
 #define ISEARCH_MULTI_CALL_CALLBACK_H
 
+#include <functional>
+
 #include "aios/network/gig/multi_call/common/ErrorCode.h"
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/interface/Response.h"
-#include <functional>
 
 namespace multi_call {
 
@@ -27,10 +28,11 @@ class Caller;
 typedef std::shared_ptr<Caller> CallerPtr;
 class SearchServiceResource;
 
-class CallBack {
+class CallBack
+{
 public:
-    CallBack(const std::shared_ptr<SearchServiceResource> &resource,
-             const CallerPtr &caller, bool isRetry);
+    CallBack(const std::shared_ptr<SearchServiceResource> &resource, const CallerPtr &caller,
+             bool isRetry);
     virtual ~CallBack();
 
 private:
@@ -39,8 +41,7 @@ private:
 
 public:
     // virtual for ut
-    virtual void run(void *responseData, MultiCallErrorCode ec,
-                     const std::string &errorString,
+    virtual void run(void *responseData, MultiCallErrorCode ec, const std::string &errorString,
                      const std::string &responseInfo);
     RequestType getRequestType() const;
     bool isCopyRequest() const;
@@ -50,10 +51,13 @@ public:
     const std::shared_ptr<SearchServiceResource> &getResource() const {
         return _resource;
     }
-    const opentelemetry::SpanPtr &getSpan() { return _span; }
-    void setSpan(const opentelemetry::SpanPtr &span) { _span = span; }
-    void
-    setProtobufArena(const std::shared_ptr<google::protobuf::Arena> &arena) {
+    const opentelemetry::SpanPtr &getSpan() {
+        return _span;
+    }
+    void setSpan(const opentelemetry::SpanPtr &span) {
+        _span = span;
+    }
+    void setProtobufArena(const std::shared_ptr<google::protobuf::Arena> &arena) {
         _arena = arena;
     }
     void rpcBegin();
@@ -64,6 +68,7 @@ private:
     std::shared_ptr<SearchServiceResource> _resource;
     CallerPtr _caller;
     bool _isRetry;
+    bool _needRpcBegin;
     opentelemetry::SpanPtr _span;
 
 private:

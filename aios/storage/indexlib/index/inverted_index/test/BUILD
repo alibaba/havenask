@@ -1,0 +1,121 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+load('//bazel:defs.bzl', 'if_clang')
+strict_cc_library(
+    name='InvertedTestHelper',
+    testonly=True,
+    copts=['-fno-access-control'],
+    visibility=['//aios/storage/indexlib/index/inverted_index:__subpackages__'],
+    deps=[
+        ':PostingMaker', '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/document/normal:NormalDocument',
+        '//aios/storage/indexlib/document/normal/rewriter:SectionAttributeRewriter',
+        '//aios/storage/indexlib/index/common/field_format/section_attribute:SectionMeta',
+        '//aios/storage/indexlib/index/inverted_index:IndexFormatWriterCreator',
+        '//aios/storage/indexlib/index/inverted_index:PostingWriterImpl',
+        '//aios/storage/indexlib/index/inverted_index/format:IndexFormatOption',
+        '//aios/storage/indexlib/index/inverted_index/format:TermMetaDumper',
+        '//aios/storage/indexlib/util:PoolUtil',
+        '//aios/storage/indexlib/util:simple_pool'
+    ]
+)
+strict_cc_library(
+    name='SectionDataMaker',
+    testonly=True,
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/autil:log', '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/document/extractor/plain:DocumentInfoExtractorFactory',
+        '//aios/storage/indexlib/document/normal:NormalDocument',
+        '//aios/storage/indexlib/document/normal/rewriter:SectionAttributeRewriter',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/common/field_format/section_attribute:SectionAttributeFormatter',
+        '//aios/storage/indexlib/index/inverted_index/config',
+        '//aios/storage/indexlib/index/inverted_index/section_attribute:SectionAttributeMemIndexer'
+    ]
+)
+strict_cc_library(
+    name='IndexIteratorMock',
+    testonly=True,
+    visibility=[
+        '//aios/storage/indexlib/indexlib/index/normal/inverted_index/test:__pkg__'
+    ],
+    deps=['//aios/storage/indexlib/index/inverted_index:IndexIterator']
+)
+strict_cc_library(
+    name='PostingMaker',
+    testonly=True,
+    visibility=['//aios/storage/indexlib/index/inverted_index:__subpackages__'],
+    deps=[
+        '//aios/storage/indexlib/base:Types',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskResource',
+        '//aios/storage/indexlib/index:DocMapper',
+        '//aios/storage/indexlib/index/common/numeric_compress:EncoderProvider',
+        '//aios/storage/indexlib/util:Random'
+    ]
+)
+strict_cc_fast_test(
+    name='OnDiskIndexIteratorTest',
+    srcs=['OnDiskIndexIteratorTest.cpp'],
+    copts=['-fno-access-control'],
+    shard_count=2,
+    deps=[
+        '//aios/storage/indexlib/index/inverted_index:OnDiskIndexIterator',
+        '//aios/storage/indexlib/index/inverted_index/builtin_index/pack:OnDiskPackIndexIterator',
+        '//aios/storage/indexlib/index/inverted_index/builtin_index/pack/test:PackTestHelper',
+        '//aios/storage/indexlib/index/inverted_index/format:TermMetaDumper',
+        '//aios/storage/indexlib/index/inverted_index/format/dictionary:DictionaryReader',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='IndexAccessoryReaderTest',
+    srcs=['IndexAccessoryReaderTest.cpp'],
+    copts=(['-fno-access-control'] + if_clang(['-std=c++20'])),
+    data=glob(['testdata/*']),
+    shard_count=2,
+    deps=[
+        '//aios/storage/indexlib/index/inverted_index:Common',
+        '//aios/storage/indexlib/index/inverted_index:IndexAccessoryReader',
+        '//aios/storage/indexlib/index/test:IndexTestUtil',
+        '//aios/storage/indexlib/table/normal_table/test:NormalTabletSchemaMaker',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='BufferedPostingIteratorTest',
+    srcs=['BufferedPostingIteratorTest.cpp'],
+    copts=(['-fno-access-control'] + if_clang(['-std=c++20'])),
+    data=glob(['testdata/*']),
+    shard_count=2,
+    deps=[
+        ':InvertedTestHelper', ':SectionDataMaker',
+        '//aios/storage/indexlib/framework/mock:FakeDiskSegment',
+        '//aios/storage/indexlib/index/inverted_index:BufferedPostingIterator',
+        '//aios/storage/indexlib/index/inverted_index:InvertedDiskIndexer',
+        '//aios/storage/indexlib/index/inverted_index/builtin_index/pack/test:PackTestHelper',
+        '//aios/storage/indexlib/index/inverted_index/section_attribute/test:SectionAttributeTestUtil',
+        '//aios/storage/indexlib/index/test:IndexTestUtil',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='InvertedIndexFileTest',
+    srcs=['InvertedIndexFileTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/inverted_index:constants',
+        '//aios/storage/indexlib/index/inverted_index/config:SectionAttributeConfig',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='InvertedIndexFactoryTest',
+    srcs=['InvertedIndexFactoryTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/index/inverted_index:InvertedIndexFactory',
+        '//aios/storage/indexlib/index/inverted_index/config/test:InvertedIndexConfigCreator',
+        '//aios/unittest_framework'
+    ]
+)

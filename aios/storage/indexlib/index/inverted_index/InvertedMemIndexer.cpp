@@ -18,6 +18,7 @@
 #include <any>
 
 #include "autil/Scope.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocument.h"
 #include "indexlib/document/extractor/plain/DocumentInfoExtractorFactory.h"
 #include "indexlib/document/normal/Field.h"
@@ -37,7 +38,6 @@
 #include "indexlib/index/inverted_index/InvertedIndexUtil.h"
 #include "indexlib/index/inverted_index/InvertedLeafMemReader.h"
 #include "indexlib/index/inverted_index/PostingWriter.h"
-#include "indexlib/index/inverted_index/SectionAttributeMemIndexer.h"
 #include "indexlib/index/inverted_index/builtin_index/bitmap/BitmapIndexWriter.h"
 #include "indexlib/index/inverted_index/builtin_index/dynamic/DynamicMemIndexer.h"
 #include "indexlib/index/inverted_index/config/HighFrequencyVocabulary.h"
@@ -47,6 +47,7 @@
 #include "indexlib/index/inverted_index/format/dictionary/DictionaryWriter.h"
 #include "indexlib/index/inverted_index/merge/SimpleInvertedIndexMerger.h"
 #include "indexlib/index/inverted_index/patch/InvertedIndexSegmentUpdater.h"
+#include "indexlib/index/inverted_index/section_attribute/SectionAttributeMemIndexer.h"
 #include "indexlib/util/MMapAllocator.h"
 #include "indexlib/util/PoolUtil.h"
 #include "indexlib/util/memory_control/BuildResourceMetrics.h"
@@ -164,7 +165,6 @@ Status InvertedMemIndexer::Init(const std::shared_ptr<IIndexConfig>& indexConfig
             _dynamicMemIndexer = std::make_unique<DynamicMemIndexer>(HASHMAP_INIT_SIZE, isNumberIndex);
             _dynamicMemIndexer->Init(_indexConfig);
         }
-        // TODO: @qingran 应改为，在需要Dump刷盘时，才初始化该PatchWriter
         _invertedIndexSegmentUpdater = std::make_unique<InvertedIndexSegmentUpdater>(0, _indexConfig);
     }
     _sealed = false;
@@ -176,19 +176,18 @@ bool InvertedMemIndexer::IsDirty() const { return _docCount > 0; }
 Status InvertedMemIndexer::DocBatchToDocs(IDocumentBatch* docBatch, std::vector<document::IndexDocument*>* docs) const
 {
     docs->reserve(docBatch->GetBatchSize());
-    for (size_t i = 0; i < docBatch->GetBatchSize(); i++) {
-        if (!docBatch->IsDropped(i)) {
-            if ((*docBatch)[i]->GetDocOperateType() != ADD_DOC) {
-                continue;
-            }
-
-            document::IndexDocument* doc = nullptr;
-            Status s = _docInfoExtractor->ExtractField((*docBatch)[i].get(), (void**)&doc);
-            if (!s.IsOK()) {
-                return s;
-            }
-            (*docs).emplace_back(doc);
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(docBatch);
+    while (iter->HasNext()) {
+        std::shared_ptr<indexlibv2::document::IDocument> doc = iter->Next();
+        if (doc->GetDocOperateType() != ADD_DOC) {
+            continue;
         }
+        document::IndexDocument* indexDoc = nullptr;
+        Status s = _docInfoExtractor->ExtractField(doc.get(), (void**)&indexDoc);
+        if (!s.IsOK()) {
+            return s;
+        }
+        (*docs).emplace_back(indexDoc);
     }
     return Status::OK();
 }
@@ -258,7 +257,10 @@ void InvertedMemIndexer::EndDocument(const document::IndexDocument& indexDocumen
                 it->second->SetTermPayload(termpayload);
             }
 
-            docpayload_t docPayload = _indexFormatOption->HasDocPayload() ? indexDocument.GetDocPayload(it->first) : 0;
+            docpayload_t docPayload =
+                _indexFormatOption->HasDocPayload()
+                    ? indexDocument.GetDocPayload(_indexConfig->GetTruncatePayloadConfig(), it->first)
+                    : 0;
             it->second->EndDocument(indexDocument.GetDocId(), docPayload);
             UpdateToCompressShortListCount(it->second->GetDF());
             _estimateDumpTempMemSize =
@@ -736,17 +738,17 @@ void InvertedMemIndexer::UpdateMemUse(indexlibv2::index::BuildingIndexMemoryUseU
         _sectionAttributeMemIndexer->UpdateMemUse(memUpdater);
         memUpdater->GetMemInfo(attrCurrentMemUse, attrDumpTmpMemUse, attrDumpExpandMemUse, attrDumpFileSize);
     }
+    size_t dynamicIndexerCurrentMemUse = _dynamicMemIndexer ? _dynamicMemIndexer->GetCurrentMemoryUse() : 0u;
 
     int64_t currentMemUse = _byteSlicePool->getUsedBytes() + _simplePool.getUsedBytes() + _bufferPool->getUsedBytes();
     int64_t dumpTempBufferSize = TieredDictionaryWriter<dictkey_t>::GetInitialMemUse() + _estimateDumpTempMemSize;
     int64_t dumpExpandBufferSize =
         _bufferPool->getUsedBytes() + _toCompressShortListCount * UNCOMPRESS_SHORT_LIST_DUMP_EXPAND_FACTOR;
     int64_t dumpFileSize = currentMemUse * 0.2;
-    memUpdater->UpdateCurrentMemUse(currentMemUse + attrCurrentMemUse);
+    memUpdater->UpdateCurrentMemUse(currentMemUse + attrCurrentMemUse + dynamicIndexerCurrentMemUse);
     memUpdater->EstimateDumpTmpMemUse(std::max(dumpTempBufferSize, attrDumpTmpMemUse));
     memUpdater->EstimateDumpExpandMemUse(dumpExpandBufferSize + attrDumpExpandMemUse);
     memUpdater->EstimateDumpedFileSize(dumpFileSize + attrDumpFileSize);
-    // TODO: @qingran updateMemUse
 }
 
 bool InvertedMemIndexer::NeedEstimateDumpTempMemSize() const { return _indexerParam.sortDescriptions.size() > 0; }

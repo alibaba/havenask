@@ -18,9 +18,9 @@
  * Author: huangrh
  * Create time: 2010-11-22 14:27:14
  * $Id$
- * 
+ *
  * Description: ***add description here***
- * 
+ *
  */
 
 #ifndef ANET_ORDEREDPACKETQUEUE_H_
@@ -30,14 +30,14 @@
 
 namespace anet {
 class Packet;
-}  // namespace anet
+} // namespace anet
 
 BEGIN_ANET_NS();
-class OrderedPacketQueue : public PacketQueue
-{
+class OrderedPacketQueue : public PacketQueue {
 public:
     OrderedPacketQueue();
     ~OrderedPacketQueue();
+
 public:
     virtual void push(Packet *packet);
     virtual void moveTo(PacketQueue *destQueue);

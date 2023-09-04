@@ -1,0 +1,57 @@
+{
+"attributes":
+  [
+    "item_id",
+    "attr1",
+    "attr2"
+  ],
+"fields":
+  [
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "item_id",
+    "field_type":
+      "INTEGER"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "attr1",
+    "field_type":
+      "INTEGER"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "attr2",
+    "field_type":
+      "INTEGER"
+    }
+  ],
+"indexs":
+  [
+    {
+    "index_fields":
+      "item_id",
+    "index_name":
+      "item_pk",
+    "index_type":
+      "PRIMARYKEY64"
+    }
+  ],
+"summarys":
+  {
+  "summary_fields":
+    [
+      "item_id",
+      "attr1",
+      "attr2"
+    ]
+  },
+"table_name":
+  "item"
+}

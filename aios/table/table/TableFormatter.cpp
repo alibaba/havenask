@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 #include "table/TableFormatter.h"
+
 #include "table/TableUtil.h"
 
 using namespace std;
 
 namespace table {
-
-TableFormatter::TableFormatter() {
-}
-
-TableFormatter::~TableFormatter() {
-}
 
 string TableFormatter::format(TablePtr &table, const std::string &type) {
     if (type == "json") {
@@ -34,4 +29,4 @@ string TableFormatter::format(TablePtr &table, const std::string &type) {
     }
 }
 
-}
+} // namespace table

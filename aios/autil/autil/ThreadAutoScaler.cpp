@@ -15,19 +15,19 @@
  */
 #include "autil/ThreadAutoScaler.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
-#include <algorithm>
+#include <errno.h>
 #include <functional>
 #include <memory>
+#include <unistd.h>
 #include <vector>
 
-#include <unistd.h>
-#include <errno.h>
-
-#include "autil/StringUtil.h"
+#include "autil/EnvUtil.h"
 #include "autil/Lock.h"
 #include "autil/Log.h"
+#include "autil/StringUtil.h"
 
 namespace autil {
 
@@ -41,9 +41,7 @@ ThreadAutoScaler::ThreadAutoScaler()
     , mMaxActiveThreadNum(0)
     , mActiveThreadCount(0)
     , mCpuScaleNotifier(nullptr)
-    , mStopped(false)
-{
-}
+    , mStopped(false) {}
 
 ThreadAutoScaler::~ThreadAutoScaler() {
     stop();
@@ -58,48 +56,48 @@ bool ThreadAutoScaler::init(const std::string &threadName) {
         return false;
     }
     mCpuScaleNotifier = new autil::ThreadCond[mMaxActiveThreadNum];
-    mAutoScaleThread = autil::Thread::createThread(
-        std::bind(&ThreadAutoScaler::autoScaleThread, this),
-        threadName + "AutoScale");
+    mAutoScaleThread =
+        autil::Thread::createThread(std::bind(&ThreadAutoScaler::autoScaleThread, this), threadName + "AutoScale");
     if (!mAutoScaleThread) {
         AUTIL_LOG(ERROR, "create auto scale thread failed");
         return false;
     }
-    AUTIL_LOG(INFO, "auto scale init success, active [%lu], thread num range min[%lu], max[%lu]",
-             mActiveThreadCount, mMinActiveThreadNum, mMaxActiveThreadNum);
+    AUTIL_LOG(INFO,
+              "auto scale init success, active [%lu], thread num range min[%lu], max[%lu]",
+              mActiveThreadCount,
+              mMinActiveThreadNum,
+              mMaxActiveThreadNum);
     return true;
 }
 
 bool ThreadAutoScaler::initByEnv() {
-    const char *rangeStr = getenv(THREAD_NUM_RANGE_ENV.c_str());
-    if (!rangeStr) {
+    std::string rangeStr = autil::EnvUtil::getEnv(THREAD_NUM_RANGE_ENV);
+    if (rangeStr.empty()) {
         mMinActiveThreadNum = DEFAULT_THREAD_NUM_MIN;
         mMaxActiveThreadNum = DEFAULT_THREAD_NUM_MAX;
         return true;
     }
     auto splited = StringUtil::split(std::string(rangeStr), THREAD_NUM_RANGE_SEPERATOR);
     if (2u != splited.size()) {
-        AUTIL_LOG(ERROR, "invalid thread num range[%s], field count is not 2", rangeStr);
+        AUTIL_LOG(ERROR, "invalid thread num range[%s], field count is not 2", rangeStr.c_str());
         return false;
     }
     const auto &minStr = splited[0];
     const auto &maxStr = splited[1];
     size_t minFromEnv = 0;
     size_t maxFromEnv = 0;
-    if (!StringUtil::strToUInt64(minStr.c_str(), minFromEnv) ||
-        !StringUtil::strToUInt64(maxStr.c_str(), maxFromEnv))
-    {
-        AUTIL_LOG(ERROR, "invalid range[%s], parse number failed", rangeStr);
+    if (!StringUtil::strToUInt64(minStr.c_str(), minFromEnv) || !StringUtil::strToUInt64(maxStr.c_str(), maxFromEnv)) {
+        AUTIL_LOG(ERROR, "invalid range[%s], parse number failed", rangeStr.c_str());
         return false;
     }
     if (maxFromEnv < minFromEnv) {
-        AUTIL_LOG(ERROR, "invalid range[%s], max[%lu] is smaller than min[%lu]",
-                 rangeStr, maxFromEnv, minFromEnv);
+        AUTIL_LOG(
+            ERROR, "invalid range[%s], max[%lu] is smaller than min[%lu]", rangeStr.c_str(), maxFromEnv, minFromEnv);
         return false;
     }
     mMinActiveThreadNum = minFromEnv;
     mMaxActiveThreadNum = maxFromEnv;
-    AUTIL_LOG(INFO, "get thread num range from env [%s] success", rangeStr);
+    AUTIL_LOG(INFO, "get thread num range from env [%s] success", rangeStr.c_str());
     return true;
 }
 
@@ -165,8 +163,7 @@ bool ThreadAutoScaler::updateActiveThreadCount() {
     newThreadCount = std::min(newThreadCount, mMaxActiveThreadNum);
     newThreadCount = std::max(newThreadCount, mMinActiveThreadNum);
     if (newThreadCount != mActiveThreadCount) {
-        AUTIL_LOG(INFO, "active thread count changed from[%lu] to [%lu]",
-                 mActiveThreadCount, newThreadCount);
+        AUTIL_LOG(INFO, "active thread count changed from[%lu] to [%lu]", mActiveThreadCount, newThreadCount);
     }
     mActiveThreadCount = newThreadCount;
     return true;
@@ -184,16 +181,10 @@ bool ThreadAutoScaler::calcActiveThreadCount(size_t &activeCount) {
     }
 }
 
-size_t ThreadAutoScaler::getMaxThreadNum() const {
-    return mMaxActiveThreadNum;
-}
+size_t ThreadAutoScaler::getMaxThreadNum() const { return mMaxActiveThreadNum; }
 
-size_t ThreadAutoScaler::getMinThreadNum() const {
-    return mMinActiveThreadNum;
-}
+size_t ThreadAutoScaler::getMinThreadNum() const { return mMinActiveThreadNum; }
 
-size_t ThreadAutoScaler::getActiveThreadNum() const {
-    return mActiveThreadCount;
-}
+size_t ThreadAutoScaler::getActiveThreadNum() const { return mActiveThreadCount; }
 
 } // namespace autil

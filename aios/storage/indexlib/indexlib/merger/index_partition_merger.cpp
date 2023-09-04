@@ -20,6 +20,7 @@
 #include "indexlib/config/truncate_index_name_mapper.h"
 #include "indexlib/file_system/FileBlockCacheContainer.h"
 #include "indexlib/file_system/FileSystemCreator.h"
+#include "indexlib/file_system/MergeDirsOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/load_config/CacheLoadStrategy.h"
 #include "indexlib/file_system/package/DirectoryMerger.h"
@@ -144,8 +145,8 @@ bool IndexPartitionMerger::Merge(bool optimize, int64_t currentTs)
     DoMerge(optimize, meta, 0);
 
     // for test logic
-    char* envStr = getenv("INDEXLIB_TEST_MERGE_CHECK_POINT");
-    if (envStr && std::string(envStr) == "true") {
+    string envStr = autil::EnvUtil::getEnv("INDEXLIB_TEST_MERGE_CHECK_POINT");
+    if (envStr == "true") {
         mDumpStrategy->RevertVersion(tmpVersion);
         PrepareMerge(currentTs);
         MergeMetaPtr meta = CreateMergeMeta(optimize, 1, currentTs);
@@ -560,9 +561,9 @@ void IndexPartitionMerger::MergeInstanceDir(const DirectoryPtr& rootDirectory, c
             instanceDir->ListDir(TRUNCATE_META_DIR_NAME, metaFiles, false);
             if (!metaFiles.empty()) {
                 string truncateMetaPath = instanceDir->GetPhysicalPath(TRUNCATE_META_DIR_NAME);
-                THROW_IF_FS_ERROR(rootDirectory->GetFileSystem()->MergeDirs({truncateMetaPath}, TRUNCATE_META_DIR_NAME,
-                                                                            false,
-                                                                            rootDirectory->GetFenceContext().get()),
+                THROW_IF_FS_ERROR(rootDirectory->GetFileSystem()->MergeDirs(
+                                      {truncateMetaPath}, TRUNCATE_META_DIR_NAME,
+                                      MergeDirsOption::NoMergePackageWithFence(rootDirectory->GetFenceContext().get())),
                                   "merge truncate meta dirs failed");
             }
         }
@@ -571,9 +572,9 @@ void IndexPartitionMerger::MergeInstanceDir(const DirectoryPtr& rootDirectory, c
             instanceDir->ListDir(ADAPTIVE_DICT_DIR_NAME, metaFiles, false);
             if (!metaFiles.empty()) {
                 string adaptiveBitmapPath = instanceDir->GetPhysicalPath(ADAPTIVE_DICT_DIR_NAME);
-                THROW_IF_FS_ERROR(rootDirectory->GetFileSystem()->MergeDirs({adaptiveBitmapPath},
-                                                                            ADAPTIVE_DICT_DIR_NAME, false,
-                                                                            rootDirectory->GetFenceContext().get()),
+                THROW_IF_FS_ERROR(rootDirectory->GetFileSystem()->MergeDirs(
+                                      {adaptiveBitmapPath}, ADAPTIVE_DICT_DIR_NAME,
+                                      MergeDirsOption::NoMergePackageWithFence(rootDirectory->GetFenceContext().get())),
                                   "merge adaptive dict dir failed");
             }
         }
@@ -648,15 +649,15 @@ void IndexPartitionMerger::MergeSegmentDir(const file_system::DirectoryPtr& root
                 for (const auto& subFileName : subFileList) {
                     string physicalPath = segmentDirectory->GetPhysicalPath(PathUtil::JoinPath(fileName, subFileName));
                     THROW_IF_FS_ERROR(rootDirectory->GetFileSystem()->MergeDirs(
-                                          {physicalPath}, PathUtil::JoinPath(segmentPath, fileName, subFileName), false,
-                                          fenceContext.get()),
+                                          {physicalPath}, PathUtil::JoinPath(segmentPath, fileName, subFileName),
+                                          MergeDirsOption::NoMergePackageWithFence(fenceContext.get())),
                                       "merge dirs failed");
                 }
             } else {
                 string physicalPath = segmentDirectory->GetPhysicalPath(fileName);
-                THROW_IF_FS_ERROR(rootDirectory->GetFileSystem()->MergeDirs({physicalPath},
-                                                                            PathUtil::JoinPath(segmentPath, fileName),
-                                                                            false, fenceContext.get()),
+                THROW_IF_FS_ERROR(rootDirectory->GetFileSystem()->MergeDirs(
+                                      {physicalPath}, PathUtil::JoinPath(segmentPath, fileName),
+                                      MergeDirsOption::NoMergePackageWithFence(fenceContext.get())),
                                   "merge dirs failed");
             }
         }

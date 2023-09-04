@@ -8,25 +8,26 @@
 #ifndef KMONITOR_CLIENT_CORE_METRICSTAGSMANAGER_H_
 #define KMONITOR_CLIENT_CORE_METRICSTAGSMANAGER_H_
 
-#include "autil/Lock.h"
 #include <map>
-#include "kmonitor/client/common/Common.h"
-#include "kmonitor/client/metric/Metric.h"
-#include "kmonitor/client/core/MetricsTags.h"
+
+#include "autil/Lock.h"
 #include "autil/Log.h"
+#include "kmonitor/client/common/Common.h"
 #include "kmonitor/client/core/MetricsConfig.h"
+#include "kmonitor/client/core/MetricsTags.h"
+#include "kmonitor/client/metric/Metric.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 static const int clear_loop = 100;
 
 class MetricsTagsManager {
- public:
+public:
     MetricsTagsManager(MetricsTags *tags);
     ~MetricsTagsManager() {}
 
-    MetricsTagsPtr GetMetricsTags(const std::map<std::string, std::string>& tags_map);
-    
+    MetricsTagsPtr GetMetricsTags(const std::map<std::string, std::string> &tags_map);
+
     void ClearUselessTags() {
         static const int clear_loop = 100;
         if (clearNum_++ % clear_loop != 0) {
@@ -37,32 +38,31 @@ class MetricsTagsManager {
     void SetConfig(MetricsConfig *config, bool useConfigTags = true) {
         config_ = config;
         if (tags_ != nullptr) {
-           if (useConfigTags) {
-               for (auto tag : config_->global_tags()->GetTagsMap()) {
-                  tags_->AddTag(tag.first, tag.second);
-               }
-           }
-           for (auto tag : config_->CommonTags()) {
-               tags_->AddTag(tag.first, tag.second);
-           }
+            if (useConfigTags) {
+                for (auto tag : config_->global_tags()->GetTagsMap()) {
+                    tags_->AddTag(tag.first, tag.second);
+                }
+            }
+            for (auto tag : config_->CommonTags()) {
+                tags_->AddTag(tag.first, tag.second);
+            }
         }
-        
     }
 
- private:
+private:
     bool validateTags(const std::map<std::string, std::string> &tags) const;
 
- private:
+private:
     autil::ThreadMutex metric_mutex_;
     std::map<uint64_t, MetricsTagsPtr> all_tags_;
     MetricsTags *tags_;
     MetricsConfig *config_;
     int clearNum_;
 
- private:
+private:
     void clearUselessTags();
-    
- private:
+
+private:
     AUTIL_LOG_DECLARE();
 };
 
@@ -70,4 +70,4 @@ TYPEDEF_PTR(MetricsTagsManager);
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_CORE_METRICSTAGSMANAGER_H_
+#endif // KMONITOR_CLIENT_CORE_METRICSTAGSMANAGER_H_

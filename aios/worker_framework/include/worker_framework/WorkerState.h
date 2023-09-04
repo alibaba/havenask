@@ -21,8 +21,7 @@ namespace worker_framework {
 
 class WorkerState {
 public:
-    enum ErrorCode
-    {
+    enum ErrorCode {
         EC_OK,
         EC_FAIL,
         EC_NOT_EXIST, // for read

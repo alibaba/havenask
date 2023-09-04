@@ -15,6 +15,7 @@
  */
 #include "build_service/processor/HashFilterProcessor.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 #include "indexlib/indexlib.h"
 
@@ -30,13 +31,32 @@ namespace build_service { namespace processor {
 BS_LOG_SETUP(processor, HashFilterProcessor);
 
 const string HashFilterProcessor::PROCESSOR_NAME = "HashFilterProcessor";
+const string HashFilterProcessor::KEEP_DOC_PERCENT = "keep_doc_percent";
 
-HashFilterProcessor::HashFilterProcessor() : DocumentProcessor(ADD_DOC | UPDATE_FIELD | DELETE_DOC | DELETE_SUB_DOC) {}
+HashFilterProcessor::HashFilterProcessor()
+    : DocumentProcessor(ADD_DOC | UPDATE_FIELD | DELETE_DOC | DELETE_SUB_DOC)
+    , _keepDocPercent(100) // default keep all 100% docs
+{
+}
 
 HashFilterProcessor::~HashFilterProcessor() {}
 
 bool HashFilterProcessor::init(const DocProcessorInitParam& param)
 {
+    if (autil::EnvUtil::getEnv("DISABLE_HASH_FILETER_PROCESSOR", false)) {
+        return true;
+    }
+    auto iter = param.parameters.find(KEEP_DOC_PERCENT);
+    if (iter != param.parameters.end()) {
+        if (!autil::StringUtil::strToUInt32(iter->second.c_str(), _keepDocPercent) || _keepDocPercent > 100) {
+            BS_LOG(ERROR, "illegal param [%s], expect an interger in range [0, 100], actual [%s]",
+                   KEEP_DOC_PERCENT.c_str(), iter->second.c_str());
+            return false;
+        } else {
+            BS_LOG(INFO, "will keep only [%u%%] docs", _keepDocPercent);
+        }
+    }
+
     for (const auto& cluster : param.clusterNames) {
         std::string key = string("_") + cluster + "_";
         std::string rangeStr = getValueFromKeyValueMap(param.parameters, key);
@@ -93,6 +113,12 @@ bool HashFilterProcessor::process(const ExtendDocumentPtr& document)
 
 bool HashFilterProcessor::FilterByHashId(const std::string& clusterName, hashid_t hashId) const
 {
+    if (_keepDocPercent < 100) {
+        if (hashId % 101 >= _keepDocPercent) {
+            return true;
+        }
+    }
+
     auto iter = _clusterRanges.find(clusterName);
     if (iter == _clusterRanges.end()) {
         return false;

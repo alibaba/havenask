@@ -1,0 +1,8 @@
+#ifndef BUILD_SERVICE_TEST_H_
+#define BUILD_SERVICE_TEST_H_
+
+#define TOP_SRCDIR "@TOP_SRCDIR@"
+#define TOP_BUILDDIR "@TOP_BUILDDIR@"
+#define TEST_DATA_PATH "@TOP_SRCDIR@/testdata/"
+
+#endif

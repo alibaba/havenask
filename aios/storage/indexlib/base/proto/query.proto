@@ -29,6 +29,18 @@ message PartitionQuery {
     repeated uint64 pkNumber           = 10;
 
     optional bool needSectionInfo      = 11;
+
+    // summarys to return, empty means return everything
+    repeated string summarys = 12;
+}
+
+message PartitionScan {
+    optional string startKey           = 1;
+    optional bool startInclusive       = 2;
+    optional string endKey             = 3;
+    optional bool endInclusive         = 4;
+    optional string prefix              = 5;
+    optional uint32 batchLimit         = 6;
 }
 
 message AttrDef {
@@ -40,11 +52,17 @@ message AttrInfo {
     repeated AttrDef fields          = 1;
 }
 
+message SummaryValue {
+    optional string fieldName = 1;
+    optional string value = 2;
+}
+
 message Row {
-    required uint32 docid            = 1;
+    optional uint32 docid            = 1;
     optional string pk               = 2;
     optional string skey             = 3;
     repeated AttrValue attrValues    = 4;
+    repeated SummaryValue summaryValues = 5;
 }
 
 message IndexTermMeta {

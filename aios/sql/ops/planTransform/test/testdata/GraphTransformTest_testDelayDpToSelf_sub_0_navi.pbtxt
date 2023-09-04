@@ -1,0 +1,72 @@
+sub_graphs {
+  nodes {
+    name: "2"
+    kernel_name: "sql.LookupJoinKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10002,\"build_node\":{\"catalog_name\":\"default\",\"db_name\":\"db1\",\"limit\":2147483647,\"output_fields\":[\"$id\"],\"output_fields_internal\":[\"$id\"],\"output_fields_internal_type\":[\"BIGINT\"],\"output_fields_type\":[\"BIGINT\"],\"push_down_ops\":[{\"attrs\":{\"output_fields\":[\"$id\"],\"output_fields_type\":[\"BIGINT\"]},\"op_name\":\"CalcOp\"}],\"table_distribution\":{\"hash_mode\":{\"hash_fields\":[\"$id\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5},\"table_meta\":{\"field_meta\":[{\"field_name\":\"$id\",\"field_type\":\"int64\",\"index_name\":\"id\",\"index_type\":\"primarykey128\",\"is_attribute\":\"true\"}]},\"table_name\":\"tj_item\",\"table_type\":\"normal\",\"use_nest_table\":false,\"used_fields\":[\"$id\"]},\"condition\":{\"op\":\"=\",\"params\":[\"$id\",\"$id0\"],\"type\":\"OTHER\"},\"equi_condition\":{\"op\":\"=\",\"params\":[\"$id\",\"$id0\"],\"type\":\"OTHER\"},\"is_equi_join\":true,\"is_internal_build\":false,\"join_type\":\"INNER\",\"left_input_fields\":[\"$id\"],\"left_is_build\":false,\"left_table_meta\":{\"field_meta\":[{\"field_name\":\"$id\",\"field_type\":\"int64\",\"index_name\":\"id\",\"index_type\":\"primarykey128\",\"is_attribute\":\"true\"}]},\"location\":{\"partition_cnt\":5,\"table_group_name\":\"searcher\"},\"op_scope\":\"default\",\"output_distribution\":{\"equal_hash_fields\":[[\"id0\",\"id\"]],\"hash_mode\":{\"hash_fields\":[\"$id0\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5,\"type\":\"HASH_DISTRIBUTED\"},\"output_fields\":[\"$id\",\"$id0\"],\"output_fields_hash\":-1333272614,\"output_fields_internal\":[\"$id\",\"$id0\"],\"output_fields_type\":[\"BIGINT\",\"BIGINT\"],\"right_input_fields\":[\"$id\"],\"right_table_meta\":{\"field_meta\":[{\"field_name\":\"$id\",\"field_type\":\"int64\",\"index_name\":\"id\",\"index_type\":\"primarykey128\",\"is_attribute\":\"true\"}]},\"semi_join_type\":\"INNER\",\"system_field_num\":0}"
+  }
+  nodes {
+    name: "3"
+    kernel_name: "sql.CalcKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10003,\"location\":{\"partition_cnt\":5,\"table_group_name\":\"searcher\"},\"op_scope\":\"default\",\"output_distribution\":{\"equal_hash_fields\":[[\"id\"]],\"hash_mode\":{\"hash_fields\":[\"$id\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5,\"type\":\"HASH_DISTRIBUTED\"},\"output_fields\":[\"$id\"],\"output_fields_hash\":-1847300724,\"output_fields_type\":[\"BIGINT\"]}"
+  }
+  nodes {
+    name: "4"
+    kernel_name: "sql.LimitKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10004,\"limit\":100,\"location\":{\"partition_cnt\":5,\"table_group_name\":\"searcher\"},\"offset\":0,\"op_scope\":\"default\",\"output_distribution\":{\"equal_hash_fields\":[[\"id\"]],\"hash_mode\":{\"hash_fields\":[\"$id\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5,\"type\":\"HASH_DISTRIBUTED\"},\"output_fields_hash\":-1847300724}"
+  }
+  nodes {
+    name: "ph_0"
+    kernel_name: "navi.placeholder"
+  }
+  edges {
+    input {
+      node_name: "2"
+      port_name: "output0"
+    }
+    output {
+      node_name: "3"
+      port_name: "input0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "3"
+      port_name: "output0"
+    }
+    output {
+      node_name: "4"
+      port_name: "input0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "ph_0"
+      port_name: "navi.placeholder_out"
+    }
+    output {
+      node_name: "2"
+      port_name: "input0"
+    }
+    require: true
+  }
+  location {
+    biz_name: "searcher.default_sql"
+    part_info {
+    }
+    this_part_id: -1
+    gig_info {
+      enable_probe: true
+    }
+  }
+  binary_attrs {
+    key: "table_distribution"
+    value: "{\"equal_hash_fields\":[[\"id\"]],\"hash_mode\":{\"hash_fields\":[\"$id\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5,\"type\":\"HASH_DISTRIBUTED\"}"
+  }
+  scopes: 0
+  next_scope_id: 1
+}
+counter_info {
+  next_graph_id: 1
+}

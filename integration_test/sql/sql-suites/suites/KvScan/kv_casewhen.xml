@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="kv_casewhen">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT CASE WHEN auction_count=60000 THEN auction_count ELSE cat_id END AS aa FROM kv2 where cat_id in (1,2,3)
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"aa"</Resource>
+        <Resource name="column_types">int32</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:kv2;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1
+60000
+3
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#2(type=api)
+    ExchangeOp#1(distribution={type:SINGLETON})
+        TableScanOp#0(catalog_name=default,db_name=kv2,limit=100,output_fields=[$aa],push_down_ops=[{attrs:{condition:{op:IN,params:[$cat_id,1,2,3],type:OTHER},output_field_exprs:{$aa:{op:CASE,params:[{op:=,params:[$auction_count,60000],type:OTHER},$auction_count,$cat_id],type:OTHER}},output_fields:[$aa]},op_name:CalcOp}],table_name=kv2,table_type=kv,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

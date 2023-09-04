@@ -28,7 +28,7 @@ IndexPartitionOptions::IndexPartitionOptions() : TEST_mReadOnly(false)
 {
     bool isTestMode = autil::EnvUtil::getEnv("IS_INDEXLIB_TEST_MODE", false);
     if (isTestMode) {
-        setenv("TEST_QUICK_EXIT", "true", 0);
+        autil::EnvUtil::setEnv("TEST_QUICK_EXIT", "true", false);
     }
     mImpl.reset(new IndexPartitionOptionsImpl);
 }

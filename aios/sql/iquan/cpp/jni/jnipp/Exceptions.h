@@ -22,8 +22,11 @@ namespace iquan {
 
 class JnippException : public std::exception {
 public:
-    JnippException(const std::string &what) : _what(what) {}
-    virtual const char *what() const noexcept { return _what.c_str(); }
+    JnippException(const std::string &what)
+        : _what(what) {}
+    virtual const char *what() const noexcept {
+        return _what.c_str();
+    }
 
 private:
     mutable std::string _what;

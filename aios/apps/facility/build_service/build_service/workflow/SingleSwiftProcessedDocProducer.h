@@ -88,7 +88,7 @@ public:
                                 bool isReportFastQueueSwiftReadDelay) override;
     int64_t getStartTimestamp() const override;
     bool needUpdateCommittedCheckpoint() const override;
-    virtual bool updateCommittedCheckpoint(int64_t checkpoint) override;
+    virtual bool updateCommittedCheckpoint(const indexlibv2::base::Progress::Offset& checkpoint) override;
 
 public:
     virtual bool getMaxTimestamp(int64_t& timestamp) override;
@@ -107,7 +107,8 @@ private:
                                                             int64_t timestamp, uint16_t hashId,
                                                             const std::vector<indexlibv2::base::Progress>& progress);
     // to report checkpoint, timestamp is locator.offset
-    document::ProcessedDocumentVec* createSkipProcessedDocument(int64_t timestamp);
+    document::ProcessedDocumentVec*
+    createSkipProcessedDocument(const std::vector<indexlibv2::base::Progress>& progress);
     // virtual for test
     virtual indexlib::document::DocumentPtr transDocStrToDocument(const std::string& docStr);
     virtual bool initDocumentParser(indexlib::util::MetricProviderPtr metricProvider,

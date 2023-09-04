@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 #include "fslib/fs/FileTraverser.h"
-#include "fslib/fslib.h"
-#include "fslib/fs/FileSystem.h"
+
 #include "autil/Log.h"
 #include "autil/StringTokenizer.h"
+#include "fslib/fs/FileSystem.h"
+#include "fslib/fslib.h"
 
 using namespace std;
 using namespace autil;
@@ -25,24 +26,18 @@ using namespace autil;
 FSLIB_BEGIN_NAMESPACE(fs);
 AUTIL_DECLARE_AND_SETUP_LOGGER(fs, FileTraverser);
 
-FileTraverser::FileTraverser(const string &basePath,
-                             ThreadPoolPtr threadPool)
-{
+FileTraverser::FileTraverser(const string &basePath, ThreadPoolPtr threadPool) {
     _basePath = basePath;
     _threadPool = threadPool;
     _errorCode = EC_OK;
 }
 
-FileTraverser::~FileTraverser() {
-    wait();
-}
+FileTraverser::~FileTraverser() { wait(); }
 
-bool FileTraverser::convertToEntryMeta(const string &path, EntryMeta &entryMeta)
-{
+bool FileTraverser::convertToEntryMeta(const string &path, EntryMeta &entryMeta) {
     ErrorCode errorCode = FileSystem::isDirectory(_basePath + path);
     if (errorCode != EC_TRUE && errorCode != EC_FALSE) {
-        AUTIL_LOG(WARN, "File not exist, filename [%s]",
-                  (_basePath + path).c_str());
+        AUTIL_LOG(WARN, "File not exist, filename [%s]", (_basePath + path).c_str());
         setErrorCode(errorCode);
         return false;
     }
@@ -57,8 +52,7 @@ bool FileTraverser::convertToEntryMeta(const string &path, EntryMeta &entryMeta)
     return true;
 }
 
-void FileTraverser::traverse(bool recursive)
-{
+void FileTraverser::traverse(bool recursive) {
     string filter;
     splitFilter(_basePath, filter);
 
@@ -85,9 +79,7 @@ void FileTraverser::traverse(bool recursive)
     traverseNextLevel(entryMeta, filter, recursive);
 }
 
-void FileTraverser::traverseNextLevel(const EntryMeta &entryMeta, string filter,
-                                      bool recursive)
-{
+void FileTraverser::traverseNextLevel(const EntryMeta &entryMeta, string filter, bool recursive) {
     {
         ScopedReadLock lock(_lock);
         if (_errorCode != EC_OK) {
@@ -95,32 +87,24 @@ void FileTraverser::traverseNextLevel(const EntryMeta &entryMeta, string filter,
         }
     }
     _notifier.inc();
-    auto task = [this, entryMeta, filter, recursive]() {
-                    traverseOneLevel(entryMeta, filter, recursive);
-                };
+    auto task = [this, entryMeta, filter, recursive]() { traverseOneLevel(entryMeta, filter, recursive); };
     _threadPool->pushTask(task, false, true);
 }
 
-void FileTraverser::traverseOneLevel(
-        const EntryMeta &entryMeta, const string &filter, bool recursive)
-{
+void FileTraverser::traverseOneLevel(const EntryMeta &entryMeta, const string &filter, bool recursive) {
     doTraverseOneLevel(entryMeta, filter, recursive);
     _notifier.dec();
 }
 
-void FileTraverser::doTraverseOneLevel(
-        const EntryMeta &entryMeta, const string &filter, bool recursive)
-{
+void FileTraverser::doTraverseOneLevel(const EntryMeta &entryMeta, const string &filter, bool recursive) {
     string path = entryMeta.entryName;
-    AUTIL_LOG(TRACE1, "path [%s], filter [%s]",
-              path.c_str(), filter.c_str());
+    AUTIL_LOG(TRACE1, "path [%s], filter [%s]", path.c_str(), filter.c_str());
     if (filter.empty()) {
         if (!processFile(entryMeta)) {
             return;
         }
     }
-    if (entryMeta.isDir == false ||
-        (!entryMeta.entryName.empty() && filter.empty() && !recursive)) {
+    if (entryMeta.isDir == false || (!entryMeta.entryName.empty() && filter.empty() && !recursive)) {
         return;
     }
     string absPath = _basePath + path;
@@ -144,8 +128,8 @@ void FileTraverser::doTraverseOneLevel(
         if (errorString == "path does not exist!") {
             errorString = "maybe a subdir is not exist!";
         }
-        AUTIL_LOG(WARN, "Get filenames failed, path [%s], error [%s].",
-                  (_basePath + path).c_str(), errorString.c_str());
+        AUTIL_LOG(
+            WARN, "Get filenames failed, path [%s], error [%s].", (_basePath + path).c_str(), errorString.c_str());
         return;
     }
     EntryList::iterator it = entryList.begin();
@@ -176,8 +160,7 @@ bool FileTraverser::processFile(const EntryMeta &entryMeta) {
     uint64_t fileSize = 0;
     if (!isDir) {
         FileMeta fileMeta;
-        ErrorCode errorCode = fs::FileSystem::getFileMeta(_basePath + path,
-                fileMeta);
+        ErrorCode errorCode = fs::FileSystem::getFileMeta(_basePath + path, fileMeta);
         if (errorCode != EC_OK) {
             setErrorCode(errorCode);
             AUTIL_LOG(WARN, "Get fileMeta failed, fileName [%s]", path.c_str());
@@ -207,9 +190,7 @@ void FileTraverser::splitFilter(string &path, string &filter) {
     }
 }
 
-bool FileTraverser::match(const string &fileName,
-                          const string &filter) const
-{
+bool FileTraverser::match(const string &fileName, const string &filter) const {
     assert(filter.empty() || filter.at(filter.length() - 1) == '*');
     size_t len = filter.length();
     if (len <= 1) {

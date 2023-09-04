@@ -14,89 +14,86 @@
  * limitations under the License.
  */
 #include "fslib/fs/MockFile.h"
+
 #include "fslib/fs/ErrorGenerator.h"
 
 using namespace std;
 FSLIB_BEGIN_NAMESPACE(fs);
 AUTIL_DECLARE_AND_SETUP_LOGGER(fs, MockFile);
 
-MockFile::MockFile(File* file)
-    : File(file->getFileName(), file->getLastError())
-    , _file(file)
-{ 
-}
+MockFile::MockFile(File *file) : File(file->getFileName(), file->getLastError()), _file(file) {}
 
-MockFile::~MockFile() { 
+MockFile::~MockFile() {
     delete _file;
     _file = NULL;
 }
 
-#define GENERATE_ERROR(operate, filename)                               \
-    ErrorCode __ec = ErrorGenerator::getInstance()->generateFileError(operate, filename, _file->tell()); \
-    if (__ec != EC_OK) {                                                \
-        _lastErrorCode = __ec;                                          \
-        return -1;                                                      \
+#define GENERATE_ERROR(operate, filename)                                                                              \
+    ErrorCode __ec = ErrorGenerator::getInstance()->generateFileError(operate, filename, _file->tell());               \
+    if (__ec != EC_OK) {                                                                                               \
+        _lastErrorCode = __ec;                                                                                         \
+        return -1;                                                                                                     \
     }
 
-#define GENERATE_ERROR_WTH_OFFSET(operate, filename, offset)                   \
-    ErrorCode __ec = ErrorGenerator::getInstance()->generateFileError(operate, filename, offset); \
-    if (__ec != EC_OK) {                                                \
-        _lastErrorCode = __ec;                                          \
-        return -1;                                                      \
+#define GENERATE_ERROR_WTH_OFFSET(operate, filename, offset)                                                           \
+    ErrorCode __ec = ErrorGenerator::getInstance()->generateFileError(operate, filename, offset);                      \
+    if (__ec != EC_OK) {                                                                                               \
+        _lastErrorCode = __ec;                                                                                         \
+        return -1;                                                                                                     \
     }
 
-#define GENERATE_ERRORCODE(operate, filename)                           \
-    ErrorCode __ec = ErrorGenerator::getInstance()->generateFileError(operate, filename, _file->tell()); \
-    if (__ec != EC_OK) {                                                \
-        _lastErrorCode = __ec;                                          \
-        return __ec;                                                    \
+#define GENERATE_ERRORCODE(operate, filename)                                                                          \
+    ErrorCode __ec = ErrorGenerator::getInstance()->generateFileError(operate, filename, _file->tell());               \
+    if (__ec != EC_OK) {                                                                                               \
+        _lastErrorCode = __ec;                                                                                         \
+        return __ec;                                                                                                   \
     }
-    
-ssize_t MockFile::read(void* buffer, size_t length) {
+
+ssize_t MockFile::read(void *buffer, size_t length) {
     GENERATE_ERROR(OPERATION_READ, _file->getFileName());
     ssize_t ret = _file->read(buffer, length);
     _lastErrorCode = _file->getLastError();
     return ret;
 }
 
-ssize_t MockFile::write(const void* buffer, size_t length) {
+ssize_t MockFile::write(const void *buffer, size_t length) {
     GENERATE_ERROR(OPERATION_WRITE, _file->getFileName());
     ssize_t ret = _file->write(buffer, length);
     _lastErrorCode = _file->getLastError();
     return ret;
 }
 
-ssize_t MockFile::pread(void* buffer, size_t length, off_t offset) {
+ssize_t MockFile::pread(void *buffer, size_t length, off_t offset) {
     GENERATE_ERROR_WTH_OFFSET(OPERATION_PREAD, _file->getFileName(), offset);
     ssize_t ret = _file->pread(buffer, length, offset);
     _lastErrorCode = _file->getLastError();
     return ret;
 }
 
-ssize_t MockFile::pwrite(const void* buffer, size_t length, off_t offset) {
+ssize_t MockFile::pwrite(const void *buffer, size_t length, off_t offset) {
     GENERATE_ERROR_WTH_OFFSET(OPERATION_PWRITE, _file->getFileName(), offset);
-    ssize_t ret =  _file->pwrite(buffer, length, offset);
+    ssize_t ret = _file->pwrite(buffer, length, offset);
     _lastErrorCode = _file->getLastError();
     return ret;
 }
 
 ErrorCode MockFile::flush() {
     GENERATE_ERRORCODE(OPERATION_PWRITE, _file->getFileName());
-    ErrorCode ec =_file->flush();
+    ErrorCode ec = _file->flush();
     _lastErrorCode = _file->getLastError();
     return ec;
 }
 
 ErrorCode MockFile::close() {
     GENERATE_ERRORCODE(OPERATION_CLOSE, _file->getFileName());
-    ErrorCode ec =_file->close();    
+    ErrorCode ec = _file->close();
     _lastErrorCode = _file->getLastError();
     return ec;
 }
 
 ErrorCode MockFile::seek(int64_t offset, SeekFlag flag) {
     GENERATE_ERRORCODE(OPERATION_SEEK, _file->getFileName());
-    ErrorCode ec =_file->seek(offset, flag);
+    ErrorCode ec = _file->seek(offset, flag);
     _lastErrorCode = _file->getLastError();
     return ec;
 }
@@ -108,13 +105,8 @@ int64_t MockFile::tell() {
     return ret;
 }
 
-bool MockFile::isOpened() const {
-    return _file->isOpened();
-}
+bool MockFile::isOpened() const { return _file->isOpened(); }
 
-bool MockFile::isEof() {
-    return _file->isEof();
-}
+bool MockFile::isEof() { return _file->isEof(); }
 
 FSLIB_END_NAMESPACE(fs);
-

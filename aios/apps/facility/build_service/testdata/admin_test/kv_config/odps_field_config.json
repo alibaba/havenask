@@ -1,0 +1,13 @@
+{
+	"convert_utf8_to_gbk":false,
+	"fields":[
+		{
+			"source":"utdid",
+			"target":"utdid"
+		},
+		{
+			"source":"vdolist",
+			"target":"vdolist"
+		}
+	]
+}

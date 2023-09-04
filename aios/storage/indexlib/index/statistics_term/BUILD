@@ -1,29 +1,29 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=[':__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='factory',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':StatisticsTermIndexFactory']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='constants',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':Constant']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='Constant',
     srcs=[],
     visibility=['//aios/storage/indexlib:__subpackages__']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='StatisticsTermFormatter',
     deps=['//aios/autil:log', '//aios/storage/indexlib/index:interface']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='StatisticsTermIndexConfig',
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[
@@ -32,11 +32,11 @@ indexlib_cc_library(
         '//aios/storage/indexlib/config:IndexConfigDeserializeResource'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='StatisticsTermMemIndexer',
     deps=[
         ':Constant', ':StatisticsTermFormatter', ':StatisticsTermIndexConfig',
-        '//aios/autil:log',
+        '//aios/autil:log', '//aios/storage/indexlib/document:DocumentBatch',
         '//aios/storage/indexlib/document/normal:IndexDocument',
         '//aios/storage/indexlib/document/normal:NormalDocument',
         '//aios/storage/indexlib/framework:SegmentMetrics',
@@ -45,7 +45,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:simple_pool'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='StatisticsTermLeafReader',
     deps=[
         ':Constant', ':StatisticsTermFormatter', ':StatisticsTermIndexConfig',
@@ -53,7 +53,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='StatisticsTermDiskIndexer',
     deps=[
         ':StatisticsTermIndexConfig', ':StatisticsTermLeafReader',
@@ -61,7 +61,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index:interface'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='StatisticsTermReader',
     deps=[
         ':StatisticsTermDiskIndexer', ':StatisticsTermIndexConfig',
@@ -70,7 +70,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index:IIndexReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='StatisticsTermMerger',
     deps=[
         ':Constant', ':StatisticsTermDiskIndexer', ':StatisticsTermFormatter',
@@ -81,7 +81,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index:IIndexReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='StatisticsTermIndexFactory',
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[

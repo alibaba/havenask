@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cxxabi.h>
 #include <execinfo.h>
 #include <iostream>
 #include <link.h>
 #include <signal.h>
 #include <sstream>
-#include <string>
 #include <string.h>
-#include <cxxabi.h>
+#include <string>
 
 namespace autil {
 class Backtrace {
@@ -92,7 +92,8 @@ public:
         Dl_info info;
         link_map *linkMap;
         dladdr1((void *)addr, &info, (void **)&linkMap, RTLD_DL_LINKMAP);
-        size_t vma = (size_t)addr - (size_t)(linkMap->l_addr) - 1; // pc一般指向即将执行的代码，因此为了准确定位出错位置，这里需要减1；
+        size_t vma = (size_t)addr - (size_t)(linkMap->l_addr) -
+                     1; // pc一般指向即将执行的代码，因此为了准确定位出错位置，这里需要减1；
         sprintf(syscom, "sh -c 'addr2line -e %s -Ci %zx' 2>/dev/null", path, vma);
         auto p = popen(syscom, "r");
         std::string result;
@@ -139,7 +140,7 @@ public:
         if (result.empty()) {
             return result;
         }
-        result.pop_back();  // delete "]"
+        result.pop_back(); // delete "]"
         return result;
     }
 

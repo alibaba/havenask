@@ -1,15 +1,4 @@
 load('//bazel:bundle.bzl', 'bundle_files')
-py_library(
-    name='bs_tools_conf',
-    srcs=glob(['etc/bs_tools/*.py', 'etc/bs_tools/include/*.py']),
-    imports=['etc/bs_tools'],
-    visibility=['//visibility:public'],
-    deps=[
-        '//aios/apps/facility/build_service:proto_py',
-        '//aios/hippo/lib/python/site_packages:hippo_py_sdk',
-        '//aios/network/arpc:arpc_python'
-    ]
-)
 filegroup(name='bs', srcs=['bin/bs'], visibility=['//visibility:public'])
 bundle_files(
     name='bs_bin_package',
@@ -37,10 +26,11 @@ py_library(
         '//aios/filesystem/fslib/tools:fs_util_bin'
     ],
     visibility=['//visibility:public'],
-    deps=([
+    deps=[
         '//aios/apps/facility/build_service:proto_py',
+        '//aios/hippo/lib/python/site_packages:hippo_py_sdk',
         '//aios/network/arpc:arpc_python'
-    ] + [])
+    ]
 )
 py_library(
     name='bs_tools_include',

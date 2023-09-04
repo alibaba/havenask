@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='tokenize',
     srcs=[],
     hdrs=[],
@@ -9,14 +9,14 @@ indexlib_cc_library(
         ':TokenizeSection'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AnalyzerToken',
     deps=[
         '//aios/autil:data_buffer', '//aios/autil:hash_base',
         '//aios/storage/indexlib/index/inverted_index:Types'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TokenizeSection',
     deps=[
         ':AnalyzerToken', '//aios/autil:lock', '//aios/autil:log',
@@ -24,11 +24,11 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index:Types'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TokenizeField',
     deps=[
         ':TokenizeSection', '//aios/autil:log',
         '//aios/storage/indexlib/base:Types'
     ]
 )
-indexlib_cc_library(name='TokenizeDocument', deps=[':TokenizeField'])
+strict_cc_library(name='TokenizeDocument', deps=[':TokenizeField'])

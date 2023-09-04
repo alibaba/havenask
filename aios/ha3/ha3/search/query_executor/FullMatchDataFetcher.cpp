@@ -15,14 +15,14 @@
  */
 #include "ha3/search/FullMatchDataFetcher.h"
 
-#include <stddef.h>
 #include <algorithm>
+#include <stddef.h>
 
 #include "autil/Log.h"
 #include "ha3/common/CommonDef.h"
 #include "ha3/search/MatchData.h"
-#include "ha3/search/TermMetaInfo.h"
 #include "ha3/search/TermMatchData.h"
+#include "ha3/search/TermMetaInfo.h"
 #include "indexlib/indexlib.h"
 #include "matchdoc/MatchDoc.h"
 #include "matchdoc/Reference.h"
@@ -30,7 +30,7 @@
 
 namespace matchdoc {
 class MatchDocAllocator;
-}  // namespace matchdoc
+} // namespace matchdoc
 
 using namespace isearch::common;
 using namespace isearch::rank;
@@ -41,37 +41,28 @@ AUTIL_LOG_SETUP(ha3, FullMatchDataFetcher);
 using namespace matchdoc;
 
 FullMatchDataFetcher::FullMatchDataFetcher()
-    : _ref(NULL)
-{
-}
+    : _ref(NULL) {}
 
-FullMatchDataFetcher::~FullMatchDataFetcher() {
-}
+FullMatchDataFetcher::~FullMatchDataFetcher() {}
 
-ReferenceBase *FullMatchDataFetcher::require(
-        MatchDocAllocator *allocator,
-        const std::string &refName, uint32_t termCount)
-{
+ReferenceBase *FullMatchDataFetcher::require(MatchDocAllocator *allocator,
+                                             const std::string &refName,
+                                             uint32_t termCount) {
     _ref = createReference<MatchData>(allocator, refName, termCount);
     _termCount = termCount;
     return _ref;
 }
 
 indexlib::index::ErrorCode FullMatchDataFetcher::fillMatchData(
-        const SingleLayerExecutors &singleLayerExecutors,
-        MatchDoc matchDoc, MatchDoc subDoc) const
-{
+    const SingleLayerExecutors &singleLayerExecutors, MatchDoc matchDoc, MatchDoc subDoc) const {
     docid_t docId = matchDoc.getDocId();
     MatchData &data = _ref->getReference(matchDoc);
     data.setMaxNumTerms(_termCount);
     for (uint32_t i = 0; i < _termCount; ++i) {
         TermMatchData &tmd = data.nextFreeMatchData();
         int32_t idx = (int32_t)i - (int32_t)_accTermCount;
-        if (idx >= 0
-            && (uint32_t)idx < singleLayerExecutors.size()
-            && singleLayerExecutors[idx]
-            && singleLayerExecutors[idx]->getDocId() == docId)
-        {
+        if (idx >= 0 && (uint32_t)idx < singleLayerExecutors.size() && singleLayerExecutors[idx]
+            && singleLayerExecutors[idx]->getDocId() == docId) {
             auto ec = singleLayerExecutors[idx]->unpackMatchData(tmd);
             IE_RETURN_CODE_IF_ERROR(ec);
         }

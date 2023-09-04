@@ -25,20 +25,20 @@ namespace isearch {
 namespace common {
 class ModifyQueryVisitor;
 class QueryVisitor;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace common {
 
-class AndQuery : public Query
-{
+class AndQuery : public Query {
 public:
     AndQuery(const std::string &label);
     AndQuery(const AndQuery &other);
     ~AndQuery();
+
 public:
-    bool operator == (const Query& query) const override;
+    bool operator==(const Query &query) const override;
     void accept(QueryVisitor *visitor) const override;
     void accept(ModifyQueryVisitor *visitor) override;
     Query *clone() const override;
@@ -52,6 +52,7 @@ public:
     void setQueryLabelWithDefaultLevel(const std::string &label) override {
         setQueryLabelBinary(label);
     }
+
 private:
     AUTIL_LOG_DECLARE();
 };

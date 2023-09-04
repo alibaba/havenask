@@ -54,14 +54,14 @@ void AttributeSchemaImpl::AddAttributeConfig(const AttributeConfigPtr& attrConfi
 
 void AttributeSchemaImpl::AddPackAttributeConfig(const PackAttributeConfigPtr& packAttrConfig)
 {
-    if (GetAttributeConfig(packAttrConfig->GetAttrName()) != NULL_ATTR_CONF) {
+    if (GetAttributeConfig(packAttrConfig->GetPackName()) != NULL_ATTR_CONF) {
         INDEXLIB_FATAL_ERROR(Schema, "Pack Attribute Name is duplicate with normal attribute: %s",
-                             packAttrConfig->GetAttrName().c_str());
+                             packAttrConfig->GetPackName().c_str());
     }
 
-    NameMap::iterator it = mPackAttrName2IdMap.find(packAttrConfig->GetAttrName());
+    NameMap::iterator it = mPackAttrName2IdMap.find(packAttrConfig->GetPackName());
     if (it != mPackAttrName2IdMap.end()) {
-        INDEXLIB_FATAL_ERROR(Schema, "Duplicate Pack Attribute Name: %s", packAttrConfig->GetAttrName().c_str());
+        INDEXLIB_FATAL_ERROR(Schema, "Duplicate Pack Attribute Name: %s", packAttrConfig->GetPackName().c_str());
     }
 
     const vector<AttributeConfigPtr>& attrConfigs = packAttrConfig->GetAttributeConfigVec();
@@ -69,7 +69,7 @@ void AttributeSchemaImpl::AddPackAttributeConfig(const PackAttributeConfigPtr& p
         AddAttributeConfig(attrConfigs[i]);
     }
     packAttrConfig->SetPackAttrId(mPackAttrConfigs.size());
-    mPackAttrName2IdMap[packAttrConfig->GetAttrName()] = mPackAttrConfigs.size();
+    mPackAttrName2IdMap[packAttrConfig->GetPackName()] = mPackAttrConfigs.size();
     mPackAttrConfigs.push_back(packAttrConfig);
 }
 
@@ -202,7 +202,7 @@ bool AttributeSchemaImpl::DisableAttribute(const string& attrName)
     }
     if (attrConfig->GetPackAttributeConfig()) {
         IE_LOG(ERROR, "attributs [%s] in pack [%s] does not support disable", attrName.c_str(),
-               attrConfig->GetPackAttributeConfig()->GetAttrName().c_str());
+               attrConfig->GetPackAttributeConfig()->GetPackName().c_str());
         return false;
     }
     attrConfig->Disable();
@@ -267,9 +267,9 @@ PackAttributeConfigIteratorPtr AttributeSchemaImpl::CreatePackAttrIterator(Index
     vector<PackAttributeConfigPtr> ret;
     for (auto& attribute : mPackAttrConfigs) {
         assert(attribute);
-        if (type == is_normal && !attribute->IsDisable()) {
+        if (type == is_normal && !attribute->IsDisabled()) {
             ret.push_back(attribute);
-        } else if (type == is_disable && attribute->IsDisable()) {
+        } else if (type == is_disable && attribute->IsDisabled()) {
             ret.push_back(attribute);
         }
     }

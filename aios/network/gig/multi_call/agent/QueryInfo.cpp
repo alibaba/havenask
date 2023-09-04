@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/agent/QueryInfo.h"
+
 #include "aios/network/gig/multi_call/agent/BizStat.h"
 #include "aios/network/gig/multi_call/agent/GigStatistic.h"
 #include "aios/network/gig/multi_call/agent/QueryInfoStatistics.h"
@@ -33,12 +34,12 @@ QueryInfo::QueryInfo(const std::string &queryInfoStr)
     init(queryInfoStr);
 }
 
-QueryInfo::QueryInfo(const std::string &queryInfoStr,
-                     const std::string &warmUpStrategyName,
-                     GigStatistic *statistic,
-                     const MetricReporterManagerPtr &metricReporterManager)
-    : _finished(false), _validQueryInfo(true), _queryInfoStr(queryInfoStr),
-      _metricReporterManager(metricReporterManager) {
+QueryInfo::QueryInfo(const std::string &queryInfoStr, const std::string &warmUpStrategyName,
+                     GigStatistic *statistic, const MetricReporterManagerPtr &metricReporterManager)
+    : _finished(false)
+    , _validQueryInfo(true)
+    , _queryInfoStr(queryInfoStr)
+    , _metricReporterManager(metricReporterManager) {
     init(queryInfoStr);
     if (statistic != nullptr) {
         auto partId = INVALID_PART_ID;
@@ -47,25 +48,23 @@ QueryInfo::QueryInfo(const std::string &queryInfoStr,
         }
         auto bizStat = statistic->getBizStat(_queryInfo->biz_name(), partId);
         auto warmUpStrategy = statistic->getWarmUpStrategy(
-            warmUpStrategyName.empty() ? _queryInfo->biz_name()
-                                       : warmUpStrategyName);
-        _statistics.reset(
-            new QueryInfoStatistics(_queryInfo, warmUpStrategy, bizStat));
+            warmUpStrategyName.empty() ? _queryInfo->biz_name() : warmUpStrategyName);
+        _statistics.reset(new QueryInfoStatistics(_queryInfo, warmUpStrategy, bizStat));
     }
     reportQueryReceiveMetric();
 }
 
-QueryInfo::~QueryInfo() { _statistics.reset(); }
+QueryInfo::~QueryInfo() {
+    _statistics.reset();
+}
 
 void QueryInfo::init(const std::string &queryInfoStr) {
     _queryInfo = google::protobuf::Arena::CreateMessage<GigQueryInfo>(&_arena);
-    _responseInfo =
-        google::protobuf::Arena::CreateMessage<GigResponseInfo>(&_arena);
+    _responseInfo = google::protobuf::Arena::CreateMessage<GigResponseInfo>(&_arena);
     if (!queryInfoStr.empty()) {
         if (!_queryInfo->ParseFromString(queryInfoStr) ||
             GIG_QUERY_CHECKSUM != _queryInfo->gig_query_checksum()) {
-            AUTIL_INTERVAL_LOG(600, ERROR, "invalid query info str[%s]",
-                               queryInfoStr.c_str());
+            AUTIL_INTERVAL_LOG(600, ERROR, "invalid query info str[%s]", queryInfoStr.c_str());
             _validQueryInfo = false;
             _queryInfo->Clear();
         }
@@ -86,8 +85,7 @@ RequestType QueryInfo::requestType() const {
     return (RequestType)_queryInfo->request_type();
 }
 
-string QueryInfo::finish(float responseLatencyMs, MultiCallErrorCode ec,
-                         WeightTy targetWeight) {
+string QueryInfo::finish(float responseLatencyMs, MultiCallErrorCode ec, WeightTy targetWeight) {
     assert(_queryInfo);
     _finished = true;
 
@@ -102,8 +100,7 @@ string QueryInfo::finish(float responseLatencyMs, MultiCallErrorCode ec,
     _responseInfo->set_ec(ec);
 
     if (_statistics) {
-        _statistics->fillResponseInfo(_responseInfo, responseLatencyMs, ec,
-                                      targetWeight);
+        _statistics->fillResponseInfo(_responseInfo, responseLatencyMs, ec, targetWeight);
     }
 
     fillGigMetaEnv();
@@ -121,23 +118,20 @@ void QueryInfo::reportQueryReceiveMetric() {
         return;
     }
     const auto &bizName = _queryInfo->biz_name();
-    BizMetricReporterPtr bizReporterPtr =
-        _metricReporterManager->getBizMetricReporter(bizName);
+    BizMetricReporterPtr bizReporterPtr = _metricReporterManager->getBizMetricReporter(bizName);
     if (!bizReporterPtr) {
         return;
     }
     bizReporterPtr->reportAgentReceiveQps(1);
 }
 
-void QueryInfo::reportAgentMetrics(float responseLatencyMs,
-                                   MultiCallErrorCode ec,
+void QueryInfo::reportAgentMetrics(float responseLatencyMs, MultiCallErrorCode ec,
                                    WeightTy targetWeight) {
     if (!_metricReporterManager) {
         return;
     }
     const auto &bizName = _queryInfo->biz_name();
-    BizMetricReporterPtr bizReporterPtr =
-        _metricReporterManager->getBizMetricReporter(bizName);
+    BizMetricReporterPtr bizReporterPtr = _metricReporterManager->getBizMetricReporter(bizName);
     if (!bizReporterPtr) {
         return;
     }
@@ -183,21 +177,26 @@ void QueryInfo::fillGigMetaEnv() {
     }
 }
 
-const std::string &QueryInfo::getQueryInfoStr() const { return _queryInfoStr; }
+const std::string &QueryInfo::getQueryInfoStr() const {
+    return _queryInfoStr;
+}
 
-const GigQueryInfo *QueryInfo::getQueryInfo() const { return _queryInfo; }
+const GigQueryInfo *QueryInfo::getQueryInfo() const {
+    return _queryInfo;
+}
 
 const GigResponseInfo *QueryInfo::getResponseInfo() const {
     return _responseInfo;
 }
 
-bool QueryInfo::isFinished() const { return _finished; }
+bool QueryInfo::isFinished() const {
+    return _finished;
+}
 
 string QueryInfo::toString() const {
     std::string ret;
     ret += "finished: " + autil::StringUtil::toString(_finished) +
-           ", QueryInfoStr valid: " +
-           autil::StringUtil::toString(_validQueryInfo) +
+           ", QueryInfoStr valid: " + autil::StringUtil::toString(_validQueryInfo) +
            ", queryInfo: " + _queryInfo->ShortDebugString() +
            ", responseInfo: " + _responseInfo->ShortDebugString();
     return ret;

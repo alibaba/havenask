@@ -1,0 +1,9 @@
+#ifndef AGGREGATOR_TEST_H_
+#define AGGREGATOR_TEST_H_
+
+#define DOTEST_LOGGER_CONF "@DOTEST_LOGGER_CONF@"
+#define TEST_DATA_PATH "@TOP_SRCDIR@/testdata/"
+#define TEST_ZOOKEEPER_PATH "@TOP_SRCDIR@/testdata/zookeeper"
+
+#endif
+

@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 #pragma once
-#include <autil/Lock.h>
 #include <string.h>
 #include <unordered_set>
+
+#include "autil/EnvUtil.h"
+#include "autil/Lock.h"
 
 namespace autil {
 
@@ -52,23 +54,21 @@ protected:
     }
 
 private:
-    size_t getObjectShardIdx() const {
-        return (size_t)this % SHARD_SIZE;
-    }
+    size_t getObjectShardIdx() const { return (size_t)this % SHARD_SIZE; }
     static bool enabled() {
         static const bool flag = required || getEnableFromEnv();
         return flag;
     }
     static bool getEnableFromEnv() {
-        const char *str = std::getenv("AutilTracerType");
+        std::string str = autil::EnvUtil::getEnv("AutilTracerType");
         bool flag = false;
-        if (str) {
-            flag = strstr(str, "all") || strstr(str, typeid(T).name());
+        if (!str.empty()) {
+            flag = strstr(str.c_str(), "all") || strstr(str.c_str(), typeid(T).name());
         }
         fprintf(stderr, "object tracer for type[%s] enabled[%d]\n", typeid(T).name(), flag);
         return flag;
     }
-    
+
 private:
     static constexpr size_t SHARD_SIZE = 13;
     static AlignedCont<autil::ThreadMutex> OBJECT_LOCKS[SHARD_SIZE];

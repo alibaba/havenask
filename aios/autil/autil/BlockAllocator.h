@@ -15,30 +15,29 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
-
+#include <stdint.h>
 
 namespace autil {
 class Block;
-}  // namespace autil
+} // namespace autil
 
 namespace autil {
 
-class BlockAllocator
-{
+class BlockAllocator {
 public:
     BlockAllocator(uint32_t blockSize) {}
     virtual ~BlockAllocator() {}
+
 private:
     BlockAllocator(const BlockAllocator &);
-    BlockAllocator& operator = (const BlockAllocator &);
+    BlockAllocator &operator=(const BlockAllocator &);
+
 public:
-    virtual Block* allocBlock() = 0;
-    virtual void freeBlock(Block* block) = 0;
+    virtual Block *allocBlock() = 0;
+    virtual void freeBlock(Block *block) = 0;
 };
 
 typedef std::shared_ptr<BlockAllocator> BlockAllocatorPtr;
 
-}
-
+} // namespace autil

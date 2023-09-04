@@ -1,0 +1,56 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+strict_cc_fast_test(
+    name='ReclaimMapTest',
+    srcs=['ReclaimMapTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':test_lib', '//aios/storage/indexlib/index:interface',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='SortReclaimMapTest',
+    srcs=['SortReclaimMapTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':test_lib', '//aios/storage/indexlib/index:interface',
+        '//aios/storage/indexlib/index/attribute:factory',
+        '//aios/storage/indexlib/table/normal_table/index_task:SortedReclaimMap',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_library(
+    name='test_lib',
+    srcs=['ReclaimMapUtil.cpp'],
+    hdrs=['ReclaimMapUtil.h'],
+    deps=[
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/index:IIndexMerger',
+        '//aios/storage/indexlib/index/test:IndexTestUtil',
+        '//aios/storage/indexlib/table/normal_table/index_task:ReclaimMap',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_fast_test(
+    name='NormalTableTaskPlanCreatorTest',
+    srcs=['NormalTableTaskPlanCreatorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/table/normal_table/index_task:NormalTableTaskPlanCreator',
+        '//aios/storage/indexlib/table/normal_table/test:NormalTabletSchemaMaker',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='NormalTableSplitPlanCreatorTest',
+    srcs=['NormalTableSplitPlanCreatorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/framework/mock:FakeSegment',
+        '//aios/storage/indexlib/table/normal_table/index_task:NormalTableSplitPlanCreator',
+        '//aios/storage/indexlib/table/normal_table/test:NormalTabletSchemaMaker',
+        '//aios/unittest_framework'
+    ]
+)

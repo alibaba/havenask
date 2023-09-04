@@ -19,12 +19,11 @@
 #include <string>
 
 #include "autil/DataBuffer.h"
-
+#include "autil/Log.h"
 #include "ha3/common/ModifyQueryVisitor.h"
 #include "ha3/common/Query.h"
 #include "ha3/common/QueryVisitor.h"
 #include "ha3/common/Term.h"
-#include "autil/Log.h"
 
 using namespace std;
 
@@ -32,27 +31,25 @@ namespace isearch {
 namespace common {
 AUTIL_LOG_SETUP(ha3, TermQuery);
 
-TermQuery::TermQuery(const Term& term, const std::string &label) : _term(term) {
+TermQuery::TermQuery(const Term &term, const std::string &label)
+    : _term(term) {
     setQueryLabelTerm(label);
 }
 
-TermQuery::TermQuery(const TermQuery& other)
+TermQuery::TermQuery(const TermQuery &other)
     : Query(other)
-    , _term(other._term)
-{
-}
+    , _term(other._term) {}
 
-TermQuery::~TermQuery() {
-}
+TermQuery::~TermQuery() {}
 
-bool TermQuery::operator == (const Query& query) const {
+bool TermQuery::operator==(const Query &query) const {
     if (&query == this) {
         return true;
     }
     if (query.getQueryName() != getQueryName()) {
         return false;
     }
-    return (_term == dynamic_cast<const TermQuery&>(query)._term);
+    return (_term == dynamic_cast<const TermQuery &>(query)._term);
 }
 
 void TermQuery::accept(QueryVisitor *visitor) const {
@@ -84,26 +81,24 @@ std::string TermQuery::toString() const {
     return ss.str();
 }
 
-void TermQuery::setTerm(const Term& term) {
+void TermQuery::setTerm(const Term &term) {
     _term = term;
 }
 
-const Term& TermQuery::getTerm() const {
+const Term &TermQuery::getTerm() const {
     return _term;
 }
 
-Term& TermQuery::getTerm() {
+Term &TermQuery::getTerm() {
     return _term;
 }
 
-void TermQuery::serialize(autil::DataBuffer &dataBuffer) const
-{
+void TermQuery::serialize(autil::DataBuffer &dataBuffer) const {
     dataBuffer.write(_term);
     serializeMDLandQL(dataBuffer);
 }
 
-void TermQuery::deserialize(autil::DataBuffer &dataBuffer)
-{
+void TermQuery::deserialize(autil::DataBuffer &dataBuffer) {
     dataBuffer.read(_term);
     deserializeMDLandQL(dataBuffer);
 }

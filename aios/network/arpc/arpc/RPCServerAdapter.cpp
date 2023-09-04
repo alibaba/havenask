@@ -13,31 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "aios/network/arpc/arpc/RPCServerAdapter.h"
+
 #include <assert.h>
 #include <google/protobuf/arena.h>
 #include <google/protobuf/descriptor.h>
+#include <iosfwd>
+#include <memory>
 #include <netinet/in.h>
 #include <pthread.h>
 #include <stdint.h>
 #include <string.h>
-#include <iosfwd>
-#include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
-#include "aios/network/arpc/arpc/util/Log.h"
-#include "autil/LockFreeThreadPool.h"
-#include "aios/network/arpc/arpc/PacketArg.h"
-#include "aios/network/arpc/arpc/RPCServerAdapter.h"
-#include "aios/network/arpc/arpc/UtilFun.h"
-#include "aios/network/arpc/arpc/RPCServerWorkItem.h"
-#include "aios/network/arpc/arpc/RPCServer.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/arpc/arpc/MessageCodec.h"
+#include "aios/network/arpc/arpc/PacketArg.h"
+#include "aios/network/arpc/arpc/RPCServer.h"
+#include "aios/network/arpc/arpc/RPCServerWorkItem.h"
 #include "aios/network/arpc/arpc/Tracer.h"
-#include "autil/WorkItem.h"
+#include "aios/network/arpc/arpc/UtilFun.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 #include "autil/EnvUtil.h"
+#include "autil/LockFreeThreadPool.h"
+#include "autil/WorkItem.h"
 
 using namespace std;
 using namespace anet;
@@ -54,21 +55,18 @@ RPCServerAdapter::RPCServerAdapter(RPCServer *pRpcServer) {
     _skipThreadPool = autil::EnvUtil::getEnv("ARPC_SKIP_THREAD_POOL", _skipThreadPool);
 }
 
-RPCServerAdapter::~RPCServerAdapter()
-{
-    pthread_rwlock_destroy(&_lock);
-}
+RPCServerAdapter::~RPCServerAdapter() { pthread_rwlock_destroy(&_lock); }
 
-ErrorCode RPCServerAdapter::doPushWorkItem(RPCServerWorkItem *pWorkItem,
-                                      CodecContext *pContext,
-                                      Tracer *tracer) {
+ErrorCode RPCServerAdapter::doPushWorkItem(RPCServerWorkItem *pWorkItem, CodecContext *pContext, Tracer *tracer) {
     if (__builtin_expect(!!(_pRpcServer->isStopped()), 1)) {
         delete pWorkItem;
         return ARPC_ERROR_SERVER_CLOSED;
     }
     if (pWorkItem == NULL) {
-        ARPC_LOG(ERROR, "new RPCServerWorkItem return NULL, "
-                 "%s:%s", pContext->rpcMethodDes->service()->name().c_str(),
+        ARPC_LOG(ERROR,
+                 "new RPCServerWorkItem return NULL, "
+                 "%s:%s",
+                 pContext->rpcMethodDes->service()->name().c_str(),
                  pContext->rpcMethodDes->name().c_str());
         return ARPC_ERROR_NEW_NOTHROW;
     }
@@ -81,13 +79,14 @@ ErrorCode RPCServerAdapter::doPushWorkItem(RPCServerWorkItem *pWorkItem,
         return ARPC_ERROR_NONE;
     }
 
-    //TODO: drop work item maybe unacceptable
-    autil::ThreadPoolBasePtr threadPoolPtr =
-        _pRpcServer->GetServiceThreadPool(pContext->rpcService);
+    // TODO: drop work item maybe unacceptable
+    autil::ThreadPoolBasePtr threadPoolPtr = _pRpcServer->GetServiceThreadPool(pContext->rpcService);
 
     if (threadPoolPtr == NULL) {
-        ARPC_LOG(ERROR, "get service thread pool failed, "
-                 "%s:%s", pContext->rpcMethodDes->service()->name().c_str(),
+        ARPC_LOG(ERROR,
+                 "get service thread pool failed, "
+                 "%s:%s",
+                 pContext->rpcMethodDes->service()->name().c_str(),
                  pContext->rpcMethodDes->name().c_str());
         delete pWorkItem;
         return ARPC_ERROR_PUSH_WORKITEM;
@@ -95,8 +94,7 @@ ErrorCode RPCServerAdapter::doPushWorkItem(RPCServerWorkItem *pWorkItem,
 
     tracer->SetServerQueueSize(threadPoolPtr->getItemCount());
 
-    autil::ThreadPool::ERROR_TYPE code =
-        threadPoolPtr->pushWorkItem((autil::WorkItem *)pWorkItem, false);
+    autil::ThreadPool::ERROR_TYPE code = threadPoolPtr->pushWorkItem((autil::WorkItem *)pWorkItem, false);
 
     if (code != autil::ThreadPool::ERROR_NONE) {
         ARPC_LOG(ERROR,
@@ -107,7 +105,9 @@ ErrorCode RPCServerAdapter::doPushWorkItem(RPCServerWorkItem *pWorkItem,
                  code,
                  pContext->rpcMethodDes->service()->name().c_str(),
                  pContext->rpcMethodDes->name().c_str(),
-                 (threadPoolPtr->getName()).c_str(), threadPoolPtr->getQueueSize(), threadPoolPtr->getThreadNum())
+                 (threadPoolPtr->getName()).c_str(),
+                 threadPoolPtr->getQueueSize(),
+                 threadPoolPtr->getThreadNum())
         delete pWorkItem;
         return ARPC_ERROR_PUSH_WORKITEM;
     }
@@ -116,4 +116,3 @@ ErrorCode RPCServerAdapter::doPushWorkItem(RPCServerWorkItem *pWorkItem,
 }
 
 ARPC_END_NAMESPACE(arpc);
-

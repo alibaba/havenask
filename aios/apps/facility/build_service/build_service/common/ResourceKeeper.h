@@ -59,6 +59,11 @@ public:
         assert(false);
         return false;
     };
+    virtual bool updateResource(const KeyValueMap& params)
+    {
+        assert(false);
+        return false;
+    }
 
 private:
     struct BasicInfo : public autil::legacy::Jsonizable {

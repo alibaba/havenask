@@ -16,8 +16,8 @@
 #ifndef ANET_COND_H_
 #define ANET_COND_H_
 #include <pthread.h>
-#include <sys/time.h>
 #include <stdint.h>
+#include <sys/time.h>
 #include <time.h>
 
 #include "aios/network/anet/threadmutex.h"
@@ -27,14 +27,9 @@ namespace anet {
 class ThreadCond : public ThreadMutex {
 
 public:
+    ThreadCond() { pthread_cond_init(&_cond, NULL); }
 
-    ThreadCond() {
-        pthread_cond_init(&_cond, NULL);
-    }
-
-    ~ThreadCond() {
-        pthread_cond_destroy(&_cond);
-    }
+    ~ThreadCond() { pthread_cond_destroy(&_cond); }
 
     /*
      * wait
@@ -53,11 +48,9 @@ public:
             struct timespec abstime;
             gettimeofday(&curtime, NULL);
 
-            int64_t us = (static_cast<int64_t>(curtime.tv_sec) *
-                          static_cast<int64_t>(1000000) +
+            int64_t us = (static_cast<int64_t>(curtime.tv_sec) * static_cast<int64_t>(1000000) +
                           static_cast<int64_t>(curtime.tv_usec) +
-                          static_cast<int64_t>(milliseconds) *
-                          static_cast<int64_t>(1000));
+                          static_cast<int64_t>(milliseconds) * static_cast<int64_t>(1000));
 
             abstime.tv_sec = static_cast<int>(us / static_cast<int64_t>(1000000));
             abstime.tv_nsec = static_cast<int>(us % static_cast<int64_t>(1000000)) * 1000;
@@ -67,18 +60,14 @@ public:
         return ret;
     }
 
-    void signal() {
-        pthread_cond_signal(&_cond);
-    }
+    void signal() { pthread_cond_signal(&_cond); }
 
-    void broadcast() {
-        pthread_cond_broadcast(&_cond);
-    }
+    void broadcast() { pthread_cond_broadcast(&_cond); }
 
 private:
     pthread_cond_t _cond;
 };
 
-}
+} // namespace anet
 
 #endif /*COND_H_*/

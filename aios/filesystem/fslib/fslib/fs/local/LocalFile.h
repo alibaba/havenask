@@ -17,6 +17,7 @@
 #define FSLIB_LOCALFILE_H
 
 #include <stdio.h>
+
 #include "autil/Log.h"
 #include "fslib/common/common_define.h"
 #include "fslib/common/common_type.h"
@@ -24,21 +25,21 @@
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class LocalFile : public File
-{
+class LocalFile : public File {
 public:
-    LocalFile(const std::string& fileName, FILE* file, ErrorCode ec = EC_OK);
+    LocalFile(const std::string &fileName, FILE *file, ErrorCode ec = EC_OK);
     ~LocalFile();
+
 public:
-    ssize_t read(void* buffer, size_t length) override;
+    ssize_t read(void *buffer, size_t length) override;
 
-    ssize_t write(const void* buffer, size_t length) override;
+    ssize_t write(const void *buffer, size_t length) override;
 
-    ssize_t pread(void* buffer, size_t length, off_t offset) override;
+    ssize_t pread(void *buffer, size_t length, off_t offset) override;
 
-    ssize_t preadv(const iovec* iov, int iovcnt, off_t offset) override;
+    ssize_t preadv(const iovec *iov, int iovcnt, off_t offset) override;
 
-    ssize_t pwrite(const void* buffer, size_t length, off_t offset) override;
+    ssize_t pwrite(const void *buffer, size_t length, off_t offset) override;
 
     ErrorCode flush() override;
 
@@ -55,11 +56,11 @@ public:
     bool isEof() override;
 
 private:
-    FILE* _file;
+    FILE *_file;
 };
 
 FSLIB_TYPEDEF_AUTO_PTR(LocalFile);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_LOCALFILE_H
+#endif // FSLIB_LOCALFILE_H

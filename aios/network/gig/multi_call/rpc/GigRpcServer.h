@@ -20,14 +20,15 @@
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/config/MultiCallConfig.h"
 #include "aios/network/gig/multi_call/rpc/GigClosure.h"
-#include "aios/network/gig/multi_call/stream/GigServerStreamCreator.h"
 #include "aios/network/gig/multi_call/rpc/ServerBizTopoInfo.h"
+#include "aios/network/gig/multi_call/stream/GigServerStreamCreator.h"
 #include "autil/Lock.h"
 #include "autil/LockFreeThreadPool.h"
 
 namespace arpc {
+class RPCServer;
 class ANetRPCServer;
-}
+} // namespace arpc
 
 namespace http_arpc {
 class HTTPRPCServer;
@@ -52,7 +53,8 @@ class RdmaArpcServerWapper;
 MULTI_CALL_TYPEDEF_PTR(SearchService);
 MULTI_CALL_TYPEDEF_PTR(GigAgent);
 
-class GigRpcServer {
+class GigRpcServer
+{
 public:
     GigRpcServer();
     GigRpcServer(arpc::ANetRPCServer *arpcServer); // no auto delete arpc server
@@ -71,29 +73,31 @@ public:
     bool initGrpcServer(const GrpcServerDescription &desc) {
         return startGrpcServer(desc);
     }
-    bool startRdmaArpcServer(RdmaArpcServerDescription& desc);
+    bool startRdmaArpcServer(RdmaArpcServerDescription &desc);
     void setTcpPort(int32_t tcpPort);
+
 public:
-    bool
-    registerArpcService(google::protobuf::Service *rpcService,
-                        const CompatibleFieldInfo &compatibleInfo,
-                        const arpc::ThreadPoolDescriptor &threadPoolDescriptor =
-                            arpc::ThreadPoolDescriptor());
-    bool
-    registerArpcService(google::protobuf::Service *rpcService,
-                        const CompatibleFieldInfo &compatibleInfo,
-                        const arpc::ThreadPoolDescriptor &threadPoolDescriptor,
-                        const std::map<std::string, std::string> &aliasMap);
-    bool registerGrpcService(const std::string &methodName,
-                             google::protobuf::Message *request,
-                             google::protobuf::Message *response,
+    bool registerArpcService(
+        google::protobuf::Service *rpcService, const CompatibleFieldInfo &compatibleInfo,
+        const arpc::ThreadPoolDescriptor &threadPoolDescriptor = arpc::ThreadPoolDescriptor());
+    bool registerArpcService(google::protobuf::Service *rpcService,
                              const CompatibleFieldInfo &compatibleInfo,
-                             const GigRpcMethod &method);
+                             const arpc::ThreadPoolDescriptor &threadPoolDescriptor,
+                             const std::map<std::string, std::string> &aliasMap);
+    bool registerArpcService(const std::shared_ptr<google::protobuf::Service> &rpcService,
+                             const std::string &methodName,
+                             const CompatibleFieldInfo &compatibleInfo,
+                             const arpc::ThreadPoolDescriptor &threadPoolDescriptor);
+    void unRegisterArpcService(const std::shared_ptr<google::protobuf::Service> &rpcService);
+    bool registerGrpcService(const std::string &methodName, google::protobuf::Message *request,
+                             google::protobuf::Message *response,
+                             const CompatibleFieldInfo &compatibleInfo, const GigRpcMethod &method);
     bool registerGrpcStreamService(const GigServerStreamCreatorPtr &creator);
     bool unRegisterGrpcStreamService(const GigServerStreamCreatorPtr &creator);
     bool registerArpcService(google::protobuf::Service *rpcService,
-                        const CompatibleFieldInfo &compatibleInfo,
-                        const autil::ThreadPoolBasePtr &pool);
+                             const CompatibleFieldInfo &compatibleInfo,
+                             const autil::ThreadPoolBasePtr &pool);
+
 public:
     void setSearchService(const SearchServicePtr &searchService);
     SearchServicePtr getSearchService();
@@ -102,37 +106,43 @@ public:
     void stopAgent();
     arpc::ANetRPCServer *getArpcServer() const;
     http_arpc::HTTPRPCServer *getHttpArpcServer() const;
+    std::shared_ptr<arpc::RPCServer> getRdmaRPCServer() const;
 
 public:
     bool hasGrpc() const;
     int32_t getGrpcPort() const;
-    bool waitUntilNoQuery(
-        int64_t noQueryTimeInSecond,
-        int64_t timeoutInSecond = std::numeric_limits<int64_t>::max());
+    bool waitUntilNoQuery(int64_t noQueryTimeInSecond,
+                          int64_t timeoutInSecond = std::numeric_limits<int64_t>::max());
+
 public:
     // topo publish and heartbeat
     bool publish(const ServerBizTopoInfo &info, SignatureTy &signature);
+    bool publish(const std::vector<ServerBizTopoInfo> &infoVec,
+                 std::vector<SignatureTy> &signatureVec);
     bool publishGroup(PublishGroupTy group, const std::vector<ServerBizTopoInfo> &infoVec,
                       std::vector<SignatureTy> &signatureVec);
     bool publishGroup(PublishGroupTy group, const std::vector<BizTopoInfo> &infoVec,
                       std::vector<SignatureTy> &signatureVec);
     bool updateVolatileInfo(SignatureTy signature, const BizVolatileInfo &info);
     bool unpublish(SignatureTy signature);
+    bool unpublish(const std::vector<SignatureTy> &signatureVec);
     std::vector<ServerBizTopoInfo> getPublishInfos() const;
     std::string getTopoInfoStr() const;
+
 private:
     std::shared_ptr<GrpcServerWorker> createGrpcServer(const GrpcServerDescription &desc);
     void stopHttpArpcServer();
     void stopArpcServer();
     void stopGrpcServer();
     void stopRdmaArpcServer();
-    template<typename ThreadPoolRep>
+    template <typename ThreadPoolRep>
     bool registerArpcService(google::protobuf::Service *rpcService,
-                        const CompatibleFieldInfo &compatibleInfo,
-                        const ThreadPoolRep &poolRep);
+                             const CompatibleFieldInfo &compatibleInfo,
+                             const ThreadPoolRep &poolRep);
     bool registerHeartbeat();
     void stopHeartbeat();
     Spec getRpcSpec();
+
 private:
     std::shared_ptr<arpc::ANetRPCServer> _arpcServer;
     std::shared_ptr<anet::Transport> _arpcServerTransport;
@@ -150,10 +160,11 @@ private:
     autil::SpinLock _spinLock;
     SearchServicePtr _searchService;
     GigAgentPtr _agent;
-    std::vector<ServiceWrapper *> _wrappers;
+    std::set<std::shared_ptr<ServiceWrapper>> _wrappers;
     std::shared_ptr<HeartbeatServerManager> _heartbeatManager;
     GigServerStreamCreatorPtr _heartbeatCreator;
     int32_t _tcpPort;
+
 private:
     AUTIL_LOG_DECLARE();
 };

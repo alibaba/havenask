@@ -13,12 +13,12 @@
 #include <stdint.h>
 #include <string>
 
+#include "autil/Autovector.h"
 #include "autil/ConstString.h"
 #include "autil/Lock.h"
-#include "autil/Autovector.h"
+#include "autil/cache/cache.h"
 #include "autil/cache/cache_allocator.h"
 #include "sharded_cache.h"
-#include "autil/cache/cache.h"
 
 namespace autil {
 
@@ -49,11 +49,11 @@ namespace autil {
 // RUCacheBase::Release (to move into state 2) or LRUCacheShard::Erase (for state 3)
 
 struct LRUHandle {
-    void* value;
-    void (*deleter)(const autil::StringView&, void* value, const CacheAllocatorPtr& allocator);
-    LRUHandle* next_hash;
-    LRUHandle* next;
-    LRUHandle* prev;
+    void *value;
+    void (*deleter)(const autil::StringView &, void *value, const CacheAllocatorPtr &allocator);
+    LRUHandle *next_hash;
+    LRUHandle *next;
+    LRUHandle *prev;
     size_t charge; // TODO(opt): Only allow uint32_t?
     size_t key_length;
     uint32_t refs; // a number of refs to this entry
@@ -69,12 +69,11 @@ struct LRUHandle {
 
     char key_data[1]; // Beginning of key
 
-    autil::StringView key() const
-    {
+    autil::StringView key() const {
         // For cheaper lookups, we allow a temporary Handle object
         // to store a pointer to a key in "value".
         if (next == this) {
-            return *(reinterpret_cast<autil::StringView*>(value));
+            return *(reinterpret_cast<autil::StringView *>(value));
         } else {
             return autil::StringView(key_data, key_length);
         }
@@ -84,8 +83,7 @@ struct LRUHandle {
     bool IsHighPri() { return flags & 2; }
     bool InHighPriPool() { return flags & 4; }
 
-    void SetInCache(bool in_cache)
-    {
+    void SetInCache(bool in_cache) {
         if (in_cache) {
             flags |= 1;
         } else {
@@ -93,8 +91,7 @@ struct LRUHandle {
         }
     }
 
-    void SetPriority(CacheBase::Priority priority)
-    {
+    void SetPriority(CacheBase::Priority priority) {
         if (priority == CacheBase::Priority::HIGH) {
             flags |= 2;
         } else {
@@ -102,8 +99,7 @@ struct LRUHandle {
         }
     }
 
-    void SetInHighPriPool(bool in_high_pri_pool)
-    {
+    void SetInHighPriPool(bool in_high_pri_pool) {
         if (in_high_pri_pool) {
             flags |= 4;
         } else {
@@ -111,13 +107,12 @@ struct LRUHandle {
         }
     }
 
-    void Free(const CacheAllocatorPtr& allocator)
-    {
+    void Free(const CacheAllocatorPtr &allocator) {
         assert((refs == 1 && InCache()) || (refs == 0 && !InCache()));
         if (deleter) {
             (*deleter)(key(), value, allocator);
         }
-        delete[] reinterpret_cast<char*>(this);
+        delete[] reinterpret_cast<char *>(this);
     }
 };
 
@@ -126,23 +121,21 @@ struct LRUHandle {
 // table implementations in some of the compiler/runtime combinations
 // we have tested.  E.g., readrandom speeds up by ~5% over the g++
 // 4.4.3's builtin hashtable.
-class LRUHandleTable
-{
+class LRUHandleTable {
 public:
     LRUHandleTable();
     ~LRUHandleTable();
 
-    void SetAllocator(const CacheAllocatorPtr& allocator) { allocator_ = allocator; }
+    void SetAllocator(const CacheAllocatorPtr &allocator) { allocator_ = allocator; }
 
-    LRUHandle* Lookup(const autil::StringView& key, uint32_t hash);
-    LRUHandle* Insert(LRUHandle* h);
-    LRUHandle* Remove(const autil::StringView& key, uint32_t hash);
+    LRUHandle *Lookup(const autil::StringView &key, uint32_t hash);
+    LRUHandle *Insert(LRUHandle *h);
+    LRUHandle *Remove(const autil::StringView &key, uint32_t hash);
 
     template <typename T>
-    void ApplyToAllCacheEntries(T func)
-    {
+    void ApplyToAllCacheEntries(T func) {
         for (uint32_t i = 0; i < length_; i++) {
-            LRUHandle* h = list_[i];
+            LRUHandle *h = list_[i];
             while (h != nullptr) {
                 auto n = h->next_hash;
                 assert(h->InCache());
@@ -156,7 +149,7 @@ private:
     // Return a pointer to slot that points to a cache entry that
     // matches key/hash.  If there is no such cache entry, return a
     // pointer to the trailing slot in the corresponding linked list.
-    LRUHandle** FindPointer(const autil::StringView& key, uint32_t hash);
+    LRUHandle **FindPointer(const autil::StringView &key, uint32_t hash);
 
     void Resize();
 
@@ -164,13 +157,12 @@ private:
     // a linked list of cache entries that hash into the bucket.
     uint32_t length_;
     uint32_t elems_;
-    LRUHandle** list_;
+    LRUHandle **list_;
     CacheAllocatorPtr allocator_;
 };
 
 // A single shard of sharded cache.
-class LRUCacheShard : public CacheShard
-{
+class LRUCacheShard : public CacheShard {
 public:
     LRUCacheShard();
     virtual ~LRUCacheShard();
@@ -187,17 +179,20 @@ public:
     void SetHighPriorityPoolRatio(double high_pri_pool_ratio);
 
     // Set allocatory
-    void SetAllocator(const CacheAllocatorPtr& allocator);
+    void SetAllocator(const CacheAllocatorPtr &allocator);
 
     // Like Cache methods, but with an extra "hash" parameter.
-    virtual bool Insert(const autil::StringView& key, uint32_t hash, void* value, size_t charge,
-                        void (*deleter)(const autil::StringView& key, void* value,
-                                const CacheAllocatorPtr& allocator),
-                        CacheBase::Handle** handle, CacheBase::Priority priority) override;
-    virtual CacheBase::Handle* Lookup(const autil::StringView& key, uint32_t hash) override;
-    virtual bool Ref(CacheBase::Handle* handle) override;
-    virtual void Release(CacheBase::Handle* handle) override;
-    virtual void Erase(const autil::StringView& key, uint32_t hash) override;
+    virtual bool Insert(const autil::StringView &key,
+                        uint32_t hash,
+                        void *value,
+                        size_t charge,
+                        void (*deleter)(const autil::StringView &key, void *value, const CacheAllocatorPtr &allocator),
+                        CacheBase::Handle **handle,
+                        CacheBase::Priority priority) override;
+    virtual CacheBase::Handle *Lookup(const autil::StringView &key, uint32_t hash) override;
+    virtual bool Ref(CacheBase::Handle *handle) override;
+    virtual void Release(CacheBase::Handle *handle) override;
+    virtual void Erase(const autil::StringView &key, uint32_t hash) override;
 
     // Although in some platforms the update of size_t is atomic, to make sure
     // GetUsage() and GetPinnedUsage() work correctly under any platform, we'll
@@ -206,17 +201,17 @@ public:
     virtual size_t GetUsage() const override;
     virtual size_t GetPinnedUsage() const override;
 
-    virtual void ApplyToAllCacheEntries(void (*callback)(void*, size_t), bool thread_safe) override;
+    virtual void ApplyToAllCacheEntries(void (*callback)(void *, size_t), bool thread_safe) override;
 
     virtual void EraseUnRefEntries() override;
 
     virtual std::string GetPrintableOptions() const override;
 
-    void TEST_GetLRUList(LRUHandle** lru, LRUHandle** lru_low_pri);
+    void TEST_GetLRUList(LRUHandle **lru, LRUHandle **lru_low_pri);
 
 private:
-    void LRU_Remove(LRUHandle* e);
-    void LRU_Insert(LRUHandle* e);
+    void LRU_Remove(LRUHandle *e);
+    void LRU_Insert(LRUHandle *e);
 
     // Overflow the last entry in high-pri pool to low-pri pool until size of
     // high-pri pool is no larger than the size specify by high_pri_pool_pct.
@@ -224,13 +219,13 @@ private:
 
     // Just reduce the reference count by 1.
     // Return true if last reference
-    bool Unref(LRUHandle* e);
+    bool Unref(LRUHandle *e);
 
     // Free some space following strict LRU policy until enough space
     // to hold (usage_ + charge) is freed or the lru list is empty
     // This function is not thread safe - it needs to be executed while
     // holding the mutex_
-    void EvictFromLRU(size_t charge, autovector<LRUHandle*>* deleted);
+    void EvictFromLRU(size_t charge, autovector<LRUHandle *> *deleted);
 
     // Initialized before use.
     size_t capacity_;
@@ -265,29 +260,31 @@ private:
     LRUHandle lru_;
 
     // Pointer to head of low-pri pool in LRU list.
-    LRUHandle* lru_low_pri_;
+    LRUHandle *lru_low_pri_;
 
     LRUHandleTable table_;
 
     CacheAllocatorPtr allocator_;
 };
 
-class LRUCache : public ShardedCache
-{
+class LRUCache : public ShardedCache {
 public:
-    LRUCache(size_t capacity, int num_shard_bits, bool strict_capacity_limit, double high_pri_pool_ratio,
-             const CacheAllocatorPtr& allocator);
+    LRUCache(size_t capacity,
+             int num_shard_bits,
+             bool strict_capacity_limit,
+             double high_pri_pool_ratio,
+             const CacheAllocatorPtr &allocator);
     virtual ~LRUCache();
-    virtual const char* Name() const override { return "LRUCache"; }
-    virtual CacheShard* GetShard(int shard) override;
-    virtual const CacheShard* GetShard(int shard) const override;
-    virtual void* Value(Handle* handle) override;
-    virtual size_t GetCharge(Handle* handle) const override;
-    virtual uint32_t GetHash(Handle* handle) const override;
+    virtual const char *Name() const override { return "LRUCache"; }
+    virtual CacheShard *GetShard(int shard) override;
+    virtual const CacheShard *GetShard(int shard) const override;
+    virtual void *Value(Handle *handle) override;
+    virtual size_t GetCharge(Handle *handle) const override;
+    virtual uint32_t GetHash(Handle *handle) const override;
     virtual void DisownData() override;
 
 private:
-    LRUCacheShard* shards_;
+    LRUCacheShard *shards_;
 };
 
-}
+} // namespace autil

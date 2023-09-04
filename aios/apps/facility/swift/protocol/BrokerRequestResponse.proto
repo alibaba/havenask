@@ -1,0 +1,131 @@
+import "Common.proto";
+import "ErrCode.proto";
+import "SwiftMessage.proto";
+option java_package = "com.alibaba.search.swift.protocol";
+package swift.protocol;
+
+enum MessageFormat {
+    MF_PB = 0;
+    MF_FB = 1;
+}
+
+message ProductionRequest {
+    optional string topicName = 1;
+    optional uint32 partitionId = 2;
+    repeated Message msgs = 3;
+    optional bytes compressedMsgs = 4;
+    optional bool compressMsgInBroker = 5 [ default = false ];
+    optional int64 sessionId = 6;
+    optional bytes fbMsgs = 7;
+    optional MessageFormat messageFormat = 8 [ default = MF_PB ];
+    optional ClientVersionInfo versionInfo = 9;
+    optional uint64 requestUuid = 10 [ default = 0 ];
+    optional bool needTimestamp = 11 [ default = false ];
+    optional uint32 majorVersion = 12 [ default = 0 ];
+    optional string identityStr = 13;
+    optional int64 generatedTime = 14;
+    optional bool replicationMode = 15 [ default = false ];
+    optional string username = 16;
+    optional uint32 minorVersion = 17 [ default = 0 ];
+    optional string writerName = 18;
+    optional AuthenticationInfo authentication = 19;
+
+}
+
+message TraceTimeInfo {
+    optional int64 requestGeneratedTime = 1;
+    optional int64 requestRecivedTime = 2;
+    optional int64 responseDoneTime = 3;
+    optional int64 responseRecivedTime = 4;
+    repeated int64 processedTimes = 5;
+}
+
+message LongPollingTracer {
+    optional int64 startId = 1;
+    optional int64 nextMsgId = 2;
+    optional int64 totalMsgCount = 3;
+    optional int64 readEmpty = 4;
+    optional int64 activeMsgId = 5;
+    optional int64 maxMsgIdBefore = 6;
+    optional int64 maxMsgIdAfter = 7;
+    optional int64 requestPollTime = 8;
+}
+
+message LongPollingInfo { repeated LongPollingTracer longPollingTracer = 1; }
+
+message MessageResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated Message msgs = 2;
+    optional uint32 acceptedMsgCount = 3 [ default = 0 ];
+    optional uint32 maxAllowMsgLen = 4;
+    optional int64 maxMsgId = 5;
+    optional int64 maxTimestamp = 6;
+    optional int64 nextMsgId = 7;
+    optional int64 nextTimestamp = 8;
+    optional bytes compressedMsgs = 9;
+    optional int64 acceptedMsgBeginId = 10;
+    optional int64 committedId = 11;
+    optional int64 sessionId = 12;
+    optional MessageFormat messageFormat = 13 [ default = MF_PB ];
+    optional bytes fbMsgs = 14;
+    optional bool hasMergedMsg = 15 [ default = false ];
+    optional int64 totalMsgCount = 16;
+    optional int64 topicVersion = 17;
+    optional uint64 requestUuid = 18 [ default = 0 ];
+    repeated int64 timestamps = 19;
+    optional int64 doneTimestamp = 20;
+    optional uint64 compressPayload = 21;
+    optional TraceTimeInfo traceTimeInfo = 22;
+    optional LongPollingInfo longPollingInfo = 23;
+    optional uint64 selfVersion = 24 [ default = 0 ]; // used for replication
+}
+
+message ConsumptionRequest {
+    optional string topicName = 1;
+    optional uint32 partitionId = 2;
+    optional int64 startId = 3;
+    optional uint32 count = 4 [ default = 1 ];
+    optional uint32 sessionId = 5 [ deprecated = true ];
+    optional Filter filter = 6;
+    optional int64 maxTotalSize = 7 [ default = 67108864 ]; // 64 * 1024 * 1024
+    repeated string requiredFieldNames = 8;
+    optional bool needCompress = 9 [ default = false ];
+    optional bytes fieldFilterDesc = 10;
+    optional bool canDecompressMsg = 11 [ default = false ];
+    optional int64 startTimestamp = 12;
+    optional ClientVersionInfo versionInfo = 13;
+    optional int64 sessionIdExtend = 14;
+    optional int64 committedCheckPoint = 15;
+    optional uint64 requestUuid = 16 [ default = 0 ];
+    optional uint64 compressFilterRegion = 17;
+    optional string identityStr = 18;
+    optional int64 generatedTime = 19;
+    optional bool readCommittedMsg = 20 [ default = false ];
+    optional uint64 selfVersion = 21 [ default = 0 ]; // used for replication
+    optional string username = 22;
+    optional AuthenticationInfo authentication = 23;
+}
+
+message MessageIdRequest {
+    optional string topicName = 1;
+    optional uint32 partitionId = 2;
+    optional int64 timestamp = 3;
+    optional string version = 4;
+    optional int64 sessionId = 5;
+    optional ClientVersionInfo versionInfo = 6;
+    optional uint64 requestUuid = 7 [ default = 0 ];
+    optional string username = 8;
+    optional AuthenticationInfo authentication = 9;
+}
+
+message MessageIdResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional int64 msgId = 2;
+    optional int64 timestamp = 3;
+    optional int64 maxMsgId = 4;
+    optional int64 maxTimestamp = 5;
+    optional string version = 6;
+    optional int64 sessionId = 7;
+    optional int64 topicVersion = 8;
+    optional TraceTimeInfo traceTimeInfo = 9;
+}

@@ -84,6 +84,7 @@ private:
     versionid_t _lastProposedVersionId;
     bool _recovered;
     std::atomic<bool> _stopped;
+    size_t _skipCleanTask = 0;
 
 private:
     AUTIL_LOG_DECLARE();

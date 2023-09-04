@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="limit_exceed">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT nid, brand, price, size FROM phone ORDER BY nid LIMIT 12
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"nid", "brand", "price", "size"</Resource>
+        <Resource name="column_types">uint64, multi_char, double, double</Resource>
+        <Resource name="seq_required">true</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1, "Huawei", 3599, 5.9
+2, "Huawei", 4388, 5.5
+3,   "Xiaomi", 899, 5
+4, "OPPO", 2999, 5.5
+5, "Meizu", 1299, 5.5
+6, "Nokia",  169, 1.4
+7, "Apple", 3599, 4.7
+8, "Apple", 5998, 5.5
+9, "Apple", 4298, 4.7
+10, "Samsung", 5688, 5.6
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#3(type=api)
+    ExchangeOp#2(distribution={type:SINGLETON})
+        SortOp#1(directions=[ASC],limit=12,order_fields=[$nid])
+            TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$nid,$brand,$price,$size],push_down_ops=[{attrs:{output_fields:[$nid,$brand,$price,$size]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

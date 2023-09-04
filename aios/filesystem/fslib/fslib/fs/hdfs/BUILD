@@ -1,5 +1,4 @@
 package(default_visibility=['//visibility:private'])
-load('//bazel:defs.bzl', 'gen_conf_lib')
 load(
     '@rules_cc//examples:experimental_cc_shared_library.bzl',
     'cc_shared_library'

@@ -1,0 +1,20 @@
+{
+    "table_type" : "line_data",
+    "table_name" : "table_name",
+    "user_defined_param" : {
+        "field_seperator" : "sep"
+    },
+    "attributes" : [
+        "id"
+    ],
+    "fields" : [
+        {
+            "field_name" : "id",
+            "field_type" : "INTEGER"
+        }
+    ],
+    "indexs" : [],
+    "summarys" : {
+        "summary_fields" : []
+    }
+}

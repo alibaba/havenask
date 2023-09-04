@@ -23,11 +23,13 @@
 
 namespace multi_call {
 
-class ArpcRequestBase : public Request {
+class ArpcRequestBase : public Request
+{
 public:
     ArpcRequestBase(const std::string &methodName,
                     const std::shared_ptr<google::protobuf::Arena> &arena)
-        : Request(MC_PROTOCOL_ARPC, arena), _message(NULL) {
+        : Request(MC_PROTOCOL_ARPC, arena)
+        , _message(NULL) {
         setMethodName(methodName);
     }
     ~ArpcRequestBase() {
@@ -36,9 +38,10 @@ public:
     }
 
 public:
-    virtual google::protobuf::Service *
-    createStub(google::protobuf::RpcChannel *channel) = 0;
-    virtual google::protobuf::Message *serializeMessage() { return _message; }
+    virtual google::protobuf::Service *createStub(google::protobuf::RpcChannel *channel) = 0;
+    virtual google::protobuf::Message *serializeMessage() {
+        return _message;
+    }
 
 public:
     bool serialize() override {
@@ -52,7 +55,9 @@ public:
             return 0;
         }
     }
-    google::protobuf::Message *getMessage() const { return _message; }
+    google::protobuf::Message *getMessage() const {
+        return _message;
+    }
     google::protobuf::Message *getCopyMessage() const {
         if (_message) {
             auto msg = _message->New(getProtobufArena().get());
@@ -78,7 +83,9 @@ public:
             span->addEvent("request", attrs);
         }
     }
-    void enableRdma() { _type = MC_PROTOCOL_RDMA_ARPC; }
+    void enableRdma() {
+        _type = MC_PROTOCOL_RDMA_ARPC;
+    }
 
 protected:
     google::protobuf::Message *_message;
@@ -86,26 +93,30 @@ protected:
 
 MULTI_CALL_TYPEDEF_PTR(ArpcRequestBase);
 
-template <typename StubType> class ArpcRequest : public ArpcRequestBase {
+template <typename StubType>
+class ArpcRequest : public ArpcRequestBase
+{
 public:
     ArpcRequest(const std::string &methodName,
                 const std::shared_ptr<google::protobuf::Arena> &arena)
-        : ArpcRequestBase(methodName, arena), _stub(NULL) {}
-    ~ArpcRequest() { DELETE_AND_SET_NULL(_stub); }
+        : ArpcRequestBase(methodName, arena)
+        , _stub(NULL) {
+    }
+    ~ArpcRequest() {
+        DELETE_AND_SET_NULL(_stub);
+    }
 
 private:
     ArpcRequest(const ArpcRequest &);
     ArpcRequest &operator=(const ArpcRequest &);
 
 public:
-    google::protobuf::Service *
-    createStub(google::protobuf::RpcChannel *channel) override {
+    google::protobuf::Service *createStub(google::protobuf::RpcChannel *channel) override {
         if (_stub) {
             // retry
             delete _stub;
         }
-        _stub = new StubType(
-            channel, google::protobuf::Service::STUB_DOESNT_OWN_CHANNEL);
+        _stub = new StubType(channel, google::protobuf::Service::STUB_DOESNT_OWN_CHANNEL);
         return _stub;
     }
 

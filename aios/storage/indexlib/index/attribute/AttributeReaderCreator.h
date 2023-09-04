@@ -48,7 +48,7 @@ protected:
     config::SortPattern GetSortPattern(const std::shared_ptr<config::IIndexConfig>& indexConfig,
                                        const IndexerParameter& indexerParam) const
     {
-        auto attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+        auto attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
         assert(nullptr != attrConfig);
         if (indexerParam.sortPatternFunc) {
             return indexerParam.sortPatternFunc(attrConfig->GetAttrName());

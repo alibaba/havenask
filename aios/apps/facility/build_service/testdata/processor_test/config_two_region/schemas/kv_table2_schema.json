@@ -1,0 +1,30 @@
+{
+    "table_name": "kv_table2",
+    "table_type": "kv",
+    "fields": [
+	{ "field_name": "nid2", "field_type": "INT64" },
+	{ "field_name": "pidvid", "field_type": "INT64"},
+	{ "field_name": "friendid2", "field_type": "INT64" }
+    ],
+    "regions" :
+    [
+	{
+	    "region_name" : "region3",
+	    "indexs": [
+		{ "index_name": "nid2", "index_fields": "nid2", "index_type": "PRIMARY_KEY",
+		  "index_preference" : { "type" : "PERF" }
+		}
+	    ],
+	    "attributes": [ "nid2", "pidvid", "friendid2" ]
+	},
+	{
+	    "region_name" : "region4",
+	    "indexs": [
+		{ "index_name": "friendid2", "index_fields": "friendid2", "index_type": "PRIMARY_KEY",
+		  "index_preference" : { "type" : "PERF" }
+		}
+	    ],
+	    "attributes": [ "nid2", "pidvid" ]
+	}
+    ]
+}

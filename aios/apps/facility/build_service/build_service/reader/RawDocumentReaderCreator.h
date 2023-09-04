@@ -58,7 +58,7 @@ public:
                                       const proto::PartitionId& partitionId,
                                       indexlib::util::MetricProviderPtr metricsProvider,
                                       const indexlib::util::CounterMapPtr& counterMap,
-                                      const std::shared_ptr<indexlibv2::config::TabletSchema>& schema);
+                                      const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema);
 
 private:
     RawDocumentReader* createSingleSourceReader(const config::ResourceReaderPtr& resourceReader,
@@ -66,7 +66,7 @@ private:
                                                 indexlib::util::MetricProviderPtr metricProvider,
                                                 const indexlib::util::CounterMapPtr& counterMap,
                                                 const indexlib::config::IndexPartitionSchemaPtr schema,
-                                                const std::shared_ptr<indexlibv2::config::TabletSchema>& schemaV2);
+                                                const std::shared_ptr<indexlibv2::config::ITabletSchema>& schemaV2);
 
 private:
     ReaderManagerPtr _readerManagerPtr;

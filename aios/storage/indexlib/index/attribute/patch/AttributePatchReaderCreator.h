@@ -18,10 +18,8 @@
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 
-namespace indexlibv2::config {
-class AttributeConfig;
-}
 namespace indexlibv2::index {
+class AttributeConfig;
 
 class AttributePatchReader;
 class AttributePatchReaderCreator : private autil::NoCopyable
@@ -31,14 +29,14 @@ public:
     ~AttributePatchReaderCreator() = default;
 
 public:
-    static std::shared_ptr<AttributePatchReader> Create(const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    static std::shared_ptr<AttributePatchReader> Create(const std::shared_ptr<AttributeConfig>& attrConfig);
 
 private:
     static std::shared_ptr<AttributePatchReader>
-    CreateMultiValuePatchReader(const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    CreateMultiValuePatchReader(const std::shared_ptr<AttributeConfig>& attrConfig);
 
     static std::shared_ptr<AttributePatchReader>
-    CreateSingleValuePatchReader(const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    CreateSingleValuePatchReader(const std::shared_ptr<AttributeConfig>& attrConfig);
 
 private:
     AUTIL_LOG_DECLARE();

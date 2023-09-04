@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/anet/appadapter.h"
+
 #include <iosfwd>
 
 #include "aios/network/anet/connection.h"
@@ -22,38 +23,27 @@
 namespace anet {
 class IConnection;
 class IPacketStreamer;
-}  // namespace anet
+} // namespace anet
 
 using namespace std;
 
-namespace anet
-{
+namespace anet {
 
-AnetAcceptor::AnetAcceptor(const string& address,
-        Transport* transport, IPacketStreamer* streamer,
-        int postPacketTimeout, int maxIdleTime):
-            mAddress(address), mTransport(transport),
-            mStreamer(streamer), mPostPacketTimeout(postPacketTimeout), mMaxIdleTime(maxIdleTime)
-{
+AnetAcceptor::AnetAcceptor(
+    const string &address, Transport *transport, IPacketStreamer *streamer, int postPacketTimeout, int maxIdleTime)
+    : mAddress(address)
+    , mTransport(transport)
+    , mStreamer(streamer)
+    , mPostPacketTimeout(postPacketTimeout)
+    , mMaxIdleTime(maxIdleTime) {}
+
+void AnetAcceptor::HandleAccept() {
+    mTransport->listen(mAddress.c_str(), mStreamer, this, mPostPacketTimeout, mMaxIdleTime);
 }
 
-void AnetAcceptor::HandleAccept()
-{
-    mTransport->listen(mAddress.c_str(), mStreamer,
-        this, mPostPacketTimeout, mMaxIdleTime);
-}
+AnetConnector::AnetConnector(const string &address, Transport *transport, IPacketStreamer *streamer, bool autoReconn)
+    : mAddress(address), mTransport(transport), mStreamer(streamer), mAutoReconn(autoReconn) {}
 
-AnetConnector::AnetConnector(const string& address, Transport* transport,
-        IPacketStreamer* streamer, bool autoReconn):
-            mAddress(address), mTransport(transport),
-            mStreamer(streamer), mAutoReconn(autoReconn)
-{
-}
-
-IConnection* AnetConnector::Connect()
-{
-    return mTransport->connect(mAddress.c_str(), mStreamer, mAutoReconn);
-}
+IConnection *AnetConnector::Connect() { return mTransport->connect(mAddress.c_str(), mStreamer, mAutoReconn); }
 
 } // namespace anet
-

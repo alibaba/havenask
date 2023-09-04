@@ -15,12 +15,11 @@
  */
 #include "indexlib/index/inverted_index/section_attribute/SectionDataReader.h"
 
-#include "indexlib/index/attribute/MultiValueAttributeMemReader.h"
 #include "indexlib/index/inverted_index/IInvertedDiskIndexer.h"
 #include "indexlib/index/inverted_index/IInvertedMemIndexer.h"
-#include "indexlib/index/inverted_index/SectionAttributeMemIndexer.h"
 #include "indexlib/index/inverted_index/config/PackageIndexConfig.h"
 #include "indexlib/index/inverted_index/config/SectionAttributeConfig.h"
+#include "indexlib/index/inverted_index/section_attribute/SectionAttributeMemIndexer.h"
 
 namespace indexlib::index {
 namespace {
@@ -39,7 +38,13 @@ Status SectionDataReader::DoOpen(const std::shared_ptr<indexlibv2::config::IInde
     auto sectionAttrConf = packageIndexConfig->GetSectionAttributeConfig();
     assert(sectionAttrConf);
     _attrConfig = sectionAttrConf->CreateAttributeConfig(packageIndexConfig->GetIndexName());
-    assert(_attrConfig);
+    if (_attrConfig == nullptr) {
+        auto status =
+            Status::InternalError("create attr config failed, index name [%s]", indexConfig->GetIndexName().c_str());
+        AUTIL_LOG(ERROR, "%s", status.ToString().c_str());
+        assert(false);
+        return status;
+    }
     _fieldPrinter.Init(_attrConfig->GetFieldConfig());
     assert(packageIndexConfig->GetShardingType() != indexlibv2::config::InvertedIndexConfig::IST_IS_SHARDING);
 

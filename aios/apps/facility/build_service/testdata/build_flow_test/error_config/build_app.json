@@ -1,0 +1,12 @@
+{
+    "amonitor_port" : 10086,
+    "apsara_package_name" : "",
+    "hadoop_package_name" : "hdfs://10.101.193.227:9000/dailyrun/bs_dailyrun_zhoujie/hadoop_build_package.tar.gz",
+    "hippo_root" : "zfs://10.101.170.89:12181,10.101.170.91:12181,10.101.170.92:12181,10.101.170.93:12181/hippo_7u/hippo",
+    "index_root" : "hdfs://10.101.193.227:9000/dailyrun/bs_dailyrun_zhoujie/grp_admin_test/sut_check_counters/testSimple/index",
+    "nuwa_service_ip" : "",
+    "service_name" : "04201415_grp_admin_test_sut_check_counters",
+    "swift_root" : "zfs://10.101.193.222:16181,10.101.193.223:16181,10.101.193.224:16181/swift/swift_service_7u",
+    "user_name" : "BsDaily",
+    "zookeeper_root" : "zfs://10.101.170.89:12181,10.101.170.90:12181,10.101.170.91:12181,10.101.170.92:12181,10.101.170.93:12181/dailyrun_zhoujie/grp_admin_test/sut_check_counters/testSimple"
+}

@@ -18,17 +18,18 @@
  * Author: zhangli
  * Create time: 2008-12-25 11:10:50
  * $Id$
- * 
+ *
  * Description: ***add description here***
- * 
+ *
  */
 
 #include "aios/network/anet/defaultpacket.h"
-#include "aios/network/anet/databuffer.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "aios/network/anet/databuffer.h"
 #include "aios/network/anet/packet.h"
 
 namespace anet {
@@ -39,12 +40,14 @@ DefaultPacket::DefaultPacket() {
 }
 
 DefaultPacket::~DefaultPacket() {
-    if (_body) ::free(_body);
+    if (_body)
+        ::free(_body);
 }
 
 bool DefaultPacket::setBody(const char *str, size_t length) {
     if (0 == length) {
-        if (_body) ::free(_body);
+        if (_body)
+            ::free(_body);
         _body = NULL;
         _bodyLength = 0;
         _capacity = 0;
@@ -64,45 +67,35 @@ bool DefaultPacket::appendBody(const char *str, size_t length) {
     if (0 == length || NULL == str) {
         return false;
     }
-    
+
     if (_capacity - _bodyLength < length) {
-        size_t tmpSize = (_capacity*2 - _bodyLength) >= length ?
-                      _capacity*2 : length*2 + _bodyLength;
+        size_t tmpSize = (_capacity * 2 - _bodyLength) >= length ? _capacity * 2 : length * 2 + _bodyLength;
         if (!setCapacity(tmpSize)) {
             return false;
         }
     }
     memcpy(_body + _bodyLength, str, length);
     _bodyLength += length;
-     return true;
+    return true;
 }
 
-const char* DefaultPacket::getBody(size_t &length) const {
+const char *DefaultPacket::getBody(size_t &length) const {
     length = _bodyLength;
     return _body;
 }
 
-char* DefaultPacket::getBody(size_t &length) {
+char *DefaultPacket::getBody(size_t &length) {
     length = _bodyLength;
     return _body;
 }
 
-const char* DefaultPacket::getBody() const {
-    return _body;
-}
+const char *DefaultPacket::getBody() const { return _body; }
 
-char* DefaultPacket::getBody() {
-    return _body;
-}
+char *DefaultPacket::getBody() { return _body; }
 
-size_t DefaultPacket::getBodyLen() const{
-    return _bodyLength;
-}
+size_t DefaultPacket::getBodyLen() const { return _bodyLength; }
 
-int64_t DefaultPacket::getSpaceUsed() {
-    return (sizeof(PacketHeader) + sizeof(DefaultPacket)
-            + getBodyLen());
-}
+int64_t DefaultPacket::getSpaceUsed() { return (sizeof(PacketHeader) + sizeof(DefaultPacket) + getBodyLen()); }
 
 bool DefaultPacket::setCapacity(size_t capacity) {
     if (capacity < _bodyLength) {
@@ -116,13 +109,11 @@ bool DefaultPacket::setCapacity(size_t capacity) {
         return false;
     }
     _body = tmp;
-    _capacity  = capacity;
+    _capacity = capacity;
     return true;
 }
 
-size_t DefaultPacket::getCapacity() {
-    return _capacity;
-}
+size_t DefaultPacket::getCapacity() { return _capacity; }
 
 bool DefaultPacket::encode(DataBuffer *output) {
     if (_bodyLength > 0) {
@@ -136,6 +127,6 @@ bool DefaultPacket::decode(DataBuffer *input, PacketHeader *header) {
     bool rc = setBody(input->getData(), header->_dataLen);
     input->drainData(header->_dataLen);
     return rc;
-} 
+}
 
-}/*end namespace anet*/
+} /*end namespace anet*/

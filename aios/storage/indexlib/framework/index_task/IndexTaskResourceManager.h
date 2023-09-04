@@ -58,6 +58,12 @@ public:
     template <typename T>
     Status GetExtendResource(const std::string& name, std::shared_ptr<T>& resource);
     Status AddExtendResource(const std::shared_ptr<IndexTaskResource>& extendResource);
+    std::map<std::string, std::shared_ptr<IndexTaskResource>> TEST_GetExtendResources() const;
+    void TEST_SetExtendResources(std::map<std::string, std::shared_ptr<IndexTaskResource>>& extendResources)
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _extendResources = extendResources;
+    }
 
 private:
     static std::string GetResourceDirName(const std::string& name);
@@ -68,7 +74,10 @@ private:
     CreateResource(const std::string& name, const IndexTaskResourceType& type, IIndexTaskResourceCreator* creator);
 
 private:
-    std::mutex _mutex;
+    void TEST_AddResource(const std::shared_ptr<IndexTaskResource>& resource);
+
+private:
+    mutable std::mutex _mutex;
     std::shared_ptr<indexlib::file_system::Directory> _resourceRoot;
     std::string _workPrefix;
     std::shared_ptr<IIndexTaskResourceCreator> _creator;
@@ -99,13 +108,14 @@ inline Status IndexTaskResourceManager::GetExtendResource(const std::string& nam
     std::lock_guard<std::mutex> lock(_mutex);
     auto iter = _extendResources.find(name);
     if (iter == _extendResources.end()) {
-        return Status::NotFound();
+        return Status::NotFound("get extend resource [%s] failed", name.c_str());
     }
 
     auto extendResource = std::dynamic_pointer_cast<ExtendResource<T>>(iter->second);
     if (!extendResource) {
-        AUTIL_LOG(ERROR, "convert to [%s] failed", name.c_str());
-        return Status::Corruption();
+        auto s = Status::Corruption("convert to [%s] failed", name.c_str());
+        AUTIL_LOG(ERROR, "%s", s.ToString().c_str());
+        return s;
     }
     resource = extendResource->GetResource();
     return Status::OK();
@@ -135,7 +145,7 @@ inline Status IndexTaskResourceManager::LoadResource(const std::string& name, co
                                                      std::shared_ptr<T>& resource)
 {
     auto [status, resourceBase] = LoadResource(name, type);
-    if (status.IsNoEntry()) {
+    if (status.IsNotFound()) {
         AUTIL_LOG(INFO, "resource [%s] not exist", name.c_str());
         return status;
     }

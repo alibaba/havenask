@@ -1,0 +1,58 @@
+{
+    "table_name": "simple_table",
+    "order_preserving_field":"ops_order_timestamp",
+    "fields":
+    [
+        {"field_name":"title",        "field_type":"string"},
+        {"field_name":"ops_order_timestamp",       "field_type":"INTEGER"},
+        {"field_name":"useless",       "field_type":"string"},        
+        {"field_name":"id",       "field_type":"INTEGER"}
+    ],
+
+    "indexs":
+    [
+        {
+            "index_name": "title",
+            "index_type": "string",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "index_fields": "title"
+        },
+        {
+            "index_name": "useless",
+            "index_type": "string",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "index_fields": "useless"
+        },        
+	{
+	    "index_name": "pk",
+	    "index_type": "PRIMARYKEY64",
+	    "index_fields": "id"
+	}
+    ],
+
+    "attributes": ["ops_order_timestamp"],
+
+    "summarys":{
+        "summary_fields": ["title",  "ops_order_timestamp"]
+    },
+    "source":
+    {
+        "modules": [
+
+	],
+	"group_configs": [
+            {
+                "field_mode": "specified_field",
+                "fields": ["ops_order_timestamp", "title", "id", "useless"],
+                "parameter" : {
+                    "compress_type": "uniq|equal",
+                    "doc_compressor": "zlib",
+                    "file_compressor" : "snappy",
+                    "file_compressor_buffer_size" : 4096
+                }
+            }
+	]
+    }    
+}

@@ -15,7 +15,11 @@
  */
 #pragma once
 #include <string>
-namespace indexlibv2::index {
+namespace indexlib::index {
 inline const std::string PRIMARY_KEY_INDEX_TYPE_STR = "primarykey";
+} // namespace indexlib::index
 
+//////////////////////////////////////////////////////////////////////
+namespace indexlibv2::index {
+using indexlib::index::PRIMARY_KEY_INDEX_TYPE_STR;
 } // namespace indexlibv2::index

@@ -18,7 +18,6 @@
 #include "indexlib/index/kv/hash_table_var_creator.h"
 
 using namespace std;
-using namespace indexlib::codegen;
 
 namespace indexlib { namespace index {
 IE_LOG_SETUP(index, KVSegmentOffsetReader);
@@ -179,7 +178,7 @@ bool KVSegmentOffsetReader::doCollectAllCode()
 
 void KVSegmentOffsetReader::TEST_collectCodegenResult(CodegenCheckers& checkers, std::string id)
 {
-    CodegenCheckerPtr checker(new CodegenChecker);
+    codegen::CodegenCheckerPtr checker(new codegen::CodegenChecker);
     COLLECT_CONST_MEM(checker, mIsMultiRegion);
     COLLECT_CONST_MEM(checker, mIsShortOffset);
     COLLECT_CONST_MEM(checker, mHasTs);

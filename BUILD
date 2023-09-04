@@ -1,7 +1,6 @@
 load(
     '@bazel_tools//tools/jdk:default_java_toolchain.bzl',
-    'default_java_toolchain', 'VANILLA_TOOLCHAIN_CONFIGURATION',
-    'JDK8_JVM_OPTS', 'DEFAULT_JAVACOPTS'
+    'default_java_toolchain', 'VANILLA_TOOLCHAIN_CONFIGURATION'
 )
 load('@bazel_skylib//rules:common_settings.bzl', 'bool_flag')
 default_java_toolchain(
@@ -17,6 +16,7 @@ default_java_toolchain(
 config_setting(name='arm_cpu', values={'cpu': 'aarch64'})
 config_setting(name='clang_build', values={'define': 'compiler_type=clang++'})
 config_setting(name='enable_rdma', values={'copt': '-DUSE_RDMA=1'})
+config_setting(name='enable_solar', values={'copt': '-DACCL_USE_SOLAR=1'})
 config_setting(
     name='new_abi_mode',
     define_values={'use_abi': '1'},
@@ -60,6 +60,11 @@ config_setting(
     define_values={'repo_mode': 'aios_open_source'},
     visibility=['//visibility:public']
 )
+config_setting(
+    name='hack_get_set_env',
+    define_values={'hack_get_set_env': 'true'},
+    visibility=['//visibility:public']
+)
 bool_flag(name='using_cuda', build_setting_default=False)
 bool_flag(name='using_ppu', build_setting_default=False)
 config_setting(
@@ -84,6 +89,11 @@ config_setting(
         ':using_cuda': 'False',
         ':using_ppu': 'False'
     },
+    visibility=['//visibility:public']
+)
+config_setting(
+    name='disable_catalog_mongodb',
+    values={'define': 'disable_catalog_mongodb=true'},
     visibility=['//visibility:public']
 )
 load(

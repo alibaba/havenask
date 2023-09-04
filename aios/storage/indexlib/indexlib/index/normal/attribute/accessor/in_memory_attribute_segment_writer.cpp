@@ -102,7 +102,7 @@ void InMemoryAttributeSegmentWriter::InitAttributeWriters(const AttributeSchemaP
         mAttrIdToCounters.resize(count);
     }
 
-    AttributeConfigIteratorPtr attrConfIter = attrSchema->CreateIterator(is_normal_or_disable);
+    AttributeConfigIteratorPtr attrConfIter = attrSchema->CreateIterator();
     for (AttributeSchema::Iterator iter = attrConfIter->Begin(); iter != attrConfIter->End(); iter++) {
         AttributeConfigPtr attrConfig = *iter;
         if (mEnableCounters) {
@@ -115,10 +115,6 @@ void InMemoryAttributeSegmentWriter::InitAttributeWriters(const AttributeSchemaP
         }
         if (attrConfig->GetPackAttributeConfig() != NULL) {
             // skip attributes defined in pack attribute
-            continue;
-        }
-        if (attrConfig->IsDisable()) {
-            IE_LOG(DEBUG, "attribute [%s] is disable", attrConfig->GetAttrName().c_str());
             continue;
         }
         AttributeWriterPtr attrWriter = CreateAttributeWriter(attrConfig, options, buildResourceMetrics);
@@ -134,7 +130,7 @@ void InMemoryAttributeSegmentWriter::InitAttributeWriters(const AttributeSchemaP
         const PackAttributeConfigPtr& packConfig = attrSchema->GetPackAttributeConfig(packattrid_t(i));
         assert(packConfig);
         PackAttributeWriterPtr packAttrWriter;
-        if (!packConfig->IsDisable()) {
+        if (!packConfig->IsDisabled()) {
             packAttrWriter.reset(AttributeWriterFactory::GetInstance()->CreatePackAttributeWriter(
                 packConfig, options, buildResourceMetrics));
             assert(packAttrWriter);
@@ -341,7 +337,7 @@ bool InMemoryAttributeSegmentWriter::UpdateEncodedFieldValue(docid_t docId, fiel
         ERROR_COLLECTOR_LOG(ERROR, "fieldId [%d] is not in Attribute!", fieldId);
         return false;
     }
-    if (attrConfig->IsDisable()) {
+    if (attrConfig->IsDisabled()) {
         return true;
     }
     PackAttributeConfig* packAttrConfig = attrConfig->GetPackAttributeConfig();

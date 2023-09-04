@@ -35,7 +35,7 @@ class IIndexer;
 }
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::framework {
@@ -52,6 +52,7 @@ public:
     Segment(SegmentStatus segmentStatus) : _segmentStatus(segmentStatus) {}
     virtual ~Segment() = default;
 
+public:
     // Get indexer for the given type and indexName.
     // Mem indexers always load the data.
     // For disk indexers, data will be loaded in non-lazy mode.
@@ -68,11 +69,16 @@ public:
     }
     virtual void DeleteIndexer(const std::string& type, const std::string& indexName) { assert(false); }
 
-    virtual size_t EstimateMemUsed(const std::shared_ptr<config::TabletSchema>& schema) = 0;
+    virtual size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) = 0;
     virtual size_t EvaluateCurrentMemUsed() = 0;
     virtual void CollectSegmentDescription(const std::shared_ptr<SegmentDescriptions>& segDescs) {}
+
+public:
+    const SegmentMeta& GetSegmentMeta() const { return _segmentMeta; }
     segmentid_t GetSegmentId() const { return _segmentMeta.segmentId; }
     const std::shared_ptr<SegmentInfo>& GetSegmentInfo() const { return _segmentMeta.segmentInfo; }
+    uint32_t GetDocCount() const { return GetSegmentInfo()->GetDocCount(); }
+    Locator GetLocator() const { return GetSegmentInfo()->GetLocator(); }
     const std::shared_ptr<indexlib::file_system::Directory>& GetSegmentDirectory() const
     {
         return _segmentMeta.segmentDir;
@@ -81,9 +87,17 @@ public:
     {
         return _segmentMeta.segmentMetrics;
     }
-    std::shared_ptr<config::TabletSchema> GetSegmentSchema() const { return _segmentMeta.schema; }
-    SegmentStatus GetSegmentStatus() const { return _segmentStatus; }
+    std::shared_ptr<config::ITabletSchema> GetSegmentSchema() const { return _segmentMeta.schema; }
+    const SegmentStatus& GetSegmentStatus() const { return _segmentStatus; }
+    const std::string& GetSegmentLifecycle() const { return _segmentMeta.lifecycle; }
     void SetSegmentStatus(const SegmentStatus& segmentStatus) { _segmentStatus = segmentStatus; }
+
+public:
+    static constexpr segmentid_t RT_SEGMENT_ID_MASK = (segmentid_t)0x1 << 30;
+    static constexpr segmentid_t MERGED_SEGMENT_ID_MASK = (segmentid_t)0x0;
+    static constexpr segmentid_t PUBLIC_SEGMENT_ID_MASK = (segmentid_t)0x1 << 29;
+    static constexpr segmentid_t PRIVATE_SEGMENT_ID_MASK = (segmentid_t)0x1 << 30;
+
     static bool IsRtSegmentId(segmentid_t segId) { return (segId & RT_SEGMENT_ID_MASK) > 0; }
     static bool IsMergedSegmentId(segmentid_t segId)
     {
@@ -99,25 +113,17 @@ public:
         return segId != INVALID_SEGMENTID && (segId & PRIVATE_SEGMENT_ID_MASK);
     }
 
-    std::pair<Status, Locator> GetLastLocator()
-    {
-        Locator locator = GetSegmentInfo()->GetLocator();
-        return {Status::OK(), locator};
-    }
-
-    static constexpr segmentid_t RT_SEGMENT_ID_MASK = (segmentid_t)0x1 << 30;
-    static constexpr segmentid_t MERGED_SEGMENT_ID_MASK = (segmentid_t)0x0;
-
-    static constexpr segmentid_t PUBLIC_SEGMENT_ID_MASK = (segmentid_t)0x1 << 29;
-    static constexpr segmentid_t PRIVATE_SEGMENT_ID_MASK = (segmentid_t)0x1 << 30;
-
+public:
     void TEST_SetSegmentMeta(const SegmentMeta& segmentMeta) { _segmentMeta = segmentMeta; }
 
 protected:
     void SetSegmentMeta(const SegmentMeta& segmentMeta) { _segmentMeta = segmentMeta; }
 
-    SegmentStatus _segmentStatus = SegmentStatus::ST_UNSPECIFY;
+protected:
     SegmentMeta _segmentMeta;
+
+private:
+    SegmentStatus _segmentStatus = SegmentStatus::ST_UNSPECIFY;
 };
 
 typedef std::shared_ptr<Segment> SegmentPtr;

@@ -16,6 +16,7 @@
 #include "indexlib/index/deletionmap/DeletionMapMemIndexer.h"
 
 #include "autil/mem_pool/Pool.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/normal/NormalDocument.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/WriterOption.h"
@@ -23,6 +24,7 @@
 #include "indexlib/index/BuildingIndexMemoryUseUpdater.h"
 #include "indexlib/index/DocMapDumpParams.h"
 #include "indexlib/index/deletionmap/Common.h"
+#include "indexlib/index/deletionmap/DeletionMapConfig.h"
 #include "indexlib/index/deletionmap/DeletionMapMetrics.h"
 #include "indexlib/index/deletionmap/DeletionMapUtil.h"
 #include "indexlib/util/MMapAllocator.h"
@@ -52,9 +54,13 @@ DeletionMapMemIndexer::~DeletionMapMemIndexer()
 Status DeletionMapMemIndexer::Init(const std::shared_ptr<config::IIndexConfig>& indexConfig,
                                    document::extractor::IDocumentInfoExtractorFactory* docInfoExtractorFactory)
 {
+    auto deletionMapIndexConfig = std::dynamic_pointer_cast<index::DeletionMapConfig>(indexConfig);
+    if (!deletionMapIndexConfig) {
+        deletionMapIndexConfig = std::make_shared<index::DeletionMapConfig>();
+    }
     _allocator.reset(new indexlib::util::MMapAllocator);
     _pool.reset(new autil::mem_pool::Pool(_allocator.get(), 1 * 1024 * 1024));
-    _bitmap.reset(new indexlib::util::ExpandableBitmap(DeletionMapUtil::DEFAULT_BITMAP_SIZE, false, _pool.get()));
+    _bitmap.reset(new indexlib::util::ExpandableBitmap(deletionMapIndexConfig->GetBitmapSize(), false, _pool.get()));
     if (_metrics) {
         _metrics->Start();
     }
@@ -68,11 +74,9 @@ Status DeletionMapMemIndexer::Build(const document::IIndexFields* indexFields, s
 Status DeletionMapMemIndexer::Build(document::IDocumentBatch* docBatch)
 {
     assert(docBatch);
-    for (size_t i = 0; i < docBatch->GetBatchSize(); ++i) {
-        if (docBatch->IsDropped(i)) {
-            continue;
-        }
-        indexlibv2::document::IDocument* doc = (*docBatch)[i].get();
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(docBatch);
+    while (iter->HasNext()) {
+        indexlibv2::document::IDocument* doc = iter->Next().get();
         if (doc->GetDocOperateType() != ADD_DOC) {
             continue;
         }

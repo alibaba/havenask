@@ -20,19 +20,19 @@
 namespace future_lite {
 class Executor;
 class IOExecutor;
-}  // namespace future_lite
+} // namespace future_lite
 
 namespace fslib {
 
-class IOController
-{
+class IOController {
 private:
     static constexpr int64_t DEFAULT_TIMEOUT = -1;
+
 public:
     IOController() { Reset(); }
     ~IOController() {}
-    IOController(const IOController&) = delete;
-    IOController& operator=(const IOController&) = delete;
+    IOController(const IOController &) = delete;
+    IOController &operator=(const IOController &) = delete;
 
     void Reset() {
         timeout = DEFAULT_TIMEOUT;
@@ -64,8 +64,8 @@ public:
     };
     int getAdvice() { return advice; }
 
-    void setExecutor(future_lite::Executor* ex) noexcept { executor = ex; }
-    future_lite::Executor* getExecutor() noexcept { return executor; }
+    void setExecutor(future_lite::Executor *ex) noexcept { executor = ex; }
+    future_lite::Executor *getExecutor() noexcept { return executor; }
 
 private:
     // options
@@ -74,8 +74,8 @@ private:
     // response
     ErrorCode errorCode;
     size_t ioSize;
-    future_lite::Executor* executor;
+    future_lite::Executor *executor;
 };
 
-}
+} // namespace fslib
 #endif

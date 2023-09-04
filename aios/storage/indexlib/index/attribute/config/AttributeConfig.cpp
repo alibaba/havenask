@@ -24,20 +24,19 @@
 #include "indexlib/index/attribute/Constant.h"
 #include "indexlib/index/common/Constant.h"
 #include "indexlib/index/common/FieldTypeTraits.h"
-#include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/util/Exception.h"
+#include "indexlib/util/PathUtil.h"
 
-namespace indexlibv2::config {
-AUTIL_LOG_SETUP(indexlib.config, AttributeConfig);
+namespace indexlibv2::index {
+AUTIL_LOG_SETUP(indexlib.index, AttributeConfig);
 
 struct AttributeConfig::Impl {
-    std::shared_ptr<FieldConfig> fieldConfig;
-    attrid_t attrId = 0;
-    AttributeConfig::ConfigType configType = ct_normal;
+    std::shared_ptr<config::FieldConfig> fieldConfig;
+    attrid_t attrId = INVALID_ATTRID;
     indexlib::config::CompressTypeOption compressType;
     uint64_t defragSlicePercent = index::ATTRIBUTE_DEFAULT_DEFRAG_SLICE_PERCENT;
     std::shared_ptr<indexlib::config::FileCompressConfig> fileCompressConfig;
-    std::shared_ptr<FileCompressConfigV2> fileCompressConfigV2;
+    std::shared_ptr<config::FileCompressConfigV2> fileCompressConfigV2;
     PackAttributeConfig* packAttrConfig = nullptr;
     uint64_t u32OffsetThreshold = index::ATTRIBUTE_U32OFFSET_THRESHOLD_MAX;
     indexlib::IndexStatus status = indexlib::is_normal;
@@ -47,11 +46,11 @@ struct AttributeConfig::Impl {
     int64_t sliceIdx = -1;
 };
 
-AttributeConfig::AttributeConfig(ConfigType type) : _impl(std::make_unique<Impl>()) { _impl->configType = type; }
+AttributeConfig::AttributeConfig() : _impl(std::make_unique<Impl>()) {}
 
 AttributeConfig::~AttributeConfig() {}
 
-static bool IsUpdatableSingleValue(const std::shared_ptr<FieldConfig>& fieldConfig)
+static bool IsUpdatableSingleValue(const std::shared_ptr<config::FieldConfig>& fieldConfig)
 {
     if (fieldConfig->IsMultiValue()) {
         return false;
@@ -63,11 +62,21 @@ static bool IsUpdatableSingleValue(const std::shared_ptr<FieldConfig>& fieldConf
            fieldType == ft_time || fieldType == ft_date || fieldType == ft_timestamp;
 }
 
-void AttributeConfig::Init(const std::shared_ptr<FieldConfig>& fieldConfig)
+Status AttributeConfig::Init(const std::shared_ptr<config::FieldConfig>& fieldConfig)
 {
     assert(fieldConfig);
+    assert(fieldConfig->GetFixedMultiValueCount() != 0);
+    if (fieldConfig == nullptr) {
+        return Status::InternalError("attribute config init failed. field config is nullptr");
+    }
+    if (fieldConfig->GetFixedMultiValueCount() == 0) {
+        return Status::InternalError("attribute config [%s] init failed. fixed multi value count 0 is invalid.",
+                                     fieldConfig->GetFieldName().c_str());
+    }
+
     _impl->fieldConfig = fieldConfig;
     _impl->updatable = IsUpdatableSingleValue(fieldConfig); // set DEFAULT, may changed by SetUpdatable()
+    return Status::OK();
 }
 
 int64_t AttributeConfig::GetSliceCount() const { return _impl->sliceCount; }
@@ -76,19 +85,23 @@ int64_t AttributeConfig::GetSliceIdx() const { return _impl->sliceIdx; }
 void AttributeConfig::Deserialize(const autil::legacy::Any& any, size_t idxInJsonArray,
                                   const config::IndexConfigDeserializeResource& resource)
 {
-    SetAttrId(idxInJsonArray);
     // do not support ["attr1", "attr2"] in new schema no longer
+
+    SetAttrId(idxInJsonArray);
     auto json = autil::legacy::Jsonizable::JsonWrapper(any);
-
+    // field_name
     std::string fieldName;
-    json.Jsonize(FieldConfig::FIELD_NAME, fieldName, fieldName);
-
+    json.Jsonize(config::FieldConfig::FIELD_NAME, fieldName, fieldName);
     if (!_impl->fieldConfig) {
-        Init(resource.GetFieldConfig(fieldName)); // indexlib v2
+        auto status = Init(resource.GetFieldConfig(fieldName)); // indexlib v2
+        if (!status.IsOK()) {
+            INDEXLIB_FATAL_ERROR(Schema, "init attr config [%s] failed, invalid field config, status[%s]",
+                                 fieldName.c_str(), status.ToString().c_str());
+        }
     } else {
-        // already Init by legacy indexlib::config::AttributeConfig::SetFieldConfig
+        // already Init by legacy indexlib::AttributeConfig::SetFieldConfig
     }
-
+    // compress_type
     std::string compressType;
     json.Jsonize(index::COMPRESS_TYPE, compressType, compressType);
     if (auto status = _impl->compressType.Init(compressType); !status.IsOK()) {
@@ -96,7 +109,7 @@ void AttributeConfig::Deserialize(const autil::legacy::Any& any, size_t idxInJso
                              status.ToString().c_str());
     }
 
-    // FILE_COMPRESSOR
+    // file_compressor
     std::string fileCompressor;
     json.Jsonize(index::FILE_COMPRESSOR, fileCompressor, fileCompressor);
     if (!fileCompressor.empty()) {
@@ -107,16 +120,21 @@ void AttributeConfig::Deserialize(const autil::legacy::Any& any, size_t idxInJso
         }
         _impl->fileCompressConfigV2 = fileCompressConfig;
     }
-
+    // u32offset_threshold
     json.Jsonize(index::ATTRIBUTE_U32OFFSET_THRESHOLD, _impl->u32OffsetThreshold, _impl->u32OffsetThreshold);
+    // defrag_slice_percent
     json.Jsonize(index::ATTRIBUTE_DEFRAG_SLICE_PERCENT, _impl->defragSlicePercent, _impl->defragSlicePercent);
+    // updatable
     json.Jsonize(index::ATTRIBUTE_UPDATABLE, _impl->updatable, _impl->updatable);
+    // slice_count
     json.Jsonize(index::ATTRIBUTE_SLICE_COUNT, _impl->sliceCount, _impl->sliceCount);
 }
 
 void AttributeConfig::Serialize(autil::legacy::Jsonizable::JsonWrapper& json) const
 {
-    json.Jsonize(FieldConfig::FIELD_NAME, GetAttrName());
+    // field_name
+    json.Jsonize(config::FieldConfig::FIELD_NAME, GetAttrName());
+    // file_compress or file_compressor
     if (_impl->fileCompressConfig) {
         std::string compressName = _impl->fileCompressConfig->GetCompressName();
         json.Jsonize(FILE_COMPRESS, compressName);
@@ -124,41 +142,29 @@ void AttributeConfig::Serialize(autil::legacy::Jsonizable::JsonWrapper& json) co
         std::string fileCompressor = _impl->fileCompressConfigV2->GetCompressName();
         json.Jsonize(index::FILE_COMPRESSOR, fileCompressor);
     }
+    // compress_type
     if (_impl->compressType.HasCompressOption()) {
         std::string compressStr = _impl->compressType.GetCompressStr();
         assert(!compressStr.empty());
         json.Jsonize(index::COMPRESS_TYPE, compressStr);
     }
+    // defrag_slice_percent
     if (_impl->defragSlicePercent != index::ATTRIBUTE_DEFAULT_DEFRAG_SLICE_PERCENT) {
         json.Jsonize(index::ATTRIBUTE_DEFRAG_SLICE_PERCENT, _impl->defragSlicePercent);
     }
+    // u32offset_threshold
     if (_impl->u32OffsetThreshold != index::ATTRIBUTE_U32OFFSET_THRESHOLD_MAX) {
         json.Jsonize(index::ATTRIBUTE_U32OFFSET_THRESHOLD, _impl->u32OffsetThreshold);
     }
+    // updatable
     json.Jsonize(index::ATTRIBUTE_UPDATABLE, _impl->updatable);
+    // slice_count
     if (_impl->sliceCount > 1) {
         json.Jsonize(index::ATTRIBUTE_SLICE_COUNT, _impl->sliceCount);
     }
 }
 
-const std::string& AttributeConfig::GetIndexType() const
-{
-    switch (_impl->configType) {
-    case ConfigType::ct_normal:
-    case ConfigType::ct_virtual:
-    case ConfigType::ct_section:
-    case ConfigType::ct_pk:
-    case ConfigType::ct_index_accompany:
-    case ConfigType::ct_summary_accompany:
-        return indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR;
-    case ConfigType::ct_unknown:
-    default:
-        break;
-    }
-    assert(false);
-    static std::string UNKNOW = "unknow";
-    return UNKNOW;
-}
+const std::string& AttributeConfig::GetIndexType() const { return ATTRIBUTE_INDEX_TYPE_STR; }
 
 const std::string& AttributeConfig::GetIndexName() const { return GetAttrName(); }
 
@@ -168,20 +174,11 @@ const std::string& AttributeConfig::GetAttrName() const
     return _impl->fieldConfig->GetFieldName();
 }
 
+const std::string& AttributeConfig::GetIndexCommonPath() const { return ATTRIBUTE_INDEX_PATH; }
+
 std::vector<std::string> AttributeConfig::GetIndexPath() const
 {
-    std::string path;
-    auto configType = _impl->configType;
-    if (configType == ConfigType::ct_section) {
-        path = indexlib::index::INVERTED_INDEX_PATH;
-    } else {
-        path = indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR;
-    }
-    std::string sliceDir = GetSliceDir();
-    if (!sliceDir.empty()) {
-        return {path + "/" + GetIndexName() + "/" + GetSliceDir()};
-    }
-    return {path + "/" + GetIndexName()};
+    return {indexlib::util::PathUtil::JoinPath(GetIndexCommonPath(), GetIndexName(), GetSliceDir())};
 }
 
 std::string AttributeConfig::GetSliceDir() const
@@ -191,20 +188,121 @@ std::string AttributeConfig::GetSliceDir() const
     }
     return "";
 }
-std::vector<std::shared_ptr<FieldConfig>> AttributeConfig::GetFieldConfigs() const { return {_impl->fieldConfig}; }
+std::vector<std::shared_ptr<config::FieldConfig>> AttributeConfig::GetFieldConfigs() const
+{
+    return {_impl->fieldConfig};
+}
 
 void AttributeConfig::Check() const
 {
-    // unimplemented
+    CheckFieldType();
+    CheckUniqEncode();
+    CheckEquivalentCompress();
+    CheckBlockFpEncode();
+    // not support
+    // CheckFp16Encode();
+    // CheckFloatInt8Encode();
+    // CheckUserDefineNullAttrValue();
 }
+
+void AttributeConfig::CheckUniqEncode() const
+{
+    if (GetCompressType().HasUniqEncodeCompress()) {
+        if (IsMultiValue() || GetFieldType() == ft_string) {
+            // do nothing
+        } else {
+            INDEXLIB_FATAL_ERROR(Schema, "uniqEncode invalid for field %s", GetIndexName().c_str());
+        }
+    }
+}
+
+void AttributeConfig::CheckFieldType() const
+{
+    if (GetFieldType() == ft_text) {
+        INDEXLIB_FATAL_ERROR(Schema, "attribute not support text field type, fieldName[%s]", GetIndexName().c_str());
+    }
+}
+
+void AttributeConfig::CheckEquivalentCompress() const
+{
+    // only not equal type allows to use compress
+    if (GetCompressType().HasEquivalentCompress()) {
+        if (!IsMultiValue() && GetFieldType() != ft_string && SupportNull()) {
+            INDEXLIB_FATAL_ERROR(Schema,
+                                 "equivalent compress invalid for field [%s], "
+                                 "not support null with equal compress ",
+                                 GetIndexName().c_str());
+        }
+
+        if (IsMultiValue() || GetFieldType() == ft_integer || GetFieldType() == ft_uint32 ||
+            GetFieldType() == ft_long || GetFieldType() == ft_uint64 || GetFieldType() == ft_int8 ||
+            GetFieldType() == ft_uint8 || GetFieldType() == ft_int16 || GetFieldType() == ft_uint16 ||
+            GetFieldType() == ft_float || GetFieldType() == ft_fp8 || GetFieldType() == ft_fp16 ||
+            GetFieldType() == ft_double || GetFieldType() == ft_string) {
+            // do nothing
+        } else {
+            INDEXLIB_FATAL_ERROR(Schema, "equivalent compress invalid for field [%s]", GetIndexName().c_str());
+        }
+    }
+}
+
+void AttributeConfig::CheckBlockFpEncode() const
+{
+    if (!GetCompressType().HasBlockFpEncodeCompress()) {
+        return;
+    }
+    if (!IsMultiValue() || GetFieldType() != ft_float || GetFixedMultiValueCount() == -1) {
+        INDEXLIB_FATAL_ERROR(Schema, "BlockFpEncode invalid for field %s", GetIndexName().c_str());
+    }
+}
+
+// void AttributeConfig::CheckFp16Encode() const
+// {
+//     if (GetFieldType() == ft_fp16) {
+//         // fieldType set to ft_fp16 means already checked
+//         return;
+//     }
+
+//     if (!GetCompressType().HasFp16EncodeCompress()) {
+//         return;
+//     }
+//     if (GetFieldType() != ft_float) {
+//         stringstream ss;
+//         ss << "Fp16Encode invalid for field " << GetFieldName();
+//         INDEXLIB_FATAL_ERROR(Schema, "%s", ss.str().c_str());
+//     }
+//     if (!IsMultiValue() && GetCompressType().HasEquivalentCompress()) {
+//         INDEXLIB_FATAL_ERROR(Schema, "can not use fp16 & equalCompress for field[%s] at the same time",
+//                              GetFieldName().c_str());
+//     }
+// }
+
+// void AttributeConfig::CheckFloatInt8Encode() const
+// {
+//     if (GetFieldType() == ft_fp8) {
+//         return;
+//     }
+
+//     if (!GetCompressType().HasInt8EncodeCompress()) {
+//         return;
+//     }
+//     if (GetFieldType() != ft_float) {
+//         stringstream ss;
+//         ss << "Int8FloatEncode invalid for field " << GetFieldName();
+//         INDEXLIB_FATAL_ERROR(Schema, "%s", ss.str().c_str());
+//     }
+
+//     if (!IsMultiValue() && GetCompressType().HasEquivalentCompress()) {
+//         INDEXLIB_FATAL_ERROR(Schema, "can not use int8Compress & equalCompress for field[%s] at the same time",
+//                              GetFieldName().c_str());
+//     }
+// }
 
 attrid_t AttributeConfig::GetAttrId() const { return _impl->attrId; }
 
-indexlib::config::CompressTypeOption AttributeConfig::GetCompressType() const { return _impl->compressType; }
+const indexlib::config::CompressTypeOption& AttributeConfig::GetCompressType() const { return _impl->compressType; }
 
-AttributeConfig::ConfigType AttributeConfig::GetConfigType() const { return _impl->configType; }
-
-float AttributeConfig::GetDefragSlicePercent() { return (float)_impl->defragSlicePercent / 100; }
+uint64_t AttributeConfig::GetDefragSlicePercent() const { return _impl->defragSlicePercent; }
 
 fieldid_t AttributeConfig::GetFieldId() const
 {
@@ -217,7 +315,7 @@ const std::shared_ptr<indexlib::config::FileCompressConfig>& AttributeConfig::Ge
     return _impl->fileCompressConfig;
 }
 
-const std::shared_ptr<FileCompressConfigV2>& AttributeConfig::GetFileCompressConfigV2() const
+const std::shared_ptr<config::FileCompressConfigV2>& AttributeConfig::GetFileCompressConfigV2() const
 {
     return _impl->fileCompressConfigV2;
 }
@@ -284,7 +382,7 @@ int32_t AttributeConfig::GetFixedMultiValueCount() const
 
 bool AttributeConfig::IsMultiString() const { return GetFieldType() == ft_string && IsMultiValue(); }
 
-void AttributeConfig::SetUpdatable(bool isUpdatable) { _impl->updatable = isUpdatable; }
+void AttributeConfig::SetUpdatable(bool updatable) { _impl->updatable = updatable; }
 
 Status AttributeConfig::SetCompressType(const std::string& compressStr)
 {
@@ -293,8 +391,6 @@ Status AttributeConfig::SetCompressType(const std::string& compressStr)
 
 void AttributeConfig::SetAttrId(attrid_t id) { _impl->attrId = id; }
 
-void AttributeConfig::SetConfigType(AttributeConfig::ConfigType type) { _impl->configType = type; }
-
 void AttributeConfig::SetDefragSlicePercent(uint64_t percent) { _impl->defragSlicePercent = percent; }
 
 void AttributeConfig::SetFileCompressConfig(
@@ -302,7 +398,7 @@ void AttributeConfig::SetFileCompressConfig(
 {
     _impl->fileCompressConfig = fileCompressConfig;
 }
-void AttributeConfig::SetFileCompressConfigV2(const std::shared_ptr<FileCompressConfigV2>& fileCompressConfigV2)
+void AttributeConfig::SetFileCompressConfigV2(const std::shared_ptr<config::FileCompressConfigV2>& fileCompressConfigV2)
 {
     _impl->fileCompressConfigV2 = fileCompressConfigV2;
 }
@@ -315,7 +411,6 @@ void AttributeConfig::SetPackAttributeConfig(PackAttributeConfig* packAttrConfig
 Status AttributeConfig::AssertEqual(const AttributeConfig& other) const
 {
     CHECK_CONFIG_EQUAL(_impl->attrId, other._impl->attrId, "attrId not equal");
-    CHECK_CONFIG_EQUAL(_impl->configType, other._impl->configType, "configType not equal");
     // CONFIG_ASSERT_EQUAL(mOwnerOpId, other.mOwnerOpId, "mOwnerOpId not equal");
 
     if (_impl->fileCompressConfig && other._impl->fileCompressConfig) {
@@ -354,9 +449,9 @@ std::vector<std::shared_ptr<AttributeConfig>> AttributeConfig::CreateSliceAttrib
 
 std::shared_ptr<AttributeConfig> AttributeConfig::Clone()
 {
-    std::shared_ptr<AttributeConfig> attrConfig(new AttributeConfig(_impl->configType));
-    attrConfig->Init(_impl->fieldConfig);
-
+    auto attrConfig = std::make_shared<AttributeConfig>();
+    [[maybe_unused]] auto status = attrConfig->Init(_impl->fieldConfig);
+    assert(status.IsOK());
     attrConfig->_impl->attrId = _impl->attrId;
     attrConfig->_impl->compressType = _impl->compressType;
     attrConfig->_impl->defragSlicePercent = _impl->defragSlicePercent;
@@ -374,7 +469,7 @@ void AttributeConfig::TEST_ClearCompressType() { _impl->compressType.ClearCompre
 
 uint64_t AttributeConfig::GetU32OffsetThreshold() const { return _impl->u32OffsetThreshold; }
 void AttributeConfig::SetU32OffsetThreshold(uint64_t offsetThreshold) { _impl->u32OffsetThreshold = offsetThreshold; }
-const std::shared_ptr<FieldConfig>& AttributeConfig::GetFieldConfig() const { return _impl->fieldConfig; }
+const std::shared_ptr<config::FieldConfig>& AttributeConfig::GetFieldConfig() const { return _impl->fieldConfig; }
 
 uint32_t AttributeConfig::GetFixLenFieldSize() const
 {
@@ -399,7 +494,6 @@ uint32_t AttributeConfig::GetFixLenFieldSize() const
     return indexlib::index::SizeOfFieldType(GetFieldType()) * GetFixedMultiValueCount();
 }
 
-bool AttributeConfig::IsDisable() const { return _impl->status == indexlib::is_disable; }
 bool AttributeConfig::IsDeleted() const { return _impl->status == indexlib::is_deleted; }
 bool AttributeConfig::IsNormal() const { return _impl->status == indexlib::is_normal; }
 indexlib::IndexStatus AttributeConfig::GetStatus() const { return _impl->status; }
@@ -419,7 +513,7 @@ Status AttributeConfig::Delete()
 
 bool AttributeConfig::IsLegacyAttributeConfig() const { return false; }
 
-Status AttributeConfig::CheckCompatible(const IIndexConfig* other) const
+Status AttributeConfig::CheckCompatible(const config::IIndexConfig* other) const
 {
     const auto* typedOther = dynamic_cast<const AttributeConfig*>(other);
     if (!typedOther) {
@@ -439,4 +533,6 @@ Status AttributeConfig::CheckCompatible(const IIndexConfig* other) const
     return Status::OK();
 }
 
-} // namespace indexlibv2::config
+bool AttributeConfig::IsDisabled() const { return _impl->status == indexlib::is_disable; }
+
+} // namespace indexlibv2::index

@@ -1,0 +1,87 @@
+{
+    "biz_info" : {
+        "biz1": {
+            "config_path" : "config_pathXXX"
+        },
+        "biz2": {
+	    "config_path" : "config_pathXXX"
+        }
+    },
+    "service_info" : {
+        "sub_cm2_configs": [
+            {
+                "cm2_server_cluster_name": "turing_seq_service_internal",
+                "cm2_server_leader_path": "/suez_ops/cm_server_ha3",
+                "cm2_server_zookeeper_host": "search-zk-cm2-ha3-ea120.vip.tbsite.net:2187"
+            },
+            {
+                "cm2_server_cluster_name": "gul_be_internal_suez_ops_pre",
+                "cm2_server_leader_path": "/suez_ops/cm_server_ha3",
+                "cm2_server_zookeeper_host": "search-zk-cm2-ha3-ea120.vip.tbsite.net:2187"
+            }
+        ]
+    },
+    "table_info" : {
+        "table1" : {
+            "1458258269" : {
+                "config_path" : "hdfs://hadoopnn.et2.tbsite.net:9000/app/rank_service_test/online/cluster1/config/1458286359",
+                "index_root" : "hdfs://hadoopnn.et2.tbsite.net:9000/app/rank_service_test/offline/index/hadoop/0.1.0/1/t1/hpaio_content_feature_table_pb/1_2/0",
+                "partitions" : {
+                    "0_65535" : {
+                        "inc_version" : -1,
+                        "load_state" : 2,
+                        "local_inc_version" : 0
+                    }
+                },
+                "rt_status" : 0
+            },
+            "1458258270" : {
+                "partitions" : {
+                    "0_65535" : {
+                        "inc_version" : 0,
+                        "load_state" : 2,
+                        "local_inc_version" : 0
+                    }
+                }
+            }
+        },
+        "table2" : {
+            "1458281178" : {
+                "config_path" : "hdfs://hadoopnn.et2.tbsite.net:9000/app/rank_service_test/online/cluster1/config/1458286359",
+                "index_root" : "hdfs://hadoopnn.et2.tbsite.net:9000/app/rank_service_test/offline/index/hadoop/0.1.0/1/t1/pora_swift_model_v2/1_1/0",
+                "partitions" : {
+                    "0_32767" : {
+                        "inc_version" : -1,
+                        "load_state" : 2,
+                        "local_inc_version" : 0
+                    },
+                    "32768_65535" : {
+                        "inc_version" : 0,
+                        "load_state" : 2,
+                        "local_inc_version" : 0
+                    }
+                },
+                "rt_status" : 0
+            }
+        },
+        "table3" : {
+            "1458281180" : {
+                "config_path" : "hdfs://hadoopnn.et2.tbsite.net:9000/app/rank_service_test/online/cluster1/config/1458286359",
+                "index_root" : "hdfs://hadoopnn.et2.tbsite.net:9000/app/rank_service_test/offline/index/hadoop/0.1.0/1/t1/pora_swift_model_v2/1_1/0",
+                "partitions" : {
+                    "0_32767" : {
+                        "inc_version" : 0,
+                        "load_state" : 2,
+                        "local_inc_version" : 0
+                    },
+                    "32768_65535" : {
+                        "inc_version" : 0,
+                        "load_state" : 2,
+                        "local_inc_version" : 0
+                    }
+                },
+                "rt_status" : 0
+            }
+        }
+    }
+}

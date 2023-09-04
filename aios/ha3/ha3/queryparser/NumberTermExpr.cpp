@@ -15,30 +15,30 @@
  */
 #include "ha3/queryparser/NumberTermExpr.h"
 
+#include <memory>
 #include <sstream>
 #include <string>
-#include <memory>
 
+#include "autil/Log.h"
 #include "ha3/common/NumberTerm.h"
 #include "ha3/queryparser/QueryExprEvaluator.h"
-#include "autil/Log.h"
 
 using namespace std;
 namespace isearch {
 namespace queryparser {
 AUTIL_LOG_SETUP(ha3, NumberTermExpr);
 
-NumberTermExpr::NumberTermExpr(int64_t leftNumber, bool leftInclusive,
-                   int64_t rightNumber, bool rightInclusive) 
-{
+NumberTermExpr::NumberTermExpr(int64_t leftNumber,
+                               bool leftInclusive,
+                               int64_t rightNumber,
+                               bool rightInclusive) {
     _leftNumber = leftNumber;
     _rightNumber = rightNumber;
     _leftInclusive = leftInclusive;
     _rightInclusive = rightInclusive;
 }
 
-NumberTermExpr::~NumberTermExpr() { 
-}
+NumberTermExpr::~NumberTermExpr() {}
 
 void NumberTermExpr::setLeftNumber(int64_t leftNumber, bool leftInclusive) {
     _leftNumber = leftNumber;
@@ -47,7 +47,7 @@ void NumberTermExpr::setLeftNumber(int64_t leftNumber, bool leftInclusive) {
 
 void NumberTermExpr::setRightNumber(int64_t rightNumber, bool rightInclusive) {
     _rightNumber = rightNumber;
-    _rightInclusive = rightInclusive;    
+    _rightInclusive = rightInclusive;
 }
 
 void NumberTermExpr::evaluate(QueryExprEvaluator *qee) {
@@ -55,13 +55,16 @@ void NumberTermExpr::evaluate(QueryExprEvaluator *qee) {
 }
 
 common::TermPtr NumberTermExpr::constructSearchTerm() {
-    common::NumberTermPtr numberTermPtr(new common::NumberTerm(
-                    _leftNumber, _leftInclusive, _rightNumber,
-                    _rightInclusive, _indexName.c_str(),
-                    _requiredFields, _boost, _secondaryChain));
+    common::NumberTermPtr numberTermPtr(new common::NumberTerm(_leftNumber,
+                                                               _leftInclusive,
+                                                               _rightNumber,
+                                                               _rightInclusive,
+                                                               _indexName.c_str(),
+                                                               _requiredFields,
+                                                               _boost,
+                                                               _secondaryChain));
     return dynamic_pointer_cast<common::Term>(numberTermPtr);
 }
 
 } // namespace queryparser
 } // namespace isearch
-

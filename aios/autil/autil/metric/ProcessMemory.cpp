@@ -15,11 +15,11 @@
  */
 #include "autil/metric/ProcessMemory.h"
 
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <string>
 #include <fstream> // IWYU pragma: keep
+#include <stdlib.h>
+#include <string.h>
+#include <string>
+#include <unistd.h>
 
 #include "autil/metric/MetricUtil.h"
 
@@ -35,8 +35,7 @@ ProcessMemory::ProcessMemory() {
     _memSwap = 0;
 }
 
-ProcessMemory::~ProcessMemory() {
-}
+ProcessMemory::~ProcessMemory() {}
 
 void ProcessMemory::update() {
     ifstream memInfoIn("/proc/meminfo");
@@ -47,7 +46,7 @@ void ProcessMemory::update() {
     stringstream ss;
     pid_t pid = getpid();
     ss << "/proc/" << pid << "/status";
-    string filePath= ss.str();
+    string filePath = ss.str();
     ifstream memStatsIn(filePath.c_str());
     if (memStatsIn) {
         parseProcessMemStatus(memStatsIn);
@@ -107,5 +106,5 @@ void ProcessMemory::parseMachineMemSize(istream &in) {
     }
 }
 
-}
-}
+} // namespace metric
+} // namespace autil

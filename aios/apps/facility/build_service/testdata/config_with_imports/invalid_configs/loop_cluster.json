@@ -1,0 +1,7 @@
+{
+    "inherit_from" : "invalid_configs/loop_cluster.json",
+    "cluster_config" : {
+	"table_name" : "aaa",
+	"cluster_type" : "inc_with_realtime"
+    }
+}

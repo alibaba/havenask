@@ -1,0 +1,68 @@
+{
+    "table_name": "mainse_searcher",
+    "attributes": [
+	"status",
+	"time"
+    ],
+    "fields": [
+	{
+	    "field_name": "pk",
+	    "field_type": "STRING"
+	},
+	{
+	    "field_name": "status",
+	    "field_type": "STRING",
+        "compress_type" : "equal",
+        "updatable_multi_value" : true
+	},
+	{
+	    "field_name": "time",
+	    "field_type": "UINT32"
+	}
+    ],
+    "indexs": [
+	{
+	    "has_primary_key_attribute": true,
+	    "index_fields": "pk",
+	    "index_name": "pk",
+	    "index_type": "PRIMARYKEY64"
+	},
+    {
+        "index_fields": "time",
+	    "index_name": "time",
+	    "index_type": "NUMBER"
+    },
+    {
+        "index_fields": "status",
+	    "index_name": "status",
+	    "index_type": "STRING"
+    }
+    ],
+    "enable_temperature_layer" : true,
+    "temperature_layer_config" : {
+        "default_property" : "HOT",
+        "conditions" : [
+            {
+                "property" : "HOT",
+                "filters" : [
+                    {"type" : "Range", "field_name" : "time", "function" : {"functionName" : "time_to_now" }, "value" : "[0, 1000]", "value_type" : "UINT64"},
+                    {"type" : "Equal", "field_name" : "status",  "value" : "1", "value_type" : "STRING"}
+                ]
+            },
+            {
+                "property" : "WARM",
+                "filters" : [
+                    {"type" : "Range", "field_name" : "time", "function" : {"functionName" : "time_to_now" }, "value" : "[1000,10000]", "value_type" : "UINT64"},
+                    {"type" : "Equal", "field_name" : "status",  "value" : "1", "value_type" : "STRING"}
+                ]
+            },
+            {
+                "property" : "COLD",
+                "filters" : [
+                    {"type" : "Range", "field_name" : "time", "function" : {"functionName" : "time_to_now" }, "value" : "[10000, 400000000]", "value_type" : "UINT64"},
+                    {"type" : "Equal", "field_name" : "status",  "value" : "0", "value_type" : "STRING"}
+                ]
+            }
+        ]
+    }
+}

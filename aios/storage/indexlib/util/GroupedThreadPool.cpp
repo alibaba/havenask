@@ -15,6 +15,7 @@
  */
 #include "indexlib/util/GroupedThreadPool.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/LambdaWorkItem.h"
 #include "autil/Lock.h"
 #include "autil/WorkItem.h"
@@ -23,11 +24,43 @@
 namespace indexlib::util {
 AUTIL_LOG_SETUP(indexlib.util, GroupedThreadPool);
 
-const std::string GroupedThreadPool::EXCEED_LIMIT_GROUP_NAME = "__EXCEED_LIMIT_GROUP__";
+const char* GroupedThreadPool::EXCEED_LIMIT_GROUP_NAME = "__EXCEED_LIMIT_GROUP__";
+const char* GroupedThreadPool::LONG_TAIL_FIELD_ENV = "indexlib_longtail_build_fields";
 
 GroupedThreadPool::GroupedThreadPool() : _batchId(0), _maxGroupCount(0), _maxBatchCount(0) {}
 
 GroupedThreadPool::~GroupedThreadPool() {}
+
+indexlibv2::Status GroupedThreadPool::SetupLongTailFields()
+{
+    _longTailThreadPool = nullptr;
+    std::string longTailFields = autil::EnvUtil::getEnv(LONG_TAIL_FIELD_ENV, /*defaultValue=*/"");
+    if (longTailFields.empty()) {
+        AUTIL_LOG(INFO, "long tail fields are empty");
+        return indexlibv2::Status::OK();
+    }
+    _longTailFieldsVec = autil::StringUtil::split(longTailFields, ',');
+    int32_t longTailFieldCount = 0;
+    for (const std::string& field : _longTailFieldsVec) {
+        if (field.empty()) {
+            continue;
+        }
+        longTailFieldCount++;
+        AUTIL_LOG(INFO, "long tail field: %s", field.c_str());
+    }
+    if (longTailFieldCount == 0) {
+        AUTIL_LOG(INFO, "long tail fields are empty");
+        return indexlibv2::Status::OK();
+    }
+    auto threadPoolQueueFactory = std::make_shared<autil::ThreadPoolQueueFactory>();
+    _longTailThreadPool = std::make_shared<autil::ThreadPool>(
+        /*threadNum=*/longTailFieldCount,
+        /*queueSize=*/_maxGroupCount + _maxBatchCount * longTailFieldCount + 1, threadPoolQueueFactory,
+        /*name=*/"long_tail");
+    AUTIL_LOG(INFO, "long tail thread pool thread number: %d", longTailFieldCount);
+    _longTailThreadPool->start();
+    return indexlibv2::Status::OK();
+}
 
 indexlibv2::Status GroupedThreadPool::Start(const std::shared_ptr<autil::ThreadPool>& threadPool, size_t maxGroupCount,
                                             size_t maxBatchCount)
@@ -44,14 +77,20 @@ indexlibv2::Status GroupedThreadPool::Start(const std::shared_ptr<autil::ThreadP
                                                  threadPool->getQueueSize(), _maxGroupCount, _maxBatchCount,
                                                  threadPool->getThreadNum());
     }
+    RETURN_IF_STATUS_ERROR(SetupLongTailFields(), "setup long tail fields failed");
     return indexlibv2::Status::OK();
 }
 
-void GroupedThreadPool::Start(const std::string& name, size_t threadNum, size_t maxGroupCount, size_t maxBatchCount)
+void GroupedThreadPool::Legacy_Start(const std::string& name, size_t threadNum, size_t maxGroupCount,
+                                     size_t maxBatchCount)
 {
     _maxGroupCount = maxGroupCount;
     _maxBatchCount = maxBatchCount;
     _threadPool = std::make_shared<autil::ThreadPool>(threadNum, maxGroupCount + maxBatchCount * threadNum + 1);
+    auto st = SetupLongTailFields();
+    if (!st.IsOK()) {
+        AUTIL_LOG(ERROR, "setup long tail fields failed: %s", st.ToString().c_str());
+    }
 }
 
 void GroupedThreadPool::StartNewBatch()
@@ -67,7 +106,7 @@ void GroupedThreadPool::StartNewBatch()
                           _batchUnfinishWorkItemCounts.size(), _maxBatchCount);
             }
         }
-        _batchFinishNotifier.waitNotification(10000);
+        _batchFinishNotifier.waitNotification(/*microSeconds=*/1000);
     }
 }
 
@@ -84,7 +123,7 @@ void GroupedThreadPool::PushWorkItem(const std::string& group, std::unique_ptr<a
         if (unlikely(_workItems.size() >= _maxGroupCount)) {
             // assert(false);  // comment for ut
             AUTIL_LOG(ERROR, "Too many groups exceed limit [%lu], will set group name to [%s]",
-                      _threadPool->getQueueSize(), EXCEED_LIMIT_GROUP_NAME.c_str());
+                      _threadPool->getQueueSize(), EXCEED_LIMIT_GROUP_NAME);
             if (unlikely(_workItems.count(EXCEED_LIMIT_GROUP_NAME) == 0)) {
                 _workItems[EXCEED_LIMIT_GROUP_NAME] =
                     std::queue<std::pair<int32_t, std::unique_ptr<autil::WorkItem>>>();
@@ -98,6 +137,16 @@ void GroupedThreadPool::PushWorkItem(const std::string& group, std::unique_ptr<a
     DoPushWorkItem(group, std::move(workItem));
 }
 
+void GroupedThreadPool::PushToThreadPoolInternal(const std::string& group, int32_t batchId, autil::WorkItem* workItem)
+{
+    if (_longTailThreadPool != nullptr &&
+        std::find(_longTailFieldsVec.begin(), _longTailFieldsVec.end(), group) != _longTailFieldsVec.end()) {
+        _longTailThreadPool->pushTask([this, group, batchId, workItem]() { DoWorkItem(group, batchId, workItem); });
+        return;
+    }
+    _threadPool->pushTask([this, group, batchId, workItem]() { DoWorkItem(group, batchId, workItem); });
+}
+
 void GroupedThreadPool::DoPushWorkItem(const std::string& group, std::unique_ptr<autil::WorkItem> workItem)
 {
     _workItems[group].push(std::make_pair(_batchId, std::move(workItem)));
@@ -105,11 +154,10 @@ void GroupedThreadPool::DoPushWorkItem(const std::string& group, std::unique_ptr
     _batchUnfinishWorkItemCounts[_batchId] =
         (_batchUnfinishWorkItemCounts.count(_batchId) > 0) ? _batchUnfinishWorkItemCounts[_batchId] + 1 : 1;
     if (_workItems[group].size() > 5) {
-        AUTIL_LOG(DEBUG, "too many work items [%lu] for group [%s]", _workItems[group].size(), group.c_str());
+        AUTIL_LOG(INFO, "too many work items [%lu] for group [%s]", _workItems[group].size(), group.c_str());
     }
     if (_workItems[group].size() == 1) {
-        _threadPool->pushTask(
-            [this, group, batchId = _batchId, workItemRawPtr]() { DoWorkItem(group, batchId, workItemRawPtr); });
+        PushToThreadPoolInternal(group, _batchId, workItemRawPtr);
     }
 }
 
@@ -157,9 +205,7 @@ void GroupedThreadPool::DoWorkItem(const std::string& group, int32_t batchId, au
     if (!_workItems[group].empty()) {
         int32_t nextWorkItemBatchId = _workItems[group].front().first;
         autil::WorkItem* nextWorkItem = _workItems[group].front().second.get();
-        _threadPool->pushTask([this, group, nextWorkItemBatchId, nextWorkItem]() {
-            DoWorkItem(group, nextWorkItemBatchId, nextWorkItem);
-        });
+        PushToThreadPoolInternal(group, nextWorkItemBatchId, nextWorkItem);
     }
 }
 
@@ -172,7 +218,23 @@ void GroupedThreadPool::WaitCurrentBatchWorkItemsFinish()
                 return;
             }
         }
-        _batchFinishNotifier.waitNotification(10000);
+        _batchFinishNotifier.waitNotification(/*microSeconds=*/1000);
+    }
+}
+
+void GroupedThreadPool::WaitFinish()
+{
+    _threadPool->waitFinish();
+    if (_longTailThreadPool != nullptr) {
+        _longTailThreadPool->waitFinish();
+    }
+}
+
+void GroupedThreadPool::Stop()
+{
+    _threadPool->stop();
+    if (_longTailThreadPool != nullptr) {
+        _longTailThreadPool->stop();
     }
 }
 

@@ -23,4 +23,4 @@ enum MetricType : unsigned int {
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_METRICTYPE_H_
+#endif // KMONITOR_CLIENT_METRICTYPE_H_

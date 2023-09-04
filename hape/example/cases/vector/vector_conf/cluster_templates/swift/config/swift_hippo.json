@@ -1,0 +1,64 @@
+{
+    "packages" : [
+        {
+            "packageURI" : "${swift.image}",
+            "type" : "IMAGE"
+        }
+    ],
+    "role_default" : {
+        "count" : 1,
+        "processInfos" : [
+            {
+                "args" : [
+                    [
+                        "-l",
+                        "${common.binaryPath}/usr/local/etc/swift/swift_alog.conf"
+                    ]
+                ],
+                "envs" : [
+                    [
+                        "LD_LIBRARY_PATH",
+                        "/opt/taobao/java/jre/lib/amd64/server:${common.binaryPath}/usr/local/lib64:${common.binaryPath}/usr/lib:${common.binaryPath}/usr/lib64:${common.binaryPath}/usr/local/lib:$LD_LIBRARY_PATH"
+                    ],
+                    [
+                        "PATH",
+                        "${common.binaryPath}/usr/local/bin:$PATH"
+                    ],
+                    [
+                        "JAVA_HOME",
+                        "${common.javaHome}"
+                    ],
+                    [
+                        "HADOOP_HOME",
+                        "${common.hadoopHome}"
+                    ]
+                ],
+                "isDaemon" : true,
+                "restartCountLimit" : 30,
+                "stopTimeout" : 360
+            }
+        ]
+    },
+    "role_resource" : {
+        "admin" : [
+            {
+                "amount" : 500,
+                "name" : "cpu"
+            },
+            {
+                "amount" : 10240,
+                "name" : "mem"
+            }
+        ],
+        "broker" : [
+            {
+                "amount" : 500,
+                "name" : "cpu"
+            },
+            {
+                "amount" : 10240,
+                "name" : "mem"
+            }
+        ]
+    }
+}

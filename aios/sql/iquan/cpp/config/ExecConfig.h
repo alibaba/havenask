@@ -15,19 +15,20 @@
  */
 #pragma once
 
+#include <stddef.h>
 #include <string>
 #include <vector>
-
-#include "iquan/common/Common.h"
 
 namespace iquan {
 
 class ParallelConfig {
 public:
-    ParallelConfig() : parallelNum(1) {}
+    ParallelConfig()
+        : parallelNum(1) {}
 
     ParallelConfig(size_t parallelNum, const std::vector<std::string> &parallelTables)
-        : parallelNum(parallelNum), parallelTables(parallelTables) {}
+        : parallelNum(parallelNum)
+        , parallelTables(parallelTables) {}
 
     ParallelConfig(const ParallelConfig &right) {
         parallelNum = right.parallelNum;
@@ -66,7 +67,9 @@ public:
     {}
 
     RuntimeConfig(size_t threadLimit, size_t timeout, const std::string &traceLevel)
-        : threadLimit(threadLimit), timeout(timeout), traceLevel(traceLevel) {}
+        : threadLimit(threadLimit)
+        , timeout(timeout)
+        , traceLevel(traceLevel) {}
 
     bool isValid() const {
         // todo: add trace level validatation
@@ -100,9 +103,12 @@ public:
 
 class NaviRunGraphConfig {
 public:
-    NaviRunGraphConfig() : runtimeConfig(1, 1, "") {}
+    NaviRunGraphConfig()
+        : runtimeConfig(1, 1, "") {}
 
-    NaviRunGraphConfig(const NaviRunGraphConfig &right) { runtimeConfig = right.runtimeConfig; }
+    NaviRunGraphConfig(const NaviRunGraphConfig &right) {
+        runtimeConfig = right.runtimeConfig;
+    }
 
     NaviRunGraphConfig &operator=(const NaviRunGraphConfig &right) {
         if (this == &right) {
@@ -112,7 +118,9 @@ public:
         return *this;
     }
 
-    bool isValid() const { return runtimeConfig.isValid(); }
+    bool isValid() const {
+        return runtimeConfig.isValid();
+    }
 
 public:
     RuntimeConfig runtimeConfig;
@@ -120,7 +128,8 @@ public:
 
 class ExecConfig {
 public:
-    ExecConfig() : lackResultEnable(true) {}
+    ExecConfig()
+        : lackResultEnable(true) {}
 
     ExecConfig(const ExecConfig &right) {
         parallelConfig = right.parallelConfig;
@@ -138,7 +147,9 @@ public:
         return *this;
     }
 
-    bool isValid() const { return parallelConfig.isValid() && naviConfig.isValid(); }
+    bool isValid() const {
+        return parallelConfig.isValid() && naviConfig.isValid();
+    }
 
 public:
     ParallelConfig parallelConfig;

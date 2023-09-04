@@ -1,0 +1,12 @@
+{
+    "cluster_config" : {
+	"hash_mode" : {
+            "hash_function" : "HASH",
+            "hash_field" : "id"
+	},
+	"builder_rule_config" : {
+            "partition_count" : 3
+	},
+        "table_name" : "simple"
+    }
+}

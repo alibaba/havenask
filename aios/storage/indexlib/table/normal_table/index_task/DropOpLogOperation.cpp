@@ -17,7 +17,7 @@
 
 #include "indexlib/base/PathUtil.h"
 #include "indexlib/config/IIndexConfig.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/index/attribute/Common.h"
@@ -43,8 +43,8 @@ DropOpLogOperation::DropOpLogOperation(const framework::IndexOperationDescriptio
 
 DropOpLogOperation::~DropOpLogOperation() {}
 
-bool DropOpLogOperation::NeedDropOpLog(segmentid_t segmentId, const std::shared_ptr<config::TabletSchema>& baseSchema,
-                                       const std::shared_ptr<config::TabletSchema>& targetSchema)
+bool DropOpLogOperation::NeedDropOpLog(segmentid_t segmentId, const std::shared_ptr<config::ITabletSchema>& baseSchema,
+                                       const std::shared_ptr<config::ITabletSchema>& targetSchema)
 {
     if (framework::Segment::IsMergedSegmentId(segmentId)) {
         return false;
@@ -58,8 +58,8 @@ bool DropOpLogOperation::NeedDropOpLog(segmentid_t segmentId, const std::shared_
     return dropFields.size() > 0;
 }
 
-std::set<fieldid_t> DropOpLogOperation::CalculateDropFields(const std::shared_ptr<config::TabletSchema>& baseSchema,
-                                                            const std::shared_ptr<config::TabletSchema>& targetSchema)
+std::set<fieldid_t> DropOpLogOperation::CalculateDropFields(const std::shared_ptr<config::ITabletSchema>& baseSchema,
+                                                            const std::shared_ptr<config::ITabletSchema>& targetSchema)
 {
     auto config = baseSchema->GetIndexConfig(OPERATION_LOG_INDEX_TYPE_STR, OPERATION_LOG_INDEX_NAME);
     auto opLogConfig = std::dynamic_pointer_cast<OperationLogConfig>(config);

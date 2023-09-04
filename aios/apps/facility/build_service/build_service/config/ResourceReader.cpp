@@ -15,6 +15,7 @@
  */
 #include "build_service/config/ResourceReader.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
 #include "build_service/config/ConfigDefine.h"
@@ -49,9 +50,9 @@ ResourceReader::ResourceReader(const string& configRoot)
     , _workerProtocolVersion(UNKNOWN_WORKER_PROTOCOL_VERSION)
     , _isInit(false)
 {
-    const char* param = getenv(BS_ENV_ENABLE_RESOURCE_READER_MAX_ZIP_SIZE.c_str());
+    string param = autil::EnvUtil::getEnv(BS_ENV_ENABLE_RESOURCE_READER_MAX_ZIP_SIZE.c_str());
     int64_t maxZipSize;
-    if (param != NULL && StringUtil::fromString(string(param), maxZipSize)) {
+    if (!param.empty() && StringUtil::fromString(param, maxZipSize)) {
         _maxZipSize = maxZipSize * 1024;
     }
 }
@@ -442,11 +443,11 @@ IndexPartitionSchemaPtr ResourceReader::getSchemaBySchemaTableName(const string&
 std::shared_ptr<indexlibv2::config::TabletOptions>
 ResourceReader::getTabletOptions(const std::string& clusterName) const
 {
-    auto clusterFileName = getClusterConfRelativePath(clusterName);
-    ConfigParser parser(_configRoot);
     JsonMap jsonMap;
-    if (!parser.parseRelativePath(clusterFileName, jsonMap, /*isNotExist=*/nullptr)) {
-        BS_LOG(ERROR, "load TabletOptions from %s failed", clusterFileName.c_str());
+    auto clusterFileName = getClusterConfRelativePath(clusterName);
+    auto status = getJsonMap(clusterFileName, jsonMap);
+    if (status != Status::OK) {
+        AUTIL_LOG(ERROR, "get json map from [%s] failed", clusterFileName.c_str());
         return nullptr;
     }
 

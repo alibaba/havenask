@@ -16,18 +16,22 @@
 #ifndef ISEARCH_MULTI_CALL_SUBSCRIBESERVICE_H
 #define ISEARCH_MULTI_CALL_SUBSCRIBESERVICE_H
 
-#include "aios/network/gig/multi_call/common/WorkerNodeInfo.h"
-#include "aios/network/gig/multi_call/common/common.h"
-#include "aios/network/gig/multi_call/metric/IstioMetricReporter.h"
 #include <string>
 #include <vector>
 
+#include "aios/network/gig/multi_call/common/WorkerNodeInfo.h"
+#include "aios/network/gig/multi_call/common/common.h"
+#include "aios/network/gig/multi_call/metric/IstioMetricReporter.h"
+
 namespace multi_call {
 
-class SubscribeService {
+class SubscribeService
+{
 public:
-    SubscribeService() : _enabled(true) {}
-    virtual ~SubscribeService() {}
+    SubscribeService() : _enabled(true) {
+    }
+    virtual ~SubscribeService() {
+    }
 
 private:
     SubscribeService(const SubscribeService &);
@@ -36,7 +40,9 @@ private:
 public:
     virtual bool init() = 0;
     virtual SubscribeType getType() = 0;
-    virtual bool clusterInfoNeedUpdate() { return true; }
+    virtual bool clusterInfoNeedUpdate() {
+        return true;
+    }
     virtual bool getClusterInfoMap(TopoNodeVec &topNodeVec, HeartbeatSpecVec &heartbeatSpecs) = 0;
     virtual bool addSubscribe(const std::vector<std::string> &names) {
         return false;
@@ -44,10 +50,18 @@ public:
     virtual bool deleteSubscribe(const std::vector<std::string> &names) {
         return false;
     }
-    virtual bool checkSubscribeWork() { return true; }
-    virtual bool stopSubscribe() { return false; }
-    virtual void setEnable(bool enable) { _enabled = enable; }
-    virtual bool isEnable() { return _enabled; }
+    virtual bool checkSubscribeWork() {
+        return true;
+    }
+    virtual bool stopSubscribe() {
+        return false;
+    }
+    virtual void setEnable(bool enable) {
+        _enabled = enable;
+    }
+    virtual bool isEnable() {
+        return _enabled;
+    }
 
 private:
     bool _enabled;

@@ -25,7 +25,8 @@ namespace multi_call {
 
 typedef std::shared_ptr<arpc::RPCChannelBase> RPCChannelPtr;
 
-class ArpcConnectionBase : public Connection {
+class ArpcConnectionBase : public Connection
+{
 public:
     ArpcConnectionBase(const std::string &spec, ProtocolType type, size_t queueSize);
     virtual ~ArpcConnectionBase();

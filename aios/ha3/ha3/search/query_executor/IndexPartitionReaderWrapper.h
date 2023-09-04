@@ -25,11 +25,12 @@
 #include <vector>
 
 #include "autil/Log.h" // IWYU pragma: keep
-#include "ha3/search/PartitionInfoWrapper.h"
 #include "ha3/isearch.h"
-#include "indexlib/index/normal/attribute/accessor/join_docid_attribute_iterator.h"
+#include "ha3/search/PartitionInfoWrapper.h"
+#include "indexlib/index/ann/aitheta2/AithetaTerm.h"
 #include "indexlib/index/inverted_index/InvertedIndexReader.h"
 #include "indexlib/index/inverted_index/PostingIterator.h"
+#include "indexlib/index/normal/attribute/accessor/join_docid_attribute_iterator.h"
 #include "indexlib/index/partition_info.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/misc/common.h"
@@ -80,6 +81,7 @@ class Term;
 namespace search {
 class AttributeMetaInfo;
 class LayerMeta;
+class FilterWrapper;
 } // namespace search
 } // namespace isearch
 
@@ -106,7 +108,8 @@ public:
     typedef indexlib::index::JoinDocidAttributeIterator DocMapAttrIterator;
     typedef indexlib::index::PostingIterator PostingIterator;
     typedef std::unordered_map<std::string, LookupResult> PostingCache;
-    typedef std::vector<std::pair<std::string, indexlib::index::PostingIterator *>> DelPostingVector;
+    typedef std::vector<std::pair<std::string, indexlib::index::PostingIterator *>>
+        DelPostingVector;
     typedef indexlib::partition::IndexPartitionReaderPtr IndexPartitionReaderPtr;
     typedef indexlib::index::PartitionInfoPtr PartitionInfoPtr;
     typedef std::vector<
@@ -177,8 +180,8 @@ public:
 
     virtual bool getSortedDocIdRanges(
         const std::vector<std::shared_ptr<indexlib::table::DimensionDescription>> &dimensions,
-            const indexlib::DocIdRange &rangeLimits,
-            indexlib::DocIdRangeVector &resultRanges) const;
+        const indexlib::DocIdRange &rangeLimits,
+        indexlib::DocIdRangeVector &resultRanges) const;
 
 public:
     void setTopK(uint32_t topK) {
@@ -190,6 +193,9 @@ public:
     void setSessionPool(autil::mem_pool::Pool *sessionPool) {
         _sessionPool = sessionPool;
     }
+    void setFilterWrapper(FilterWrapper *filterWrapper) {
+        _filterWrapper = filterWrapper;
+    }
 
 protected:
     virtual void
@@ -200,25 +206,28 @@ public:
     const std::vector<IndexPartitionReaderPtr> *getIndexPartReaders() const {
         return _indexReaderVec;
     }
-    std::shared_ptr<indexlib::index::InvertedIndexReader> getIndexReader(const std::string &indexName) {
+    std::shared_ptr<indexlib::index::InvertedIndexReader>
+    getIndexReader(const std::string &indexName) {
         bool unused;
         std::shared_ptr<indexlib::index::InvertedIndexReader> indexReader;
         getIndexReader(indexName, indexReader, unused);
         return indexReader;
     }
     bool getAttributeMetaInfo(const std::string &attrName, AttributeMetaInfo &metaInfo) const;
-    bool getIndexReader(const std::string &indexName, std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReader,
+    bool getIndexReader(const std::string &indexName,
+                        std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReader,
                         bool &isSubIndex);
     void truncateRewrite(const std::string &truncateName,
                          indexlib::index::Term &indexTerm,
                          PostingType &pt1,
                          PostingType &pt2);
-    LookupResult doLookupWithoutCache(const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReaderPtr,
-                                      bool isSubIndex,
-                                      const indexlib::index::Term &indexTerm,
-                                      PostingType pt1,
-                                      PostingType pt2,
-                                      const LayerMeta *layerMeta);
+    LookupResult doLookupWithoutCache(
+        const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReaderPtr,
+        bool isSubIndex,
+        const indexlib::index::Term &indexTerm,
+        PostingType pt1,
+        PostingType pt2,
+        const LayerMeta *layerMeta);
     // virtual for test
     virtual InvertedTracerVector getInvertedTracers();
     size_t getTracerCursor() {
@@ -230,7 +239,10 @@ private:
     const IndexPartitionReaderPtr &getReader() const;
 
     bool tryGetFromPostingCache(const std::string &key, LookupResult &result);
-    indexlib::index::Term *createIndexTerm(const common::Term &term);
+    indexlib::index::Term *
+    createIndexTerm(const common::Term &term, InvertedIndexType indexType, bool isSubIndex);
+    indexlibv2::index::ann::AithetaTerm *createAithetaTerm(const common::Term &term,
+                                                           bool isSubIndex);
     LookupResult
     doLookup(const common::Term &term, const std::string &key, const LayerMeta *layerMeta);
     LookupResult makeLookupResult(bool isSubIndex,
@@ -242,14 +254,18 @@ private:
                       const Key &key,
                       bool ignoreDelete,
                       docid_t &docid) const;
+    InvertedIndexType
+    getIndexType(std::shared_ptr<indexlib::index::InvertedIndexReader> indexReaderPtr,
+                 const std::string &indexName);
 
 protected:
-    virtual PostingIterator *doLookupByRanges(const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReaderPtr,
-                                              const indexlib::index::Term *indexTerm,
-                                              PostingType pt1,
-                                              PostingType pt2,
-                                              const LayerMeta *layerMeta,
-                                              bool isSubIndex);
+    virtual PostingIterator *
+    doLookupByRanges(const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReaderPtr,
+                     const indexlib::index::Term *indexTerm,
+                     PostingType pt1,
+                     PostingType pt2,
+                     const LayerMeta *layerMeta,
+                     bool isSubIndex);
     bool getSubRanges(const LayerMeta *mainLayerMeta, indexlib::DocIdRangeVector &subRanges);
 
 protected:
@@ -269,6 +285,8 @@ protected:
     // for sub partition seek
     DocMapAttrIterator *_main2SubIt = nullptr;
     DocMapAttrIterator *_sub2MainIt = nullptr;
+
+    FilterWrapper *_filterWrapper = nullptr;
 
     static std::shared_ptr<indexlib::index::SummaryReader> RET_EMPTY_SUMMARY_READER;
     static std::shared_ptr<indexlib::index::PrimaryKeyIndexReader> RET_EMPTY_PRIMARY_KEY_READER;

@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+message AithetaQuery {
+    int64 indexId = 1;
+    repeated float embeddings = 10;
+    uint32 embeddingCount = 20;
+    uint32 topk = 30;
+    bool lrSearch = 40;
+    bool debugMode = 70;
+    float scorethreshold = 80;
+    bool hasscorethreshold = 90;
+    string searchParams = 100;
+}
+
+message AithetaQueries {
+    repeated AithetaQuery aithetaQueries = 10;
+    map<string, string> queryTags = 11;
+}

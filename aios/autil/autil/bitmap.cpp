@@ -19,20 +19,13 @@
 
 namespace autil {
 
-const uint32_t Bitmap::BITMAPOPMASK[SLOT_SIZE] =
-{
-    0x80000000, 0x40000000, 0x20000000, 0x10000000,
-    0x08000000, 0x04000000, 0x02000000, 0x01000000,
-    0x00800000, 0x00400000, 0x00200000, 0x00100000,
-    0x00080000, 0x00040000, 0x00020000, 0x00010000,
-    0x00008000, 0x00004000, 0x00002000, 0x00001000,
-    0x00000800, 0x00000400, 0x00000200, 0x00000100,
-    0x00000080, 0x00000040, 0x00000020, 0x00000010,
-    0x00000008, 0x00000004, 0x00000002, 0x00000001
-};
+const uint32_t Bitmap::BITMAPOPMASK[SLOT_SIZE] = {
+    0x80000000, 0x40000000, 0x20000000, 0x10000000, 0x08000000, 0x04000000, 0x02000000, 0x01000000,
+    0x00800000, 0x00400000, 0x00200000, 0x00100000, 0x00080000, 0x00040000, 0x00020000, 0x00010000,
+    0x00008000, 0x00004000, 0x00002000, 0x00001000, 0x00000800, 0x00000400, 0x00000200, 0x00000100,
+    0x00000080, 0x00000040, 0x00000020, 0x00000010, 0x00000008, 0x00000004, 0x00000002, 0x00000001};
 
-Bitmap::Bitmap(uint32_t nItemCount, bool bSet, autil::mem_pool::PoolBase* pool)
-{
+Bitmap::Bitmap(uint32_t nItemCount, bool bSet, autil::mem_pool::PoolBase *pool) {
     mPool = pool;
     mSlotCount = (nItemCount + SLOT_SIZE - 1) >> 5;
     mData = POOL_COMPATIBLE_NEW_VECTOR(mPool, uint32_t, mSlotCount);
@@ -51,37 +44,28 @@ Bitmap::Bitmap(uint32_t *data, uint32_t itemCount, uint32_t slotCount)
     , mPool(nullptr)
     , mSetCount(0)
     , mMount(true)
-    , mInitSet(false)
-{
-}
+    , mInitSet(false) {}
 
-Bitmap::Bitmap(const Bitmap& rhs)
-{
+Bitmap::Bitmap(const Bitmap &rhs) {
     mItemCount = rhs.mItemCount;
     mSetCount = rhs.mSetCount;
     mSlotCount = rhs.mSlotCount;
     mInitSet = rhs.mInitSet;
     mPool = NULL;
 
-    if (rhs.GetData() != NULL)
-    {
+    if (rhs.GetData() != NULL) {
         mData = POOL_COMPATIBLE_NEW_VECTOR(mPool, uint32_t, mSlotCount);
         memcpy(mData, rhs.mData, mSlotCount * sizeof(uint32_t));
-    }
-    else
-    {
+    } else {
         mData = NULL;
     }
     mMount = false;
 }
 
-Bitmap& Bitmap::operator=(const Bitmap& rhs)
-{
-    if (this != &rhs )
-    {
+Bitmap &Bitmap::operator=(const Bitmap &rhs) {
+    if (this != &rhs) {
         mPool = rhs.mPool;
-        if(!mMount && mData!=NULL)
-        {
+        if (!mMount && mData != NULL) {
             // only release mData when mPool is NULL
             POOL_COMPATIBLE_DELETE_VECTOR_WITH_NUM(mPool, mData, mSlotCount);
         }
@@ -90,13 +74,10 @@ Bitmap& Bitmap::operator=(const Bitmap& rhs)
         mSlotCount = rhs.mSlotCount;
         mInitSet = rhs.mInitSet;
 
-        if (rhs.GetData() != NULL)
-        {
+        if (rhs.GetData() != NULL) {
             mData = POOL_COMPATIBLE_NEW_VECTOR(mPool, uint32_t, mSlotCount);
-            memcpy(mData, rhs.mData, mSlotCount*sizeof(uint32_t));
-        }
-        else
-        {
+            memcpy(mData, rhs.mData, mSlotCount * sizeof(uint32_t));
+        } else {
             mData = NULL;
         }
         mMount = false;
@@ -104,18 +85,11 @@ Bitmap& Bitmap::operator=(const Bitmap& rhs)
     return *this;
 }
 
-Bitmap::~Bitmap(void)
-{
-    Clear();
-}
+Bitmap::~Bitmap(void) { Clear(); }
 
-Bitmap* Bitmap::Clone() const
-{
-    return new Bitmap(*this);
-}
+Bitmap *Bitmap::Clone() const { return new Bitmap(*this); }
 
-bool Bitmap::Alloc(uint32_t nItemCount, bool bSet)
-{
+bool Bitmap::Alloc(uint32_t nItemCount, bool bSet) {
     Clear();
 
     mSlotCount = (nItemCount + SLOT_SIZE - 1) >> 5;
@@ -126,10 +100,8 @@ bool Bitmap::Alloc(uint32_t nItemCount, bool bSet)
     return true;
 }
 
-void Bitmap::Clear()
-{
-    if (!mMount&&mData != NULL)
-    {
+void Bitmap::Clear() {
+    if (!mMount && mData != NULL) {
         // only release mData when mPool is NULL
         POOL_COMPATIBLE_DELETE_VECTOR_WITH_NUM(mPool, mData, mSlotCount);
     }
@@ -138,15 +110,10 @@ void Bitmap::Clear()
     mSetCount = 0;
 }
 
-uint32_t Bitmap::Size() const
-{
-    return mSlotCount * sizeof(uint32_t);
-}
+uint32_t Bitmap::Size() const { return mSlotCount * sizeof(uint32_t); }
 
-void Bitmap::RefreshSetCountByScanning() const
-{
-    if (mData == NULL)
-    {
+void Bitmap::RefreshSetCountByScanning() const {
+    if (mData == NULL) {
         mSetCount = 0;
         return;
     }
@@ -155,42 +122,26 @@ void Bitmap::RefreshSetCountByScanning() const
     uint32_t testSlot = mSlotCount - 1;
     uint32_t testBitInLastSlot = (mItemCount & SLOT_SIZE_BIT_MASK);
     mSetCount = CountBits(mData[testSlot], testBitInLastSlot);
-    for (uint32_t i = 0; i < (testBitInLastSlot ? testSlot : testSlot + 1); ++i)
-    {
-        if ((nData = mData[i]) == 0)
-        {
+    for (uint32_t i = 0; i < (testBitInLastSlot ? testSlot : testSlot + 1); ++i) {
+        if ((nData = mData[i]) == 0) {
             continue;
         }
         mSetCount += CountBits(nData);
     }
 }
 
-uint32_t Bitmap::GetSetCount() const
-{
-    return mSetCount;
-}
+uint32_t Bitmap::GetSetCount() const { return mSetCount; }
 
-void Bitmap::SetSetCount(uint32_t nCount)
-{
-    mSetCount = nCount;
-}
+void Bitmap::SetSetCount(uint32_t nCount) { mSetCount = nCount; }
 
-uint32_t Bitmap::GetUnsetCount() const
-{
-    return mItemCount - GetSetCount();
-}
+uint32_t Bitmap::GetUnsetCount() const { return mItemCount - GetSetCount(); }
 
-uint32_t Bitmap::Begin() const
-{
+uint32_t Bitmap::Begin() const {
     uint32_t nData;
-    for (uint32_t i = 0; i < mSlotCount; ++i)
-    {
-        if ((nData=mData[i]) != 0)
-        {
-            for (uint32_t j = 0; j < SLOT_SIZE&&((i << SLOT_SIZE_BIT_NUM) + j) < mItemCount; ++j)
-            {
-                if ((nData & BITMAPOPMASK[j]) != 0)
-                {
+    for (uint32_t i = 0; i < mSlotCount; ++i) {
+        if ((nData = mData[i]) != 0) {
+            for (uint32_t j = 0; j < SLOT_SIZE && ((i << SLOT_SIZE_BIT_NUM) + j) < mItemCount; ++j) {
+                if ((nData & BITMAPOPMASK[j]) != 0) {
                     return (i << SLOT_SIZE_BIT_NUM) + j;
                 }
             }
@@ -199,31 +150,23 @@ uint32_t Bitmap::Begin() const
     return INVALID_INDEX;
 }
 
-uint32_t Bitmap::Next(uint32_t nIndex) const
-{
-    if (++nIndex < mItemCount)
-    {
+uint32_t Bitmap::Next(uint32_t nIndex) const {
+    if (++nIndex < mItemCount) {
         uint32_t quot = nIndex >> SLOT_SIZE_BIT_NUM;
         uint32_t rem = nIndex & SLOT_SIZE_BIT_MASK;
 
-        for (uint32_t i = quot; i < mSlotCount; ++i)
-        {
+        for (uint32_t i = quot; i < mSlotCount; ++i) {
             uint32_t nData = mData[i];
-            if (i==quot)
-            {
-                for (uint32_t j = rem; j < SLOT_SIZE; ++j)
-                {
-                    if ((nData & BITMAPOPMASK[j]) !=0)
+            if (i == quot) {
+                for (uint32_t j = rem; j < SLOT_SIZE; ++j) {
+                    if ((nData & BITMAPOPMASK[j]) != 0)
                         return i * SLOT_SIZE + j;
                 }
-            }
-            else
-            {
-                if(nData == 0)
+            } else {
+                if (nData == 0)
                     continue;
-                for (uint32_t j = 0; j < 32; ++j)
-                {
-                    if ((nData & BITMAPOPMASK[j]) !=0)
+                for (uint32_t j = 0; j < 32; ++j) {
+                    if ((nData & BITMAPOPMASK[j]) != 0)
                         return i * SLOT_SIZE + j;
                 }
             }
@@ -232,75 +175,62 @@ uint32_t Bitmap::Next(uint32_t nIndex) const
     return INVALID_INDEX;
 }
 
-void Bitmap::Set(uint32_t nIndex)
-{
+void Bitmap::Set(uint32_t nIndex) {
     assert(nIndex < mItemCount);
 
     uint32_t quot = nIndex >> SLOT_SIZE_BIT_NUM;
     uint32_t rem = nIndex & SLOT_SIZE_BIT_MASK;
 
-    if (!(mData[quot] & BITMAPOPMASK[rem]))
-    {
+    if (!(mData[quot] & BITMAPOPMASK[rem])) {
         mData[quot] |= BITMAPOPMASK[rem];
         ++mSetCount;
     }
 }
 
-void Bitmap::Reset(uint32_t nIndex)
-{
-    if(nIndex >= mItemCount)
-    {
+void Bitmap::Reset(uint32_t nIndex) {
+    if (nIndex >= mItemCount) {
         return;
     }
     uint32_t quot = nIndex >> SLOT_SIZE_BIT_NUM;
     uint32_t rem = nIndex & SLOT_SIZE_BIT_MASK;
 
-    if (mData[quot] & BITMAPOPMASK[rem])
-    {
+    if (mData[quot] & BITMAPOPMASK[rem]) {
         mData[quot] &= ~BITMAPOPMASK[rem];
         --mSetCount;
     }
 }
 
-void Bitmap::ResetAll()
-{
-    memset(mData, 0x0, mSlotCount*sizeof(uint32_t));
+void Bitmap::ResetAll() {
+    memset(mData, 0x0, mSlotCount * sizeof(uint32_t));
     mSetCount = 0;
 }
 
-void Bitmap::ResetAllAfter(uint32_t nIndex)
-{
+void Bitmap::ResetAllAfter(uint32_t nIndex) {
     assert(nIndex < mItemCount);
 
     uint32_t quot = nIndex >> SLOT_SIZE_BIT_NUM;
     uint32_t rem = nIndex & SLOT_SIZE_BIT_MASK;
 
-    for (uint32_t i = rem; i < SLOT_SIZE; i++)
-    {
+    for (uint32_t i = rem; i < SLOT_SIZE; i++) {
         mData[quot] &= ~BITMAPOPMASK[i];
     }
 
-    if (quot < mSlotCount - 1)
-    {
-        uint32_t siz = mSlotCount-quot-1;
-        memset(((char*)mData)+(quot+1)*sizeof(uint32_t),
-               0, siz*sizeof(uint32_t));
+    if (quot < mSlotCount - 1) {
+        uint32_t siz = mSlotCount - quot - 1;
+        memset(((char *)mData) + (quot + 1) * sizeof(uint32_t), 0, siz * sizeof(uint32_t));
     }
 
     RefreshSetCountByScanning();
 }
 
-void Bitmap::Mount(uint32_t nItemCount, uint32_t* pData, bool doNotDelete)
-{
+void Bitmap::Mount(uint32_t nItemCount, uint32_t *pData, bool doNotDelete) {
     MountWithoutRefreshSetCount(nItemCount, pData, doNotDelete);
     RefreshSetCountByScanning();
 }
 
-void Bitmap::Copy(uint32_t startIndex, uint32_t *data, uint32_t itemCount)
-{
+void Bitmap::Copy(uint32_t startIndex, uint32_t *data, uint32_t itemCount) {
     assert(mData != NULL);
-    if (data == NULL || itemCount == 0)
-    {
+    if (data == NULL || itemCount == 0) {
         return;
     }
     uint32_t *dstSlotAddr = mData + (startIndex >> 5);
@@ -308,23 +238,19 @@ void Bitmap::Copy(uint32_t startIndex, uint32_t *data, uint32_t itemCount)
     Copy(dstSlotAddr, startIndex, data, itemCount);
 }
 
-void Bitmap::Copy(uint32_t *dstSlotAddr, uint32_t startIndex,
-                  uint32_t *data, uint32_t itemCount)
-{
+void Bitmap::Copy(uint32_t *dstSlotAddr, uint32_t startIndex, uint32_t *data, uint32_t itemCount) {
     assert(startIndex < 32);
     uint32_t offset = startIndex;
     uint32_t remainBitsInDstSlot = 32 - offset;
 
     uint32_t numSlotsInSrc = (itemCount + 31) >> 5;
-    for (uint32_t i = 0; i < numSlotsInSrc - 1; i++)
-    {
+    for (uint32_t i = 0; i < numSlotsInSrc - 1; i++) {
         uint32_t value = data[i];
         // copy first #remainBitsInDstSlot# bits from value to dstSlotAddr
         *dstSlotAddr |= (value >> offset);
         dstSlotAddr++;
         // copy next #offset# bits from value to dstSlotAddr
-        if (offset != 0)
-        {
+        if (offset != 0) {
             *dstSlotAddr |= (value << remainBitsInDstSlot);
         }
         mSetCount += CountBits(value);
@@ -333,35 +259,25 @@ void Bitmap::Copy(uint32_t *dstSlotAddr, uint32_t startIndex,
     uint32_t value = data[numSlotsInSrc - 1];
     uint32_t remainBitsInSrcSlot = itemCount - 32 * (numSlotsInSrc - 1);
     mSetCount += CountBits(value, remainBitsInSrcSlot);
-    if (remainBitsInSrcSlot > 0)
-    {
-        if (remainBitsInSrcSlot <= remainBitsInDstSlot)
-        {
-            uint32_t tmp = (value >> (32 - remainBitsInSrcSlot)) <<
-                           (remainBitsInDstSlot - remainBitsInSrcSlot);
+    if (remainBitsInSrcSlot > 0) {
+        if (remainBitsInSrcSlot <= remainBitsInDstSlot) {
+            uint32_t tmp = (value >> (32 - remainBitsInSrcSlot)) << (remainBitsInDstSlot - remainBitsInSrcSlot);
             *dstSlotAddr |= tmp;
-        }
-        else
-        {
+        } else {
             *dstSlotAddr |= (value >> offset);
             dstSlotAddr++;
-            uint32_t tmp = (value >> (32 - remainBitsInSrcSlot)) <<
-                           (32 - remainBitsInSrcSlot + remainBitsInDstSlot);
+            uint32_t tmp = (value >> (32 - remainBitsInSrcSlot)) << (32 - remainBitsInSrcSlot + remainBitsInDstSlot);
             *dstSlotAddr |= tmp;
         }
     }
 }
 
-void Bitmap::CopySlice(uint32_t index, uint32_t *data,
-                       uint32_t startIndex, uint32_t itemCount)
-{
-    if (data == NULL || itemCount == 0)
-    {
+void Bitmap::CopySlice(uint32_t index, uint32_t *data, uint32_t startIndex, uint32_t itemCount) {
+    if (data == NULL || itemCount == 0) {
         return;
     }
 
-    if ((startIndex & 31) == 0)
-    {
+    if ((startIndex & 31) == 0) {
         Copy(index, data + (startIndex >> 5), itemCount);
         return;
     }
@@ -378,24 +294,17 @@ void Bitmap::CopySlice(uint32_t index, uint32_t *data,
 
     mSetCount += CountBits(value);
 
-    if (leftBitsInFirstSrcSlot <= leftBitsInFirstDstSlot)
-    {
+    if (leftBitsInFirstSrcSlot <= leftBitsInFirstDstSlot) {
         value <<= (leftBitsInFirstDstSlot - leftBitsInFirstSrcSlot);
         *dstStartAddr |= value;
-        if (leftBitsInFirstSrcSlot == leftBitsInFirstDstSlot)
-        {
+        if (leftBitsInFirstSrcSlot == leftBitsInFirstDstSlot) {
             dstStartAddr++;
             newIndex = 0;
-        }
-        else
-        {
+        } else {
             newIndex = (index & 31) + leftBitsInFirstSrcSlot;
         }
-    }
-    else
-    {
-        uint32_t first = (value >>
-                          (leftBitsInFirstSrcSlot - leftBitsInFirstDstSlot));
+    } else {
+        uint32_t first = (value >> (leftBitsInFirstSrcSlot - leftBitsInFirstDstSlot));
         *dstStartAddr |= first;
         dstStartAddr++;
         mask = (1 << (leftBitsInFirstSrcSlot - leftBitsInFirstDstSlot)) - 1;
@@ -404,26 +313,21 @@ void Bitmap::CopySlice(uint32_t index, uint32_t *data,
         *dstStartAddr |= value;
         newIndex = leftBitsInFirstSrcSlot - leftBitsInFirstDstSlot;
     }
-    if (itemCount > leftBitsInFirstSrcSlot)
-    {
-        Copy(dstStartAddr, newIndex, srcStartAddr + 1,
-             itemCount - leftBitsInFirstSrcSlot);
+    if (itemCount > leftBitsInFirstSrcSlot) {
+        Copy(dstStartAddr, newIndex, srcStartAddr + 1, itemCount - leftBitsInFirstSrcSlot);
     }
 }
 
-uint32_t& Bitmap::operator[](uint32_t i)
-{
+uint32_t &Bitmap::operator[](uint32_t i) {
     assert(i < mSlotCount);
     return mData[i];
 }
 
-Bitmap& Bitmap::operator&(Bitmap& rhs)
-{
+Bitmap &Bitmap::operator&(Bitmap &rhs) {
     assert(rhs.GetItemCount() == GetItemCount());
 
     uint32_t *b = rhs.GetData();
-    for(uint32_t i = 0; i < mSlotCount; ++i)
-    {
+    for (uint32_t i = 0; i < mSlotCount; ++i) {
         mData[i] &= b[i];
     }
     RefreshSetCountByScanning();
@@ -431,20 +335,15 @@ Bitmap& Bitmap::operator&(Bitmap& rhs)
     return *this;
 }
 
-Bitmap& Bitmap::operator&=(Bitmap& rhs)
-{
-    return *this & rhs;
-}
+Bitmap &Bitmap::operator&=(Bitmap &rhs) { return *this & rhs; }
 
-Bitmap& Bitmap::operator|(const Bitmap& bitmap)
-{
+Bitmap &Bitmap::operator|(const Bitmap &bitmap) {
     assert(bitmap.GetItemCount() == GetItemCount());
-    uint32_t* targetAddr = mData;
-    uint32_t* sourceAddr = bitmap.GetData();
+    uint32_t *targetAddr = mData;
+    uint32_t *sourceAddr = bitmap.GetData();
     uint32_t batchNum = mSlotCount / 32;
     uint32_t remainCount = mSlotCount % 32;
-    for (size_t i = 0; i < batchNum; i++)
-    {
+    for (size_t i = 0; i < batchNum; i++) {
         targetAddr[0] |= sourceAddr[0];
         targetAddr[1] |= sourceAddr[1];
         targetAddr[2] |= sourceAddr[2];
@@ -480,8 +379,7 @@ Bitmap& Bitmap::operator|(const Bitmap& bitmap)
         targetAddr += 32;
         sourceAddr += 32;
     }
-    for (size_t i = 0; i < remainCount; i++)
-    {
+    for (size_t i = 0; i < remainCount; i++) {
         targetAddr[i] |= sourceAddr[i];
     }
     RefreshSetCountByScanning();
@@ -489,30 +387,21 @@ Bitmap& Bitmap::operator|(const Bitmap& bitmap)
     return *this;
 }
 
-Bitmap& Bitmap::operator|=(const Bitmap& rhs)
-{
-    return *this | rhs;
-}
+Bitmap &Bitmap::operator|=(const Bitmap &rhs) { return *this | rhs; }
 
-Bitmap& Bitmap::operator~()
-{
+Bitmap &Bitmap::operator~() {
     mSetCount = GetUnsetCount();
     uint32_t nLastSlot = mSlotCount - 1;
-    for(uint32_t i = 0; i < nLastSlot; ++i)
-    {
+    for (uint32_t i = 0; i < nLastSlot; ++i) {
         mData[i] = ~mData[i];
     }
 
     uint32_t nCount = mItemCount - nLastSlot * SLOT_SIZE;
     uint32_t nData = mData[nLastSlot];
-    for (uint32_t i = 0; i < nCount; i++)
-    {
-        if ((nData & BITMAPOPMASK[i]) != 0)
-        {
+    for (uint32_t i = 0; i < nCount; i++) {
+        if ((nData & BITMAPOPMASK[i]) != 0) {
             mData[nLastSlot] &= ~BITMAPOPMASK[i];
-        }
-        else
-        {
+        } else {
             mData[nLastSlot] |= BITMAPOPMASK[i];
         }
     }
@@ -520,16 +409,11 @@ Bitmap& Bitmap::operator~()
     return *this;
 }
 
-Bitmap& Bitmap::operator-=(Bitmap& rhs)
-{
-    return *this - rhs;
-}
+Bitmap &Bitmap::operator-=(Bitmap &rhs) { return *this - rhs; }
 
-Bitmap& Bitmap::operator-(Bitmap& rhs)
-{
+Bitmap &Bitmap::operator-(Bitmap &rhs) {
     assert(rhs.GetItemCount() == GetItemCount());
-    for (uint32_t i = 0; i < mSlotCount; ++i)
-    {
+    for (uint32_t i = 0; i < mSlotCount; ++i) {
         mData[i] &= ~rhs[i];
     }
     RefreshSetCountByScanning();
@@ -537,33 +421,36 @@ Bitmap& Bitmap::operator-(Bitmap& rhs)
     return *this;
 }
 
-bool Bitmap::operator==(Bitmap& bitmap)
-{
-    if(this == &bitmap) { return true; }
-    if(mItemCount != bitmap.mItemCount) { return false; }
-    if(mSlotCount != bitmap.mSlotCount) { return false; }
-    if(mSetCount != bitmap.mSetCount) { return false; }
-    if(mData == bitmap.mData) { return true; }
-    return memcmp(mData, bitmap.mData, mSlotCount*sizeof(uint32_t)) == 0;
+bool Bitmap::operator==(Bitmap &bitmap) {
+    if (this == &bitmap) {
+        return true;
+    }
+    if (mItemCount != bitmap.mItemCount) {
+        return false;
+    }
+    if (mSlotCount != bitmap.mSlotCount) {
+        return false;
+    }
+    if (mSetCount != bitmap.mSetCount) {
+        return false;
+    }
+    if (mData == bitmap.mData) {
+        return true;
+    }
+    return memcmp(mData, bitmap.mData, mSlotCount * sizeof(uint32_t)) == 0;
 }
 
-bool Bitmap::operator!=(Bitmap& bitmap)
-{
-    return !(*this == bitmap);
-}
+bool Bitmap::operator!=(Bitmap &bitmap) { return !(*this == bitmap); }
 
-uint32_t Bitmap::GetSetCount(uint32_t begin, uint32_t end) const
-{
+uint32_t Bitmap::GetSetCount(uint32_t begin, uint32_t end) const {
     uint32_t nData;
     uint32_t setCount = 0;
 
-    if (end >= mItemCount)
-    {
+    if (end >= mItemCount) {
         end = mItemCount - 1;
     }
 
-    if (mData == NULL || end < begin)
-    {
+    if (mData == NULL || end < begin) {
         return 0;
     }
 
@@ -573,36 +460,29 @@ uint32_t Bitmap::GetSetCount(uint32_t begin, uint32_t end) const
     uint32_t testEndSlot = (end + 1) / SLOT_SIZE;
     uint32_t testBitInEndSlot = ((end + 1) & SLOT_SIZE_BIT_MASK);
 
-    if (testBitInBeginSlot != SLOT_SIZE)
-    {
+    if (testBitInBeginSlot != SLOT_SIZE) {
         nData = mData[testBeginSlot];
-        if (testBeginSlot == testEndSlot)
-        {
-            nData &= ( 0xFFFFFFFFU << (SLOT_SIZE - testBitInEndSlot));
+        if (testBeginSlot == testEndSlot) {
+            nData &= (0xFFFFFFFFU << (SLOT_SIZE - testBitInEndSlot));
         }
         nData <<= (begin & SLOT_SIZE_BIT_MASK);
 
         testBeginSlot++;
-        while (nData != 0)
-        {
-            if ((nData & BITMAPOPMASK[0]) != 0)
-            {
+        while (nData != 0) {
+            if ((nData & BITMAPOPMASK[0]) != 0) {
                 setCount++;
             }
             nData <<= 1;
         }
     }
 
-    if (testBeginSlot <= testEndSlot && testBitInEndSlot != 0)
-    {
+    if (testBeginSlot <= testEndSlot && testBitInEndSlot != 0) {
         nData = mData[testEndSlot];
         setCount += CountBits(nData, testBitInEndSlot);
     }
 
-    for (uint32_t i = testBeginSlot; i < testEndSlot; ++i)
-    {
-        if ((nData = mData[i]) == 0)
-        {
+    for (uint32_t i = testBeginSlot; i < testEndSlot; ++i) {
+        if ((nData = mData[i]) == 0) {
             continue;
         }
         setCount += CountBits(nData);
@@ -611,8 +491,7 @@ uint32_t Bitmap::GetSetCount(uint32_t begin, uint32_t end) const
     return setCount;
 }
 
-bool Bitmap::HasSetData(uint32_t beginIndex, uint32_t endIndex) const
-{
+bool Bitmap::HasSetData(uint32_t beginIndex, uint32_t endIndex) const {
     assert(beginIndex <= endIndex);
     assert(endIndex < mItemCount);
 
@@ -624,43 +503,32 @@ bool Bitmap::HasSetData(uint32_t beginIndex, uint32_t endIndex) const
     int32_t testStart = (remBegin == 0) ? (int32_t)quotBegin : (int32_t)quotBegin + 1;
     int32_t testEnd = (remEnd == SLOT_SIZE_BIT_MASK) ? (int32_t)quotEnd : (int32_t)quotEnd - 1;
     int32_t testCursor = testStart;
-    while (testCursor <= testEnd)
-    {
-        if (mData[testCursor])
-        {
+    while (testCursor <= testEnd) {
+        if (mData[testCursor]) {
             return true;
         }
         testCursor++;
     }
 
-    if (quotBegin != quotEnd)
-    {
-        if (remBegin != 0)
-        {
+    if (quotBegin != quotEnd) {
+        if (remBegin != 0) {
             uint32_t mask = (BITMAPOPMASK[remBegin] - 1) | BITMAPOPMASK[remBegin];
-            if (mData[quotBegin] & mask)
-            {
+            if (mData[quotBegin] & mask) {
                 return true;
             }
         }
 
-        if (remEnd != SLOT_SIZE_BIT_MASK)
-        {
+        if (remEnd != SLOT_SIZE_BIT_MASK) {
             uint32_t mask = ~(BITMAPOPMASK[remEnd] - 1);
-            if (mData[quotEnd] & mask)
-            {
+            if (mData[quotEnd] & mask) {
                 return true;
             }
         }
-    }
-    else
-    {
-        if (remBegin != 0 || remEnd != SLOT_SIZE_BIT_MASK)
-        {
-            uint32_t mask = ((BITMAPOPMASK[remBegin] - 1) | BITMAPOPMASK[remBegin])
-                            -  (BITMAPOPMASK[remEnd] - 1);;
-            if (mData[quotBegin] & mask)
-            {
+    } else {
+        if (remBegin != 0 || remEnd != SLOT_SIZE_BIT_MASK) {
+            uint32_t mask = ((BITMAPOPMASK[remBegin] - 1) | BITMAPOPMASK[remBegin]) - (BITMAPOPMASK[remEnd] - 1);
+            ;
+            if (mData[quotBegin] & mask) {
                 return true;
             }
         }
@@ -669,8 +537,7 @@ bool Bitmap::HasSetData(uint32_t beginIndex, uint32_t endIndex) const
     return false;
 }
 
-void Bitmap::ResetBetween(uint32_t beginIndex, uint32_t endIndex) const
-{
+void Bitmap::ResetBetween(uint32_t beginIndex, uint32_t endIndex) const {
     assert(beginIndex <= endIndex);
     assert(endIndex < mItemCount);
 
@@ -682,35 +549,27 @@ void Bitmap::ResetBetween(uint32_t beginIndex, uint32_t endIndex) const
     int32_t testStart = (remBegin == 0) ? (int32_t)quotBegin : (int32_t)quotBegin + 1;
     int32_t testEnd = (remEnd == SLOT_SIZE_BIT_MASK) ? (int32_t)quotEnd : (int32_t)quotEnd - 1;
     int32_t testCursor = testStart;
-    while (testCursor <= testEnd)
-    {
+    while (testCursor <= testEnd) {
         mData[testCursor] = 0;
         testCursor++;
     }
 
-    if (quotBegin != quotEnd)
-    {
-        if (remBegin != 0)
-        {
+    if (quotBegin != quotEnd) {
+        if (remBegin != 0) {
             uint32_t mask = (BITMAPOPMASK[remBegin] - 1) | BITMAPOPMASK[remBegin];
             mData[quotBegin] &= ~mask;
         }
 
-        if (remEnd != SLOT_SIZE_BIT_MASK)
-        {
+        if (remEnd != SLOT_SIZE_BIT_MASK) {
             uint32_t mask = (BITMAPOPMASK[remEnd] - 1);
             mData[quotEnd] &= mask;
         }
-    }
-    else
-    {
-        if (remBegin != 0 || remEnd != SLOT_SIZE_BIT_MASK)
-        {
-            uint32_t mask = ((BITMAPOPMASK[remBegin] - 1) | BITMAPOPMASK[remBegin])
-                            -  (BITMAPOPMASK[remEnd] - 1);
+    } else {
+        if (remBegin != 0 || remEnd != SLOT_SIZE_BIT_MASK) {
+            uint32_t mask = ((BITMAPOPMASK[remBegin] - 1) | BITMAPOPMASK[remBegin]) - (BITMAPOPMASK[remEnd] - 1);
             mData[quotBegin] &= ~mask;
         }
     }
 }
 
-}
+} // namespace autil

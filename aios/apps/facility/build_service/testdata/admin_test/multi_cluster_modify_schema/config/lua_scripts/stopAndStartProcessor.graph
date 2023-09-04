@@ -1,0 +1,10 @@
+function graphDef()
+   local clusterName = Graph.parameter["clusterName"]
+   local stopProcessorIds = Graph.getFlowIdByTag(clusterName..":BSIncProcessor")
+   Graph.batchStopFlows(stopProcessorIds)
+   local incProcessor = Graph.loadSimpleFlow("processor", "incProcessor", Graph.parameter)
+   incProcessor:addTag("BSIncProcess")
+   incProcessor:addTag(clusterName..":BSIncProcess")
+   Graph.batchSetUpstream(incProcessor:getFlowId(), stopProcessorIds, "stopped|finish")
+   return true
+end

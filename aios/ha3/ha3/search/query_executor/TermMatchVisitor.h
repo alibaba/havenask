@@ -29,20 +29,21 @@ class OrQuery;
 class PhraseQuery;
 class RankQuery;
 class TermQuery;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace search {
 
-class TermMatchVisitor : public isearch::common::ModifyQueryVisitor
-{
+class TermMatchVisitor : public isearch::common::ModifyQueryVisitor {
 public:
     TermMatchVisitor(const std::shared_ptr<indexlibv2::config::ITabletSchema> &indexSchemaPtr);
     ~TermMatchVisitor() {}
+
 private:
     TermMatchVisitor(const TermMatchVisitor &);
-    TermMatchVisitor & operator=(const TermMatchVisitor &);
+    TermMatchVisitor &operator=(const TermMatchVisitor &);
+
 public:
     void visitTermQuery(isearch::common::TermQuery *query) override;
     void visitPhraseQuery(isearch::common::PhraseQuery *query) override;
@@ -54,11 +55,11 @@ public:
     void visitMultiTermQuery(isearch::common::MultiTermQuery *query) override;
     void visitMidQuery(isearch::common::Query *query);
     void visitLeafQuery(const std::string &indexName, isearch::common::Query *query);
-private:
 
+private:
     const std::shared_ptr<indexlibv2::config::ITabletSchema> &_indexSchemaPtr;
     AUTIL_LOG_DECLARE();
 };
 
-} // namespace rank
+} // namespace search
 } // namespace isearch

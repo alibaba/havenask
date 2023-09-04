@@ -36,4 +36,4 @@ public:
     static void destroyDefault();
 };
 OTEL_TYPEDEF_PTR(TracerProvider);
-}
+} // namespace opentelemetry

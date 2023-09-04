@@ -21,12 +21,12 @@ class SourceGroupConfig;
 } // namespace indexlib::config
 
 namespace indexlibv2::config {
-class AttributeConfig;
 class SummaryGroupConfig;
 } // namespace indexlibv2::config
 
 namespace indexlibv2::index {
 struct VarLenDataParam;
+class AttributeConfig;
 
 class VarLenDataParamHelper
 {
@@ -35,7 +35,7 @@ public:
     ~VarLenDataParamHelper();
 
 public:
-    static VarLenDataParam MakeParamForAttribute(const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    static VarLenDataParam MakeParamForAttribute(const std::shared_ptr<index::AttributeConfig>& attrConfig);
 
     static VarLenDataParam
     MakeParamForSummary(const std::shared_ptr<indexlibv2::config::SummaryGroupConfig>& summaryGroupConfig);

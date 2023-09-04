@@ -1,0 +1,11 @@
+{
+    "attributes": ["userid"],
+    "fields": [
+        { "field_name": "usernick", "field_type": "STRING", "multi_value": false },
+        { "field_name": "userid", "field_type": "INT64", "multi_value": false },
+        { "field_name": "timestamp", "field_type": "INT64", "multi_value": false, "user_defined_param": {"source_timestamp_report_key": "source_1"} }
+    ],
+    "indexs": [ {"index_fields": "usernick", "index_name": "usernick", "index_type": "PRIMARY_KEY"} ],
+    "table_name": "userid2usernick",
+    "table_type": "kv"
+}

@@ -16,17 +16,19 @@
 #ifndef ISEARCH_MULTI_CALL_GIGRPCWORKER_H
 #define ISEARCH_MULTI_CALL_GIGRPCWORKER_H
 
+#include <grpc++/impl/codegen/proto_utils.h>
+
 #include "aios/network/gig/multi_call/agent/GigAgent.h"
 #include "aios/network/gig/multi_call/config/MultiCallConfig.h"
 #include "aios/network/gig/multi_call/rpc/GigClosure.h"
 #include "aios/network/gig/multi_call/stream/GigServerStreamCreator.h"
 #include "autil/Lock.h"
-#include <grpc++/impl/codegen/proto_utils.h>
 
 namespace multi_call {
 
 struct GigRpcMethodArg {
-    GigRpcMethodArg() : request(nullptr), response(nullptr) {}
+    GigRpcMethodArg() : request(nullptr), response(nullptr) {
+    }
     ~GigRpcMethodArg() {
         freeProtoMessage(request);
         freeProtoMessage(response);
@@ -49,7 +51,8 @@ public:
 MULTI_CALL_TYPEDEF_PTR(GigRpcMethodArg);
 
 struct GigStreamRpcArg {
-    GigStreamRpcArg() : request(nullptr), response(nullptr) {}
+    GigStreamRpcArg() : request(nullptr), response(nullptr) {
+    }
     ~GigStreamRpcArg() {
         freeProtoMessage(request);
         freeProtoMessage(response);
@@ -57,8 +60,7 @@ struct GigStreamRpcArg {
 
 public:
     bool validate() const {
-        return request != nullptr && response != nullptr &&
-               creator.get() != nullptr;
+        return request != nullptr && response != nullptr && creator.get() != nullptr;
     }
 
 public:
@@ -71,7 +73,8 @@ MULTI_CALL_TYPEDEF_PTR(GigStreamRpcArg);
 
 class ServerDescription;
 
-class GigRpcWorker {
+class GigRpcWorker
+{
 public:
     GigRpcWorker();
     virtual ~GigRpcWorker();
@@ -81,21 +84,20 @@ private:
     GigRpcWorker &operator=(const GigRpcWorker &);
 
 public:
-    bool addMethod(const std::string &methodName,
-                   const GigRpcMethodArgPtr &arg);
+    bool addMethod(const std::string &methodName, const GigRpcMethodArgPtr &arg);
     GigRpcMethodArgPtr getMethodArg(const std::string &methodName) const;
     bool registerStreamService(const GigServerStreamCreatorPtr &creator);
     bool unRegisterStreamService(const GigServerStreamCreatorPtr &creator);
-    GigServerStreamCreatorPtr
-    getStreamService(const std::string &methodName) const;
-    const GigAgentPtr &getAgent() const { return _agent; }
+    GigServerStreamCreatorPtr getStreamService(const std::string &methodName) const;
+    const GigAgentPtr &getAgent() const {
+        return _agent;
+    }
 
 protected:
     GigAgentPtr _agent;
     mutable autil::ReadWriteLock _serviceLock;
     std::unordered_map<std::string, GigRpcMethodArgPtr> _serviceMap;
-    std::unordered_map<std::string, GigServerStreamCreatorPtr>
-        _streamServiceMap;
+    std::unordered_map<std::string, GigServerStreamCreatorPtr> _streamServiceMap;
 
 private:
     AUTIL_LOG_DECLARE();

@@ -30,17 +30,15 @@ namespace multi_call {
 
 typedef std::shared_ptr<grpc::ChannelInterface> GrpcChannelPtr;
 
-class GrpcConnection : public Connection {
+class GrpcConnection : public Connection
+{
 public:
-    GrpcConnection(
-        const GrpcClientWorkerPtr &grpcWorker, const std::string &spec,
-        const std::shared_ptr<grpc::ChannelCredentials> &channelCredentials,
-        const std::shared_ptr<grpc::ChannelArguments> &channelArgs);
-    GrpcConnection(
-        const GrpcClientWorkerPtr &grpcWorker, const std::string &spec,
-        const std::shared_ptr<grpc::ChannelCredentials> &channelCredentials,
-        const std::shared_ptr<grpc::ChannelArguments> &channelArgs,
-        ProtocolType type);
+    GrpcConnection(const GrpcClientWorkerPtr &grpcWorker, const std::string &spec,
+                   const std::shared_ptr<grpc::ChannelCredentials> &channelCredentials,
+                   const std::shared_ptr<grpc::ChannelArguments> &channelArgs);
+    GrpcConnection(const GrpcClientWorkerPtr &grpcWorker, const std::string &spec,
+                   const std::shared_ptr<grpc::ChannelCredentials> &channelCredentials,
+                   const std::shared_ptr<grpc::ChannelArguments> &channelArgs, ProtocolType type);
     ~GrpcConnection();
 
 private:

@@ -28,7 +28,7 @@
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, PackAttributeFormatter);
 
-bool PackAttributeFormatter::Init(const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& packAttrConfig)
+bool PackAttributeFormatter::Init(const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& packAttrConfig)
 {
     assert(packAttrConfig);
     _packAttrConfig = packAttrConfig;
@@ -36,7 +36,7 @@ bool PackAttributeFormatter::Init(const std::shared_ptr<indexlibv2::config::Pack
     _enablePlainFormat = _packAttrConfig->HasEnablePlainFormat();
 
     auto subConfs = packAttrConfig->GetAttributeConfigVec();
-    std::vector<std::shared_ptr<config::AttributeConfig>> subAttrConfs;
+    std::vector<std::shared_ptr<index::AttributeConfig>> subAttrConfs;
     subAttrConfs.reserve(subConfs.size());
     for (auto conf : subConfs) {
         subAttrConfs.emplace_back(conf);
@@ -63,7 +63,7 @@ bool PackAttributeFormatter::Init(const std::shared_ptr<indexlibv2::config::Pack
     return true;
 }
 
-bool PackAttributeFormatter::AddImpactAttributeReference(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+bool PackAttributeFormatter::AddImpactAttributeReference(const std::shared_ptr<index::AttributeConfig>& attrConfig,
                                                          size_t varIdx)
 {
     assert(attrConfig->IsMultiValue() || attrConfig->GetFieldType() == ft_string);
@@ -115,7 +115,7 @@ bool PackAttributeFormatter::AddImpactAttributeReference(const std::shared_ptr<c
     return true;
 }
 
-bool PackAttributeFormatter::AddNormalAttributeReference(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+bool PackAttributeFormatter::AddNormalAttributeReference(const std::shared_ptr<index::AttributeConfig>& attrConfig,
                                                          size_t& offset)
 {
     const std::string& attrName = attrConfig->GetAttrName();
@@ -163,7 +163,7 @@ bool PackAttributeFormatter::IsAttributeReferenceExist(const std::string& attrNa
 
 std::shared_ptr<AttributeReference>
 PackAttributeFormatter::CreateStringAttributeReference(size_t offset,
-                                                       const std::shared_ptr<config::AttributeConfig>& attrConfig)
+                                                       const std::shared_ptr<index::AttributeConfig>& attrConfig)
 {
     indexlib::config::CompressTypeOption compressType = attrConfig->GetCompressType();
     if (attrConfig->IsMultiValue()) {
@@ -291,12 +291,12 @@ autil::StringView PackAttributeFormatter::MergeAndFormatUpdateFields(const char*
     return _dataConvertor->Encode(mergeBuffer, buffer.GetBuffer() + dataLen);
 }
 
-const std::shared_ptr<config::AttributeConfig>&
+const std::shared_ptr<index::AttributeConfig>&
 PackAttributeFormatter::GetAttributeConfig(const std::string& attrName) const
 {
     AttrNameToIdx::const_iterator iter = _attrName2Idx.find(attrName);
     if (iter == _attrName2Idx.end() || (iter->second >= _fixLenAttributes.size() + _varLenAttributes.size())) {
-        static std::shared_ptr<config::AttributeConfig> retNullPtr;
+        static std::shared_ptr<index::AttributeConfig> retNullPtr;
         return retNullPtr;
     }
     size_t idx = iter->second;
@@ -356,9 +356,9 @@ bool PackAttributeFormatter::GetMergedAttributeFieldData(const char* baseAddr,
         int32_t idx = GetIdxByAttrId(packAttrFields[i].first);
         if (idx == UNKNOWN_VALUE_COUNT) {
             AUTIL_LOG(ERROR, "attribute [attrId:%u] not in pack attribute [%s]", packAttrFields[i].first,
-                      _packAttrConfig->GetAttrName().c_str());
+                      _packAttrConfig->GetPackName().c_str());
             ERROR_COLLECTOR_LOG(ERROR, "attribute [attrId:%u] not in pack attribute [%s]", packAttrFields[i].first,
-                                _packAttrConfig->GetAttrName().c_str());
+                                _packAttrConfig->GetPackName().c_str());
             return false;
         }
         if (hasHashKeyInAttrFields) {
@@ -461,11 +461,11 @@ AttributeReference* PackAttributeFormatter::GetAttributeReference(attrid_t subAt
 }
 
 void PackAttributeFormatter::ClassifySubAttributeConfigs(
-    const std::vector<std::shared_ptr<config::AttributeConfig>>& subAttrConfs)
+    const std::vector<std::shared_ptr<index::AttributeConfig>>& subAttrConfs)
 {
     _fixAttrSize = 0;
     for (size_t i = 0; i < subAttrConfs.size(); i++) {
-        const std::shared_ptr<config::AttributeConfig>& attrConfig = subAttrConfs[i];
+        const std::shared_ptr<index::AttributeConfig>& attrConfig = subAttrConfs[i];
         if (attrConfig->IsLengthFixed()) {
             _fixLenAttributes.push_back(attrConfig);
             _fixAttrSize += attrConfig->GetFixLenFieldSize();
@@ -503,7 +503,15 @@ bool PackAttributeFormatter::InitAttributeConvertors()
         _varLenAttributeConvertors.push_back(convertor);
     }
 
-    std::shared_ptr<config::AttributeConfig> packDataAttrConfig = _packAttrConfig->CreateAttributeConfig();
+    std::shared_ptr<index::AttributeConfig> packDataAttrConfig = _packAttrConfig->CreateAttributeConfig();
+    if (packDataAttrConfig == nullptr) {
+        AUTIL_LOG(ERROR, "fail to create attribute config for pack attribute %s",
+                  _packAttrConfig->GetIndexName().c_str());
+        ERROR_COLLECTOR_LOG(ERROR, "fail to create attribute config for pack attribute %s",
+                            _packAttrConfig->GetIndexName().c_str());
+        assert(false);
+        return false;
+    }
     _dataConvertor.reset(AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(packDataAttrConfig));
     if (!_dataConvertor) {
         AUTIL_LOG(ERROR, "fail to create AttributeConvertor for pack attribute: %s",
@@ -700,7 +708,7 @@ PlainFormatEncoder* PackAttributeFormatter::CreatePlainFormatEncoder() const
 }
 
 PlainFormatEncoder*
-PackAttributeFormatter::CreatePlainFormatEncoder(const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& config)
+PackAttributeFormatter::CreatePlainFormatEncoder(const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& config)
 {
     PackAttributeFormatter formatter;
     if (!formatter.Init(config)) {

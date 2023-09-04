@@ -16,17 +16,18 @@
 #ifndef ISEARCH_MULTI_CALL_COMPLETIONQUEUESTATUS_H
 #define ISEARCH_MULTI_CALL_COMPLETIONQUEUESTATUS_H
 
+#include <grpc++/completion_queue.h>
+
 #include "aios/network/gig/multi_call/common/common.h"
 #include "autil/Lock.h"
-#include <grpc++/completion_queue.h>
 
 namespace multi_call {
 
 typedef std::shared_ptr<grpc::CompletionQueue> CompletionQueuePtr;
 
 struct CompletionQueueStatus {
-    CompletionQueueStatus(const CompletionQueuePtr &cq_)
-        : stopped(false), cq(cq_) {}
+    CompletionQueueStatus(const CompletionQueuePtr &cq_) : stopped(false), cq(cq_) {
+    }
     volatile bool stopped;
     autil::ReadWriteLock enqueueLock;
     CompletionQueuePtr cq;

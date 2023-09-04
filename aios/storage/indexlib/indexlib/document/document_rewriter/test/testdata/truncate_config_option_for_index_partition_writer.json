@@ -1,0 +1,57 @@
+{
+    "truncate_strategy" : [
+        {
+            "strategy_name" : "ends_filter_big_inc",
+            "threshold" : 100000,
+            "limit" : 50000,
+            "diversity_constrain": {
+	    	"filter_type" : "FilterByTimeStamp",
+		"filter_parameter" : "fieldName=ends_1;beginTime=18:00:00;adviseEndTime=23:00:00"
+            },
+	    "truncate_profiles" :
+	    [
+		"desc_price"
+	    ]
+        },
+        {
+            "strategy_name" : "ends_filter_inc",
+            "threshold" : 100000,
+            "limit" : 50000,
+            "diversity_constrain": {
+	    	"filter_type" : "FilterByTimeStamp",
+		"filter_parameter" : "fieldName=ends_1;beginTime=now;adviseEndTime=10:00:00;minInvertal=6"
+            },
+	    "truncate_profiles" :
+	    [
+		"desc_biz30day"
+	    ]
+        },
+        {
+            "strategy_name" : "ends_filter_normal",
+            "threshold" : 100000,
+            "limit" : 50000,
+            "diversity_constrain": {
+	    	"filter_type" : "FilterByMeta",
+		"filter_parameter" : "fieldName=desc_biz30day"
+            },
+	    "truncate_profiles" :
+	    [
+		"desc_sales"
+	    ]
+        },
+        {
+            "strategy_name" : "galaxy",
+            "threshold" : 100000,
+            "limit" : 50000,
+            "diversity_constrain": {
+	    	"filter_type" : "Default",
+		"filter_parameter" : "fieldName=DOC_PAYLOAD;filterMask=0xFFFF;filterMinValue=1;filterMaxValue=100"
+            },
+	    "truncate_profiles" :
+	    [
+		"galaxy_weight"
+	    ]
+        }
+    ]
+}
+

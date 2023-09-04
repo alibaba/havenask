@@ -54,7 +54,7 @@ private:
 private:
     framework::IndexOperationDescription _opDesc;
     schemaid_t _targetSchemaId = INVALID_SCHEMAID;
-    std::shared_ptr<config::TabletSchema> _tabletSchema;
+    std::shared_ptr<config::ITabletSchema> _tabletSchema;
     std::shared_ptr<config::IIndexConfig> _indexConfig;
     std::shared_ptr<framework::TabletData> _newTabletData;
     std::shared_ptr<framework::ITabletDocIterator> _docIter;

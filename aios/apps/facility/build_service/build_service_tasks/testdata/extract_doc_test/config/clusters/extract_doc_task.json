@@ -1,0 +1,45 @@
+{
+    "task_controller_config":{
+        "type":"BUILDIN",
+        "target_configs":[
+        ]
+    },
+    "task_params":{
+        "commit_interval":"60"
+    },
+    "partition_count":2,
+    "parallel_num":1,
+    "outputs":{
+        "output1": {
+            "type":"RAW_DOCUMENT",
+            "module_name": "",
+            "params":{
+                "inner_type":"SWIFT"
+             }
+        },
+        "output2": {
+            "type":"RAW_DOCUMENT",
+            "module_name": "",
+            "params":{
+                "inner_type":"SWIFT",
+                "zk_root":"test",
+                "topic_name":"123"
+            }
+        },
+        "output3": {
+            "type":"RAW_DOCUMENT",
+            "module_name": "",
+            "params":{
+                "inner_type": "FILE"
+            }
+        },
+        "output4": {
+            "type":"RAW_DOCUMENT",
+            "module_name": "",
+            "params":{
+                "inner_type": "MULTI_FILE"
+            }
+        }
+
+    }
+}

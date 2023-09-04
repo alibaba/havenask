@@ -1,0 +1,5 @@
+{
+    "graph_name" : "RunScripts.graph",
+    "id" : "1",
+    "params" : { "type" : "shell", "index_root" : "test_index" }
+}

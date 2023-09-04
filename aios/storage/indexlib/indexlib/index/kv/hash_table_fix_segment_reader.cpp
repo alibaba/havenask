@@ -19,7 +19,6 @@
 #include "indexlib/index_define.h"
 
 using namespace std;
-using namespace indexlib::codegen;
 
 namespace indexlib { namespace index {
 IE_LOG_SETUP(index, HashTableFixSegmentReader);
@@ -178,7 +177,7 @@ bool HashTableFixSegmentReader::doCollectAllCode()
 
 void HashTableFixSegmentReader::TEST_collectCodegenResult(CodegenCheckers& checkers, std::string id)
 {
-    codegen::CodegenCheckerPtr checker(new CodegenChecker);
+    codegen::CodegenCheckerPtr checker(new codegen::CodegenChecker);
     COLLECT_CONST_MEM(checker, mHasTTL);
     COLLECT_CONST_MEM(checker, mValueType);
     COLLECT_CONST_MEM(checker, mHasHashTableReader);

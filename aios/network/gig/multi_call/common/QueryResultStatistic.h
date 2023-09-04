@@ -16,9 +16,10 @@
 #ifndef ISEARCH_MULTI_CALL_QUERYRESULTSTATISTIC_H
 #define ISEARCH_MULTI_CALL_QUERYRESULTSTATISTIC_H
 
+#include <assert.h>
+
 #include "aios/network/gig/multi_call/common/ControllerParam.h"
 #include "aios/network/gig/multi_call/common/common.h"
-#include <assert.h>
 
 namespace multi_call {
 
@@ -28,20 +29,31 @@ class PropagationStatDef;
 struct QueryResultStatistic {
 public:
     QueryResultStatistic()
-        : statIndex(-1), targetWeight(MAX_WEIGHT), callBegTime(-1),
-          rpcBeginTime(-1), callEndTime(-1), ec(MULTI_CALL_ERROR_NO_RESPONSE),
-          agentInfo(NULL), netLatency(INVALID_FLOAT_OUTPUT_VALUE), heartbeatPropagationStat(nullptr) {}
+        : statIndex(-1)
+        , targetWeight(MAX_WEIGHT)
+        , callBegTime(-1)
+        , rpcBeginTime(-1)
+        , callEndTime(-1)
+        , ec(MULTI_CALL_ERROR_NO_RESPONSE)
+        , agentInfo(NULL)
+        , netLatency(INVALID_FLOAT_OUTPUT_VALUE)
+        , heartbeatPropagationStat(nullptr) {
+    }
     ~QueryResultStatistic();
     QueryResultStatistic(const QueryResultStatistic &) = delete;
     QueryResultStatistic &operator=(const QueryResultStatistic &) = delete;
 
-    void rpcBegin() { rpcBeginTime = autil::TimeUtility::currentTime(); }
+    void rpcBegin() {
+        rpcBeginTime = autil::TimeUtility::currentTime();
+    }
     void callEnd() {
         if (callEndTime <= callBegTime) {
             callEndTime = autil::TimeUtility::currentTime();
         }
     }
-    void setCallBegTime(int64_t beginTime) { callBegTime = beginTime; }
+    void setCallBegTime(int64_t beginTime) {
+        callBegTime = beginTime;
+    }
     int64_t getLatency() const {
         assert(callEndTime >= callBegTime);
         return callEndTime - callBegTime;
@@ -54,9 +66,15 @@ public:
             return getLatency();
         }
     }
-    bool isDecWeight() const { return MULTI_CALL_ERROR_DEC_WEIGHT == ec; }
-    bool isFailed() const { return ec > MULTI_CALL_ERROR_DEC_WEIGHT; }
-    bool isEmptyAgentInfo() const { return agentInfo == NULL; }
+    bool isDecWeight() const {
+        return MULTI_CALL_ERROR_DEC_WEIGHT == ec;
+    }
+    bool isFailed() const {
+        return ec > MULTI_CALL_ERROR_DEC_WEIGHT;
+    }
+    bool isEmptyAgentInfo() const {
+        return agentInfo == NULL;
+    }
     void setTargetWeight(WeightTy weight) {
         if (weight > MAX_WEIGHT) {
             weight = MAX_WEIGHT;
@@ -65,8 +83,12 @@ public:
         }
         targetWeight = weight;
     }
-    void setNetLatency(float netLatency_) { netLatency = netLatency_; }
-    float getNetLatency() const { return netLatency; }
+    void setNetLatency(float netLatency_) {
+        netLatency = netLatency_;
+    }
+    float getNetLatency() const {
+        return netLatency;
+    }
     void setAgentInfo(GigResponseInfo *pbInfo);
     bool validateMirror() const;
     const PropagationStatDef &getMirrorStat() const;

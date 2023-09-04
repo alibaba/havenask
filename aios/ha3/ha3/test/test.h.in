@@ -1,0 +1,9 @@
+#pragma once
+
+#define TOP_SRCDIR "@TOP_SRCDIR@"
+#define TOP_BUILDDIR "@TOP_SRCDIR@" "/" "@TOP_BUILDDIR@"
+#define BUILDDIR "@BUILDDIR@"
+#define BIN_PATH "@TOP_BUILDDIR@/ha3/app"
+#define LIB_PATH "@TOP_BUILDDIR@/lib"
+#define TEST_DATA_PATH "@TOP_SRCDIR@/testdata"
+#define INSTALL_ROOT "@INSTALL_ROOT@"

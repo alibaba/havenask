@@ -21,12 +21,9 @@ namespace isearch {
 namespace rank {
 AUTIL_LOG_SETUP(ha3, Comparator);
 
-Comparator::Comparator() { 
-}
+Comparator::Comparator() {}
 
-Comparator::~Comparator() { 
-}
+Comparator::~Comparator() {}
 
 } // namespace rank
 } // namespace isearch
-

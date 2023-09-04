@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/grpc/server/GrpcCallData.h"
+
 #include "aios/network/gig/multi_call/grpc/server/GrpcServerWorker.h"
 #include "aios/network/gig/multi_call/interface/QuerySession.h"
 #include "aios/network/gig/multi_call/util/ProtobufByteBufferUtil.h"
@@ -23,20 +24,34 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GrpcCallData);
 
-GrpcCallData::GrpcCallData(GrpcServerWorker *worker,
-                           ServerCompletionQueueStatus *cqs,
+GrpcCallData::GrpcCallData(GrpcServerWorker *worker, ServerCompletionQueueStatus *cqs,
                            const SearchServicePtr &searchService)
-    : arena(new google::protobuf::Arena()), status(CREATE), triggered(false),
-      beginTime(0), worker(worker), cqs(cqs), stream(&serverContext),
-      request(NULL), response(NULL), closure(new GigGrpcClosure(this)),
-      searchService(searchService) {
+    : arena(new google::protobuf::Arena())
+    , status(CREATE)
+    , triggered(false)
+    , beginTime(0)
+    , worker(worker)
+    , cqs(cqs)
+    , stream(&serverContext)
+    , request(NULL)
+    , response(NULL)
+    , closure(new GigGrpcClosure(this))
+    , searchService(searchService) {
     process();
 }
 
 GrpcCallData::GrpcCallData()
-    : arena(new google::protobuf::Arena()), status(CREATE), triggered(false),
-      beginTime(0), worker(nullptr), cqs(nullptr), stream(nullptr),
-      request(NULL), response(NULL), closure(new GigGrpcClosure(this)) {}
+    : arena(new google::protobuf::Arena())
+    , status(CREATE)
+    , triggered(false)
+    , beginTime(0)
+    , worker(nullptr)
+    , cqs(nullptr)
+    , stream(nullptr)
+    , request(NULL)
+    , response(NULL)
+    , closure(new GigGrpcClosure(this)) {
+}
 
 GrpcCallData::~GrpcCallData() {
     freeProtoMessage(request);
@@ -49,8 +64,8 @@ void GrpcCallData::process() {
     case CREATE:
         // AUTIL_LOG(INFO, "request create");
         status = READ;
-        worker->getAsyncGenericService().RequestCall(
-            &serverContext, &stream, cqs->cq.get(), cqs->cq.get(), this);
+        worker->getAsyncGenericService().RequestCall(&serverContext, &stream, cqs->cq.get(),
+                                                     cqs->cq.get(), this);
         break;
     case READ:
         // AUTIL_LOG(INFO, "received");
@@ -99,8 +114,8 @@ void GrpcCallData::initQueryInfo(const std::string &infoStr) {
     closure->setQueryInfo(worker->getAgent()->getQueryInfo(infoStr));
 }
 
-void GrpcCallData::initQueryInfoByCompatibleField(
-    google::protobuf::Message *request, const GigRpcMethodArgPtr &arg) {
+void GrpcCallData::initQueryInfoByCompatibleField(google::protobuf::Message *request,
+                                                  const GigRpcMethodArgPtr &arg) {
     if (arg != nullptr && arg->isHeartbeatMethod) {
         return;
     }
@@ -115,9 +130,8 @@ void GrpcCallData::initQueryInfoByCompatibleField(
     initQueryInfo(gigMeta);
 }
 
-void GrpcCallData::initQuerySession(
-    google::protobuf::Message *request,
-    const std::shared_ptr<GigRpcMethodArg> &arg) {
+void GrpcCallData::initQuerySession(google::protobuf::Message *request,
+                                    const std::shared_ptr<GigRpcMethodArg> &arg) {
     if (arg != nullptr && arg->isHeartbeatMethod) {
         return;
     }
@@ -126,10 +140,8 @@ void GrpcCallData::initQuerySession(
     if (session->isEmptyInitContext()) {
         std::string traceId, rpcId, userDatas;
         if (ProtobufCompatibleUtil::getEagleeyeField(
-                request, arg->compatibleInfo.eagleeyeTraceId,
-                arg->compatibleInfo.eagleeyeRpcId,
-                arg->compatibleInfo.eagleeyeUserData, traceId, rpcId,
-                userDatas)) {
+                request, arg->compatibleInfo.eagleeyeTraceId, arg->compatibleInfo.eagleeyeRpcId,
+                arg->compatibleInfo.eagleeyeUserData, traceId, rpcId, userDatas)) {
             session->setEagleeyeUserData(traceId, rpcId, userDatas);
         }
     }
@@ -143,8 +155,7 @@ void GrpcCallData::call() {
         ec = MULTI_CALL_ERROR_NO_METHOD;
     } else {
         request = methodArg->request->New(arena.get());
-        if (!ProtobufByteBufferUtil::deserializeFromBuffer(receiveBuffer,
-                                                           request)) {
+        if (!ProtobufByteBufferUtil::deserializeFromBuffer(receiveBuffer, request)) {
             ec = MULTI_CALL_REPLY_ERROR_REQUEST;
         }
         closure->setCompatibleFieldInfo(&methodArg->compatibleInfo);

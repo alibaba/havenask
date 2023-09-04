@@ -17,8 +17,8 @@
 
 #include "autil/DataBuffer.h"
 #include "indexlib/config/IIndexConfig.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/IndexConfigHash.h"
-#include "indexlib/config/TabletSchema.h"
 #include "indexlib/document/BuiltinParserInitParam.h"
 #include "indexlib/document/ExtendDocument.h"
 #include "indexlib/document/RawDocument.h"
@@ -37,10 +37,12 @@ KVDocumentParser::KVDocumentParser() = default;
 
 KVDocumentParser::~KVDocumentParser() = default;
 
-Status KVDocumentParser::Init(const std::shared_ptr<config::TabletSchema>& schema,
+Status KVDocumentParser::Init(const std::shared_ptr<config::ITabletSchema>& schema,
                               const std::shared_ptr<DocumentInitParam>& initParam)
 {
+    _schemaId = schema->GetSchemaId();
     _counter = InitCounter(initParam);
+    AUTIL_LOG(INFO, "init kv parser schemaid [%d]", _schemaId);
 
     for (const auto& indexConfig : schema->GetIndexConfigs()) {
         auto indexDocParser = CreateIndexFieldsParser(indexConfig);
@@ -87,6 +89,7 @@ std::pair<Status, std::unique_ptr<IDocumentBatch>> KVDocumentParser::Parse(Exten
         }
         auto kvDoc = std::move(result.steal_value());
         if (kvDoc) {
+            kvDoc->SetSchemaId(_schemaId);
             if (needIndexHash) {
                 kvDoc->SetIndexNameHash(hash);
             }

@@ -15,10 +15,10 @@
  */
 #include "autil/Thread.h"
 
-#include <pthread.h>
 #include <cstddef>
 #include <functional>
 #include <memory>
+#include <pthread.h>
 #include <string>
 
 #include "autil/Log.h"
@@ -51,8 +51,7 @@ ThreadPtr Thread::createThread(const function<void()> &threadFunction, const str
     if (!name.empty()) {
         scope.reset(new ThreadNameScope(name));
     }
-    int rtn = pthread_create(&threadPtr->_id, NULL,
-                             &Thread::threadWrapperFunction, arg);
+    int rtn = pthread_create(&threadPtr->_id, NULL, &Thread::threadWrapperFunction, arg);
 
     if (rtn != 0) {
         delete arg;

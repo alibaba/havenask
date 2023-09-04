@@ -42,8 +42,10 @@ public:
     static const size_t DEFAULT_MEMORY_LIMIT = std::numeric_limits<size_t>::max();
 
 public:
-    MemControlStreamQueue(uint32_t queueSize = DEFAULT_QUEUE_SIZE, size_t memoryLimit = DEFAULT_MEMORY_LIMIT)
-        : _capacity(queueSize)
+    MemControlStreamQueue(uint32_t queueSize = DEFAULT_QUEUE_SIZE, size_t memoryLimit = DEFAULT_MEMORY_LIMIT,
+                          uint32_t waitTimeUs = DEFAULT_WAIT_TIME)
+        : _waitTime(waitTimeUs)
+        , _capacity(queueSize)
         , _memoryLimit(memoryLimit)
         , _itemCount(0)
         , _usedMemory(0)
@@ -63,7 +65,7 @@ public:
         autil::ScopedLock lk(_cond);
         while (_itemCount.load(std::memory_order_relaxed) >= _capacity.load(std::memory_order_relaxed) ||
                _usedMemory.load(std::memory_order_relaxed) + itemSize > _memoryLimit.load(std::memory_order_relaxed)) {
-            _cond.wait(DEF_WAIT_TIME);
+            _cond.wait(_waitTime);
         }
         _slots.emplace_back(std::forward<C>(item), itemSize);
         _itemCount.fetch_add(1, std::memory_order_relaxed);
@@ -136,7 +138,7 @@ private:
     void waitNotEmpty()
     {
         autil::ScopedLock lk(_cond);
-        _cond.wait(DEFAULT_WAIT_TIME);
+        _cond.wait(_waitTime);
     }
 
     T getFront()
@@ -147,6 +149,7 @@ private:
     }
 
 private:
+    uint32_t _waitTime;
     std::atomic<size_t> _capacity;
     std::atomic<size_t> _memoryLimit;
     std::atomic<size_t> _itemCount;
@@ -156,7 +159,6 @@ private:
 
     bool _finish;
 
-    static const uint32_t DEF_WAIT_TIME = 1000000; // 1 second
 private:
     BS_LOG_DECLARE();
 };

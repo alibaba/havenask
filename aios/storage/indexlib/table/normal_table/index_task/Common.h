@@ -21,6 +21,7 @@
 #include "indexlib/index/deletionmap/Common.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/operation_log/Common.h"
+#include "indexlib/index/pack_attribute/Common.h"
 #include "indexlib/index/primary_key/Common.h"
 
 namespace indexlibv2::table {

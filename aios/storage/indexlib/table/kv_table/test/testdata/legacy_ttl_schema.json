@@ -1,0 +1,114 @@
+{
+"attributes":
+  [
+    "id",
+    "a",
+    "b",
+    "c"
+  ],
+"default_ttl":
+  8796093022207,
+"enable_temperature_layer":
+  false,
+"enable_ttl":
+  true,
+"fields":
+  [
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "id",
+    "field_type":
+      "INTEGER"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "a",
+    "field_type":
+      "INTEGER"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "b",
+    "field_type":
+      "STRING"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "c",
+    "field_type":
+      "INTEGER"
+    }
+  ],
+"indexs":
+  [
+    {
+    "format_version_id":
+      0,
+    "index_fields":
+      "id",
+    "index_name":
+      "id",
+    "index_preference":
+      {
+      "parameters":
+        {
+        "hash_dict":
+          {
+          "enable_compact_hash_key":
+            true,
+          "enable_shorten_offset":
+            true,
+          "max_value_size_for_short_offset":
+            4294967294,
+          "merge_use_precise_count":
+            true,
+          "occupancy_pct":
+            50,
+          "type":
+            "dense"
+          },
+        "value":
+          {
+          "encode":
+            false,
+          "file_compressor":
+            "",
+          "file_compressor_buffer_size":
+            4096,
+          "file_compressor_parameter":
+            {
+            },
+          "fix_len_auto_inline":
+            false,
+          "plain_format":
+            false,
+          "value_impact":
+            false
+          }
+        },
+      "type":
+        "PERF"
+      },
+    "index_type":
+      "PRIMARY_KEY",
+    "use_number_hash":
+      true
+    }
+  ],
+"table_name":
+  "kv1",
+"table_type":
+  "kv",
+"ttl_from_doc":
+    true,
+"ttl_field_name":
+    "a"
+}

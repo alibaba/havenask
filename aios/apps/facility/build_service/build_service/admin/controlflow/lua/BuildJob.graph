@@ -1,0 +1,15 @@
+#import(Tool)
+
+function graphDef()
+   local needMerge = (Graph.parameter["needMerge"] == "true")
+   local param = Tool.copyMap(Graph.parameter)
+   jobBuilder = Graph.loadSimpleFlow("job_builder", "jobBuilder", param)
+   jobBuilder:addTag("JobBuilder")
+   if (needMerge)
+   then
+      jobMerger = Graph.loadSimpleFlow("merger", "jobMerger", param)
+      jobMerger:addTag("JobMerger")
+      Graph.setUpstream(jobMerger, jobBuilder)
+   end
+   return true
+end

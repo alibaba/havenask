@@ -22,15 +22,14 @@
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class FileReadWriteLock
-{
+class FileReadWriteLock {
 public:
     virtual ~FileReadWriteLock() {}
 
 public:
     /**
      * rdlock request read lock for the file
-     * @param timeout [in] timeout for waiting for the lock, default timeout is 0, 
+     * @param timeout [in] timeout for waiting for the lock, default timeout is 0,
      *                     0 means wait forever.
      * @return int, -1 indicates get lock fail, otherwise mean succeed
      */
@@ -38,7 +37,7 @@ public:
 
     /**
      * wrlock request write lock for the file
-     * @param timeout [in] timeout for waiting for the lock, default timeout is 0, 
+     * @param timeout [in] timeout for waiting for the lock, default timeout is 0,
      *                     0 means wait forever.
      * @return int, -1 indicates get lock fail, otherwise mean succeed
      */
@@ -49,11 +48,10 @@ public:
      * @return int, -1 indicates release lock fail, otherwise mean succeed
      */
     virtual int unlock() = 0;
-    
 };
 
 FSLIB_TYPEDEF_AUTO_PTR(FileReadWriteLock);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_FILEREADWRITELOCK_H
+#endif // FSLIB_FILEREADWRITELOCK_H

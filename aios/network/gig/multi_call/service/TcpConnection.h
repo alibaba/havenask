@@ -27,10 +27,10 @@ class Transport;
 
 namespace multi_call {
 
-class TcpConnection : public Connection {
+class TcpConnection : public Connection
+{
 public:
-    TcpConnection(anet::Transport *transport, const std::string &spec,
-                  size_t queueSize);
+    TcpConnection(anet::Transport *transport, const std::string &spec, size_t queueSize);
     ~TcpConnection();
 
 private:

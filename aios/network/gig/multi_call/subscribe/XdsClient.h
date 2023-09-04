@@ -16,22 +16,19 @@
 #ifndef MULTI_CALL_XDSCLIENT_XDSCLIENT_H
 #define MULTI_CALL_XDSCLIENT_XDSCLIENT_H
 
+#include "aios/network/gig/multi_call/common/common.h"
+#include "aios/network/gig/multi_call/config/MultiCallConfig.h"
+#include "aios/network/gig/multi_call/subscribe/GrpcAds.h"
+#include "aios/network/gig/multi_call/subscribe/SubscribeService.h"
+#include "aios/network/gig/multi_call/subscribe/XdsStore.h"
 #include "autil/Lock.h"
 #include "autil/SynchronizedQueue.h"
 #include "autil/Thread.h"
 #include "autil/ThreadPool.h"
-
-#include "aios/network/gig/multi_call/common/common.h"
-#include "aios/network/gig/multi_call/config/MultiCallConfig.h"
-
-#include "aios/network/gig/multi_call/subscribe/SubscribeService.h"
-#include "aios/network/gig/multi_call/subscribe/GrpcAds.h"
-#include "aios/network/gig/multi_call/subscribe/XdsStore.h"
 // TODO Hua rename grpcads
 #include "aios/apps/facility/cm2/cm_basic/basic_struct/proto/envoy/api/v2/cds.grpc.pb.h"
 #include "aios/apps/facility/cm2/cm_basic/basic_struct/proto/envoy/api/v2/eds.grpc.pb.h"
 #include "aios/apps/facility/cm2/cm_basic/basic_struct/proto/envoy/service/discovery/v2/ads.grpc.pb.h"
-
 
 namespace multi_call {
 
@@ -49,7 +46,8 @@ struct IstioVersionInfo {
 ////  Note: resource
 // names (outbound|0||bizname.clustername) vs hostnames (bizname.clustername)
 // Usage: refer to IstioSubscribeService
-class XdsClient {
+class XdsClient
+{
 public:
     XdsClient(const IstioConfig &config, const IstioMetricReporterPtr reporter,
               std::shared_ptr<XdsStore> xdsStore);
@@ -73,21 +71,18 @@ private:
     static const std::string kEDSUrl;
 
     // return false if parse failed, otherwise return in version info.
-    static bool parseVersionInfo(const std::string &str,
-                                 IstioVersionInfo *versioninfo);
+    static bool parseVersionInfo(const std::string &str, IstioVersionInfo *versioninfo);
 
     void receiveThreadFunc();
     void asyncSubThreadFunc();
     // TODO (guanming.fh) if is the first full response not use the thread pool,
     // to know if client is synced
-    void
-    processXdsResponse(std::shared_ptr<envoy::api::v2::DiscoveryResponse> resp);
+    void processXdsResponse(std::shared_ptr<envoy::api::v2::DiscoveryResponse> resp);
     // sanity check: (1) full before all incremental msg (2) we only log error
     // on server version violation, because currently there is no mechanism to
     // maintain monotone increasing version.
     // return false, if this reponse should be rejected.
-    bool xdsResponseSanityCheck(const IstioVersionInfo &vinfo,
-                                const std::string &typeUrl,
+    bool xdsResponseSanityCheck(const IstioVersionInfo &vinfo, const std::string &typeUrl,
                                 const std::string &nouce);
     // send SendDiscoveryRequest of EDS and CDS of watched resource
     // when *async* is false, the request is sent immediately, otherwise

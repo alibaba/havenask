@@ -15,26 +15,26 @@
  */
 #pragma once
 
+#include <memory>
 #include <stdint.h>
 #include <string>
-#include <memory>
 
 #include "autil/HashFunctionBase.h"
 
 namespace autil {
 
-class NumberHashFunction : public HashFunctionBase
-{
+class NumberHashFunction : public HashFunctionBase {
 public:
-    NumberHashFunction(const std::string& hashFunction, uint32_t partitionCount)
-        :HashFunctionBase(hashFunction, partitionCount) {}
+    NumberHashFunction(const std::string &hashFunction, uint32_t partitionCount)
+        : HashFunctionBase(hashFunction, partitionCount) {}
     virtual ~NumberHashFunction() {}
+
 public:
-    /*override*/virtual uint32_t getHashId(const std::string& str) const;
+    /*override*/ virtual uint32_t getHashId(const std::string &str) const;
+
 public:
-    int64_t hashString(const std::string& str) const;
+    int64_t hashString(const std::string &str) const;
 };
 
 typedef std::shared_ptr<NumberHashFunction> NumberHashFunctionPtr;
-}
-
+} // namespace autil

@@ -31,19 +31,20 @@ enum AttributeType {
     AT_UNKNOWN,
 };
 
-class AttributeMetaInfo
-{
+class AttributeMetaInfo {
 public:
     typedef indexlib::partition::IndexPartitionReaderPtr IndexPartitionReaderPtr;
     typedef indexlib::index::AttributeReaderPtr AttributeReaderPtr;
+
 public:
-    AttributeMetaInfo(
-            const std::string &attrName = "", 
-            AttributeType attrType = AT_MAIN_ATTRIBUTE,
-            const IndexPartitionReaderPtr &indexPartReaderPtr = IndexPartitionReaderPtr());
+    AttributeMetaInfo(const std::string &attrName = "",
+                      AttributeType attrType = AT_MAIN_ATTRIBUTE,
+                      const IndexPartitionReaderPtr &indexPartReaderPtr
+                      = IndexPartitionReaderPtr());
     ~AttributeMetaInfo();
+
 public:
-    const std::string& getAttributeName() const {
+    const std::string &getAttributeName() const {
         return _attrName;
     }
     void setAttributeName(const std::string &attributeName) {
@@ -55,17 +56,18 @@ public:
     void setAttributeType(AttributeType attrType) {
         _attrType = attrType;
     }
-    const IndexPartitionReaderPtr& getIndexPartReader() const {
+    const IndexPartitionReaderPtr &getIndexPartReader() const {
         return _indexPartReaderPtr;
     }
-    void setIndexPartReader(const IndexPartitionReaderPtr& idxPartReaderPtr) {
+    void setIndexPartReader(const IndexPartitionReaderPtr &idxPartReaderPtr) {
         _indexPartReaderPtr = idxPartReaderPtr;
     }
-    
+
 private:
     std::string _attrName;
     AttributeType _attrType;
-    IndexPartitionReaderPtr _indexPartReaderPtr;    
+    IndexPartitionReaderPtr _indexPartReaderPtr;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -73,4 +75,3 @@ typedef std::shared_ptr<AttributeMetaInfo> AttributeMetaInfoPtr;
 
 } // namespace search
 } // namespace isearch
-

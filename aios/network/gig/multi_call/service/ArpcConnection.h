@@ -28,10 +28,11 @@ namespace multi_call {
 
 typedef std::shared_ptr<arpc::ANetRPCChannelManager> ANetRPCChannelManagerPtr;
 
-class ArpcConnection : public ArpcConnectionBase {
+class ArpcConnection : public ArpcConnectionBase
+{
 public:
-    ArpcConnection(const ANetRPCChannelManagerPtr &channelManager,
-                   const std::string &spec, size_t queueSize);
+    ArpcConnection(const ANetRPCChannelManagerPtr &channelManager, const std::string &spec,
+                   size_t queueSize);
     ~ArpcConnection();
 
 private:

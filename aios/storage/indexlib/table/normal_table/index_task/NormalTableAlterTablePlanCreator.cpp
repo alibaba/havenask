@@ -37,10 +37,11 @@
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, NormalTableAlterTablePlanCreator);
 
-const std::string NormalTableAlterTablePlanCreator::TASK_TYPE = ALTER_TABLE_TASK_TYPE;
+const std::string NormalTableAlterTablePlanCreator::TASK_TYPE = framework::ALTER_TABLE_TASK_TYPE;
 
-NormalTableAlterTablePlanCreator::NormalTableAlterTablePlanCreator(const std::string& taskName)
-    : SimpleIndexTaskPlanCreator(taskName)
+NormalTableAlterTablePlanCreator::NormalTableAlterTablePlanCreator(const std::string& taskName,
+                                                                   const std::map<std::string, std::string>& params)
+    : SimpleIndexTaskPlanCreator(taskName, params)
 {
 }
 
@@ -212,7 +213,7 @@ bool NormalTableAlterTablePlanCreator::UseDefaultValueStrategy(
                           fieldConfig->GetFieldName().c_str());
                 return false;
             }
-            auto attrConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(config);
+            auto attrConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(config);
             if (attrConfig && attrConfig->IsAttributeUpdatable()) {
                 // updateable attribute not support
                 AUTIL_LOG(INFO, "field [%s] is updateable attribute, will complete index in task",
@@ -255,6 +256,11 @@ bool NormalTableAlterTablePlanCreator::UnsupportIndexType(
     if (indexConfig->GetShardingType() == indexlibv2::config::InvertedIndexConfig::IST_NEED_SHARDING) {
         AUTIL_LOG(INFO, "field [%s] is set for multi shard, will complete index in task",
                   indexConfig->GetIndexName().c_str());
+        return true;
+    }
+    if (indexConfig->IsIndexUpdatable()) {
+        // not support yet
+        AUTIL_LOG(INFO, "field [%s] set updatable, will complete index in task", indexConfig->GetIndexName().c_str());
         return true;
     }
     return false;

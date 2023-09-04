@@ -15,20 +15,24 @@
  */
 #ifndef ISEARCH_MULTI_CALL_GIGARPCGENERATOR_H
 #define ISEARCH_MULTI_CALL_GIGARPCGENERATOR_H
+#include <string>
+
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/java/GigArpcRequest.h"
 #include "aios/network/gig/multi_call/java/GigRequestGenerator.h"
-#include <string>
 
 namespace multi_call {
 
-class GigArpcGenerator : public GigRequestGenerator {
+class GigArpcGenerator : public GigRequestGenerator
+{
 public:
     GigArpcGenerator(const std::string &clusterName, const std::string &bizName,
                      const std::shared_ptr<google::protobuf::Arena> &arena =
-                     std::shared_ptr<google::protobuf::Arena>())
-        : GigRequestGenerator(clusterName, bizName, arena) {}
-    ~GigArpcGenerator() {}
+                         std::shared_ptr<google::protobuf::Arena>())
+        : GigRequestGenerator(clusterName, bizName, arena) {
+    }
+    ~GigArpcGenerator() {
+    }
 
 private:
     GigArpcGenerator(const GigArpcGenerator &);

@@ -16,7 +16,7 @@
 #include "indexlib/table/plain/PlainDiskSegment.h"
 
 #include "indexlib/config/IIndexConfig.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/framework/SegmentMetrics.h"
 #include "indexlib/framework/cleaner/DropIndexCleaner.h"
@@ -29,7 +29,7 @@
 namespace indexlibv2::plain {
 AUTIL_LOG_SETUP(indexlib.plain, PlainDiskSegment);
 
-PlainDiskSegment::PlainDiskSegment(const std::shared_ptr<config::TabletSchema>& schema,
+PlainDiskSegment::PlainDiskSegment(const std::shared_ptr<config::ITabletSchema>& schema,
                                    const framework::SegmentMeta& segmentMeta, const framework::BuildResource& resource)
     : framework::DiskSegment(segmentMeta)
     , _schema(schema)
@@ -109,7 +109,7 @@ Status PlainDiskSegment::Open(const std::shared_ptr<MemoryQuotaController>& memo
 }
 
 bool PlainDiskSegment::NeedDrop(const std::string& indexType, const std::string& indexName,
-                                const std::vector<std::shared_ptr<config::TabletSchema>>& schemas)
+                                const std::vector<std::shared_ptr<config::ITabletSchema>>& schemas)
 {
     for (auto schema : schemas) {
         auto indexConfig = schema->GetIndexConfig(indexType, indexName);
@@ -120,7 +120,7 @@ bool PlainDiskSegment::NeedDrop(const std::string& indexType, const std::string&
     return false;
 }
 
-Status PlainDiskSegment::Reopen(const std::vector<std::shared_ptr<config::TabletSchema>>& schemas)
+Status PlainDiskSegment::Reopen(const std::vector<std::shared_ptr<config::ITabletSchema>>& schemas)
 {
     auto schema = schemas[schemas.size() - 1];
     auto directory = GetSegmentDirectory()->GetIDirectory();
@@ -223,7 +223,7 @@ void PlainDiskSegment::DeleteIndexer(const std::string& type, const std::string&
 }
 
 // TODO: if exception occurs, how-to ?
-size_t PlainDiskSegment::EstimateMemUsed(const std::shared_ptr<config::TabletSchema>& schema)
+size_t PlainDiskSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     auto segDir = GetSegmentDirectory();
     size_t totalMemUsed = 0;

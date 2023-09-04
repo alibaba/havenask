@@ -1,0 +1,82 @@
+{
+    /* This config file is just for index engine library, and it will be stored in corresponding index partition for the convenience of index partition transfer. we just need one table when building a index partition. */
+    /* fields are order-sensitive; attributes, and summary must have the same order with fields; */
+
+    "table_name": "auction",
+
+    "adaptive_dictionaries":
+    [
+        {
+            "adaptive_dictionary_name":"df",
+            "dict_type":"DOC_FREQUENCY",
+            "threshold":500000
+        },
+        {
+            "adaptive_dictionary_name":"percent",
+            "dict_type":"PERCENT",
+            "threshold":30
+        },
+        {
+            "adaptive_dictionary_name":"size",
+            "dict_type":"INDEX_SIZE"
+        }
+    ],
+
+    "dictionaries":
+    [
+	{"dictionary_name":"top10",	"content":"of;a;an"},
+	{"dictionary_name":"top100",	"content":"0;1;2;a;an"},
+	{"dictionary_name":"topNum",	"content":"0;1;2;9;11"}
+    ],
+
+    "indexs": 
+    [
+     	{
+	        "index_name": "phrase",
+            "index_type" : "PACK",
+	        "index_fields": 
+	        [
+		        {"field_name":"title", "boost":1000}, 
+		        {"field_name":"body", "boost":10}
+	        ],
+            "high_frequency_dictionary" : "top10",
+            "high_frequency_adaptive_dictionary" : "df"
+	    },
+
+	    {
+	        "index_name": "title",
+            "index_type": "TEXT",
+            "index_fields": "title"
+        },
+
+
+	    {
+	        "index_name": "user_name",
+            "index_type": "STRING",
+            "index_fields": "user_name"
+        },
+
+	    {
+	        "index_name": "product_id",
+            "index_type" : "PRIMARYKEY64",
+	        "index_fields": "product_id",
+	        "has_primary_key_attribute": true
+	    },
+
+	    {
+            "index_name": "phrase2",
+            "index_type" : "EXPACK",
+            "index_fields":
+            [
+                {"field_name":"title", "boost":1000},
+                {"field_name":"body", "boost":10}
+            ]
+        }
+    ],
+
+    "attributes": ["user_id", "product_id"],
+
+    "summarys":{ 
+    	"summary_fields": ["title",  "user_name", "user_id", "price", "auction_type"]
+	}
+}

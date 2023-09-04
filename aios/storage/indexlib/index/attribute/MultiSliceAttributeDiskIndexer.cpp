@@ -34,7 +34,7 @@ Status MultiSliceAttributeDiskIndexer::Open(const std::shared_ptr<config::IIndex
                   indexConfig->GetIndexName().c_str(), _indexerParam.segmentId);
         return Status::OK();
     }
-    auto attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+    auto attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
     assert(attrConfig != nullptr);
     auto attrPath = GetAttributePath(attrConfig);
     auto [status, isExist] = indexDirectory->IsExist(attrPath).StatusWith();
@@ -190,7 +190,7 @@ size_t MultiSliceAttributeDiskIndexer::EstimateMemUsed(
     if (!indexDirectory) {
         return 0;
     }
-    auto attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+    auto attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
     assert(attrConfig != nullptr);
     auto [status, attrDirectory] = indexDirectory->GetDirectory(attrConfig->GetAttrName()).StatusWith();
     if (!status.IsOK()) {

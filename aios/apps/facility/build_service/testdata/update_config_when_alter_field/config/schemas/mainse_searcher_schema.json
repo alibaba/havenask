@@ -1,0 +1,18 @@
+{
+    "table_name": "mainse_searcher",
+    "versionid" : 0,
+    "fields": [
+	{"field_name":"nid", "field_type":"INT32"},
+        {"field_name":"num1", "field_type":"INT32"},
+        {"field_name":"num2", "field_type":"INT32"}
+    ],
+    "indexs": [
+	{"index_name":"nid", "index_fields":"nid", "index_type": "PRIMARYKEY64", "has_primary_key_attribute": false, "term_frequency_flag" : 0},
+        {"index_name":"num_index", "index_fields":"num1", "index_type": "NUMBER"}
+    ],
+    "attributes": ["num1","num2"],
+    "summarys": {
+	"summary_fields":["nid"],
+	"compress":true
+    }
+}

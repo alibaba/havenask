@@ -1,0 +1,83 @@
+{
+    "offline_index_config": {
+        "customized_merge_config": {
+            "inc_merge": {
+                "merge_parallel_num": 3,
+                "period": "daytime=17:30",
+                "merge_config": {
+                }
+            },
+            "inc": {
+                "merge_parallel_num": 1,
+                "period": "period=1800",
+                "merge_config": {
+                }
+            },
+            "full": {
+                "merge_parallel_num": 5,
+                "merge_config": {
+                    "truncate_strategy": [
+                        {
+                            "truncate_profiles": [
+                                "desc_static_trans_score"
+                            ],
+                            "diversity_constrain": {
+                                "distinct_expand_limit": 150000,
+                                "distinct_count": 20000,
+                                "distinct_field": "user_id"
+                            },
+                            "limit": 50000,
+                            "threshold": 100000,
+                            "strategy_name": "distinct_sort"
+                        },
+                        {
+                            "diversity_constrain": {
+                                "distinct_expand_limit": 180000,
+                                "distinct_count": 32000,
+                                "distinct_field": "user_id"
+                            },
+                            "limit": 80000,
+                            "threshold": 120000,
+                            "strategy_name": "distinct_sort_for_ends"
+                        }
+                    ],
+                    "merge_thread_count": 4,
+                    "merge_strategy_param": "",
+                    "merge_strategy": "optimize"
+                }
+            }
+        }
+    },
+    "build_option_config": {
+        "sort_descriptions": [
+            {
+                "sort_pattern": "desc",
+                "sort_field": "category"
+            },
+            {
+                "sort_pattern": "desc",
+                "sort_field": "ends"
+            }
+        ],
+        "sort_queue_size": 100000,
+        "sort_build": true
+    },
+    "cluster_config": {
+        "keep_checkpoint_count": 10,
+        "builder_rule_config": {
+            "need_partition": true,
+            "map_reduce_ratio": 1,
+            "merge_parallel_num": 1,
+            "build_parallel_num": 3,
+            "partition_count": 2
+        },
+        "cluster_type": "inc_with_realtime",
+        "hash_mode": {
+            "hash_function": "KINGSO_HASH#720",
+            "hash_field": "nid"
+        },
+        "table_name": "mainse_summary",
+        "cluster_name": "mainse_summary_extra",
+        "overwrite_schema_name": true
+    }
+}

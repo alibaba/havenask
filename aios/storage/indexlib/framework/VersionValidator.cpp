@@ -28,7 +28,7 @@ namespace indexlibv2::framework {
 AUTIL_LOG_SETUP(indexlib.framework, VersionValidator);
 
 Status VersionValidator::Validate(const std::string& indexRootPath,
-                                  const std::shared_ptr<const config::TabletSchema>& schema, versionid_t versionId)
+                                  const std::shared_ptr<const config::ITabletSchema>& schema, versionid_t versionId)
 {
     AUTIL_LOG(INFO, "version validate begin");
     std::string content;

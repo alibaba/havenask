@@ -22,9 +22,7 @@
 #include "indexlib/index/attribute/patch/AttributePatchIterator.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
-class AttributeConfig;
-class PackAttributeConfig;
+class ITabletSchema;
 } // namespace indexlibv2::config
 
 namespace indexlibv2::framework {
@@ -32,6 +30,9 @@ class Segment;
 }
 
 namespace indexlibv2::index {
+class AttributeConfig;
+class PackAttributeConfig;
+
 class AttributePatchIteratorComparator
 {
 public:
@@ -46,11 +47,11 @@ public:
 class MultiFieldPatchIterator : public PatchIterator
 {
 public:
-    MultiFieldPatchIterator(const std::shared_ptr<config::TabletSchema>& schema);
+    MultiFieldPatchIterator(const std::shared_ptr<config::ITabletSchema>& schema);
     ~MultiFieldPatchIterator();
 
 public:
-    void Init(const std::vector<std::shared_ptr<framework::Segment>>& segments, bool isSub);
+    void Init(const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& segments, bool isSub);
 
     Status Next(AttributeFieldValue& value) override;
     void Reserve(AttributeFieldValue& value) override;
@@ -71,19 +72,19 @@ public:
 
 private:
     AttributePatchIterator*
-    CreateSingleFieldPatchIterator(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                                   const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    CreateSingleFieldPatchIterator(const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& segments,
+                                   const std::shared_ptr<AttributeConfig>& attrConfig);
 
-    AttributePatchIterator*
-    CreatePackFieldPatchIterator(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                                 const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& packAttrConfig);
+    // AttributePatchIterator*
+    // CreatePackFieldPatchIterator(const std::vector<std::shared_ptr<framework::Segment>>& segments,
+    //                              const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& packAttrConfig);
 
 private:
     using AttributePatchReaderHeap = std::priority_queue<AttributePatchIterator*, std::vector<AttributePatchIterator*>,
                                                          AttributePatchIteratorComparator>;
 
 private:
-    const std::shared_ptr<config::TabletSchema> _schema;
+    const std::shared_ptr<config::ITabletSchema> _schema;
     AttributePatchReaderHeap _heap;
     // docid_t _curDocId;
     bool _isSub;

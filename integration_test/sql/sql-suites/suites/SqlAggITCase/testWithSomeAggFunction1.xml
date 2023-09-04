@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="testWithSomeAggFunction1">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT min(i1), count(d3), max(i2) FROM t1 where i2 > 5 group by i2, d3
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"MIN(i1)","COUNT(d3)","MAX(i2)"</Resource>
+        <Resource name="column_types">int32,uint64,int32</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+2,2,10
+3,2,11
+13,1,12
+4,1,12
+5,1,13
+14,1,13
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#5(type=api)
+    ExchangeOp#4(distribution={type:SINGLETON})
+        LimitOp#3(limit=100)
+            CalcOp#2(output_fields=[$MIN(i1),$COUNT(d3),$MAX(i2)])
+                AggregateOp#1(agg_funcs=[{approximate:false,distinct:false,filter_arg:-1,input:[$i1],name:MIN,output:[$MIN(i1)],type:NORMAL},{approximate:false,distinct:false,filter_arg:-1,name:COUNT,output:[$COUNT(d3)],type:NORMAL},{approximate:false,distinct:false,filter_arg:-1,input:[$i2],name:MAX,output:[$MAX(i2)],type:NORMAL}],group_fields=[$i2,$d3],scope=NORMAL)
+                    TableScanOp#0(catalog_name=default,db_name=t1,limit=2147483647,output_fields=[$i2,$d3,$i1],push_down_ops=[{attrs:{condition:{op:>,params:[$i2,5],type:OTHER},output_fields:[$i2,$d3,$i1]},op_name:CalcOp}],table_name=t1,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

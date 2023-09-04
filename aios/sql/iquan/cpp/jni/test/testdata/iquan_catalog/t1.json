@@ -1,0 +1,231 @@
+{
+  "tables": [
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "table_version": 2,
+      "table_name": "t1",
+      "table_type": "json_default",
+      "table_content_version": "0.1",
+      "table_content": {
+        "table_name": "t1",
+        "table_type": "normal",
+        "fields": [
+          {
+            "field_name": "i1",
+            "field_type": {
+              "type": "int32"
+            },
+            "index_name": "i1",
+            "index_type": "NUMBER"
+          },
+          {
+            "field_name": "i2",
+            "field_type": {
+              "type": "int32"
+            },
+            "index_name": "i2",
+            "index_type": "NUMBER"
+          },
+          {
+            "field_name": "d3",
+            "field_type": {
+              "type": "double"
+            }
+          },
+          {
+            "field_name": "d4",
+            "field_type": {
+              "type": "double"
+            }
+          },
+          {
+            "field_name": "s5",
+            "field_type": {
+              "type": "string"
+            }
+          },
+          {
+            "field_name": "s6",
+            "field_type": {
+              "type": "string"
+            }
+          },
+          {
+            "field_name": "i9Array",
+            "field_type": {
+              "type": "array",
+              "value_type": {
+                "type": "int32"
+              }
+            },
+            "index_name": "i9Array",
+            "index_type": "NUMBER"
+          },
+          {
+            "field_name": "i10Array",
+            "field_type": {
+              "type": "array",
+              "value_type": {
+                "type": "int32"
+              }
+            },
+            "index_name": "i10Array",
+            "index_type": "NUMBER"
+          },
+          {
+            "field_name": "i11Timestamp",
+            "field_type": {
+              "type": "timestamp"
+            },
+            "index_name": "i11Timestamp",
+            "index_type": "DATE"
+          },
+          {
+            "field_name": "i12Timestamp",
+            "field_type": {
+              "type": "timestamp"
+            },
+            "index_name": "i12Timestamp",
+            "index_type": "DATE"
+          },
+          {
+            "field_name": "b13",
+            "field_type": {
+              "type": "boolean"
+            }
+          },
+          {
+            "field_name": "b14",
+            "field_type": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "sub_tables": [
+          {
+            "sub_table_name": "multiset7",
+            "sub_fields": [
+              {
+                "field_name": "ix",
+                "field_type": {
+                  "type": "int32"
+                },
+                "index_name": "ix",
+                "index_type": "NUMBER"
+              },
+              {
+                "field_name": "dy",
+                "field_type": {
+                  "type": "double"
+                },
+                "index_name": "dy",
+                "index_type": "NUMBER"
+              },
+              {
+                "field_name": "sz",
+                "field_type": {
+                  "type": "string"
+                },
+                "index_name": "sz",
+                "index_type": "STRING"
+              },
+              {
+                "field_name": "ixArray",
+                "field_type": {
+                  "type": "array",
+                  "value_type": {
+                    "type": "int32"
+                  }
+                }
+              },
+              {
+                "field_name": "dyArray",
+                "field_type": {
+                  "type": "array",
+                  "value_type": {
+                    "type": "double"
+                  }
+                }
+              },
+              {
+                "field_name": "szArray",
+                "field_type": {
+                  "type": "array",
+                  "value_type": {
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "sub_table_name": "multiset8",
+            "sub_fields": [
+              {
+                "field_name": "ix",
+                "field_type": {
+                  "type": "int32"
+                },
+                "index_name": "ix",
+                "index_type": "NUMBER"
+              },
+              {
+                "field_name": "dy",
+                "field_type": {
+                  "type": "double"
+                },
+                "index_name": "dy",
+                "index_type": "NUMBER"
+              },
+              {
+                "field_name": "sz",
+                "field_type": {
+                  "type": "string"
+                },
+                "index_name": "sz",
+                "index_type": "STRING"
+              },
+              {
+                "field_name": "ixArray",
+                "field_type": {
+                  "type": "array",
+                  "value_type": {
+                    "type": "int32"
+                  }
+                }
+              },
+              {
+                "field_name": "dyArray",
+                "field_type": {
+                  "type": "array",
+                  "value_type": {
+                    "type": "double"
+                  }
+                }
+              },
+              {
+                "field_name": "szArray",
+                "field_type": {
+                  "type": "array",
+                  "value_type": {
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "distribution": {
+          "partition_cnt": 64,
+          "hash_fields": [
+            "i1",
+            "i2"
+          ],
+          "hash_function": "HASH"
+        },
+        "properties": {}
+      }
+    }
+  ]
+}

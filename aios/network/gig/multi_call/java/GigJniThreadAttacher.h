@@ -16,22 +16,23 @@
 #ifndef ISEARCH_MULTI_CALL_GIGJNITHREADATTACHER_H
 #define ISEARCH_MULTI_CALL_GIGJNITHREADATTACHER_H
 
-#include "autil/LockFreeThreadPool.h"
-#include "aios/network/gig/multi_call/common/common.h"
-#include "aios/network/gig/multi_call/java/GigInstance.h"
-#include "autil/Lock.h"
-#include "autil/ThreadPool.h"
-#include "autil/WorkItem.h"
 #include <jni.h>
 #include <thread>
 
+#include "aios/network/gig/multi_call/common/common.h"
+#include "aios/network/gig/multi_call/java/GigInstance.h"
+#include "autil/Lock.h"
+#include "autil/LockFreeThreadPool.h"
+#include "autil/ThreadPool.h"
+#include "autil/WorkItem.h"
+
 namespace multi_call {
 
-class GigJniAttachWorkItem : public autil::WorkItem {
+class GigJniAttachWorkItem : public autil::WorkItem
+{
 public:
-    GigJniAttachWorkItem(bool attach, autil::ThreadMutex &mutex)
-        : _attach(attach), _mutex(mutex)
-    {}
+    GigJniAttachWorkItem(bool attach, autil::ThreadMutex &mutex) : _attach(attach), _mutex(mutex) {
+    }
 
 public:
     void process() override;
@@ -46,7 +47,8 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-class GigJniThreadAttacher {
+class GigJniThreadAttacher
+{
 public:
     static void loadJavaVM(JavaVM *jvm);
     static void unloadJavaVM(JavaVM *jvm);
@@ -58,8 +60,7 @@ public:
     static bool doAttachOrDetach(bool attach);
 
 private:
-    static bool attachOrDetach(autil::LockFreeThreadPool *threadPool,
-                               bool attach);
+    static bool attachOrDetach(autil::LockFreeThreadPool *threadPool, bool attach);
     static std::string currrentThreadName();
 
 private:

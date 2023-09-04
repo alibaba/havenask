@@ -1,0 +1,2 @@
+leak:swift::admin::performCurlRequest
+leak:__GI__IO_file_doallocate

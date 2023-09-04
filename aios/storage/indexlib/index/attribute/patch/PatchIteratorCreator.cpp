@@ -15,7 +15,7 @@
  */
 #include "indexlib/index/attribute/patch/PatchIteratorCreator.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/index/attribute/patch/MultiFieldPatchIterator.h"
 #include "indexlib/index/attribute/patch/PatchIterator.h"
@@ -24,8 +24,8 @@ namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, PatchIteratorCreator);
 
 std::unique_ptr<PatchIterator>
-PatchIteratorCreator::Create(const std::shared_ptr<config::TabletSchema>& schema,
-                             const std::vector<std::shared_ptr<framework::Segment>>& segments)
+PatchIteratorCreator::Create(const std::shared_ptr<config::ITabletSchema>& schema,
+                             const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& segments)
 {
     auto iterator = std::make_unique<MultiFieldPatchIterator>(schema);
     iterator->Init(segments, false);

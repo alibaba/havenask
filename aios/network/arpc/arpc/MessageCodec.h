@@ -16,16 +16,16 @@
 #ifndef ARPC_MESSAGECODEC_H
 #define ARPC_MESSAGECODEC_H
 #include <assert.h>
+#include <memory>
 #include <stddef.h>
 #include <stdint.h>
-#include <memory>
 #include <string>
 
-#include "aios/network/arpc/arpc/CommonMacros.h"
-#include "aios/network/arpc/arpc/util/Log.h"
 #include "aios/network/anet/anet.h"
+#include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/arpc/arpc/Tracer.h"
 #include "aios/network/arpc/arpc/proto/rpc_extensions.pb.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 
 ARPC_BEGIN_NAMESPACE(arpc);
 
@@ -35,8 +35,7 @@ struct CallId {
 };
 
 struct CodecContext {
-    CodecContext()
-    {
+    CodecContext() {
         request = NULL;
         rpcService = NULL;
         rpcMethodDes = NULL;
@@ -48,10 +47,11 @@ struct CodecContext {
         requestId = 0;
     }
 
-    CallId callId;                     // for encode
-    RPCMessage *request;               // for en/decode
-    std::string token;                 // for en/decode
-    RPCService *rpcService;            // for decode
+    CallId callId;          // for encode
+    RPCMessage *request;    // for en/decode
+    std::string token;      // for en/decode
+    RPCService *rpcService; // for decode
+    std::shared_ptr<RPCService> rpcServicePtr;
     RPCMethodDescriptor *rpcMethodDes; // for decode
     ErrorCode errorCode;
     bool enableTrace;
@@ -66,14 +66,13 @@ struct CodecContext {
 
 class RPCServer;
 
-class MessageCodec
-{
+class MessageCodec {
 public:
     MessageCodec();
     virtual ~MessageCodec();
+
 public:
-    virtual CallId GenerateCallId(const RPCMethodDescriptor *method,
-                                  version_t version) const;
+    virtual CallId GenerateCallId(const RPCMethodDescriptor *method, version_t version) const;
 
 protected:
     friend class MessageCodecTest;
@@ -82,4 +81,4 @@ protected:
 TYPEDEF_PTR(MessageCodec);
 ARPC_END_NAMESPACE(arpc);
 
-#endif //ARPC_MESSAGECODEC_H
+#endif // ARPC_MESSAGECODEC_H

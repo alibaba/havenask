@@ -18,13 +18,13 @@
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/index/IIndexFactory.h"
 #include "indexlib/index/IndexFactoryCreator.h"
-#include "indexlib/index/attribute/MultiSliceAttributeDiskIndexer.h"
-#include "indexlib/index/attribute/MultiValueAttributeDiskIndexer.h"
+#include "indexlib/index/attribute/config/AttributeConfig.h"
 #include "indexlib/index/inverted_index/InvertedDiskIndexer.h"
 #include "indexlib/index/inverted_index/config/PackageIndexConfig.h"
 #include "indexlib/index/inverted_index/config/SectionAttributeConfig.h"
 #include "indexlib/index/inverted_index/format/ShardingIndexHasher.h"
 #include "indexlib/index/inverted_index/patch/IndexUpdateTermIterator.h"
+#include "indexlib/index/inverted_index/section_attribute/SectionAttributeIndexFactory.h"
 
 namespace indexlib::index {
 namespace {
@@ -109,32 +109,24 @@ Status MultiShardInvertedDiskIndexer::Open(const std::shared_ptr<IIndexConfig>& 
         std::shared_ptr<indexlibv2::config::SectionAttributeConfig> sectionAttrConf =
             packageIndexConfig->GetSectionAttributeConfig();
         if (packageIndexConfig->HasSectionAttribute() && sectionAttrConf) {
-            std::shared_ptr<indexlibv2::config::AttributeConfig> attrConfig =
-                sectionAttrConf->CreateAttributeConfig(packageIndexConfig->GetIndexName());
-            auto [status, indexFactory] = indexFactoryCreator->Create(attrConfig->GetIndexType());
-            RETURN_IF_STATUS_ERROR(status, "get index factory for index type [%s] failed",
-                                   attrConfig->GetIndexType().c_str());
-            _multiSliceAttrDiskIndexer = indexFactory->CreateDiskIndexer(attrConfig, _indexerParam);
-            if (!_multiSliceAttrDiskIndexer) {
+            auto attrConfig = sectionAttrConf->CreateAttributeConfig(packageIndexConfig->GetIndexName());
+            if (attrConfig == nullptr) {
+                auto status =
+                    Status::InternalError("create attr config failed, index name [%s]", config->GetIndexName().c_str());
+                AUTIL_LOG(ERROR, "%s", status.ToString().c_str());
+                assert(false);
+                return status;
+            }
+            auto indexFactory = std::make_unique<SectionAttributeIndexFactory>();
+            _sectionAttrDiskIndexer = indexFactory->CreateDiskIndexer(attrConfig, _indexerParam);
+            if (!_sectionAttrDiskIndexer) {
                 RETURN_IF_STATUS_ERROR(Status::InvalidArgs(),
                                        "create section attribute disk indexer failed, indexName[%s]",
                                        config->GetIndexName().c_str());
             }
-            status = _multiSliceAttrDiskIndexer->Open(attrConfig, indexDirectory);
+            auto status = _sectionAttrDiskIndexer->Open(attrConfig, indexDirectory);
             RETURN_IF_STATUS_ERROR(status, "section attribute disk indexer init failed, indexName[%s]",
                                    config->GetIndexName().c_str());
-
-            auto multiSliceDiskIndexer = std::dynamic_pointer_cast<indexlibv2::index::MultiSliceAttributeDiskIndexer>(
-                _multiSliceAttrDiskIndexer);
-            assert(multiSliceDiskIndexer);
-            assert(multiSliceDiskIndexer->GetSliceCount() == 1);
-            _sectionAttrDiskIndexer =
-                multiSliceDiskIndexer->GetSliceIndexer<indexlibv2::index::MultiValueAttributeDiskIndexer<char>>(0);
-            if (_sectionAttrDiskIndexer == nullptr) {
-                RETURN_IF_STATUS_ERROR(Status::InvalidArgs(),
-                                       "cast to MultiValueAttributeDiskIndexer<char> failed, indexName[%s]",
-                                       config->GetIndexName().c_str());
-            }
             _sectionAttrConfig = attrConfig;
         }
     }
@@ -165,13 +157,13 @@ size_t MultiShardInvertedDiskIndexer::EstimateSectionAttributeMemUsed(
     if (!packageIndexConfig->HasSectionAttribute() || !sectionAttrConf) {
         return 0;
     }
-    auto indexFactoryCreator = indexlibv2::index::IndexFactoryCreator::GetInstance();
     auto attrConfig = sectionAttrConf->CreateAttributeConfig(packageIndexConfig->GetIndexName());
-    auto [status, indexFactory] = indexFactoryCreator->Create(attrConfig->GetIndexType());
-    if (!status.IsOK()) {
-        AUTIL_LOG(ERROR, "get index factory for index type [%s] failed", attrConfig->GetIndexType().c_str());
+    if (attrConfig == nullptr) {
+        AUTIL_LOG(ERROR, "create attr config failed, index name [%s]", config->GetIndexName().c_str());
+        assert(false);
         return 0;
     }
+    auto indexFactory = std::make_unique<SectionAttributeIndexFactory>();
     auto attrDiskIndexer = indexFactory->CreateDiskIndexer(attrConfig, _indexerParam);
     assert(attrDiskIndexer);
     return attrDiskIndexer->EstimateMemUsed(attrConfig, indexDirectory);

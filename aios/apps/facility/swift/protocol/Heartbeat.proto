@@ -1,0 +1,62 @@
+import "arpc/proto/rpc_extensions.proto";
+
+import "Common.proto";
+import "ErrCode.proto";
+
+package swift.protocol;
+option cc_generic_services = true;
+option py_generic_services = true;
+option java_generic_services = true;
+option java_package="com.alibaba.search.swift.protocol";
+
+message TaskStatus {
+    optional TaskInfo taskInfo = 1;
+    optional PartitionStatus status = 2;
+    optional ErrorCode errCode = 3;
+    optional int64 errTime = 4;
+    optional string errMsg = 5;
+    optional int64 sessionId = 6 [default = -1];
+}
+
+message HeartbeatInfo {
+    optional bool alive = 1;
+    optional RoleType role = 2;
+    optional string address = 3;
+    repeated TaskStatus tasks = 4;
+
+    // for broker error
+    optional ErrorCode errCode = 5;
+    optional int64 errTime = 6;
+    optional string errMsg = 7;
+    optional BrokerVersionInfo versionInfo = 8;
+
+    optional int64 sessionId = 9;
+    optional int64 heartbeatId = 10;
+}
+
+message RoleVersionInfo {
+    optional string roleName = 1;
+    optional BrokerVersionInfo versionInfo = 2;
+}
+
+message RoleVersionInfos {
+    repeated RoleVersionInfo versionInfos = 1;
+}
+
+message BrokerStatusRequest {
+    optional BrokerInMetric status = 1;
+    optional int64 timeout = 2 [default = 2000];
+    optional ClientVersionInfo versionInfo = 3;
+    optional AuthenticationInfo authentication = 4;
+}
+
+message BrokerStatusResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+service HeartbeatService {
+    option (arpc.global_service_id) = 2200;
+    rpc reportBrokerStatus(BrokerStatusRequest) returns(BrokerStatusResponse) {
+        option (arpc.local_method_id) = 2201;
+    }
+}

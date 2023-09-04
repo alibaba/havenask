@@ -1,0 +1,25 @@
+{
+    "indexs": [
+    {
+        "index_fields": [
+        { "key_type": "prefix", "field_name": "nick" },
+        { "key_type": "suffix", "count_limits": 5000, "field_name": "nid" }
+        ],
+        "index_name": "nick_nid",
+        "index_type": "PRIMARY_KEY"
+    }
+    ],
+    "attributes": [ "nick", "nid", "uid", "seller_id", "shopid", "time_stamp", "stay_time" ],
+    "fields": [
+        { "multi_value": false, "field_type": "STRING", "field_name": "nick" },
+        { "multi_value": false, "field_type": "INT64", "field_name": "nid" },
+        { "multi_value": false, "field_type": "INT64", "field_name": "uid" },
+        { "multi_value": false, "field_type": "INT64", "field_name": "seller_id" },
+        { "multi_value": false, "field_type": "INT64", "field_name": "shopid" },
+        { "multi_value": false, "field_type": "INT64", "field_name": "time_stamp" },
+        { "multi_value": false, "field_type": "INT64", "field_name": "stay_time" },
+        { "multi_value": false, "field_type": "INT64", "field_name": "source_timestamp", "user_defined_param": {"source_timestamp_report_key": "source_1"} }
+    ],
+    "table_name": "click",
+    "table_type": "kkv"
+}

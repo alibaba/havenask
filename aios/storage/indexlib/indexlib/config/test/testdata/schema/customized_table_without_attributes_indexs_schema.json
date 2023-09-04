@@ -1,0 +1,14 @@
+{
+    "table_name": "normal_table_with_customized_schema",
+    "table_type": "customized",
+    "customized_table_config" : {
+        "plugin_name" : "plugin1",
+        "parameters" : {"key":"param1"}
+    },
+    "fields": 
+    [
+        {"field_name":"pk","field_type":"INTEGER"},
+        {"field_name":"title","field_type":"TEXT","analyzer":"internet_analyzer"},
+	{"field_name":"multi_value","field_type":"INTEGER","multi_value":true}
+    ]
+}

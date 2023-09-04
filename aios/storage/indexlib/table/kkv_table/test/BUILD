@@ -1,0 +1,177 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+strict_cc_library(
+    name='KKVTabletSchemaMaker',
+    testonly=True,
+    copts=['-fno-access-control'],
+    visibility=['//visibility:public'],
+    deps=[
+        '//aios/storage/indexlib/config:schema',
+        '//aios/storage/indexlib/config/test:field_config_test_helper',
+        '//aios/storage/indexlib/table/kkv_table:KKVTabletFactory'
+    ]
+)
+strict_cc_library(
+    name='kkv_table_test_helper',
+    testonly=True,
+    srcs=['KKVTableTestHelper.cpp', 'KKVTableTestSearcher.cpp'],
+    hdrs=['KKVTableTestHelper.h', 'KKVTableTestSearcher.h'],
+    data=['//aios/storage/indexlib:test_log_conf'],
+    visibility=['//visibility:public'],
+    deps=[
+        ':KKVTabletSchemaMaker',
+        '//aios/storage/indexlib/document/kkv:kkv_document',
+        '//aios/storage/indexlib/document/test:KVDocumentBatchMaker',
+        '//aios/storage/indexlib/framework:TabletReader',
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
+        '//aios/storage/indexlib/index/common/field_format/pack_attribute',
+        '//aios/storage/indexlib/index/kkv/config',
+        '//aios/storage/indexlib/table/kkv_table:KKVReader',
+        '//aios/storage/indexlib/table/kkv_table:KKVSchemaResolver',
+        '//aios/storage/indexlib/table/kkv_table:KKVTabletFactory',
+        '//aios/storage/indexlib/table/kkv_table:KKVTabletReader',
+        '//aios/storage/indexlib/table/test:table_test_helper',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='KKVTabletFieldTypeInteTest',
+    srcs=['KKVTabletFieldTypeInteTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['testdata/kkv_schema.json'],
+    shard_count=16,
+    deps=[
+        ':kkv_table_test_helper',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/config:UnresolvedSchema',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/framework/mock:MockIdGenerator',
+        '//aios/storage/indexlib/table/kkv_table:KKVTabletFactory'
+    ]
+)
+strict_cc_fast_test(
+    name='KKVTabletV1SchemaInteTest',
+    srcs=['KKVTabletV1SchemaInteTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['testdata/kkv_schema_v1.json'],
+    shard_count=20,
+    deps=[
+        ':kkv_table_test_helper',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/config:UnresolvedSchema',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/framework/mock:MockIdGenerator',
+        '//aios/storage/indexlib/table/kkv_table:KKVTabletFactory'
+    ]
+)
+strict_cc_fast_test(
+    name='KKVTabletFactoryTest',
+    srcs=['KKVTabletFactoryTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['testdata/kkv_schema.json'],
+    deps=[
+        ':kkv_table_test_helper',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/table/common:LSMTabletLoader',
+        '//aios/storage/indexlib/table/kkv_table:KKVTabletFactory',
+        '//aios/storage/indexlib/table/plain:MultiShardDiskSegment',
+        '//aios/storage/indexlib/table/plain:MultiShardMemSegment',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KKVTabletReaderTest',
+    srcs=['KKVTabletReaderTest.cpp'],
+    copts=['-fno-access-control'],
+    data=[
+        'testdata/kkv_schema.json', 'testdata/kkv_schema_multi_value.json',
+        'testdata/kkv_schema_pack_value.json'
+    ],
+    deps=[
+        ':kkv_table_test_helper',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/config:UnresolvedSchema',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/framework/mock:MockIdGenerator',
+        '//aios/storage/indexlib/table/kkv_table:KKVReaderFactory',
+        '//aios/storage/indexlib/table/kkv_table:KKVReaderImpl',
+        '//aios/storage/indexlib/table/kkv_table:KKVTabletFactory'
+    ]
+)
+strict_cc_fast_test(
+    name='KKVTabletWriterTest',
+    srcs=['KKVTabletWriterTest.cpp'],
+    copts=['-fno-access-control'],
+    data=[
+        'testdata/kkv_schema.json', 'testdata/kkv_schema_multi_value.json',
+        'testdata/kkv_schema_pack_value.json',
+        'testdata/kkv_schema_single_value.json'
+    ],
+    deps=[
+        ':kkv_table_test_helper',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/config:UnresolvedSchema',
+        '//aios/storage/indexlib/document/test:KVDocumentBatchMaker',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/framework/mock:MockIdGenerator',
+        '//aios/storage/indexlib/table/kkv_table:KKVReaderFactory',
+        '//aios/storage/indexlib/table/kkv_table:KKVReaderImpl',
+        '//aios/storage/indexlib/table/kkv_table:KKVTabletFactory'
+    ]
+)
+strict_cc_fast_test(
+    name='KKVReaderTest',
+    srcs=['KKVReaderTest.cpp'],
+    copts=['-fno-access-control'],
+    data=[
+        'testdata/kkv_schema.json', 'testdata/kkv_schema_multi_value.json',
+        'testdata/kkv_schema_pack_value.json', 'testdata/kkv_schema_ttl.json',
+        'testdata/kkv_schema_ttl_from_doc.json',
+        'testdata/kkv_schema_value_inline.json'
+    ],
+    deps=[
+        ':kkv_table_test_helper',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/config:UnresolvedSchema',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/framework/mock:MockIdGenerator',
+        '//aios/storage/indexlib/table/kkv_table:KKVReaderFactory',
+        '//aios/storage/indexlib/table/kkv_table:KKVReaderImpl',
+        '//aios/storage/indexlib/table/kkv_table:KKVTabletFactory'
+    ]
+)
+strict_cc_fast_test(
+    name='KKVTabletSchemaTest',
+    srcs=['KKVTabletSchemaTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        '//aios/storage/indexlib/config',
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
+        '//aios/storage/indexlib/table:builtin_define',
+        '//aios/storage/indexlib/table/kkv_table:KKVSchemaResolver',
+        '//aios/storage/indexlib/table/kkv_table:KKVTabletFactory',
+        '//aios/storage/indexlib/table/kv_table:KVSchemaResolver',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KKVTabletDocIteratorTest',
+    srcs=['KKVTabletDocIteratorTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['testdata/kkv_schema_ttl_from_doc.json'],
+    deps=[
+        ':kkv_table_test_helper',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
+        '//aios/storage/indexlib/table/kkv_table:table',
+        '//aios/unittest_framework'
+    ]
+)

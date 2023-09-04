@@ -1,0 +1,2005 @@
+{
+    "adaptive_dictionaries": [
+        {
+            "adaptive_dictionary_name": "percent",
+            "dict_type": "PERCENT",
+            "threshold": 5
+        },
+        {
+            "adaptive_dictionary_name": "size",
+            "dict_type": "INDEX_SIZE"
+        }
+    ],
+    "attributes": [
+        "nsg_id_c2c",
+        "zk_time",
+        "high_risk_level_c2c",
+        "real_sales2_c2c",
+        "w_user_gmv_haixuan_c2c",
+        "assure",
+        "realtime_cvr_score1_1111",
+        "trans_1day_1111",
+        "auction_quality",
+        "auction_tag",
+        "biz30day",
+        "cat_id_path",
+        "category",
+        "catmap",
+        "domain_credit",
+        "ends",
+        "ends_1",
+        "isnewest",
+        "level_one_cat",
+        "nick",
+        "nid",
+        "o2o_flag_c2c",
+        "old_starts",
+        "oldbiz30day",
+        "pid",
+        "pidvid",
+        "poi_newoffer",
+        "provcity",
+        "ratesum",
+        "real_city_fee",
+        "real_province_fee",
+        "real_sales_c2c",
+        "realtime_score1_c2c",
+        "region",
+        "reserve_price",
+        "sku_pidvid",
+        "sku_price",
+        "ss_score",
+        "starts",
+        "static_trans_score",
+        "unit_price",
+        "user_id",
+        "user_type",
+        "uvsum",
+        "uvsum_suc",
+        "w_gmv_haixuan_c2c",
+        "rq_infos",
+        "rq_groups",
+        "index_layer_new_c2c",
+        "index_layer_test_c2c",
+        "flash_tag",
+        "seller_goodrat",
+        "sku_default_c2c",
+        "sku_id",
+        "pidvid_sku_search",
+        "auc_money_score_c2c",
+        "region_code",
+        "region_reserve_price",
+        "region_tag",
+        "sku_sratio_c2c",
+        "coupon_value",
+        "coupon_business_id",
+        "coupon_time",
+        "recommend_labels_c2c",
+        "shuang12_score2_c2c",
+        "sold_out_rate_c2c",
+        "is_vertical",
+        "discnt",
+        "discnt_price",
+        "discnt_rate",
+        "today_areas",
+        "tomorrow_areas",
+        "auction_swarm_c2c",
+        "commend",
+        "yizhangou_xuanping_c2c",
+        "spuid",
+        "item_recommend_count",
+        "w_lambdamart_price_c2c",
+        "sale_risk_level_c2c",
+        "brand_field_c2c",
+        "tk_rate",
+        "tk_total_sales",
+        "tk_total_commi",
+        "barcodes",
+        "risk_item_gmv_score_c2c",
+        "risk_item_score_c2c",
+        "talent_choice_mlrdata_c2c",
+        "quantity",
+        "alg_pscore_c2c",
+        "alg_personal_shopscore_c2c",
+        "item_ensemble_cvr_c2c",
+        "item_ensemble_cvr_up_c2c",
+        "recommend_labels_bts_c2c",
+        "quality_hangye_score_c2c",
+        "recommend_brand_nova_c2c",
+        "negative_realtime_regulate_mix_level_c2c",
+        "negative_realtime_regulate_sale_level_c2c",
+        "coupon_tag_id",
+        "xiaogu_mutivalue_c2c",
+        "item_vec_4_primary_score_c2c",
+        "t_for_online_feature_c2c",
+        "realtime_cvr_score2_1111",
+        "new_auction_c2c",
+        "has_video",
+        "has_seller_video",
+        "nid_network_score_c2c",
+        "nid_widetrans_score_c2c",
+        "fake_model_score_c2c",
+        "logistics_dsr_score_single_c2c",
+        "lsc_item_vec_c2c"
+    ],
+    "fields": [
+        {
+            "field_name": "nsg_id_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "nsg_vec_c2c",
+            "field_type": "RAW"
+        },
+        {
+            "field_name": "nsg_vec_int_c2c",
+            "field_type": "RAW"
+        },
+        {
+            "field_name": "nsg_neighbor_c2c",
+            "field_type": "RAW"
+        },
+        {
+            "field_name": "i2i_vector_nsg_id_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "i2i_vec_c2c",
+            "field_type": "RAW"
+        },
+        {
+            "field_name": "i2i_vector_neighbor_c2c",
+            "field_type": "RAW"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "zk_time",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "high_risk_level_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "real_sales2_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "w_user_gmv_haixuan_c2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "analyzer": "multi_level_analyzer",
+            "field_name": "address_newoffer",
+            "field_type": "TEXT"
+        },
+        {
+            "analyzer": "multi_level_analyzer",
+            "field_name": "title",
+            "field_type": "TEXT"
+        },
+        {
+            "analyzer": "multi_level_analyzer",
+            "field_name": "vidname_c2c",
+            "field_type": "TEXT"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "DUP_barcodes",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "DUP_nick",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "DUP_pidvid",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "assure",
+            "field_type": "UINT8"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "realtime_cvr_score1_1111",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "trans_1day_1111",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "auction_quality",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "auction_tag",
+            "field_type": "UINT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "auction_type",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "biz30day",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "cat_id_path",
+            "field_type": "UINT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "category",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "baobei_type_c2c",
+            "field_type": "INT16",
+            "multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "categoryp",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "catmap",
+            "field_type": "UINT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "combinetag",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "domain_credit",
+            "field_type": "UINT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "ends",
+            "field_type": "INT64"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "ends_1",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "ends_2",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "isnewest",
+            "field_type": "UINT8"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "isprepay",
+            "field_type": "UINT8"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "level_one_cat",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "nick",
+            "field_type": "UINT64"
+        },
+        {
+            "field_name": "nid",
+            "field_type": "INT64"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "o2o_flag_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "oe_zhaohui_c2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "old_starts",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "oldbiz30day",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "pid",
+            "field_type": "INT64"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "pidvid",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "pidvid_c2c",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "poi_newoffer",
+            "field_type": "FLOAT",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "provcity",
+            "field_type": "UINT16",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "ratesum",
+            "field_type": "UINT8"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "real_city_fee",
+            "field_type": "UINT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "field_name": "real_post_fee",
+            "field_type": "UINT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "real_province_fee",
+            "field_type": "UINT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "real_sales_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "realtime_score1_c2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "region",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "global_area_id",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "reserve_price",
+            "field_type": "DOUBLE"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "shipping",
+            "field_type": "UINT8"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "sku_pidvid",
+            "field_type": "UINT8",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "sku_price",
+            "field_type": "FLOAT",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "ss_auction_tag",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "ss_score",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "sspuid",
+            "field_type": "INT64"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "starts",
+            "field_type": "UINT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "static_trans_score",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "support_cod",
+            "field_type": "INT8"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "unit_price",
+            "field_type": "DOUBLE"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "user_id",
+            "field_type": "INT64"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "user_type",
+            "field_type": "UINT8"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "uvsum",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "uvsum_suc",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "w_gmv_haixuan_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "analyzer": "multi_level_analyzer",
+            "field_name": "selling_point_index_c2c",
+            "field_type": "TEXT"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "rq_infos",
+            "field_type": "UINT8",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "rq_groups",
+            "field_type": "UINT8",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "rq_properties",
+            "field_type": "STRING"
+        },
+        {
+            "analyzer": "multi_level_analyzer",
+            "field_name": "vip_seller_c2c",
+            "field_type": "TEXT"
+        },
+        {
+            "analyzer": "multi_level_analyzer",
+            "field_name": "correlate_txt_c2c",
+            "field_type": "TEXT"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "ctg_i2i_c2c",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "ctg_i2i_2_c2c",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "relation_index_c2c",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "xt_aux_c2c",
+            "field_type": "UINT64",
+            "multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "index_layer_new_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "index_layer_test_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "relation_u2i_c2c",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "relation_u2i_index_c2c",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "flash_tag",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "seller_goodrat",
+            "field_type": "INT16"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "ct_realtime_tags_c2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "sku_default_c2c",
+            "field_type": "UINT64"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "sku_id",
+            "field_type": "UINT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "pidvid_sku_search",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "DUP_pidvid_sku_search",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "auclus_auction_pid_2_bts_c2c",
+            "field_type": "INT64"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "auc_money_score_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "iidvid_c2c",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "area_newoffer",
+            "field_type": "STRING"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "dna_score_c2c",
+            "field_type": "STRING"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "title_sim_item_c2c",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "c2cmerge_filter",
+            "field_type": "INT8"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "region_code",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "region_reserve_price",
+            "field_type": "DOUBLE",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "region_tag",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "ctg_i2i_3_c2c",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "sku_sratio_c2c",
+            "field_type": "DOUBLE"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "coupon_value",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "coupon_business_id",
+            "field_type": "UINT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "coupon_time",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "entity_id",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "field_name": "disp_flag",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "recommend_labels_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "analyzer": "multi_level_analyzer",
+            "field_name": "tmall_auction_brand_tags_c2c",
+            "field_type": "TEXT"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "mainse_filter",
+            "field_type": "STRING"
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "auction_oid_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "shuang12_score2_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "feed_cluster_c2c",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "choice_gift",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "sold_out_rate_c2c",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "lsrp_them_act_c2c",
+            "field_type": "UINT64",
+            "multi_value": true
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "is_vertical",
+            "field_type": "UINT8"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "discnt",
+            "field_type": "UINT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "discnt_price",
+            "field_type": "DOUBLE",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "discnt_rate",
+            "field_type": "DOUBLE",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "today_areas",
+            "field_type": "UINT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "tomorrow_areas",
+            "field_type": "UINT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "recall_queryid_c2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "auction_swarm_c2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "analyzer": "multi_level_analyzer",
+            "field_name": "color_property_alias",
+            "field_type": "TEXT"
+        },
+        {
+            "field_name": "hprop",
+            "field_type": "STRING"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "ct_tag_result_qinqinggou_c2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "commend",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "support_xcard",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "istk",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "auto_post",
+            "field_type": "INT8"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "swarm_auc_index_c2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "auction_ext",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "inter_tag_id",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "tk_group_ids",
+            "field_type": "UINT64",
+            "multi_value": true
+        },
+        {
+            "field_name": "yizhangou_xuanping_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "ct_out_black_tag_c2c",
+            "field_type": "INT64"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "promote",
+            "field_type": "UINT32",
+            "multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "friend_score_c2c",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "properties",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "spuid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "consign_date",
+            "field_type": "INT16"
+        },
+        {
+            "field_name": "cspu_ids",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "options_bits",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "quality_auc_index_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "lptime",
+            "field_type": "INT8",
+            "multi_value": true
+        },
+        {
+            "field_name": "shenmao_techan_place_c2c",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "_ctutag",
+            "field_type": "STRING"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "item_recommend_count",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "w_lambdamart_price_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "ocg_area_limit",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "sale_risk_level_c2c",
+            "field_type": "INT8"
+        },
+        {
+            "field_name": "brand_field_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "tk_rate",
+            "field_type": "UINT16"
+        },
+        {
+            "field_name": "tk_total_sales",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "tk_total_commi",
+            "field_type": "FLOAT"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "barcodes",
+            "field_type": "UINT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "field_name": "risk_item_gmv_score_c2c",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "risk_item_score_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "qm_id_c2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "talent_choice_mlrdata_c2c",
+            "field_type": "UINT16",
+            "multi_value": true
+        },
+        {
+            "field_name": "quantity",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "alg_pscore_c2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "alg_personal_shopscore_c2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "recommend_tags_c2c",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "item_ensemble_cvr_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "item_ensemble_cvr_up_c2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "field_name": "recommend_labels_bts_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "is_cp_rules_c2c",
+            "field_type": "INT8"
+        },
+        {
+            "field_name": "quality_hangye_score_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "recommend_brand_nova_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "tmall_supermarket_loc_c2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "kxuan_swyt_c2c",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "kxuan_swyt_item",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "field_name": "tmall_supermarket_xuanpin_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "cm_main_props_group",
+            "field_type": "INT64",
+            "multi_value": true
+        },
+        {
+            "field_name": "DUP_cm_main_props_group",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "negative_realtime_regulate_mix_level_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "negative_realtime_regulate_sale_level_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "bundle_i2i_c2c",
+            "field_type": "STRING"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "coupon_tag_id",
+            "field_type": "UINT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "field_name": "relation_bundle_index_c2c",
+            "field_type": "STRING",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "xiaogu_mutivalue_c2c",
+            "field_type": "INT32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "item_vec_4_primary_score_c2c",
+            "field_type": "FLOAT",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "field_name": "t_for_online_feature_c2c",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "kxuan_uplus_c2c",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "kxuan_uplus_item",
+            "field_type": "INT64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "field_name": "coupon_filter",
+            "field_type": "STRING"
+        },
+        {
+            "compress_type": "equal|patch_compress",
+            "field_name": "realtime_cvr_score2_1111",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq",
+            "field_name": "new_auction_c2c",
+            "field_type": "FLOAT",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "field_name": "alipay_mini_filter",
+            "field_type": "UINT8"
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "has_video",
+            "field_type": "INT8"
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "has_seller_video",
+            "field_type": "INT8"
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "nid_network_score_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "nid_widetrans_score_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "fake_model_score_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "logistics_dsr_score_single_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "multi_value": true,
+            "field_name": "oversea_experience_region",
+            "field_type": "INT64"
+        },
+        {
+            "compress_type": "uniq|equal|patch_compress",
+            "multi_value": true,
+            "field_name": "lsc_item_vec_c2c",
+            "field_type": "INT32"
+        }
+    ],
+    "indexs": [
+        {
+            "first_occ_flag": 0,
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "percent",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": [
+                {
+                    "boost": 1,
+                    "field_name": "title"
+                },
+                {
+                    "boost": 1,
+                    "field_name": "vidname_c2c"
+                },
+                {
+                    "boost": 1,
+                    "field_name": "selling_point_index_c2c"
+                },
+                {
+                    "boost": 1,
+                    "field_name": "vip_seller_c2c"
+                },
+                {
+                    "boost": 1,
+                    "field_name": "correlate_txt_c2c"
+                }
+            ],
+            "index_name": "phrase",
+            "index_type": "EXPACK",
+            "need_sharding": true,
+            "position_list_flag": 0,
+            "sharding_count": 4,
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "index_analyzer": "multi_level_analyzer",
+            "index_fields": [
+                {
+                    "boost": 1,
+                    "field_name": "tmall_auction_brand_tags_c2c"
+                }
+            ],
+            "index_name": "brandphrase",
+            "index_type": "EXPACK",
+            "position_list_flag": 0,
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_primary_key_attribute": false,
+            "index_fields": "nid",
+            "index_name": "nid",
+            "index_type": "PRIMARYKEY64",
+            "pk_storage_type": "sort_array",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "percent",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "DUP_pidvid",
+            "index_name": "pidvid",
+            "index_type": "STRING",
+            "need_sharding": true,
+            "sharding_count": 4,
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "percent",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "cat_id_path",
+            "index_name": "cat_id_path",
+            "index_type": "NUMBER",
+            "need_sharding": true,
+            "sharding_count": 10,
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "percent",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "combinetag",
+            "index_name": "combinetag",
+            "index_type": "STRING",
+            "need_sharding": true,
+            "sharding_count": 4,
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "high_frequency_adaptive_dictionary": "percent",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "o2o_flag_c2c",
+            "index_name": "o2o_flag_c2c",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "coupon_business_id",
+            "index_name": "coupon_business_id",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "oe_zhaohui_c2c",
+            "index_name": "oe_zhaohui_c2c",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "auction_tag",
+            "index_name": "auction_tag",
+            "index_type": "NUMBER",
+            "need_sharding": true,
+            "sharding_count": 4,
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "auction_type",
+            "index_name": "auction_type",
+            "index_type": "STRING",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "baobei_type_c2c",
+            "index_name": "baobei_type",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "categoryp",
+            "index_name": "categoryp",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "isnewest",
+            "index_name": "isnewest",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "isprepay",
+            "index_name": "isprepay",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "pid",
+            "index_name": "pid",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "shipping",
+            "index_name": "shipping",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "sspuid",
+            "index_name": "sspuid",
+            "index_type": "NUMBER",
+            "need_sharding": true,
+            "sharding_count": 4,
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "support_cod",
+            "index_name": "support_cod",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "user_type",
+            "index_name": "user_type",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "DUP_nick",
+            "index_name": "nick",
+            "index_type": "STRING",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "index_fields": "address_newoffer",
+            "index_name": "address_newoffer",
+            "index_type": "TEXT",
+            "position_list_flag": 0,
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "ss_auction_tag",
+            "index_name": "ss_auction_tag",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "index_fields": "user_id",
+            "index_name": "user_id",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_dict_inline_compress": true,
+            "has_truncate": true,
+            "index_fields": "relation_index_c2c",
+            "index_name": "relation",
+            "index_type": "STRING",
+            "need_sharding": true,
+            "sharding_count": 12,
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "percent",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "xt_aux_c2c",
+            "index_name": "xt_aux_c2c",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "high_frequency_adaptive_dictionary": "percent",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "index_layer_new_c2c",
+            "index_name": "index_layer_new_c2c",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "high_frequency_adaptive_dictionary": "percent",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "index_layer_test_c2c",
+            "index_name": "index_layer_test_c2c",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "percent",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "DUP_pidvid_sku_search",
+            "index_name": "pidvid_sku_search",
+            "index_type": "STRING",
+            "need_sharding": true,
+            "sharding_count": 4,
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "iidvid_c2c",
+            "index_name": "iidvid_c2c",
+            "index_type": "STRING",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "entity_id",
+            "index_name": "entity_id",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "disp_flag",
+            "index_name": "disp_flag",
+            "index_type": "STRING",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "title_sim_item_c2c",
+            "index_name": "title_sim_item_c2c",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "auction_oid_c2c",
+            "index_name": "auction_oid_c2c",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "feed_cluster_c2c",
+            "index_name": "feed_cluster_c2c",
+            "index_type": "NUMBER"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "choice_gift",
+            "index_name": "choice_gift",
+            "index_type": "NUMBER"
+        },
+        {
+            "index_fields": "lsrp_them_act_c2c",
+            "index_name": "lsrp_them_act_c2c",
+            "index_type": "NUMBER"
+        },
+        {
+            "index_fields": "is_vertical",
+            "index_name": "is_vertical",
+            "index_type": "NUMBER"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "recall_queryid_c2c",
+            "index_name": "recall_queryid_c2c",
+            "index_type": "NUMBER",
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "index_fields": "color_property_alias",
+            "index_name": "color_property_alias",
+            "index_type": "TEXT"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "hprop",
+            "index_name": "hprop",
+            "index_type": "STRING",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "ct_tag_result_qinqinggou_c2c",
+            "index_name": "ct_tag_result_qinqinggou_c2c",
+            "index_type": "NUMBER"
+        },
+        {
+            "index_fields": "relation_u2i_index_c2c",
+            "index_name": "relation_u2i",
+            "index_type": "STRING",
+            "need_sharding": true,
+            "sharding_count": 4,
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "commend",
+            "index_name": "commend",
+            "index_type": "NUMBER"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "support_xcard",
+            "index_name": "support_xcard",
+            "index_type": "NUMBER"
+        },
+        {
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "istk",
+            "index_name": "istk",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_fields": "DUP_barcodes",
+            "index_name": "barcodes",
+            "index_type": "STRING"
+        },
+        {
+            "index_fields": "flash_tag",
+            "index_name": "flash_tag",
+            "index_type": "NUMBER"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "auto_post",
+            "index_name": "auto_post",
+            "index_type": "NUMBER"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "auction_ext",
+            "index_name": "auction_ext",
+            "index_type": "STRING",
+            "term_frequency_flag": 0
+        },
+        {
+            "high_frequency_adaptive_dictionary": "percent",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "inter_tag_id",
+            "index_name": "inter_tag_id",
+            "index_type": "NUMBER"
+        },
+        {
+            "index_fields": "tk_group_ids",
+            "index_name": "tk_group_ids",
+            "index_type": "NUMBER"
+        },
+        {
+            "index_fields": "yizhangou_xuanping_c2c",
+            "index_name": "yizhangou_xuanping_c2c",
+            "index_type": "NUMBER"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "ct_out_black_tag_c2c",
+            "index_name": "ct_out_black_tag_c2c",
+            "index_type": "NUMBER"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "promote",
+            "index_name": "promote",
+            "index_type": "NUMBER"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "friend_score_c2c",
+            "index_name": "friend_score_c2c",
+            "index_type": "STRING"
+        },
+        {
+            "index_fields": "properties",
+            "index_name": "properties",
+            "index_type": "STRING"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "spuid",
+            "index_name": "spuid",
+            "index_type": "NUMBER"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "consign_date",
+            "index_name": "consign_date",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_fields": "cspu_ids",
+            "index_name": "cspu_ids",
+            "index_type": "STRING"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "options_bits",
+            "index_name": "options_bits",
+            "index_type": "STRING",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "quality_auc_index_c2c",
+            "index_name": "quality_auc_index_c2c",
+            "index_type": "NUMBER"
+        },
+        {
+            "index_fields": "lptime",
+            "index_name": "lptime",
+            "index_type": "NUMBER"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "shenmao_techan_place_c2c",
+            "index_name": "shenmao_techan_place_c2c",
+            "index_type": "NUMBER"
+        },
+        {
+            "index_fields": "item_recommend_count",
+            "index_name": "item_recommend_count",
+            "index_type": "NUMBER"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "ocg_area_limit",
+            "index_name": "ocg_area_limit",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "qm_id_c2c",
+            "index_name": "qm_id_c2c",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "percent",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "talent_choice_mlrdata_c2c",
+            "index_name": "talent_choice_mlrdata_c2c",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "recommend_tags_c2c",
+            "index_name": "recommend_tags_c2c",
+            "index_type": "STRING"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "is_cp_rules_c2c",
+            "index_name": "is_cp_rules_c2c",
+            "index_type": "NUMBER"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "tmall_supermarket_loc_c2c",
+            "index_name": "tmall_supermarket_loc_c2c",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "kxuan_swyt_c2c",
+            "index_name": "kxuan_swyt_c2c",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "kxuan_swyt_item",
+            "index_name": "kxuan_swyt_item",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_fields": "tmall_supermarket_xuanpin_c2c",
+            "index_name": "tmall_supermarket_xuanpin_c2c",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "percent",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "DUP_cm_main_props_group",
+            "index_name": "cm_main_props_group",
+            "index_type": "STRING",
+            "need_sharding": true,
+            "sharding_count": 4,
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "index_fields": "relation_bundle_index_c2c",
+            "index_name": "relation_bundle",
+            "index_type": "STRING",
+            "need_sharding": true,
+            "sharding_count": 4,
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "percent",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "coupon_tag_id",
+            "index_name": "coupon_tag_id",
+            "index_type": "NUMBER",
+            "need_sharding": true,
+            "sharding_count": 4,
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "kxuan_uplus_c2c",
+            "index_name": "kxuan_uplus_c2c",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "kxuan_uplus_item",
+            "index_name": "kxuan_uplus_item",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "index_fields": "coupon_value",
+            "index_name": "coupon_value",
+            "index_type": "STRING"
+        },
+        {
+            "has_truncate": true,
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "alipay_mini_filter",
+            "index_name": "alipay_mini_filter",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0,
+            "use_truncate_profiles": "desc_biz30day;desc_uvsum;asc_ends_1;desc_static_trans_score;desc_w_gmv_haixuan_c2c;desc_auc_money_score_c2c;desc_uvsum_suc"
+        },
+        {
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "has_video",
+            "index_name": "has_video",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "high_frequency_adaptive_dictionary": "size",
+            "high_frequency_term_posting_type": "both",
+            "index_fields": "has_seller_video",
+            "index_name": "has_seller_video",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "global_area_id",
+            "index_name": "global_area_id",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "region",
+            "index_name": "region",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        },
+        {
+            "has_truncate": true,
+            "index_fields": "oversea_experience_region",
+            "index_name": "oversea_experience_region",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0
+        }
+    ],
+    "summarys": {
+        "compress": true,
+        "summary_fields": [
+            "nid"
+        ]
+    },
+    "table_name": "mainse_excellent_search",
+    "truncate_profiles": [
+        {
+            "sort_descriptions": "-uvsum;+nid",
+            "truncate_profile_name": "desc_uvsum"
+        },
+        {
+            "sort_descriptions": "-biz30day;+nid",
+            "truncate_profile_name": "desc_biz30day"
+        },
+        {
+            "sort_descriptions": "+ends_1;+nid",
+            "truncate_profile_name": "asc_ends_1"
+        },
+        {
+            "sort_descriptions": "-auc_money_score_c2c;+nid",
+            "truncate_profile_name": "desc_2_auc_money_score_c2c"
+        },
+        {
+            "sort_descriptions": "-static_trans_score;+nid",
+            "truncate_profile_name": "desc_static_trans_score"
+        },
+        {
+            "sort_descriptions": "-uvsum_suc;+nid",
+            "truncate_profile_name": "desc_uvsum_suc"
+        },
+        {
+            "sort_descriptions": "-w_gmv_haixuan_c2c;+nid",
+            "truncate_profile_name": "desc_w_gmv_haixuan_c2c"
+        },
+        {
+            "sort_descriptions": "-auc_money_score_c2c;+nid",
+            "truncate_profile_name": "desc_auc_money_score_c2c"
+        }
+    ]
+}

@@ -1,0 +1,514 @@
+import "Heartbeat.proto";
+import "Common.proto";
+import "ErrCode.proto";
+package swift.protocol;
+option java_package="com.alibaba.search.swift.protocol";
+
+message EmptyRequest {
+    optional int64 timeout = 1 [default = 2000];
+    optional AuthenticationInfo authentication = 2;
+    optional ClientVersionInfo versionInfo = 3;
+}
+
+message TopicCreationRequest {
+    optional string topicName = 1;
+    optional uint32 partitionCount = 2;
+    optional uint32 partitionBufferSize = 3 ; // [deprecated = true]
+    optional uint32 resource = 4 [default = 1];
+    optional uint32 partitionLimit = 5 [default = 100000];
+    optional TopicMode topicMode = 6 [default = TOPIC_MODE_NORMAL];
+    optional bool needFieldFilter = 7 [default = false];
+    optional int64 obsoleteFileTimeInterval = 8 [default = -1];
+    optional int32 reservedFileCount = 9 [default = -1];
+    optional uint32 partitionFileBufferSize = 10[default = 64]; //[deprecated = true]
+    optional bool deleteTopicData = 11 [default = false];
+    optional uint32 partitionMinBufferSize = 12 [default = 8]; // 8M
+    optional uint32 partitionMaxBufferSize = 13 [default = 256]; // 256M
+    optional int64 maxWaitTimeForSecurityCommit = 14 [default = 50000]; // 50ms
+    optional int64 maxDataSizeForSecurityCommit = 15 [default = 1048576]; //1M
+    optional bool compressMsg = 16 [default = false];
+    optional int32 compressThres = 17 [default = 2048];
+    optional int64 createTime = 18 [default = -1];
+    optional string dfsRoot = 19;
+    optional string topicGroup = 20 [default= "default"];
+    repeated string extendDfsRoot = 21;
+    optional int64 topicExpiredTime = 22 [default = -1];
+    optional uint32 rangeCountInPartition = 23 [default = 1];
+    optional int64 modifyTime = 24 [default = -1];
+    repeated string owners = 25;
+    optional bool needSchema = 26 [default = false];
+    repeated int32 schemaVersions = 27;
+    optional int64 timeout = 28 [default = 5000];
+    optional bool sealed = 29 [default = false];
+    optional TopicType topicType = 30 [default = TOPIC_TYPE_NORMAL];
+    repeated string physicTopicLst = 31;
+    optional bool enableTTLDel = 32 [default = true];
+    optional int32 readSizeLimitSec = 33 [default = -1];
+    optional bool versionControl = 34 [default = false];
+    optional bool enableLongPolling = 35 [default = false];
+    optional bool enableMergeData = 36 [default = false];
+    optional AuthenticationInfo authentication = 37;
+    repeated string permitUser = 38; // [deprecated = True]
+    optional ClientVersionInfo versionInfo = 39;
+    optional bool readNotCommittedMsg = 40 [default = true];
+}
+
+message TopicCreationResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message TopicBatchCreationRequest {
+    repeated TopicCreationRequest topicRequests = 1;
+    optional int64 timeout = 2 [default = 5000];
+    optional bool ignoreExist  = 3 [default = false];
+    optional AuthenticationInfo authentication = 4;
+    optional ClientVersionInfo versionInfo = 5;
+}
+
+message TopicBatchCreationResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message TopicDeletionRequest {
+    optional string topicName = 1;
+    optional int64 timeout = 2 [default = 5000];
+    optional bool deleteData = 3 [default = false];
+    optional AuthenticationInfo authentication = 4;
+    optional ClientVersionInfo versionInfo = 5;
+}
+
+message TopicDeletionResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message TopicBatchDeletionRequest {
+    repeated string topicNames = 2;
+    optional int64 timeout = 3 [default = 5000];
+    optional bool deleteData = 4 [default = false];
+    optional AuthenticationInfo authentication = 5;
+    optional ClientVersionInfo versionInfo = 6;
+}
+
+message TopicBatchDeletionResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message SysInfoResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional string dfsRoot = 2;
+    optional uint32 minCopy = 3;
+    optional uint32 maxCopy = 4;
+}
+
+message TopicInfoRequest {
+    optional string topicName = 1;
+    optional int64 timeout = 2 [default = 2000];
+    optional AuthenticationInfo authentication = 3;
+    optional ClientVersionInfo versionInfo = 4;
+    optional string src = 5;
+}
+
+message TopicInfoResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional TopicInfo topicInfo = 2;
+}
+
+message AllTopicInfoResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated TopicInfo allTopicInfo = 2;
+}
+
+message AllTopicSimpleInfoResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated TopicSimpleInfo allTopicSimpleInfo = 2;
+}
+
+message TopicNameResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated string names = 2;
+}
+
+message PartitionInfoRequest {
+    optional string topicName = 1;
+    repeated uint32 partitionIds = 2;
+    optional int64 timeout = 3 [default = 2000];
+    optional AuthenticationInfo authentication = 4;
+    optional ClientVersionInfo versionInfo = 5;
+}
+
+message PartitionInfoResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated PartitionInfo partitionInfos = 2;
+}
+
+message MachineAddressResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated string adminAddressList = 2;
+    repeated string brokerAddressList = 3;
+    repeated string strangeAdminAddressList = 4;
+    repeated string strangeBrokerAddressList = 5;
+}
+
+enum RoleStatus {
+    ROLE_STATUS_NONE = 0;
+    ROLE_STATUS_ALL = 1;
+    ROLE_STATUS_LIVING = 2;
+    ROLE_STATUS_DEAD = 3;
+}
+
+message RoleAddressRequest {
+    optional RoleType role = 1;
+    optional RoleStatus status = 2;
+    optional int64 timeout = 3 [default = 2000];
+    optional AuthenticationInfo authentication = 4;
+    optional ClientVersionInfo versionInfo = 5;
+}
+
+message AddressGroup {
+    optional RoleType role = 1;
+    optional RoleStatus status = 2;
+    repeated string addressList = 3;
+}
+
+message RoleAddressResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated AddressGroup addressGroup = 2;
+}
+
+enum DecisionStatus{
+    ROLE_DS_ALIVE = 1;
+    ROLE_DS_DEAD = 2;
+    ROLE_DS_UNKOWN = 3;
+}
+
+message WorkerStatus {
+    optional HeartbeatInfo current = 1;
+    repeated PartitionId target = 2;
+    optional DecisionStatus decisionStatus = 3;
+    optional uint32 freeResource = 4;
+    optional uint32 maxResource = 5;
+    optional bool isInvalid = 6 [default = false];
+    optional bool isStrange = 7 [default = false];
+}
+
+message WorkerStatusResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated WorkerStatus workers = 2;
+}
+
+message PartitionError {
+    optional PartitionId partitionId = 1;
+    optional ErrorCode errCode = 2;
+    optional int64 errTime = 3;
+    optional string errMsg = 4;
+}
+
+message PartitionErrorResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated PartitionError errors = 2;
+}
+
+message WorkerError {
+    optional string workerAddress = 1;
+    optional RoleType role = 2;
+    optional ErrorCode errCode = 3;
+    optional int64 errTime = 4;
+    optional string errMsg = 5;
+}
+
+message WorkerErrorResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated WorkerError errors = 2;
+}
+
+message ErrorRequest {
+    optional int64 time = 1;
+    optional uint32 count = 2;
+    optional ErrorLevel level = 3 [default = ERROR_LEVEL_INFO];
+    optional AuthenticationInfo authentication = 4;
+    optional int64 timeout = 5;
+    optional ClientVersionInfo versionInfo = 6;
+}
+
+// message UpdateConfigRequest {
+//     optional string configPath = 1;
+// }
+
+// message UpdateConfigResponse {
+//     optional ErrorInfo errorInfo = 1;
+// }
+
+message UpdateBrokerConfigRequest {
+    optional string configPath = 1;
+    optional AuthenticationInfo authentication = 2;
+    optional int64 timeout = 3;
+    optional ClientVersionInfo versionInfo = 4;
+}
+
+message UpdateBrokerConfigResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message RollbackBrokerConfigRequest {
+    optional AuthenticationInfo authentication = 1;
+    optional int64 timeout = 2;
+    optional ClientVersionInfo versionInfo = 3;
+}
+
+message RollbackBrokerConfigResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message LeaderInfoRequest {
+    optional int64 timeout = 1 [default = 2000];
+    optional AuthenticationInfo authentication = 2;
+    optional ClientVersionInfo versionInfo = 3;
+}
+
+message LeaderInfoResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional LeaderInfo leaderInfo = 2;
+}
+
+// for serialize
+message TopicMetas {
+    repeated TopicCreationRequest topicMetas = 1;
+    optional AuthenticationInfo authentication = 2;
+}
+
+message TopicPartitionInfo {
+    optional string topicName = 1;
+    repeated PartitionInfo partitionInfos = 2;
+}
+
+message TopicPartitionInfos {
+    repeated TopicPartitionInfo topicPartitionInfos = 1;
+}
+
+message PartitionTransfer {
+    required string brokerRoleName = 1;
+    optional float ratio = 2 [default = 0.5];
+}
+
+message PartitionTransferRequest {
+    repeated PartitionTransfer transferInfo = 1;
+    optional string groupName = 2;
+    optional int64 timeout = 3 [default = 3000];
+    optional AuthenticationInfo authentication = 4;
+    optional ClientVersionInfo versionInfo = 5;
+}
+
+message PartitionTransferResponse {
+   optional ErrorInfo errorInfo = 1;
+}
+
+message ChangeSlotRequest {
+    repeated string roleNames = 1;
+    optional int64 timeout = 2 [default = 3000];
+    optional AuthenticationInfo authentication = 3;
+    optional ClientVersionInfo versionInfo = 4;
+}
+
+message ChangeSlotResponse {
+   optional ErrorInfo errorInfo = 1;
+}
+
+message RegisterSchemaRequest {
+    optional string topicName = 1;
+    optional string schema = 2;
+    optional bool cover = 3 [default = false];
+    optional int32 version = 4;
+    optional int64 timeout = 5 [default = 5000];
+    optional AuthenticationInfo authentication = 6;
+    optional ClientVersionInfo versionInfo = 7;
+}
+
+message RegisterSchemaResponse {
+    optional int32 version = 1;
+    optional ErrorInfo errorInfo = 2;
+}
+
+message GetSchemaRequest {
+    optional string topicName = 1;
+    optional int32 version = 2;
+    optional int64 timeout = 3 [default = 2000];
+    optional AuthenticationInfo authentication = 4;
+    optional ClientVersionInfo versionInfo = 5;
+}
+
+message GetSchemaResponse {
+    optional SchemaInfo schemaInfo = 1;
+    optional ErrorInfo errorInfo = 3;
+}
+
+message GetBrokerStatusRequest {
+    optional string roleName = 1;
+    optional int64 timeout = 2 [default = 2000];
+    optional AuthenticationInfo authentication = 3;
+    optional ClientVersionInfo versionInfo = 4;
+}
+
+message GetBrokerStatusResponse {
+    repeated BrokerInStatus status = 1;
+    optional ErrorInfo errorInfo = 2;
+}
+
+message GetTopicRWTimeRequest {
+    optional string topicName = 1;
+    optional int64 timeout = 2 [default = 2000];
+    optional AuthenticationInfo authentication = 3;
+    optional ClientVersionInfo versionInfo = 4;
+}
+
+message GetTopicRWTimeResponse {
+    optional TopicRWInfos tinfos = 1;
+    optional ErrorInfo errorInfo = 2;
+}
+
+message MissTopicRequest {
+    repeated string topicNames = 1;
+    optional int64 timeout = 2 [default = 2000];
+    optional AuthenticationInfo authentication = 3;
+    optional ClientVersionInfo versionInfo = 4;
+}
+
+message MissTopicResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional int64 timeout = 2 [default = 2000];
+}
+
+message LastDeletedNoUseTopicResponse {
+    repeated TopicCreationRequest topicMetas = 1;
+    optional ErrorInfo errorInfo = 2;
+}
+
+message DeletedNoUseTopicRequest {
+    optional string fileName = 1;
+    optional int64 timeout = 2 [default = 2000];
+    optional AuthenticationInfo authentication = 3;
+    optional ClientVersionInfo versionInfo = 4;
+}
+
+message DeletedNoUseTopicResponse {
+    repeated TopicCreationRequest topicMetas = 1;
+    optional ErrorInfo errorInfo = 2;
+}
+
+message DeletedNoUseTopicFilesResponse {
+    repeated string fileNames = 1;
+    optional ErrorInfo errorInfo = 2;
+}
+
+message ChangeTopicPartCntTask {
+    optional int64 taskid = 1;
+    optional TopicCreationRequest meta = 2;
+}
+
+message ChangeTopicPartCntTasks {
+    repeated ChangeTopicPartCntTask tasks = 1;
+}
+
+message TurnToMasterRequest {
+    optional uint64 targetVersion = 1;
+    optional int64 timeout = 2;
+    optional AuthenticationInfo authentication = 3;
+    optional ClientVersionInfo versionInfo = 4;
+}
+
+message TurnToMasterResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message TurnToSlaveRequest {
+    optional uint64 masterVersion = 1;
+    optional int64 timeout = 2;
+    optional AuthenticationInfo authentication = 3;
+    optional ClientVersionInfo versionInfo = 4;
+}
+
+message TurnToSlaveResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message MasterInfoResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional bool isMaster = 2;
+    optional uint64 masterVersion = 3;
+}
+
+message UpdateWriterVersionRequest {
+    optional TopicWriterVersionInfo topicWriterVersion = 1;
+    optional int64 timeout = 2;
+    optional AuthenticationInfo authentication = 3;
+    optional ClientVersionInfo versionInfo = 4;
+}
+
+message UpdateWriterVersionResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+enum TopicAccessOperator {
+    ADD_TOPIC_ACCESS = 0;
+    DELETE_TOPIC_ACCESS = 1;
+    UPDATE_TOPIC_ACCESS = 2;
+    UPDATE_TOPIC_ACCESS_KEY = 3;
+    UPDATE_TOPIC_ACCESS_PRIORITY = 4;
+    UPDATE_TOPIC_ACCESS_TYPE = 5;
+    UPDATE_TOPIC_AUTH_STATUS = 6;
+    CLEAR_TOPIC_ACCESS = 7;
+    LIST_ONE_TOPIC_ACCESS = 8;
+    LIST_ALL_TOPIC_ACCESS = 9;
+}
+
+enum TopicAccessType {
+    TOPIC_ACCESS_NONE = 0;
+    TOPIC_ACCESS_READ = 1;
+    TOPIC_ACCESS_READ_WRITE = 2;
+}
+
+enum TopicAccessPriority {
+    ACCESS_PRIORITY_P0 = 0;
+    ACCESS_PRIORITY_P1 = 1;
+    ACCESS_PRIORITY_P2 = 2;
+    ACCESS_PRIORITY_P3 = 3;
+    ACCESS_PRIORITY_P4 = 4;
+    ACCESS_PRIORITY_P5 = 5;
+}
+
+enum TopicAuthCheckStatus {
+    TOPIC_AUTH_CHECK_OFF = 0;
+    TOPIC_AUTH_CHECK_ON = 1;
+}
+
+message TopicAccessInfo {
+    optional AccessAuthInfo accessAuthInfo = 1;
+    optional TopicAccessPriority accessPriority = 2 [default = ACCESS_PRIORITY_P5];
+    optional TopicAccessType accessType = 3 [default = TOPIC_ACCESS_READ_WRITE];
+}
+
+message TopicAclData {
+    optional string topicName = 1;
+    optional TopicAuthCheckStatus checkStatus = 2;
+    repeated TopicAccessInfo topicAccessInfos = 3;
+}
+
+message AllTopicAclData {
+    repeated TopicAclData allTopicAclData = 1;
+}
+
+message TopicAclRequest {
+    optional string topicName = 1;
+    optional TopicAccessOperator accessOp = 2;
+    optional TopicAccessInfo topicAccessInfo = 3;
+    optional TopicAuthCheckStatus authCheckStatus = 4;
+    optional int64 timeout = 5 [default = 5000];
+    optional AuthenticationInfo authentication = 6;
+    optional ClientVersionInfo versionInfo = 7;
+}
+
+message TopicAclResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional AllTopicAclData topicAclDatas = 2;
+    
+}
+

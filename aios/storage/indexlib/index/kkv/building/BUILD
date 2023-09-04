@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=[':__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='SKeyWriter',
     srcs=[],
     deps=[
@@ -8,14 +8,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/common:SKeyListInfo'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVValueWriter',
     srcs=[],
     deps=[
         '//aios/storage/indexlib/index/common/data_structure:ExpandableValueAccessor'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BuildingSKeyIterator',
     srcs=[],
     hdrs=['BuildingSKeyIterator.h'],
@@ -24,7 +24,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/common:SKeyIteratorBase'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVBuildingSegmentReader',
     srcs=[],
     hdrs=['KKVBuildingSegmentReader.h'],
@@ -35,7 +35,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVBuildingSegmentIterator',
     srcs=[],
     hdrs=['KKVBuildingSegmentIterator.h'],
@@ -47,7 +47,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='kkv_mem_indexer',
     srcs=['KKVMemIndexer.cpp'],
     hdrs=['KKVMemIndexer.h'],

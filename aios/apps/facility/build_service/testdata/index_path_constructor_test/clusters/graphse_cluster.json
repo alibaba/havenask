@@ -1,0 +1,188 @@
+{
+    "offline_index_config": {
+        "build_config" : {
+            "keep_version_count" : 20,
+            "max_memory_use" : 6144
+        },
+        "merge_config" : {
+            "merge_strategy" : "balance_tree",
+            "merge_strategy_param" : "conflict-segment-number=3;base-doc-count=10240;max-doc-count=500000;conflict-delete-percent=70;max-valid-doc-count=1000000",
+            "merge_thread_count" : 3
+        },
+        "customized_merge_config" : {
+            "full" : {
+                "merge_config" : {
+                    "merge_strategy": "optimize",
+                    "merge_strategy_param": "",
+                    "merge_thread_count": 10
+                }
+            },
+	    "inc" : {
+                "merge_config" : {
+
+                    "merge_strategy": "balance_tree",
+                    "merge_strategy_param": "conflict-segment-number=3;base-doc-count=10240;max-doc-count=500000;conflict-delete-percent=70;max-valid-doc-count=1000000",
+                    "merge_thread_count": 10
+                },
+                "period" : "period=1800"
+            },
+	    "inc_merge" : {
+                "merge_config" : {
+
+                    "merge_strategy": "optimize",
+                    "merge_strategy_param": "max-doc-count=4000000",
+                    "merge_thread_count": 10
+                },
+                "period" : "daytime=17:30"
+            }
+        }
+    },
+    "build_option_config" : {
+        "max_recover_time" : 10,
+        "sort_queue_size" : 200000,
+        "sort_descriptions" : [
+            {
+                "sort_field" : "category",
+                "sort_pattern" : "DESC"
+            }
+        ],
+        "sort_build" : true
+    },
+    "cluster_config" : {
+        "builder_rule_config" : {
+            "need_partition" : true,
+            "partition_count" : 2,
+            "map_reduce_ratio" : 8,
+            "build_parallel_num" : 8
+        },
+        "cluster_name" : "graphse",
+        "cluster_type" : "inc_with_realtime",
+        "dispatch_config" : {
+            "free_worker_use_count_hint" : 0,
+            "min_searcher_replica" : 2,
+            "min_searcher_replica_for_inc_update" : 3,
+            "only_use_free_worker" : false,
+            "switch_by_replica" : true
+        },
+        "hash_mode" : {
+            "hash_field" : "nid",
+            "hash_function" : "HASH"
+        },
+        "inherit_from" : "pluginConf/pack_searcher_schema.json",
+        "proxy_rule" : {
+            "partition_count" : 0,
+            "partition_resource" : 0,
+            "replica_count" : 0
+        },
+        "query_config" : {
+            "default_index" : "phrase",
+            "default_operator" : "AND"
+        },
+        "searcher_rule" : {
+            "max_partition_count_per_worker" : 1,
+            "online_index_keep_count" : 2,
+            "partition_resource" : 10,
+            "replica_count" : 1,
+            "resource_type" : "null"
+        },
+        "table_name" : "graphse"
+    },
+    "final_sorter_config" : {
+        "modules" : [
+            {
+                "module_name" : "HobbitModule",
+                "module_path" : "libHobbitSorter.so"
+            }
+        ],
+        "sorters" : [
+            {
+                "module_name" : "HobbitModule",
+                "parameters" : {
+                    "HobbitConfig" : "hobbit.json",
+                    "packdata_schema" : "pluginConf/pack_searcher_schema.json"
+                },
+                "sorter_name" : "AdapterSorter"
+            }
+        ]
+    },
+    "function_config" : {
+        "modules" : [
+            {
+                "module_name" : "GraphseFunction",
+                "module_path" : "libPluginOnline.so",
+                "parameters" : {
+                    "config_path" : "pluginConf/graphse_function.json"
+                }
+            }
+        ]
+    },
+    "online_index_config" : {
+        "max_realtime_memory_size" : 1024,
+        "max_reopen_memory_use" : 6144,
+        "build_config" : {
+            "keep_version_count" : 10,
+            "max_memory_use" : 512
+        }
+    },
+    "rankprofile_config" : {
+        "modules" : [
+            {
+                "module_name" : "smurfscorer",
+                "module_path" : "libPluginOnline.so",
+                "parameters" : {
+                }
+            }
+        ],
+        "rankprofiles" : [
+            {
+                "field_boost" : {
+                },
+                "rank_profile_name" : "DefaultProfile",
+                "scorers" : [
+                    {
+                        "module_name" : "",
+                        "parameters" : {
+                        },
+                        "rank_size" : "80000",
+                        "scorer_name" : "DefaultScorer"
+                    }
+                ]
+            },
+            {
+                "field_boost" : {
+                },
+                "rank_profile_name" : "ScorerRank",
+                "scorers" : [
+                    {
+                        "module_name" : "smurfscorer",
+                        "parameters" : {
+                            "RelationIndexName" : "relation",
+                            "UserIdIndexName" : "user_id",
+                            "field_declair" : "category:INT32,ends:MULTIINT32,ss_score:INT32,static_trans_score:INT32",
+                            "relation_score" : "ends:10000000,static_trans_score:500000",
+                            "ts_score" : "ends:static_trans_score:2,static_trans_score:static_trans_score:0"
+                        },
+                        "rank_size" : "20000",
+                        "scorer_name" : "SmurfScorer"
+                    }
+                ]
+            }
+        ]
+    },
+    "searcher_cache_config" : {
+        "inc_deletion_percent" : 100,
+        "inc_doc_limit" : 1000,
+        "latency_limit" : 1,
+        "max_item_num" : 200000,
+        "max_size" : 1536
+    },
+    "swift_config" : {
+        "topic" : {
+            "partition_count" : 4,
+            "partition_min_buffer_size" : 512,
+            "partition_max_buffer_size" : 4096,
+            "partition_resource" : 10
+        },
+        "reader_config" : "oneRequestReadCount=100;readBufferSize=10240"
+    }
+}

@@ -5,13 +5,15 @@
  * Author Email: xsank.mz@alibaba-inc.com
  * */
 
-#include <string>
+#include "kmonitor/client/KMonitorFactory.h"
+
 #include <map>
+#include <string>
+
 #include "autil/Log.h"
-#include "kmonitor/client/core/MetricsConfig.h"
 #include "kmonitor/client/KMonitor.h"
 #include "kmonitor/client/KMonitorWorker.h"
-#include "kmonitor/client/KMonitorFactory.h"
+#include "kmonitor/client/core/MetricsConfig.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 AUTIL_LOG_SETUP(kmonitor, KMonitorFactory);
@@ -44,14 +46,17 @@ bool KMonitorFactory::formatMetricsConfig(const string &config_content, MetricsC
     try {
         FromJsonString(config, config_content);
     } catch (const autil::legacy::ExceptionBase &e) {
-        AUTIL_LOG(ERROR, "parse config failed, config[%s], error_info[%s]", config_content.c_str(),
-                     e.GetMessage().c_str());
+        AUTIL_LOG(
+            ERROR, "parse config failed, config[%s], error_info[%s]", config_content.c_str(), e.GetMessage().c_str());
         return false;
     }
 
-    AUTIL_LOG(INFO, "format config OK. service_name[%s] tenant_name[%s] sink_address[%s] global_tags[%s]",
-                 config.service_name().c_str(), config.tenant_name().c_str(), config.sink_address().c_str(),
-                 config.global_tags()->ToString().c_str());
+    AUTIL_LOG(INFO,
+              "format config OK. service_name[%s] tenant_name[%s] sink_address[%s] global_tags[%s]",
+              config.service_name().c_str(),
+              config.tenant_name().c_str(),
+              config.sink_address().c_str(),
+              config.global_tags()->ToString().c_str());
     return true;
 }
 
@@ -84,9 +89,7 @@ KMonitor *KMonitorFactory::GetKMonitor(const string &name, bool useMetricCache, 
     return GetWorker()->GetKMonitor(name, useMetricCache, useConfigTags);
 }
 
-MetricsConfig* KMonitorFactory::GetConfig() {
-    return GetWorker()->GetConfig();
-}
+MetricsConfig *KMonitorFactory::GetConfig() { return GetWorker()->GetConfig(); }
 
 void KMonitorFactory::ReleaseKMonitor(const string &name) { return GetWorker()->ReleaseKMonitor(name); }
 

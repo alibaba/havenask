@@ -1,0 +1,181 @@
+import "arpc/proto/rpc_extensions.proto";
+import "AdminRequestResponse.proto";
+import "Common.proto";
+package swift.protocol;
+option cc_generic_services = true;
+option py_generic_services = true;
+option java_generic_services = true;
+option java_package="com.alibaba.search.swift.protocol";
+
+service Controller {
+    option (arpc.global_service_id) = 2000;
+    rpc createTopic(TopicCreationRequest) returns(TopicCreationResponse) {
+        option (arpc.local_method_id) = 2001;
+    }
+
+    rpc modifyTopic(TopicCreationRequest) returns(TopicCreationResponse) {
+        option (arpc.local_method_id) = 2002;
+    }
+
+    rpc deleteTopic(TopicDeletionRequest) returns(TopicDeletionResponse) {
+        option (arpc.local_method_id) = 2003;
+    }
+
+
+    // rpc controlSystem(SysControlRequest) returns(SysControlResponse) {
+    //     option (arpc.local_method_id) = 2004;
+    // }
+
+    // rpc controlMachine(MachineControlRequest) returns(MachineControlResponse) {
+    //     option (arpc.local_method_id) = 2005;
+    // }
+
+    rpc getSysInfo(EmptyRequest) returns(SysInfoResponse) {
+        option (arpc.local_method_id) = 2006;
+    }
+
+    rpc getTopicInfo(TopicInfoRequest) returns(TopicInfoResponse) {
+        option (arpc.local_method_id) = 2007;
+    }
+
+    rpc getAllTopicName(EmptyRequest) returns(TopicNameResponse) {
+        option (arpc.local_method_id) = 2008;
+    }
+
+    rpc getPartitionInfo(PartitionInfoRequest) returns(PartitionInfoResponse) {
+        option (arpc.local_method_id) = 2009;
+    }
+
+    // rpc getAllMachineAddress(EmptyRequest) returns(MachineAddressResponse) {
+    //     option (arpc.local_method_id) = 2010;
+    // }
+
+    rpc getRoleAddress(RoleAddressRequest) returns(RoleAddressResponse){
+        option (arpc.local_method_id) = 2011;
+    }
+
+    rpc getAllWorkerStatus(EmptyRequest) returns(WorkerStatusResponse) {
+        option (arpc.local_method_id) = 2012;
+    }
+
+    rpc getWorkerError(ErrorRequest) returns(WorkerErrorResponse) {
+        option (arpc.local_method_id) = 2013;
+    }
+
+    rpc getPartitionError(ErrorRequest) returns(PartitionErrorResponse) {
+        option (arpc.local_method_id) = 2014;
+    }
+
+    rpc getAllTopicInfo(EmptyRequest) returns(AllTopicInfoResponse) {
+        option (arpc.local_method_id) = 2015;
+    }
+
+    // rpc updateConfig(UpdateConfigRequest) returns(UpdateConfigResponse) {
+    //     option (arpc.local_method_id) = 2016;
+    // }
+
+    rpc updateBrokerConfig(UpdateBrokerConfigRequest) returns(UpdateBrokerConfigResponse) {
+        option (arpc.local_method_id) = 2017;
+    }
+
+    rpc rollbackBrokerConfig(RollbackBrokerConfigRequest) returns(RollbackBrokerConfigResponse) {
+        option (arpc.local_method_id) = 2018;
+    }
+
+    rpc transferPartition(PartitionTransferRequest) returns(PartitionTransferResponse) {
+        option (arpc.local_method_id) = 2019;
+    }
+
+    rpc setLoggerLevel(SetLoggerLevelRequest) returns (SetLoggerLevelResponse) {
+        option (arpc.local_method_id) = 2020;
+    }
+
+    rpc changeSlot(ChangeSlotRequest) returns (ChangeSlotResponse) {
+        option (arpc.local_method_id) = 2021;
+    }
+
+    rpc deleteTopicBatch(TopicBatchDeletionRequest) returns(TopicBatchDeletionResponse) {
+        option (arpc.local_method_id) = 2022;
+    }
+
+    rpc getAllTopicSimpleInfo(EmptyRequest) returns(AllTopicSimpleInfoResponse) {
+        option (arpc.local_method_id) = 2023;
+    }
+
+    rpc createTopicBatch(TopicBatchCreationRequest) returns(TopicBatchCreationResponse) {
+        option (arpc.local_method_id) = 2024;
+    }
+
+    rpc registerSchema(RegisterSchemaRequest) returns(RegisterSchemaResponse) {
+        option (arpc.local_method_id) = 2025;
+    }
+
+    rpc getSchema(GetSchemaRequest) returns(GetSchemaResponse) {
+        option (arpc.local_method_id) = 2026;
+    }
+
+    // rpc reportBrokerStatus(BrokerStatusRequest) returns(BrokerStatusResponse) {
+    //     option (arpc.local_method_id) = 2027;
+    // }
+
+    rpc getBrokerStatus(GetBrokerStatusRequest) returns(GetBrokerStatusResponse) {
+        option (arpc.local_method_id) = 2028;
+    }
+
+    rpc getTopicRWTime(GetTopicRWTimeRequest) returns(GetTopicRWTimeResponse) {
+        option (arpc.local_method_id) = 2029;
+    }
+
+    rpc reportMissTopic(MissTopicRequest) returns(MissTopicResponse) {
+        option (arpc.local_method_id) = 2030;
+    }
+
+    rpc getLastDeletedNoUseTopic(EmptyRequest) returns(LastDeletedNoUseTopicResponse) {
+        option (arpc.local_method_id) = 2031;
+    }
+
+    rpc getDeletedNoUseTopic(DeletedNoUseTopicRequest) returns(DeletedNoUseTopicResponse) {
+        option (arpc.local_method_id) = 2032;
+    }
+
+    rpc getDeletedNoUseTopicFiles(EmptyRequest) returns(DeletedNoUseTopicFilesResponse) {
+        option (arpc.local_method_id) = 2033;
+    }
+
+    rpc turnToMaster(TurnToMasterRequest) returns(TurnToMasterResponse) {
+        option (arpc.local_method_id) = 2034;
+    }
+
+    rpc turnToSlave(TurnToSlaveRequest) returns(TurnToSlaveResponse) {
+        option (arpc.local_method_id) = 2035;
+    }
+
+    rpc getMasterInfo(EmptyRequest) returns(MasterInfoResponse) {
+        option (arpc.local_method_id) = 2036;
+    }
+
+    // rpc reportMergerStatus(MergerStatusRequest) returns(MergerStatusResponse) {
+    //     option (arpc.local_method_id) = 2037;
+    // }
+
+    // rpc getMergerStatus(GetMergerStatusRequest) returns(GetMergerStatusResponse) {
+    //     option (arpc.local_method_id) = 2038;
+    // }
+
+    // rpc updateMergerConfig(UpdateMergerConfigRequest) returns(UpdateMergerConfigResponse) {
+    //     option (arpc.local_method_id) = 2039;
+    // }
+
+    // rpc rollbackMergerConfig(RollbackMergerConfigRequest) returns(RollbackMergerConfigResponse) {
+    //     option (arpc.local_method_id) = 2040;
+    // }
+
+    rpc updateWriterVersion(UpdateWriterVersionRequest) returns (UpdateWriterVersionResponse) {
+        option (arpc.local_method_id) = 2041;
+    }
+
+    rpc topicAclManage(TopicAclRequest) returns (TopicAclResponse) {
+        option (arpc.local_method_id) = 2043;
+    }
+
+}

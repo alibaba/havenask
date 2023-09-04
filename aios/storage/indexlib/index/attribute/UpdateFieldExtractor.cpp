@@ -19,7 +19,6 @@
 
 using namespace std;
 using namespace autil;
-using namespace indexlib::config;
 using namespace indexlib::document;
 
 namespace indexlibv2::index {
@@ -33,7 +32,7 @@ void UpdateFieldExtractor::Init(const std::shared_ptr<config::IIndexConfig>& pri
 {
     _primaryKeyIndexConfig = std::dynamic_pointer_cast<indexlibv2::index::PrimaryKeyIndexConfig>(primaryKeyIndexConfig);
     for (const auto& indexConfig : attrConfigs) {
-        auto attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+        auto attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
         if (attrConfig != nullptr) {
             _attrConfigs.emplace_back(attrConfig);
         }
@@ -83,6 +82,8 @@ bool UpdateFieldExtractor::LoadFieldsFromDoc(indexlib::document::AttributeDocume
     }
     return true;
 }
+
+void UpdateFieldExtractor::Reset() { _fieldVector.clear(); }
 
 bool UpdateFieldExtractor::GetFieldValue(const std::shared_ptr<indexlib::document::AttributeDocument>& attrDoc,
                                          fieldid_t fieldId, bool* isNull, autil::StringView* fieldValue)

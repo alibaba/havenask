@@ -15,9 +15,9 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
 #include <sstream>
+#include <stdint.h>
 #include <string>
 
 #include "autil/Log.h" // IWYU pragma: keep
@@ -28,8 +28,8 @@
 namespace autil {
 namespace mem_pool {
 class Pool;
-}  // namespace mem_pool
-}  // namespace autil
+} // namespace mem_pool
+} // namespace autil
 
 namespace isearch {
 namespace search {
@@ -41,27 +41,21 @@ struct DocIdRangeMeta {
         OT_UNKNOWN
     };
     DocIdRangeMeta();
-    DocIdRangeMeta(docid_t begin_, docid_t end_,
-                   OrderedType ot = OT_UNKNOWN, uint32_t quota_ = 0);
-    DocIdRangeMeta(const indexlib::DocIdRange& docIdRange,
-                   OrderedType ot = OT_UNKNOWN, uint32_t quota_ = 0);
+    DocIdRangeMeta(docid_t begin_, docid_t end_, OrderedType ot = OT_UNKNOWN, uint32_t quota_ = 0);
+    DocIdRangeMeta(const indexlib::DocIdRange &docIdRange,
+                   OrderedType ot = OT_UNKNOWN,
+                   uint32_t quota_ = 0);
 
-    bool operator != (const DocIdRangeMeta &other) const {
+    bool operator!=(const DocIdRangeMeta &other) const {
         return !(*this == other);
     }
-    bool operator == (const DocIdRangeMeta &other) const {
-        return begin == other.begin
-            && end == other.end
-            && nextBegin == other.nextBegin
-            && quota == other.quota
-            && ordered == other.ordered;
+    bool operator==(const DocIdRangeMeta &other) const {
+        return begin == other.begin && end == other.end && nextBegin == other.nextBegin
+               && quota == other.quota && ordered == other.ordered;
     }
-    bool operator==(const DocIdRangeMeta& meta) {
-        return begin == meta.begin
-            && end == meta.end
-            && nextBegin == meta.nextBegin
-            && quota == meta.quota
-            && ordered == meta.ordered;
+    bool operator==(const DocIdRangeMeta &meta) {
+        return begin == meta.begin && end == meta.end && nextBegin == meta.nextBegin
+               && quota == meta.quota && ordered == meta.ordered;
     }
 
     docid_t nextBegin;
@@ -72,14 +66,13 @@ struct DocIdRangeMeta {
 };
 
 struct DocIdRangeMetaCompare {
-    bool operator() (const DocIdRangeMeta& i,
-                     const DocIdRangeMeta& j) {
+    bool operator()(const DocIdRangeMeta &i, const DocIdRangeMeta &j) {
         return i.begin < j.begin;
     }
 };
 
 ///////////////////////////////////////////////////////////
-std::ostream& operator << (std::ostream &os, const DocIdRangeMeta &range);
+std::ostream &operator<<(std::ostream &os, const DocIdRangeMeta &range);
 
 class LayerMeta : public autil::mem_pool::PoolVector<DocIdRangeMeta> {
 public:
@@ -87,12 +80,14 @@ public:
     void initRangeString();
     std::string toString() const;
     std::string getRangeString() const;
+
 public:
     uint32_t quota;
     uint32_t maxQuota;
     QuotaMode quotaMode;
     bool needAggregate;
     QuotaType quotaType;
+
 private:
     std::string rangeString;
 };

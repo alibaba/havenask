@@ -1,0 +1,62 @@
+{
+    "rel_plan_version" : "fake version",
+    "rel_plan" : [
+        {
+            "id" : 0,
+            "op_name" : "TableScanOp",
+            "inputs" : { },
+            "attrs" : {
+                "db_name": "db1"
+            }
+        },
+        {
+            "id" : 1,
+            "op_name" : "AggregateOp",
+            "inputs" : {
+                "input0" : [
+                    0
+                ]
+            },
+            "attrs" : {
+                "db_name": "db1"
+            }
+        },
+        {
+            "id" : 2,
+            "op_name" : "ExchangeOp",
+            "outputs" :  [3],
+            "inputs" : {
+                "input0" : [
+                    1
+                ]
+            },
+            "attrs" : {
+                "db_name": "db1"
+            }
+        },
+        {
+            "id" : 3,
+            "op_name" : "UnionOp",
+            "inputs" : {
+                "input0" : [
+                    2
+                ]
+            },
+            "attrs" : {
+                "db_name": "db"
+            }
+        },
+        {
+            "id" : 4,
+            "op_name" : "LimitOp",
+            "inputs" : {
+                "input0" : [
+                    3
+                ]
+            },
+            "attrs" : {
+                "db_name": "db"
+            }
+        }
+    ]
+}

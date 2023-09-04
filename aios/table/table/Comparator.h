@@ -15,20 +15,17 @@
  */
 #pragma once
 
-#include "table/Common.h"
 #include "table/Row.h"
 
 namespace table {
 
-class Comparator
-{
+class Comparator {
 public:
     Comparator() {}
     virtual ~Comparator() {}
+
 public:
-    virtual bool compare(Row a, Row b) const  = 0;
+    virtual bool compare(Row a, Row b) const = 0;
 };
 
-TABLE_TYPEDEF_PTR(Comparator);
-
-}
+} // namespace table

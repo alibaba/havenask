@@ -15,9 +15,12 @@
  */
 #include "indexlib/file_system/package/MergePackageUtil.h"
 
+#include "autil/HashAlgorithm.h"
+#include "autil/LambdaWorkItem.h"
 #include "fslib/fs/File.h"
 #include "fslib/fs/FileSystem.h"
 #include "indexlib/file_system/IDirectory.h"
+#include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/file/FileReader.h"
 #include "indexlib/file_system/file/FileWriter.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
@@ -37,7 +40,7 @@ FSResult<void> MergePackageUtil::ConvertDirToPackage(const std::shared_ptr<IDire
                                                      const std::shared_ptr<IDirectory>& outputDirectory,
                                                      const std::string& parentDirName,
                                                      const MergePackageMeta& mergePackageMeta,
-                                                     uint32_t packagingThresholdBytes) noexcept
+                                                     uint32_t packagingThresholdBytes, uint32_t threadCount) noexcept
 {
     AUTIL_LOG(INFO, "merge dir[%s] to package format, threshold bytes[%u]", parentDirName.c_str(),
               packagingThresholdBytes);
@@ -48,15 +51,26 @@ FSResult<void> MergePackageUtil::ConvertDirToPackage(const std::shared_ptr<IDire
         return FSEC_OK;
     }
     PackagingPlan packagingPlan;
-    RETURN_IF_FS_ERROR(
-        LoadOrGeneratePackagingPlan(outputDirectory, mergePackageMeta, packagingThresholdBytes, &packagingPlan),
-        "load or generate packaging plan failed");
+    RETURN_IF_FS_ERROR(LoadOrGeneratePackagingPlan(workingDirectory, outputDirectory, parentDirName, mergePackageMeta,
+                                                   packagingThresholdBytes, &packagingPlan),
+                       "load or generate packaging plan failed");
     AUTIL_LOG(INFO, "load or generate packaging plan success, output directory[%s], packagingPlan[%s]",
               outputDirectory->GetPhysicalPath("").c_str(), autil::legacy::ToJsonString(packagingPlan).c_str());
-    RETURN_IF_FS_ERROR(MoveOrCopyIndexToPackages(workingDirectory, outputDirectory, packagingPlan),
-                       "move or copy files to packages failed, output directory[%s]",
+    if (threadCount > 1) {
+        RETURN_IF_FS_ERROR(
+            MoveOrCopyIndexToPackagesMultiThread(workingDirectory, outputDirectory, packagingPlan, threadCount),
+            "move or copy files to packages failed, output directory[%s]",
+            outputDirectory->GetPhysicalPath("").c_str());
+    } else {
+        RETURN_IF_FS_ERROR(MoveOrCopyIndexToPackages(workingDirectory, outputDirectory, packagingPlan, threadCount,
+                                                     /*hashMatcher=*/0),
+                           "move or copy files to packages failed, output directory[%s]",
+                           outputDirectory->GetPhysicalPath("").c_str());
+    }
+    RETURN_IF_FS_ERROR(ValidatePackageFiles(outputDirectory, packagingPlan),
+                       "validate package files failed, output directory[%s]",
                        outputDirectory->GetPhysicalPath("").c_str());
-    RETURN_IF_FS_ERROR(GeneratePackageMeta(outputDirectory, parentDirName, packagingPlan),
+    RETURN_IF_FS_ERROR(GeneratePackageMeta(workingDirectory, outputDirectory, parentDirName, packagingPlan),
                        "generate package meta failed, output directory[%s]",
                        outputDirectory->GetPhysicalPath("").c_str());
     return FSEC_OK;
@@ -140,7 +154,9 @@ void MergePackageUtil::GeneratePackagingPlan(const MergePackageMeta& mergePackag
     }
 }
 
-FSResult<void> MergePackageUtil::LoadOrGeneratePackagingPlan(const std::shared_ptr<IDirectory>& outputDirectory,
+FSResult<void> MergePackageUtil::LoadOrGeneratePackagingPlan(const std::shared_ptr<IDirectory>& workingDirectory,
+                                                             const std::shared_ptr<IDirectory>& outputDirectory,
+                                                             const std::string& parentDirName,
                                                              const MergePackageMeta& mergePackageMeta,
                                                              int32_t packagingThresholdBytes,
                                                              PackagingPlan* plan) noexcept
@@ -165,9 +181,18 @@ FSResult<void> MergePackageUtil::LoadOrGeneratePackagingPlan(const std::shared_p
     }
     GeneratePackagingPlan(mergePackageMeta, packagingThresholdBytes, plan);
     std::string content = autil::legacy::ToJsonString(*plan);
-    RETURN_IF_FS_ERROR(outputDirectory->Store(PACKAGING_PLAN_FILE_NAME, content, WriterOption::AtomicDump()),
-                       "store packaging plan file failed, directory: %s", outputDirectory->GetPhysicalPath("").c_str());
-    return FSEC_OK;
+    RETURN_IF_FS_ERROR(workingDirectory->Store(PACKAGING_PLAN_FILE_NAME, content, WriterOption::AtomicDump()),
+                       "store packaging plan file failed, directory: %s",
+                       workingDirectory->GetPhysicalPath("").c_str());
+    std::string srcPhysicalPath = PathUtil::JoinPath(workingDirectory->GetPhysicalPath(""), PACKAGING_PLAN_FILE_NAME);
+    std::string targetPhysicalPath = PathUtil::JoinPath(outputDirectory->GetPhysicalPath(""), PACKAGING_PLAN_FILE_NAME);
+    RETURN_IF_FS_ERROR(FslibWrapper::Rename(srcPhysicalPath, targetPhysicalPath),
+                       "rename file from [%s] to [%s] failed", srcPhysicalPath.c_str(), targetPhysicalPath.c_str());
+    return outputDirectory->GetFileSystem()->MountFile(
+        outputDirectory->GetOutputPath(), PACKAGING_PLAN_FILE_NAME,
+        /*logicalPath=*/PathUtil::JoinPath(parentDirName, PACKAGING_PLAN_FILE_NAME),
+        indexlib::file_system::FSMT_READ_ONLY,
+        /*length=*/-1, /*mayNonExist=*/false);
 }
 
 // This method should be reentrant in case of failure.
@@ -281,20 +306,23 @@ FSResult<void> MergePackageUtil::CopyFilesToPackage(const FileListToPackage& fil
                                                     const std::string& targetPackageFileName) noexcept
 {
     // Handle the case of failure recovery that the package file already exists.
-    auto [ec1, dstExist] = outputDirectory->IsExist(targetPackageFileName).CodeWith();
-    RETURN_IF_FS_ERROR(ec1, "is exist for [%s] failed", targetPackageFileName.c_str());
-    // Maybe the package file already exists, handle the reentrant case.
-    if (dstExist) {
-        auto [ec, size] = outputDirectory->GetFileLength(targetPackageFileName).CodeWith();
-        RETURN_IF_FS_ERROR(ec, "get file[%s] length failed in dir [%s] ", targetPackageFileName.c_str(),
-                           outputDirectory->GetPhysicalPath("").c_str());
-        if (size == fileListToPackage.totalPhysicalSize) {
+    auto [ec1, fileSize] =
+        FslibWrapper::GetFileLength(PathUtil::JoinPath(outputDirectory->GetPhysicalPath(""), targetPackageFileName));
+    if (ec1 != FSEC_OK && ec1 != FSEC_NOENT) {
+        RETURN_IF_FS_ERROR(ec1, "get file[%s] length failed in dir [%s], ec[%d]", targetPackageFileName.c_str(),
+                           outputDirectory->GetPhysicalPath("").c_str(), ec1);
+    }
+    if (ec1 == FSEC_OK) {
+        // Maybe the package file already exists, handle the reentrant case.
+        if (fileSize == fileListToPackage.totalPhysicalSize) {
             AUTIL_LOG(INFO, "package file [%s] already exist and is intact, skip copy", targetPackageFileName.c_str());
             return FSEC_OK;
+        } else {
+            RETURN_IF_FS_ERROR(outputDirectory->RemoveFile(targetPackageFileName, RemoveOption()),
+                               "remove file [%s] failed", targetPackageFileName.c_str());
         }
-        RETURN_IF_FS_ERROR(outputDirectory->RemoveFile(targetPackageFileName, RemoveOption()),
-                           "remove file [%s] failed", targetPackageFileName.c_str());
     }
+
     auto [ec2, fileWriter] =
         currentFenceDirectory->CreateFileWriter(targetPackageFileName, WriterOption::BufferAtomicDump()).CodeWith();
     RETURN_IF_FS_ERROR(ec2, "create file writer for [%s] failed", targetPackageFileName.c_str());
@@ -315,9 +343,14 @@ FSResult<void> MergePackageUtil::CopyFilesToPackage(const FileListToPackage& fil
 
 FSResult<void> MergePackageUtil::MoveOrCopyIndexToPackages(const std::shared_ptr<IDirectory>& currentFenceDirectory,
                                                            const std::shared_ptr<IDirectory>& outputDirectory,
-                                                           const PackagingPlan& packagingPlan) noexcept
+                                                           const PackagingPlan& packagingPlan, uint32_t threadCount,
+                                                           uint64_t hashMatcher) noexcept
 {
     for (const auto& [dstPackageFileName, fileListToPackage] : packagingPlan.dstPath2SrcFilePathsMap) {
+        if (threadCount > 1 &&
+            autil::HashAlgorithm::hashString64(dstPackageFileName.c_str()) % threadCount != hashMatcher) {
+            continue;
+        }
         const std::vector<std::string>& fileList = fileListToPackage.filePathList;
         assert(!fileList.empty());
         if (fileList.size() == 1) {
@@ -334,6 +367,49 @@ FSResult<void> MergePackageUtil::MoveOrCopyIndexToPackages(const std::shared_ptr
     return FSEC_OK;
 }
 
+FSResult<void> MergePackageUtil::MoveOrCopyIndexToPackagesMultiThread(
+    const std::shared_ptr<IDirectory>& currentFenceDirectory, const std::shared_ptr<IDirectory>& outputDirectory,
+    const PackagingPlan& packagingPlan, uint32_t threadCount) noexcept
+{
+    AUTIL_LOG(INFO, "move or copy index to packages multi thread, thread count[%u]", threadCount);
+    autil::ThreadPool threadPool(threadCount, /*queueSize=*/threadCount, /*stopIfHasException=*/true);
+    for (int i = 0; i < threadCount; ++i) {
+        auto workItem = new autil::LambdaWorkItem([&currentFenceDirectory, &outputDirectory, &packagingPlan,
+                                                   &threadCount, i]() {
+            auto ec =
+                MoveOrCopyIndexToPackages(currentFenceDirectory, outputDirectory, packagingPlan, threadCount, i).Code();
+            if (ec != FSEC_OK) {
+                AUTIL_LOG(ERROR, "move or copy index to packages failed, ec[%d]", ec);
+            }
+        });
+        if (autil::ThreadPool::ERROR_NONE != threadPool.pushWorkItem(workItem)) {
+            AUTIL_LOG(ERROR, "push work item to thread pool failed %d", i);
+            autil::ThreadPool::dropItemIgnoreException(workItem);
+            return FSEC_ERROR;
+        }
+    }
+    threadPool.start("");
+    threadPool.waitFinish();
+    return FSEC_OK;
+}
+
+FSResult<void> MergePackageUtil::ValidatePackageFiles(const std::shared_ptr<IDirectory>& outputDirectory,
+                                                      const PackagingPlan& packagingPlan) noexcept
+{
+    for (const auto& [dstPackageFileName, fileListToPackage] : packagingPlan.dstPath2SrcFilePathsMap) {
+        auto [ec, fileSize] =
+            FslibWrapper::GetFileLength(PathUtil::JoinPath(outputDirectory->GetPhysicalPath(""), dstPackageFileName));
+        RETURN_IF_FS_ERROR(ec, "get file[%s] length failed in dir [%s] ec[%d]", dstPackageFileName.c_str(),
+                           outputDirectory->GetPhysicalPath("").c_str(), ec);
+        if (fileSize != fileListToPackage.totalPhysicalSize) {
+            AUTIL_LOG(ERROR, "file size mismatch, file[%s] size[%ld] expected[%ld]", dstPackageFileName.c_str(),
+                      fileSize, fileListToPackage.totalPhysicalSize);
+            return FSEC_ERROR;
+        }
+    }
+    return FSEC_OK;
+}
+
 // We might want to substract part of the src paths from packaging plan using @parentDirName. This is because packaging
 // plan's src paths are relative to input root directory and might come from multiple srcs during merge. For N-to-1
 // merge, the result package meta only need part of the src paths.
@@ -341,7 +417,8 @@ FSResult<void> MergePackageUtil::MoveOrCopyIndexToPackages(const std::shared_ptr
 // all these files into output segment_0_level_0 dir.
 // In this case we set parentDirName to segment_0_level_0, and the result package meta will only contain file path e.g.
 // index/index_name/posting
-FSResult<void> MergePackageUtil::GeneratePackageMeta(const std::shared_ptr<IDirectory>& outputDirectory,
+FSResult<void> MergePackageUtil::GeneratePackageMeta(const std::shared_ptr<IDirectory>& workingDirectory,
+                                                     const std::shared_ptr<IDirectory>& outputDirectory,
                                                      const std::string& parentDirName,
                                                      const PackagingPlan& packagingPlan) noexcept
 {
@@ -377,7 +454,16 @@ FSResult<void> MergePackageUtil::GeneratePackageMeta(const std::shared_ptr<IDire
                            /*fileIdx=*/0);
         packageFileMeta.AddInnerFile(innerFileMeta);
     }
-    return packageFileMeta.Store(outputDirectory);
+    RETURN_IF_FS_ERROR(packageFileMeta.Store(workingDirectory), "store package file meta failed");
+    std::string metaPath = PackageFileMeta::GetPackageFileMetaPath(PACKAGE_FILE_PREFIX);
+    std::string srcPhysicalPath = PathUtil::JoinPath(workingDirectory->GetPhysicalPath(""), metaPath);
+    std::string targetPhysicalPath = PathUtil::JoinPath(outputDirectory->GetPhysicalPath(""), metaPath);
+    RETURN_IF_FS_ERROR(FslibWrapper::Rename(srcPhysicalPath, targetPhysicalPath),
+                       "rename file from [%s] to [%s] failed", srcPhysicalPath.c_str(), targetPhysicalPath.c_str());
+    return outputDirectory->GetFileSystem()->MountFile(outputDirectory->GetOutputPath(), metaPath, /*logicalPath=*/
+                                                       PathUtil::JoinPath(parentDirName, metaPath),
+                                                       indexlib::file_system::FSMT_READ_ONLY,
+                                                       /*length=*/-1, /*mayNonExist=*/false);
 }
 
 FSResult<void>
@@ -412,18 +498,26 @@ MergePackageUtil::CleanSrcIndexFiles(const std::shared_ptr<IDirectory>& director
                 AUTIL_LOG(DEBUG, "src file[%s] does not exist, skip", srcFilePath.c_str());
                 continue;
             }
-            RETURN_IF_FS_ERROR(FslibWrapper::DeleteFile(srcFilePath, DeleteOption()), "remove src file[%s] failed",
-                               srcFilePath.c_str());
+            auto removeEC = FslibWrapper::DeleteFile(srcFilePath, DeleteOption()).Code();
+            if (removeEC != FSEC_NOENT && removeEC != FSEC_OK) {
+                AUTIL_LOG(ERROR, "remove src file[%s] failed, ec[%d]", srcFilePath.c_str(), removeEC);
+                return removeEC;
+            }
         }
     }
     for (const std::string& srcDirPath : plan.srcDirPaths) {
-        auto [ec, isExist] = directoryToClean->IsExist(srcDirPath).CodeWith();
-        RETURN_IF_FS_ERROR(ec, "check src dir[%s] existence failed", srcDirPath.c_str());
+        std::string srcDirPhysicalPath = PathUtil::JoinPath(directoryToClean->GetPhysicalPath(""), srcDirPath);
+        auto [ec, isExist] = FslibWrapper::IsExist(srcDirPhysicalPath).CodeWith();
+        RETURN_IF_FS_ERROR(ec, "check src dir[%s] existence failed", srcDirPhysicalPath.c_str());
         if (!isExist) {
+            AUTIL_LOG(DEBUG, "src dir[%s] does not exist, skip", srcDirPhysicalPath.c_str());
             continue;
         }
-        RETURN_IF_FS_ERROR(directoryToClean->RemoveDirectory(srcDirPath, RemoveOption()), "remove src dir[%s] failed",
-                           srcDirPath.c_str());
+        auto removeEC = FslibWrapper::DeleteDir(srcDirPhysicalPath, DeleteOption()).Code();
+        if (removeEC != FSEC_NOENT && removeEC != FSEC_OK) {
+            AUTIL_LOG(ERROR, "remove src dir[%s] failed, ec[%d]", srcDirPhysicalPath.c_str(), removeEC);
+            return removeEC;
+        }
     }
 
     return FSEC_OK;

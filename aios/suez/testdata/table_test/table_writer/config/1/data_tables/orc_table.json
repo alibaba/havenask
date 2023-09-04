@@ -1,0 +1,26 @@
+{
+    "data_descriptions" : [
+	{
+	    "src" : "file",
+	    "type" : "file",
+	    "data" : "%data_path%",
+	    "document_format" : "isearch"
+	}
+
+    ],
+    "processor_chain_config" : [
+	    {
+	        "document_processor_chain" : [],
+	        "clusters" : ["orc"],
+	        "modules" : []
+	    },
+	    {
+	        "document_processor_chain" : [],
+	        "clusters" : ["orc"],
+	        "modules" : []
+	    }
+    ],
+    "control_config" : {
+	"is_inc_processor_exist" : false
+    }
+}

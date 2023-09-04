@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='basic_cache',
     srcs=[
         'BlockCache.cpp', 'MemoryBlockCache.cpp', 'SearchCache.cpp',
@@ -27,7 +27,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util/metrics:monitor'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='cache',
     srcs=['BlockCacheCreator.cpp'],
     hdrs=['BlockCacheCreator.h'],

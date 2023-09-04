@@ -1,0 +1,31 @@
+{
+    "role_desc": {
+	"count": 10,
+	"packageInfos":
+	[
+	    {
+		"packageURI":"http://xxx"
+	    }
+	],
+	"processInfos":
+	[
+	    {
+		"processName": "abc"
+	    }
+	],
+	"resources":
+	[
+	    {
+		"resources":
+		[
+		    {
+			"amount": 1,
+			"name": "cpu"
+		    }
+		]
+	    }
+	],
+	"roleName": "role"
+    }
+}
+

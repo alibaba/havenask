@@ -15,10 +15,18 @@
  */
 #pragma once
 
+#include <map>
+#include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "autil/Log.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "iquan/common/Common.h"
 #include "iquan/common/IquanException.h"
 #include "iquan/common/Status.h"
@@ -28,8 +36,6 @@ namespace iquan {
 
 class Utils {
 public:
-    static std::string getEnv(const std::string &key, const std::string &defaultValue = "");
-    static Status setEnv(const std::string &key, const std::string &value, bool overwrite = true);
     static Status getCurrentPath(std::string &path);
     static Status getBinaryPath(std::string &path);
     static Status getRealPath(const std::string &path, std::string &realPath);
@@ -37,7 +43,8 @@ public:
     static bool isExist(const std::string &path);
     static bool isFile(const std::string &path);
     static bool isDir(const std::string &path);
-    static Status listDir(const std::string &path, std::vector<std::string> &fileList, bool append = false);
+    static Status
+    listDir(const std::string &path, std::vector<std::string> &fileList, bool append = false);
     static Status readFile(const std::string &path, std::string &fileContent);
     static Status readFiles(const std::vector<std::string> &path,
                             std::vector<std::string> &fileContentList,
@@ -54,7 +61,8 @@ public:
     static std::string anyToString(const autil::legacy::Any &any, const std::string &typeStr);
 
     template <typename T>
-    static Status readValue(const autil::legacy::json::JsonMap &map, const std::string &key, T &value) {
+    static Status
+    readValue(const autil::legacy::json::JsonMap &map, const std::string &key, T &value) {
         autil::legacy::json::JsonMap::const_iterator iter = map.find(key);
         if (iter == map.end()) {
             return Status(IQUAN_CACHE_KEY_NOT_FOUND, "key: " + key);
@@ -70,9 +78,9 @@ public:
     }
 
     template <typename T>
-    static Status toJson(const T &jsonObject, std::string &jsonStr, bool isCompact = false) {
+    static Status toJson(const T &jsonObject, std::string &jsonStr, bool isCompact = true) {
         try {
-            jsonStr = autil::legacy::ToJsonString(jsonObject, isCompact);
+            jsonStr = autil::legacy::FastToJsonString(jsonObject, isCompact);
         } catch (const autil::legacy::ExceptionBase &e) {
             return Status(IQUAN_JSON_FORMAT_ERROR, e.GetMessage());
         } catch (const IquanException &e) { return Status(IQUAN_JSON_FORMAT_ERROR, e.what()); }
@@ -82,7 +90,7 @@ public:
     template <typename T>
     static Status fromJson(T &jsonObject, const std::string &jsonStr) {
         try {
-            autil::legacy::FromJsonString(jsonObject, jsonStr);
+            autil::legacy::FastFromJsonString(jsonObject, jsonStr);
         } catch (const autil::legacy::ExceptionBase &e) {
             return Status(IQUAN_JSON_FORMAT_ERROR, e.GetMessage());
         } catch (const IquanException &e) { return Status(IQUAN_JSON_FORMAT_ERROR, e.what()); }
@@ -90,7 +98,7 @@ public:
     }
 
     template <typename T>
-    static Status fastToJson(const T &jsonObject, std::string &jsonStr, bool isCompact = false) {
+    static Status fastToJson(const T &jsonObject, std::string &jsonStr, bool isCompact = true) {
         try {
             jsonStr = autil::legacy::FastToJsonString(jsonObject, isCompact);
         } catch (const autil::legacy::ExceptionBase &e) {
@@ -110,7 +118,8 @@ public:
     }
 
     template <typename T>
-    static Status fromRapidValue(T &jsonObject, const std::shared_ptr<autil::legacy::RapidDocument> &docPtr) {
+    static Status fromRapidValue(T &jsonObject,
+                                 const std::shared_ptr<autil::legacy::RapidDocument> &docPtr) {
         try {
             FromRapidValue(jsonObject, *docPtr);
         } catch (const autil::legacy::ExceptionBase &e) {
@@ -145,7 +154,8 @@ public:
 public:
     // Refer to FieldType in Java
     static inline bool isStringType(const std::string &expectedType) {
-        if (expectedType == "string" || expectedType == "text" || expectedType == "char" || expectedType == "varchar") {
+        if (expectedType == "string" || expectedType == "text" || expectedType == "char"
+            || expectedType == "varchar") {
             return true;
         }
         return false;
@@ -153,9 +163,10 @@ public:
 
     // Refer to FieldType in Java
     static inline bool isNumberType(const std::string &expectedType) {
-        if (expectedType == "int8" || expectedType == "int16" || expectedType == "int32" || expectedType == "int64" ||
-            expectedType == "float" || expectedType == "double" || expectedType == "uint8" ||
-            expectedType == "uint16" || expectedType == "unit32" || expectedType == "uint64") {
+        if (expectedType == "int8" || expectedType == "int16" || expectedType == "int32"
+            || expectedType == "int64" || expectedType == "float" || expectedType == "double"
+            || expectedType == "uint8" || expectedType == "uint16" || expectedType == "unit32"
+            || expectedType == "uint64") {
             return true;
         }
         return false;

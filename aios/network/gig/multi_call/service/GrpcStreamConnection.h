@@ -16,16 +16,18 @@
 #ifndef ISEARCH_MULTI_CALL_GRPCSTREAMCONNECTION_H
 #define ISEARCH_MULTI_CALL_GRPCSTREAMCONNECTION_H
 
+#include <grpc++/generic/generic_stub.h>
+
 #include "aios/network/gig/multi_call/grpc/CompletionQueueStatus.h"
 #include "aios/network/gig/multi_call/service/GrpcConnection.h"
-#include <grpc++/generic/generic_stub.h>
 
 namespace multi_call {
 
 class GigStreamRequest;
 class GrpcClientStreamHandler;
 
-class GrpcStreamConnection : public GrpcConnection {
+class GrpcStreamConnection : public GrpcConnection
+{
 public:
     GrpcStreamConnection(const GrpcClientWorkerPtr &grpcWorker, const std::string &spec,
                          const std::shared_ptr<grpc::ChannelCredentials> &channelCredentials,
@@ -39,16 +41,17 @@ private:
 
 public:
     void post(const RequestPtr &request, const CallBackPtr &callBack) override;
+
 private:
-    std::shared_ptr<GrpcClientStreamHandler> createGrpcHandler(
-            const std::string &bizName,
-            const GigStreamRequest *request,
-            PartIdTy partId);
-    bool createGrpcStream(int64_t handlerId, const GigStreamRequest *request,
+    std::shared_ptr<GrpcClientStreamHandler>
+    createGrpcHandler(const std::string &bizName, const GigStreamRequest *request, PartIdTy partId);
+    bool createGrpcStream(int64_t handlerId, const GigStreamRequest *request, bool corked,
                           grpc::ClientContext *clientContext, CompletionQueueStatusPtr &cqs,
                           grpc::GenericClientAsyncReaderWriter *&stream);
+
 private:
     ObjectPoolPtr _objectPool;
+
 private:
     AUTIL_LOG_DECLARE();
 };

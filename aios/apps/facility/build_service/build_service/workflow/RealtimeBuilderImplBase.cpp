@@ -227,7 +227,7 @@ void RealtimeBuilderImplBase::skipRtBeforeTimestamp()
         return;
     }
 
-    if (latestLocator.GetOffset() >= _timestampToSkip) {
+    if (latestLocator.GetOffset().first >= _timestampToSkip) {
         return;
     }
 
@@ -264,11 +264,11 @@ bool RealtimeBuilderImplBase::getLatestLocator(Locator& latestLocator, bool& fro
     }
     assert(ret == Builder::RS_OK);
 
-    int64_t seekTs = OnlineJoinPolicy::GetRtSeekTimestamp(incVersionTime, rtLocator.GetOffset(), fromInc);
+    int64_t seekTs = OnlineJoinPolicy::GetRtSeekTimestamp(incVersionTime, rtLocator.GetOffset().first, fromInc);
 
     if (fromInc) {
         latestLocator.SetSrc(rtLocator.GetSrc());
-        latestLocator.SetOffset(seekTs);
+        latestLocator.SetOffset({seekTs, 0});
         BS_INTERVAL_LOG2(120, INFO, "incVersionTime[%ld], rt locator[%s], inc covers rt", incVersionTime,
                          rtLocator.DebugString().c_str());
     } else {

@@ -1,0 +1,63 @@
+#import(Tool)
+#import(Log)
+#import(BatchBuild/FlowIdTools)
+
+function graphDef()
+    local batchId = Graph.parameter["batchId"]
+    local lastBatchId = Graph.parameter["lastBatchId"]
+    local clusterName = Graph.parameter["clusterName"]
+    local processorFlowId = Graph.parameter["processorFlowId"]
+    Graph.parameter["buildStep"] = "incremental"
+
+    --start new batch builder
+    local flowParam = Tool.copyMap(Graph.parameter)
+    flowParam["processorFlowId"] = processorFlowId
+    flowParam["processorTaskName"] = "incProcessor"
+    local incBuilder = Graph.loadFlow("BatchBuild/BatchBuilder.flow", flowParam)
+    if (incBuilder == nil)
+    then
+        return false
+    end
+    incBuilder:addTag(FlowIdTools.getIncBuild(clusterName))
+    incBuilder:addTag(FlowIdTools.getBatchBuilder(batchId, clusterName))
+    local incProcessor = Graph.getFlow(processorFlowId)
+    if (incProcessor == nil)
+    then
+       Log.log("ERROR", "get processorFlowId failed")
+       return false
+    end
+    Graph.declareFriend(incProcessor, incBuilder)
+    Graph.declareFriend(incBuilder, incProcessor)
+
+    -- start new batch merger
+    local mergeParam = Tool.copyMap(Graph.parameter)
+    mergeParam["mergeConfigName"] = "bs_batch_mode_merge"
+    local incMerger = Graph.loadFlow("BatchBuild/BatchMerger.flow", mergeParam)
+    if (incMerger == nil)
+    then
+       return false
+    end
+    incMerger:addTag(FlowIdTools.getBatchMerger(batchId, clusterName))
+    incMerger:addTag(FlowIdTools.getIncMerger(clusterName))
+    Graph.setUpstream(incMerger, incBuilder)
+
+    -- set upstream with full
+    if (lastBatchId == nil)
+    then
+       local fullMergeId = Graph.getFlowIdByTag(FlowIdTools.getFullMerger(clusterName))
+       if (table.getn(fullMergeId) ~= 0)
+       then
+          local fullMerge = Graph.getFlow(fullMergeId[1])
+          Graph.setUpstream(incBuilder, fullMerge)
+       end
+       return true
+    end
+
+    -- set upstream with last batch
+    local lastBatchMergeId = Graph.getFlowIdByTag(FlowIdTools.getBatchMerger(lastBatchId, clusterName))
+    if (table.getn(lastBatchMergeId) ~= 0)
+    then
+       Graph.setUpstream(incBuilder, Graph.getFlow(lastBatchMergeId[1]))
+    end
+    return true
+end

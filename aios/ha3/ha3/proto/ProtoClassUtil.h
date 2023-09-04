@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 #include <string>
 
 #include "autil/CompressionUtil.h"
@@ -25,28 +25,30 @@
 namespace isearch {
 namespace proto {
 
-class ProtoClassUtil
-{
+class ProtoClassUtil {
 public:
     ProtoClassUtil();
     ~ProtoClassUtil();
+
 private:
     ProtoClassUtil(const ProtoClassUtil &);
-    ProtoClassUtil& operator = (const ProtoClassUtil &);
+    ProtoClassUtil &operator=(const ProtoClassUtil &);
+
 public:
     static std::string partitionIdToString(const PartitionID &partitionId);
     static std::string partitionIdToStringForDisplay(const PartitionID &partId);
     static std::string simplifyPartitionIdStr(const std::string &partId);
     static std::string toString(const PartitionID &partitionId);
-    static PartitionID createPartitionID(
-            const std::string &clusterName,
-            RoleType type, 
-            uint16_t from, uint16_t to, 
-            uint32_t fullVersion, 
-            uint32_t majorConfigVersion = 0);
-    static const PartitionID& getQrsPartitionID();
+    static PartitionID createPartitionID(const std::string &clusterName,
+                                         RoleType type,
+                                         uint16_t from,
+                                         uint16_t to,
+                                         uint32_t fullVersion,
+                                         uint32_t majorConfigVersion = 0);
+    static const PartitionID &getQrsPartitionID();
     static CompressType convertCompressType(autil::CompressType type);
     static autil::CompressType toHaCompressType(CompressType type);
+
 private:
 };
 
@@ -54,4 +56,3 @@ typedef std::shared_ptr<ProtoClassUtil> ProtoClassUtilPtr;
 
 } // namespace proto
 } // namespace isearch
-

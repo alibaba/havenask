@@ -28,8 +28,7 @@ namespace detailv3 {
 template <typename Result, typename Functor>
 struct functor_storage : Functor {
     functor_storage() = default;
-    functor_storage(const Functor &functor)
-        : Functor(functor) {}
+    functor_storage(const Functor &functor) : Functor(functor) {}
     template <typename... Args>
     Result operator()(Args &&...args) {
         return static_cast<Functor &>(*this)(std::forward<Args>(args)...);
@@ -43,36 +42,20 @@ template <typename Result, typename... Args>
 struct functor_storage<Result, Result (*)(Args...)> {
     typedef Result (*function_ptr)(Args...);
     function_ptr function;
-    functor_storage(function_ptr function)
-        : function(function) {}
-    Result operator()(Args... args) const {
-        return function(std::forward<Args>(args)...);
-    }
-    operator function_ptr &() {
-        return function;
-    }
-    operator const function_ptr &() {
-        return function;
-    }
+    functor_storage(function_ptr function) : function(function) {}
+    Result operator()(Args... args) const { return function(std::forward<Args>(args)...); }
+    operator function_ptr &() { return function; }
+    operator const function_ptr &() { return function; }
 };
 template <typename key_type, typename value_type, typename hasher>
 struct KeyOrValueHasher : functor_storage<size_t, hasher> {
     typedef functor_storage<size_t, hasher> hasher_storage;
     KeyOrValueHasher() = default;
-    KeyOrValueHasher(const hasher &hash)
-        : hasher_storage(hash) {}
-    size_t operator()(const key_type &key) {
-        return static_cast<hasher_storage &>(*this)(key);
-    }
-    size_t operator()(const key_type &key) const {
-        return static_cast<const hasher_storage &>(*this)(key);
-    }
-    size_t operator()(const value_type &value) {
-        return static_cast<hasher_storage &>(*this)(value.first);
-    }
-    size_t operator()(const value_type &value) const {
-        return static_cast<const hasher_storage &>(*this)(value.first);
-    }
+    KeyOrValueHasher(const hasher &hash) : hasher_storage(hash) {}
+    size_t operator()(const key_type &key) { return static_cast<hasher_storage &>(*this)(key); }
+    size_t operator()(const key_type &key) const { return static_cast<const hasher_storage &>(*this)(key); }
+    size_t operator()(const value_type &value) { return static_cast<hasher_storage &>(*this)(value.first); }
+    size_t operator()(const value_type &value) const { return static_cast<const hasher_storage &>(*this)(value.first); }
     template <typename F, typename S>
     size_t operator()(const std::pair<F, S> &value) {
         return static_cast<hasher_storage &>(*this)(value.first);
@@ -86,8 +69,7 @@ template <typename key_type, typename value_type, typename key_equal>
 struct KeyOrValueEquality : functor_storage<bool, key_equal> {
     typedef functor_storage<bool, key_equal> equality_storage;
     KeyOrValueEquality() = default;
-    KeyOrValueEquality(const key_equal &equality)
-        : equality_storage(equality) {}
+    KeyOrValueEquality(const key_equal &equality) : equality_storage(equality) {}
     bool operator()(const key_type &lhs, const key_type &rhs) {
         return static_cast<equality_storage &>(*this)(lhs, rhs);
     }
@@ -125,23 +107,16 @@ static constexpr int8_t min_lookups = 4;
 template <typename T>
 struct sherwood_v3_entry {
     sherwood_v3_entry() {}
-    sherwood_v3_entry(int8_t distance_from_desired)
-        : distance_from_desired(distance_from_desired) {}
+    sherwood_v3_entry(int8_t distance_from_desired) : distance_from_desired(distance_from_desired) {}
     ~sherwood_v3_entry() {}
     static sherwood_v3_entry *empty_default_table() {
         static sherwood_v3_entry result[min_lookups] = {{}, {}, {}, {special_end_value}};
         return result;
     }
 
-    bool has_value() const {
-        return distance_from_desired >= 0;
-    }
-    bool is_empty() const {
-        return distance_from_desired < 0;
-    }
-    bool is_at_desired_position() const {
-        return distance_from_desired <= 0;
-    }
+    bool has_value() const { return distance_from_desired >= 0; }
+    bool is_empty() const { return distance_from_desired < 0; }
+    bool is_at_desired_position() const { return distance_from_desired <= 0; }
     template <typename... Args>
     void emplace(int8_t distance, Args &&...args) {
         new (std::addressof(value)) T(std::forward<Args>(args)...);
@@ -161,10 +136,10 @@ struct sherwood_v3_entry {
 };
 
 inline int8_t log2(size_t value) {
-    static constexpr int8_t table[64]
-        = {63, 0,  58, 1,  59, 47, 53, 2,  60, 39, 48, 27, 54, 33, 42, 3,  61, 51, 37, 40, 49, 18,
-           28, 20, 55, 30, 34, 11, 43, 14, 22, 4,  62, 57, 46, 52, 38, 26, 32, 41, 50, 36, 17, 19,
-           29, 10, 13, 21, 56, 45, 25, 31, 35, 16, 9,  12, 44, 24, 15, 8,  23, 7,  6,  5};
+    static constexpr int8_t table[64] = {63, 0,  58, 1,  59, 47, 53, 2,  60, 39, 48, 27, 54, 33, 42, 3,
+                                         61, 51, 37, 40, 49, 18, 28, 20, 55, 30, 34, 11, 43, 14, 22, 4,
+                                         62, 57, 46, 52, 38, 26, 32, 41, 50, 36, 17, 19, 29, 10, 13, 21,
+                                         56, 45, 25, 31, 35, 16, 9,  12, 44, 24, 15, 8,  23, 7,  6,  5};
     value |= value >> 1;
     value |= value >> 2;
     value |= value >> 4;
@@ -176,12 +151,8 @@ inline int8_t log2(size_t value) {
 
 template <typename T, bool>
 struct AssignIfTrue {
-    void operator()(T &lhs, const T &rhs) {
-        lhs = rhs;
-    }
-    void operator()(T &lhs, T &&rhs) {
-        lhs = std::move(rhs);
-    }
+    void operator()(T &lhs, const T &rhs) { lhs = rhs; }
+    void operator()(T &lhs, T &&rhs) { lhs = std::move(rhs); }
 };
 template <typename T>
 struct AssignIfTrue<T, false> {
@@ -244,17 +215,14 @@ public:
                                const ArgumentHash &hash = ArgumentHash(),
                                const ArgumentEqual &equal = ArgumentEqual(),
                                const ArgumentAlloc &alloc = ArgumentAlloc())
-        : EntryAlloc(alloc)
-        , Hasher(hash)
-        , Equal(equal) {
+        : EntryAlloc(alloc), Hasher(hash), Equal(equal) {
         lazy_bucket_count = 4 * bucket_count;
     }
     sherwood_v3_table(size_type bucket_count, const ArgumentAlloc &alloc)
         : sherwood_v3_table(bucket_count, ArgumentHash(), ArgumentEqual(), alloc) {}
     sherwood_v3_table(size_type bucket_count, const ArgumentHash &hash, const ArgumentAlloc &alloc)
         : sherwood_v3_table(bucket_count, hash, ArgumentEqual(), alloc) {}
-    explicit sherwood_v3_table(const ArgumentAlloc &alloc)
-        : EntryAlloc(alloc) {}
+    explicit sherwood_v3_table(const ArgumentAlloc &alloc) : EntryAlloc(alloc) {}
     template <typename It>
     sherwood_v3_table(It first,
                       It last,
@@ -291,10 +259,7 @@ public:
     sherwood_v3_table(const sherwood_v3_table &other)
         : sherwood_v3_table(other, AllocatorTraits::select_on_container_copy_construction(other.get_allocator())) {}
     sherwood_v3_table(const sherwood_v3_table &other, const ArgumentAlloc &alloc)
-        : EntryAlloc(alloc)
-        , Hasher(other)
-        , Equal(other)
-        , _max_load_factor(other._max_load_factor) {
+        : EntryAlloc(alloc), Hasher(other), Equal(other), _max_load_factor(other._max_load_factor) {
         rehash_for_other_container(other);
         try {
             insert(other.begin(), other.end());
@@ -305,15 +270,11 @@ public:
         }
     }
     sherwood_v3_table(sherwood_v3_table &&other) noexcept
-        : EntryAlloc(std::move(other))
-        , Hasher(std::move(other))
-        , Equal(std::move(other)) {
+        : EntryAlloc(std::move(other)), Hasher(std::move(other)), Equal(std::move(other)) {
         swap_pointers(other);
     }
     sherwood_v3_table(sherwood_v3_table &&other, const ArgumentAlloc &alloc) noexcept
-        : EntryAlloc(alloc)
-        , Hasher(std::move(other))
-        , Equal(std::move(other)) {
+        : EntryAlloc(alloc), Hasher(std::move(other)), Equal(std::move(other)) {
         swap_pointers(other);
     }
     sherwood_v3_table &operator=(const sherwood_v3_table &other) {
@@ -362,21 +323,14 @@ public:
         deallocate_data(entries, num_slots_minus_one, max_lookups);
     }
 
-    const allocator_type &get_allocator() const {
-        return static_cast<const allocator_type &>(*this);
-    }
-    const ArgumentEqual &key_eq() const {
-        return static_cast<const ArgumentEqual &>(*this);
-    }
-    const ArgumentHash &hash_function() const {
-        return static_cast<const ArgumentHash &>(*this);
-    }
+    const allocator_type &get_allocator() const { return static_cast<const allocator_type &>(*this); }
+    const ArgumentEqual &key_eq() const { return static_cast<const ArgumentEqual &>(*this); }
+    const ArgumentHash &hash_function() const { return static_cast<const ArgumentHash &>(*this); }
 
     template <typename ValueType>
     struct templated_iterator {
         templated_iterator() = default;
-        templated_iterator(EntryPointer current)
-            : current(current) {}
+        templated_iterator(EntryPointer current) : current(current) {}
         EntryPointer current = EntryPointer();
 
         using iterator_category = std::forward_iterator_tag;
@@ -388,9 +342,7 @@ public:
         friend bool operator==(const templated_iterator &lhs, const templated_iterator &rhs) {
             return lhs.current == rhs.current;
         }
-        friend bool operator!=(const templated_iterator &lhs, const templated_iterator &rhs) {
-            return !(lhs == rhs);
-        }
+        friend bool operator!=(const templated_iterator &lhs, const templated_iterator &rhs) { return !(lhs == rhs); }
 
         templated_iterator &operator++() {
             do {
@@ -404,16 +356,10 @@ public:
             return copy;
         }
 
-        ValueType &operator*() const {
-            return current->value;
-        }
-        ValueType *operator->() const {
-            return std::addressof(current->value);
-        }
+        ValueType &operator*() const { return current->value; }
+        ValueType *operator->() const { return std::addressof(current->value); }
 
-        operator templated_iterator<const value_type>() const {
-            return {current};
-        }
+        operator templated_iterator<const value_type>() const { return {current}; }
     };
     using iterator = templated_iterator<value_type>;
     using const_iterator = templated_iterator<const value_type>;
@@ -430,18 +376,10 @@ public:
                 return {it};
         }
     }
-    const_iterator cbegin() const {
-        return begin();
-    }
-    iterator end() {
-        return {entries + static_cast<ptrdiff_t>(num_slots_minus_one + max_lookups)};
-    }
-    const_iterator end() const {
-        return {entries + static_cast<ptrdiff_t>(num_slots_minus_one + max_lookups)};
-    }
-    const_iterator cend() const {
-        return end();
-    }
+    const_iterator cbegin() const { return begin(); }
+    iterator end() { return {entries + static_cast<ptrdiff_t>(num_slots_minus_one + max_lookups)}; }
+    const_iterator end() const { return {entries + static_cast<ptrdiff_t>(num_slots_minus_one + max_lookups)}; }
+    const_iterator cend() const { return end(); }
 
     iterator find(const FindKey &key) {
         size_t index = hash_policy.index_for_hash(hash_object(key), num_slots_minus_one);
@@ -452,12 +390,8 @@ public:
         }
         return end();
     }
-    const_iterator find(const FindKey &key) const {
-        return const_cast<sherwood_v3_table *>(this)->find(key);
-    }
-    size_t count(const FindKey &key) const {
-        return find(key) == end() ? 0 : 1;
-    }
+    const_iterator find(const FindKey &key) const { return const_cast<sherwood_v3_table *>(this)->find(key); }
+    size_t count(const FindKey &key) const { return find(key) == end() ? 0 : 1; }
     std::pair<iterator, iterator> equal_range(const FindKey &key) {
         iterator found = find(key);
         if (found == end())
@@ -487,22 +421,14 @@ public:
             distance_from_desired, current_entry, std::forward<Key>(key), std::forward<Args>(args)...);
     }
 
-    std::pair<iterator, bool> insert(const value_type &value) {
-        return emplace(value);
-    }
-    std::pair<iterator, bool> insert(value_type &&value) {
-        return emplace(std::move(value));
-    }
+    std::pair<iterator, bool> insert(const value_type &value) { return emplace(value); }
+    std::pair<iterator, bool> insert(value_type &&value) { return emplace(std::move(value)); }
     template <typename... Args>
     iterator emplace_hint(const_iterator, Args &&...args) {
         return emplace(std::forward<Args>(args)...).first;
     }
-    iterator insert(const_iterator, const value_type &value) {
-        return emplace(value).first;
-    }
-    iterator insert(const_iterator, value_type &&value) {
-        return emplace(std::move(value)).first;
-    }
+    iterator insert(const_iterator, const value_type &value) { return emplace(value).first; }
+    iterator insert(const_iterator, value_type &&value) { return emplace(std::move(value)).first; }
 
     template <typename It>
     void insert(It begin, It end) {
@@ -510,13 +436,11 @@ public:
             emplace(*begin);
         }
     }
-    void insert(std::initializer_list<value_type> il) {
-        insert(il.begin(), il.end());
-    }
+    void insert(std::initializer_list<value_type> il) { insert(il.begin(), il.end()); }
 
     void rehash(size_t num_buckets) {
-        num_buckets = std::max(num_buckets,
-                               static_cast<size_t>(std::ceil(num_elements / static_cast<double>(_max_load_factor))));
+        num_buckets =
+            std::max(num_buckets, static_cast<size_t>(std::ceil(num_elements / static_cast<double>(_max_load_factor))));
         if (num_buckets == 0) {
             reset_to_empty_state();
             return;
@@ -579,8 +503,8 @@ public:
         }
         if (end_it == this->end())
             return this->end();
-        ptrdiff_t num_to_move = std::min(static_cast<ptrdiff_t>(end_it.current->distance_from_desired),
-                                         end_it.current - begin_it.current);
+        ptrdiff_t num_to_move =
+            std::min(static_cast<ptrdiff_t>(end_it.current->distance_from_desired), end_it.current - begin_it.current);
         EntryPointer to_return = end_it.current - num_to_move;
         for (EntryPointer it = end_it.current; !it->is_at_desired_position();) {
             EntryPointer target = it - num_to_move;
@@ -611,9 +535,7 @@ public:
         num_elements = 0;
     }
 
-    void shrink_to_fit() {
-        rehash_for_other_container(*this);
-    }
+    void shrink_to_fit() { rehash_for_other_container(*this); }
 
     void swap(sherwood_v3_table &other) {
         using std::swap;
@@ -624,18 +546,10 @@ public:
             swap(static_cast<EntryAlloc &>(*this), static_cast<EntryAlloc &>(other));
     }
 
-    size_t size() const {
-        return num_elements;
-    }
-    size_t max_size() const {
-        return (AllocatorTraits::max_size(*this)) / sizeof(Entry);
-    }
-    size_t bucket_count() const {
-        return num_slots_minus_one ? num_slots_minus_one + 1 : 0;
-    }
-    size_type max_bucket_count() const {
-        return (AllocatorTraits::max_size(*this) - min_lookups) / sizeof(Entry);
-    }
+    size_t size() const { return num_elements; }
+    size_t max_size() const { return (AllocatorTraits::max_size(*this)) / sizeof(Entry); }
+    size_t bucket_count() const { return num_slots_minus_one ? num_slots_minus_one + 1 : 0; }
+    size_type max_bucket_count() const { return (AllocatorTraits::max_size(*this) - min_lookups) / sizeof(Entry); }
     size_t bucket(const FindKey &key) const {
         return hash_policy.index_for_hash(hash_object(key), num_slots_minus_one);
     }
@@ -646,16 +560,10 @@ public:
         else
             return 0;
     }
-    void max_load_factor(float value) {
-        _max_load_factor = value;
-    }
-    float max_load_factor() const {
-        return _max_load_factor;
-    }
+    void max_load_factor(float value) { _max_load_factor = value; }
+    float max_load_factor() const { return _max_load_factor; }
 
-    bool empty() const {
-        return num_elements == 0;
-    }
+    bool empty() const { return num_elements == 0; }
 
 private:
     EntryPointer entries = Entry::empty_default_table();
@@ -692,8 +600,8 @@ private:
     SKA_NOINLINE(std::pair<iterator, bool>)
     emplace_new_key(int8_t distance_from_desired, EntryPointer current_entry, Key &&key, Args &&...args) {
         using std::swap;
-        if (num_slots_minus_one == 0 || distance_from_desired == max_lookups
-            || num_elements + 1 > (num_slots_minus_one + 1) * static_cast<double>(_max_load_factor)) {
+        if (num_slots_minus_one == 0 || distance_from_desired == max_lookups ||
+            num_elements + 1 > (num_slots_minus_one + 1) * static_cast<double>(_max_load_factor)) {
             grow();
             return emplace(std::forward<Key>(key), std::forward<Args>(args)...);
         } else if (current_entry->is_empty()) {
@@ -765,580 +673,206 @@ public:
             if (it->has_value())
                 return {it};
             else
-                return ++iterator {it};
+                return ++iterator{it};
         }
         operator const_iterator() {
             if (it->has_value())
                 return {it};
             else
-                return ++const_iterator {it};
+                return ++const_iterator{it};
         }
     };
 };
 } // namespace detailv3
 
 struct prime_number_hash_policy {
-    static size_t mod0(size_t) {
-        return 0llu;
-    }
-    static size_t mod2(size_t hash) {
-        return hash % 2llu;
-    }
-    static size_t mod3(size_t hash) {
-        return hash % 3llu;
-    }
-    static size_t mod5(size_t hash) {
-        return hash % 5llu;
-    }
-    static size_t mod7(size_t hash) {
-        return hash % 7llu;
-    }
-    static size_t mod11(size_t hash) {
-        return hash % 11llu;
-    }
-    static size_t mod13(size_t hash) {
-        return hash % 13llu;
-    }
-    static size_t mod17(size_t hash) {
-        return hash % 17llu;
-    }
-    static size_t mod23(size_t hash) {
-        return hash % 23llu;
-    }
-    static size_t mod29(size_t hash) {
-        return hash % 29llu;
-    }
-    static size_t mod37(size_t hash) {
-        return hash % 37llu;
-    }
-    static size_t mod47(size_t hash) {
-        return hash % 47llu;
-    }
-    static size_t mod59(size_t hash) {
-        return hash % 59llu;
-    }
-    static size_t mod73(size_t hash) {
-        return hash % 73llu;
-    }
-    static size_t mod97(size_t hash) {
-        return hash % 97llu;
-    }
-    static size_t mod127(size_t hash) {
-        return hash % 127llu;
-    }
-    static size_t mod151(size_t hash) {
-        return hash % 151llu;
-    }
-    static size_t mod197(size_t hash) {
-        return hash % 197llu;
-    }
-    static size_t mod251(size_t hash) {
-        return hash % 251llu;
-    }
-    static size_t mod313(size_t hash) {
-        return hash % 313llu;
-    }
-    static size_t mod397(size_t hash) {
-        return hash % 397llu;
-    }
-    static size_t mod499(size_t hash) {
-        return hash % 499llu;
-    }
-    static size_t mod631(size_t hash) {
-        return hash % 631llu;
-    }
-    static size_t mod797(size_t hash) {
-        return hash % 797llu;
-    }
-    static size_t mod1009(size_t hash) {
-        return hash % 1009llu;
-    }
-    static size_t mod1259(size_t hash) {
-        return hash % 1259llu;
-    }
-    static size_t mod1597(size_t hash) {
-        return hash % 1597llu;
-    }
-    static size_t mod2011(size_t hash) {
-        return hash % 2011llu;
-    }
-    static size_t mod2539(size_t hash) {
-        return hash % 2539llu;
-    }
-    static size_t mod3203(size_t hash) {
-        return hash % 3203llu;
-    }
-    static size_t mod4027(size_t hash) {
-        return hash % 4027llu;
-    }
-    static size_t mod5087(size_t hash) {
-        return hash % 5087llu;
-    }
-    static size_t mod6421(size_t hash) {
-        return hash % 6421llu;
-    }
-    static size_t mod8089(size_t hash) {
-        return hash % 8089llu;
-    }
-    static size_t mod10193(size_t hash) {
-        return hash % 10193llu;
-    }
-    static size_t mod12853(size_t hash) {
-        return hash % 12853llu;
-    }
-    static size_t mod16193(size_t hash) {
-        return hash % 16193llu;
-    }
-    static size_t mod20399(size_t hash) {
-        return hash % 20399llu;
-    }
-    static size_t mod25717(size_t hash) {
-        return hash % 25717llu;
-    }
-    static size_t mod32401(size_t hash) {
-        return hash % 32401llu;
-    }
-    static size_t mod40823(size_t hash) {
-        return hash % 40823llu;
-    }
-    static size_t mod51437(size_t hash) {
-        return hash % 51437llu;
-    }
-    static size_t mod64811(size_t hash) {
-        return hash % 64811llu;
-    }
-    static size_t mod81649(size_t hash) {
-        return hash % 81649llu;
-    }
-    static size_t mod102877(size_t hash) {
-        return hash % 102877llu;
-    }
-    static size_t mod129607(size_t hash) {
-        return hash % 129607llu;
-    }
-    static size_t mod163307(size_t hash) {
-        return hash % 163307llu;
-    }
-    static size_t mod205759(size_t hash) {
-        return hash % 205759llu;
-    }
-    static size_t mod259229(size_t hash) {
-        return hash % 259229llu;
-    }
-    static size_t mod326617(size_t hash) {
-        return hash % 326617llu;
-    }
-    static size_t mod411527(size_t hash) {
-        return hash % 411527llu;
-    }
-    static size_t mod518509(size_t hash) {
-        return hash % 518509llu;
-    }
-    static size_t mod653267(size_t hash) {
-        return hash % 653267llu;
-    }
-    static size_t mod823117(size_t hash) {
-        return hash % 823117llu;
-    }
-    static size_t mod1037059(size_t hash) {
-        return hash % 1037059llu;
-    }
-    static size_t mod1306601(size_t hash) {
-        return hash % 1306601llu;
-    }
-    static size_t mod1646237(size_t hash) {
-        return hash % 1646237llu;
-    }
-    static size_t mod2074129(size_t hash) {
-        return hash % 2074129llu;
-    }
-    static size_t mod2613229(size_t hash) {
-        return hash % 2613229llu;
-    }
-    static size_t mod3292489(size_t hash) {
-        return hash % 3292489llu;
-    }
-    static size_t mod4148279(size_t hash) {
-        return hash % 4148279llu;
-    }
-    static size_t mod5226491(size_t hash) {
-        return hash % 5226491llu;
-    }
-    static size_t mod6584983(size_t hash) {
-        return hash % 6584983llu;
-    }
-    static size_t mod8296553(size_t hash) {
-        return hash % 8296553llu;
-    }
-    static size_t mod10453007(size_t hash) {
-        return hash % 10453007llu;
-    }
-    static size_t mod13169977(size_t hash) {
-        return hash % 13169977llu;
-    }
-    static size_t mod16593127(size_t hash) {
-        return hash % 16593127llu;
-    }
-    static size_t mod20906033(size_t hash) {
-        return hash % 20906033llu;
-    }
-    static size_t mod26339969(size_t hash) {
-        return hash % 26339969llu;
-    }
-    static size_t mod33186281(size_t hash) {
-        return hash % 33186281llu;
-    }
-    static size_t mod41812097(size_t hash) {
-        return hash % 41812097llu;
-    }
-    static size_t mod52679969(size_t hash) {
-        return hash % 52679969llu;
-    }
-    static size_t mod66372617(size_t hash) {
-        return hash % 66372617llu;
-    }
-    static size_t mod83624237(size_t hash) {
-        return hash % 83624237llu;
-    }
-    static size_t mod105359939(size_t hash) {
-        return hash % 105359939llu;
-    }
-    static size_t mod132745199(size_t hash) {
-        return hash % 132745199llu;
-    }
-    static size_t mod167248483(size_t hash) {
-        return hash % 167248483llu;
-    }
-    static size_t mod210719881(size_t hash) {
-        return hash % 210719881llu;
-    }
-    static size_t mod265490441(size_t hash) {
-        return hash % 265490441llu;
-    }
-    static size_t mod334496971(size_t hash) {
-        return hash % 334496971llu;
-    }
-    static size_t mod421439783(size_t hash) {
-        return hash % 421439783llu;
-    }
-    static size_t mod530980861(size_t hash) {
-        return hash % 530980861llu;
-    }
-    static size_t mod668993977(size_t hash) {
-        return hash % 668993977llu;
-    }
-    static size_t mod842879579(size_t hash) {
-        return hash % 842879579llu;
-    }
-    static size_t mod1061961721(size_t hash) {
-        return hash % 1061961721llu;
-    }
-    static size_t mod1337987929(size_t hash) {
-        return hash % 1337987929llu;
-    }
-    static size_t mod1685759167(size_t hash) {
-        return hash % 1685759167llu;
-    }
-    static size_t mod2123923447(size_t hash) {
-        return hash % 2123923447llu;
-    }
-    static size_t mod2675975881(size_t hash) {
-        return hash % 2675975881llu;
-    }
-    static size_t mod3371518343(size_t hash) {
-        return hash % 3371518343llu;
-    }
-    static size_t mod4247846927(size_t hash) {
-        return hash % 4247846927llu;
-    }
-    static size_t mod5351951779(size_t hash) {
-        return hash % 5351951779llu;
-    }
-    static size_t mod6743036717(size_t hash) {
-        return hash % 6743036717llu;
-    }
-    static size_t mod8495693897(size_t hash) {
-        return hash % 8495693897llu;
-    }
-    static size_t mod10703903591(size_t hash) {
-        return hash % 10703903591llu;
-    }
-    static size_t mod13486073473(size_t hash) {
-        return hash % 13486073473llu;
-    }
-    static size_t mod16991387857(size_t hash) {
-        return hash % 16991387857llu;
-    }
-    static size_t mod21407807219(size_t hash) {
-        return hash % 21407807219llu;
-    }
-    static size_t mod26972146961(size_t hash) {
-        return hash % 26972146961llu;
-    }
-    static size_t mod33982775741(size_t hash) {
-        return hash % 33982775741llu;
-    }
-    static size_t mod42815614441(size_t hash) {
-        return hash % 42815614441llu;
-    }
-    static size_t mod53944293929(size_t hash) {
-        return hash % 53944293929llu;
-    }
-    static size_t mod67965551447(size_t hash) {
-        return hash % 67965551447llu;
-    }
-    static size_t mod85631228929(size_t hash) {
-        return hash % 85631228929llu;
-    }
-    static size_t mod107888587883(size_t hash) {
-        return hash % 107888587883llu;
-    }
-    static size_t mod135931102921(size_t hash) {
-        return hash % 135931102921llu;
-    }
-    static size_t mod171262457903(size_t hash) {
-        return hash % 171262457903llu;
-    }
-    static size_t mod215777175787(size_t hash) {
-        return hash % 215777175787llu;
-    }
-    static size_t mod271862205833(size_t hash) {
-        return hash % 271862205833llu;
-    }
-    static size_t mod342524915839(size_t hash) {
-        return hash % 342524915839llu;
-    }
-    static size_t mod431554351609(size_t hash) {
-        return hash % 431554351609llu;
-    }
-    static size_t mod543724411781(size_t hash) {
-        return hash % 543724411781llu;
-    }
-    static size_t mod685049831731(size_t hash) {
-        return hash % 685049831731llu;
-    }
-    static size_t mod863108703229(size_t hash) {
-        return hash % 863108703229llu;
-    }
-    static size_t mod1087448823553(size_t hash) {
-        return hash % 1087448823553llu;
-    }
-    static size_t mod1370099663459(size_t hash) {
-        return hash % 1370099663459llu;
-    }
-    static size_t mod1726217406467(size_t hash) {
-        return hash % 1726217406467llu;
-    }
-    static size_t mod2174897647073(size_t hash) {
-        return hash % 2174897647073llu;
-    }
-    static size_t mod2740199326961(size_t hash) {
-        return hash % 2740199326961llu;
-    }
-    static size_t mod3452434812973(size_t hash) {
-        return hash % 3452434812973llu;
-    }
-    static size_t mod4349795294267(size_t hash) {
-        return hash % 4349795294267llu;
-    }
-    static size_t mod5480398654009(size_t hash) {
-        return hash % 5480398654009llu;
-    }
-    static size_t mod6904869625999(size_t hash) {
-        return hash % 6904869625999llu;
-    }
-    static size_t mod8699590588571(size_t hash) {
-        return hash % 8699590588571llu;
-    }
-    static size_t mod10960797308051(size_t hash) {
-        return hash % 10960797308051llu;
-    }
-    static size_t mod13809739252051(size_t hash) {
-        return hash % 13809739252051llu;
-    }
-    static size_t mod17399181177241(size_t hash) {
-        return hash % 17399181177241llu;
-    }
-    static size_t mod21921594616111(size_t hash) {
-        return hash % 21921594616111llu;
-    }
-    static size_t mod27619478504183(size_t hash) {
-        return hash % 27619478504183llu;
-    }
-    static size_t mod34798362354533(size_t hash) {
-        return hash % 34798362354533llu;
-    }
-    static size_t mod43843189232363(size_t hash) {
-        return hash % 43843189232363llu;
-    }
-    static size_t mod55238957008387(size_t hash) {
-        return hash % 55238957008387llu;
-    }
-    static size_t mod69596724709081(size_t hash) {
-        return hash % 69596724709081llu;
-    }
-    static size_t mod87686378464759(size_t hash) {
-        return hash % 87686378464759llu;
-    }
-    static size_t mod110477914016779(size_t hash) {
-        return hash % 110477914016779llu;
-    }
-    static size_t mod139193449418173(size_t hash) {
-        return hash % 139193449418173llu;
-    }
-    static size_t mod175372756929481(size_t hash) {
-        return hash % 175372756929481llu;
-    }
-    static size_t mod220955828033581(size_t hash) {
-        return hash % 220955828033581llu;
-    }
-    static size_t mod278386898836457(size_t hash) {
-        return hash % 278386898836457llu;
-    }
-    static size_t mod350745513859007(size_t hash) {
-        return hash % 350745513859007llu;
-    }
-    static size_t mod441911656067171(size_t hash) {
-        return hash % 441911656067171llu;
-    }
-    static size_t mod556773797672909(size_t hash) {
-        return hash % 556773797672909llu;
-    }
-    static size_t mod701491027718027(size_t hash) {
-        return hash % 701491027718027llu;
-    }
-    static size_t mod883823312134381(size_t hash) {
-        return hash % 883823312134381llu;
-    }
-    static size_t mod1113547595345903(size_t hash) {
-        return hash % 1113547595345903llu;
-    }
-    static size_t mod1402982055436147(size_t hash) {
-        return hash % 1402982055436147llu;
-    }
-    static size_t mod1767646624268779(size_t hash) {
-        return hash % 1767646624268779llu;
-    }
-    static size_t mod2227095190691797(size_t hash) {
-        return hash % 2227095190691797llu;
-    }
-    static size_t mod2805964110872297(size_t hash) {
-        return hash % 2805964110872297llu;
-    }
-    static size_t mod3535293248537579(size_t hash) {
-        return hash % 3535293248537579llu;
-    }
-    static size_t mod4454190381383713(size_t hash) {
-        return hash % 4454190381383713llu;
-    }
-    static size_t mod5611928221744609(size_t hash) {
-        return hash % 5611928221744609llu;
-    }
-    static size_t mod7070586497075177(size_t hash) {
-        return hash % 7070586497075177llu;
-    }
-    static size_t mod8908380762767489(size_t hash) {
-        return hash % 8908380762767489llu;
-    }
-    static size_t mod11223856443489329(size_t hash) {
-        return hash % 11223856443489329llu;
-    }
-    static size_t mod14141172994150357(size_t hash) {
-        return hash % 14141172994150357llu;
-    }
-    static size_t mod17816761525534927(size_t hash) {
-        return hash % 17816761525534927llu;
-    }
-    static size_t mod22447712886978529(size_t hash) {
-        return hash % 22447712886978529llu;
-    }
-    static size_t mod28282345988300791(size_t hash) {
-        return hash % 28282345988300791llu;
-    }
-    static size_t mod35633523051069991(size_t hash) {
-        return hash % 35633523051069991llu;
-    }
-    static size_t mod44895425773957261(size_t hash) {
-        return hash % 44895425773957261llu;
-    }
-    static size_t mod56564691976601587(size_t hash) {
-        return hash % 56564691976601587llu;
-    }
-    static size_t mod71267046102139967(size_t hash) {
-        return hash % 71267046102139967llu;
-    }
-    static size_t mod89790851547914507(size_t hash) {
-        return hash % 89790851547914507llu;
-    }
-    static size_t mod113129383953203213(size_t hash) {
-        return hash % 113129383953203213llu;
-    }
-    static size_t mod142534092204280003(size_t hash) {
-        return hash % 142534092204280003llu;
-    }
-    static size_t mod179581703095829107(size_t hash) {
-        return hash % 179581703095829107llu;
-    }
-    static size_t mod226258767906406483(size_t hash) {
-        return hash % 226258767906406483llu;
-    }
-    static size_t mod285068184408560057(size_t hash) {
-        return hash % 285068184408560057llu;
-    }
-    static size_t mod359163406191658253(size_t hash) {
-        return hash % 359163406191658253llu;
-    }
-    static size_t mod452517535812813007(size_t hash) {
-        return hash % 452517535812813007llu;
-    }
-    static size_t mod570136368817120201(size_t hash) {
-        return hash % 570136368817120201llu;
-    }
-    static size_t mod718326812383316683(size_t hash) {
-        return hash % 718326812383316683llu;
-    }
-    static size_t mod905035071625626043(size_t hash) {
-        return hash % 905035071625626043llu;
-    }
-    static size_t mod1140272737634240411(size_t hash) {
-        return hash % 1140272737634240411llu;
-    }
-    static size_t mod1436653624766633509(size_t hash) {
-        return hash % 1436653624766633509llu;
-    }
-    static size_t mod1810070143251252131(size_t hash) {
-        return hash % 1810070143251252131llu;
-    }
-    static size_t mod2280545475268481167(size_t hash) {
-        return hash % 2280545475268481167llu;
-    }
-    static size_t mod2873307249533267101(size_t hash) {
-        return hash % 2873307249533267101llu;
-    }
-    static size_t mod3620140286502504283(size_t hash) {
-        return hash % 3620140286502504283llu;
-    }
-    static size_t mod4561090950536962147(size_t hash) {
-        return hash % 4561090950536962147llu;
-    }
-    static size_t mod5746614499066534157(size_t hash) {
-        return hash % 5746614499066534157llu;
-    }
-    static size_t mod7240280573005008577(size_t hash) {
-        return hash % 7240280573005008577llu;
-    }
-    static size_t mod9122181901073924329(size_t hash) {
-        return hash % 9122181901073924329llu;
-    }
-    static size_t mod11493228998133068689(size_t hash) {
-        return hash % 11493228998133068689llu;
-    }
-    static size_t mod14480561146010017169(size_t hash) {
-        return hash % 14480561146010017169llu;
-    }
-    static size_t mod18446744073709551557(size_t hash) {
-        return hash % 18446744073709551557llu;
-    }
+    static size_t mod0(size_t) { return 0llu; }
+    static size_t mod2(size_t hash) { return hash % 2llu; }
+    static size_t mod3(size_t hash) { return hash % 3llu; }
+    static size_t mod5(size_t hash) { return hash % 5llu; }
+    static size_t mod7(size_t hash) { return hash % 7llu; }
+    static size_t mod11(size_t hash) { return hash % 11llu; }
+    static size_t mod13(size_t hash) { return hash % 13llu; }
+    static size_t mod17(size_t hash) { return hash % 17llu; }
+    static size_t mod23(size_t hash) { return hash % 23llu; }
+    static size_t mod29(size_t hash) { return hash % 29llu; }
+    static size_t mod37(size_t hash) { return hash % 37llu; }
+    static size_t mod47(size_t hash) { return hash % 47llu; }
+    static size_t mod59(size_t hash) { return hash % 59llu; }
+    static size_t mod73(size_t hash) { return hash % 73llu; }
+    static size_t mod97(size_t hash) { return hash % 97llu; }
+    static size_t mod127(size_t hash) { return hash % 127llu; }
+    static size_t mod151(size_t hash) { return hash % 151llu; }
+    static size_t mod197(size_t hash) { return hash % 197llu; }
+    static size_t mod251(size_t hash) { return hash % 251llu; }
+    static size_t mod313(size_t hash) { return hash % 313llu; }
+    static size_t mod397(size_t hash) { return hash % 397llu; }
+    static size_t mod499(size_t hash) { return hash % 499llu; }
+    static size_t mod631(size_t hash) { return hash % 631llu; }
+    static size_t mod797(size_t hash) { return hash % 797llu; }
+    static size_t mod1009(size_t hash) { return hash % 1009llu; }
+    static size_t mod1259(size_t hash) { return hash % 1259llu; }
+    static size_t mod1597(size_t hash) { return hash % 1597llu; }
+    static size_t mod2011(size_t hash) { return hash % 2011llu; }
+    static size_t mod2539(size_t hash) { return hash % 2539llu; }
+    static size_t mod3203(size_t hash) { return hash % 3203llu; }
+    static size_t mod4027(size_t hash) { return hash % 4027llu; }
+    static size_t mod5087(size_t hash) { return hash % 5087llu; }
+    static size_t mod6421(size_t hash) { return hash % 6421llu; }
+    static size_t mod8089(size_t hash) { return hash % 8089llu; }
+    static size_t mod10193(size_t hash) { return hash % 10193llu; }
+    static size_t mod12853(size_t hash) { return hash % 12853llu; }
+    static size_t mod16193(size_t hash) { return hash % 16193llu; }
+    static size_t mod20399(size_t hash) { return hash % 20399llu; }
+    static size_t mod25717(size_t hash) { return hash % 25717llu; }
+    static size_t mod32401(size_t hash) { return hash % 32401llu; }
+    static size_t mod40823(size_t hash) { return hash % 40823llu; }
+    static size_t mod51437(size_t hash) { return hash % 51437llu; }
+    static size_t mod64811(size_t hash) { return hash % 64811llu; }
+    static size_t mod81649(size_t hash) { return hash % 81649llu; }
+    static size_t mod102877(size_t hash) { return hash % 102877llu; }
+    static size_t mod129607(size_t hash) { return hash % 129607llu; }
+    static size_t mod163307(size_t hash) { return hash % 163307llu; }
+    static size_t mod205759(size_t hash) { return hash % 205759llu; }
+    static size_t mod259229(size_t hash) { return hash % 259229llu; }
+    static size_t mod326617(size_t hash) { return hash % 326617llu; }
+    static size_t mod411527(size_t hash) { return hash % 411527llu; }
+    static size_t mod518509(size_t hash) { return hash % 518509llu; }
+    static size_t mod653267(size_t hash) { return hash % 653267llu; }
+    static size_t mod823117(size_t hash) { return hash % 823117llu; }
+    static size_t mod1037059(size_t hash) { return hash % 1037059llu; }
+    static size_t mod1306601(size_t hash) { return hash % 1306601llu; }
+    static size_t mod1646237(size_t hash) { return hash % 1646237llu; }
+    static size_t mod2074129(size_t hash) { return hash % 2074129llu; }
+    static size_t mod2613229(size_t hash) { return hash % 2613229llu; }
+    static size_t mod3292489(size_t hash) { return hash % 3292489llu; }
+    static size_t mod4148279(size_t hash) { return hash % 4148279llu; }
+    static size_t mod5226491(size_t hash) { return hash % 5226491llu; }
+    static size_t mod6584983(size_t hash) { return hash % 6584983llu; }
+    static size_t mod8296553(size_t hash) { return hash % 8296553llu; }
+    static size_t mod10453007(size_t hash) { return hash % 10453007llu; }
+    static size_t mod13169977(size_t hash) { return hash % 13169977llu; }
+    static size_t mod16593127(size_t hash) { return hash % 16593127llu; }
+    static size_t mod20906033(size_t hash) { return hash % 20906033llu; }
+    static size_t mod26339969(size_t hash) { return hash % 26339969llu; }
+    static size_t mod33186281(size_t hash) { return hash % 33186281llu; }
+    static size_t mod41812097(size_t hash) { return hash % 41812097llu; }
+    static size_t mod52679969(size_t hash) { return hash % 52679969llu; }
+    static size_t mod66372617(size_t hash) { return hash % 66372617llu; }
+    static size_t mod83624237(size_t hash) { return hash % 83624237llu; }
+    static size_t mod105359939(size_t hash) { return hash % 105359939llu; }
+    static size_t mod132745199(size_t hash) { return hash % 132745199llu; }
+    static size_t mod167248483(size_t hash) { return hash % 167248483llu; }
+    static size_t mod210719881(size_t hash) { return hash % 210719881llu; }
+    static size_t mod265490441(size_t hash) { return hash % 265490441llu; }
+    static size_t mod334496971(size_t hash) { return hash % 334496971llu; }
+    static size_t mod421439783(size_t hash) { return hash % 421439783llu; }
+    static size_t mod530980861(size_t hash) { return hash % 530980861llu; }
+    static size_t mod668993977(size_t hash) { return hash % 668993977llu; }
+    static size_t mod842879579(size_t hash) { return hash % 842879579llu; }
+    static size_t mod1061961721(size_t hash) { return hash % 1061961721llu; }
+    static size_t mod1337987929(size_t hash) { return hash % 1337987929llu; }
+    static size_t mod1685759167(size_t hash) { return hash % 1685759167llu; }
+    static size_t mod2123923447(size_t hash) { return hash % 2123923447llu; }
+    static size_t mod2675975881(size_t hash) { return hash % 2675975881llu; }
+    static size_t mod3371518343(size_t hash) { return hash % 3371518343llu; }
+    static size_t mod4247846927(size_t hash) { return hash % 4247846927llu; }
+    static size_t mod5351951779(size_t hash) { return hash % 5351951779llu; }
+    static size_t mod6743036717(size_t hash) { return hash % 6743036717llu; }
+    static size_t mod8495693897(size_t hash) { return hash % 8495693897llu; }
+    static size_t mod10703903591(size_t hash) { return hash % 10703903591llu; }
+    static size_t mod13486073473(size_t hash) { return hash % 13486073473llu; }
+    static size_t mod16991387857(size_t hash) { return hash % 16991387857llu; }
+    static size_t mod21407807219(size_t hash) { return hash % 21407807219llu; }
+    static size_t mod26972146961(size_t hash) { return hash % 26972146961llu; }
+    static size_t mod33982775741(size_t hash) { return hash % 33982775741llu; }
+    static size_t mod42815614441(size_t hash) { return hash % 42815614441llu; }
+    static size_t mod53944293929(size_t hash) { return hash % 53944293929llu; }
+    static size_t mod67965551447(size_t hash) { return hash % 67965551447llu; }
+    static size_t mod85631228929(size_t hash) { return hash % 85631228929llu; }
+    static size_t mod107888587883(size_t hash) { return hash % 107888587883llu; }
+    static size_t mod135931102921(size_t hash) { return hash % 135931102921llu; }
+    static size_t mod171262457903(size_t hash) { return hash % 171262457903llu; }
+    static size_t mod215777175787(size_t hash) { return hash % 215777175787llu; }
+    static size_t mod271862205833(size_t hash) { return hash % 271862205833llu; }
+    static size_t mod342524915839(size_t hash) { return hash % 342524915839llu; }
+    static size_t mod431554351609(size_t hash) { return hash % 431554351609llu; }
+    static size_t mod543724411781(size_t hash) { return hash % 543724411781llu; }
+    static size_t mod685049831731(size_t hash) { return hash % 685049831731llu; }
+    static size_t mod863108703229(size_t hash) { return hash % 863108703229llu; }
+    static size_t mod1087448823553(size_t hash) { return hash % 1087448823553llu; }
+    static size_t mod1370099663459(size_t hash) { return hash % 1370099663459llu; }
+    static size_t mod1726217406467(size_t hash) { return hash % 1726217406467llu; }
+    static size_t mod2174897647073(size_t hash) { return hash % 2174897647073llu; }
+    static size_t mod2740199326961(size_t hash) { return hash % 2740199326961llu; }
+    static size_t mod3452434812973(size_t hash) { return hash % 3452434812973llu; }
+    static size_t mod4349795294267(size_t hash) { return hash % 4349795294267llu; }
+    static size_t mod5480398654009(size_t hash) { return hash % 5480398654009llu; }
+    static size_t mod6904869625999(size_t hash) { return hash % 6904869625999llu; }
+    static size_t mod8699590588571(size_t hash) { return hash % 8699590588571llu; }
+    static size_t mod10960797308051(size_t hash) { return hash % 10960797308051llu; }
+    static size_t mod13809739252051(size_t hash) { return hash % 13809739252051llu; }
+    static size_t mod17399181177241(size_t hash) { return hash % 17399181177241llu; }
+    static size_t mod21921594616111(size_t hash) { return hash % 21921594616111llu; }
+    static size_t mod27619478504183(size_t hash) { return hash % 27619478504183llu; }
+    static size_t mod34798362354533(size_t hash) { return hash % 34798362354533llu; }
+    static size_t mod43843189232363(size_t hash) { return hash % 43843189232363llu; }
+    static size_t mod55238957008387(size_t hash) { return hash % 55238957008387llu; }
+    static size_t mod69596724709081(size_t hash) { return hash % 69596724709081llu; }
+    static size_t mod87686378464759(size_t hash) { return hash % 87686378464759llu; }
+    static size_t mod110477914016779(size_t hash) { return hash % 110477914016779llu; }
+    static size_t mod139193449418173(size_t hash) { return hash % 139193449418173llu; }
+    static size_t mod175372756929481(size_t hash) { return hash % 175372756929481llu; }
+    static size_t mod220955828033581(size_t hash) { return hash % 220955828033581llu; }
+    static size_t mod278386898836457(size_t hash) { return hash % 278386898836457llu; }
+    static size_t mod350745513859007(size_t hash) { return hash % 350745513859007llu; }
+    static size_t mod441911656067171(size_t hash) { return hash % 441911656067171llu; }
+    static size_t mod556773797672909(size_t hash) { return hash % 556773797672909llu; }
+    static size_t mod701491027718027(size_t hash) { return hash % 701491027718027llu; }
+    static size_t mod883823312134381(size_t hash) { return hash % 883823312134381llu; }
+    static size_t mod1113547595345903(size_t hash) { return hash % 1113547595345903llu; }
+    static size_t mod1402982055436147(size_t hash) { return hash % 1402982055436147llu; }
+    static size_t mod1767646624268779(size_t hash) { return hash % 1767646624268779llu; }
+    static size_t mod2227095190691797(size_t hash) { return hash % 2227095190691797llu; }
+    static size_t mod2805964110872297(size_t hash) { return hash % 2805964110872297llu; }
+    static size_t mod3535293248537579(size_t hash) { return hash % 3535293248537579llu; }
+    static size_t mod4454190381383713(size_t hash) { return hash % 4454190381383713llu; }
+    static size_t mod5611928221744609(size_t hash) { return hash % 5611928221744609llu; }
+    static size_t mod7070586497075177(size_t hash) { return hash % 7070586497075177llu; }
+    static size_t mod8908380762767489(size_t hash) { return hash % 8908380762767489llu; }
+    static size_t mod11223856443489329(size_t hash) { return hash % 11223856443489329llu; }
+    static size_t mod14141172994150357(size_t hash) { return hash % 14141172994150357llu; }
+    static size_t mod17816761525534927(size_t hash) { return hash % 17816761525534927llu; }
+    static size_t mod22447712886978529(size_t hash) { return hash % 22447712886978529llu; }
+    static size_t mod28282345988300791(size_t hash) { return hash % 28282345988300791llu; }
+    static size_t mod35633523051069991(size_t hash) { return hash % 35633523051069991llu; }
+    static size_t mod44895425773957261(size_t hash) { return hash % 44895425773957261llu; }
+    static size_t mod56564691976601587(size_t hash) { return hash % 56564691976601587llu; }
+    static size_t mod71267046102139967(size_t hash) { return hash % 71267046102139967llu; }
+    static size_t mod89790851547914507(size_t hash) { return hash % 89790851547914507llu; }
+    static size_t mod113129383953203213(size_t hash) { return hash % 113129383953203213llu; }
+    static size_t mod142534092204280003(size_t hash) { return hash % 142534092204280003llu; }
+    static size_t mod179581703095829107(size_t hash) { return hash % 179581703095829107llu; }
+    static size_t mod226258767906406483(size_t hash) { return hash % 226258767906406483llu; }
+    static size_t mod285068184408560057(size_t hash) { return hash % 285068184408560057llu; }
+    static size_t mod359163406191658253(size_t hash) { return hash % 359163406191658253llu; }
+    static size_t mod452517535812813007(size_t hash) { return hash % 452517535812813007llu; }
+    static size_t mod570136368817120201(size_t hash) { return hash % 570136368817120201llu; }
+    static size_t mod718326812383316683(size_t hash) { return hash % 718326812383316683llu; }
+    static size_t mod905035071625626043(size_t hash) { return hash % 905035071625626043llu; }
+    static size_t mod1140272737634240411(size_t hash) { return hash % 1140272737634240411llu; }
+    static size_t mod1436653624766633509(size_t hash) { return hash % 1436653624766633509llu; }
+    static size_t mod1810070143251252131(size_t hash) { return hash % 1810070143251252131llu; }
+    static size_t mod2280545475268481167(size_t hash) { return hash % 2280545475268481167llu; }
+    static size_t mod2873307249533267101(size_t hash) { return hash % 2873307249533267101llu; }
+    static size_t mod3620140286502504283(size_t hash) { return hash % 3620140286502504283llu; }
+    static size_t mod4561090950536962147(size_t hash) { return hash % 4561090950536962147llu; }
+    static size_t mod5746614499066534157(size_t hash) { return hash % 5746614499066534157llu; }
+    static size_t mod7240280573005008577(size_t hash) { return hash % 7240280573005008577llu; }
+    static size_t mod9122181901073924329(size_t hash) { return hash % 9122181901073924329llu; }
+    static size_t mod11493228998133068689(size_t hash) { return hash % 11493228998133068689llu; }
+    static size_t mod14480561146010017169(size_t hash) { return hash % 14480561146010017169llu; }
+    static size_t mod18446744073709551557(size_t hash) { return hash % 18446744073709551557llu; }
 
     using mod_function = size_t (*)(size_t);
 
@@ -1728,16 +1262,10 @@ struct prime_number_hash_policy {
         size = *found;
         return mod_functions[1 + found - prime_list];
     }
-    void commit(mod_function new_mod_function) {
-        current_mod_function = new_mod_function;
-    }
-    void reset() {
-        current_mod_function = &mod0;
-    }
+    void commit(mod_function new_mod_function) { current_mod_function = new_mod_function; }
+    void reset() { current_mod_function = &mod0; }
 
-    size_t index_for_hash(size_t hash, size_t /*num_slots_minus_one*/) const {
-        return current_mod_function(hash);
-    }
+    size_t index_for_hash(size_t hash, size_t /*num_slots_minus_one*/) const { return current_mod_function(hash); }
     size_t keep_in_range(size_t index, size_t num_slots_minus_one) const {
         return index > num_slots_minus_one ? current_mod_function(index) : index;
     }
@@ -1747,9 +1275,7 @@ private:
 };
 
 struct power_of_two_hash_policy {
-    size_t index_for_hash(size_t hash, size_t num_slots_minus_one) const {
-        return hash & num_slots_minus_one;
-    }
+    size_t index_for_hash(size_t hash, size_t num_slots_minus_one) const { return hash & num_slots_minus_one; }
     size_t keep_in_range(size_t index, size_t num_slots_minus_one) const {
         return index_for_hash(index, num_slots_minus_one);
     }
@@ -1765,20 +1291,14 @@ struct fibonacci_hash_policy {
     size_t index_for_hash(size_t hash, size_t /*num_slots_minus_one*/) const {
         return (11400714819323198485ull * hash) >> shift;
     }
-    size_t keep_in_range(size_t index, size_t num_slots_minus_one) const {
-        return index & num_slots_minus_one;
-    }
+    size_t keep_in_range(size_t index, size_t num_slots_minus_one) const { return index & num_slots_minus_one; }
 
     int8_t next_size_over(size_t &size) const {
         size = std::max(size_t(2), detailv3::next_power_of_two(size));
         return 64 - detailv3::log2(size);
     }
-    void commit(int8_t shift) {
-        this->shift = shift;
-    }
-    void reset() {
-        shift = 63;
-    }
+    void commit(int8_t shift) { this->shift = shift; }
+    void reset() { shift = 63; }
 
 private:
     int8_t shift = 63;
@@ -1816,12 +1336,8 @@ public:
     using Table::Table;
     flat_hash_map() {}
 
-    inline V &operator[](const K &key) {
-        return emplace(key, convertible_to_value()).first->second;
-    }
-    inline V &operator[](K &&key) {
-        return emplace(std::move(key), convertible_to_value()).first->second;
-    }
+    inline V &operator[](const K &key) { return emplace(key, convertible_to_value()).first->second; }
+    inline V &operator[](K &&key) { return emplace(std::move(key), convertible_to_value()).first->second; }
     V &at(const K &key) {
         auto found = this->find(key);
         if (found == this->end())
@@ -1836,9 +1352,7 @@ public:
     }
 
     using Table::emplace;
-    std::pair<typename Table::iterator, bool> emplace() {
-        return emplace(key_type(), convertible_to_value());
-    }
+    std::pair<typename Table::iterator, bool> emplace() { return emplace(key_type(), convertible_to_value()); }
     template <typename M>
     std::pair<typename Table::iterator, bool> insert_or_assign(const key_type &key, M &&m) {
         auto emplace_result = emplace(key, std::forward<M>(m));
@@ -1874,15 +1388,11 @@ public:
         }
         return true;
     }
-    friend bool operator!=(const flat_hash_map &lhs, const flat_hash_map &rhs) {
-        return !(lhs == rhs);
-    }
+    friend bool operator!=(const flat_hash_map &lhs, const flat_hash_map &rhs) { return !(lhs == rhs); }
 
 private:
     struct convertible_to_value {
-        operator V() const {
-            return V();
-        }
+        operator V() const { return V(); }
     };
 };
 
@@ -1916,18 +1426,10 @@ public:
     std::pair<typename Table::iterator, bool> emplace(Args &&...args) {
         return Table::emplace(T(std::forward<Args>(args)...));
     }
-    std::pair<typename Table::iterator, bool> emplace(const key_type &arg) {
-        return Table::emplace(arg);
-    }
-    std::pair<typename Table::iterator, bool> emplace(key_type &arg) {
-        return Table::emplace(arg);
-    }
-    std::pair<typename Table::iterator, bool> emplace(const key_type &&arg) {
-        return Table::emplace(std::move(arg));
-    }
-    std::pair<typename Table::iterator, bool> emplace(key_type &&arg) {
-        return Table::emplace(std::move(arg));
-    }
+    std::pair<typename Table::iterator, bool> emplace(const key_type &arg) { return Table::emplace(arg); }
+    std::pair<typename Table::iterator, bool> emplace(key_type &arg) { return Table::emplace(arg); }
+    std::pair<typename Table::iterator, bool> emplace(const key_type &&arg) { return Table::emplace(std::move(arg)); }
+    std::pair<typename Table::iterator, bool> emplace(key_type &&arg) { return Table::emplace(std::move(arg)); }
 
     friend bool operator==(const flat_hash_set &lhs, const flat_hash_set &rhs) {
         if (lhs.size() != rhs.size())
@@ -1938,9 +1440,7 @@ public:
         }
         return true;
     }
-    friend bool operator!=(const flat_hash_set &lhs, const flat_hash_set &rhs) {
-        return !(lhs == rhs);
-    }
+    friend bool operator!=(const flat_hash_set &lhs, const flat_hash_set &rhs) { return !(lhs == rhs); }
 };
 
 template <typename T>

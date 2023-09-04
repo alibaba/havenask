@@ -18,6 +18,7 @@
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "indexlib/base/Types.h"
+#include "indexlib/file_system/LifecycleConfig.h"
 
 namespace indexlibv2::framework {
 class SegmentDescriptions;
@@ -34,6 +35,9 @@ public:
     virtual std::vector<std::pair<segmentid_t, std::string>>
     GetSegmentLifecycles(const std::shared_ptr<indexlibv2::framework::SegmentDescriptions>& segDescriptions) = 0;
     virtual std::string CalculateLifecycle(const indexlibv2::framework::SegmentStatistics& segmentStatistic) const = 0;
+
+    static std::string CalculateLifecycle(const indexlibv2::framework::SegmentStatistics& segmentStatistic,
+                                          const indexlib::file_system::LifecycleConfig& lifecycleConfig);
 };
 
 } // namespace indexlib::framework

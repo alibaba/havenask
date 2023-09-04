@@ -18,12 +18,13 @@
  * Author: lizhang
  * Create time: 2010-11-07 09:25:26
  * $Id$
- * 
+ *
  * Description: ***add description here***
- * 
+ *
  */
 
 #include "aios/network/anet/delaydecodepacket.h"
+
 #include <assert.h>
 #include <stddef.h>
 
@@ -32,29 +33,24 @@
 #include "aios/network/anet/packet.h"
 
 namespace anet {
-DelayDecodePacket::DelayDecodePacket() 
-    : _ownContent(false), _content(NULL),
-      _needDrainDataFlag(false), _inputDataBuffer(NULL) {}
+DelayDecodePacket::DelayDecodePacket()
+    : _ownContent(false), _content(NULL), _needDrainDataFlag(false), _inputDataBuffer(NULL) {}
 
 DelayDecodePacket::~DelayDecodePacket() {
     clearContent();
     clearInputDataBuffer();
 }
 
-void DelayDecodePacket::setContent(DataBufferSerializable *content, 
-                                   bool ownContent)
-{
+void DelayDecodePacket::setContent(DataBufferSerializable *content, bool ownContent) {
     assert(content);
     clearContent();
     _content = content;
     setContentOwnership(ownContent);
 }
 
-DataBufferSerializable* DelayDecodePacket::getContent() {
-    return _content;
-}
+DataBufferSerializable *DelayDecodePacket::getContent() { return _content; }
 
-DataBufferSerializable* DelayDecodePacket::stealContent() {
+DataBufferSerializable *DelayDecodePacket::stealContent() {
     DataBufferSerializable *ret = NULL;
     if (ownContent()) {
         ret = _content;
@@ -90,7 +86,7 @@ bool DelayDecodePacket::decodeToContent() {
     return ret;
 }
 
-char* DelayDecodePacket::getData() {
+char *DelayDecodePacket::getData() {
     if (_inputDataBuffer) {
         return _inputDataBuffer->getData();
     } else {
@@ -98,20 +94,16 @@ char* DelayDecodePacket::getData() {
     }
 }
 
-int DelayDecodePacket::getEffecitveDataLength() {
-    return _packetHeader._dataLen;
-}
+int DelayDecodePacket::getEffecitveDataLength() { return _packetHeader._dataLen; }
 
-void DelayDecodePacket::drainData() {
-    drainData(getEffecitveDataLength());
-}
+void DelayDecodePacket::drainData() { drainData(getEffecitveDataLength()); }
 
 void DelayDecodePacket::drainData(int len) {
     assert(_inputDataBuffer);
     _inputDataBuffer->drainData(len);
-    
+
     // no matter how much data drained, clear _needDrainDataFlag
-    setNeedDrainDataFlag(false); 
+    setNeedDrainDataFlag(false);
 }
 
 void DelayDecodePacket::setInputDataBuffer(DataBuffer *inputDataBuffer) {
@@ -119,9 +111,7 @@ void DelayDecodePacket::setInputDataBuffer(DataBuffer *inputDataBuffer) {
     _inputDataBuffer = inputDataBuffer;
 }
 
-DataBuffer* DelayDecodePacket::getInputDataBuffer() {
-    return _inputDataBuffer;
-}
+DataBuffer *DelayDecodePacket::getInputDataBuffer() { return _inputDataBuffer; }
 
 void DelayDecodePacket::clearContent() {
     if (ownContent() && _content) {
@@ -148,4 +138,4 @@ int64_t DelayDecodePacket::getSpaceUsed() {
     return spaceUsed;
 }
 
-}/*end namespace anet*/
+} /*end namespace anet*/

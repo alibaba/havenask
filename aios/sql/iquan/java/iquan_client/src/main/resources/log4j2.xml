@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration name="Iquan" status="WARN">
+    <Properties>
+        <Property name="LOG_ROOT">./logs</Property>
+        <Property name="LOG_PATTERN">[%d{yyyy-MM-dd HH:mm:ss}] [%p] [%c{3.}:%L] [%t] - %msg%n</Property>
+        <Property name="ACCESS_LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss} - %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+        <RollingRandomAccessFile name="DefaultLogFile"
+                                 fileName="${LOG_ROOT}/default.log"
+                                 filePattern="${LOG_ROOT}/default.log.%d{MM-dd-yyyy}-%i"
+                                 bufferSize="2097152"
+                                 immediateFlush="false">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+                <TimeBasedTriggeringPolicy interval="26" modulate="true"/>
+            </Policies>
+            <DefaultRolloverStrategy max="5"/>
+        </RollingRandomAccessFile>
+
+        <RollingRandomAccessFile name="IquanNormalLogFile"
+                                 fileName="${LOG_ROOT}/iquan.normal.log"
+                                 filePattern="${LOG_ROOT}/iquan.normal.log.%d{MM-dd-yyyy}-%i"
+                                 bufferSize="2097152"
+                                 immediateFlush="false">
+            <Filters>
+                <ThresholdFilter level="info"/>
+                <ThresholdFilter level="error" onMatch="DENY" onMismatch="NEUTRAL"/>
+            </Filters>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+                <TimeBasedTriggeringPolicy interval="26" modulate="true"/>
+            </Policies>
+            <DefaultRolloverStrategy max="5"/>
+        </RollingRandomAccessFile>
+
+        <RollingRandomAccessFile name="IquanErrorLogFile"
+                                 fileName="${LOG_ROOT}/iquan.error.log"
+                                 filePattern="${LOG_ROOT}/iquan.error.log.%d{MM-dd-yyyy}-%i"
+                                 bufferSize="2097152"
+                                 immediateFlush="false">
+            <Filters>
+                <ThresholdFilter level="error"/>
+            </Filters>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+                <TimeBasedTriggeringPolicy interval="26" modulate="true"/>
+            </Policies>
+            <DefaultRolloverStrategy max="5"/>
+        </RollingRandomAccessFile>
+
+        <RollingRandomAccessFile name="IquanAccessLogFile"
+                                 fileName="${LOG_ROOT}/iquan.access.log"
+                                 filePattern="${LOG_ROOT}/iquan.access.log.%d{MM-dd-yyyy}-%i"
+                                 bufferSize="4194304"
+                                 immediateFlush="false">
+            <PatternLayout pattern="${ACCESS_LOG_PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="200MB"/>
+                <TimeBasedTriggeringPolicy interval="26" modulate="true"/>
+            </Policies>
+            <DefaultRolloverStrategy max="5"/>
+        </RollingRandomAccessFile>
+
+        <Async name="AsyncIquanAccessLogFile" bufferSize="4194304" includeLocation="false">
+            <AppenderRef ref="IquanAccessLogFile"/>
+        </Async>
+    </Appenders>
+
+    <Loggers>
+        <AsyncLogger name="com.taobao.search.iquan" level="info" includeLocation="true" additivity="false">
+            <AppenderRef ref="IquanNormalLogFile"/>
+            <AppenderRef ref="IquanErrorLogFile"/>
+        </AsyncLogger>
+
+        <AsyncLogger name="IquanAccessLog" level="info" includeLocation="false" additivity="false">
+            <AppenderRef ref="AsyncIquanAccessLogFile"/>
+        </AsyncLogger>
+
+        <AsyncLogger name="org.springframework" level="warn"/>
+        <AsyncLogger name="org.mybatis" level="warn"/>
+        <AsyncLogger name="org.apache" level="error"/>
+
+        <Root level="warn" includeLocation="true">
+            <AppenderRef ref="DefaultLogFile"/>
+        </Root>
+    </Loggers>
+</Configuration>

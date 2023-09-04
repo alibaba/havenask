@@ -16,18 +16,22 @@
 #pragma once
 #include <string>
 
+#include "indexlib/framework/index_task/Constant.h"
+
 namespace indexlibv2::table {
 
 static constexpr const char* MERGE_INDEX_TYPE = "merge_index_type";
 static constexpr const char* MERGE_INDEX_NAME = "merge_index_name";
 static constexpr const char* MERGE_PLAN_INDEX = "merge_plan_index";
 static constexpr const char* MERGE_PLAN = "merge_plan";
+static constexpr const char* SST_TO_SEGMENT_PLAN = "sst_to_segment_plan";
+static constexpr const char* VERSION_RESOURCE = "version_resource";
 static constexpr const char* IS_OPTIMIZE_MERGE = "is_optimize_merge";
-static constexpr const char* IS_DESIGNATE_TASK = "is_designate_task";
 static constexpr const char* NEED_CLEAN_OLD_VERSIONS = "need_clean_old_versions";
 static constexpr const char* RESERVED_VERSION_SET = "reserved_version_set";
 static constexpr const char* RESERVED_VERSION_COORD_SET = "reserved_version_coord_set";
 static constexpr const char* PARAM_TARGET_VERSION = "target_version";
+static constexpr const char* PARAM_TARGET_VERSION_ID = "target_version_id";
 static constexpr const char* SEGMENT_METRICS_TMP_PATH = "segment_metrics_tmp_path";
 static constexpr const char* DEPENDENT_OPERATION_ID = "dependent_operation_id";
 static constexpr const char* SHARD_INDEX_NAME = "multi_shard_inverted_index";
@@ -37,7 +41,6 @@ static constexpr const char* DESIGNATE_BATCH_MODE_MERGE_TASK_NAME = "bs_batch_mo
 static constexpr const char* BRANCH_ID = "_branch_id_";
 
 static constexpr const char* MERGE_TASK_TYPE = "merge";
-static constexpr const char* ALTER_TABLE_TASK_TYPE = "alter_table";
 static constexpr const char* RECLAIM_TASK_TYPE = "reclaim";
 
 } // namespace indexlibv2::table

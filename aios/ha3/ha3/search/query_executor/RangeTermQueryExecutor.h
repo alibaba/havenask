@@ -19,58 +19,62 @@
 #include <stdint.h>
 #include <string>
 
+#include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/search/TermQueryExecutor.h"
 #include "indexlib/index/common/ErrorCode.h"
 #include "indexlib/index/inverted_index/DocValueFilter.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/misc/common.h"
 
-#include "ha3/search/TermQueryExecutor.h"
-#include "autil/Log.h" // IWYU pragma: keep
-
 namespace indexlib {
 namespace index {
 class PostingIterator;
 class RangePostingIterator;
-}  // namespace index
-}  // namespace indexlib
+} // namespace index
+} // namespace indexlib
 namespace isearch {
 namespace common {
 class Term;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace search {
 
-class RangeTermQueryExecutor : public TermQueryExecutor
-{
+class RangeTermQueryExecutor : public TermQueryExecutor {
 public:
-    RangeTermQueryExecutor(indexlib::index::PostingIterator *iter, 
-                          const common::Term &term);
+    RangeTermQueryExecutor(indexlib::index::PostingIterator *iter, const common::Term &term);
     ~RangeTermQueryExecutor();
+
 private:
     RangeTermQueryExecutor(const RangeTermQueryExecutor &);
-    RangeTermQueryExecutor& operator=(const RangeTermQueryExecutor &);
+    RangeTermQueryExecutor &operator=(const RangeTermQueryExecutor &);
+
 public:
-    const std::string getName() const override { return "RangeTermQueryExecutor";}
+    const std::string getName() const override {
+        return "RangeTermQueryExecutor";
+    }
     void reset() override {
         TermQueryExecutor::reset();
         initRangePostingIterator();
     }
     uint32_t getSeekDocCount() override;
-    /* override */ indexlib::index::DocValueFilter* stealFilter() override
-    {
+    /* override */ indexlib::index::DocValueFilter *stealFilter() override {
         indexlib::index::DocValueFilter *tmp = _filter;
         _filter = NULL;
         return tmp;
     }
+
 private:
     void initRangePostingIterator();
+
 protected:
-    indexlib::index::ErrorCode doSeek(docid_t id, docid_t& result) override;
+    indexlib::index::ErrorCode doSeek(docid_t id, docid_t &result) override;
+
 protected:
     indexlib::index::RangePostingIterator *_rangeIter;
     indexlib::index::DocValueFilter *_filter;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -79,4 +83,3 @@ typedef std::shared_ptr<RangeTermQueryExecutor> RangeTermQueryExecutorPtr;
 
 } // namespace search
 } // namespace isearch
-

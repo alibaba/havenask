@@ -15,38 +15,37 @@
  */
 #pragma once
 
-#include <stdlib.h>
 #include <memory>
+#include <stdlib.h>
 
 #include "autil/Lock.h"
 #include "autil/Log.h"
+#include "autil/SanitizerUtil.h"
 #include "autil/mem_pool/AllocatePolicy.h"
 #include "autil/mem_pool/MemoryChunk.h"
 #include "autil/mem_pool/PoolBase.h"
-#include "autil/SanitizerUtil.h"
 
-namespace autil { namespace mem_pool {
+namespace autil {
+namespace mem_pool {
 class ChunkAllocatorBase;
 
-class Pool : public PoolBase
-{
+class Pool : public PoolBase, public std::enable_shared_from_this<Pool> {
 public:
     static const size_t DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024; // 10M
-    static const size_t DEFAULT_ALIGN_SIZE = sizeof(char*);
+    static const size_t DEFAULT_ALIGN_SIZE = sizeof(char *);
+
 public:
-    Pool(AllocatePolicy* allocatePolicy, size_t alignSize = DEFAULT_ALIGN_SIZE);
+    Pool(AllocatePolicy *allocatePolicy, size_t alignSize = DEFAULT_ALIGN_SIZE);
 
-    Pool(ChunkAllocatorBase* allocator, size_t chunkSize,
-         size_t alignSize = DEFAULT_ALIGN_SIZE);
+    Pool(ChunkAllocatorBase *allocator, size_t chunkSize, size_t alignSize = DEFAULT_ALIGN_SIZE);
 
-    Pool(size_t chunkSize = DEFAULT_CHUNK_SIZE,
-         size_t alignSize = DEFAULT_ALIGN_SIZE);
+    Pool(size_t chunkSize = DEFAULT_CHUNK_SIZE, size_t alignSize = DEFAULT_ALIGN_SIZE);
 
     virtual ~Pool();
 
 private:
-    Pool(const Pool&);
-    void operator = (const Pool&);
+    Pool(const Pool &);
+    void operator=(const Pool &);
 
 public:
     /**
@@ -54,20 +53,18 @@ public:
      * @param numBytes number of bytes need to allocate
      * @return address of allocated memory
      */
-    virtual void* allocate(size_t numBytes) override;
+    virtual void *allocate(size_t numBytes) override;
 
-    virtual void* allocate(size_t numBytes, size_t alignment);
+    virtual void *allocate(size_t numBytes, size_t alignment);
 
-    void* allocateUnsafe(size_t numBytes);
+    void *allocateUnsafe(size_t numBytes);
 
-    void* allocateUnsafe(size_t numBytes, size_t alignment);
+    void *allocateUnsafe(size_t numBytes, size_t alignment);
 
     /**
      * Free memory, dummy function
      */
-    void deallocate(void* ptr, size_t size) override {
-        SanitizerUtil::PoisonMemoryRegion(ptr, size);
-    }
+    void deallocate(void *ptr, size_t size) override { SanitizerUtil::PoisonMemoryRegion(ptr, size); }
 
     /**
      * release all allocated memory in Pool
@@ -90,7 +87,7 @@ public:
      * get alignment size
      * @return alignSize alignment size
      */
-    size_t getAlignSize() const {return _alignSize;}
+    size_t getAlignSize() const { return _alignSize; }
 
     /**
      * Get used size in bytes
@@ -116,14 +113,17 @@ public:
 
     static size_t alignBytes(size_t numBytes, size_t alignSize);
 
+public:
+    static std::shared_ptr<Pool> maybeShared(Pool *pool);
+
 protected:
     mutable SpinLock _mutex;
-    size_t _alignSize; ///Alignment length
-    MemoryChunk* _memChunk;  ///Memory chunk
-    size_t _allocSize;// size of allocated memory from this pool
+    size_t _alignSize;      /// Alignment length
+    MemoryChunk *_memChunk; /// Memory chunk
+    size_t _allocSize;      // size of allocated memory from this pool
 
-    AllocatePolicy* _allocPolicy;///allocate policy
-    static MemoryChunk DUMMY_CHUNK;///dummy chunk
+    AllocatePolicy *_allocPolicy;   /// allocate policy
+    static MemoryChunk DUMMY_CHUNK; /// dummy chunk
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -132,43 +132,37 @@ typedef std::shared_ptr<Pool> PoolPtr;
 
 class UnsafePool : public Pool {
 public:
-    UnsafePool(ChunkAllocatorBase* allocator, size_t chunkSize,
-         size_t alignSize = DEFAULT_ALIGN_SIZE);
+    UnsafePool(ChunkAllocatorBase *allocator, size_t chunkSize, size_t alignSize = DEFAULT_ALIGN_SIZE);
 
-    UnsafePool(size_t chunkSize = DEFAULT_CHUNK_SIZE,
-               size_t alignSize = DEFAULT_ALIGN_SIZE);
+    UnsafePool(size_t chunkSize = DEFAULT_CHUNK_SIZE, size_t alignSize = DEFAULT_ALIGN_SIZE);
+
 private:
-    UnsafePool(const UnsafePool&);
-    void operator = (const UnsafePool&);
+    UnsafePool(const UnsafePool &);
+    void operator=(const UnsafePool &);
+
 public:
-    void* allocate(size_t numBytes) override {
-        return allocateUnsafe(numBytes);
-    }
-    size_t reset() override {
-        return resetUnsafe();
-    }
+    void *allocate(size_t numBytes) override { return allocateUnsafe(numBytes); }
+    size_t reset() override { return resetUnsafe(); }
 };
 
 //////////////////////////////////////////////////
-//implementation
+// implementation
 
 inline void *Pool::allocateAlign(size_t numBytes, size_t alignSize) {
     numBytes += alignSize;
-    static_assert(sizeof(size_t) == sizeof(void*), "size not equal");
-    return (void*)alignBytes((size_t)allocate(numBytes), alignSize);
+    static_assert(sizeof(size_t) == sizeof(void *), "size not equal");
+    return (void *)alignBytes((size_t)allocate(numBytes), alignSize);
 }
 
 // TODO: Is this a duplication of reset() ?
-inline void Pool::release()
-{
+inline void Pool::release() {
     ScopedSpinLock lock(_mutex);
     _allocPolicy->release();
     _allocSize = 0;
     _memChunk = &(Pool::DUMMY_CHUNK);
 }
 
-inline size_t Pool::reset()
-{
+inline size_t Pool::reset() {
     ScopedSpinLock lock(_mutex);
     return resetUnsafe();
 }
@@ -180,36 +174,31 @@ inline size_t Pool::resetUnsafe() {
     return totalSize;
 }
 
-inline size_t Pool::getUsedBytes() const
-{
+inline size_t Pool::getUsedBytes() const {
     ScopedSpinLock lock(_mutex);
     size_t allocBytes = _allocPolicy->getUsedBytes();
     allocBytes -= _memChunk->getFreeSize();
     return allocBytes;
 }
 
-inline size_t Pool::getAllocatedSize() const
-{
+inline size_t Pool::getAllocatedSize() const {
     ScopedSpinLock lock(_mutex);
     return _allocSize;
 }
 
-inline size_t Pool::getTotalBytes() const
-{
+inline size_t Pool::getTotalBytes() const {
     ScopedSpinLock lock(_mutex);
     return _allocPolicy->getTotalBytes();
 }
 
-inline size_t Pool::getAvailableChunkSize() const
-{
+inline size_t Pool::getAvailableChunkSize() const {
     ScopedSpinLock lock(_mutex);
     return _allocPolicy->getAvailableChunkSize();
 }
 
-inline size_t Pool::alignBytes(size_t numBytes, size_t alignSize)
-{
+inline size_t Pool::alignBytes(size_t numBytes, size_t alignSize) {
     return ((numBytes + alignSize - 1) & ~(alignSize - 1));
 }
 
-}}
-
+} // namespace mem_pool
+} // namespace autil

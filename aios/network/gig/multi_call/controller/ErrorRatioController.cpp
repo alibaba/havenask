@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/controller/ErrorRatioController.h"
+
 #include "aios/network/gig/multi_call/controller/ControllerChain.h"
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
 #include "autil/StringUtil.h"
@@ -25,20 +26,21 @@ namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, ErrorRatioController);
 
 ErrorRatioController::ErrorRatioController()
-    : RatioControllerBase("errorRatio", ERROR_RATIO_WEIGHT_DEC_STEP) {}
+    : RatioControllerBase("errorRatio", ERROR_RATIO_WEIGHT_DEC_STEP) {
+}
 
 void ErrorRatioController::updateLocalRatio(const QueryResultStatistic &stat) {
     float isFailed = stat.isFailed() ? MAX_RATIO : MIN_RATIO;
     updateLocal(isFailed);
 }
 
-const ServerRatioFilter &ErrorRatioController::getServerRatioFilter(
-    const GigResponseInfo &agentInfo) const {
+const ServerRatioFilter &
+ErrorRatioController::getServerRatioFilter(const GigResponseInfo &agentInfo) const {
     return agentInfo.error_ratio();
 }
 
-const ServerRatioFilter &ErrorRatioController::getMirrorServerRatioFilter(
-    const PropagationStatDef &stat) const {
+const ServerRatioFilter &
+ErrorRatioController::getMirrorServerRatioFilter(const PropagationStatDef &stat) const {
     return stat.error();
 }
 
@@ -64,8 +66,7 @@ float ErrorRatioController::controllerOutput() const {
     }
 }
 
-float ErrorRatioController::getLegalLimit(
-    const FlowControlConfigPtr &flowControlConfig) const {
+float ErrorRatioController::getLegalLimit(const FlowControlConfigPtr &flowControlConfig) const {
     if (!isValid()) {
         return INVALID_FILTER_VALUE;
     }

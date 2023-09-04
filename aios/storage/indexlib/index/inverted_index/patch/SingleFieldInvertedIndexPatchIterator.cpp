@@ -56,8 +56,12 @@ Status SingleFieldInvertedIndexPatchIterator::Init(
         }
     }
 
-    for (auto iter = patchInfos.begin(); iter != patchInfos.end(); iter++) {
-        segmentid_t targetSegmentId = iter->first;
+    for (const auto& segment : segments) {
+        auto targetSegmentId = segment->GetSegmentId();
+        auto iter = patchInfos.find(targetSegmentId);
+        if (iter == patchInfos.end()) {
+            continue;
+        }
         const indexlibv2::index::PatchFileInfos& patchFileInfos = iter->second;
         auto segPatchIter =
             std::make_shared<SingleFieldIndexSegmentPatchIterator>(_invertedIndexConfig, targetSegmentId);

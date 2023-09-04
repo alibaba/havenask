@@ -30,59 +30,54 @@ namespace kmonitor_adapter {
 
 class Recorder;
 
-class Reporter
-{
+class Reporter {
 private:
     Reporter();
     ~Reporter();
 
 public:
-    void registerRecorder(Recorder* recorder);
-    void unregisterRecoder(Recorder* recorder);
+    void registerRecorder(Recorder *recorder);
+    void unregisterRecoder(Recorder *recorder);
 
-    static Reporter* getInstance();
+    static Reporter *getInstance();
 
 private:
     std::atomic<bool> _running;
     std::mutex _mtx;
-    std::unordered_set<Recorder*> _recorders;
+    std::unordered_set<Recorder *> _recorders;
     std::thread _reportThread;
 };
 
-class Recorder
-{
+class Recorder {
 public:
     Recorder();
     virtual ~Recorder();
 
     virtual void report() = 0;
-    virtual const std::string& name() const
-    {
+    virtual const std::string &name() const {
         static std::string emptyString;
         return emptyString;
     }
     void registerRecorder();
     void unregisterRecoder();
 
-    Recorder(const Recorder&) = delete;
-    Recorder& operator=(const Recorder&) = delete;
+    Recorder(const Recorder &) = delete;
+    Recorder &operator=(const Recorder &) = delete;
 
 public:
-    static void unrefHandle(void* ptr)
-    {
+    static void unrefHandle(void *ptr) {
         if (ptr) {
-            auto data = static_cast<AlignedThreadData*>(ptr);
+            auto data = static_cast<AlignedThreadData *>(ptr);
             data->atExit();
             data->destroy();
         }
     }
 
 public:
-    virtual AlignedThreadData* createThreadData() = 0;
+    virtual AlignedThreadData *createThreadData() = 0;
 
-    __attribute__((__always_inline__)) inline AlignedThreadData* getThreadData()
-    {
-        auto threadDataPtr = static_cast<AlignedThreadData*>(_threadData->Get());
+    __attribute__((__always_inline__)) inline AlignedThreadData *getThreadData() {
+        auto threadDataPtr = static_cast<AlignedThreadData *>(_threadData->Get());
         if (__builtin_expect(threadDataPtr == nullptr, 0)) {
             threadDataPtr = createThreadData();
             _threadData->Reset(threadDataPtr);

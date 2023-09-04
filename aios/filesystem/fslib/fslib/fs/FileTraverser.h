@@ -16,50 +16,43 @@
 #ifndef FSLIB_FILETRAVERSER_H
 #define FSLIB_FILETRAVERSER_H
 
-#include "fslib/common/common_define.h"
-#include "fslib/common/common_type.h"
+#include <map>
+
 #include "autil/Lock.h"
 #include "autil/ThreadPool.h"
-#include <map>
+#include "fslib/common/common_define.h"
+#include "fslib/common/common_type.h"
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class FileTraverser
-{
+class FileTraverser {
 public:
-    FileTraverser(const std::string &basePath,
-                  autil::ThreadPoolPtr threadPool);
+    FileTraverser(const std::string &basePath, autil::ThreadPoolPtr threadPool);
     ~FileTraverser();
+
 private:
     FileTraverser(const FileTraverser &);
-    FileTraverser& operator = (const FileTraverser &);
+    FileTraverser &operator=(const FileTraverser &);
+
 public:
     void traverse(bool recursive = true);
-    void wait() {
-        _notifier.wait();
-    }
-    const ErrorCode& getErrorCode() const {
-        return _errorCode;
-    } 
-    const EntryInfoMap& getResult() const {
-        return _result;
-    }
+    void wait() { _notifier.wait(); }
+    const ErrorCode &getErrorCode() const { return _errorCode; }
+    const EntryInfoMap &getResult() const { return _result; }
+
 private:
     void splitFilter(std::string &path, std::string &filter);
-    void traverseNextLevel(const EntryMeta &entryMeta, std::string filter,
-                           bool recursive);
-    void traverseOneLevel(const EntryMeta &entryMeta, 
-                          const std::string &filter, bool recursive);
-    void doTraverseOneLevel(const EntryMeta &entryMeta, 
-                            const std::string &filter, 
-                            bool recursive);
+    void traverseNextLevel(const EntryMeta &entryMeta, std::string filter, bool recursive);
+    void traverseOneLevel(const EntryMeta &entryMeta, const std::string &filter, bool recursive);
+    void doTraverseOneLevel(const EntryMeta &entryMeta, const std::string &filter, bool recursive);
     bool processFile(const EntryMeta &entryMeta);
-    bool match(const std::string &fileName, 
-               const std::string &filter) const;
+    bool match(const std::string &fileName, const std::string &filter) const;
     void setErrorCode(const ErrorCode errorCode);
     bool convertToEntryMeta(const std::string &path, EntryMeta &entryMeta);
+
 public:
     friend class FileTraverserTest;
+
 private:
     std::string _basePath;
     autil::ThreadPoolPtr _threadPool;
@@ -71,4 +64,4 @@ private:
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_FILETRAVERSER_H
+#endif // FSLIB_FILETRAVERSER_H

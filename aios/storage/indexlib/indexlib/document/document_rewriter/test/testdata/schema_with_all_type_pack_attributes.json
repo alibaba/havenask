@@ -1,0 +1,71 @@
+{
+    "table_name": "auction",
+    "fields": 
+    [
+        {"field_name":"int8_single", "field_type":"int8"},
+        {"field_name":"int16_single", "field_type":"int16"},
+        {"field_name":"int32_single", "field_type":"int32"},
+        {"field_name":"int64_single", "field_type":"int64"},
+        
+        {"field_name":"int8_multi", "field_type":"int8",
+         "multi_value": true, "compress_type":"equal", "updatable_multi_value":true},
+        {"field_name":"int16_multi", "field_type":"int16", "multi_value": true, "compress_type":"uniq|equal"},
+        {"field_name":"int32_multi", "field_type":"int32", "multi_value": true},
+        {"field_name":"int64_multi", "field_type":"int64", "multi_value": true, "updatable_multi_value":true},
+
+        {"field_name":"uint8_single", "field_type":"uint8"},
+        {"field_name":"uint16_single", "field_type":"uint16"},
+        {"field_name":"uint32_single", "field_type":"uint32"},
+        {"field_name":"uint64_single", "field_type":"uint64"},
+        
+        {"field_name":"uint8_multi", "field_type":"uint8",   "multi_value": true, "compress_type":"equal"},
+        {"field_name":"uint16_multi", "field_type":"uint16", "multi_value": true, "compress_type":"uniq|equal"},
+        {"field_name":"uint32_multi", "field_type":"uint32", "multi_value": true, "updatable_multi_value":true},
+        {"field_name":"uint64_multi", "field_type":"uint64", "multi_value": true, "updatable_multi_value":true},
+
+        {"field_name":"float_single", "field_type":"float"},
+        {"field_name":"double_single", "field_type":"double"},
+
+        {"field_name":"float_multi", "field_type":"float", "multi_value": true},
+        {"field_name":"double_multi", "field_type":"double", "multi_value": true},
+
+        {"field_name":"str_single", "field_type":"string"},
+        {"field_name":"str_multi", "field_type":"string", "multi_value":true},
+        {"field_name":"int8_single_nopack", "field_type":"int8"},
+        {"field_name":"str_multi_nopack", "field_type":"string", "multi_value":true}
+    ],
+
+    "indexs": 
+    [
+	{
+	    "index_name": "pk",
+            "index_type" : "PRIMARYKEY64",
+	    "index_fields": "str_single"
+	}
+    ],
+
+    "attributes":
+    [
+        {
+            "pack_name" : "pack_attr",
+            "sub_attributes" : ["int8_single", "int8_multi",
+                                "int16_single", "int16_multi",
+                                "int32_single", "int32_multi",
+                                "int64_single", "int64_multi",
+                                "float_single", "float_multi",
+                                "str_single"]
+        },
+        {
+            "pack_name" : "uniq_pack_attr",
+            "sub_attributes" : ["uint8_single", "uint8_multi",
+                                "uint16_single", "uint16_multi",
+                                "uint32_single", "uint32_multi",
+                                "uint64_single", "uint64_multi",
+                                "double_single", "double_multi",
+                                "str_multi"],
+            "compress_type" : "uniq"
+        },
+        "int8_single_nopack",
+        "str_multi_nopack"
+    ]
+}

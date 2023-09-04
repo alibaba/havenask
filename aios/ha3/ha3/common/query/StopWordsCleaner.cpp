@@ -48,36 +48,34 @@ StopWordsCleaner::~StopWordsCleaner() {
     cleanVisitQuery();
 }
 
-void StopWordsCleaner::visitTermQuery(const TermQuery *query)
-{
+void StopWordsCleaner::visitTermQuery(const TermQuery *query) {
     cleanVisitQuery();
     if (query && !(query->getTerm().getToken().isStopWord())) {
         _visitedQuery = new TermQuery(*query);
     }
 }
 
-void StopWordsCleaner::visitPhraseQuery(const PhraseQuery *query)
-{
-     cleanVisitQuery();
-     if(query){
-         const Query::TermArray &termArray = query->getTermArray();
-         Query::TermArray termVec;
-         for (size_t i = 0; i < termArray.size(); ++i) {
-             if (!termArray[i]->getToken().isStopWord()) {
-                 termVec.push_back(termArray[i]);
-             }
-         }
-         if (termVec.size() > 1) {
-             _visitedQuery = new PhraseQuery(*query);
-         } else if (termVec.size() == 1){
-             _visitedQuery = new TermQuery(*termVec[0], query->getQueryLabel());
-         }
-     }
+void StopWordsCleaner::visitPhraseQuery(const PhraseQuery *query) {
+    cleanVisitQuery();
+    if (query) {
+        const Query::TermArray &termArray = query->getTermArray();
+        Query::TermArray termVec;
+        for (size_t i = 0; i < termArray.size(); ++i) {
+            if (!termArray[i]->getToken().isStopWord()) {
+                termVec.push_back(termArray[i]);
+            }
+        }
+        if (termVec.size() > 1) {
+            _visitedQuery = new PhraseQuery(*query);
+        } else if (termVec.size() == 1) {
+            _visitedQuery = new TermQuery(*termVec[0], query->getQueryLabel());
+        }
+    }
 }
 
 void StopWordsCleaner::visitMultiTermQuery(const MultiTermQuery *query) {
     cleanVisitQuery();
-    if(query){
+    if (query) {
         const Query::TermArray &termArray = query->getTermArray();
         vector<size_t> termIndexs;
         for (size_t i = 0; i < termArray.size(); ++i) {
@@ -86,9 +84,8 @@ void StopWordsCleaner::visitMultiTermQuery(const MultiTermQuery *query) {
             }
         }
         size_t termSize = termIndexs.size();
-        if (termSize == 1){
-            _visitedQuery = new TermQuery(*termArray[termIndexs[0]],
-                    query->getQueryLabel());
+        if (termSize == 1) {
+            _visitedQuery = new TermQuery(*termArray[termIndexs[0]], query->getQueryLabel());
             return;
         } else if (termSize > 1) {
             if (termSize == termArray.size()) {
@@ -96,8 +93,7 @@ void StopWordsCleaner::visitMultiTermQuery(const MultiTermQuery *query) {
                 return;
             }
 
-            MultiTermQuery *multi = new MultiTermQuery(query->getQueryLabel(),
-                    query->getOpExpr());
+            MultiTermQuery *multi = new MultiTermQuery(query->getQueryLabel(), query->getOpExpr());
             for (size_t i = 0; i < termIndexs.size(); ++i) {
                 multi->addTerm(termArray[termIndexs[i]]);
             }
@@ -106,8 +102,7 @@ void StopWordsCleaner::visitMultiTermQuery(const MultiTermQuery *query) {
     }
 }
 
-void StopWordsCleaner::visitAndQuery(const AndQuery *query)
-{
+void StopWordsCleaner::visitAndQuery(const AndQuery *query) {
     cleanVisitQuery();
     if (query) {
         AndQuery *resultQuery = new AndQuery(query->getQueryLabel());
@@ -115,8 +110,7 @@ void StopWordsCleaner::visitAndQuery(const AndQuery *query)
     }
 }
 
-void StopWordsCleaner::visitOrQuery(const OrQuery *query)
-{
+void StopWordsCleaner::visitOrQuery(const OrQuery *query) {
     cleanVisitQuery();
     if (query) {
         OrQuery *resultQuery = new OrQuery(query->getQueryLabel());
@@ -124,8 +118,7 @@ void StopWordsCleaner::visitOrQuery(const OrQuery *query)
     }
 }
 
-void StopWordsCleaner::visitAndNotQuery(const AndNotQuery *query)
-{
+void StopWordsCleaner::visitAndNotQuery(const AndNotQuery *query) {
     cleanVisitQuery();
     if (query) {
         AndNotQuery *resultQuery = new AndNotQuery(query->getQueryLabel());
@@ -133,8 +126,7 @@ void StopWordsCleaner::visitAndNotQuery(const AndNotQuery *query)
     }
 }
 
-void StopWordsCleaner::visitRankQuery(const RankQuery *query)
-{
+void StopWordsCleaner::visitRankQuery(const RankQuery *query) {
     cleanVisitQuery();
     if (query) {
         RankQuery *resultQuery = new RankQuery(query->getQueryLabel());
@@ -142,17 +134,14 @@ void StopWordsCleaner::visitRankQuery(const RankQuery *query)
     }
 }
 
-void StopWordsCleaner::visitNumberQuery(const NumberQuery *query)
-{
+void StopWordsCleaner::visitNumberQuery(const NumberQuery *query) {
     cleanVisitQuery();
-    if(query){
+    if (query) {
         _visitedQuery = new NumberQuery(*query);
     }
 }
 
-void StopWordsCleaner::visitAndOrQuery(common::Query *resultQuery,
-                                       const common::Query *srcQuery)
-{
+void StopWordsCleaner::visitAndOrQuery(common::Query *resultQuery, const common::Query *srcQuery) {
     const vector<QueryPtr> *childQueryPtr = srcQuery->getChildQuery();
     assert(childQueryPtr);
     vector<Query *> restQuery;
@@ -169,9 +158,7 @@ void StopWordsCleaner::visitAndOrQuery(common::Query *resultQuery,
         }
     }
     if (_errorCode != ERROR_NONE) {
-        for (vector<Query*>::iterator it = restQuery.begin();
-             it != restQuery.end(); ++it)
-        {
+        for (vector<Query *>::iterator it = restQuery.begin(); it != restQuery.end(); ++it) {
             delete (*it);
         }
         delete resultQuery;
@@ -197,8 +184,7 @@ void StopWordsCleaner::visitAndOrQuery(common::Query *resultQuery,
 }
 
 void StopWordsCleaner::visitAndNotRankQuery(common::Query *resultQuery,
-                          const common::Query *srcQuery)
-{
+                                            const common::Query *srcQuery) {
     const vector<QueryPtr> *childQueryPtr = srcQuery->getChildQuery();
     assert(childQueryPtr);
     vector<Query *> rightQuery;
@@ -216,7 +202,8 @@ void StopWordsCleaner::visitAndNotRankQuery(common::Query *resultQuery,
         delete resultQuery;
         _visitedQuery = NULL;
         if (ERROR_NONE == _errorCode) {
-            setError(ERROR_QUERY_INVALID, "AndNotQuery or RankQuery's "
+            setError(ERROR_QUERY_INVALID,
+                     "AndNotQuery or RankQuery's "
                      "leftQuery is NULL or stop word.");
         }
         return;
@@ -233,9 +220,7 @@ void StopWordsCleaner::visitAndNotRankQuery(common::Query *resultQuery,
         }
     }
     if (_errorCode != ERROR_NONE) {
-        for (vector<Query*>::iterator it = rightQuery.begin();
-             it != rightQuery.end(); ++it)
-        {
+        for (vector<Query *>::iterator it = rightQuery.begin(); it != rightQuery.end(); ++it) {
             delete (*it);
         }
         delete leftQuery;
@@ -260,7 +245,6 @@ void StopWordsCleaner::visitAndNotRankQuery(common::Query *resultQuery,
         }
     }
 }
-
 
 } // namespace qrs
 } // namespace isearch

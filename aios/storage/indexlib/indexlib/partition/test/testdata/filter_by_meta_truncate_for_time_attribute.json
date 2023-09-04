@@ -1,0 +1,18 @@
+{
+    "truncate_strategy" : [
+        {
+            "strategy_name" : "filter_by_meta",
+            "strategy_type" : "truncate_meta",
+            "diversity_constrain": {
+                "filter_by_meta" : true
+            },
+	    "truncate_profiles" :
+	    [
+		"desc_date",
+                "asc_time",
+                "asc_timestamp"		
+	    ]
+        }
+    ]
+}
+

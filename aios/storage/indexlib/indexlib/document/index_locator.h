@@ -30,7 +30,7 @@ class IndexLocator
 public:
     explicit IndexLocator(int64_t offset = -1) : _src(0), _offset(offset)
     {
-        _progress.emplace_back(indexlibv2::base::Progress(_offset));
+        _progress.emplace_back(indexlibv2::base::Progress({_offset, 0}));
     }
 
     IndexLocator(uint64_t src, int64_t offset, const std::string& userData)
@@ -38,7 +38,7 @@ public:
         , _offset(offset)
         , _userData(userData)
     {
-        _progress.emplace_back(indexlibv2::base::Progress(_offset));
+        _progress.emplace_back(indexlibv2::base::Progress({_offset, 0}));
     }
 
     IndexLocator(const IndexLocator& other)
@@ -54,7 +54,7 @@ public:
 public:
     indexlibv2::framework::Locator ToLocator() const
     {
-        indexlibv2::framework::Locator locator(getSrc(), getOffset());
+        indexlibv2::framework::Locator locator(getSrc(), {getOffset(), 0});
         locator.SetUserData(getUserData());
         locator.SetProgress(getProgress());
         return locator;
@@ -72,7 +72,7 @@ public:
     {
         _offset = offset;
         _progress.clear();
-        _progress.emplace_back(indexlibv2::base::Progress(_offset));
+        _progress.emplace_back(indexlibv2::base::Progress({_offset, 0}));
     }
     const std::string& getUserData() const { return _userData; }
     void setUserData(const std::string& userData) { _userData = userData; }
@@ -83,9 +83,9 @@ public:
             return;
         }
         _progress = progress;
-        _offset = progress[0].offset;
+        _offset = progress[0].offset.first;
         for (const auto& singleProgress : progress) {
-            _offset = std::min(_offset, singleProgress.offset);
+            _offset = std::min(_offset, singleProgress.offset.first);
         }
     }
     const std::vector<indexlibv2::base::Progress>& getProgress() const { return _progress; }
@@ -105,7 +105,7 @@ public:
         data += sizeof(_offset);
         _userData = std::string(data, str.size() - sizeof(_offset) - sizeof(_src));
         _progress.clear();
-        _progress.emplace_back(indexlibv2::base::Progress(_offset));
+        _progress.emplace_back(indexlibv2::base::Progress({_offset, 0}));
         return true;
     }
 

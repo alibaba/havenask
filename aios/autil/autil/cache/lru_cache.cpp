@@ -11,32 +11,30 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
+#include "autil/cache/lru_cache.h"
+
+#include <algorithm>
 #include <assert.h>
-#include <stdio.h>
+#include <memory>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include <string>
-#include <algorithm>
-#include <memory>
 
-#include "autil/cache/lru_cache.h"
 #include "autil/Autovector.h"
 #include "autil/Lock.h"
+#include "autil/Span.h"
 #include "autil/cache/cache.h"
 #include "autil/cache/cache_allocator.h"
 #include "autil/cache/sharded_cache.h"
-#include "autil/Span.h"
-#ifndef AIOS_OPEN_SOURCE
 #include "lockless_allocator/MallocPoolScope.h"
-#endif
 
 namespace autil {
 
 LRUHandleTable::LRUHandleTable() : length_(0), elems_(0), list_(nullptr) { Resize(); }
 
-LRUHandleTable::~LRUHandleTable()
-{
-    ApplyToAllCacheEntries([this](LRUHandle* h) {
+LRUHandleTable::~LRUHandleTable() {
+    ApplyToAllCacheEntries([this](LRUHandle *h) {
         if (h->refs == 1) {
             h->Free(allocator_);
         }
@@ -44,12 +42,11 @@ LRUHandleTable::~LRUHandleTable()
     delete[] list_;
 }
 
-LRUHandle* LRUHandleTable::Lookup(const StringView& key, uint32_t hash) { return *FindPointer(key, hash); }
+LRUHandle *LRUHandleTable::Lookup(const StringView &key, uint32_t hash) { return *FindPointer(key, hash); }
 
-LRUHandle* LRUHandleTable::Insert(LRUHandle* h)
-{
-    LRUHandle** ptr = FindPointer(h->key(), h->hash);
-    LRUHandle* old = *ptr;
+LRUHandle *LRUHandleTable::Insert(LRUHandle *h) {
+    LRUHandle **ptr = FindPointer(h->key(), h->hash);
+    LRUHandle *old = *ptr;
     h->next_hash = (old == nullptr ? nullptr : old->next_hash);
     *ptr = h;
     if (old == nullptr) {
@@ -63,10 +60,9 @@ LRUHandle* LRUHandleTable::Insert(LRUHandle* h)
     return old;
 }
 
-LRUHandle* LRUHandleTable::Remove(const StringView& key, uint32_t hash)
-{
-    LRUHandle** ptr = FindPointer(key, hash);
-    LRUHandle* result = *ptr;
+LRUHandle *LRUHandleTable::Remove(const StringView &key, uint32_t hash) {
+    LRUHandle **ptr = FindPointer(key, hash);
+    LRUHandle *result = *ptr;
     if (result != nullptr) {
         *ptr = result->next_hash;
         --elems_;
@@ -74,33 +70,29 @@ LRUHandle* LRUHandleTable::Remove(const StringView& key, uint32_t hash)
     return result;
 }
 
-LRUHandle** LRUHandleTable::FindPointer(const StringView& key, uint32_t hash)
-{
-    LRUHandle** ptr = &list_[hash & (length_ - 1)];
+LRUHandle **LRUHandleTable::FindPointer(const StringView &key, uint32_t hash) {
+    LRUHandle **ptr = &list_[hash & (length_ - 1)];
     while (*ptr != nullptr && ((*ptr)->hash != hash || key != (*ptr)->key())) {
         ptr = &(*ptr)->next_hash;
     }
     return ptr;
 }
 
-void LRUHandleTable::Resize()
-{
-#ifndef AIOS_OPEN_SOURCE
+void LRUHandleTable::Resize() {
     DisablePoolScope disableScope;
-#endif
     uint32_t new_length = 16;
     while (new_length < elems_ * 1.5) {
         new_length *= 2;
     }
-    LRUHandle** new_list = new LRUHandle*[new_length];
+    LRUHandle **new_list = new LRUHandle *[new_length];
     memset(new_list, 0, sizeof(new_list[0]) * new_length);
     uint32_t count = 0;
     for (uint32_t i = 0; i < length_; i++) {
-        LRUHandle* h = list_[i];
+        LRUHandle *h = list_[i];
         while (h != nullptr) {
-            LRUHandle* next = h->next_hash;
+            LRUHandle *next = h->next_hash;
             uint32_t hash = h->hash;
-            LRUHandle** ptr = &new_list[hash & (new_length - 1)];
+            LRUHandle **ptr = &new_list[hash & (new_length - 1)];
             h->next_hash = *ptr;
             *ptr = h;
             h = next;
@@ -113,8 +105,7 @@ void LRUHandleTable::Resize()
     length_ = new_length;
 }
 
-LRUCacheShard::LRUCacheShard() : usage_(0), lru_usage_(0), high_pri_pool_usage_(0)
-{
+LRUCacheShard::LRUCacheShard() : usage_(0), lru_usage_(0), high_pri_pool_usage_(0) {
     // Make empty circular linked list
     lru_.next = &lru_;
     lru_.prev = &lru_;
@@ -123,8 +114,7 @@ LRUCacheShard::LRUCacheShard() : usage_(0), lru_usage_(0), high_pri_pool_usage_(
 
 LRUCacheShard::~LRUCacheShard() {}
 
-bool LRUCacheShard::Unref(LRUHandle* e)
-{
+bool LRUCacheShard::Unref(LRUHandle *e) {
     assert(e->refs > 0);
     e->refs--;
     return e->refs == 0;
@@ -132,13 +122,12 @@ bool LRUCacheShard::Unref(LRUHandle* e)
 
 // Call deleter and free
 
-void LRUCacheShard::EraseUnRefEntries()
-{
-    autovector<LRUHandle*> last_reference_list;
+void LRUCacheShard::EraseUnRefEntries() {
+    autovector<LRUHandle *> last_reference_list;
     {
         ScopedLock l(mutex_);
         while (lru_.next != &lru_) {
-            LRUHandle* old = lru_.next;
+            LRUHandle *old = lru_.next;
             assert(old->InCache());
             assert(old->refs == 1); // LRU list contains elements which may be evicted
             LRU_Remove(old);
@@ -155,14 +144,13 @@ void LRUCacheShard::EraseUnRefEntries()
     }
 }
 
-void LRUCacheShard::ApplyToAllCacheEntries(void (*callback)(void*, size_t), bool thread_safe)
-{
+void LRUCacheShard::ApplyToAllCacheEntries(void (*callback)(void *, size_t), bool thread_safe) {
     if (thread_safe) {
         int ret = mutex_.lock();
         assert(ret == 0);
         (void)ret;
     }
-    table_.ApplyToAllCacheEntries([callback](LRUHandle* h) { callback(h->value, h->charge); });
+    table_.ApplyToAllCacheEntries([callback](LRUHandle *h) { callback(h->value, h->charge); });
     if (thread_safe) {
         int ret = mutex_.unlock();
         assert(ret == 0);
@@ -170,14 +158,12 @@ void LRUCacheShard::ApplyToAllCacheEntries(void (*callback)(void*, size_t), bool
     }
 }
 
-void LRUCacheShard::TEST_GetLRUList(LRUHandle** lru, LRUHandle** lru_low_pri)
-{
+void LRUCacheShard::TEST_GetLRUList(LRUHandle **lru, LRUHandle **lru_low_pri) {
     *lru = &lru_;
     *lru_low_pri = lru_low_pri_;
 }
 
-void LRUCacheShard::LRU_Remove(LRUHandle* e)
-{
+void LRUCacheShard::LRU_Remove(LRUHandle *e) {
     assert(e->next != nullptr);
     assert(e->prev != nullptr);
     if (lru_low_pri_ == e) {
@@ -193,8 +179,7 @@ void LRUCacheShard::LRU_Remove(LRUHandle* e)
     }
 }
 
-void LRUCacheShard::LRU_Insert(LRUHandle* e)
-{
+void LRUCacheShard::LRU_Insert(LRUHandle *e) {
     assert(e->next == nullptr);
     assert(e->prev == nullptr);
     if (high_pri_pool_ratio_ > 0 && e->IsHighPri()) {
@@ -219,8 +204,7 @@ void LRUCacheShard::LRU_Insert(LRUHandle* e)
     lru_usage_ += e->charge;
 }
 
-void LRUCacheShard::MaintainPoolSize()
-{
+void LRUCacheShard::MaintainPoolSize() {
     while (high_pri_pool_usage_ > high_pri_pool_capacity_) {
         // Overflow last entry in high-pri pool to low-pri pool.
         lru_low_pri_ = lru_low_pri_->next;
@@ -230,10 +214,9 @@ void LRUCacheShard::MaintainPoolSize()
     }
 }
 
-void LRUCacheShard::EvictFromLRU(size_t charge, autovector<LRUHandle*>* deleted)
-{
+void LRUCacheShard::EvictFromLRU(size_t charge, autovector<LRUHandle *> *deleted) {
     while (usage_ + charge > capacity_ && lru_.next != &lru_) {
-        LRUHandle* old = lru_.next;
+        LRUHandle *old = lru_.next;
         assert(old->InCache());
         assert(old->refs == 1); // LRU list contains elements which may be evicted
         LRU_Remove(old);
@@ -245,9 +228,8 @@ void LRUCacheShard::EvictFromLRU(size_t charge, autovector<LRUHandle*>* deleted)
     }
 }
 
-void LRUCacheShard::SetCapacity(size_t capacity)
-{
-    autovector<LRUHandle*> last_reference_list;
+void LRUCacheShard::SetCapacity(size_t capacity) {
+    autovector<LRUHandle *> last_reference_list;
     {
         ScopedLock l(mutex_);
         capacity_ = capacity;
@@ -261,16 +243,14 @@ void LRUCacheShard::SetCapacity(size_t capacity)
     }
 }
 
-void LRUCacheShard::SetStrictCapacityLimit(bool strict_capacity_limit)
-{
+void LRUCacheShard::SetStrictCapacityLimit(bool strict_capacity_limit) {
     ScopedLock l(mutex_);
     strict_capacity_limit_ = strict_capacity_limit;
 }
 
-CacheBase::Handle* LRUCacheShard::Lookup(const StringView& key, uint32_t hash)
-{
+CacheBase::Handle *LRUCacheShard::Lookup(const StringView &key, uint32_t hash) {
     ScopedLock l(mutex_);
-    LRUHandle* e = table_.Lookup(key, hash);
+    LRUHandle *e = table_.Lookup(key, hash);
     if (e != nullptr) {
         assert(e->InCache());
         if (e->refs == 1) {
@@ -278,12 +258,11 @@ CacheBase::Handle* LRUCacheShard::Lookup(const StringView& key, uint32_t hash)
         }
         e->refs++;
     }
-    return reinterpret_cast<CacheBase::Handle*>(e);
+    return reinterpret_cast<CacheBase::Handle *>(e);
 }
 
-bool LRUCacheShard::Ref(CacheBase::Handle* h)
-{
-    LRUHandle* handle = reinterpret_cast<LRUHandle*>(h);
+bool LRUCacheShard::Ref(CacheBase::Handle *h) {
+    LRUHandle *handle = reinterpret_cast<LRUHandle *>(h);
     ScopedLock l(mutex_);
     if (handle->InCache()) {
         if (handle->refs == 1) {
@@ -295,27 +274,24 @@ bool LRUCacheShard::Ref(CacheBase::Handle* h)
     return false;
 }
 
-void LRUCacheShard::SetHighPriorityPoolRatio(double high_pri_pool_ratio)
-{
+void LRUCacheShard::SetHighPriorityPoolRatio(double high_pri_pool_ratio) {
     ScopedLock l(mutex_);
     high_pri_pool_ratio_ = high_pri_pool_ratio;
     high_pri_pool_capacity_ = capacity_ * high_pri_pool_ratio_;
     MaintainPoolSize();
 }
 
-void LRUCacheShard::SetAllocator(const CacheAllocatorPtr& allocator)
-{
+void LRUCacheShard::SetAllocator(const CacheAllocatorPtr &allocator) {
     ScopedLock l(mutex_);
     allocator_ = allocator;
     table_.SetAllocator(allocator);
 }
 
-void LRUCacheShard::Release(CacheBase::Handle* handle)
-{
+void LRUCacheShard::Release(CacheBase::Handle *handle) {
     if (handle == nullptr) {
         return;
     }
-    LRUHandle* e = reinterpret_cast<LRUHandle*>(handle);
+    LRUHandle *e = reinterpret_cast<LRUHandle *>(handle);
     bool last_reference = false;
     {
         ScopedLock l(mutex_);
@@ -348,19 +324,20 @@ void LRUCacheShard::Release(CacheBase::Handle* handle)
     }
 }
 
-bool LRUCacheShard::Insert(const StringView& key, uint32_t hash, void* value, size_t charge,
-                           void (*deleter)(const StringView& key, void* value, const CacheAllocatorPtr& allocator),
-                           CacheBase::Handle** handle, CacheBase::Priority priority)
-{
-#ifndef AIOS_OPEN_SOURCE
+bool LRUCacheShard::Insert(const StringView &key,
+                           uint32_t hash,
+                           void *value,
+                           size_t charge,
+                           void (*deleter)(const StringView &key, void *value, const CacheAllocatorPtr &allocator),
+                           CacheBase::Handle **handle,
+                           CacheBase::Priority priority) {
     DisablePoolScope disableScope;
-#endif
     // Allocate the memory here outside of the mutex
     // If the cache is full, we'll have to release it
     // It shouldn't happen very often though.
     int handle_size = sizeof(LRUHandle) - 1 + key.size();
-    LRUHandle* e = reinterpret_cast<LRUHandle*>(new char[handle_size]);
-    autovector<LRUHandle*> last_reference_list;
+    LRUHandle *e = reinterpret_cast<LRUHandle *>(new char[handle_size]);
+    autovector<LRUHandle *> last_reference_list;
 
     bool s = true;
 
@@ -388,7 +365,7 @@ bool LRUCacheShard::Insert(const StringView& key, uint32_t hash, void* value, si
                 // into cache and get evicted immediately.
                 last_reference_list.push_back(e);
             } else {
-                delete[] reinterpret_cast<char*>(e);
+                delete[] reinterpret_cast<char *>(e);
                 *handle = nullptr;
                 s = false;
                 // s = Status::Incomplete(StringView("Insert failed due to LRU cache being full."));
@@ -397,7 +374,7 @@ bool LRUCacheShard::Insert(const StringView& key, uint32_t hash, void* value, si
             // insert into the cache
             // note that the cache might get larger than its capacity if not enough
             // space was freed
-            LRUHandle* old = table_.Insert(e);
+            LRUHandle *old = table_.Insert(e);
             usage_ += e->charge;
             if (old != nullptr) {
                 old->SetInCache(false);
@@ -412,7 +389,7 @@ bool LRUCacheShard::Insert(const StringView& key, uint32_t hash, void* value, si
             if (handle == nullptr) {
                 LRU_Insert(e);
             } else {
-                *handle = reinterpret_cast<CacheBase::Handle*>(e);
+                *handle = reinterpret_cast<CacheBase::Handle *>(e);
             }
             s = true;
         }
@@ -427,9 +404,8 @@ bool LRUCacheShard::Insert(const StringView& key, uint32_t hash, void* value, si
     return s;
 }
 
-void LRUCacheShard::Erase(const StringView& key, uint32_t hash)
-{
-    LRUHandle* e;
+void LRUCacheShard::Erase(const StringView &key, uint32_t hash) {
+    LRUHandle *e;
     bool last_reference = false;
     {
         ScopedLock l(mutex_);
@@ -453,21 +429,18 @@ void LRUCacheShard::Erase(const StringView& key, uint32_t hash)
     }
 }
 
-size_t LRUCacheShard::GetUsage() const
-{
+size_t LRUCacheShard::GetUsage() const {
     ScopedLock l(mutex_);
     return usage_;
 }
 
-size_t LRUCacheShard::GetPinnedUsage() const
-{
+size_t LRUCacheShard::GetPinnedUsage() const {
     ScopedLock l(mutex_);
     assert(usage_ >= lru_usage_);
     return usage_ - lru_usage_;
 }
 
-std::string LRUCacheShard::GetPrintableOptions() const
-{
+std::string LRUCacheShard::GetPrintableOptions() const {
     const int kBufferSize = 200;
     char buffer[kBufferSize];
     {
@@ -477,10 +450,12 @@ std::string LRUCacheShard::GetPrintableOptions() const
     return std::string(buffer);
 }
 
-LRUCache::LRUCache(size_t capacity, int num_shard_bits, bool strict_capacity_limit, double high_pri_pool_ratio,
-                   const CacheAllocatorPtr& allocator)
-    : ShardedCache(capacity, num_shard_bits, strict_capacity_limit)
-{
+LRUCache::LRUCache(size_t capacity,
+                   int num_shard_bits,
+                   bool strict_capacity_limit,
+                   double high_pri_pool_ratio,
+                   const CacheAllocatorPtr &allocator)
+    : ShardedCache(capacity, num_shard_bits, strict_capacity_limit) {
     int num_shards = 1 << num_shard_bits;
     shards_ = new LRUCacheShard[num_shards];
     SetCapacity(capacity);
@@ -493,21 +468,23 @@ LRUCache::LRUCache(size_t capacity, int num_shard_bits, bool strict_capacity_lim
 
 LRUCache::~LRUCache() { delete[] shards_; }
 
-CacheShard* LRUCache::GetShard(int shard) { return reinterpret_cast<CacheShard*>(&shards_[shard]); }
+CacheShard *LRUCache::GetShard(int shard) { return reinterpret_cast<CacheShard *>(&shards_[shard]); }
 
-const CacheShard* LRUCache::GetShard(int shard) const { return reinterpret_cast<CacheShard*>(&shards_[shard]); }
+const CacheShard *LRUCache::GetShard(int shard) const { return reinterpret_cast<CacheShard *>(&shards_[shard]); }
 
-void* LRUCache::Value(Handle* handle) { return reinterpret_cast<const LRUHandle*>(handle)->value; }
+void *LRUCache::Value(Handle *handle) { return reinterpret_cast<const LRUHandle *>(handle)->value; }
 
-size_t LRUCache::GetCharge(Handle* handle) const { return reinterpret_cast<const LRUHandle*>(handle)->charge; }
+size_t LRUCache::GetCharge(Handle *handle) const { return reinterpret_cast<const LRUHandle *>(handle)->charge; }
 
-uint32_t LRUCache::GetHash(Handle* handle) const { return reinterpret_cast<const LRUHandle*>(handle)->hash; }
+uint32_t LRUCache::GetHash(Handle *handle) const { return reinterpret_cast<const LRUHandle *>(handle)->hash; }
 
 void LRUCache::DisownData() { shards_ = nullptr; }
 
-std::shared_ptr<CacheBase> NewLRUCache(size_t capacity, int num_shard_bits, bool strict_capacity_limit,
-                                   double high_pri_pool_ratio, const CacheAllocatorPtr& allocator)
-{
+std::shared_ptr<CacheBase> NewLRUCache(size_t capacity,
+                                       int num_shard_bits,
+                                       bool strict_capacity_limit,
+                                       double high_pri_pool_ratio,
+                                       const CacheAllocatorPtr &allocator) {
     if (num_shard_bits >= 20) {
         return nullptr; // the cache cannot be sharded into too many fine pieces
     }
@@ -518,4 +495,4 @@ std::shared_ptr<CacheBase> NewLRUCache(size_t capacity, int num_shard_bits, bool
     return std::make_shared<LRUCache>(capacity, num_shard_bits, strict_capacity_limit, high_pri_pool_ratio, allocator);
 }
 
-}
+} // namespace autil

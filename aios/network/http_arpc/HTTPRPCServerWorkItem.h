@@ -16,11 +16,12 @@
 #ifndef HTTP_ARPC_HTTPRPCSERVERWORKITEM_H
 #define HTTP_ARPC_HTTPRPCSERVERWORKITEM_H
 
-#include "ProtoJsonizer.h"
+#include <memory>
+
 #include "HTTPRPCServerClosure.h"
+#include "ProtoJsonizer.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
 #include "autil/WorkItem.h"
-#include <memory>
 
 namespace anet {
 class Connection;
@@ -28,8 +29,7 @@ class Connection;
 
 namespace http_arpc {
 
-class HTTPRPCServerWorkItem : public autil::WorkItem
-{
+class HTTPRPCServerWorkItem : public autil::WorkItem {
 public:
     HTTPRPCServerWorkItem(RPCService *pService,
                           RPCMethodDescriptor *pMethodDes,
@@ -40,6 +40,7 @@ public:
                           const EagleInfo &eagleInfo,
                           std::string requestStr);
     ~HTTPRPCServerWorkItem();
+
 public:
     virtual void process();
     virtual void destroy();
@@ -48,6 +49,7 @@ public:
 public:
     void SetBeginTime(int64_t beginTime);
     void SetAddr(const std::string &addr);
+
 private:
     RPCService *_service;
     RPCMethodDescriptor *_method;
@@ -61,5 +63,5 @@ private:
     std::string _addr;
 };
 
-}
-#endif //HTTP_ARPC_HTTPRPCSERVERWORKITEM_H
+} // namespace http_arpc
+#endif // HTTP_ARPC_HTTPRPCSERVERWORKITEM_H

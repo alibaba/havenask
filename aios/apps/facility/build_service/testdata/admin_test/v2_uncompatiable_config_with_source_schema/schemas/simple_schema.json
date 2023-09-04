@@ -1,0 +1,28 @@
+{
+    "fields": [
+        {
+            "field_name": "id",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "attributes",
+            "field_type": "STRING"
+        }
+    ],
+    "indexs": [
+        {
+            "has_primary_key_attribute": true,
+            "index_fields": "id",
+            "index_name": "id",
+            "index_type": "PRIMARYKEY64"
+        }
+    ],
+    "attributes": ["id", "attributes"],
+    "table_name": "simple",
+    "table_type": "normal",
+    "source": {
+        "group_configs": [{
+            "field_mode": "all_field"
+        }]
+    }
+}

@@ -1,0 +1,69 @@
+package swift.protocol;
+option java_package="com.alibaba.search.swift.protocol";
+
+message Filter {
+    optional uint32 from = 1 [default = 0];
+    optional uint32 to = 2 [default = 65535];
+    optional uint32 uint8FilterMask = 3 [ default = 0 ];
+    optional uint32 uint8MaskResult = 4 [ default = 0 ];
+    optional uint32 mergedTo = 5 [default = 65535]; // for merge message
+}
+
+enum DataType {
+    DATA_TYPE_UNKNOWN = 0;
+    DATA_TYPE_SCHEMA = 1;
+    DATA_TYPE_FIELDFILTER = 2;
+}
+
+message Message {
+    optional int64 msgId = 1;
+    optional int64 timestamp = 2;
+    optional bytes data = 3;
+    optional uint32 uint16Payload = 4 [default = 0];
+    optional uint32 uint8MaskPayload = 5 [default = 0];
+    optional bool compress = 6 [default = false];
+    optional bool merged = 7 [default = false];
+    optional DataType dataType = 8 [default = DATA_TYPE_UNKNOWN];
+    optional uint64 requestUuid = 9 [default = 0];
+    optional uint32 offsetInRawMsg = 10 [default = 0];		
+}
+
+message Messages {
+    repeated Message msgs = 1;
+}
+
+message WriteMessageInfo {
+    optional uint32 uint8Payload = 1 [default = 0];
+    optional uint32 uint16Payload = 2 [default = 0];
+    optional uint32 pid = 3;
+    optional int64 checkpointId = 4;
+    optional bytes data = 5;
+    optional bytes hashStr = 6;
+    optional bool compress = 7 [default = false];
+    optional DataType dataType = 8 [default = DATA_TYPE_UNKNOWN];
+}
+
+message WriteMessageInfoVec {
+    repeated WriteMessageInfo messageInfoVec = 1;
+}
+
+message ReaderProgress {
+    repeated TopicReaderProgress topicProgress = 1;
+}
+
+message TopicReaderProgress {
+    optional string topicName = 1;
+    optional uint32 uint8FilterMask = 2 [ default = 0 ];
+    optional uint32 uint8MaskResult = 3 [ default = 0 ];
+    repeated PartReaderProgress partProgress = 4;
+}
+
+message PartReaderProgress {
+    optional uint32 from = 1 [default = 0];
+    optional uint32 to = 2 [default = 65535];
+    optional int64 timestamp = 3;
+    optional uint32 offsetInRawMsg = 4 [default = 0];	
+}
+
+
+

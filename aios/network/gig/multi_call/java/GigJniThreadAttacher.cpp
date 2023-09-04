@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/java/GigJniThreadAttacher.h"
+
+#include <iostream>
+#include <unistd.h>
+
 #include "aios/network/gig/multi_call/service/ConnectionManager.h"
 #include "aios/network/gig/multi_call/service/SearchServiceManager.h"
 #include "autil/StringUtil.h"
-#include <iostream>
-#include <unistd.h>
 
 using namespace std;
 using namespace autil;
@@ -39,21 +41,21 @@ void GigJniThreadAttacher::loadJavaVM(JavaVM *jvm) {
 void GigJniThreadAttacher::unloadJavaVM(JavaVM *jvm) {
     std::cout << "JNI_OnUnload java vm:" << jvm << std::endl;
     if (_jvm != jvm) {
-        std::cerr << "not equal java vm: " << _jvm << " != " << jvm
-                  << std::endl;
+        std::cerr << "not equal java vm: " << _jvm << " != " << jvm << std::endl;
     }
     _jvm = NULL;
 }
 
 bool GigJniThreadAttacher::attachCurrentThread() {
     if (currentThreadJvmAttatched) {
-        return true;;
-   }
-   if (!_jvm) {
+        return true;
+        ;
+    }
+    if (!_jvm) {
         AUTIL_LOG(WARN, "jvm is null, attach jvm to current thread failed, return!");
         return false;
     }
-   return doAttachOrDetach(true);
+    return doAttachOrDetach(true);
 }
 
 bool GigJniThreadAttacher::attachInstance(GigInstance *ins) {
@@ -71,10 +73,8 @@ bool GigJniThreadAttacher::attachInstance(GigInstance *ins) {
         AUTIL_LOG(WARN, "searchService is null!");
         return false;
     }
-    SearchServiceManagerPtr serviceManager =
-        searchService->getSearchServiceManager();
-    const ConnectionManagerPtr &connectionManager =
-        serviceManager->getConnectionManager();
+    SearchServiceManagerPtr serviceManager = searchService->getSearchServiceManager();
+    const ConnectionManagerPtr &connectionManager = serviceManager->getConnectionManager();
     auto callbackThreadPool = connectionManager->getCallBackThreadPool();
     return attachOrDetach(callbackThreadPool, true);
 }
@@ -94,16 +94,13 @@ bool GigJniThreadAttacher::detachInstance(GigInstance *ins) {
         AUTIL_LOG(WARN, "searchService is null!");
         return false;
     }
-    SearchServiceManagerPtr serviceManager =
-        searchService->getSearchServiceManager();
-    const ConnectionManagerPtr &connectionManager =
-        serviceManager->getConnectionManager();
+    SearchServiceManagerPtr serviceManager = searchService->getSearchServiceManager();
+    const ConnectionManagerPtr &connectionManager = serviceManager->getConnectionManager();
     auto callbackThreadPool = connectionManager->getCallBackThreadPool();
     return attachOrDetach(callbackThreadPool, false);
 }
 
-bool GigJniThreadAttacher::attachOrDetach(
-    autil::LockFreeThreadPool *threadPool, bool attach) {
+bool GigJniThreadAttacher::attachOrDetach(autil::LockFreeThreadPool *threadPool, bool attach) {
     if (!threadPool) {
         AUTIL_LOG(INFO, "threadPool is null, do nothing");
         return true;
@@ -111,12 +108,10 @@ bool GigJniThreadAttacher::attachOrDetach(
 
     autil::ScopedLock lock(_attachMutex);
     size_t threadNum = threadPool->getThreadNum();
-    AUTIL_LOG(INFO, "callback thread num:%ld, push equal attach work items",
-              threadNum);
+    AUTIL_LOG(INFO, "callback thread num:%ld, push equal attach work items", threadNum);
 
     for (size_t i = 0; i < threadNum; i++) {
-        threadPool->pushWorkItem(new GigJniAttachWorkItem(
-            attach, _attachMutex));
+        threadPool->pushWorkItem(new GigJniAttachWorkItem(attach, _attachMutex));
     }
     while (true) {
         if ((size_t)0 == threadPool->getItemCount()) {
@@ -150,13 +145,12 @@ bool GigJniThreadAttacher::doAttachOrDetach(bool attach) {
             return true;
         }
         if (_jvm->AttachCurrentThread((void **)&env, NULL) == JNI_OK) {
-            AUTIL_LOG(INFO, "attach succeed, thread id:%s, name:%s",
-                      threadIdStr.c_str(), threadName.c_str());
+            AUTIL_LOG(INFO, "attach succeed, thread id:%s, name:%s", threadIdStr.c_str(),
+                      threadName.c_str());
             currentThreadJvmAttatched = true;
             return true;
         } else {
-            AUTIL_LOG(WARN,
-                      "GigJni: Can't attach native thread to VM, thread id:%s, name:%s",
+            AUTIL_LOG(WARN, "GigJni: Can't attach native thread to VM, thread id:%s, name:%s",
                       threadIdStr.c_str(), threadName.c_str());
             return false;
         }
@@ -167,13 +161,13 @@ bool GigJniThreadAttacher::doAttachOrDetach(bool attach) {
             return true;
         }
         if (_jvm->DetachCurrentThread() == 0) {
-            AUTIL_LOG(INFO, "detach succeed, thread id:%s, name:%s",
-                      threadIdStr.c_str(), threadName.c_str());
+            AUTIL_LOG(INFO, "detach succeed, thread id:%s, name:%s", threadIdStr.c_str(),
+                      threadName.c_str());
             currentThreadJvmAttatched = false;
             return true;
         } else {
-            AUTIL_LOG(WARN, "GigJni: could not detach thread:%s, name:%s",
-                      threadIdStr.c_str(), threadName.c_str());
+            AUTIL_LOG(WARN, "GigJni: could not detach thread:%s, name:%s", threadIdStr.c_str(),
+                      threadName.c_str());
             return false;
         }
     }
@@ -184,7 +178,9 @@ void GigJniAttachWorkItem::process() {
     GigJniThreadAttacher::doAttachOrDetach(_attach);
 }
 
-void GigJniAttachWorkItem::destroy() { delete this; }
+void GigJniAttachWorkItem::destroy() {
+    delete this;
+}
 
 void GigJniAttachWorkItem::drop() {
     std::string threadIdStr = StringUtil::toString(this_thread::get_id());

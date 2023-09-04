@@ -41,6 +41,7 @@ public:
 
     virtual Status Open(const std::shared_ptr<TabletData>& data, const BuildResource& buildResource,
                         const OpenOptions& openOptions) = 0;
+    virtual void Close() = 0;
     // Return Status:
     // 1. OK: build success
     // 2. NoMem: build no mem, wait mem free

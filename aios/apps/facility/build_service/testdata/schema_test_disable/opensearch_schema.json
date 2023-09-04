@@ -1,0 +1,756 @@
+{ 
+    
+    "enable_ttl" : true,
+    "ttl_field_name" : "ops_doc_time_to_live_in_seconds",
+    "attributes" : [
+        "ops_m_int64_0", 
+        "ops_doc_time_to_live_in_seconds",
+        {
+            "pack_name" : "pack_attr",
+            "sub_attributes" : ["inter_timestamp", "ops_version"]                                
+        }
+    ],
+    "fields" : [
+        {
+            "field_name" : "pk",
+            "field_type" : "STRING"
+        },
+        {
+            "field_name" : "ops_hash_pk",
+            "field_type" : "LONG"
+        },
+        {
+            "compress_type" : "equal",
+            "field_name" : "ops_app_name",
+            "field_type" : "STRING",
+            "uniq_encode" : true
+        },
+        {
+            "field_name" : "ops_single_attr",
+            "field_type" : "STRING",
+            "compress_type" : "equal"
+        },
+        {
+            "field_name" : "ops_single_attr_meta",
+            "field_type" : "STRING",
+            "uniq_encode" : true,
+            "compress_type" : "equal"
+        },
+        {
+            "field_name" : "ops_multi_attr",
+            "field_type" : "STRING",
+            "compress_type" : "equal"
+        },
+        {
+            "field_name" : "ops_multi_attr_meta",
+            "field_type" : "STRING",
+            "uniq_encode" : true,
+            "compress_type" : "equal"
+        },
+        {
+            "field_name" : "ops_single_int",
+            "field_type" : "STRING",
+            "compress_type" : "equal"
+        },
+        {
+            "field_name" : "ops_single_int_meta",
+            "field_type" : "STRING",
+            "uniq_encode" : true,
+            "compress_type" : "equal"
+        },
+        {
+            "field_name" : "ops_multi_int",
+            "field_type" : "STRING",
+            "compress_type" : "equal"
+        },
+        {
+            "field_name" : "ops_multi_int_meta",
+            "field_type" : "STRING",
+            "uniq_encode" : true,
+            "compress_type" : "equal"
+        },  
+        {
+            "compress_type" : "equal",
+            "field_name" : "ops_version",
+            "field_type" : "INTEGER"
+        },
+        {
+            "field_name" : "ops_summary",
+            "field_type" : "STRING"
+        },
+        {
+            "compress_type" : "equal",
+            "field_name" : "ops_summary_meta",
+            "field_type" : "STRING",
+            "uniq_encode" : true
+        },
+        {
+            "compress_type" : "equal",
+            "field_name" : "ops_config_meta",
+            "field_type" : "STRING",
+            "uniq_encode" : true
+        },
+        {
+            "compress_type" : "equal",
+            "field_name" : "inter_timestamp",
+            "field_type" : "UINT32"
+        },
+        {
+            "compress_type" : "equal",
+            "field_name" : "service_id",
+            "field_type" : "INT64"
+        },
+        {
+            "field_name" : "ops_string_index",
+            "field_type" : "STRING",
+            "multi_value" : true
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_0",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_1",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_2",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_3",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_4",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_5",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_6",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_7",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_8",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_9",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_10",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_11",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_12",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_13",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_14",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_15",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_16",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_17",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_18",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_19",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_20",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_21",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_22",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_23",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_24",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_25",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_26",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_27",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_28",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_29",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_30",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_text_field_31",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_0_0",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_0_1",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_0_2",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_0_3",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_0_4",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_0_5",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_0_6",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_0_7",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_1_0",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_1_1",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_1_2",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_1_3",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_1_4",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_1_5",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_1_6",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_1_7",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_2_0",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_2_1",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_2_2",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_2_3",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_2_4",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_2_5",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_2_6",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_2_7",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_3_0",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_3_1",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_3_2",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_3_3",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_3_4",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_3_5",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_3_6",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "extend_analyzer",
+            "field_name" : "ops_package_field_3_7",
+            "field_type" : "TEXT"
+        },
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_sys_summary_meta", 
+            "field_type": "STRING", 
+            "uniq_encode": true
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_int_range_field_0", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_int_range_field_1", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_int_range_field_2", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_int_range_field_3", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_date_range_field_0", 
+            "field_type": "UINT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_date_range_field_1", 
+            "field_type": "UINT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_date_range_field_2", 
+            "field_type": "UINT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_date_range_field_3", 
+            "field_type": "UINT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_geo_point_field_0", 
+            "field_type": "LOCATION"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_geo_point_field_1", 
+            "field_type": "LOCATION"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_0", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_1", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_2", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_3", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_4", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_5", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_6", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_7", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_8", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_9", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_10", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_11", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_12", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_13", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_14", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_15", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_16", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_17", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_18", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_s_int64_19", 
+            "field_type": "INT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_m_int64_0", 
+            "field_type": "INT64", 
+            "multi_value": true, 
+            "uniq_encode": true
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_m_int64_1", 
+            "field_type": "INT64", 
+            "multi_value": true, 
+            "uniq_encode": true
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_m_int64_2", 
+            "field_type": "INT64", 
+            "multi_value": true, 
+            "uniq_encode": true
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_m_int64_3", 
+            "field_type": "INT64", 
+            "multi_value": true, 
+            "uniq_encode": true
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_m_int64_4", 
+            "field_type": "INT64", 
+            "multi_value": true, 
+            "uniq_encode": true
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_user_pk_hash", 
+            "field_type": "UINT64"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_doc_time_to_live_in_seconds", 
+            "field_type": "UINT32"
+        }, 
+        {
+            "compress_type": "equal", 
+            "field_name": "ops_user_partition_id", 
+            "field_type": "UINT32"
+        }    
+    ],
+    "indexs" : [
+        {
+            "has_primary_key_attribute" : true,
+            "index_fields" : "pk",
+            "index_name" : "pk",
+            "index_type" : "PRIMARYKEY64",
+            "is_primary_key_sorted":true
+        },
+        {
+            "has_dict_inline_compress" : true,
+            "index_fields" : "ops_app_name",
+            "index_name" : "ops_app_name",
+            "index_type" : "STRING",
+            "term_frequency_flag" : 0
+        },
+        {
+            "index_fields" : "service_id",
+            "index_name" : "service_id",
+            "index_type" : "NUMBER",
+            "term_frequency_flag" : 0
+        },
+        {
+            "doc_payload_flag" : 1,
+            "index_fields" : [
+                {
+                    "boost" : 10,
+                    "field_name" : "ops_text_field_0"
+                }
+            ],
+            "index_name" : "ops_text_index_0",
+            "index_type" : "PACK",
+            "position_payload_flag" : 1,
+            "term_payload_flag" : 1,
+            "term_frequency_flag" : 1, 
+            "term_frequency_bitmap" : 0,
+            "has_section_attribute" : true,
+            "section_attribute_config" : {
+                "compress_type" : "uniq | equal",
+                "has_field_id" : false,
+                "has_section_weight" : true
+            }
+        },
+        {
+            "doc_payload_flag" : 1,
+            "index_fields" : [
+                {
+                    "boost" : 10,
+                    "field_name" : "ops_package_field_0_0"
+                },
+                {
+                    "boost" : 10,
+                    "field_name" : "ops_package_field_0_1"
+                },
+                {
+                    "boost" : 10,
+                    "field_name" : "ops_package_field_0_2"
+                },
+                {
+                    "boost" : 10,
+                    "field_name" : "ops_package_field_0_3"
+                },
+                {
+                    "boost" : 10,
+                    "field_name" : "ops_package_field_0_4"
+                },
+                {
+                    "boost" : 10,
+                    "field_name" : "ops_package_field_0_5"
+                },
+                {
+                    "boost" : 10,
+                    "field_name" : "ops_package_field_0_6"
+                },
+                {
+                    "boost" : 10,
+                    "field_name" : "ops_package_field_0_7"
+                }
+            ],
+            "index_name" : "ops_package_index_0",
+            "index_type" : "PACK",
+            "position_payload_flag" : 1,
+            "term_payload_flag" : 1,
+            "term_frequency_flag" : 1, 
+            "term_frequency_bitmap" : 0,
+            "has_section_attribute" : true,
+            "section_attribute_config" : {
+                "compress_type" : "uniq | equal",
+                "has_field_id" : true,
+                "has_section_weight" : true
+            }
+        },
+        {
+            "index_fields": "ops_int_range_field_0", 
+            "index_name": "ops_int_range_index_0", 
+            "index_type": "RANGE"
+        }, 
+        {
+            "build_granularity": "second", 
+            "index_fields": "ops_date_range_field_0", 
+            "index_name": "ops_date_range_index_0", 
+            "index_type": "DATE"
+        }, 
+        {
+            "index_fields": "ops_geo_point_field_0", 
+            "index_name": "ops_geo_point_index_0", 
+            "index_type": "SPATIAL", 
+            "max_dist_err": 100, 
+            "max_search_dist": 10000
+        }
+    ],
+    "summarys" : {
+        "compress" : true,
+        "summary_fields" : [
+            "pk",
+            "service_id",
+            "ops_version",
+            "ops_app_name"
+        ]
+    },
+    
+    "table_name":"public_std"
+}

@@ -35,6 +35,7 @@
 #include "indexlib/index/kv/config/KVIndexConfig.h"
 #include "indexlib/table/BuiltinDefine.h"
 #include "indexlib/table/common/CommonTabletValidator.h"
+#include "indexlib/table/common/CommonVersionImporter.h"
 #include "indexlib/table/common/LSMTabletLoader.h"
 #include "indexlib/table/kv_table/KVMemSegment.h"
 #include "indexlib/table/kv_table/KVReaderImpl.h"
@@ -71,12 +72,12 @@ bool KVTabletFactory::Init(const std::shared_ptr<config::TabletOptions>& options
 }
 
 std::unique_ptr<framework::TabletWriter>
-KVTabletFactory::CreateTabletWriter(const std::shared_ptr<config::TabletSchema>& schema)
+KVTabletFactory::CreateTabletWriter(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     return std::make_unique<KVTabletWriter>(schema, _options->GetTabletOptions());
 }
 
-std::unique_ptr<TabletReader> KVTabletFactory::CreateTabletReader(const std::shared_ptr<config::TabletSchema>& schema)
+std::unique_ptr<TabletReader> KVTabletFactory::CreateTabletReader(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     return std::make_unique<KVTabletReader>(schema);
 }
@@ -107,9 +108,9 @@ KVTabletFactory::CreateDiskSegment(const SegmentMeta& segmentMeta, const framewo
 std::unique_ptr<framework::MemSegment> KVTabletFactory::CreateMemSegment(const SegmentMeta& segmentMeta)
 {
     auto segmentInfo = segmentMeta.segmentInfo;
-    if (segmentInfo->GetShardCount() == framework::SegmentInfo::INVALID_COLUMN_COUNT) {
+    if (segmentInfo->GetShardCount() == framework::SegmentInfo::INVALID_SHARDING_COUNT) {
         segmentInfo->SetShardCount(_options->GetShardNum());
-        AUTIL_LOG(INFO, "set shard count from[%u] to[%u] ", framework::SegmentInfo::INVALID_COLUMN_COUNT,
+        AUTIL_LOG(INFO, "set shard count from[%u] to[%u] ", framework::SegmentInfo::INVALID_SHARDING_COUNT,
                   _options->GetShardNum());
     }
 
@@ -126,7 +127,7 @@ std::unique_ptr<framework::MemSegment> KVTabletFactory::CreateMemSegment(const S
 
     bool enableMemoryReclaim = _options->IsMemoryReclaimEnabled();
     auto segmentCreator = [enableMemoryReclaim](const config::TabletOptions* tableOptions,
-                                                const std::shared_ptr<config::TabletSchema>& schema,
+                                                const std::shared_ptr<config::ITabletSchema>& schema,
                                                 const framework::SegmentMeta& segmentMeta) {
         return std::make_shared<KVMemSegment>(tableOptions, schema, segmentMeta, enableMemoryReclaim);
     };
@@ -142,7 +143,7 @@ std::unique_ptr<framework::IIndexTaskResourceCreator> KVTabletFactory::CreateInd
 }
 
 std::unique_ptr<framework::IIndexOperationCreator>
-KVTabletFactory::CreateIndexOperationCreator(const std::shared_ptr<config::TabletSchema>& schema)
+KVTabletFactory::CreateIndexOperationCreator(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     return std::make_unique<KVTableTaskOperationCreator>(schema);
 }
@@ -158,9 +159,14 @@ std::unique_ptr<indexlib::framework::ITabletExporter> KVTabletFactory::CreateTab
 }
 
 std::unique_ptr<document::IDocumentFactory>
-KVTabletFactory::CreateDocumentFactory(const std::shared_ptr<config::TabletSchema>& schema)
+KVTabletFactory::CreateDocumentFactory(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     return std::make_unique<document::KVDocumentFactory>();
+}
+
+std::unique_ptr<framework::ITabletImporter> KVTabletFactory::CreateTabletImporter(const std::string& type)
+{
+    return std::make_unique<table::CommonVersionImporter>();
 }
 
 std::unique_ptr<config::SchemaResolver> KVTabletFactory::CreateSchemaResolver() const
@@ -173,6 +179,6 @@ std::unique_ptr<indexlib::framework::ITabletValidator> KVTabletFactory::CreateTa
     return std::make_unique<indexlib::table::CommonTabletValidator>();
 }
 
-REGISTER_FACTORY(kv, KVTabletFactory);
+REGISTER_TABLET_FACTORY(kv, KVTabletFactory);
 
 } // namespace indexlibv2::table

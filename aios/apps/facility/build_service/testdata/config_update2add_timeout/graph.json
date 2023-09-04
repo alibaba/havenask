@@ -1,0 +1,6 @@
+{
+    "graph_name" : "U2ABuildIndex.graph",
+    "id" : "1",
+    "path" : "Update2Add",
+    "params":{"stop_build_timeout_in_second":"1"}
+}

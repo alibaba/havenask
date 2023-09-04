@@ -17,41 +17,41 @@
 #define FSLIB_MULTISPEEDCONTROLLER_H
 
 #include <autil/Log.h>
+
+#include "fslib/fs/SpeedController.h"
 #include "fslib/fslib.h"
 #include "fslib/util/Singleton.h"
-#include "fslib/fs/SpeedController.h"
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class MultiSpeedController : public util::Singleton<MultiSpeedController>
-{
+class MultiSpeedController : public util::Singleton<MultiSpeedController> {
 public:
     MultiSpeedController();
     ~MultiSpeedController();
+
 public:
-    static SpeedController* getReadSpeedController(const std::string& filePath);
-    static bool updateQuota(const std::string& patternString, int64_t quotaSizePerSec);
-    static double getQuotaUsageRatio(const std::string& patternString);
-    
+    static SpeedController *getReadSpeedController(const std::string &filePath);
+    static bool updateQuota(const std::string &patternString, int64_t quotaSizePerSec);
+    static double getQuotaUsageRatio(const std::string &patternString);
+
     // quotaInfo pair format:
     // * first: pattern, second: quotaPerSize
-    static void getQuotaDetailInfo(std::vector<std::pair<std::string, int64_t>>& quotaInfos);
+    static void getQuotaDetailInfo(std::vector<std::pair<std::string, int64_t>> &quotaInfos);
 
 public:
-    std::vector<SpeedControllerPtr>& TEST_getContollers() { return _readSpeedControllers; }
+    std::vector<SpeedControllerPtr> &TEST_getContollers() { return _readSpeedControllers; }
 
 private:
-    void init(const std::string& params);
-    SpeedController* findReadSpeedController(const std::string& filePath) const;
-    SpeedController* findReadSpeedControllerByPatternString(const std::string& pattern) const;
+    void init(const std::string &params);
+    SpeedController *findReadSpeedController(const std::string &filePath) const;
+    SpeedController *findReadSpeedControllerByPatternString(const std::string &pattern) const;
 
 private:
     std::vector<SpeedControllerPtr> _readSpeedControllers;
-
 };
 
 FSLIB_TYPEDEF_AUTO_PTR(MultiSpeedController);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_MULTIREADSPEEDCONTROLLER_H
+#endif // FSLIB_MULTIREADSPEEDCONTROLLER_H

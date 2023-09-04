@@ -1,0 +1,111 @@
+{
+    "merge_config": {
+        "truncate_strategy": [
+            {
+                "truncate_profiles": [
+                    "desc_static_trans_score"
+                ],
+                "strategy_type": "truncate_meta",
+                "strategy_name": "static_trans_score_filter_by_meta",
+                "limit": 4000,
+                "diversity_constrain": {
+                    "filter_field": "static_trans_score",
+                    "filter_by_meta": true
+                }
+            },
+            {
+                "truncate_profiles": [
+                    "desc_w_gmv_haixuan_c2c"
+                ],
+                "strategy_type": "truncate_meta",
+                "strategy_name": "w_gmv_haixuan_c2c_filter_by_meta",
+                "limit": 4000,
+                "diversity_constrain": {
+                    "filter_field": "w_gmv_haixuan_c2c",
+                    "filter_by_meta": true
+                }
+            },
+            {
+                "truncate_profiles": [
+                    "desc_uvsum"
+                ],
+                "strategy_type": "truncate_meta",
+                "strategy_name": "uvsum_suc_filter_by_meta",
+                "limit": 4000,
+                "diversity_constrain": {
+                    "filter_field": "uvsum",
+                    "filter_by_meta": true
+                }
+            },
+            {
+                "truncate_profiles": [
+                    "desc_uvsum_suc"
+                ],
+                "strategy_type": "truncate_meta",
+                "strategy_name": "uvsum_suc_filter_by_meta",
+                "limit": 4000,
+                "diversity_constrain": {
+                    "filter_field": "uvsum_suc",
+                    "filter_by_meta": true
+                }
+            },
+            {
+                "truncate_profiles": [
+                    "desc_auc_money_score_c2c",
+                    "desc_2_auc_money_score_c2c",
+                    "desc_auc_money_score_exp_c2c",
+                    "desc_auc_money_score_bts_c2c"
+                ],
+                "strategy_type": "truncate_meta",
+                "strategy_name": "auc_money_score_c2c_filter_by_meta",
+                "limit": 4000,
+                "diversity_constrain": {
+                    "filter_field": "auc_money_score_c2c",
+                    "filter_by_meta": true
+                }
+            },
+            {
+                "truncate_profiles": [
+                    "desc_biz30day"
+                ],
+                "strategy_type": "truncate_meta",
+                "strategy_name": "biz30day_filter_by_meta",
+                "limit": 4000,
+                "diversity_constrain": {
+                    "filter_field": "biz30day",
+                    "filter_by_meta": true
+                }
+            },
+            {
+                "truncate_profiles": [
+                    "desc_payload_gmv"
+                ],
+                "strategy_type": "truncate_meta",
+                "strategy_name": "auc_money_score_c2c_docpayload_filter_by_meta",
+                "limit": 4000,
+                "diversity_constrain": {
+                    "filter_field": "DOC_PAYLOAD",
+                    "filter_by_meta": true
+                }
+            },
+            {
+                "truncate_profiles": [
+                    "desc_payload_gmv_16000"
+                ],
+                "strategy_type": "truncate_meta",
+                "strategy_name": "auc_money_score_c2c_docpayload_16000_filter_by_meta",
+                "limit": 4000,
+                "diversity_constrain": {
+                    "filter_field": "DOC_PAYLOAD",
+                    "filter_by_meta": true
+                }
+            }
+        ],
+        "merge_thread_count": 3,
+        "merge_strategy_param": "conflict-segment-number=2;base-doc-count=1024000;max-doc-count=10240000;conflict-delete-percent=80;max-valid-doc-count=20000000",
+        "max_merge_memory_use": 22528,
+        "merge_strategy": "balance_tree",
+        "keep_version_count": 100,
+        "inherit_from": "clusters/base_cluster.json"
+    }
+}

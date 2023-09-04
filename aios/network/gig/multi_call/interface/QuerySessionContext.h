@@ -61,7 +61,8 @@ public:
     std::map<std::string, std::string> getUserDataMap() const;
 
 public:
-    void initTrace(const SearchServicePtr &searchService, const opentelemetry::SpanContextPtr &parent = nullptr);
+    void initTrace(const SearchServicePtr &searchService,
+                   const opentelemetry::SpanContextPtr &parent = nullptr);
     void setEagleeyeUserData(const std::string &traceId = "", const std::string &rpcId = "",
                              const std::string &userData = "", const std::string &traceparent = "",
                              const std::string &tracestate = "");

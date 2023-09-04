@@ -138,7 +138,7 @@ ErrorCode MmapFileNode::DoOpenMmapFile(const string& path, size_t offset, size_t
     _length = _file->getLength();
 
     if (_loadStrategy->IsLock() && !_warmup) {
-        AUTIL_LOG(DEBUG, "lock enforce warmup, set warmp is true.");
+        AUTIL_LOG(DEBUG, "lock enforce warmup, set warmup is true.");
         _warmup = true;
     }
     if (_loadStrategy->IsLock()) {

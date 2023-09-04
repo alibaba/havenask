@@ -20,7 +20,7 @@
  * Copyright (C) 2015 Cloudius Systems, Ltd.
  */
 
-#ifdef SEASTAR_ASAN_ENABLED
+#ifdef FL_ASAN_ENABLED
 #include <ucontext.h>
 #endif
 #include <algorithm>
@@ -54,11 +54,10 @@ size_t get_base_stack_size() {
   return stack_size;
 }
 
-#ifdef SEASTAR_ASAN_ENABLED
+#ifdef FL_ASAN_ENABLED
 
 namespace {
 
-#ifdef SEASTAR_HAVE_ASAN_FIBER_SUPPORT
 // ASan provides two functions as a means of informing it that user context
 // switch has happened. First __sanitizer_start_switch_fiber() needs to be
 // called with a place to store the fake stack pointer and the new stack
@@ -71,10 +70,6 @@ extern "C" {
 void __sanitizer_start_switch_fiber(void** fake_stack_save, const void* stack_bottom, size_t stack_size);
 void __sanitizer_finish_switch_fiber(void* fake_stack_save, const void** stack_bottom_old, size_t* stack_size_old);
 }
-#else
-static inline void __sanitizer_start_switch_fiber(...) {}
-static inline void __sanitizer_finish_switch_fiber(...) {}
-#endif
 
 }  // namespace
 
@@ -167,7 +162,7 @@ void thread_context::setup() {
   context_.fcontext =
     _fl_make_fcontext(stack_.bottom + stack_.size, stack_.size, thread_context::s_main);
   context_.thread = this;
-#ifdef SEASTAR_ASAN_ENABLED
+#ifdef FL_ASAN_ENABLED
   context_.stack_bottom = stack_.bottom;
   context_.stack_size = stack_.size;
 #endif
@@ -209,7 +204,7 @@ void thread_context::main() {
     done_.setException(std::current_exception());
   }
 
-#ifdef SEASTAR_ASAN_ENABLED
+#ifdef FL_ASAN_ENABLED
   context_.fake_stack = nullptr;
 #endif
   context_.switch_out();

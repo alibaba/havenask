@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="query_with_empty_fields">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT nid, field_text, field_int64, field_int32, field_double, field_string, multi_field_string, multi_field_int64, multi_field_int32, multi_field_double  FROM phone_summary_ WHERE nid=1 OR nid=2
+]]>
+</Element>
+        </Resource>
+        <Resource name="kvpair">
+          databaseName:phone;
+        </Resource>
+        <Resource name="column_names">"nid", "field_text", "field_int64", "field_int32", "field_double", "field_string", "multi_field_string", "multi_field_int64", "multi_field_int32", "multi_field_double"</Resource>
+        <Resource name="column_types">int64, multi_char, int64, int32, double, multi_char, multi_multi_char, multi_int64, multi_int32, multi_double</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1, "", 0, 0, 0, "", [], [], [], []
+2, "", 0, 0, 0, "", [], [], [], []
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#2(type=api)
+    ExchangeOp#1(distribution={type:SINGLETON})
+        TableScanOp#0(catalog_name=default,db_name=phone,limit=100,output_fields=[$nid,$field_text,$field_int64,$field_int32,$field_double,$field_string,$multi_field_string,$multi_field_int64,$multi_field_int32,$multi_field_double],push_down_ops=[{attrs:{condition:{op:IN,params:[$nid,1,2],type:OTHER},output_fields:[$nid,$field_text,$field_int64,$field_int32,$field_double,$field_string,$multi_field_string,$multi_field_int64,$multi_field_int32,$multi_field_double]},op_name:CalcOp}],table_name=phone,table_type=summary,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

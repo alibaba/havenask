@@ -15,18 +15,19 @@
  */
 #include "indexlib/table/normal_table/index_task/BucketMapOperation.h"
 
+#include "indexlib/config/IndexTaskConfig.h"
 #include "indexlib/config/MergeConfig.h"
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/framework/index_task/IndexTaskResourceManager.h"
 #include "indexlib/index/DocMapper.h"
+#include "indexlib/index/inverted_index/Constant.h"
 #include "indexlib/index/inverted_index/config/TruncateOptionConfig.h"
 #include "indexlib/index/inverted_index/truncate/BucketMapCreator.h"
 #include "indexlib/index/inverted_index/truncate/TruncateAttributeReaderCreator.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/table/index_task/merger/MergePlan.h"
-#include "indexlib/table/index_task/merger/MergeUtil.h"
 #include "indexlib/table/index_task/merger/SegmentMergePlan.h"
 #include "indexlib/table/normal_table/Common.h"
 #include "indexlib/table/normal_table/index_task/Common.h"
@@ -62,7 +63,7 @@ Status BucketMapOperation::Execute(const framework::IndexTaskContext& context)
         // in case of failover, try load resource first
         status = resourceManager->LoadResource(bucketMapName, indexlib::index::BucketMap::GetBucketMapType(),
                                                toCommitBucketMap);
-        if (status.IsNoEntry()) {
+        if (status.IsNotFound()) {
             status = resourceManager->CreateResource(bucketMapName, indexlib::index::BucketMap::GetBucketMapType(),
                                                      toCommitBucketMap);
             *toCommitBucketMap = std::move(*bucketMap);
@@ -92,12 +93,18 @@ BucketMapOperation::CreateBucketMaps(const framework::IndexTaskContext& context,
 
     auto schema = context.GetTabletSchema();
     auto [status, truncateProfileConfigs] =
-        schema->GetSetting<std::vector<indexlibv2::config::TruncateProfileConfig>>("truncate_profiles");
+        schema->GetRuntimeSettings().GetValue<std::vector<indexlibv2::config::TruncateProfileConfig>>(
+            "truncate_profiles");
     RETURN2_IF_STATUS_ERROR(status, bucketMaps, "get truncate profile settings failed.");
 
-    auto option = context.GetTabletOptions();
-    auto truncateOptionConfig =
-        std::make_shared<indexlibv2::config::TruncateOptionConfig>(option->GetMergeConfig().GetTruncateStrategys());
+    auto mergeConfig = context.GetMergeConfig();
+    const auto* truncateStrategy = std::any_cast<std::vector<indexlibv2::config::TruncateStrategy>>(
+        mergeConfig.GetHookOption(index::TRUNCATE_STRATEGY));
+    if (!truncateStrategy) {
+        AUTIL_LOG(ERROR, "get truncate_strategy from merge config failed");
+        return {Status::Corruption("get truncate_strategy from merge config failed"), bucketMaps};
+    }
+    auto truncateOptionConfig = std::make_shared<indexlibv2::config::TruncateOptionConfig>(*truncateStrategy);
     truncateOptionConfig->Init(schema->GetIndexConfigs(indexlib::index::INVERTED_INDEX_TYPE_STR),
                                truncateProfileConfigs);
 
@@ -130,7 +137,9 @@ BucketMapOperation::PrepareSegmentMergeInfos(const framework::IndexTaskContext& 
     indexlibv2::index::IIndexMerger::SegmentMergeInfos segMergeInfos;
     segMergeInfos.relocatableGlobalRoot = context.GetGlobalRelocatableFolder();
     for (size_t i = 0; i < segMergePlan.GetSrcSegmentCount(); ++i) {
-        auto sourceSegment = MergeUtil::GetSourceSegment(segMergePlan.GetSrcSegmentId(i), tabletData);
+        index::IIndexMerger::SourceSegment sourceSegment;
+        std::tie(sourceSegment.segment, sourceSegment.baseDocid) =
+            tabletData->GetSegmentWithBaseDocid(segMergePlan.GetSrcSegmentId(i));
         segMergeInfos.srcSegments.emplace_back(std::move(sourceSegment));
     }
     return std::make_pair(Status::OK(), segMergeInfos);

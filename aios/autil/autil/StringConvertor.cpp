@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdint.h>
-#include <rapidjson/internal/itoa.h>
-#include <string>
+#include "autil/StringConvertor.h"
+
 #include <cstring>
+#include <rapidjson/internal/itoa.h>
+#include <stdint.h>
+#include <string>
 
 #include "autil/CommonMacros.h"
-#include "autil/StringConvertor.h"
 
 namespace autil {
 
@@ -36,8 +37,7 @@ StringAppender::~StringAppender() {
 }
 
 int32_t StringAppender::normalizeSize(int32_t size) {
-    return STRBUF_UNIT_SIZE * (size / STRBUF_UNIT_SIZE +
-                               (size % STRBUF_UNIT_SIZE > 0 ? 1 : 0 ));
+    return STRBUF_UNIT_SIZE * (size / STRBUF_UNIT_SIZE + (size % STRBUF_UNIT_SIZE > 0 ? 1 : 0));
 }
 
 void StringAppender::ensureBufSize(int32_t needSize) {
@@ -53,39 +53,37 @@ void StringAppender::ensureBufSize(int32_t needSize) {
     size_ = newSize;
 }
 
-StringAppender& StringAppender::appendString(const std::string &data) {
+StringAppender &StringAppender::appendString(const std::string &data) {
     ensureBufSize(data.length());
     std::memcpy(buf_ + idx_, data.data(), data.length());
     idx_ += data.length();
     return *this;
 }
 
-StringAppender& StringAppender::appendChar(const char ch) {
+StringAppender &StringAppender::appendChar(const char ch) {
     ensureBufSize(1);
     buf_[idx_++] = ch;
     return *this;
 }
 
-StringAppender& StringAppender::appendBool(bool bVal) {
+StringAppender &StringAppender::appendBool(bool bVal) {
     ensureBufSize(1);
     buf_[idx_++] = bVal ? '1' : '0';
     return *this;
 }
 
-StringAppender& StringAppender::appendInt64(int64_t number) {
+StringAppender &StringAppender::appendInt64(int64_t number) {
     ensureBufSize(64);
     auto buf = buf_ + idx_;
     idx_ += rapidjson::internal::i64toa(number, buf) - buf;
     return *this;
 }
 
-std::string StringAppender::toString() {
-    return std::string(buf_, idx_);
-}
+std::string StringAppender::toString() { return std::string(buf_, idx_); }
 
 void StringAppender::copyToString(std::string &data) {
     data.clear();
     data.insert(0, buf_, idx_);
 }
 
-}
+} // namespace autil

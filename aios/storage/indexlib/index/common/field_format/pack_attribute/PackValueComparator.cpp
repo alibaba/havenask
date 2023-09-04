@@ -25,9 +25,10 @@ PackValueComparator::PackValueComparator() = default;
 PackValueComparator::~PackValueComparator() = default;
 
 bool PackValueComparator::Init(const std::shared_ptr<config::ValueConfig>& valueConfig,
-                               const config::SortDescriptions& sortDescriptions)
+                               const config::SortDescriptions& sortDescriptions, bool needDecode)
 {
     _fixedValueLen = valueConfig->GetFixedLength();
+    _needDecode = needDecode;
     _formatter = std::make_unique<PackAttributeFormatter>();
     auto [status, packAttributeConfig] = valueConfig->CreatePackAttributeConfig();
     if (!status.IsOK()) {
@@ -86,7 +87,7 @@ int PackValueComparator::Compare(const autil::StringView& lhs, const autil::Stri
 
 autil::StringView PackValueComparator::DecodeValue(const autil::StringView& value) const
 {
-    if (_fixedValueLen > 0) {
+    if (_fixedValueLen > 0 || !_needDecode) {
         return value;
     } else {
         autil::MultiChar multiChar;

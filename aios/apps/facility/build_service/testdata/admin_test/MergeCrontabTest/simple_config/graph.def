@@ -1,0 +1,7 @@
+function graphDef()
+    local flowParam = {}
+    flowParam["clusterName"] = "cluster1"
+    local mergeCrontab = Graph.loadSimpleFlow("cluster1_merge_crontab", "mergeCrontab", "mergeCrontab", Graph.parameter)
+    local fullBuild = Graph.loadFlow("testMergeCrontab.flow", "cluster1_fullBuilder", flowParam)
+    return true
+end

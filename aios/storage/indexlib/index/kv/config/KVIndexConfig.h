@@ -39,6 +39,7 @@ public:
 public:
     const std::string& GetIndexType() const override;
     const std::string& GetIndexName() const override;
+    const std::string& GetIndexCommonPath() const override;
     std::vector<std::string> GetIndexPath() const override;
     std::vector<std::shared_ptr<FieldConfig>> GetFieldConfigs() const override;
     void Check() const override;
@@ -46,6 +47,7 @@ public:
                      const config::IndexConfigDeserializeResource& resource) override;
     void Serialize(autil::legacy::Jsonizable::JsonWrapper& json) const override;
     Status CheckCompatible(const IIndexConfig* other) const override;
+    bool IsDisabled() const override;
 
 public:
     void SetIndexName(const std::string& indexName);

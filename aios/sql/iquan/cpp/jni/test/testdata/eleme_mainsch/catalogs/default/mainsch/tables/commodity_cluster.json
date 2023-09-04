@@ -1,0 +1,84 @@
+{
+    "build_option_config" : {
+        "max_recover_time":10,
+        "sort_queue_mem" : 8192,
+        "sort_build" : true,
+        "sort_descriptions" : [
+    {
+		"sort_field" : "store_id",
+		"sort_pattern" : "DESC"
+	},
+	{
+		"sort_field" : "cat1_id",
+		"sort_pattern" : "DESC"
+	}
+],
+      	"async_build": false,
+      	"async_queue_size": 1000
+    },
+    "cluster_config" : {
+        "builder_rule_config" : {
+           	"inc_build_parallel_num" : 1,
+            "build_parallel_num" : 16,
+            "need_partition" : true,
+            "partition_count" : 8
+        },
+        "cluster_name" : "commodity",
+        "hash_mode" : {
+            "hash_field" : "store_id",
+            "hash_function" : "HASH"
+        },
+
+        "table_name" : "commodity"
+    },
+    "offline_index_config" : {
+        "build_config" : {
+            "build_total_memory":15360,
+            "enable_package_file" : true,
+            "keep_version_count" : 20,
+            "max_memory_use" : 5120,
+            "speedup_primary_key_reader" : true
+        },
+        "customized_merge_config" : {
+
+            "full" : {
+                "merge_config" : {
+
+                    "keep_version_count" : 20,
+                    "merge_strategy" : "optimize",
+                    "merge_strategy_param" : "",
+                    "merge_thread_count" : 10,
+                    "truncate_strategy":[]
+                },
+                "merge_parallel_num" : 32
+            },
+            "inc" : {
+                "merge_config" : {
+
+                    "keep_version_count" : 20,
+                    "merge_strategy" : "balance_tree",
+                    "merge_strategy_param" : "conflict-segment-number=3;base-doc-count=10240;max-doc-count=500000;conflict-delete-percent=70;max-valid-doc-count=1000000",
+                    "merge_thread_count" : 4,
+                    "truncate_strategy":[]
+                },
+                "period" : "period=900",
+                "merge_parallel_num" : 1
+
+            }
+        },
+        "merge_config" : {
+            "keep_version_count" : 20
+        }
+    },
+    "swift_config" : {
+        "reader_config" : "oneRequestReadCount=1000;readBufferSize=1024;decompress=true",
+                 "topic" : {
+          	"partition_count" : 16,
+          	"partition_max_buffer_size": 8192,
+            "partition_limit" : 1,
+            "partition_resource" : 1
+        },
+                "writer_config" : "functionChain=hashId2partId;compressMsg=true;mode=async|safe;maxBufferSize=2147483648;maxKeepInBufferTime=100000"
+    }
+}
+

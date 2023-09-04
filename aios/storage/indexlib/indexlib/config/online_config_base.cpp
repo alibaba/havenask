@@ -118,8 +118,8 @@ void OnlineConfigBase::Jsonize(Jsonizable::JsonWrapper& json)
     json.Jsonize("load_patch_thread_num", loadPatchThreadNum, loadPatchThreadNum);
 
     json.Jsonize("disable_load_customized_index", disableLoadCustomizedIndex, disableLoadCustomizedIndex);
-    char* disableLoadCustomizedIndexStr = getenv("INDEXLIB_DISABLE_LOAD_CUSTOMIZED_INDEX");
-    if (disableLoadCustomizedIndexStr) {
+    string disableLoadCustomizedIndexStr = autil::EnvUtil::getEnv("INDEXLIB_DISABLE_LOAD_CUSTOMIZED_INDEX");
+    if (!disableLoadCustomizedIndexStr.empty()) {
         bool disabled = false;
         if (autil::StringUtil::parseTrueFalse(disableLoadCustomizedIndexStr, disabled)) {
             if (disabled) {
@@ -152,8 +152,8 @@ void OnlineConfigBase::Jsonize(Jsonizable::JsonWrapper& json)
         }
 
         // Only for pe control, do NOT use in production.
-        char* disableSeparationStr = getenv("INDEXLIB_DISABLE_SCS");
-        if (disableSeparationStr) {
+        string disableSeparationStr = autil::EnvUtil::getEnv("INDEXLIB_DISABLE_SCS");
+        if (!disableSeparationStr.empty()) {
             bool disabled = false;
             if (autil::StringUtil::parseTrueFalse(disableSeparationStr, disabled)) {
                 if (disabled) {

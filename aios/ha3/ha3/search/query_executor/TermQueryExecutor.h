@@ -15,16 +15,16 @@
  */
 #pragma once
 #include <assert.h>
-#include <stddef.h>
 #include <memory>
+#include <stddef.h>
 #include <string>
 
 #include "autil/Log.h"
 #include "ha3/common/Term.h"
 #include "ha3/isearch.h"
+#include "ha3/search/MetaInfo.h"
 #include "ha3/search/QueryExecutor.h"
 #include "ha3/search/TermMatchData.h"
-#include "ha3/search/MetaInfo.h"
 #include "indexlib/index/common/ErrorCode.h"
 #include "indexlib/index/inverted_index/PostingIterator.h"
 #include "indexlib/indexlib.h"
@@ -33,22 +33,22 @@
 namespace isearch {
 namespace search {
 class IndexPartitionReaderWrapper;
-}  // namespace search
-}  // namespace isearch
+} // namespace search
+} // namespace isearch
 
 namespace isearch {
 namespace search {
 class ExecutorVisitor;
 
-class TermQueryExecutor : public QueryExecutor
-{
+class TermQueryExecutor : public QueryExecutor {
 public:
-    TermQueryExecutor(indexlib::index::PostingIterator *iter,
-                      const common::Term &term);
+    TermQueryExecutor(indexlib::index::PostingIterator *iter, const common::Term &term);
     virtual ~TermQueryExecutor();
+
 private:
     TermQueryExecutor(const TermQueryExecutor &);
-    TermQueryExecutor& operator=(const TermQueryExecutor &);
+    TermQueryExecutor &operator=(const TermQueryExecutor &);
+
 public:
     const std::string getName() const override {
         return "TermQueryExecutor";
@@ -65,15 +65,17 @@ public:
         _LeafId = id;
     }
 
-    indexlib::index::ErrorCode seekSubDoc(
-        docid_t docId, docid_t subDocId,
-        docid_t subDocEnd, bool needSubMatchdata, docid_t& result) override;
+    indexlib::index::ErrorCode seekSubDoc(docid_t docId,
+                                          docid_t subDocId,
+                                          docid_t subDocEnd,
+                                          bool needSubMatchdata,
+                                          docid_t &result) override;
 
     bool isMainDocHit(docid_t docId) const override {
         return true;
     }
 
-    indexlib::index::ErrorCode seekPosition(pos_t pos, pos_t& result) {
+    indexlib::index::ErrorCode seekPosition(pos_t pos, pos_t &result) {
         assert(_iter);
         return _iter->SeekPositionWithErrorCode(pos, result);
     }
@@ -93,7 +95,8 @@ public:
         _mainChainDF = df;
     }
 
-    void setIndexPartitionReaderWrapper(isearch::search::IndexPartitionReaderWrapper *indexPartWrapper) {
+    void
+    setIndexPartitionReaderWrapper(isearch::search::IndexPartitionReaderWrapper *indexPartWrapper) {
         _indexPartReaderWrapper = indexPartWrapper;
     }
 
@@ -111,18 +114,23 @@ public:
     matchvalue_t getMatchValue() override {
         return _iter->GetMatchValue();
     }
+
 public:
     std::string toString() const override;
+
 protected:
-    indexlib::index::ErrorCode doSeek(docid_t id, docid_t& result) override;
+    indexlib::index::ErrorCode doSeek(docid_t id, docid_t &result) override;
+
 protected:
     indexlib::index::PostingIterator *_iter = nullptr;
     indexlib::index::PostingIterator *_backupIter = nullptr;
     common::Term _term;
     df_t _mainChainDF;
     size_t _LeafId;
+
 private:
     isearch::search::IndexPartitionReaderWrapper *_indexPartReaderWrapper = nullptr;
+
 private:
     AUTIL_LOG_DECLARE();
 };

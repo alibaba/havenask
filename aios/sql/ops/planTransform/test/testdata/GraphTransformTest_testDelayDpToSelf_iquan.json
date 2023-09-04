@@ -1,0 +1,360 @@
+{
+  "rel_plan_version" : "fake version",
+  "rel_plan" : [
+{
+  "attrs" : {
+    "catalog_name" : "default",
+    "db_name" : "db1",
+    "limit" : 2147483647,
+    "location" : {
+      "partition_cnt" : 5,
+      "table_group_name" : "searcher"
+    },
+    "op_scope" : "default",
+    "output_distribution" : {
+      "hash_mode" : {
+        "hash_function" : "HASH"
+      },
+      "partition_cnt" : 5,
+      "type" : "RANDOM_DISTRIBUTED",
+      "unique_key_map" : {
+        "id" : "default.db1.tj_inshop_item.id"
+      }
+    },
+    "output_fields" : [ "$id" ],
+    "output_fields_hash" : -1847300724,
+    "output_fields_internal" : [ "$id" ],
+    "output_fields_internal_type" : [ "BIGINT" ],
+    "output_fields_type" : [ "BIGINT" ],
+    "push_down_ops" : [ {
+      "attrs" : {
+        "condition" : {
+          "op" : "=",
+          "params" : [ "$shop_id", 100 ],
+          "type" : "OTHER"
+        },
+        "output_fields" : [ "$id" ],
+        "output_fields_type" : [ "BIGINT" ]
+      },
+      "op_name" : "CalcOp"
+    } ],
+    "table_distribution" : {
+      "hash_mode" : {
+        "hash_fields" : [ "$shop_id" ],
+        "hash_function" : "HASH"
+      },
+      "hash_values" : {
+        "$shop_id" : [ "100" ]
+      },
+      "partition_cnt" : 5
+    },
+    "table_meta" : {
+      "field_meta" : [ {
+        "field_name" : "$id",
+        "field_type" : "int64",
+        "index_name" : "id",
+        "index_type" : "primarykey128",
+        "is_attribute" : "true"
+      }, {
+        "field_name" : "$shop_id",
+        "field_type" : "int64",
+        "index_name" : "shop_id",
+        "index_type" : "number",
+        "is_attribute" : "true"
+      } ]
+    },
+    "table_name" : "tj_inshop_item",
+    "table_type" : "normal",
+    "use_nest_table" : false,
+    "used_fields" : [ "$id", "$shop_id" ]
+  },
+  "id" : 0,
+  "inputs" : {
+    "input" : [ ]
+  },
+  "op_name" : "TableScanOp",
+  "outputs" : [ 1 ]
+}, {
+  "attrs" : {
+    "catalog_name" : "default",
+    "db_name" : "db1",
+    "distribution" : {
+      "hash_mode" : {
+        "hash_fields" : [ "$id" ],
+        "hash_function" : "HASH"
+      },
+      "type" : "HASH_DISTRIBUTED"
+    },
+    "input_fields" : [ "$id" ],
+    "input_fields_type" : [ "BIGINT" ],
+    "op_scope" : "default",
+    "output_distribution" : {
+      "hash_mode" : {
+        "hash_fields" : [ "$id" ],
+        "hash_function" : "HASH"
+      },
+      "partition_cnt" : 5,
+      "type" : "HASH_DISTRIBUTED"
+    },
+    "output_fields_hash" : -1847300724,
+    "output_prunable" : 1,
+    "table_distribution" : {
+      "hash_mode" : {
+        "hash_fields" : [ "$shop_id" ],
+        "hash_function" : "HASH"
+      },
+      "hash_values" : {
+        "$shop_id" : [ "100" ]
+      },
+      "partition_cnt" : 5,
+      "type" : "RANDOM_DISTRIBUTED",
+      "unique_key_map" : {
+        "id" : "default.db1.tj_inshop_item.id"
+      }
+    },
+    "table_group_name" : "searcher",
+    "table_name" : "tj_inshop_item",
+    "table_type" : "normal"
+  },
+  "id" : 1,
+  "inputs" : {
+    "input" : [ 0 ]
+  },
+  "op_name" : "ExchangeOp",
+  "outputs" : [ 2 ]
+}, {
+  "attrs" : {
+    "build_node" : {
+      "catalog_name" : "default",
+      "db_name" : "db1",
+      "limit" : 2147483647,
+      "output_fields" : [ "$id" ],
+      "output_fields_internal" : [ "$id" ],
+      "output_fields_internal_type" : [ "BIGINT" ],
+      "output_fields_type" : [ "BIGINT" ],
+      "push_down_ops" : [ {
+        "attrs" : {
+          "output_fields" : [ "$id" ],
+          "output_fields_type" : [ "BIGINT" ]
+        },
+        "op_name" : "CalcOp"
+      } ],
+      "table_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$id" ],
+          "hash_function" : "HASH"
+        },
+        "partition_cnt" : 5
+      },
+      "table_meta" : {
+        "field_meta" : [ {
+          "field_name" : "$id",
+          "field_type" : "int64",
+          "index_name" : "id",
+          "index_type" : "primarykey128",
+          "is_attribute" : "true"
+        } ]
+      },
+      "table_name" : "tj_item",
+      "table_type" : "normal",
+      "use_nest_table" : false,
+      "used_fields" : [ "$id" ]
+    },
+    "condition" : {
+      "op" : "=",
+      "params" : [ "$id", "$id0" ],
+      "type" : "OTHER"
+    },
+    "equi_condition" : {
+      "op" : "=",
+      "params" : [ "$id", "$id0" ],
+      "type" : "OTHER"
+    },
+    "is_equi_join" : true,
+    "is_internal_build" : false,
+    "join_type" : "INNER",
+    "left_input_fields" : [ "$id" ],
+    "left_is_build" : false,
+    "left_table_meta" : {
+      "field_meta" : [ {
+        "field_name" : "$id",
+        "field_type" : "int64",
+        "index_name" : "id",
+        "index_type" : "primarykey128",
+        "is_attribute" : "true"
+      } ]
+    },
+    "location" : {
+      "partition_cnt" : 5,
+      "table_group_name" : "searcher"
+    },
+    "op_scope" : "default",
+    "output_distribution" : {
+      "equal_hash_fields" : [ [ "id0", "id" ] ],
+      "hash_mode" : {
+        "hash_fields" : [ "$id0" ],
+        "hash_function" : "HASH"
+      },
+      "partition_cnt" : 5,
+      "type" : "HASH_DISTRIBUTED"
+    },
+    "output_fields" : [ "$id", "$id0" ],
+    "output_fields_hash" : -1333272614,
+    "output_fields_internal" : [ "$id", "$id0" ],
+    "output_fields_type" : [ "BIGINT", "BIGINT" ],
+    "right_input_fields" : [ "$id" ],
+    "right_table_meta" : {
+      "field_meta" : [ {
+        "field_name" : "$id",
+        "field_type" : "int64",
+        "index_name" : "id",
+        "index_type" : "primarykey128",
+        "is_attribute" : "true"
+      } ]
+    },
+    "semi_join_type" : "INNER",
+    "system_field_num" : 0
+  },
+  "id" : 2,
+  "inputs" : {
+    "input" : [ 1 ]
+  },
+  "op_name" : "LookupJoinOp",
+  "outputs" : [ 3 ]
+}, {
+  "attrs" : {
+    "location" : {
+      "partition_cnt" : 5,
+      "table_group_name" : "searcher"
+    },
+    "op_scope" : "default",
+    "output_distribution" : {
+      "equal_hash_fields" : [ [ "id" ] ],
+      "hash_mode" : {
+        "hash_fields" : [ "$id" ],
+        "hash_function" : "HASH"
+      },
+      "partition_cnt" : 5,
+      "type" : "HASH_DISTRIBUTED"
+    },
+    "output_fields" : [ "$id" ],
+    "output_fields_hash" : -1847300724,
+    "output_fields_type" : [ "BIGINT" ]
+  },
+  "id" : 3,
+  "inputs" : {
+    "input" : [ 2 ]
+  },
+  "op_name" : "CalcOp",
+  "outputs" : [ 4 ]
+}, {
+  "attrs" : {
+    "limit" : 100,
+    "location" : {
+      "partition_cnt" : 5,
+      "table_group_name" : "searcher"
+    },
+    "offset" : 0,
+    "op_scope" : "default",
+    "output_distribution" : {
+      "equal_hash_fields" : [ [ "id" ] ],
+      "hash_mode" : {
+        "hash_fields" : [ "$id" ],
+        "hash_function" : "HASH"
+      },
+      "partition_cnt" : 5,
+      "type" : "HASH_DISTRIBUTED"
+    },
+    "output_fields_hash" : -1847300724
+  },
+  "id" : 4,
+  "inputs" : {
+    "input" : [ 3 ]
+  },
+  "op_name" : "LimitOp",
+  "outputs" : [ 5 ]
+}, {
+  "attrs" : {
+    "catalog_name" : "default",
+    "db_name" : "db1",
+    "distribution" : {
+      "type" : "SINGLETON"
+    },
+    "input_fields" : [ "$id" ],
+    "input_fields_type" : [ "BIGINT" ],
+    "op_scope" : "default",
+    "output_distribution" : {
+      "hash_mode" : {
+        "hash_function" : "INVALID"
+      },
+      "partition_cnt" : 1,
+      "type" : "SINGLETON"
+    },
+    "output_fields_hash" : -1847300724,
+    "output_prunable" : 0,
+    "table_distribution" : {
+      "equal_hash_fields" : [ [ "id" ] ],
+      "hash_mode" : {
+        "hash_fields" : [ "$id" ],
+        "hash_function" : "HASH"
+      },
+      "partition_cnt" : 5,
+      "type" : "HASH_DISTRIBUTED"
+    },
+    "table_group_name" : "searcher"
+  },
+  "id" : 5,
+  "inputs" : {
+    "input" : [ 4 ]
+  },
+  "op_name" : "ExchangeOp",
+  "outputs" : [ 6 ]
+}, {
+  "attrs" : {
+    "limit" : 100,
+    "location" : {
+      "partition_cnt" : 1,
+      "table_group_name" : "qrs"
+    },
+    "offset" : 0,
+    "op_scope" : "default",
+    "output_distribution" : {
+      "hash_mode" : {
+        "hash_function" : "INVALID"
+      },
+      "partition_cnt" : 1,
+      "type" : "SINGLETON"
+    },
+    "output_fields_hash" : -1847300724
+  },
+  "id" : 6,
+  "inputs" : {
+    "input" : [ 5 ]
+  },
+  "op_name" : "LimitOp",
+  "outputs" : [ 7 ]
+}, {
+  "attrs" : {
+    "location" : {
+      "partition_cnt" : 1,
+      "table_group_name" : "qrs"
+    },
+    "op_scope" : "default",
+    "output_distribution" : {
+      "hash_mode" : {
+        "hash_function" : "INVALID"
+      },
+      "partition_cnt" : 1,
+      "type" : "SINGLETON"
+    },
+    "output_fields_hash" : -1847300724,
+    "type" : "api"
+  },
+  "id" : 7,
+  "inputs" : {
+    "input" : [ 6 ]
+  },
+  "op_name" : "SinkOp"
+}
+  ]
+}

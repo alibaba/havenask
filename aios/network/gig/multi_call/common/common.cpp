@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/common/common.h"
+
 #include "google/protobuf/message.h"
 
 namespace multi_call {
@@ -87,8 +88,7 @@ const std::string GIG_TAG_GROUP = "c2_group";
 const std::string GIG_TAG_ROLE = "c2_role";
 const std::string GIG_TAG_BIZ = GIG_TAG_PREFIX + "biz";
 const std::string GIG_TAG_TARGET_PREFIX = GIG_TAG_PREFIX + "target_";
-const std::string GIG_TAG_TARGET_CLUSTER =
-    GIG_TAG_TARGET_PREFIX + "hippo_cluster";
+const std::string GIG_TAG_TARGET_CLUSTER = GIG_TAG_TARGET_PREFIX + "hippo_cluster";
 const std::string GIG_TAG_TARGET_PLATFORM = GIG_TAG_TARGET_PREFIX + "platform";
 const std::string GIG_TAG_TARGET_GROUP = GIG_TAG_TARGET_PREFIX + "c2_group";
 const std::string GIG_TAG_TARGET_ROLE = GIG_TAG_TARGET_PREFIX + "c2_role";
@@ -107,8 +107,7 @@ const std::string DEFAULT_KMONITOR_CONFIG = MULTILINE({
     "global_tags" : {}
 });
 
-const std::string LOAD_BALANCE_VERSION_GROUP_BIZS_KEY =
-    "load_banlance_version_group_bizs_key";
+const std::string LOAD_BALANCE_VERSION_GROUP_BIZS_KEY = "load_banlance_version_group_bizs_key";
 
 ProtocolType convertProtocolType(const std::string &typeStr) {
     if (MC_PROTOCOL_HTTP_STR == typeStr) {
@@ -131,18 +130,15 @@ ProtocolType convertProtocolType(const std::string &typeStr) {
 }
 
 const std::string &convertProtocolTypeToStr(ProtocolType type) {
-    static std::string typeStrArr[] = {
-        MC_PROTOCOL_TCP_STR, MC_PROTOCOL_ARPC_STR, MC_PROTOCOL_HTTP_STR,
-        MC_PROTOCOL_GRPC_STR, MC_PROTOCOL_GRPC_STREAM_STR, MC_PROTOCOL_RDMA_ARPC_STR,
-        MC_PROTOCOL_UNKNOWN_STR
-    };
+    static std::string typeStrArr[] = {MC_PROTOCOL_TCP_STR,         MC_PROTOCOL_ARPC_STR,
+                                       MC_PROTOCOL_HTTP_STR,        MC_PROTOCOL_GRPC_STR,
+                                       MC_PROTOCOL_GRPC_STREAM_STR, MC_PROTOCOL_RDMA_ARPC_STR,
+                                       MC_PROTOCOL_UNKNOWN_STR};
     return typeStrArr[type];
 }
 
 const std::string &convertRequestTypeToStr(RequestType type) {
-    static std::string requestTypeStrArr[] = {
-        "RT_NORMAL", "RT_PROBE", "RT_COPY"
-    };
+    static std::string requestTypeStrArr[] = {"RT_NORMAL", "RT_PROBE", "RT_COPY"};
     return requestTypeStrArr[type];
 }
 

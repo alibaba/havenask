@@ -1,0 +1,33 @@
+--[[
+Graph.parameter : graph related kv parameters 
+Graph.loadSimpleFlow(flowId, taskType, taskIdentifier, taskKVParam = nil) : return flowObject
+Graph.loadFlow(flowFileName, flowId, flowKVParam = nil) : return flowObject
+Graph.loadSubGraph(graphId, graphFileName, graphKVParam = nil) : return true : false
+Graph.getFlow(flowId) : return flowObject
+Graph.setUpstreaem(flow, upstreamFlow, waitStatus = "finish"|"stop"|"xxx") 
+--]]
+
+--#import(Tool)
+
+function graphDef()
+    print(Graph.parameter)
+    fin = Graph.loadFlow("test_flow.flow", {s1="v1", s2="v2"})
+    fin:addTag("abc")
+    fin:setGlobalTaskParam("auto_finish", "true")
+    for k,v in pairs(Graph.parameter)
+    do
+        local full = Graph.loadFlow("test_flow.flow")
+        full:addTag(k)
+	-- dynamic set default param in target flow
+	full:setGlobalTaskParam("config_path", v)
+	full:setGlobalTaskParam("auto_finish", "true")
+	Graph.setUpstream(fin, full)
+    end
+
+    local ret = Graph.loadSubGraph("branch", "test_sub_graph.graph", {a1="a1_conf", b1="b1_conf"})
+    if (ret)
+    then
+        print("load sub graph ok!")
+    end
+    return true
+end

@@ -19,6 +19,7 @@
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/base/Types.h"
+#include "indexlib/framework/Version.h"
 #include "indexlib/framework/VersionLine.h"
 
 namespace indexlib::index_base {
@@ -32,6 +33,7 @@ class VersionMeta : public autil::legacy::Jsonizable
 {
 public:
     VersionMeta() = default;
+    explicit VersionMeta(versionid_t versionId);
     VersionMeta(const Version& version, int64_t docCount, int64_t indexSizeInBytes);
 
 public:
@@ -51,6 +53,7 @@ public:
     bool IsSealed() const { return _sealed; }
     std::string GetFenceName() const { return _fenceName; }
     const VersionLine& GetVersionLine() const { return _versionLine; }
+    const std::vector<IndexTaskMeta>& GetIndexTaskQueue() const { return _indexTaskQueue; }
     bool operator==(const VersionMeta& other) const;
 
 public:
@@ -68,6 +71,7 @@ private:
     int64_t _indexSize = -1;
     std::string _fenceName = "";
     VersionLine _versionLine;
+    std::vector<IndexTaskMeta> _indexTaskQueue;
     bool _sealed = false;
 
 private:

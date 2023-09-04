@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 #pragma once
-#include "suez/turing/expression/provider/MatchData.h"
 #include "ha3/search/TermMatchData.h"
+#include "suez/turing/expression/provider/MatchData.h"
 
 namespace isearch {
 namespace rank {
@@ -23,4 +23,4 @@ namespace rank {
 typedef suez::turing::MatchData MatchData;
 
 }
-}
+} // namespace isearch

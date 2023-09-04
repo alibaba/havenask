@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 #include "build_service/reader/AESCipherGZipFileReader.h"
+
 #include "build_service/reader/AESCipherFileReader.h"
 
 using namespace std;
 
-namespace build_service {
-namespace reader {
+namespace build_service { namespace reader {
 BS_LOG_SETUP(reader, AESCipherGZipFileReader);
 
-AESCipherGZipFileReader::AESCipherGZipFileReader(
-        autil::cipher::CipherOption option, uint32_t bufferSize)
+AESCipherGZipFileReader::AESCipherGZipFileReader(autil::cipher::CipherOption option, uint32_t bufferSize)
     : GZipFileReader(bufferSize, nullptr)
     , _option(option)
-{}
-
-AESCipherGZipFileReader::~AESCipherGZipFileReader() {
-}
-
-FileReaderBase* AESCipherGZipFileReader::createInnerFileReader()
 {
-    return new (nothrow) AESCipherFileReader(_option);
 }
 
-}
-}
+AESCipherGZipFileReader::~AESCipherGZipFileReader() {}
+
+FileReaderBase* AESCipherGZipFileReader::createInnerFileReader() { return new (nothrow) AESCipherFileReader(_option); }
+
+}} // namespace build_service::reader

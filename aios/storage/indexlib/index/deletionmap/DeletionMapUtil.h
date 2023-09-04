@@ -42,9 +42,6 @@ struct DeletionMapFileHeader {
 class DeletionMapUtil
 {
 public:
-    static constexpr uint32_t DEFAULT_BITMAP_SIZE = 8 * 1024 * 1024;
-
-public:
     static Status DumpBitmap(const std::shared_ptr<indexlib::file_system::FileWriter>& writer,
                              indexlib::util::Bitmap* bitmap, uint32_t itemCount);
 

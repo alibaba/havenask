@@ -21,17 +21,17 @@
 
 FSLIB_BEGIN_NAMESPACE(util);
 
-class MetricTagsHandler
-{
+class MetricTagsHandler {
 public:
     MetricTagsHandler();
     virtual ~MetricTagsHandler();
+
 private:
     MetricTagsHandler(const MetricTagsHandler &);
-    MetricTagsHandler& operator = (const MetricTagsHandler &);
+    MetricTagsHandler &operator=(const MetricTagsHandler &);
 
 public:
-    virtual void getTags(const std::string& filePath, kmonitor::MetricsTags& tags) const;
+    virtual void getTags(const std::string &filePath, kmonitor::MetricsTags &tags) const;
 
 private:
     static std::string PROXY_BEGIN;
@@ -45,4 +45,4 @@ FSLIB_TYPEDEF_SHARED_PTR(MetricTagsHandler);
 
 FSLIB_END_NAMESPACE(util);
 
-#endif //FSLIB_METRICTAGSHANDLER_H
+#endif // FSLIB_METRICTAGSHANDLER_H

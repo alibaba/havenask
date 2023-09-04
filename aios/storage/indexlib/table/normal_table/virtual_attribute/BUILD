@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='VirtualAttributeIndexFactory',
     deps=[
         ':Common', ':VirtualAttributeConfig', ':VirtualAttributeDiskIndexer',
@@ -10,14 +10,14 @@ indexlib_cc_library(
     ],
     alwayslink=True
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VirtualAttributeConfig',
     deps=[
         ':Common', '//aios/storage/indexlib/config:IIndexConfig',
         '//aios/storage/indexlib/index/attribute:config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VirtualAttributeIndexReader',
     srcs=[],
     deps=[
@@ -25,7 +25,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute:reader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VirtualAttributeMemIndexer',
     deps=[
         ':VirtualAttributeConfig', '//aios/autil:log',
@@ -33,7 +33,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute:indexer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VirtualAttributeDiskIndexer',
     deps=[
         ':VirtualAttributeConfig', '//aios/autil:log',
@@ -41,7 +41,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute:indexer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleVirtualAttributeBuilder',
     deps=[
         ':VirtualAttributeConfig', ':VirtualAttributeDiskIndexer',
@@ -49,11 +49,11 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute:AttributeBuildWorkItem'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VirtualAttributeBuildWorkItem',
     deps=[
         ':SingleVirtualAttributeBuilder',
         '//aios/storage/indexlib/index/attribute:AttributeBuildWorkItem'
     ]
 )
-indexlib_cc_library(name='Common', srcs=[])
+strict_cc_library(name='Common', srcs=[])

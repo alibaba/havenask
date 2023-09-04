@@ -268,7 +268,7 @@ IndexPartitionMergerPtr MergeTask::createSinglePartMerger(const PartitionId& par
     }
 
     const string& clusterName = _jobConfig.getClusterName();
-    auto schema = _resourceReader->getTabletSchema(clusterName);
+    auto schema = _resourceReader->getSchema(clusterName);
     if (!schema) {
         BS_LOG(ERROR, "get schema failed for cluster[%s]", clusterName.c_str());
         return IndexPartitionMergerPtr();

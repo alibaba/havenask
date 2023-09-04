@@ -15,7 +15,7 @@
  */
 #include "indexlib/index/attribute/patch/MultiFieldPatchIterator.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/index/attribute/AttributeFieldValue.h"
 #include "indexlib/index/attribute/Common.h"
@@ -25,7 +25,7 @@
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, MultiFieldPatchIterator);
 
-MultiFieldPatchIterator::MultiFieldPatchIterator(const std::shared_ptr<config::TabletSchema>& schema)
+MultiFieldPatchIterator::MultiFieldPatchIterator(const std::shared_ptr<config::ITabletSchema>& schema)
     : _schema(schema)
     , _isSub(false)
     , _patchLoadExpandSize(0)
@@ -59,13 +59,14 @@ void MultiFieldPatchIterator::Reserve(AttributeFieldValue& value)
     AUTIL_LOG(INFO, "Reserve Buffer size[%lu] for AttributeFieldValue", value.BufferLength());
 }
 
-void MultiFieldPatchIterator::Init(const std::vector<std::shared_ptr<framework::Segment>>& segments, bool isSub)
+void MultiFieldPatchIterator::Init(const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& segments,
+                                   bool isSub)
 {
     _isSub = isSub;
     auto attrConfigs = _schema->GetIndexConfigs(index::ATTRIBUTE_INDEX_TYPE_STR);
 
     for (const auto& indexConfig : attrConfigs) {
-        const auto attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+        const auto attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
         if (attrConfig == nullptr) {
             // pack?
             continue;
@@ -98,8 +99,8 @@ void MultiFieldPatchIterator::Init(const std::vector<std::shared_ptr<framework::
 // }
 
 AttributePatchIterator* MultiFieldPatchIterator::CreateSingleFieldPatchIterator(
-    const std::vector<std::shared_ptr<framework::Segment>>& segments,
-    const std::shared_ptr<config::AttributeConfig>& attrConfig)
+    const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& segments,
+    const std::shared_ptr<AttributeConfig>& attrConfig)
 {
     if (!attrConfig->IsAttributeUpdatable()) {
         return NULL;
@@ -117,13 +118,13 @@ AttributePatchIterator* MultiFieldPatchIterator::CreateSingleFieldPatchIterator(
     return singleFieldIter.release();
 }
 
-AttributePatchIterator* MultiFieldPatchIterator::CreatePackFieldPatchIterator(
-    const std::vector<std::shared_ptr<framework::Segment>>& segments,
-    const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& packAttrConfig)
-{
-    assert(false);
-    return nullptr;
-}
+// AttributePatchIterator* MultiFieldPatchIterator::CreatePackFieldPatchIterator(
+//     const std::vector<std::shared_ptr<framework::Segment>>& segments,
+//     const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& packAttrConfig)
+// {
+//     assert(false);
+//     return nullptr;
+// }
 
 Status MultiFieldPatchIterator::Next(AttributeFieldValue& value)
 {

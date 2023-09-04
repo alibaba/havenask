@@ -23,11 +23,11 @@ using namespace std;
 
 namespace autil {
 
-template<typename T>
-bool MultiValueType<T>::operator == (const std::string& fieldOfInput) const {
-    autil::StringTokenizer st(fieldOfInput, std::string(1, MULTI_VALUE_DELIMITER),
-                              autil::StringTokenizer::TOKEN_TRIM |
-                              autil::StringTokenizer::TOKEN_IGNORE_EMPTY);
+template <typename T>
+bool MultiValueType<T>::operator==(const std::string &fieldOfInput) const {
+    autil::StringTokenizer st(fieldOfInput,
+                              std::string(1, MULTI_VALUE_DELIMITER),
+                              autil::StringTokenizer::TOKEN_TRIM | autil::StringTokenizer::TOKEN_IGNORE_EMPTY);
 
     if (size() == st.getNumTokens()) {
         for (size_t i = 0; i < st.getNumTokens(); ++i) {
@@ -42,26 +42,26 @@ bool MultiValueType<T>::operator == (const std::string& fieldOfInput) const {
     return false;
 }
 
-template<typename T>
-bool MultiValueType<T>::operator != (const std::string& fieldOfInput) const {
+template <typename T>
+bool MultiValueType<T>::operator!=(const std::string &fieldOfInput) const {
     return !(*this == fieldOfInput);
 }
 
-#define INST_OPERATOR(Type)                                             \
-    template<>                                                          \
-    bool Type::operator == (const std::string& fieldOfInput) const; \
-    template<>                                                          \
-    bool Type::operator != (const std::string& fieldOfInput) const;     \
-    
+#define INST_OPERATOR(Type)                                                                                            \
+    template <>                                                                                                        \
+    bool Type::operator==(const std::string &fieldOfInput) const;                                                      \
+    template <>                                                                                                        \
+    bool Type::operator!=(const std::string &fieldOfInput) const;
+
 MULTI_VALUE_TYPE_MACRO_HELPER(INST_OPERATOR)
 
-std::ostream& stringMultiTypeStream(std::ostream& stream, MultiChar value) {
+std::ostream &stringMultiTypeStream(std::ostream &stream, MultiChar value) {
     stream << string(value.data(), value.size());
     return stream;
 }
 
-template<typename T>
-std::ostream& normalMultiTypeStream(std::ostream& stream, T value) {
+template <typename T>
+std::ostream &normalMultiTypeStream(std::ostream &stream, T value) {
     for (size_t i = 0; i < value.size(); ++i) {
         if (i != 0) {
             stream << MULTI_VALUE_DELIMITER;
@@ -71,8 +71,8 @@ std::ostream& normalMultiTypeStream(std::ostream& stream, T value) {
     return stream;
 }
 
-template<typename T>
-std::ostream& intMultiTypeStream(std::ostream& stream, T value) {
+template <typename T>
+std::ostream &intMultiTypeStream(std::ostream &stream, T value) {
     for (size_t i = 0; i < value.size(); ++i) {
         if (i != 0) {
             stream << MULTI_VALUE_DELIMITER;
@@ -82,8 +82,8 @@ std::ostream& intMultiTypeStream(std::ostream& stream, T value) {
     return stream;
 }
 
-template<typename T>
-std::ostream& floatMultiTypeStream(std::ostream& stream, T value) {
+template <typename T>
+std::ostream &floatMultiTypeStream(std::ostream &stream, T value) {
     for (size_t i = 0; i < value.size(); ++i) {
         if (i != 0) {
             stream << MULTI_VALUE_DELIMITER;
@@ -93,8 +93,8 @@ std::ostream& floatMultiTypeStream(std::ostream& stream, T value) {
     return stream;
 }
 
-template<typename T>
-std::ostream& doubleMultiTypeStream(std::ostream& stream, T value) {
+template <typename T>
+std::ostream &doubleMultiTypeStream(std::ostream &stream, T value) {
     for (size_t i = 0; i < value.size(); ++i) {
         if (i != 0) {
             stream << MULTI_VALUE_DELIMITER;
@@ -104,13 +104,12 @@ std::ostream& doubleMultiTypeStream(std::ostream& stream, T value) {
     return stream;
 }
 
-#define STREAM_FUNC(func, type)                                         \
-    std::ostream& operator <<(std::ostream& stream, type value) {       \
-        return func(stream, value);                                     \
-    }
+#define STREAM_FUNC(func, type)                                                                                        \
+    std::ostream &operator<<(std::ostream &stream, type value) { return func(stream, value); }
 
 STREAM_FUNC(intMultiTypeStream, MultiUInt8);
 STREAM_FUNC(intMultiTypeStream, MultiInt8);
+STREAM_FUNC(intMultiTypeStream, MultiBool);
 STREAM_FUNC(normalMultiTypeStream, MultiInt16);
 STREAM_FUNC(normalMultiTypeStream, MultiUInt16);
 STREAM_FUNC(normalMultiTypeStream, MultiInt32);
@@ -123,4 +122,4 @@ STREAM_FUNC(doubleMultiTypeStream, MultiDouble);
 STREAM_FUNC(stringMultiTypeStream, MultiChar);
 STREAM_FUNC(normalMultiTypeStream, MultiString);
 
-}
+} // namespace autil

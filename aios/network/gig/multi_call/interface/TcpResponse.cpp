@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/interface/TcpResponse.h"
+
 #include "aios/network/anet/controlpacket.h"
 #include "aios/network/anet/defaultpacket.h"
 #include "aios/network/gig/multi_call/util/PacketUtil.h"
@@ -24,9 +25,11 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, TcpResponse);
 
-TcpResponse::TcpResponse() : _packet(NULL, PacketUtil::deletePacket) {}
+TcpResponse::TcpResponse() : _packet(NULL, PacketUtil::deletePacket) {
+}
 
-TcpResponse::~TcpResponse() {}
+TcpResponse::~TcpResponse() {
+}
 
 // response should always free data
 void TcpResponse::init(void *data) {

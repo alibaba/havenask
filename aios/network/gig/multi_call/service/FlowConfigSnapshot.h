@@ -22,7 +22,8 @@
 
 namespace multi_call {
 
-class FlowConfigSnapshot {
+class FlowConfigSnapshot
+{
 public:
     FlowConfigSnapshot();
     ~FlowConfigSnapshot();
@@ -38,14 +39,13 @@ public: // only for create snapshot for old snapshot
     std::shared_ptr<FlowConfigSnapshot> clone();
 
 public:
-    FlowControlConfigPtr
-    getFlowControlConfig(const std::string &strategy) const;
-    bool getFlowControlConfig(const std::string &strategy,
-                              FlowControlConfigPtr &config) const;
-    void getFlowControlSwitch(const std::vector<std::string> &strategyVec,
-                              bool &earlyTermination, bool &retry,
-                              bool &singleRetry) const;
-    const FlowControlConfigMap &getConfigMap() const { return *_configMap; }
+    FlowControlConfigPtr getFlowControlConfig(const std::string &strategy) const;
+    bool getFlowControlConfig(const std::string &strategy, FlowControlConfigPtr &config) const;
+    void getFlowControlSwitch(const std::vector<std::string> &strategyVec, bool &earlyTermination,
+                              bool &retry, bool &singleRetry) const;
+    const FlowControlConfigMap &getConfigMap() const {
+        return *_configMap;
+    }
     std::string toString() const;
 
 private:

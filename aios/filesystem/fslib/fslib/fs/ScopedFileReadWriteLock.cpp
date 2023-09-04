@@ -18,35 +18,29 @@
 FSLIB_BEGIN_NAMESPACE(fs);
 AUTIL_DECLARE_AND_SETUP_LOGGER(fs, ScopedFileReadWriteLock);
 
-ScopedFileReadWriteLock::ScopedFileReadWriteLock()
-    : _lock(NULL)
-    , _mode(' ') 
-{ 
-}
+ScopedFileReadWriteLock::ScopedFileReadWriteLock() : _lock(NULL), _mode(' ') {}
 
-ScopedFileReadWriteLock::~ScopedFileReadWriteLock() { 
+ScopedFileReadWriteLock::~ScopedFileReadWriteLock() {
     if (_lock) {
         release();
     }
 }
 
 void ScopedFileReadWriteLock::release() {
-    if (_mode == 'r' || _mode == 'R'
-        || _mode == 'w' || _mode == 'W') 
-    {
+    if (_mode == 'r' || _mode == 'R' || _mode == 'w' || _mode == 'W') {
         _lock->unlock();
     }
-        
+
     delete _lock;
     _lock = NULL;
 }
 
-bool ScopedFileReadWriteLock::init(FileReadWriteLock* lock, const char mode) {
+bool ScopedFileReadWriteLock::init(FileReadWriteLock *lock, const char mode) {
     if (lock == NULL) {
         AUTIL_LOG(ERROR, "lock passed is NULL");
         return false;
-    } 
-      
+    }
+
     if (_lock) {
         // TODO: currently not support recursively init
         AUTIL_LOG(ERROR, "current ScopedFileReadWriteLock is still used");
@@ -55,7 +49,7 @@ bool ScopedFileReadWriteLock::init(FileReadWriteLock* lock, const char mode) {
         _mode = ' ';
         return false;
     }
-       
+
     _lock = lock;
     _mode = mode;
     int ret;
@@ -76,4 +70,3 @@ bool ScopedFileReadWriteLock::init(FileReadWriteLock* lock, const char mode) {
 }
 
 FSLIB_END_NAMESPACE(fs);
-

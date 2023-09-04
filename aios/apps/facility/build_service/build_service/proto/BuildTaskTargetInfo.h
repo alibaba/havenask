@@ -47,6 +47,7 @@ enum BuildMode { UNKOWN = 0x0, BUILD = 0x01, PUBLISH = 0x02, BUILD_PUBLISH = BUI
 struct BuildTaskTargetInfo : public autil::legacy::Jsonizable {
     bool finished = false;
     bool skipMerge = false;
+    std::string specificMergeConfig;
     int32_t batchId = -1;
     proto::BuildMode buildMode = UNKOWN;
     indexlibv2::versionid_t alignVersionId = indexlibv2::INVALID_VERSIONID;
@@ -60,8 +61,8 @@ struct BuildTaskTargetInfo : public autil::legacy::Jsonizable {
         return finished == other.finished && buildMode == other.buildMode && alignVersionId == other.alignVersionId &&
                latestPublishedVersion == other.latestPublishedVersion && branchId == other.branchId &&
                indexRoot == other.indexRoot && buildStep == other.buildStep &&
-               slaveVersionProgress == other.slaveVersionProgress &&
-               skipMerge == other.skipMerge && batchId == other.batchId;
+               slaveVersionProgress == other.slaveVersionProgress && skipMerge == other.skipMerge &&
+               batchId == other.batchId && specificMergeConfig == other.specificMergeConfig;
     }
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override
     {
@@ -75,6 +76,7 @@ struct BuildTaskTargetInfo : public autil::legacy::Jsonizable {
         json.Jsonize("slave_version_progress", slaveVersionProgress, slaveVersionProgress);
         json.Jsonize("skip_merge", skipMerge, skipMerge);
         json.Jsonize("batch_id", batchId, batchId);
+        json.Jsonize("specific_merge_config", specificMergeConfig, specificMergeConfig);
     }
 };
 } // namespace build_service::proto

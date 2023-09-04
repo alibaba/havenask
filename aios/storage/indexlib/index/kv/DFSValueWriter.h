@@ -39,7 +39,7 @@ public:
     const char* GetBaseAddress() const override;
     int64_t GetLength() const override;
     void FillStatistics(SegmentStatistics& stat) const override;
-    void UpdateMemoryUsage(MemoryUsage& memUsage) const override;
+    void FillMemoryUsage(MemoryUsage& memUsage) const override;
 
 private:
     std::shared_ptr<indexlib::file_system::FileWriter> _file;

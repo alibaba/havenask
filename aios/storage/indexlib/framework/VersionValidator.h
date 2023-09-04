@@ -20,7 +20,7 @@
 #include "indexlib/base/Types.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::framework {
@@ -28,7 +28,7 @@ namespace indexlibv2::framework {
 class VersionValidator
 {
 public:
-    static Status Validate(const std::string& indexRootPath, const std::shared_ptr<const config::TabletSchema>& schema,
+    static Status Validate(const std::string& indexRootPath, const std::shared_ptr<const config::ITabletSchema>& schema,
                            versionid_t versionId);
 
 private:

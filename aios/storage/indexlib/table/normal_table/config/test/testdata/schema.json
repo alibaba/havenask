@@ -1,0 +1,40 @@
+{
+    "fields": [
+        {
+            "binary_field": false,
+            "field_name": "nid",
+            "field_type": "LONG"
+        }
+    ],
+    "indexs": [
+        {
+            "format_version_id": 0,
+            "index_fields": "nid",
+            "index_name": "nid",
+            "index_type": "PRIMARYKEY64",
+            "pk_data_block_size": 4096,
+            "pk_hash_type": "default_hash",
+            "pk_storage_type": "sort_array"
+        }
+    ],
+    "settings": {
+        "function_configs": [
+            {
+                "expression": "($currentTime - ops_user__gmt_modified >= 0 AND $currentTime - ops_user__gmt_modified <= 25920000) AND (ops_user__order_status = 0)",
+                "name": "hot_order"
+            },
+            {
+                "expression": "$currentTime - ops_user__gmt_modified > 25920000",
+                "name": "cold_order"
+            }
+        ],
+        "segment_group_config": {
+            "groups": [
+                "hot_orders",
+                "cold_orders"
+            ]
+        }
+    },
+    "table_name": "table1",
+    "table_type": "normal"
+}

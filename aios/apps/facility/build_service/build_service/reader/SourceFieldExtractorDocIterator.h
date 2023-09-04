@@ -32,13 +32,14 @@ public:
     };
 
 public:
-    SourceFieldExtractorDocIterator(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema);
+    SourceFieldExtractorDocIterator(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema);
     ~SourceFieldExtractorDocIterator();
 
 public:
     indexlibv2::Status Init(const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData,
                             std::pair<uint32_t /*0-99*/, uint32_t /*0-99*/> rangeInRatio,
                             const std::shared_ptr<indexlibv2::framework::MetricsManager>& metricsManager,
+                            const std::vector<std::string>& requiredFields,
                             const std::map<std::string, std::string>& params) override;
     indexlibv2::Status Next(indexlibv2::document::RawDocument* rawDocument, std::string* checkpoint,
                             indexlibv2::document::IDocument::DocInfo* docInfo) override;
@@ -55,7 +56,7 @@ private:
 
 private:
     std::shared_ptr<indexlibv2::framework::ITabletDocIterator> _docIter;
-    std::shared_ptr<indexlibv2::config::TabletSchema> _targetSchema;
+    std::shared_ptr<indexlibv2::config::ITabletSchema> _targetSchema;
     std::map<std::string, std::string> _defaultValues;
     std::map<std::string, FieldInfo> _fieldInfos;
     std::set<std::string> _requiredFields;

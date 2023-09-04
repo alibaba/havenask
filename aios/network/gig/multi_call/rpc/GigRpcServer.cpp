@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/rpc/GigRpcServer.h"
-#include "aios/network/gig/multi_call/rpc/RdmaArpcServerWapper.h"
+
+#include "aios/network/arpc/arpc/ANetRPCServer.h"
 #include "aios/network/gig/multi_call/agent/GigAgent.h"
 #include "aios/network/gig/multi_call/arpc/ServiceWrapper.h"
+#include "aios/network/gig/multi_call/common/TopoInfoBuilder.h"
 #include "aios/network/gig/multi_call/config/MultiCallConfig.h"
 #include "aios/network/gig/multi_call/grpc/server/GrpcServerWorker.h"
-#include "aios/network/gig/multi_call/new_heartbeat/HeartbeatStreamCreator.h"
 #include "aios/network/gig/multi_call/new_heartbeat/HeartbeatServerManager.h"
-#include "aios/network/gig/multi_call/common/TopoInfoBuilder.h"
+#include "aios/network/gig/multi_call/new_heartbeat/HeartbeatStreamCreator.h"
+#include "aios/network/gig/multi_call/rpc/RdmaArpcServerWapper.h"
 #include "aios/network/gig/multi_call/util/SharedPtrUtil.h"
-#include "aios/network/arpc/arpc/ANetRPCServer.h"
-
 #include "aios/network/http_arpc/HTTPRPCServer.h"
 #include "autil/NetUtil.h"
 
@@ -37,8 +37,7 @@ GigRpcServer::GigRpcServer()
     : _autoDelete(true)
     , _agent(new GigAgent())
     , _heartbeatManager(new HeartbeatServerManager())
-    , _tcpPort(INVALID_PORT)
-{
+    , _tcpPort(INVALID_PORT) {
 }
 
 GigRpcServer::GigRpcServer(arpc::ANetRPCServer *arpcServer)
@@ -46,16 +45,12 @@ GigRpcServer::GigRpcServer(arpc::ANetRPCServer *arpcServer)
     , _autoDelete(false)
     , _agent(new GigAgent())
     , _heartbeatManager(new HeartbeatServerManager())
-    , _tcpPort(INVALID_PORT)
-{
+    , _tcpPort(INVALID_PORT) {
 }
 
 GigRpcServer::~GigRpcServer() {
     release();
     _agent.reset();
-    for (auto wrapper : _wrappers) {
-        delete wrapper;
-    }
     _wrappers.clear();
     AUTIL_LOG(INFO, "gig rpc server stopped");
 }
@@ -85,24 +80,21 @@ bool GigRpcServer::startArpcServer(ArpcServerDescription &desc) {
     }
     _arpcDesc = desc;
     if (desc.ioThreadNum <= 1) {
-        _arpcServer.reset(
-            new arpc::ANetRPCServer(NULL, desc.threadNum, desc.queueSize));
+        _arpcServer.reset(new arpc::ANetRPCServer(NULL, desc.threadNum, desc.queueSize));
         if (!_arpcServer->StartPrivateTransport()) {
             AUTIL_LOG(ERROR, "arpc server start private transport failed");
             return false;
         }
     } else {
-        _arpcServerTransport.reset(
-            new anet::Transport(desc.ioThreadNum, anet::SHARE_THREAD));
-        _arpcServer.reset(new arpc::ANetRPCServer(
-            _arpcServerTransport.get(), desc.threadNum, desc.queueSize));
+        _arpcServerTransport.reset(new anet::Transport(desc.ioThreadNum, anet::SHARE_THREAD));
+        _arpcServer.reset(
+            new arpc::ANetRPCServer(_arpcServerTransport.get(), desc.threadNum, desc.queueSize));
         if (!_arpcServerTransport->start()) {
             AUTIL_LOG(ERROR, "arpc server start public transport failed");
             return false;
         }
         _arpcServerTransport->setName(desc.name);
-        AUTIL_LOG(INFO,
-                  "arpc server start public transport success, thread [%d]",
+        AUTIL_LOG(INFO, "arpc server start public transport success, thread [%d]",
                   desc.ioThreadNum);
     }
 
@@ -138,15 +130,13 @@ bool GigRpcServer::startHttpArpcServer(HttpArpcServerDescription &desc) {
         return false;
     }
     if (!_arpcServer) {
-        AUTIL_LOG(ERROR,
-                  "http arpc server start failed, arpc server not started");
+        AUTIL_LOG(ERROR, "http arpc server start failed, arpc server not started");
         return false;
     }
-    _httpArpcServerTransport.reset(
-        new anet::Transport(desc.ioThreadNum, anet::SHARE_THREAD));
+    _httpArpcServerTransport.reset(new anet::Transport(desc.ioThreadNum, anet::SHARE_THREAD));
     _httpArpcServer.reset(new http_arpc::HTTPRPCServer(
-        _arpcServer.get(), _httpArpcServerTransport.get(), desc.threadNum,
-        desc.queueSize, desc.decodeUri, desc.haCompatible));
+        _arpcServer.get(), _httpArpcServerTransport.get(), desc.threadNum, desc.queueSize,
+        desc.decodeUri, desc.haCompatible));
     if (!_httpArpcServerTransport->start()) {
         AUTIL_LOG(ERROR, "http arpc transport start failed");
         return false;
@@ -187,15 +177,14 @@ void GigRpcServer::stopHttpArpcServer() {
 bool GigRpcServer::startGrpcServer(const GrpcServerDescription &desc) {
     auto worker = createGrpcServer(desc);
     if (!worker) {
-        AUTIL_LOG(ERROR, "init grpc server failed, port [%s]",
-                  desc.port.c_str());
+        AUTIL_LOG(ERROR, "init grpc server failed, port [%s]", desc.port.c_str());
         return false;
     }
     _grpcWorker = worker;
     if (!_heartbeatManager) {
         return true;
     }
-    if (!_heartbeatManager->init("", _agent, getRpcSpec())) {
+    if (!_heartbeatManager->init(_agent, getRpcSpec())) {
         AUTIL_LOG(ERROR, "init heartbeat manager failed");
         return false;
     }
@@ -207,8 +196,7 @@ bool GigRpcServer::startGrpcServer(const GrpcServerDescription &desc) {
     return true;
 }
 
-GrpcServerWorkerPtr
-GigRpcServer::createGrpcServer(const GrpcServerDescription &desc) {
+GrpcServerWorkerPtr GigRpcServer::createGrpcServer(const GrpcServerDescription &desc) {
     GrpcServerWorkerPtr grpcWorker(new GrpcServerWorker(*this));
     if (!grpcWorker->init(desc)) {
         return GrpcServerWorkerPtr();
@@ -285,9 +273,18 @@ bool GigRpcServer::publish(const ServerBizTopoInfo &info, SignatureTy &signature
     }
 }
 
+bool GigRpcServer::publish(const std::vector<ServerBizTopoInfo> &infoVec,
+                           std::vector<SignatureTy> &signatureVec) {
+    if (_heartbeatManager) {
+        return _heartbeatManager->publish(infoVec, signatureVec);
+    } else {
+        AUTIL_LOG(ERROR, "publish topo failed, server stopped");
+        return false;
+    }
+}
+
 bool GigRpcServer::publishGroup(PublishGroupTy group, const std::vector<ServerBizTopoInfo> &infoVec,
-                                std::vector<SignatureTy> &signatureVec)
-{
+                                std::vector<SignatureTy> &signatureVec) {
     if (INVALID_PUBLISH_GROUP == group) {
         AUTIL_LOG(ERROR, "invalid publish group id [%lu]", group);
         return false;
@@ -300,7 +297,8 @@ bool GigRpcServer::publishGroup(PublishGroupTy group, const std::vector<ServerBi
     }
 }
 
-bool GigRpcServer::publishGroup(PublishGroupTy group, const std::vector<BizTopoInfo> &topoVec, std::vector<SignatureTy> &signatureVec) {
+bool GigRpcServer::publishGroup(PublishGroupTy group, const std::vector<BizTopoInfo> &topoVec,
+                                std::vector<SignatureTy> &signatureVec) {
     std::vector<multi_call::ServerBizTopoInfo> infoVec;
     for (const auto &topo : topoVec) {
         multi_call::ServerBizTopoInfo info;
@@ -318,7 +316,8 @@ bool GigRpcServer::publishGroup(PublishGroupTy group, const std::vector<BizTopoI
 bool GigRpcServer::updateVolatileInfo(SignatureTy signature, const BizVolatileInfo &info) {
     if (_heartbeatManager) {
         return _heartbeatManager->updateVolatileInfo(signature, info);
-    } {
+    }
+    {
         AUTIL_LOG(ERROR, "update topo failed [%lu], call publish first", signature);
         return false;
     }
@@ -329,6 +328,16 @@ bool GigRpcServer::unpublish(SignatureTy signature) {
         return _heartbeatManager->unpublish(signature);
     } else {
         AUTIL_LOG(ERROR, "unpublish topo failed [%lu], call publish first", signature);
+        return false;
+    }
+}
+
+bool GigRpcServer::unpublish(const std::vector<SignatureTy> &signatureVec) {
+    if (_heartbeatManager) {
+        return _heartbeatManager->unpublish(signatureVec);
+    } else {
+        AUTIL_LOG(ERROR, "unpublish topo vec failed, count [%lu], call publish first",
+                  signatureVec.size());
         return false;
     }
 }
@@ -389,10 +398,11 @@ SearchServicePtr GigRpcServer::getSearchService() {
     return _searchService;
 }
 
-bool GigRpcServer::registerGrpcService(
-    const std::string &methodName, google::protobuf::Message *request,
-    google::protobuf::Message *response,
-    const CompatibleFieldInfo &compatibleInfo, const GigRpcMethod &method) {
+bool GigRpcServer::registerGrpcService(const std::string &methodName,
+                                       google::protobuf::Message *request,
+                                       google::protobuf::Message *response,
+                                       const CompatibleFieldInfo &compatibleInfo,
+                                       const GigRpcMethod &method) {
     if (!_grpcWorker) {
         AUTIL_LOG(INFO, "grpc server has not been initialized");
         return false;
@@ -414,28 +424,25 @@ bool GigRpcServer::registerGrpcService(
  * _arpcServer->RegisterService(wrapper(_agent, rpcService, ...), ...)
  * append to _wrapper if success
  */
-bool GigRpcServer::registerArpcService(
-    google::protobuf::Service *rpcService,
-    const CompatibleFieldInfo &compatibleInfo,
-    const arpc::ThreadPoolDescriptor &threadPoolDescriptor)
-{
-    return registerArpcService<arpc::ThreadPoolDescriptor>(rpcService, compatibleInfo, threadPoolDescriptor);
+bool GigRpcServer::registerArpcService(google::protobuf::Service *rpcService,
+                                       const CompatibleFieldInfo &compatibleInfo,
+                                       const arpc::ThreadPoolDescriptor &threadPoolDescriptor) {
+    return registerArpcService<arpc::ThreadPoolDescriptor>(rpcService, compatibleInfo,
+                                                           threadPoolDescriptor);
 }
 
 bool GigRpcServer::registerArpcService(google::protobuf::Service *rpcService,
-                    const CompatibleFieldInfo &compatibleInfo,
-                    const autil::ThreadPoolBasePtr &pool)
-{
+                                       const CompatibleFieldInfo &compatibleInfo,
+                                       const autil::ThreadPoolBasePtr &pool) {
     return registerArpcService<autil::ThreadPoolBasePtr>(rpcService, compatibleInfo, pool);
 }
 
-bool GigRpcServer::registerArpcService(
-    google::protobuf::Service *rpcService,
-    const CompatibleFieldInfo &compatibleInfo,
-    const arpc::ThreadPoolDescriptor &threadPoolDescriptor,
-    const std::map<std::string, std::string> &aliasMap) {
+bool GigRpcServer::registerArpcService(google::protobuf::Service *rpcService,
+                                       const CompatibleFieldInfo &compatibleInfo,
+                                       const arpc::ThreadPoolDescriptor &threadPoolDescriptor,
+                                       const std::map<std::string, std::string> &aliasMap) {
     if (!registerArpcService<arpc::ThreadPoolDescriptor>(rpcService, compatibleInfo,
-                             threadPoolDescriptor)) {
+                                                         threadPoolDescriptor)) {
         return false;
     }
     if (_httpArpcServer) {
@@ -447,26 +454,74 @@ bool GigRpcServer::registerArpcService(
 template <typename ThreadPoolRep>
 bool GigRpcServer::registerArpcService(google::protobuf::Service *rpcService,
                                        const CompatibleFieldInfo &compatibleInfo,
-                                       const ThreadPoolRep &poolRep)
-{
+                                       const ThreadPoolRep &poolRep) {
     if (!_arpcServer) {
         AUTIL_LOG(INFO, "gig arpc server disabled");
         return false;
     }
-    auto wrapper = new ServiceWrapper(*this, rpcService, compatibleInfo);
-    auto ret = _arpcServer->RegisterService(wrapper, poolRep);
+    auto wrapper = std::make_shared<ServiceWrapper>(*this, rpcService, compatibleInfo);
+    auto ret = _arpcServer->RegisterService(wrapper.get(), poolRep);
     if (ret) {
-        _wrappers.push_back(wrapper);
+        _wrappers.insert(wrapper);
     } else {
         AUTIL_LOG(ERROR, "register service:[%s] wrapper failed!",
                   rpcService->GetDescriptor()->DebugString().c_str());
-        delete wrapper;
+        wrapper.reset();
     }
     if (_httpArpcServer) {
         _httpArpcServer->registerService();
     }
     if (_rdmaArpcServerWrapper) {
-        _rdmaArpcServerWrapper->registerService(wrapper, poolRep);
+        _rdmaArpcServerWrapper->registerService(wrapper.get(), poolRep);
+    }
+    return ret;
+}
+
+void GigRpcServer::unRegisterArpcService(
+    const std::shared_ptr<google::protobuf::Service> &rpcService) {
+    if (!_arpcServer) {
+        return;
+    }
+    std::shared_ptr<ServiceWrapper> found;
+    for (auto wrapper : _wrappers) {
+        if (rpcService == wrapper->getRpcServicePtr()) {
+            found = wrapper;
+            break;
+        }
+    }
+    if (!found) {
+        return;
+    }
+    _arpcServer->unRegisterService(found);
+    if (_httpArpcServer) {
+        _httpArpcServer->registerService();
+    }
+    _wrappers.erase(found);
+}
+
+bool GigRpcServer::registerArpcService(const std::shared_ptr<google::protobuf::Service> &rpcService,
+                                       const std::string &methodName,
+                                       const CompatibleFieldInfo &compatibleInfo,
+                                       const arpc::ThreadPoolDescriptor &threadPoolDescriptor) {
+    if (!_arpcServer) {
+        AUTIL_LOG(INFO, "gig arpc server disabled");
+        return false;
+    }
+    auto wrapper = std::make_shared<ServiceWrapper>(*this, rpcService.get(), compatibleInfo);
+    wrapper->setRpcServicePtr(rpcService);
+    auto ret = _arpcServer->RegisterService(wrapper, methodName, threadPoolDescriptor);
+    if (ret) {
+        _wrappers.insert(wrapper);
+    } else {
+        AUTIL_LOG(ERROR, "register service:[%s] wrapper failed!",
+                  rpcService->GetDescriptor()->DebugString().c_str());
+        wrapper.reset();
+    }
+    if (_httpArpcServer) {
+        _httpArpcServer->registerService();
+    }
+    if (_rdmaArpcServerWrapper) {
+        _rdmaArpcServerWrapper->registerService(wrapper, methodName, threadPoolDescriptor);
     }
     return ret;
 }
@@ -495,7 +550,16 @@ http_arpc::HTTPRPCServer *GigRpcServer::getHttpArpcServer() const {
     return _httpArpcServer.get();
 }
 
-bool GigRpcServer::hasGrpc() const { return _grpcWorker.get(); }
+std::shared_ptr<arpc::RPCServer> GigRpcServer::getRdmaRPCServer() const {
+    if (_rdmaArpcServerWrapper) {
+        return _rdmaArpcServerWrapper->getRPCServer();
+    }
+    return nullptr;
+}
+
+bool GigRpcServer::hasGrpc() const {
+    return _grpcWorker.get();
+}
 
 int32_t GigRpcServer::getGrpcPort() const {
     if (!_grpcWorker) {
@@ -505,7 +569,9 @@ int32_t GigRpcServer::getGrpcPort() const {
     }
 }
 
-GigAgentPtr &GigRpcServer::getAgent() { return _agent; }
+GigAgentPtr &GigRpcServer::getAgent() {
+    return _agent;
+}
 
 void GigRpcServer::startAgent() {
     _agent->start();
@@ -521,8 +587,7 @@ void GigRpcServer::stopAgent() {
     }
 }
 
-bool GigRpcServer::waitUntilNoQuery(int64_t noQueryTimeInSecond,
-                                    int64_t timeoutInSecond) {
+bool GigRpcServer::waitUntilNoQuery(int64_t noQueryTimeInSecond, int64_t timeoutInSecond) {
     int64_t waitTime = 0;
     while (waitTime < timeoutInSecond) {
         if (_agent->longTimeNoQuery(noQueryTimeInSecond)) {
@@ -538,13 +603,9 @@ bool GigRpcServer::waitUntilNoQuery(int64_t noQueryTimeInSecond,
     return true;
 }
 
-template bool
-GigRpcServer::registerArpcService<arpc::ThreadPoolDescriptor>(google::protobuf::Service*,
-                                                                    const CompatibleFieldInfo&,
-                                                                    const arpc::ThreadPoolDescriptor&);
-template bool
-GigRpcServer::registerArpcService<autil::ThreadPoolBasePtr>(google::protobuf::Service*,
-                                                                    const CompatibleFieldInfo&,
-                                                                    const autil::ThreadPoolBasePtr&);
+template bool GigRpcServer::registerArpcService<arpc::ThreadPoolDescriptor>(
+    google::protobuf::Service *, const CompatibleFieldInfo &, const arpc::ThreadPoolDescriptor &);
+template bool GigRpcServer::registerArpcService<autil::ThreadPoolBasePtr>(
+    google::protobuf::Service *, const CompatibleFieldInfo &, const autil::ThreadPoolBasePtr &);
 
 } // namespace multi_call

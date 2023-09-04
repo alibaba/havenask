@@ -1,0 +1,67 @@
+{
+    "table_name": "normal_table",
+    "table_type": "normal",
+    "fields": [
+        { "field_name": "sort1", "field_type": "INT8", "compress_type": "equal"},
+        { "field_name": "sort2", "field_type": "INT64" },
+        { "field_name": "simple", "field_type": "INT64" },
+        { "field_name": "string1", "field_type": "string"},
+        { "field_name": "string2", "field_type": "TEXT", "analyzer":"simple_analyzer"},
+        { "field_name": "multi_int16", "field_type": "INT16", "multi_value" : true, "compress_type":"uniq|equal"},
+        { "field_name": "pk", "field_type": "STRING"}
+    ],
+    "dictionaries":
+    [
+        {
+            "dictionary_name": "top",
+            "content": "1"
+        }
+    ],
+    "indexs": [
+        {
+            "index_name": "pk",
+            "index_type" : "PRIMARYKEY64",
+            "index_fields": "pk",
+            "has_primary_key_attribute": false,
+            "is_primary_key_sorted": true
+        },
+        {
+            "index_name": "string1",
+            "index_type" : "STRING",
+            "index_fields": "string1",
+            "term_frequency_bitmap": 1,
+            "term_frequency_flag": 1,
+            "high_frequency_dictionary": "top"
+        },
+        {
+            "index_name": "string2",
+            "index_type" : "TEXT",
+            "index_fields": "string2",
+            "doc_payload_flag" : 1,
+            "term_frequency_flag" : 1
+        },
+        {
+            "index_name": "sort1",
+            "index_type" : "NUMBER",
+            "index_fields": "sort1"
+        }
+    ],
+    "attributes": [ {"field_name" : "sort1", "slice_count":2}, "sort2", "string1", "pk",  "simple", "multi_int16"],
+    "summarys":{
+        "summary_fields": ["sort1", "sort2"],
+        "compress": false
+    },
+    "settings": {
+        "sort_descriptions":
+        [
+            {
+                "sort_field" : "sort1",
+                "sort_pattern" : "desc"
+            },
+            {
+                "sort_field" : "sort2",
+                "sort_pattern" : "asc"
+            }
+        ]
+    }
+}

@@ -1,0 +1,89 @@
+{
+    "table_name": "general",
+    "fields": [  
+            { "field_name":"id",              "field_type":"STRING" },
+        { "field_name":"appKey",          "field_type":"STRING" },
+        { "field_name":"index_string",    "field_type":"STRING", "multi_value":true },
+        { "field_name":"doc_time_to_live_in_seconds",    "field_type":"UINT32" },
+        { "field_name":"doc_create_time",    "field_type":"UINT32" },
+        { "field_name":"attr_string_1",      "field_type":"STRING" },
+        { "field_name":"attr_string_2",      "field_type":"STRING" },
+        { "field_name":"attr_string_3",      "field_type":"STRING" },
+        { "field_name":"attr_string_4",      "field_type":"STRING" },
+        { "field_name":"attr_string_5",      "field_type":"STRING" },
+        { "field_name":"attr_string_6",      "field_type":"STRING" },
+        { "field_name":"attr_string_7",      "field_type":"STRING" },
+        { "field_name":"attr_string_8",      "field_type":"STRING" },
+        { "field_name":"attr_string_9",      "field_type":"STRING" },
+        { "field_name":"attr_string_10",     "field_type":"STRING" },
+
+        { "field_name":"attr_int_1",      "field_type":"INT32" },
+        { "field_name":"attr_int_2",      "field_type":"INT32" },
+        { "field_name":"attr_int_3",      "field_type":"INT32" },
+        { "field_name":"attr_int_4",      "field_type":"INT32" },
+        { "field_name":"attr_int_5",      "field_type":"INT32" },
+        { "field_name":"attr_int_6",      "field_type":"INT32" },
+        { "field_name":"attr_int_7",      "field_type":"INT32" },
+        { "field_name":"attr_int_8",      "field_type":"INT32" },
+        { "field_name":"attr_int_9",      "field_type":"INT32" },
+        { "field_name":"attr_int_10",     "field_type":"INT32" },
+
+        { "field_name":"attr_double_1",      "field_type":"DOUBLE" },
+        { "field_name":"attr_double_2",      "field_type":"DOUBLE" },
+        { "field_name":"attr_double_3",      "field_type":"DOUBLE" },
+        { "field_name":"attr_double_4",      "field_type":"DOUBLE" },
+        { "field_name":"attr_double_5",      "field_type":"DOUBLE" },
+        { "field_name":"attr_double_6",      "field_type":"DOUBLE" },
+        { "field_name":"attr_double_7",      "field_type":"DOUBLE" },
+        { "field_name":"attr_double_8",      "field_type":"DOUBLE" },
+        { "field_name":"attr_double_9",      "field_type":"DOUBLE" },
+        { "field_name":"attr_double_10",     "field_type":"DOUBLE" },
+
+        { "field_name":"attr_long_1",     "field_type":"LONG" }, 
+        { "field_name":"attr_long_2",     "field_type":"LONG" },    
+        { "field_name":"attr_long_3",     "field_type":"LONG" },    
+        { "field_name":"attr_long_4",     "field_type":"LONG" },    
+        { "field_name":"attr_long_5",     "field_type":"LONG" },    
+        { "field_name":"attr_long_6",     "field_type":"LONG" }, 
+        { "field_name":"attr_long_7",     "field_type":"LONG" }, 
+        { "field_name":"attr_long_8",     "field_type":"LONG" }, 
+        { "field_name":"attr_long_9",     "field_type":"LONG" }, 
+        { "field_name":"attr_long_10",     "field_type":"LONG" }
+    ],
+
+    "indexs": [
+        {
+            "index_name": "id",
+            "index_type": "PRIMARYKEY64",
+            "index_fields": "id",
+            "has_primary_key_attribute" : false,
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "appKey",
+            "index_type": "STRING",
+            "index_fields": "appKey",
+            "has_dict_inline_compress" : true,
+            "term_frequency_flag": 0
+        },
+        {
+            "index_name": "index_string",
+            "index_type": "STRING",
+            "index_fields": "index_string",
+            "has_dict_inline_compress" : true, 
+            "term_frequency_flag": 0
+        }                                                                                                                   
+        ],
+    "attributes": [
+        "id","doc_create_time",
+        "attr_string_1","attr_string_2","attr_string_3","attr_string_4","attr_string_5","attr_string_6","attr_string_7","attr_string_8","attr_string_9","attr_string_10", 
+        "attr_int_1","attr_int_2","attr_int_3","attr_int_4","attr_int_5","attr_int_6","attr_int_7","attr_int_8","attr_int_9","attr_int_10",
+        "attr_long_1","attr_long_2","attr_long_3","attr_long_4","attr_long_5","attr_long_6","attr_long_7","attr_long_8","attr_long_9","attr_long_10",
+        "attr_double_1","attr_double_2","attr_double_3","attr_double_4","attr_double_5","attr_double_6","attr_double_7","attr_double_8","attr_double_9","attr_double_10"
+    ],
+    "summarys": {
+            "compress":false,
+            "summary_fields":["id","appKey","index_string"]
+    },
+    "enable_ttl": true
+}

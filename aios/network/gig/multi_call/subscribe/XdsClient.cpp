@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/subscribe/XdsClient.h"
+
+#include <unistd.h>
+
 #include "aios/network/gig/multi_call/subscribe/XdsStore.h"
 #include "autil/NetUtil.h"
 #include "autil/WorkItem.h"
-#include <unistd.h>
 
 using namespace std;
 using namespace autil;
@@ -26,14 +28,16 @@ namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, XdsClient);
 
 const string XdsClient::kCDSUrl = "type.googleapis.com/envoy.api.v2.Cluster";
-const string XdsClient::kEDSUrl =
-    "type.googleapis.com/envoy.api.v2.ClusterLoadAssignment";
+const string XdsClient::kEDSUrl = "type.googleapis.com/envoy.api.v2.ClusterLoadAssignment";
 
 typedef std::function<void(void)> ReqMethod;
-class DiscoveryResWorkItem : public autil::WorkItem {
+class DiscoveryResWorkItem : public autil::WorkItem
+{
 public:
-    DiscoveryResWorkItem(ReqMethod &req) : _reqMethod(req) {}
-    ~DiscoveryResWorkItem() {}
+    DiscoveryResWorkItem(ReqMethod &req) : _reqMethod(req) {
+    }
+    ~DiscoveryResWorkItem() {
+    }
 
 public:
     void process() override;
@@ -42,19 +46,23 @@ private:
     ReqMethod _reqMethod;
 };
 
-void DiscoveryResWorkItem::process() { _reqMethod(); }
+void DiscoveryResWorkItem::process() {
+    _reqMethod();
+}
 
-XdsClient::XdsClient(const IstioConfig &config,
-                     const IstioMetricReporterPtr reporter,
+XdsClient::XdsClient(const IstioConfig &config, const IstioMetricReporterPtr reporter,
                      std::shared_ptr<XdsStore> xdsStore)
-    : _config(config), _metricReporter(reporter), _xdsStore(xdsStore) {
+    : _config(config)
+    , _metricReporter(reporter)
+    , _xdsStore(xdsStore) {
     _CDSsyncedTimestamp = 0;
     _EDSsyncedTimestamp = 0;
     _CDSRequestTimestamp = 0;
     _EDSRequestTimestamp = 0;
     _stop = false;
 }
-XdsClient::~XdsClient() {}
+XdsClient::~XdsClient() {
+}
 
 bool XdsClient::checkSubscribeWork() {
     return _CDSsyncedTimestamp || _EDSsyncedTimestamp;
@@ -118,8 +126,7 @@ bool XdsClient::deleteSubscribe(const std::vector<std::string> &names) {
     return reWatch(_config.asyncSubscribe);
 };
 
-bool XdsClient::parseVersionInfo(const string &str,
-                                 IstioVersionInfo *versioninfo) {
+bool XdsClient::parseVersionInfo(const string &str, IstioVersionInfo *versioninfo) {
     std::vector<std::string> vec = autil::StringUtil::split(str, "/");
     if (vec.size() != 3) {
         return false;
@@ -130,8 +137,7 @@ bool XdsClient::parseVersionInfo(const string &str,
         versioninfo->full = false;
     }
     versioninfo->timestamp = vec[1];
-    versioninfo->serverVersion =
-        autil::StringUtil::strToUInt64WithDefault(vec[2].c_str(), 0);
+    versioninfo->serverVersion = autil::StringUtil::strToUInt64WithDefault(vec[2].c_str(), 0);
     return true;
 }
 
@@ -147,20 +153,18 @@ bool XdsClient::init() {
     }
     // init grpcAdsClient
     // TODO(guanming.fh) support multi-servers && add app name to nodeid
-    std::vector<std::string> pilotServers = { _config.istioHost };
+    std::vector<std::string> pilotServers = {_config.istioHost};
     std::string nodeid = "sidecar~" + localIP + "~v3~istio.local";
     AUTIL_LOG(INFO, "nodeid: [%s] ", nodeid.c_str());
 
     _grpcAdsClient.reset(new GrpcAdsClient(nodeid, pilotServers));
     if (!_grpcAdsClient) {
-        AUTIL_LOG(ERROR,
-                  "Fail on creating grpc client nodeid [%s], server [%s].",
-                  nodeid.c_str(), _config.istioHost.c_str())
+        AUTIL_LOG(ERROR, "Fail on creating grpc client nodeid [%s], server [%s].", nodeid.c_str(),
+                  _config.istioHost.c_str())
         return false;
     }
     if (!_grpcAdsClient->BuildStream()) {
-        AUTIL_LOG(ERROR,
-                  "Fail on build grpc stream. Try to load cache if has.");
+        AUTIL_LOG(ERROR, "Fail on build grpc stream. Try to load cache if has.");
         if (_config.readCache && !_xdsStore->loadCache()) {
             AUTIL_LOG(ERROR, "Fail to load Cache.")
             return false;
@@ -169,27 +173,25 @@ bool XdsClient::init() {
     // init WatchResources
     {
         autil::ScopedLock lock(_mutex);
-        _watchedResourceNames =
-            XdsStore::hostnamesToResources(_config.clusters);
+        _watchedResourceNames = XdsStore::hostnamesToResources(_config.clusters);
     }
     // init threads
     if (_config.asyncSubscribe) {
         _subscribeThread = autil::Thread::createThread(
             std::bind(&XdsClient::asyncSubThreadFunc, this), "XdsCliAsyncSub");
         if (!_subscribeThread) {
-            AUTIL_LOG(ERROR,
-                      "Failed: create xds client async subscriber thread!");
+            AUTIL_LOG(ERROR, "Failed: create xds client async subscriber thread!");
             return false;
         }
     }
-    _workerThreads.reset(new autil::ThreadPool(
-        _config.xdsClientWorkerThreadNumber, _config.xdsCallbackQueueSize));
+    _workerThreads.reset(
+        new autil::ThreadPool(_config.xdsClientWorkerThreadNumber, _config.xdsCallbackQueueSize));
     if (!_workerThreads->start("XdsClientWorker")) {
         AUTIL_LOG(ERROR, "Failed: start xds client worker threads");
         return false;
     }
-    _receiveThread = autil::Thread::createThread(
-        std::bind(&XdsClient::receiveThreadFunc, this), "XdsClientReceive");
+    _receiveThread = autil::Thread::createThread(std::bind(&XdsClient::receiveThreadFunc, this),
+                                                 "XdsClientReceive");
     if (!_receiveThread) {
         AUTIL_LOG(ERROR, "Failed: create xds client receive thread!");
         return false;
@@ -240,14 +242,12 @@ bool XdsClient::reWatch(bool async) {
         AUTIL_LOG(ERROR, "Error xdsclient has empty _grpcAdsClient.");
         return false;
     }
-    bool ret =
-        _grpcAdsClient->SendDiscoveryRequest(kCDSUrl, watchedResourceNames) &&
-        _grpcAdsClient->SendDiscoveryRequest(kEDSUrl, watchedResourceNames);
+    bool ret = _grpcAdsClient->SendDiscoveryRequest(kCDSUrl, watchedResourceNames) &&
+               _grpcAdsClient->SendDiscoveryRequest(kEDSUrl, watchedResourceNames);
     _CDSRequestTimestamp = autil::TimeUtility::currentTime();
     _EDSRequestTimestamp = _CDSRequestTimestamp.load();
     if (ret == false) {
-        AUTIL_LOG(ERROR, "Failed subscribe clusters len [%lu]",
-                  watchedResourceNames.size());
+        AUTIL_LOG(ERROR, "Failed subscribe clusters len [%lu]", watchedResourceNames.size());
     } else if (_config.asyncSubscribe) {
         autil::ScopedLock lock(_mutex);
         _needSendSubRequest = false;
@@ -268,18 +268,16 @@ int fallBackSeconds(int retry) {
 void XdsClient::receiveThreadFunc() {
     AUTIL_LOG(INFO, "Start XdsClient received thread!");
     if (!_grpcAdsClient) {
-        AUTIL_LOG(ERROR,
-                  "Error: _grpcAdsClient should not be null after init()!");
+        AUTIL_LOG(ERROR, "Error: _grpcAdsClient should not be null after init()!");
         return;
     }
-    vector<string> results = { "succ", "fail" };
-    vector<string> ops = { "stream", "subscribe", "readrsp" };
-    map<string, map<string, kmonitor::MetricsTagsPtr> > tags;
+    vector<string> results = {"succ", "fail"};
+    vector<string> ops = {"stream", "subscribe", "readrsp"};
+    map<string, map<string, kmonitor::MetricsTagsPtr>> tags;
     if (_metricReporter) {
         for (auto &r : results) {
             for (auto &op : ops) {
-                tags[r][op] = _metricReporter->GetMetricsTags(
-                    { { "result", r }, { "op_type", op } });
+                tags[r][op] = _metricReporter->GetMetricsTags({{"result", r}, {"op_type", op}});
             }
         }
     }
@@ -295,15 +293,13 @@ void XdsClient::receiveThreadFunc() {
             if (!_grpcAdsClient->BuildStream()) {
                 AUTIL_LOG(ERROR, "build grpc stream failed. retrying...");
                 if (_metricReporter) {
-                    _metricReporter->reportXdsBuildStream(
-                        1, tags["fail"]["stream"]);
+                    _metricReporter->reportXdsBuildStream(1, tags["fail"]["stream"]);
                 }
                 ++retryCount;
                 continue;
             }
             if (_metricReporter) {
-                _metricReporter->reportXdsBuildStream(1,
-                                                      tags["succ"]["stream"]);
+                _metricReporter->reportXdsBuildStream(1, tags["succ"]["stream"]);
             }
             streamSuccess = true;
             AUTIL_LOG(INFO, "build grpc stream success.");
@@ -314,14 +310,12 @@ void XdsClient::receiveThreadFunc() {
                 subscribeSuccess = false;
                 ++retryCount;
                 if (_metricReporter) {
-                    _metricReporter->reportXdsBuildStream(
-                        1, tags["fail"]["subscribe"]);
+                    _metricReporter->reportXdsBuildStream(1, tags["fail"]["subscribe"]);
                 }
                 continue;
             }
             if (_metricReporter) {
-                _metricReporter->reportXdsBuildStream(
-                    1, tags["succ"]["subscribe"]);
+                _metricReporter->reportXdsBuildStream(1, tags["succ"]["subscribe"]);
             }
             subscribeSuccess = true;
         }
@@ -332,8 +326,7 @@ void XdsClient::receiveThreadFunc() {
             subscribeSuccess = false;
             ++retryCount;
             if (_metricReporter) {
-                _metricReporter->reportXdsBuildStream(1,
-                                                      tags["fail"]["readrsp"]);
+                _metricReporter->reportXdsBuildStream(1, tags["fail"]["readrsp"]);
             }
             continue;
         }
@@ -350,8 +343,7 @@ void XdsClient::receiveThreadFunc() {
 void XdsClient::asyncSubThreadFunc() {
     AUTIL_LOG(INFO, "Start XdsClient async subscribe thread!");
     if (!_grpcAdsClient) {
-        AUTIL_LOG(ERROR,
-                  "Error: _grpcAdsClient should not be null after init()!");
+        AUTIL_LOG(ERROR, "Error: _grpcAdsClient should not be null after init()!");
         return;
     }
     int64_t last = autil::TimeUtility::currentTime();
@@ -380,8 +372,7 @@ void XdsClient::asyncSubThreadFunc() {
     }
 }
 
-bool XdsClient::xdsResponseSanityCheck(const IstioVersionInfo &vinfo,
-                                       const string &typeUrl,
+bool XdsClient::xdsResponseSanityCheck(const IstioVersionInfo &vinfo, const string &typeUrl,
                                        const string &nonce) {
     if (typeUrl != kCDSUrl && typeUrl != kEDSUrl) {
         AUTIL_LOG(ERROR, " typeUrl [%s] not supported.", typeUrl.c_str());
@@ -397,9 +388,8 @@ bool XdsClient::xdsResponseSanityCheck(const IstioVersionInfo &vinfo,
                       "[%s] typeUrl [%s].",
                       vinfo.timestamp.c_str(), nonce.c_str(), typeUrl.c_str());
             if (_metricReporter) {
-                std::map<std::string, std::string> tags = {
-                    { "xdsType", "cds" }, { "errorType", "fullMiss" }
-                };
+                std::map<std::string, std::string> tags = {{"xdsType", "cds"},
+                                                           {"errorType", "fullMiss"}};
                 _metricReporter->reportXdsRspCheck(1, tags);
             }
             return false;
@@ -418,9 +408,8 @@ bool XdsClient::xdsResponseSanityCheck(const IstioVersionInfo &vinfo,
             //           vinfo.timestamp.c_str(), nonce.c_str(),
             //           typeUrl.c_str(), cur);
             if (_metricReporter) {
-                std::map<std::string, std::string> tags = {
-                    { "xdsType", "cds" }, { "errorType", "versionMismatch" }
-                };
+                std::map<std::string, std::string> tags = {{"xdsType", "cds"},
+                                                           {"errorType", "versionMismatch"}};
                 _metricReporter->reportXdsRspCheck(1, tags);
             }
             // donot reject this msg
@@ -437,9 +426,8 @@ bool XdsClient::xdsResponseSanityCheck(const IstioVersionInfo &vinfo,
                       "[%s] typeUrl [%s].",
                       vinfo.timestamp.c_str(), nonce.c_str(), typeUrl.c_str());
             if (_metricReporter) {
-                std::map<std::string, std::string> tags = {
-                    { "xdsType", "eds" }, { "errorType", "fullMiss" }
-                };
+                std::map<std::string, std::string> tags = {{"xdsType", "eds"},
+                                                           {"errorType", "fullMiss"}};
                 _metricReporter->reportXdsRspCheck(1, tags);
             }
             return false;
@@ -451,9 +439,8 @@ bool XdsClient::xdsResponseSanityCheck(const IstioVersionInfo &vinfo,
             //           vinfo.timestamp.c_str(), nonce.c_str(),
             //           typeUrl.c_str(), cur);
             if (_metricReporter) {
-                std::map<std::string, std::string> tags = {
-                    { "xdsType", "eds" }, { "errorType", "versionMismatch" }
-                };
+                std::map<std::string, std::string> tags = {{"xdsType", "eds"},
+                                                           {"errorType", "versionMismatch"}};
                 _metricReporter->reportXdsRspCheck(1, tags);
             }
             // donot reject this msg
@@ -463,12 +450,12 @@ bool XdsClient::xdsResponseSanityCheck(const IstioVersionInfo &vinfo,
     return true;
 }
 
-string bool2String(bool a) { return a ? "true" : "false"; }
+string bool2String(bool a) {
+    return a ? "true" : "false";
+}
 
-void XdsClient::processXdsResponse(
-    std::shared_ptr<envoy::api::v2::DiscoveryResponse> resp) {
-    AUTIL_LOG(DEBUG, "XdsClient::processXdsResponse response [%s]",
-              resp->DebugString().c_str());
+void XdsClient::processXdsResponse(std::shared_ptr<envoy::api::v2::DiscoveryResponse> resp) {
+    AUTIL_LOG(DEBUG, "XdsClient::processXdsResponse response [%s]", resp->DebugString().c_str());
     const string &typeUrl = resp->type_url();
     const string &nonce = resp->nonce();
     const string &versionInfo = resp->version_info();
@@ -492,8 +479,7 @@ void XdsClient::processXdsResponse(
             AUTIL_LOG(INFO, "Received first full CDS response. ");
             if (_metricReporter) {
                 _metricReporter->reportXdsRequestLatency(
-                    autil::TimeUtility::currentTime() - _CDSRequestTimestamp,
-                    tags);
+                    autil::TimeUtility::currentTime() - _CDSRequestTimestamp, tags);
             }
             _CDSRequestTimestamp = 0;
         }
@@ -509,8 +495,7 @@ void XdsClient::processXdsResponse(
             AUTIL_LOG(INFO, "Received first full EDS response. ");
             if (_metricReporter) {
                 _metricReporter->reportXdsRequestLatency(
-                    autil::TimeUtility::currentTime() - _EDSRequestTimestamp,
-                    tags);
+                    autil::TimeUtility::currentTime() - _EDSRequestTimestamp, tags);
             }
             _EDSRequestTimestamp = 0;
         }
@@ -564,21 +549,19 @@ void XdsClient::metricCollector() {
             }
             std::map<std::string, std::string> tags = {};
             if (_workerThreads) {
-                _metricReporter->reportXdsTaskQueue(
-                    _workerThreads->getItemCount(), tags);
+                _metricReporter->reportXdsTaskQueue(_workerThreads->getItemCount(), tags);
             }
             if (_grpcAdsClient) {
                 int64_t now = autil::TimeUtility::currentTime();
                 std::map<std::string, std::string> tags = {
-                    { "channelState", _grpcAdsClient->getChannelState() },
-                    { "cdsSync", syncSince(now - _CDSsyncedTimestamp.load()) },
-                    { "edsSync", syncSince(now - _EDSsyncedTimestamp.load()) },
-                    { "cdsPending", bool2String(_CDSRequestTimestamp != 0) },
-                    { "edsPending", bool2String(_EDSRequestTimestamp != 0) }
-                };
+                    {"channelState", _grpcAdsClient->getChannelState()},
+                    {"cdsSync", syncSince(now - _CDSsyncedTimestamp.load())},
+                    {"edsSync", syncSince(now - _EDSsyncedTimestamp.load())},
+                    {"cdsPending", bool2String(_CDSRequestTimestamp != 0)},
+                    {"edsPending", bool2String(_EDSRequestTimestamp != 0)}};
                 _metricReporter->reportXdsState(1, tags);
             }
-            tags = { { "xds_type", "cds" } };
+            tags = {{"xds_type", "cds"}};
             size_t subSize;
             {
                 autil::ScopedLock lock(_mutex);

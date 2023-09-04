@@ -16,8 +16,8 @@
 #include "ha3/search/TermMatchVisitor.h"
 
 #include <cstddef>
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "ha3/common/AndNotQuery.h"
@@ -33,7 +33,6 @@
 #include "ha3/isearch.h"
 #include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
 
-
 using namespace isearch::common;
 using namespace indexlib::config;
 using namespace std;
@@ -44,7 +43,7 @@ namespace search {
 AUTIL_LOG_SETUP(ha3, TermMatchVisitor);
 
 void TermMatchVisitor::visitMidQuery(Query *query) {
-    vector<QueryPtr>* childQuerys = query->getChildQuery();
+    vector<QueryPtr> *childQuerys = query->getChildQuery();
     for (size_t i = 0; i < childQuerys->size(); ++i) {
         (*childQuerys)[i]->accept(this);
     }
@@ -53,9 +52,11 @@ void TermMatchVisitor::visitMidQuery(Query *query) {
 void TermMatchVisitor::visitLeafQuery(const std::string &indexName, Query *query) {
     if (query->getQueryLabel().empty()) {
         auto indexConfig = dynamic_cast<indexlibv2::config::InvertedIndexConfig *>(
-                _indexSchemaPtr->GetIndexConfig(indexlib::index::INVERTED_INDEX_TYPE_STR, indexName).get());
-        if (!indexConfig ||
-            ((indexConfig->GetOptionFlag() & OPTION_FLAG_ALL) == OPTION_FLAG_NONE)) {
+            _indexSchemaPtr
+                ->GetIndexConfig(indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR, indexName)
+                .get());
+        if (!indexConfig
+            || ((indexConfig->GetOptionFlag() & OPTION_FLAG_ALL) == OPTION_FLAG_NONE)) {
             query->setMatchDataLevel(MDL_NONE);
         } else {
             query->setMatchDataLevel(MDL_TERM);
@@ -63,10 +64,9 @@ void TermMatchVisitor::visitLeafQuery(const std::string &indexName, Query *query
     }
 }
 
-TermMatchVisitor::TermMatchVisitor(const std::shared_ptr<indexlibv2::config::ITabletSchema> &indexSchemaPtr)
-    : _indexSchemaPtr(indexSchemaPtr)
-{
-}
+TermMatchVisitor::TermMatchVisitor(
+    const std::shared_ptr<indexlibv2::config::ITabletSchema> &indexSchemaPtr)
+    : _indexSchemaPtr(indexSchemaPtr) {}
 
 void TermMatchVisitor::visitTermQuery(TermQuery *query) {
     const string &indexName = query->getTerm().getIndexName();
@@ -112,5 +112,5 @@ void TermMatchVisitor::visitNumberQuery(NumberQuery *query) {
     visitLeafQuery(indexName, query);
 }
 
-}
-}
+} // namespace search
+} // namespace isearch

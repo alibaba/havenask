@@ -16,12 +16,13 @@
 #pragma once
 
 #include <string>
+
 #include "autil/Log.h"
 
-namespace autil { namespace cipher {
+namespace autil {
+namespace cipher {
 
-enum CipherType
-{
+enum class CipherType {
     CT_AES_128_CBC,
     CT_AES_192_CBC,
     CT_AES_256_CBC,
@@ -31,43 +32,38 @@ enum CipherType
     CT_UNKNOWN,
 };
 
-enum DigistType
-{
+enum class DigistType {
     DT_MD5,
     DT_SHA256,
     DT_UNKNOWN,
 };
 
-struct CipherOption
-{
-    CipherType type = CT_UNKNOWN;
-    DigistType digist = DT_MD5;
-    std::string passwd;    
+struct CipherOption {
+    CipherType type = CipherType::CT_UNKNOWN;
+    DigistType digist = DigistType::DT_MD5;
+    std::string passwd;
     std::string saltHexString;
     bool needSalt = false;
     bool usePbkdf2 = false;
-    std::string keyHexString;  /* key */
-    std::string ivHexString;   /* initialized variable */
+    std::string keyHexString; /* key */
+    std::string ivHexString;  /* initialized variable */
 
     CipherOption(CipherType type_) : type(type_) {}
 
     bool hasSecretKey() const;
     std::string toKVString(bool useBase64);
-    bool fromKVString(const std::string& str, bool useBase64);
-    bool operator==(const CipherOption& other) const;
+    bool fromKVString(const std::string &str, bool useBase64);
+    bool operator==(const CipherOption &other) const;
 
-    static CipherOption secretKey(CipherType cipherType,
-                                  const std::string& keyStr, const std::string& ivStr)
-    {
+    static CipherOption secretKey(CipherType cipherType, const std::string &keyStr, const std::string &ivStr) {
         CipherOption option(cipherType);
         option.keyHexString = keyStr;
         option.ivHexString = ivStr;
         return option;
     }
 
-    static CipherOption password(CipherType cipherType, DigistType dgstType,
-                                 std::string passwd, bool usePbkdf2 = false)
-    {
+    static CipherOption
+    password(CipherType cipherType, DigistType dgstType, std::string passwd, bool usePbkdf2 = false) {
         CipherOption option(cipherType);
         option.type = cipherType;
         option.digist = dgstType;
@@ -77,32 +73,31 @@ struct CipherOption
         return option;
     }
 
-    static CipherOption passwordWithRandomSalt(CipherType cipherType,
-            DigistType dgstType, std::string passwd, bool usePbkdf2 = false)
-    {
+    static CipherOption
+    passwordWithRandomSalt(CipherType cipherType, DigistType dgstType, std::string passwd, bool usePbkdf2 = false) {
         auto option = password(cipherType, dgstType, passwd, usePbkdf2);
         option.needSalt = true;
         return option;
     }
 
     static CipherOption passwordWithSalt(CipherType cipherType,
-            DigistType dgstType, std::string passwd, std::string saltHexString,
-            bool usePbkdf2 = false)
-    {
+                                         DigistType dgstType,
+                                         std::string passwd,
+                                         std::string saltHexString,
+                                         bool usePbkdf2 = false) {
         auto option = passwordWithRandomSalt(cipherType, dgstType, passwd, usePbkdf2);
         option.saltHexString = saltHexString;
         return option;
     }
-
-    static CipherType parseCipherType(const std::string& typeStr);
+    static CipherType parseCipherType(const std::string &typeStr);
     static DigistType parseDigistType(const std::string str);
 
     static std::string cipherTypeToString(CipherType type);
     static std::string digistTypeToString(DigistType type);
-    
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
-}}
-
+} // namespace cipher
+} // namespace autil

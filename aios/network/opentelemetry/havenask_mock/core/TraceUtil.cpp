@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 #include "aios/network/opentelemetry/core/TraceUtil.h"
-#include "autil/StringUtil.h"
-#include "autil/StringConvertor.h"
-#include "alog/Configurator.h"
+
 #include <iostream>
-#include <stdlib.h>
-#include <unistd.h>
 #include <pwd.h>
+#include <stdlib.h>
 #include <sys/types.h>
+#include <unistd.h>
+
+#include "alog/Configurator.h"
 #include "alog/Logger.h"
+#include "autil/StringConvertor.h"
+#include "autil/StringUtil.h"
 
 namespace opentelemetry {
 
-std::string TraceUtil::joinMap(const std::map<std::string, std::string>& m,
-                              char first, char second)
-{
-    return "";
-}
+std::string TraceUtil::joinMap(const std::map<std::string, std::string> &m, char first, char second) { return ""; }
 
-}
+} // namespace opentelemetry

@@ -27,34 +27,40 @@ namespace isearch {
 namespace common {
 class ModifyQueryVisitor;
 class QueryVisitor;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace common {
 
-class DocIdsQuery : public Query
-{
+class DocIdsQuery : public Query {
 public:
-    DocIdsQuery(const std::vector<docid_t>& docIds);
+    DocIdsQuery(const std::vector<docid_t> &docIds);
     DocIdsQuery(const DocIdsQuery &other);
     ~DocIdsQuery();
+
 public:
-    bool operator == (const Query& query) const override;
+    bool operator==(const Query &query) const override;
     void accept(QueryVisitor *visitor) const override;
     void accept(ModifyQueryVisitor *visitor) override;
     Query *clone() const override;
-    std::string getQueryName() const override { return "DocIdsQuery"; }
+    std::string getQueryName() const override {
+        return "DocIdsQuery";
+    }
     std::string toString() const override;
-    const std::vector<docid_t> &getDocIds() const { return _docIds; }
+    const std::vector<docid_t> &getDocIds() const {
+        return _docIds;
+    }
     QueryType getType() const override {
         return DOCIDS_QUERY;
     }
     void setQueryLabelWithDefaultLevel(const std::string &label) override {
         setQueryLabelTerm(label);
     }
+
 private:
     std::vector<docid_t> _docIds;
+
 private:
     AUTIL_LOG_DECLARE();
 };

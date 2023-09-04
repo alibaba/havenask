@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='task_execute',
     srcs=[],
     hdrs=[],
@@ -10,8 +10,8 @@ indexlib_cc_library(
         ':IndexTaskContextCreator', ':LocalExecuteEngine'
     ]
 )
-indexlib_cc_library(name='BasicDefs', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='BasicDefs', srcs=[])
+strict_cc_library(
     name='IndexOperationDescription',
     deps=[
         ':BasicDefs', '//aios/autil:env_util', '//aios/autil:json',
@@ -19,13 +19,13 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:Traits'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexTaskHistory',
     deps=[
         ':BasicDefs', '//aios/autil:json', '//aios/storage/indexlib/base:Types'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexTaskMetrics',
     deps=[
         ':BasicDefs', ':IndexTaskHistory', '//aios/autil:log',
@@ -35,7 +35,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util/metrics:metric_reporter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexOperation',
     deps=[
         ':IndexOperationMetrics', ':IndexTaskContext',
@@ -44,7 +44,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework:MetricsManager'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexOperationMetrics',
     deps=[
         '//aios/kmonitor:kmonitor_client_cpp',
@@ -52,7 +52,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework:MetricsWrapper'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IIndexOperationCreator',
     srcs=[],
     deps=[
@@ -60,13 +60,13 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:Status'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexTaskPlan',
     deps=[
         ':IndexOperationDescription', '//aios/autil:json', '//aios/autil:log'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IIndexTaskPlanCreator',
     srcs=[],
     deps=[
@@ -75,7 +75,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexTaskResource',
     srcs=[],
     deps=[
@@ -83,13 +83,13 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:Status'
     ]
 )
-indexlib_cc_library(name='ExtendResource', srcs=[], deps=[':IndexTaskResource'])
-indexlib_cc_library(
+strict_cc_library(name='ExtendResource', srcs=[], deps=[':IndexTaskResource'])
+strict_cc_library(
     name='IIndexTaskResourceCreator',
     srcs=[],
     deps=[':BasicDefs', ':IndexTaskResource']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexTaskResourceManager',
     deps=[
         ':BasicDefs', ':ExtendResource', ':IIndexTaskResourceCreator',
@@ -98,10 +98,11 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexTaskContext',
     deps=[
-        ':BasicDefs', '//aios/storage/indexlib/base:NoExceptionWrapper',
+        ':BasicDefs', ':Constant',
+        '//aios/storage/indexlib/base:NoExceptionWrapper',
         '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/base:constants',
         '//aios/storage/indexlib/config:TabletSchema',
@@ -113,12 +114,12 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:Clock'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MergeTaskDefine',
     srcs=[],
     deps=['//aios/storage/indexlib/base:constants']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexTaskContextCreator',
     deps=[
         ':BasicDefs', ':IIndexOperationCreator', ':IIndexTaskResourceCreator',
@@ -135,7 +136,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework:tablet_schema_loader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='LocalExecuteEngine',
     deps=[
         ':IIndexOperationCreator', ':IndexTaskContext', ':IndexTaskPlan',
@@ -143,3 +144,4 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:Status'
     ]
 )
+strict_cc_library(name='Constant', srcs=[])

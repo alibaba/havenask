@@ -44,12 +44,12 @@ public:
     ~OnDiskKKVIterator();
 
 public:
-    void Init(const std::vector<IIndexMerger::SourceSegment>& segments);
+    Status Init(const std::vector<IIndexMerger::SourceSegment>& segments);
 
     void MoveToNext();
     bool IsValid() const { return _curPkeyIterator != nullptr; }
     OnDiskSinglePKeyIteratorTyped* GetCurrentIterator() const { return _curPkeyIterator; }
-    size_t EstimatePkeyCount() const { return _estimatedPkCount; }
+    size_t GetEstimatePkeyCount() const { return _estimatedPkCount; }
 
     double GetMergeProgressRatio() const;
 
@@ -59,8 +59,8 @@ private:
     bool IsEmptySegment(const std::shared_ptr<framework::Segment>& segment);
     void CreateCurrentPkeyIterator();
     void PushBackToHeap(OnDiskKKVSegmentIteratorTyped* iter);
-    size_t DoEstimatePKeyCount(const std::vector<OnDiskKKVSegmentIteratorTyped*>& segIters);
-    bool CheckSortSequence(const std::vector<OnDiskKKVSegmentIteratorTyped*>& segIters);
+    size_t DoEstimatePKeyCount(const std::vector<std::unique_ptr<OnDiskKKVSegmentIteratorTyped>>& segIters);
+    Status CheckSortSequence(const std::vector<std::unique_ptr<OnDiskKKVSegmentIteratorTyped>>& segIters);
 
 private:
     struct SegIterComparator {
@@ -84,8 +84,7 @@ private:
     std::shared_ptr<config::KKVIndexConfig> _kkvConfig;
 
     SegmentIterHeap _heap;
-    std::vector<OnDiskKKVSegmentIteratorTyped*> _segIters;
-    std::vector<OnDiskKKVSegmentIteratorTyped*> _toDeleteSegIterVec;
+    std::vector<std::unique_ptr<OnDiskKKVSegmentIteratorTyped>> _segIters;
     OnDiskSinglePKeyIteratorTyped* _curPkeyIterator;
     typename OnDiskSinglePKeyIteratorTyped::MultiSegmentSinglePKeyIterInfo _curPkeySegIterInfo;
 

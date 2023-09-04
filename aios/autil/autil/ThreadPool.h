@@ -15,21 +15,21 @@
  */
 #pragma once
 
-#include <cstddef>
 #include <atomic>
-#include <future>
-#include <type_traits>
+#include <cstddef>
+#include <cstdint>
+#include <exception>
 #include <functional>
+#include <future>
+#include <iosfwd>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <vector>
-#include <exception>
-#include <cstdint>
-#include <iosfwd>
 
+#include "autil/Lock.h"
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
-#include "autil/Lock.h"
 #include "autil/Thread.h"
 #include "autil/WorkItem.h"
 #include "autil/WorkItemQueue.h"
@@ -43,22 +43,19 @@ public:
     template <typename T = void>
     using Future = std::future<T>;
 
-    enum
-    {
+    enum {
         DEFAULT_THREADNUM = 4,
         DEFAULT_QUEUESIZE = 32,
     };
 
-    enum STOP_TYPE
-    {
+    enum STOP_TYPE {
         STOP_THREAD_ONLY,
         STOP_AND_CLEAR_QUEUE,
         STOP_AFTER_QUEUE_EMPTY,
         STOP_AND_CLEAR_QUEUE_IGNORE_EXCEPTION,
     };
 
-    enum ERROR_TYPE
-    {
+    enum ERROR_TYPE {
         ERROR_NONE = 0,
         ERROR_POOL_HAS_STOP,
         ERROR_POOL_ITEM_IS_NULL,
@@ -83,11 +80,11 @@ public:
 public:
     ERROR_TYPE pushTask(Task task, bool isBlocked = true, bool executeWhenFail = false);
 
-    template<typename Lambda, typename Ret = std::invoke_result_t<Lambda>>
+    template <typename Lambda, typename Ret = std::invoke_result_t<Lambda>>
     Future<Ret> async(Lambda &&lambda);
 
-    template<typename Lambda,
-             typename = std::enable_if_t<std::is_same_v<bool, std::invoke_result_t<Lambda, int>>, void>>
+    template <typename Lambda,
+              typename = std::enable_if_t<std::is_same_v<bool, std::invoke_result_t<Lambda, int>>, void>>
     bool blockingParallel(int parallel_count, Lambda &&lambda);
 
 public:
@@ -100,7 +97,7 @@ public:
     static void destroyItemIgnoreException(WorkItem *item);
     static void dropItemIgnoreException(WorkItem *item);
 
-protected:  
+protected:
     virtual void clearQueue() = 0;
     virtual void waitQueueEmpty() const;
     virtual bool createThreads(const std::string &name) = 0;
@@ -131,8 +128,7 @@ ThreadPoolBase::Future<Ret> ThreadPoolBase::async(Lambda &&lambda) {
     return future;
 }
 
-template <typename Lambda,
-          typename U>
+template <typename Lambda, typename U>
 bool ThreadPoolBase::blockingParallel(int parallel_count, Lambda &&lambda) {
     std::vector<Future<bool>> futures;
     futures.reserve(parallel_count - 1);
@@ -153,11 +149,12 @@ bool ThreadPoolBase::blockingParallel(int parallel_count, Lambda &&lambda) {
 
 class ThreadPool : public ThreadPoolBase {
     static const size_t MAX_THREAD_NAME_LEN;
+
 public:
     using ThreadHook = std::function<void()>;
-    ThreadPool(const size_t threadNum = DEFAULT_THREADNUM, 
+    ThreadPool(const size_t threadNum = DEFAULT_THREADNUM,
                const size_t queueSize = DEFAULT_QUEUESIZE,
-               bool stopIfHasException = false, 
+               bool stopIfHasException = false,
                const std::string &name = "",
                WorkItemQueueFactoryPtr factory = NULL);
     ThreadPool(const size_t threadNum,
@@ -175,6 +172,7 @@ public:
     const std::vector<ThreadPtr> &getThreads() const { return _threads; }
     void setThreadStartHook(const ThreadHook &startHook) { _threadStartHook = startHook; }
     void setThreadStopHook(const ThreadHook &stopHook) { _threadStopHook = stopHook; }
+
 protected:
     virtual void clearQueue() override;
     virtual void workerLoop();
@@ -185,7 +183,7 @@ protected:
     ThreadHook _threadStartHook;
     ThreadHook _threadStopHook;
     std::unique_ptr<WorkItemQueue> _queue;
-    std::vector<ThreadPtr> _threads;    
+    std::vector<ThreadPtr> _threads;
     int64_t _lastPopTime;
     std::string _stopBackTrace;
 

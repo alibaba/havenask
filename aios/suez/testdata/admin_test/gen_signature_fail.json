@@ -1,0 +1,15 @@
+{
+    "biz_info" : {
+        "biz1" : "invalid",
+        "biz2" : {
+            "config" : "invalid"
+        }
+    },
+    "table_info" : {
+        "table1" : {
+            "123" : {
+                "2" : 1
+            }
+        }
+    }
+}

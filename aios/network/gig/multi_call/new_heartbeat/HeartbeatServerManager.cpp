@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/new_heartbeat/HeartbeatServerManager.h"
-#include "aios/network/gig/multi_call/new_heartbeat/HeartbeatServerStreamQueue.h"
+
 #include "aios/network/gig/multi_call/new_heartbeat/BizTopo.h"
-#include "aios/network/gig/multi_call/util/RandomGenerator.h"
+#include "aios/network/gig/multi_call/new_heartbeat/HeartbeatServerStreamQueue.h"
 #include "aios/network/gig/multi_call/util/FileRecorder.h"
+#include "aios/network/gig/multi_call/util/RandomGenerator.h"
 
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, HeartbeatServerManager);
 
-HeartbeatServerManager::HeartbeatServerManager()
-    : _serverTopoMap(new ServerTopoMap())
-{
+HeartbeatServerManager::HeartbeatServerManager() : _serverTopoMap(new ServerTopoMap()) {
     atomic_set(&_idCounter, 0);
     atomic_set(&_nextQueueId, 0);
 }
@@ -34,9 +33,7 @@ HeartbeatServerManager::~HeartbeatServerManager() {
     _streamQueues.clear();
 }
 
-bool HeartbeatServerManager::init(const std::string &logPrefix, const GigAgentPtr &agent,
-                                  const Spec &spec)
-{
+bool HeartbeatServerManager::init(const GigAgentPtr &agent, const Spec &spec) {
     _agent = agent;
     _serverTopoMap->setSpec(spec);
     RandomGenerator rand(0);
@@ -49,6 +46,10 @@ bool HeartbeatServerManager::init(const std::string &logPrefix, const GigAgentPt
         }
         _streamQueues.push_back(queue);
     }
+    std::string logPrefix;
+    if (agent) {
+        logPrefix = agent->getLogPrefix();
+    }
     if (!initLogThread(logPrefix)) {
         return false;
     }
@@ -56,6 +57,7 @@ bool HeartbeatServerManager::init(const std::string &logPrefix, const GigAgentPt
 }
 
 void HeartbeatServerManager::stop() {
+    _logThread.reset();
     clearBiz();
     for (const auto &queue : _streamQueues) {
         if (queue) {
@@ -65,6 +67,7 @@ void HeartbeatServerManager::stop() {
 }
 
 bool HeartbeatServerManager::initLogThread(const std::string &logPrefix) {
+    _logThread.reset();
     _logPrefix = logPrefix;
     auto logThread = autil::LoopThread::createLoopThread(
         std::bind(&HeartbeatServerManager::logThread, this), UPDATE_TIME_INTERVAL, "GigServHBLOG");
@@ -93,31 +96,53 @@ bool HeartbeatServerManager::updateSpec(const Spec &spec) {
 }
 
 bool HeartbeatServerManager::publish(const ServerBizTopoInfo &info, SignatureTy &signature) {
-    BizTopoMapPtr topoMap;
-    if (!createTopoMap(info, signature, topoMap)) {
-        return false;
+    {
+        autil::ScopedLock lock(_publishLock);
+        BizTopoMapPtr topoMap;
+        if (!createTopoMap(info, signature, topoMap)) {
+            return false;
+        }
+        _serverTopoMap->setBizTopoMap(topoMap);
     }
-    _serverTopoMap->setBizTopoMap(topoMap);
+    notify();
+    return true;
+}
+
+bool HeartbeatServerManager::publish(const std::vector<ServerBizTopoInfo> &infoVec,
+                                     std::vector<SignatureTy> &signatureVec) {
+    {
+        autil::ScopedLock lock(_publishLock);
+        BizTopoMapPtr topoMap;
+        if (!createTopoMap(infoVec, signatureVec, topoMap)) {
+            return false;
+        }
+        _serverTopoMap->setBizTopoMap(topoMap);
+    }
     notify();
     return true;
 }
 
 bool HeartbeatServerManager::publishGroup(PublishGroupTy group,
                                           const std::vector<ServerBizTopoInfo> &infoVec,
-                                          std::vector<SignatureTy> &signatureVec)
-{
-    BizTopoMapPtr topoMap;
-    if (!createReplaceTopoMap(group, infoVec, signatureVec, topoMap)) {
+                                          std::vector<SignatureTy> &signatureVec) {
+    if (group == INVALID_PUBLISH_GROUP) {
+        AUTIL_LOG(ERROR, "invalid publish group [%lu]", group);
         return false;
     }
-    _serverTopoMap->setBizTopoMap(topoMap);
+    {
+        autil::ScopedLock lock(_publishLock);
+        BizTopoMapPtr topoMap;
+        if (!createReplaceTopoMap(group, infoVec, signatureVec, topoMap)) {
+            return false;
+        }
+        _serverTopoMap->setBizTopoMap(topoMap);
+    }
     notify();
     return true;
 }
 
 bool HeartbeatServerManager::updateVolatileInfo(SignatureTy signature,
-                                                const BizVolatileInfo &info)
-{
+                                                const BizVolatileInfo &info) {
     auto bizTopoMapPtr = _serverTopoMap->getBizTopoMap();
     if (!bizTopoMapPtr) {
         AUTIL_LOG(ERROR, "null biz top map, publish first");
@@ -136,18 +161,49 @@ bool HeartbeatServerManager::updateVolatileInfo(SignatureTy signature,
 }
 
 bool HeartbeatServerManager::unpublish(SignatureTy signature) {
-    auto oldTopoMapPtr = _serverTopoMap->getBizTopoMap();
-    if (!oldTopoMapPtr || (oldTopoMapPtr->end() == oldTopoMapPtr->find(signature))) {
-        AUTIL_LOG(ERROR, "unpublish topo info failed, signature [%lu] not exist, publish first",
-                  signature);
-        return false;
+    {
+        autil::ScopedLock lock(_publishLock);
+        auto oldTopoMapPtr = _serverTopoMap->getBizTopoMap();
+        if (!oldTopoMapPtr || (oldTopoMapPtr->end() == oldTopoMapPtr->find(signature))) {
+            AUTIL_LOG(ERROR, "unpublish topo info failed, signature [%lu] not exist, publish first",
+                      signature);
+            return false;
+        }
+        auto newMapPtr = std::make_shared<BizTopoMap>(*oldTopoMapPtr);
+        (*newMapPtr).erase(signature);
+        if (newMapPtr->empty()) {
+            newMapPtr.reset();
+        }
+        _serverTopoMap->setBizTopoMap(newMapPtr);
     }
-    auto newMapPtr = std::make_shared<BizTopoMap>(*oldTopoMapPtr);
-    (*newMapPtr).erase(signature);
-    if (newMapPtr->empty()) {
-        newMapPtr.reset();
+    notify();
+    return true;
+}
+
+bool HeartbeatServerManager::unpublish(const std::vector<SignatureTy> &signatureVec) {
+    {
+        autil::ScopedLock lock(_publishLock);
+        auto oldTopoMapPtr = _serverTopoMap->getBizTopoMap();
+        if (!oldTopoMapPtr) {
+            AUTIL_LOG(ERROR,
+                      "unpublish topo info vector failed, old topo map empty, publish first");
+            return false;
+        }
+        auto newMapPtr = std::make_shared<BizTopoMap>(*oldTopoMapPtr);
+        for (auto signature : signatureVec) {
+            if ((newMapPtr->end() == newMapPtr->find(signature))) {
+                AUTIL_LOG(ERROR,
+                          "unpublish topo info failed, signature [%lu] not exist, publish first",
+                          signature);
+                return false;
+            }
+            (*newMapPtr).erase(signature);
+        }
+        if (newMapPtr->empty()) {
+            newMapPtr.reset();
+        }
+        _serverTopoMap->setBizTopoMap(newMapPtr);
     }
-    _serverTopoMap->setBizTopoMap(newMapPtr);
     notify();
     return true;
 }
@@ -192,8 +248,7 @@ void HeartbeatServerManager::notify() {
 }
 
 bool HeartbeatServerManager::createTopoMap(const ServerBizTopoInfo &info, SignatureTy &signature,
-                                           BizTopoMapPtr &topoMapPtr)
-{
+                                           BizTopoMapPtr &topoMapPtr) {
     auto topo = createBizTopo(INVALID_PUBLISH_GROUP, info);
     if (!topo) {
         return false;
@@ -209,18 +264,39 @@ bool HeartbeatServerManager::createTopoMap(const ServerBizTopoInfo &info, Signat
     return true;
 }
 
+bool HeartbeatServerManager::createTopoMap(const std::vector<ServerBizTopoInfo> &infoVec,
+                                           std::vector<SignatureTy> &signatureVec,
+                                           BizTopoMapPtr &topoMapPtr) {
+    auto retMapPtr = std::make_shared<BizTopoMap>();
+    auto oldTopoMapPtr = _serverTopoMap->getBizTopoMap();
+    if (oldTopoMapPtr) {
+        *retMapPtr = *oldTopoMapPtr;
+    }
+    signatureVec.clear();
+    for (const auto &info : infoVec) {
+        auto topo = createBizTopo(INVALID_PUBLISH_GROUP, info);
+        if (!topo) {
+            return false;
+        }
+        auto signature = topo->getTopoSignature();
+        (*retMapPtr)[signature] = topo;
+        signatureVec.push_back(signature);
+    }
+    topoMapPtr = retMapPtr;
+    return true;
+}
+
 bool HeartbeatServerManager::createReplaceTopoMap(PublishGroupTy group,
                                                   const std::vector<ServerBizTopoInfo> &infoVec,
                                                   std::vector<SignatureTy> &signatureVec,
-                                                  BizTopoMapPtr &topoMapPtr)
-{
+                                                  BizTopoMapPtr &topoMapPtr) {
     auto retMapPtr = std::make_shared<BizTopoMap>();
     auto &retMap = *retMapPtr;
     auto oldTopoMapPtr = _serverTopoMap->getBizTopoMap();
     if (oldTopoMapPtr) {
         for (const auto &pair : *oldTopoMapPtr) {
             const auto &topo = pair.second;
-            if (group != topo->getGroup()) {
+            if (INVALID_PUBLISH_GROUP == group || group != topo->getGroup()) {
                 retMap.emplace(pair);
             }
         }
@@ -234,7 +310,8 @@ bool HeartbeatServerManager::createReplaceTopoMap(PublishGroupTy group,
         auto signature = topo->getTopoSignature();
         auto it = retMap.find(signature);
         if (retMap.end() != it) {
-            AUTIL_LOG(ERROR, "publish failed, duplicate topo [%s] group [0x%lx], prev group [0x%lx]",
+            AUTIL_LOG(ERROR,
+                      "publish failed, duplicate topo [%s] group [0x%lx], prev group [0x%lx]",
                       topo->getId().c_str(), group, it->second->getGroup());
             return false;
         }
@@ -246,8 +323,7 @@ bool HeartbeatServerManager::createReplaceTopoMap(PublishGroupTy group,
 }
 
 BizTopoPtr HeartbeatServerManager::createBizTopo(PublishGroupTy group,
-                                                 const ServerBizTopoInfo &info)
-{
+                                                 const ServerBizTopoInfo &info) {
     SignatureTy publishId = getNewId();
     auto topo = std::make_shared<BizTopo>(publishId, group);
     auto bizStat = getBizStat(info.bizName, info.partId);
@@ -258,8 +334,7 @@ BizTopoPtr HeartbeatServerManager::createBizTopo(PublishGroupTy group,
 }
 
 std::shared_ptr<BizStat> HeartbeatServerManager::getBizStat(const std::string &bizName,
-                                                            PartIdTy partId)
-{
+                                                            PartIdTy partId) {
     if (_agent) {
         return _agent->getBizStat(bizName, partId);
     } else {
@@ -286,4 +361,4 @@ const HeartbeatServerStreamQueuePtr &HeartbeatServerManager::getQueue() {
     return _streamQueues[index];
 }
 
-}
+} // namespace multi_call

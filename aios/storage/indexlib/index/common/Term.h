@@ -168,7 +168,7 @@ public:
 
     void EnableLiteTerm(dictkey_t termHashKey, indexid_t indexId, indexid_t truncIndexId = INVALID_INDEXID)
     {
-        _liteTerm = LiteTerm(indexId, termHashKey, truncIndexId);
+        _liteTerm = LiteTerm(termHashKey, indexId, truncIndexId);
         _hasValidHashKey = true;
     }
 

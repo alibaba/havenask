@@ -29,30 +29,32 @@
 namespace isearch {
 namespace search {
 
-class DocIdsQueryExecutor : public QueryExecutor
-{
+class DocIdsQueryExecutor : public QueryExecutor {
 public:
     DocIdsQueryExecutor(const std::vector<docid_t> &docIds);
     ~DocIdsQueryExecutor();
+
 public:
     const std::string getName() const override;
     void reset() override;
     void moveToEnd() override;
     uint32_t getSeekDocCount() override;
     std::string toString() const override;
-    indexlib::index::ErrorCode seekSubDoc(
-        docid_t docId,
-        docid_t subDocId,
-        docid_t subDocEnd,
-        bool needSubMatchdata,
-        docid_t& result) override;
+    indexlib::index::ErrorCode seekSubDoc(docid_t docId,
+                                          docid_t subDocId,
+                                          docid_t subDocEnd,
+                                          bool needSubMatchdata,
+                                          docid_t &result) override;
     bool isMainDocHit(docid_t docId) const override;
     df_t getDF(GetDFType type) const override;
+
 protected:
     indexlib::index::ErrorCode doSeek(docid_t id, docid_t &result) override;
+
 private:
     std::vector<docid_t> _docIds;
     size_t _curPos;
+
 private:
     AUTIL_LOG_DECLARE();
 };

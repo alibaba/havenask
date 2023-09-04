@@ -16,7 +16,9 @@
 #include "JiebaTokenizer.h"
 #include <autil/StringUtil.h>
 #include <autil/StringTokenizer.h>
-#include <fslib/fslib.h>
+#include "autil/StringUtil.h"
+#include "fslib/fslib.h"
+#include "fslib/util/FileUtil.h"
 
 using namespace std;
 using namespace autil;
@@ -28,7 +30,7 @@ using namespace fslib::fs;
 
 namespace pluginplatform {
 namespace analyzer_plugins {
-BS_LOG_SETUP(analyzer, JiebaTokenizer);
+AUTIL_LOG_SETUP(analyzer, JiebaTokenizer);
 
 static const string DICT_PATH_KEY = "dict_path";
 static const string HMM_PATH_KEY = "hmm_path";
@@ -61,7 +63,12 @@ bool JiebaTokenizer::getAndCheckJiebaDataPath(const KeyValueMap &parameters, con
         string path = it->second;
         bool flag = true;
         string configPath = resourceReader->getConfigPath();
-        fullPath = configPath + (configPath[configPath.size()-1] == '/'? path:("/"+path));
+        if(StringUtil::startsWith(path, "/")) {
+            fullPath = path;
+        }
+        else {
+            fullPath = configPath + (configPath[configPath.size()-1] == '/'? path:("/"+path));
+        }
         ErrorCode ec = FileSystem::isExist(fullPath.c_str());
         bool exist = true;
         if (ec != EC_TRUE && ec != EC_FALSE) {
@@ -73,13 +80,14 @@ bool JiebaTokenizer::getAndCheckJiebaDataPath(const KeyValueMap &parameters, con
         }
         flag = (ec == EC_TRUE);
         if(!exist || !flag) {
-            BS_LOG(ERROR, "jieba tokenizer relative file not exists: %s", fullPath.c_str());
+            AUTIL_LOG(ERROR, "jieba tokenizer relative file not exists: %s", fullPath.c_str());
             return false;
         }
+        AUTIL_LOG(INFO, "find %s under %s", path.c_str(), fullPath.c_str());
         return true;
     }
     else {
-        BS_LOG(ERROR, "jieba tokenizer require parameter %s", key.c_str());
+        AUTIL_LOG(ERROR, "jieba tokenizer require parameter %s", key.c_str());
         return false;
     }
 }
@@ -106,7 +114,7 @@ bool JiebaTokenizer::init(const KeyValueMap &parameters,
     _jieba = make_shared<cppjieba::Jieba>(_dictPath, _hmmPath, _userDictPath, _idfPath, _stopWordPath);
 
     string stopWordContent;
-    resourceReader->getFileContent(stopWordContent, parameters.find(STOP_WORD_PATH_KEY)->second);
+    fslib::util::FileUtil::readFile(_stopWordPath, stopWordContent);
     string tmpWord;
     set<string> stopWords;
     for(size_t i=0;i<stopWordContent.size();i++) {

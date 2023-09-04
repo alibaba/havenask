@@ -16,27 +16,25 @@
 #ifndef ISEARCH_MULTI_CALL_PROTOBUFBYTEBUFFERUTIL_H
 #define ISEARCH_MULTI_CALL_PROTOBUFBYTEBUFFERUTIL_H
 
-#include "aios/network/gig/multi_call/common/common.h"
-#include "aios/network/gig/multi_call/util/ProtobufUtil.h"
 #include <grpc++/impl/codegen/byte_buffer.h>
 #include <grpc++/impl/codegen/proto_utils.h>
 
+#include "aios/network/gig/multi_call/common/common.h"
+#include "aios/network/gig/multi_call/util/ProtobufUtil.h"
+
 namespace multi_call {
 
-class ProtobufByteBufferUtil {
+class ProtobufByteBufferUtil
+{
 public:
-    static void serializeToBuffer(const google::protobuf::Message &src,
-                                  grpc::ByteBuffer *dst);
-    static bool deserializeFromBuffer(const grpc::ByteBuffer &src,
-                                      google::protobuf::Message *dst);
-    static void serializeToBuffer(const google::protobuf::Message *header,
-                                  const grpc::Slice *msg,
+    static void serializeToBuffer(const google::protobuf::Message &src, grpc::ByteBuffer *dst);
+    static bool deserializeFromBuffer(const grpc::ByteBuffer &src, google::protobuf::Message *dst);
+    static void serializeToBuffer(const google::protobuf::Message *header, const grpc::Slice *msg,
                                   grpc::ByteBuffer *dst);
     static bool deserializeFromBuffer(const grpc::ByteBuffer &src,
                                       google::protobuf::Message *header,
                                       google::protobuf::Message *msg);
-    static bool getHeaderLength(GrpcByteBufferSource &stream,
-                                size_t &headerLength);
+    static bool getHeaderLength(GrpcByteBufferSource &stream, size_t &headerLength);
 
 public:
     static constexpr size_t LENGTH_SIZE = 8;

@@ -57,7 +57,8 @@ void WarmupService::warmupSingleThread(IquanImpl *pIquan,
     std::hash<std::thread::id> hasher;
     int64_t sqlNum = sqlQueryRequestList.size();
     if (sqlNum <= 0) {
-        AUTIL_LOG(WARN, "Warmup query is empty, thread %ld exit now", hasher(std::this_thread::get_id()));
+        AUTIL_LOG(
+            WARN, "Warmup query is empty, thread %ld exit now", hasher(std::this_thread::get_id()));
         return;
     }
 
@@ -109,7 +110,10 @@ void WarmupService::warmupSingleThread(IquanImpl *pIquan,
     }
 }
 
-bool WarmupService::warmupQuery(IquanImpl *pIquan, IquanDqlRequest &request, int64_t &warmupNum, int64_t &failNum) {
+bool WarmupService::warmupQuery(IquanImpl *pIquan,
+                                IquanDqlRequest &request,
+                                int64_t &warmupNum,
+                                int64_t &failNum) {
     ++warmupNum;
     IquanDqlResponse response;
     PlanCacheStatus planCacheStatus;
@@ -121,17 +125,19 @@ bool WarmupService::warmupQuery(IquanImpl *pIquan, IquanDqlRequest &request, int
                   status.code(),
                   status.errorMessage().c_str(),
                   request.sqls[0].c_str(),
-                  autil::legacy::ToJsonString(request.sqlParams).c_str());
+                  autil::legacy::FastToJsonString(request.sqlParams, true).c_str());
         ++failNum;
         return false;
     }
     return true;
 }
 
-Status WarmupService::readJsonQuerys(const WarmupConfig &config, std::vector<IquanDqlRequest> &sqlQueryRequestList) {
+Status WarmupService::readJsonQuerys(const WarmupConfig &config,
+                                     std::vector<IquanDqlRequest> &sqlQueryRequestList) {
     const auto &warmupFilePathList = config.warmupFilePathList;
 
-    AUTIL_LOG(INFO, "use warmup file : %s", autil::StringUtil::toString(warmupFilePathList).c_str());
+    AUTIL_LOG(
+        INFO, "use warmup file : %s", autil::StringUtil::toString(warmupFilePathList).c_str());
     std::vector<std::string> fileContentList;
     IQUAN_ENSURE_FUNC(Utils::readFiles(warmupFilePathList, fileContentList, true, true));
 
@@ -154,7 +160,8 @@ Status WarmupService::readJsonQuerys(const WarmupConfig &config, std::vector<Iqu
     }
     AUTIL_LOG(WARN, "warmup query num is : %lu", sqlQueryRequestList.size());
     if (unlikely(sqlQueryRequestList.empty())) {
-        return Status(IQUAN_FAIL, "warmup query is empty: " + autil::StringUtil::toString(warmupFilePathList));
+        return Status(IQUAN_FAIL,
+                      "warmup query is empty: " + autil::StringUtil::toString(warmupFilePathList));
     }
     return Status::OK();
 }

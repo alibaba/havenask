@@ -5,31 +5,31 @@
  * Author Email: xsank.mz@alibaba-inc.com
  */
 
-#include <string>
-#include <map>
-#include <unordered_map>
-#include <set>
-#include "kmonitor/client/common/Common.h"
 #include "kmonitor/client/metric/DDSketch.h"
-#include "kmonitor/client/metric/LogarithmicMapping.h"
+
+#include <map>
+#include <set>
+#include <string>
+#include <unordered_map>
+
+#include "kmonitor/client/common/Common.h"
 #include "kmonitor/client/metric/DenseStore.h"
+#include "kmonitor/client/metric/LogarithmicMapping.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 using namespace std;
 
 const size_t DDSketch::DDSKETCH_BATCH_SIZE = 100;
 
-DDSketch::DDSketch(double relativeAccuracy, double minIndexedValue) :
-    indexMapping_(relativeAccuracy)
-{
-    minIndexedValue_ = (minIndexedValue > indexMapping_.minIndexableValue()) ? minIndexedValue : indexMapping_.minIndexableValue();
+DDSketch::DDSketch(double relativeAccuracy, double minIndexedValue) : indexMapping_(relativeAccuracy) {
+    minIndexedValue_ =
+        (minIndexedValue > indexMapping_.minIndexableValue()) ? minIndexedValue : indexMapping_.minIndexableValue();
     maxIndexedValue_ = indexMapping_.maxIndexableValue();
     zeroCount_ = 0;
     indexCountMap_.reserve(DDSKETCH_BATCH_SIZE);
 }
 
-void DDSketch::accept(double value)
-{
+void DDSketch::accept(double value) {
     if (value < 0 || value > maxIndexedValue_) {
         return;
     }
@@ -50,9 +50,8 @@ void DDSketch::Flush() {
     indexCountMap_.clear();
 }
 
-//use autil::legacy::ToJsonString(DDSketch, true) to get
-void DDSketch::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json)
-{
+// use autil::legacy::ToJsonString(DDSketch, true) to get
+void DDSketch::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
     json.Jsonize("minIndexedValue", minIndexedValue_, minIndexedValue_);
     json.Jsonize("maxIndexedValue", maxIndexedValue_, maxIndexedValue_);
     json.Jsonize("zeroCount", zeroCount_, zeroCount_);

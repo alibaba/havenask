@@ -143,7 +143,7 @@ std::unique_ptr<future_lite::Executor> OfflineBuilderV2::createExecutor(const st
 }
 
 std::shared_ptr<indexlibv2::framework::ITabletMergeController>
-OfflineBuilderV2::createMergeController(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+OfflineBuilderV2::createMergeController(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                         const std::shared_ptr<indexlibv2::config::TabletOptions>& options)
 {
     if (!_localMergeExecutor) {
@@ -208,10 +208,13 @@ void OfflineBuilderV2::stop(std::optional<int64_t> stopTimestamp, bool needSeal,
 {
     // maybe always setSealed for offline build
     _impl->stop(stopTimestamp, needSeal, immediately);
-    auto [s, version] = _impl->commit();
+    auto commitOptions = indexlibv2::framework::CommitOptions().SetNeedPublish(true).SetNeedReopenInCommit(true);
+    commitOptions.AddVersionDescription("generation", autil::StringUtil::toString(_buildId.generationid()));
+    auto [s, version] = _impl->commit(commitOptions);
     if (!s.IsOK()) {
         BS_LOG(ERROR, "commit version failed, error: %s", s.ToString().c_str());
         setFatalError();
+        return;
     } else {
         BS_LOG(INFO, "commit version is: %s", ToJsonString(version).c_str());
     }

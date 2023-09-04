@@ -1,0 +1,104 @@
+{
+    "rel_plan_version" : "fake version",
+    "rel_plan" :
+    [
+        {
+            "id" : 0,
+            "op_name" : "ExchangeKernel",
+            "inputs" : {
+                "input0" : [
+                    1
+                ]
+            },
+            "outputs" :  [4],
+            "attrs" : {
+                "graph" : "graph",
+                "input_port" : "port",
+                "input_node" : "node",
+                "db_name" : "db1"
+            }
+        },
+        {
+            "id" : 1,
+            "op_name" : "HashJoinKernel",
+            "inputs" : {
+                "input0" : [
+                    2
+                ],
+                "input1" : [
+                    3
+                ]
+            },
+            "attrs" : {
+                "db_name" : "db1",
+                "condition" : "",
+                "join_type" : "INNER",
+                "left_input_fields" : [],
+                "right_input_fields" : [],
+                "system_field_num" : 0,
+                "output_fields" : [],
+                "batch_size" : 10
+            }
+        },
+        {
+            "id" : 2,
+            "op_name" : "ScanKernel",
+            "inputs" : {
+
+            },
+            "attrs" : {
+                "db_name" : "db1",
+                "table_name" : "tableA",
+                "condition" : "cond",
+                "index_infos" : {
+                    "$index2" : {
+                        "type" : "TEXT",
+                        "name" : "index_2"
+                    }
+                },
+                "output_fields" : [
+                    "$attr1",
+                    "$attr2",
+                    "$id"
+                ],
+                "limit" : 100
+            }
+        },
+        {
+            "id" : 3,
+            "op_name" : "ScanKernel",
+            "inputs" : {
+
+            },
+            "attrs" : {
+                "db_name" : "db1",
+                "table_name" : "tableB",
+                "condition" : "cond",
+                "index_infos" : {
+                    "$index2" : {
+                        "type" : "TEXT",
+                        "name" : "index_2"
+                    }
+                },
+                "output_fields" : [
+                    "$attr1",
+                    "$attr2",
+                    "$id"
+                ],
+                "limit" : 100
+            }
+        },
+        {
+            "id" : 4,
+            "op_name" : "UnionKernel",
+            "inputs" : {
+                "input0" : [
+                    0
+                ]
+            },
+            "attrs" : {
+                "db_name" : "db"
+            }
+        }
+    ]
+}

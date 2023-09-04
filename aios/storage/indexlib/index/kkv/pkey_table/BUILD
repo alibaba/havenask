@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=[':__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='pkey_table',
     srcs=['OnDiskSeparateChainHashIterator.cpp'],
     hdrs=[
@@ -18,8 +18,8 @@ indexlib_cc_library(
         '//aios/autil:log', '//aios/autil:time',
         '//aios/storage/indexlib/base:NoExceptionWrapper',
         '//aios/storage/indexlib/index/common/hash_table',
-        '//aios/storage/indexlib/index/kkv:constants',
         '//aios/storage/indexlib/index/kkv:Types',
+        '//aios/storage/indexlib/index/kkv:constants',
         '//aios/storage/indexlib/index/kkv/common:KKVMetricsCollector',
         '//aios/storage/indexlib/index/kkv/common:OnDiskPKeyOffset',
         '//aios/storage/indexlib/index/kkv/common:SKeyListInfo',

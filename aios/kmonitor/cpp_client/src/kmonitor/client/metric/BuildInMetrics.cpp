@@ -5,22 +5,19 @@
  * Author Email: xsank.mz@alibaba-inc.com
  */
 
+#include "kmonitor/client/metric/BuildInMetrics.h"
+
 #include <string>
+
 #include "autil/TimeUtility.h"
+#include "kmonitor/client/common/Util.h"
 #include "kmonitor/client/core/MetricsInfo.h"
 #include "kmonitor/client/core/MetricsRecord.h"
-#include "kmonitor/client/metric/BuildInMetrics.h"
-#include "kmonitor/client/common/Util.h"
-
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
-BuildInMetrics::BuildInMetrics(const std::string &metricName,
-                               const MetricsTagsPtr& metricsTags,
-                               MetricLevel level) :
-        metricName_(metricName),
-        level_(level)
-{
+BuildInMetrics::BuildInMetrics(const std::string &metricName, const MetricsTagsPtr &metricsTags, MetricLevel level)
+    : metricName_(metricName), level_(level) {
     metricsTags_ = metricsTags;
     std::string cpuName = metricName_ + "." + "proc_cpu";
     cpuInfo_ = MetricsInfoPtr(new MetricsInfo(cpuName, cpuName));
@@ -37,11 +34,9 @@ BuildInMetrics::BuildInMetrics(const std::string &metricName,
     memUsedRatioInfo_ = MetricsInfoPtr(new MetricsInfo(memRatioName));
 }
 
-BuildInMetrics::~BuildInMetrics()
-{}
+BuildInMetrics::~BuildInMetrics() {}
 
-void BuildInMetrics::Snapshot(MetricsCollector *collector, int64_t curTimeMs,
-                              const std::set<MetricLevel> *levels) {
+void BuildInMetrics::Snapshot(MetricsCollector *collector, int64_t curTimeMs, const std::set<MetricLevel> *levels) {
     if (levels != NULL && levels->find(level_) == levels->end()) {
         return;
     }

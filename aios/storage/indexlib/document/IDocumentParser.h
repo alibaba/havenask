@@ -21,7 +21,7 @@
 #include "indexlib/base/Status.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 class TabletOptions;
 } // namespace indexlibv2::config
 
@@ -37,7 +37,7 @@ public:
     virtual ~IDocumentParser() = default;
 
 public:
-    virtual Status Init(const std::shared_ptr<config::TabletSchema>& schema,
+    virtual Status Init(const std::shared_ptr<config::ITabletSchema>& schema,
                         const std::shared_ptr<DocumentInitParam>& initParam) = 0;
 
     virtual std::unique_ptr<IDocumentBatch> Parse(const std::string& docString, const std::string& docFormat) const = 0;

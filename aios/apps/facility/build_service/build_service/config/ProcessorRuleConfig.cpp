@@ -45,6 +45,7 @@ void ProcessorRuleConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
     json.Jsonize("inc_parallel_num", incParallelNum, incParallelNum);
     json.Jsonize("inc_processor_start_timestamp", incProcessorStartTs, incProcessorStartTs);
     json.Jsonize("detect_slow_configs", detectSlowConfigs, detectSlowConfigs);
+    json.Jsonize("adaptive_scaling_config", adaptiveScalingConfig, adaptiveScalingConfig);
 }
 
 bool ProcessorRuleConfig::validate() const
@@ -54,7 +55,7 @@ bool ProcessorRuleConfig::validate() const
         BS_LOG(ERROR, "%s", errorMsg.c_str());
         return false;
     }
-    return true;
+    return adaptiveScalingConfig.validate();
 }
 
 }} // namespace build_service::config

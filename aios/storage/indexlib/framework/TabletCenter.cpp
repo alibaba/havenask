@@ -17,7 +17,7 @@
 
 #include "autil/EnvUtil.h"
 #include "autil/TimeUtility.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/TabletInfos.h"
 
 namespace indexlibv2::framework {

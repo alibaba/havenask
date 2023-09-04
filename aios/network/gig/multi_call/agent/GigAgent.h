@@ -28,7 +28,8 @@ class GigStatistic;
 
 MULTI_CALL_TYPEDEF_PTR(QueryInfo);
 
-class GigAgent {
+class GigAgent
+{
 public:
     GigAgent();
     ~GigAgent();
@@ -38,11 +39,10 @@ private:
     GigAgent &operator=(const GigAgent &);
 
 public:
-    QueryInfoPtr getQueryInfo(const std::string &queryInfo,
-                              const std::string &warmUpStrategy = "",
+    QueryInfoPtr getQueryInfo(const std::string &queryInfo, const std::string &warmUpStrategy = "",
                               bool withBizStat = true);
-    void updateWarmUpStrategy(const std::string &warmUpStrategy,
-                              int64_t timeoutInSecond, int64_t queryCountLimit);
+    void updateWarmUpStrategy(const std::string &warmUpStrategy, int64_t timeoutInSecond,
+                              int64_t queryCountLimit);
     bool init(const std::string &logPrefix = "", bool enableAgentStat = true);
     void start();
     void stop();
@@ -52,13 +52,13 @@ public:
     bool isStopped(const std::string &bizName, PartIdTy partId = INVALID_PART_ID) const;
 
     bool longTimeNoQuery(int64_t noQueryTimeInSecond) const;
-    bool longTimeNoQuery(const std::string &bizName,
-                         int64_t noQueryTimeInSecond) const;
+    bool longTimeNoQuery(const std::string &bizName, int64_t noQueryTimeInSecond) const;
+    std::string getLogPrefix() const;
+
 private:
-    std::shared_ptr<BizStat> getBizStat(
-            const std::string &bizName,
-            PartIdTy partId);
+    std::shared_ptr<BizStat> getBizStat(const std::string &bizName, PartIdTy partId);
     friend class HeartbeatServerManager;
+
 private:
     GigStatistic *_statistic;
     std::shared_ptr<MetricReporterManager> _metricReporterManager;

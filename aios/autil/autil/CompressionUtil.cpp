@@ -16,10 +16,10 @@
 #include "autil/CompressionUtil.h"
 
 #include "autil/ZlibCompressor.h"
-#include "zlib.h"
+#include "autil/mem_pool/PoolBase.h"
 #include "lz4.h"
 #include "snappy.h"
-#include "autil/mem_pool/PoolBase.h"
+#include "zlib.h"
 
 namespace autil {
 
@@ -40,7 +40,7 @@ CompressType convertCompressType(const std::string &str) {
     return CompressType::INVALID_COMPRESS_TYPE;
 }
 
-const char* CompressType_Name(CompressType type) {
+const char *CompressType_Name(CompressType type) {
     switch (type) {
     case CompressType::Z_SPEED_COMPRESS:
         return "z_speed_compress";
@@ -68,12 +68,8 @@ static int convertZlibCompressLevel(CompressType type) {
     }
 }
 
-bool CompressionUtil::compressInternal(const char *input,
-                                       size_t len,
-                                       CompressType type,
-                                       std::string &compressedResult,
-                                       autil::mem_pool::Pool *pool)
-{
+bool CompressionUtil::compressInternal(
+    const char *input, size_t len, CompressType type, std::string &compressedResult, autil::mem_pool::Pool *pool) {
     switch (type) {
     case CompressType::Z_SPEED_COMPRESS:
     case CompressType::Z_DEFAULT_COMPRESS:
@@ -84,8 +80,7 @@ bool CompressionUtil::compressInternal(const char *input,
         if (!compressor.compress()) {
             return false;
         }
-        compressedResult.assign(compressor.getBufferOut(),
-                                compressor.getBufferOutLen());
+        compressedResult.assign(compressor.getBufferOut(), compressor.getBufferOutLen());
         return true;
     }
     case CompressType::SNAPPY:
@@ -96,8 +91,7 @@ bool CompressionUtil::compressInternal(const char *input,
             return false;
         }
         // header compress length
-        char *dest = POOL_COMPATIBLE_NEW_VECTOR(pool, char,
-                maxDestSize + sizeof(int));
+        char *dest = POOL_COMPATIBLE_NEW_VECTOR(pool, char, maxDestSize + sizeof(int));
         int compSize = LZ4_compress_fast(input, dest + sizeof(int), len, maxDestSize, 1);
         if (0 == compSize) {
             POOL_COMPATIBLE_DELETE_VECTOR(pool, dest);
@@ -117,12 +111,8 @@ bool CompressionUtil::compressInternal(const char *input,
     }
 }
 
-bool CompressionUtil::decompressInternal(const char *input,
-                                         size_t len,
-                                         CompressType type,
-                                         std::string &decompressedResult,
-                                         autil::mem_pool::Pool *pool)
-{
+bool CompressionUtil::decompressInternal(
+    const char *input, size_t len, CompressType type, std::string &decompressedResult, autil::mem_pool::Pool *pool) {
     switch (type) {
     case CompressType::SNAPPY:
         return snappy::Uncompress(input, len, &decompressedResult);
@@ -142,11 +132,10 @@ bool CompressionUtil::decompressInternal(const char *input,
         if (len < 4) {
             return false;
         }
-        int originalSize = *(int*)input;
-        char *dest = POOL_COMPATIBLE_NEW_VECTOR(pool, char,
-                originalSize + 1);
-        int uncompRet = LZ4_decompress_safe_partial(input + sizeof(int), dest, len - sizeof(int),
-                originalSize, originalSize + 1);
+        int originalSize = *(int *)input;
+        char *dest = POOL_COMPATIBLE_NEW_VECTOR(pool, char, originalSize + 1);
+        int uncompRet =
+            LZ4_decompress_safe_partial(input + sizeof(int), dest, len - sizeof(int), originalSize, originalSize + 1);
         if (uncompRet < 0 || uncompRet != originalSize) {
             POOL_COMPATIBLE_DELETE_VECTOR(pool, dest);
             return false;
@@ -164,5 +153,4 @@ bool CompressionUtil::decompressInternal(const char *input,
     }
 }
 
-
-}
+} // namespace autil

@@ -1,0 +1,68 @@
+{
+    "table_name": "auction",
+    "fields":
+    [
+        {"field_name":"title",        "field_type":"TEXT",   "analyzer":"taobao_analyzer"},
+        {"field_name":"price",       "field_type":"INTEGER"},
+        {"field_name":"nid",       "field_type":"LONG"}
+    ],
+
+    "indexs":
+    [
+	{
+	    "index_fields":"nid",
+	    "index_name":"nid",
+	    "index_type":"PRIMARYKEY64"
+	},
+        {
+            "index_name": "title",
+            "index_type": "TEXT",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "position_payload_flag" : 1,
+            "position_list_flag" : 1,
+            "index_analyzer" : "taobao_analyzer",
+            "index_fields": "title"
+        }
+    ],
+
+    "attributes": ["price"],
+
+    "summarys":{
+        "summary_fields": ["title",  "price"],
+        "compress_block_size": 5
+    },
+
+    "sub_schema": {
+         "table_name": "auction",
+    	 "fields":
+         [
+             {"field_name":"sub_title",       "field_type":"TEXT",   "analyzer":"taobao_analyzer"},
+             {"field_name":"sub_price",       "field_type":"INTEGER"},
+             {"field_name":"sub_nid",          "field_type":"LONG"}
+         ],
+
+        "indexs":
+        [
+	    {
+		"index_fields":"sub_nid",
+		"index_name":"sub_nid",
+		"index_type":"PRIMARYKEY64"
+	    },
+            {
+                "index_name": "sub_title",
+                "index_type": "TEXT",
+                "term_payload_flag" :  1 ,
+                "doc_payload_flag" :  1 ,
+                "position_payload_flag" : 1,
+                "position_list_flag" : 1,
+    		"term_frequency_bitmap": 0,
+                "index_analyzer" : "taobao_analyzer",
+                "index_fields": "sub_title"
+            }
+        ],
+    
+        "attributes": ["sub_price"]
+    }	
+}
+    

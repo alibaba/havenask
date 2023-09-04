@@ -1,0 +1,11 @@
+segment_info
+index/
+deletionmap/
+attribute/
+index/model_pk/
+attribute/weight/
+attribute/feature/
+index/model_pk/data
+attribute/weight/data
+attribute/feature/offset
+attribute/feature/data

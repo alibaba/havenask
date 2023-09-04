@@ -1,0 +1,49 @@
+{
+    "builder_rule_config" : {
+        "partition_resource" : 50,
+        "partition_count" : 5
+    },
+    "swift_config" : {
+        "topic" : {
+            "partition_count" : 10,
+            "partition_resource" : 100,
+            "partition_buffer" : 1000,
+            "partition_file_buf_size" : 1000,
+            "obsolete_file_interval" : 3600,
+            "reserved_file_count" : 10
+        },
+        "reader_config" : "",
+        "writer_config" : ""
+    },
+    "crontab_config" : {
+        "inc_version_interval" : 1800,
+        "full_merge_interval" : 86400
+    },
+    "build_config" : {
+        "NeedSort" : true,
+        "SortQueueSize" : 100000,
+        "IndexKeepTime" : 3600
+    },
+    "build_option_config" :
+    {
+        "RawDocumentFormat" : "isearch",
+        "NeedIconv" : false,    
+        "NeedSort" : false,
+        "NeedPartition" : true,
+        "MapBufferSize" : 256,
+        "MapReduceRatio" : 8,
+        "DocumentProcessThreadNum" : 1,
+        "DocumentProcessQueueSize" : 250,
+        "IndexDocumentQueueSize" : 250,        
+        "EnableSyncBuild" : true,
+        "BuildQps" : 2000000,  
+        "NeedSkip": false,      
+        "IndexKeepTime" : 36000,
+        "IndexDumpInterval" : 60,
+        "max_recover_time" : 2,
+        "recover_delay_tolerance_ms" : 200, 
+        "HashFieldAllowEmpty" : false,
+        "NeedParseEnds" : true,
+        "RealtimeBuildDelayTime" : 90
+    }
+}

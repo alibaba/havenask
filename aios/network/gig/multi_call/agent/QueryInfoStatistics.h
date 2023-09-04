@@ -26,7 +26,8 @@
 
 namespace multi_call {
 
-class QueryInfoStatistics {
+class QueryInfoStatistics
+{
 public:
     QueryInfoStatistics(GigQueryInfo *queryInfo, WarmUpStrategy *warmUpStrategy,
                         BizStatPtr bizStat);
@@ -34,9 +35,8 @@ public:
 
 public:
     float degradeLevel(float fullLevel);
-    void fillResponseInfo(GigResponseInfo *responseInfo,
-                          float responseLatencyMs, MultiCallErrorCode ec,
-                          WeightTy targetWeight);
+    void fillResponseInfo(GigResponseInfo *responseInfo, float responseLatencyMs,
+                          MultiCallErrorCode ec, WeightTy targetWeight);
     void reportBizStat(BizMetricReporter &bizReporter);
 
 private:
@@ -50,13 +50,11 @@ private:
     float degradePercentLatency() const;
     float degradePercentErrorRatio() const;
     void updateErrorRatio(MultiCallErrorCode ec, ServerRatioFilter &errorRatio);
-    void updateDegradeRatio(MultiCallErrorCode ec,
-                            ServerRatioFilter &degradeRatio);
+    void updateDegradeRatio(MultiCallErrorCode ec, ServerRatioFilter &degradeRatio);
     void updateAverageLatency(MultiCallErrorCode ec, float responseLatencyMs,
                               AverageLatency &avgLatency);
     void updateLatency(MultiCallErrorCode ec, float responseLatencyMs);
-    void updateLoadBalanceLatency(MultiCallErrorCode ec,
-                                  float responseLatencyMs);
+    void updateLoadBalanceLatency(MultiCallErrorCode ec, float responseLatencyMs);
     void updateWarmUpStatus(GigResponseInfo *responseInfo);
 
 private:

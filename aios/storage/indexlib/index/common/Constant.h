@@ -25,8 +25,6 @@ namespace indexlib {
 constexpr indexid_t INVALID_INDEXID = std::numeric_limits<indexid_t>::max();
 constexpr size_t INVALID_SHARDID = std::numeric_limits<size_t>::max();
 constexpr dictvalue_t INVALID_DICT_VALUE = (dictvalue_t)-1;
-inline const std::string GENERALIZED_VALUE_INDEX_TYPE_STR = "__value__";
-
 static constexpr const char* MAIN_DOCID_TO_SUB_DOCID_ATTR_NAME = "main_docid_to_sub_docid_attr_name";
 static constexpr const char* SUB_DOCID_TO_MAIN_DOCID_ATTR_NAME = "sub_docid_to_main_docid_attr_name";
 } // namespace indexlib
@@ -42,11 +40,11 @@ inline const std::string COMPRESS_TYPE = "compress_type";
 inline const std::string FILE_COMPRESSOR = "file_compressor";
 inline const std::string INDEX_DIR_NAME = "index";
 inline const std::string ATTRIBUTE_DIR_NAME = "attribute";
+inline const std::string GENERAL_VALUE_INDEX_TYPE_STR = "__value__";
 } // namespace indexlib::index
 
 //////////////////////////////////////////////////////////////////////
 namespace indexlibv2 {
-using indexlib::GENERALIZED_VALUE_INDEX_TYPE_STR;
 using indexlib::INVALID_INDEXID;
 } // namespace indexlibv2
 
@@ -56,6 +54,7 @@ using indexlib::index::COMPRESS_TYPE;
 using indexlib::index::EQUAL_COMPRESS_UPDATE_MAX_SLICE_COUNT;
 using indexlib::index::EQUAL_COMPRESS_UPDATE_SLICE_LEN;
 using indexlib::index::FILE_COMPRESSOR;
+using indexlib::index::GENERAL_VALUE_INDEX_TYPE_STR;
 using indexlib::index::INDEX_DIR_NAME;
 using indexlib::index::UINT32_OFFSET_TAIL_MAGIC;
 using indexlib::index::UINT64_OFFSET_TAIL_MAGIC;

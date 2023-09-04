@@ -1,0 +1,45 @@
+{
+    "data_descriptions" : [
+        {
+            "src" : "file",
+            "type" : "file"
+        },
+        {
+            "reader_config" : "reader_config",
+            "src" : "swift",
+            "swift_root" : "zfs://root",
+            "topic_name" : "",
+            "type" : "swift"
+        }
+    ],
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "mainse_summary"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "ModifiedFieldsDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+                {
+                    "module_name" : "MainseOfflineBuild",
+                    "module_path" : "libMainseBuild.so",
+                    "parameters" : {
+                    }
+                }
+            ]
+        }
+    ],
+    "processor_config" : {
+        "processor_queue_size" : 1000,
+        "processor_thread_num" : 10
+    },
+    "processor_rule_config" : {
+        "partition_count" : 50
+    }
+}

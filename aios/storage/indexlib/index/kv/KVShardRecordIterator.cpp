@@ -41,7 +41,7 @@ namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, KVShardRecordIterator);
 
 Status KVShardRecordIterator::Init(const vector<shared_ptr<Segment>>& segments, const map<string, string>& params,
-                                   const shared_ptr<TabletSchema>& readSchema,
+                                   const shared_ptr<ITabletSchema>& readSchema,
                                    const shared_ptr<AdapterIgnoreFieldCalculator>& ignoreFieldCalculator,
                                    int64_t currentTs)
 {
@@ -74,9 +74,9 @@ Status KVShardRecordIterator::Next(index::IShardRecordIterator::ShardRecord* sha
     }
 
     while (HasNext()) {
-        auto offset = _kvIterators[_currIteratorIndex]->kvIterator->GetOffset();
+        auto offset = _kvIterators[_currIteratorIndex]->iterator->GetOffset();
         Record record;
-        auto status = _kvIterators[_currIteratorIndex]->kvIterator->Next(&_pool, record);
+        auto status = _kvIterators[_currIteratorIndex]->iterator->Next(&_pool, record);
         if (!status.IsOK()) {
             AUTIL_LOG(ERROR, "iterator next failed, status[%s], iterator index[%lu]", status.ToString().c_str(),
                       _currIteratorIndex);
@@ -109,7 +109,7 @@ Status KVShardRecordIterator::Next(index::IShardRecordIterator::ShardRecord* sha
 bool KVShardRecordIterator::HasNext()
 {
     while (_currIteratorIndex < _kvIterators.size()) {
-        if (_kvIterators[_currIteratorIndex]->kvIterator->HasNext()) {
+        if (_kvIterators[_currIteratorIndex]->iterator->HasNext()) {
             return true;
         }
         _currIteratorIndex++;
@@ -127,9 +127,9 @@ Status KVShardRecordIterator::Seek(const string& checkpoint)
     }
     _currIteratorIndex = shardCheckpoint->first;
     if (shardCheckpoint->second == 0) {
-        _kvIterators[_currIteratorIndex]->kvIterator->Reset();
+        _kvIterators[_currIteratorIndex]->iterator->Reset();
     } else {
-        auto status = _kvIterators[_currIteratorIndex]->kvIterator->Seek(shardCheckpoint->second);
+        auto status = _kvIterators[_currIteratorIndex]->iterator->Seek(shardCheckpoint->second);
         if (!status.IsOK()) {
             AUTIL_LOG(ERROR, "iterator seek failed, status[%s], iterator index[%lu] offset[%lu]",
                       status.ToString().c_str(), _currIteratorIndex, shardCheckpoint->second);
@@ -137,12 +137,12 @@ Status KVShardRecordIterator::Seek(const string& checkpoint)
         }
     }
     for (auto i = _currIteratorIndex + 1; i < _kvIterators.size(); ++i) {
-        _kvIterators[i]->kvIterator->Reset();
+        _kvIterators[i]->iterator->Reset();
     }
     return Status::OK();
 }
 
-void KVShardRecordIterator::GetKVIndexConfig(const shared_ptr<TabletSchema>& readSchema,
+void KVShardRecordIterator::GetKVIndexConfig(const shared_ptr<ITabletSchema>& readSchema,
                                              shared_ptr<KVIndexConfig>& kvIndexConfig,
                                              shared_ptr<KVIndexConfig>& pkValueIndexConfig) const
 {
@@ -204,7 +204,9 @@ pair<Status, unique_ptr<KVShardRecordIterator::KVIteratorWrapper>> KVShardRecord
 
     auto iteratorWrapper = std::make_unique<KVIteratorWrapper>();
 
-    iteratorWrapper->kvIterator = segmentReader->CreateIterator();
+    auto kvIterator = segmentReader->CreateIterator();
+    iteratorWrapper->iterator = _ignoreValue ? (IKVIterator*)kvIterator->GetKeyIterator() : kvIterator.get();
+    iteratorWrapper->kvIterator = std::move(kvIterator);
     if (pkValueIndexer) {
         iteratorWrapper->pkValueReader = pkValueIndexer->GetReader();
     }

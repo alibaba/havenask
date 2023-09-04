@@ -15,23 +15,24 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 
 #include "autil/Log.h" // IWYU pragma: keep
 
 namespace isearch {
 namespace util {
 
-class EncodeConverter
-{
+class EncodeConverter {
 public:
     EncodeConverter();
     ~EncodeConverter();
+
 public:
     static int32_t utf8ToUtf16(const char *in, int32_t length, uint16_t *out);
     static int32_t utf16ToUtf8(const uint16_t *in, int32_t length, char *out);
     static int32_t utf8ToUtf16Len(const char *in, int32_t length);
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -40,4 +41,3 @@ typedef std::shared_ptr<EncodeConverter> EncodeConverterPtr;
 
 } // namespace util
 } // namespace isearch
-

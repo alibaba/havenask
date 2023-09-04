@@ -15,24 +15,24 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <assert.h>
+#include <memory>
 #include <stddef.h>
 #include <stdint.h>
-#include <algorithm>
-#include <memory>
 #include <string>
 #include <vector>
 
 #include "autil/Log.h" // IWYU pragma: keep
 #include "autil/mem_pool/PoolBase.h"
 #include "ha3/isearch.h"
+#include "ha3/search/MatchData.h"
 #include "ha3/search/MatchDataCollectorCenter.h"
 #include "ha3/search/MatchDataFetcher.h"
-#include "ha3/search/MatchValuesFetcher.h"
-#include "ha3/search/QueryExecutor.h"
-#include "ha3/search/MatchData.h"
 #include "ha3/search/MatchValues.h"
+#include "ha3/search/MatchValuesFetcher.h"
 #include "ha3/search/MetaInfo.h"
+#include "ha3/search/QueryExecutor.h"
 #include "ha3/search/SimpleMatchData.h"
 #include "indexlib/index/common/ErrorCode.h"
 #include "indexlib/indexlib.h"
@@ -41,60 +41,82 @@
 namespace autil {
 namespace mem_pool {
 class Pool;
-}  // namespace mem_pool
-}  // namespace autil
+} // namespace mem_pool
+} // namespace autil
 namespace matchdoc {
 class MatchDoc;
 class MatchDocAllocator;
-template <typename T> class Reference;
-}  // namespace matchdoc
+template <typename T>
+class Reference;
+} // namespace matchdoc
 
 namespace isearch {
 namespace search {
 
-class MatchDataManager
-{
+class MatchDataManager {
 public:
     MatchDataManager();
     ~MatchDataManager();
+
 private:
     MatchDataManager(const MatchDataManager &);
-    MatchDataManager& operator=(const MatchDataManager &);
+    MatchDataManager &operator=(const MatchDataManager &);
+
 public:
-    matchdoc::Reference<rank::SimpleMatchData> *requireSimpleMatchData(
-            matchdoc::MatchDocAllocator *allocator,
-            const std::string &refName,
-            SubDocDisplayType subDocDisplayType,
-            autil::mem_pool::Pool *pool);
-    matchdoc::Reference<rank::MatchData> *requireMatchData(
-            matchdoc::MatchDocAllocator *allocator,
-            const std::string &refName,
-            SubDocDisplayType subDocDisplayType,
-            autil::mem_pool::Pool *pool);
-    matchdoc::Reference<rank::SimpleMatchData> *requireSubSimpleMatchData(
-            matchdoc::MatchDocAllocator *allocator,
-            const std::string &refName,
-            SubDocDisplayType subDocDisplayType,
-            autil::mem_pool::Pool *pool);
-    matchdoc::Reference<rank::MatchValues> *requireMatchValues(
-            matchdoc::MatchDocAllocator *allocator,
-            const std::string &refName,
-            SubDocDisplayType subDocDisplayType,
-            autil::mem_pool::Pool *pool);
-    bool hasMatchData() const { return _fetcher != NULL || _simpleFetcher != NULL;}
-    bool hasSubMatchData() const { return _subFetcher != NULL; }
-    bool hasMatchValues() const { return _matchValuesFetcher != NULL; }
-    bool needMatchData() { return _needMatchData || !_matchDataCollectorCenter.isEmpty(); }
-    void requireMatchData() { _needMatchData = true; }
-    void setAttributeExprScope(AttributeExprScope scope) { _scope |= scope; }
-    bool filterNeedMatchData() { return _scope & AE_FILTER; }
+    matchdoc::Reference<rank::SimpleMatchData> *
+    requireSimpleMatchData(matchdoc::MatchDocAllocator *allocator,
+                           const std::string &refName,
+                           SubDocDisplayType subDocDisplayType,
+                           autil::mem_pool::Pool *pool);
+    matchdoc::Reference<rank::MatchData> *requireMatchData(matchdoc::MatchDocAllocator *allocator,
+                                                           const std::string &refName,
+                                                           SubDocDisplayType subDocDisplayType,
+                                                           autil::mem_pool::Pool *pool);
+    matchdoc::Reference<rank::SimpleMatchData> *
+    requireSubSimpleMatchData(matchdoc::MatchDocAllocator *allocator,
+                              const std::string &refName,
+                              SubDocDisplayType subDocDisplayType,
+                              autil::mem_pool::Pool *pool);
+    matchdoc::Reference<rank::MatchValues> *
+    requireMatchValues(matchdoc::MatchDocAllocator *allocator,
+                       const std::string &refName,
+                       SubDocDisplayType subDocDisplayType,
+                       autil::mem_pool::Pool *pool);
+    bool hasMatchData() const {
+        return _fetcher != NULL || _simpleFetcher != NULL;
+    }
+    bool hasSubMatchData() const {
+        return _subFetcher != NULL;
+    }
+    bool hasMatchValues() const {
+        return _matchValuesFetcher != NULL;
+    }
+    bool needMatchData() {
+        return _needMatchData || !_matchDataCollectorCenter.isEmpty();
+    }
+    bool getNeedMatchData() const {
+        return _needMatchData;
+    }
+    void requireMatchData() {
+        _needMatchData = true;
+    }
+    void setAttributeExprScope(AttributeExprScope scope) {
+        _scope |= scope;
+    }
+    bool filterNeedMatchData() {
+        return _scope & AE_FILTER;
+    }
+    void setRequireMatchData(bool needed) {
+        _needMatchData = needed;
+    }
+
 public:
     indexlib::index::ErrorCode fillMatchData(matchdoc::MatchDoc matchDoc);
     indexlib::index::ErrorCode fillMatchValues(matchdoc::MatchDoc matchDoc);
     indexlib::index::ErrorCode fillSubMatchData(matchdoc::MatchDoc matchDoc,
-                          matchdoc::MatchDoc subDoc,
-                          docid_t startSubDocid,
-                          docid_t endSubDocId);
+                                                matchdoc::MatchDoc subDoc,
+                                                docid_t startSubDocid,
+                                                docid_t endSubDocId);
     void getQueryTermMetaInfo(rank::MetaInfo *metaInfo) const;
     void moveToLayer(uint32_t curLayer) {
         _curSearchLayer = curLayer;
@@ -138,11 +160,14 @@ public:
     void setQueryCount(uint32_t queryCount) {
         _queryCount = queryCount;
     }
+
 public:
     void reset();
-    MatchDataCollectorCenter& getMatchDataCollectorCenter() {
+    void resetMatchData();
+    MatchDataCollectorCenter &getMatchDataCollectorCenter() {
         return _matchDataCollectorCenter;
     }
+
 public:
     // interface for initialize
     void addQueryExecutor(QueryExecutor *executor);
@@ -157,9 +182,13 @@ public:
         assert(layer < _queryExecutors.size());
         return _queryExecutors[layer];
     }
+
 public:
     // public for test
-    size_t getQueryNum() const { return _queryExecutors[_curSearchLayer].size(); }
+    size_t getQueryNum() const {
+        return _queryExecutors[_curSearchLayer].size();
+    }
+
 private:
     MatchDataFetcher *_fetcher;
     MatchDataFetcher *_simpleFetcher;
@@ -173,6 +202,7 @@ private:
     bool _needMatchData;
     std::vector<SingleLayerExecutors> _queryExecutors;
     std::vector<SingleLayerSeekExecutors> _seekQueryExecutors;
+
 private:
     AUTIL_LOG_DECLARE();
 };

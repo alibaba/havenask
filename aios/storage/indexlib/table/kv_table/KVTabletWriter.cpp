@@ -28,6 +28,7 @@
 #include "indexlib/index/kv/KVReadOptions.h"
 #include "indexlib/index/kv/ValueExtractorUtil.h"
 #include "indexlib/table/kv_table/KVTabletOptions.h"
+#include "indexlib/table/kv_table/RewriteDocUtil.h"
 
 using namespace std;
 using namespace autil;
@@ -45,10 +46,11 @@ AUTIL_LOG_SETUP(indexlib.table, KVTabletWriter);
     assert(_tabletData);                                                                                               \
     AUTIL_LOG(level, "[%s] [%p]" format, _tabletData->GetTabletName().c_str(), this, ##args)
 
-KVTabletWriter::KVTabletWriter(const std::shared_ptr<config::TabletSchema>& schema,
+KVTabletWriter::KVTabletWriter(const std::shared_ptr<config::ITabletSchema>& schema,
                                const config::TabletOptions* options)
     : CommonTabletWriter(schema, options)
 {
+    _schemaId = schema->GetSchemaId();
     _memBuffer.reset(new indexlib::util::MemBuffer(PACK_ATTR_BUFF_INIT_SIZE, &_simplePool));
 }
 
@@ -125,10 +127,9 @@ void KVTabletWriter::ReportTableSepecificMetrics(const kmonitor::MetricsTags& ta
     INDEXLIB_FM_REPORT_METRIC_WITH_TAGS(&tags, unexpectedUpdateCount);
 }
 
-Status KVTabletWriter::RewriteMergeValue(StringView currentValue, StringView newValue, document::KVDocument* doc,
-                                         const uint64_t indexNameHash)
+Status KVTabletWriter::RewriteMergeValue(const StringView& currentValue, const StringView& newValue,
+                                         document::KVDocument* doc, const uint64_t indexNameHash)
 {
-    indexlibv2::index::PackAttributeFormatter::PackAttributeFields updateFields;
     auto kvReader = GetKVReader(indexNameHash);
     if (!kvReader) {
         auto status = Status::InternalError("can't get kv reader for indexName: [%s]",
@@ -137,20 +138,8 @@ Status KVTabletWriter::RewriteMergeValue(StringView currentValue, StringView new
         return status;
     }
     auto formatter = kvReader->GetPackAttributeFormatter();
-    auto ret = formatter->DecodePatchValues((uint8_t*)newValue.data(), newValue.size(), updateFields);
-    if (!ret) {
-        auto status = Status::InternalError("decode patch values failed key = [%s], keyHash = [%ld]",
-                                            doc->GetPkFieldValue(), doc->GetPKeyHash());
-        TABLET_LOG(WARN, "%s", status.ToString().c_str());
-        return status;
-    }
-    auto mergeValue = formatter->MergeAndFormatUpdateFields(currentValue.data(), updateFields,
-                                                            /*hasHashKeyInAttrFields*/ true, *_memBuffer);
 
-    doc->SetValue(mergeValue); // TODO(xinfei.sxf) use multi memBuffer to reduce the cost of copy
-    doc->SetDocOperateType(ADD_DOC);
-
-    return Status::OK();
+    return RewriteDocUtil::RewriteMergeValue(currentValue, newValue, formatter, _memBuffer, doc);
 }
 
 Status KVTabletWriter::RewriteFixedLenDocument(document::KVDocumentBatch* kvDocBatch, document::KVDocument* doc,
@@ -171,10 +160,6 @@ Status KVTabletWriter::RewriteFixedLenDocument(document::KVDocumentBatch* kvDocB
 Status KVTabletWriter::RewriteUpdateFieldDocument(document::KVDocumentBatch* kvDocBatch, document::KVDocument* doc,
                                                   int64_t docIdx)
 {
-    auto key = doc->GetPKeyHash();
-    auto newValue = doc->GetValue();
-    auto indexNameHash = doc->GetIndexNameHash();
-
     if (unlikely(_tabletReader == nullptr)) {
         // lazy open for offline.
         auto status = OpenTabletReader();
@@ -184,6 +169,7 @@ Status KVTabletWriter::RewriteUpdateFieldDocument(document::KVDocumentBatch* kvD
     }
 
     // has been delete by previous doc in same batch
+    auto key = doc->GetPKeyHash();
     if (_deleteSet.find(key) != _deleteSet.end()) {
         TABLET_LOG(WARN, "raw record is not existed for update field message, drop it, key = [%s], keyHash = [%ld]",
                    doc->GetPkFieldValue().to_string().c_str(), key);
@@ -191,68 +177,123 @@ Status KVTabletWriter::RewriteUpdateFieldDocument(document::KVDocumentBatch* kvD
         return Status::OK();
     }
 
-    // handle with fixed len case
-    auto result = GetTypeId(indexNameHash);
-    if (!result.is_ok()) {
-        auto status = Status::InternalError("get type id failed, indexNameHash: [%ld]", indexNameHash);
-        TABLET_LOG(ERROR, "%s", status.ToString().c_str());
-    }
-    auto typeId = result.get();
-    if (!typeId.isVarLen) {
-        return RewriteFixedLenDocument(kvDocBatch, doc, docIdx);
-    }
-
+    // find previous doc of same key in same batch
     autil::StringView currentValue;
     auto iter = _currentValue.find(key);
-
-    // find previous doc of same key in same batch
     if (iter != _currentValue.end()) {
+        Status fixedLenStatus;
+        if (FixedLenRewriteUpdateFieldDocument(kvDocBatch, doc, docIdx, fixedLenStatus)) {
+            return fixedLenStatus;
+        }
+
         currentValue = iter->second;
+        auto indexNameHash = doc->GetIndexNameHash();
         if (!currentValue.empty()) {
             auto attrConvertor = GetAttrConvertor(indexNameHash);
             if (!attrConvertor) {
                 return Status::InternalError("get attr convertor, indexNameHash: [%ld]", indexNameHash);
             }
-            auto meta = attrConvertor->Decode(currentValue);
-            currentValue = meta.data;
-            size_t encodeCountLen = 0;
-            MultiValueFormatter::decodeCount(currentValue.data(), encodeCountLen);
-            currentValue = StringView(currentValue.data() + encodeCountLen, currentValue.size() - encodeCountLen);
+            RewriteDocUtil::RewriteValue(attrConvertor, currentValue);
         }
+        auto newValue = doc->GetValue();
         return RewriteMergeValue(currentValue, newValue, doc, indexNameHash);
     }
 
-    // get key-value pair from kv reader
-    index::KVReadOptions options;
-    options.pool = doc->GetPool();
-    options.timestamp = (uint64_t)autil::TimeUtility::currentTime();
+    return RewriteUpdateFieldDocumentUseReader(kvDocBatch, doc, docIdx);
+}
+
+Status KVTabletWriter::RewriteUpdateFieldDocumentUseReader(document::KVDocumentBatch* kvDocBatch,
+                                                           document::KVDocument* doc, int64_t docIdx)
+{
+    auto indexNameHash = doc->GetIndexNameHash();
     auto kvReader = GetKVReader(indexNameHash);
     if (!kvReader) {
         auto status = Status::InternalError("get kv reader failed, indexNameHash: [%ld]", indexNameHash);
         TABLET_LOG(ERROR, "%s", status.ToString().c_str());
         return status;
     }
-    auto status = kvReader->Get(key, currentValue, options);
+
+    index::KVReadOptions options;
+    options.pool = doc->GetPool();
+    options.timestamp = (uint64_t)autil::TimeUtility::currentTime();
+    autil::StringView currentValue;
+    auto status = kvReader->Get(doc->GetPKeyHash(), currentValue, options);
     if (status == KVResultStatus::FOUND) {
+        Status fixedLenStatus;
+        if (FixedLenRewriteUpdateFieldDocument(kvDocBatch, doc, docIdx, fixedLenStatus)) {
+            return fixedLenStatus;
+        }
+        auto newValue = doc->GetValue();
         return RewriteMergeValue(currentValue, newValue, doc, indexNameHash);
     } else if (status == KVResultStatus::FAIL) {
         auto status = Status::IOError("failed to find key for update field message, key = [%s], keyHash = [%ld]",
-                                      doc->GetPkFieldValue().to_string().c_str(), key);
+                                      doc->GetPkFieldValue().to_string().c_str(), doc->GetPKeyHash());
         TABLET_LOG(ERROR, "%s", status.ToString().c_str());
         return status;
     } else {
         TABLET_LOG(WARN, "raw record is not existed for update field message, drop it, key = [%s], keyHash = [%ld]",
-                   doc->GetPkFieldValue().to_string().c_str(), key);
+                   doc->GetPkFieldValue().to_string().c_str(), doc->GetPKeyHash());
         kvDocBatch->DropDoc(docIdx);
     }
     return Status::OK();
 }
 
-Status KVTabletWriter::RewriteDocument(document::IDocumentBatch* batch)
+bool KVTabletWriter::FixedLenRewriteUpdateFieldDocument(document::KVDocumentBatch* kvDocBatch,
+                                                        document::KVDocument* doc, int64_t docIdx, Status& status)
+{
+    auto indexNameHash = doc->GetIndexNameHash();
+    // handle with fixed len case
+    auto result = GetTypeId(indexNameHash);
+    if (!result.is_ok()) {
+        status = Status::InternalError("get type id failed, indexNameHash: [%ld]", indexNameHash);
+        TABLET_LOG(ERROR, "%s", status.ToString().c_str());
+        return true;
+    }
+    auto typeId = result.get();
+    if (!typeId.isVarLen) {
+        status = RewriteFixedLenDocument(kvDocBatch, doc, docIdx);
+        return true;
+    }
+    return false;
+}
+
+Status KVTabletWriter::FastRewriteDocument(document::KVDocumentBatch* kvDocBatch)
+{
+    assert(1 == kvDocBatch->GetBatchSize());
+    if (kvDocBatch->IsDropped(0)) {
+        return Status::OK();
+    }
+    auto kvDoc = (document::KVDocument*)(*kvDocBatch)[0].get();
+    auto operateType = kvDoc->GetDocOperateType();
+    if (operateType == UPDATE_FIELD) {
+        if (unlikely(_tabletReader == nullptr)) {
+            auto status = OpenTabletReader();
+            if (!status.IsOK()) {
+                return status;
+            }
+        }
+
+        IncreaseupdateCountValue(1);
+        auto status = RewriteUpdateFieldDocumentUseReader(kvDocBatch, kvDoc, 0);
+        if (!status.IsOK()) {
+            IncreaseupdateFailedCountValue(1);
+            return status;
+        } else if (kvDocBatch->IsDropped(0)) {
+            IncreaseunexpectedUpdateCountValue(1);
+        }
+    }
+    return Status::OK();
+}
+
+Status KVTabletWriter::CheckAndRewriteDocument(document::IDocumentBatch* batch)
 {
     auto kvDocBatch = dynamic_cast<document::KVDocumentBatch*>(batch);
     if (kvDocBatch == nullptr) {
         return Status::InternalError("only support KVDocumentBatch for kv index");
+    }
+
+    if (kvDocBatch->GetBatchSize() == 1) {
+        return FastRewriteDocument(kvDocBatch);
     }
 
     _deleteSet.clear();
@@ -262,6 +303,12 @@ Status KVTabletWriter::RewriteDocument(document::IDocumentBatch* batch)
             continue;
         }
         auto kvDoc = (document::KVDocument*)(*kvDocBatch)[i].get();
+        if (_schemaId != kvDoc->GetSchemaId()) {
+            TABLET_LOG(ERROR, "build kv docuemnt doc failed, doc schema id [%d] not match tablet schmema id [%d]",
+                       kvDoc->GetSchemaId(), _schemaId);
+            return Status::ConfigError("schema id not match");
+        }
+
         auto operateType = kvDoc->GetDocOperateType();
         if (operateType == UPDATE_FIELD) {
             IncreaseupdateCountValue(1);
@@ -269,13 +316,11 @@ Status KVTabletWriter::RewriteDocument(document::IDocumentBatch* batch)
             if (!status.IsOK()) {
                 IncreaseupdateFailedCountValue(1);
                 return status;
+            } else if (!kvDocBatch->IsDropped(i)) {
+                _currentValue[kvDoc->GetPKeyHash()] = kvDoc->GetValue();
+                _deleteSet.erase(kvDoc->GetPKeyHash());
             } else {
-                if (!kvDocBatch->IsDropped(i)) {
-                    _currentValue[kvDoc->GetPKeyHash()] = kvDoc->GetValue();
-                    _deleteSet.erase(kvDoc->GetPKeyHash());
-                } else {
-                    IncreaseunexpectedUpdateCountValue(1);
-                }
+                IncreaseunexpectedUpdateCountValue(1);
             }
         } else if (operateType == ADD_DOC) {
             _currentValue[kvDoc->GetPKeyHash()] = kvDoc->GetValue();
@@ -291,7 +336,7 @@ Status KVTabletWriter::RewriteDocument(document::IDocumentBatch* batch)
 
 Status KVTabletWriter::DoBuild(const std::shared_ptr<document::IDocumentBatch>& batch)
 {
-    auto status = RewriteDocument(batch.get());
+    auto status = CheckAndRewriteDocument(batch.get());
     if (!status.IsOK()) {
         return status;
     }

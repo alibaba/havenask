@@ -1,0 +1,68 @@
+{
+    "extract_rule": [
+        {
+            "query": {
+                "match": {
+                    "service_id": {
+                        "query":"0"
+                    }
+                }
+            },
+            "filter":"",
+            "count":-1,
+            "required_fields":["__ALL_ATTRIBUTE__", "__ALL_SUMMARY__"],
+            "output_config":{
+                "modules": [
+                ],
+                "type":"SWIFT",
+                "params":{
+                    "dest":"SWIFT",
+                    "zk_root":"test",
+                    "topic_name":"123"
+                },
+                "convertors": [
+                    {
+                        "module": "",
+                        "name": "SwiftMessageConvertor",
+                        "parameters": {
+                            "hash_mode":"HASH",
+                            "hash_field":"pk_field"
+                        }                    
+                    }                    
+                ]
+            }
+        },
+        {
+            "query": {
+                "match": {
+                    "service_id": {
+                        "query":"1"
+                    }
+                }
+            },
+            "filter":"",
+            "count":-1,
+            "required_fields":["__ALL_ATTRIBUTE__", "__ALL_SUMMARY__"],
+            "output_config":{
+                "modules": [
+                ],
+                "type":"SWIFT",
+                "params":{
+                    "dest":"SWIFT",
+                    "zk_root":"test",
+                    "topic_name":"123"
+                },
+                "convertors": [
+                    {
+                        "module": "",
+                        "name": "SwiftMessageConvertor",
+                        "parameters": {
+                            "hash_mode":"HASH",
+                            "hash_field":"pk_field"
+                        }                    
+                    }                    
+                ]
+            }
+        }        
+    ]
+}

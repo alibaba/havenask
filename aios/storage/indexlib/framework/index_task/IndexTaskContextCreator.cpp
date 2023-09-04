@@ -22,6 +22,7 @@
 #include "indexlib/file_system/FileBlockCacheContainer.h"
 #include "indexlib/file_system/FileSystemCreator.h"
 #include "indexlib/file_system/IDirectory.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/load_config/CacheLoadStrategy.h"
 #include "indexlib/file_system/relocatable/RelocatableFolder.h"
 #include "indexlib/file_system/relocatable/Relocator.h"
@@ -59,6 +60,11 @@ void AddDefaultLoadConfig(indexlib::file_system::LoadConfigList* loadConfigList)
 }
 
 } // namespace
+
+IndexTaskContextCreator::IndexTaskContextCreator(const std::shared_ptr<framework::MetricsManager>& metricsManager)
+    : _metricsManager(metricsManager)
+{
+}
 
 IndexTaskContextCreator& IndexTaskContextCreator::SetClock(const std::shared_ptr<util::Clock>& clock)
 {
@@ -118,7 +124,7 @@ IndexTaskContextCreator::SetTabletOptions(const std::shared_ptr<config::TabletOp
     return *this;
 }
 
-IndexTaskContextCreator& IndexTaskContextCreator::SetTabletSchema(const std::shared_ptr<config::TabletSchema>& schema)
+IndexTaskContextCreator& IndexTaskContextCreator::SetTabletSchema(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     _context._tabletSchema = schema;
     _tabletSchemaCache[schema->GetSchemaId()] = schema;
@@ -180,7 +186,9 @@ IndexTaskContextCreator& IndexTaskContextCreator::SetFileBlockCacheContainer(
 IndexTaskContextCreator& IndexTaskContextCreator::SetDesignateTask(const std::string& taskType,
                                                                    const std::string& taskName)
 {
-    _context._designateTask = std::pair(taskType, taskName);
+    _taskType = taskType;
+    _taskName = taskName;
+    _designateTask = std::make_pair(taskType, taskName);
     return *this;
 }
 
@@ -336,7 +344,7 @@ Status IndexTaskContextCreator::LoadSrc(size_t srcIndex, bool useVirtualSegmentI
     return Status::OK();
 }
 
-std::pair<Status, std::shared_ptr<config::TabletSchema>>
+std::pair<Status, std::shared_ptr<config::ITabletSchema>>
 IndexTaskContextCreator::LoadSchema(const std::shared_ptr<indexlib::file_system::IDirectory>& directory,
                                     schemaid_t schemaId) const
 {
@@ -437,8 +445,12 @@ Status IndexTaskContextCreator::UpdateMaxMergedId(const std::string& root)
 std::unique_ptr<IndexTaskContext> IndexTaskContextCreator::CreateContext()
 {
     if (!_basicInited) {
-        _context._metricsManager.reset(new MetricsManager(
-            _tabletName, _context._metricProvider ? _context._metricProvider->GetReporter() : nullptr));
+        if (_metricsManager) {
+            _context._metricsManager = _metricsManager;
+        } else {
+            _context._metricsManager.reset(new MetricsManager(
+                _tabletName, _context._metricProvider ? _context._metricProvider->GetReporter() : nullptr));
+        }
         auto status = InitResourceManager();
         if (!status.IsOK()) {
             TABLET_LOG(ERROR, "init resource manager failed: %s", status.ToString().c_str());
@@ -491,9 +503,17 @@ std::unique_ptr<IndexTaskContext> IndexTaskContextCreator::CreateContext()
         return nullptr;
     }
     _context._tabletSchema = _context._tabletData->GetWriteSchema();
+    _context._tableName = _tabletName;
+    if (_designateTask) {
+        _context._taskType = _designateTask.value().first;
+        _context._taskName = _designateTask.value().second;
+        if (!_context.SetDesignateTask(_designateTask.value().first, _designateTask.value().second)) {
+            return nullptr;
+        }
+    }
+    _context._baseVersionId = _srcInfos[0].versionId;
 
-    auto ret = std::make_unique<IndexTaskContext>(_context);
-    return ret;
+    return std::make_unique<IndexTaskContext>(_context);
 }
 
 } // namespace indexlibv2::framework

@@ -16,7 +16,8 @@
 #include "indexlib/table/normal_table/NormalTabletModifier.h"
 
 #include "autil/memory.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/normal/NormalDocument.h"
 #include "indexlib/index/attribute/InplaceAttributeModifier.h"
@@ -39,7 +40,7 @@ NormalTabletModifier::NormalTabletModifier() {}
 
 NormalTabletModifier::~NormalTabletModifier() {}
 
-Status NormalTabletModifier::Init(const std::shared_ptr<config::TabletSchema>& schema,
+Status NormalTabletModifier::Init(const std::shared_ptr<config::ITabletSchema>& schema,
                                   const framework::TabletData& tabletData, bool deleteInBranch,
                                   const std::shared_ptr<indexlib::file_system::IDirectory>& op2PatchDir)
 {
@@ -55,7 +56,7 @@ Status NormalTabletModifier::Init(const std::shared_ptr<config::TabletSchema>& s
     return Status::OK();
 }
 
-Status NormalTabletModifier::InitDeletionMapModifier(const std::shared_ptr<config::TabletSchema>& schema,
+Status NormalTabletModifier::InitDeletionMapModifier(const std::shared_ptr<config::ITabletSchema>& schema,
                                                      const framework::TabletData& tabletData)
 {
     auto deletionMapConfig = schema->GetIndexConfig(index::DELETION_MAP_INDEX_TYPE_STR, index::DELETION_MAP_INDEX_NAME);
@@ -70,7 +71,7 @@ Status NormalTabletModifier::InitDeletionMapModifier(const std::shared_ptr<confi
 }
 
 Status
-NormalTabletModifier::InitAttributeModifier(const std::shared_ptr<config::TabletSchema>& schema,
+NormalTabletModifier::InitAttributeModifier(const std::shared_ptr<config::ITabletSchema>& schema,
                                             const framework::TabletData& tabletData,
                                             const std::shared_ptr<indexlib::file_system::IDirectory>& op2PatchDir)
 {
@@ -83,7 +84,7 @@ NormalTabletModifier::InitAttributeModifier(const std::shared_ptr<config::Tablet
 }
 
 Status
-NormalTabletModifier::InitInvertedIndexModifier(const std::shared_ptr<config::TabletSchema>& schema,
+NormalTabletModifier::InitInvertedIndexModifier(const std::shared_ptr<config::ITabletSchema>& schema,
                                                 const framework::TabletData& tabletData,
                                                 const std::shared_ptr<indexlib::file_system::IDirectory>& op2PatchDir)
 {
@@ -96,7 +97,7 @@ NormalTabletModifier::InitInvertedIndexModifier(const std::shared_ptr<config::Ta
     return _inplaceInvertedIndexModifier->Init(tabletData);
 }
 
-Status NormalTabletModifier::InitPrimaryKeyReader(const std::shared_ptr<config::TabletSchema>& schema,
+Status NormalTabletModifier::InitPrimaryKeyReader(const std::shared_ptr<config::ITabletSchema>& schema,
                                                   const framework::TabletData& tabletData)
 {
     auto pkConfigs = schema->GetIndexConfigs(index::PRIMARY_KEY_INDEX_TYPE_STR);
@@ -109,6 +110,8 @@ Status NormalTabletModifier::InitPrimaryKeyReader(const std::shared_ptr<config::
     index::PrimaryKeyIndexFactory factory;
     auto pkReader = factory.CreateIndexReader(pkConfig, index::IndexerParameter {});
     _pkReader.reset(autil::dynamic_unique_cast<indexlib::index::PrimaryKeyIndexReader>(std::move(pkReader)).release());
+    // OpenWithoutPKAttribute 会更新segment中的indexer，但是不会重新打开pk attribute
+    // 在reader open的时候去更改segment中的indexer行为不太好
     auto status = _pkReader->OpenWithoutPKAttribute(pkConfigs[0], &tabletData);
     RETURN_IF_STATUS_ERROR(status, "open primarykey reader failed");
     return Status::OK();
@@ -123,23 +126,15 @@ Status NormalTabletModifier::RemoveDocument(docid_t docid)
 }
 Status NormalTabletModifier::RemoveDocuments(document::IDocumentBatch* batch)
 {
-    map<string, docid_t> pkDocidInBatch;
-    for (size_t i = 0; i < batch->GetBatchSize(); ++i) {
-        if (batch->IsDropped(i)) {
-            continue;
-        }
-        auto normalDoc = dynamic_cast<indexlibv2::document::NormalDocument*>((*batch)[i].get());
-        const string& pkStr = normalDoc->GetPrimaryKey();
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(batch);
+    while (iter->HasNext()) {
+        auto normalDoc = dynamic_cast<indexlibv2::document::NormalDocument*>(iter->Next().get());
         docid_t oldDocid = INVALID_DOCID;
-        auto iter = pkDocidInBatch.find(pkStr);
-        if (iter != pkDocidInBatch.end()) {
-            oldDocid = iter->second;
-        } else {
-            oldDocid = _pkReader->Lookup(pkStr);
-        }
         if (ADD_DOC == normalDoc->GetDocOperateType()) {
             assert(INVALID_DOCID != normalDoc->GetDocId());
-            pkDocidInBatch[pkStr] = normalDoc->GetDocId();
+            oldDocid = normalDoc->GetDeleteDocId();
+        } else {
+            oldDocid = normalDoc->GetDocId();
         }
         if (oldDocid == INVALID_DOCID) {
             continue;

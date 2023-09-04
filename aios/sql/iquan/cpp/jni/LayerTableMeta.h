@@ -15,12 +15,12 @@
  */
 #pragma once
 
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <unordered_set>
 #include <any>
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 #include "autil/Log.h"
 #include "iquan/common/catalog/LayerTableDef.h"
@@ -30,11 +30,10 @@ namespace iquan {
 class LayerTableMeta {
 public:
     LayerTableMeta(const LayerTableDef &layerTable);
-    const std::unordered_map<std::string, std::unordered_set<std::string>>& getStrValueMap()
-    {
+    const std::unordered_map<std::string, std::unordered_set<std::string>> &getStrValueMap() {
         return strValueMap;
     };
-    const std::unordered_map<std::string, std::vector<int64_t>>& getIntValueMap() {
+    const std::unordered_map<std::string, std::vector<int64_t>> &getIntValueMap() {
         return intValueMap;
     };
 
@@ -46,4 +45,4 @@ private:
 };
 typedef std::shared_ptr<LayerTableMeta> LayerTableMetaPtr;
 
-} // iquan namespace
+} // namespace iquan

@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stddef.h>
 #include <memory>
+#include <stddef.h>
 
 #include "autil/Log.h" // IWYU pragma: keep
 #include "ha3/search/Filter.h"
@@ -25,7 +25,7 @@
 
 namespace matchdoc {
 class SubDocAccessor;
-}  // namespace matchdoc
+} // namespace matchdoc
 
 namespace isearch {
 namespace search {
@@ -33,24 +33,27 @@ namespace search {
 class SubDocFilter {
 public:
     SubDocFilter(matchdoc::SubDocAccessor *accessor)
-        : _subDocAccessor(accessor)
-    {}
+        : _subDocAccessor(accessor) {}
+
 public:
     bool pass(matchdoc::MatchDoc matchDoc);
+
 private:
     matchdoc::SubDocAccessor *_subDocAccessor;
 };
 
-class FilterWrapper
-{
+class FilterWrapper {
 public:
     FilterWrapper();
     virtual ~FilterWrapper();
+
 private:
     FilterWrapper(const FilterWrapper &);
-    FilterWrapper& operator=(const FilterWrapper &);
+    FilterWrapper &operator=(const FilterWrapper &);
+
 public:
     inline bool pass(matchdoc::MatchDoc matchDoc);
+
 public:
     void setFilter(Filter *filter) {
         if (!filter) {
@@ -62,20 +65,34 @@ public:
             _filter = filter;
         }
     }
-    Filter* getFilter() const { return _filter; }
-    Filter* getSubExprFilter() const { return _subExprFilter; }
+    Filter *getFilter() const {
+        return _filter;
+    }
+    Filter *getSubExprFilter() const {
+        return _subExprFilter;
+    }
 
-    void setJoinFilter(JoinFilter *joinFilter) { _joinFilter = joinFilter; }
-    JoinFilter* getJoinFilter() const { return _joinFilter; }
+    void setJoinFilter(JoinFilter *joinFilter) {
+        _joinFilter = joinFilter;
+    }
+    JoinFilter *getJoinFilter() const {
+        return _joinFilter;
+    }
 
-    void setSubDocFilter(SubDocFilter *subDocFilter) { _subDocFilter = subDocFilter; }
-    SubDocFilter* getSubDocFilter() const { return _subDocFilter; }
+    void setSubDocFilter(SubDocFilter *subDocFilter) {
+        _subDocFilter = subDocFilter;
+    }
+    SubDocFilter *getSubDocFilter() const {
+        return _subDocFilter;
+    }
     virtual void resetFilter() {}
+
 private:
     JoinFilter *_joinFilter;
     SubDocFilter *_subDocFilter;
     Filter *_filter;
     Filter *_subExprFilter;
+
 private:
     AUTIL_LOG_DECLARE();
 };

@@ -1,0 +1,15 @@
+{
+    "cluster_config" : {
+	"table_name" : "simple",
+	"hash_mode" : {
+            "hash_field" : "nid",
+            "hash_function" : "KINGSO_HASH#720"
+	},
+        "cluster_name" : "simple",
+        "cluster_type" : "inc_with_realtime"
+    },
+    "online_index_config" : {
+        "online_keep_version_count" : 10,
+        "max_reopen_memory_use" : 3072
+    }
+}

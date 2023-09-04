@@ -1,0 +1,34 @@
+{
+    "data_descriptions" : [
+
+    ],
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "biz_order_summary"
+            ],
+            "document_processor_chain" : [
+
+            ],
+            "modules" : [
+
+            ]
+
+        }
+    ],
+    "processor_config" : {
+        "processor_queue_size" : 1000,
+        "processor_thread_num" : 10
+    },
+    "processor_rule_config" : {
+        "parallel_num" : 2,
+        "partition_count" : 50
+    },
+    "full_merge_condition" : {
+	"freshness_in_seconds" : 10,
+	"full_merge_configs" : {
+	    "cluster1" : "full",
+	    "cluster2" : "full"
+	}
+    }
+}

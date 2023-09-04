@@ -1,0 +1,47 @@
+{
+    "attributes": [],
+    "fields": [
+        {
+            "field_name": "date",
+            "field_type": "uint64"
+        },
+        {
+            "field_name": "string1",
+            "field_type": "string",
+            "user_defined_param": {
+                "dict_hash_func": "LayerHash",
+                "separator": "#"
+            }
+        },
+        {
+            "field_name": "pk",
+            "field_type": "uint64"
+        }
+    ],
+    "dictionaries":
+    [
+        {
+            "dictionary_name": "top",
+            "content": "index2#value3;index1#value1"
+        }
+    ],
+    "indexs": [
+        {
+            "index_fields": "string1",
+            "index_name": "string1",
+            "index_type": "STRING",
+            "term_frequency_bitmap": 1,
+            "term_frequency_flag": 1,
+            "high_frequency_dictionary": "top"
+        },
+        {
+            "index_fields": "pk",
+            "index_name": "pk",
+            "index_type": "PRIMARYKEY64"
+        }
+    ],
+    "summarys": {
+        "summary_fields": []
+    },
+    "table_name": "auction"
+}

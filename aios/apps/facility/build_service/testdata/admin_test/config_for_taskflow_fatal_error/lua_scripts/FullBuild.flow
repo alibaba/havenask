@@ -1,0 +1,40 @@
+--[[
+Flow.parameter : flow related kv parameters 
+Flow.createTask(taskId, taskType, taskKvParam = nil) 
+Flow.getTaskProperty(taskId, key, flowId = nil) 
+Flow.getTaskInFlow(taskId, flowId) 
+Flow.setError(msg) 
+Flow.setFatalError(msg) 
+Flow.setProperty(key, value) 
+Flow.getProperty(key) 
+Flow.startTask(taskObj, kvParam = nil) 
+Flow.stopTask(taskObj, kvParam = nil) 
+######################################################### 
+function stepRunFlow() will be called by single TaskFlow, return true means eof of flow 
+--]]
+
+#import(Log)
+   
+function stepRunFlow()
+    local fullBuilder = Flow.createTask("fullBuilder", "builder", Flow.parameter)
+    local fullMerger = Flow.createTask("fullMerger", "merger", Flow.parameter)
+    local flowState = Flow.getProperty("_flow_status_")
+    Log.log("", "------------\n")
+    Log.log("", flowState)
+    
+    if (flowState == "")
+    then
+       Flow.startTask(fullBuilder)
+       Log.log("", "start full builder-------")
+       Flow.setProperty("_flow_status_", "fullBuilding")
+       return false
+    end
+    --local builderState = fullBuilder:getProperty("_task_status_")
+    if (flowState == "fullBuilding")
+    then
+       Flow.setFatalError("set fatal error!")
+       return false
+    end
+   return true
+end
+    

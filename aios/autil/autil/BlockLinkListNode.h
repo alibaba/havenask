@@ -22,15 +22,13 @@
 
 namespace autil {
 
-class BlockLinkListNode : public DoubleLinkListNode<Block*>
-{
+class BlockLinkListNode : public DoubleLinkListNode<Block *> {
 public:
-    void setKey(blockid_t id) {_data->_id = id;}
+    void setKey(blockid_t id) { _data->_id = id; }
     blockid_t getKey() const { return _data->_id; }
-    uint32_t getRefCount() const { return _data->getRefCount();}
+    uint32_t getRefCount() const { return _data->getRefCount(); }
     uint32_t incRefCount() { return _data->incRefCount(); }
-    uint32_t decRefCount() { return _data->decRefCount();}
+    uint32_t decRefCount() { return _data->decRefCount(); }
 };
 
-}
-
+} // namespace autil

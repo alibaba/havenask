@@ -24,11 +24,9 @@ namespace auti::mem_pool {
 class Pool;
 }
 
-namespace indexlibv2::config {
-class AttributeConfig;
-}
-
 namespace indexlibv2::index {
+class AttributeConfig;
+
 class DefaultValueAttributePatch final : public IAttributePatch
 {
 public:
@@ -36,7 +34,7 @@ public:
     ~DefaultValueAttributePatch() = default;
 
 public:
-    Status Open(const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    Status Open(const std::shared_ptr<AttributeConfig>& attrConfig);
     void SetPatchReader(const std::shared_ptr<IAttributePatch>& patchReader);
 
     std::pair<Status, size_t> Seek(docid_t docId, uint8_t* value, size_t maxLen, bool& isNull) override;
@@ -44,7 +42,7 @@ public:
     uint32_t GetMaxPatchItemLen() const override;
 
     static std::pair<Status, autil::StringView>
-    GetDecodedDefaultValue(const std::shared_ptr<config::AttributeConfig>& attrConfig, autil::mem_pool::Pool* pool);
+    GetDecodedDefaultValue(const std::shared_ptr<AttributeConfig>& attrConfig, autil::mem_pool::Pool* pool);
 
 private:
     autil::mem_pool::Pool _pool;

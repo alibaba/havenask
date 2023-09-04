@@ -1,18 +1,3 @@
-/*
- * Copyright 2014-present Alibaba Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 #include "indexlib/test/document_creator.h"
 
 #include "autil/StringUtil.h"
@@ -352,7 +337,7 @@ document::KVDocumentPtr DocumentCreator::CreateKVDocument(const config::IndexPar
         doc->SetUserTimestamp(userTimestamp);
     }
     kvDoc->SetTimestamp(rawDoc->GetTimestamp());
-    kvDoc->SetDocInfo({0, rawDoc->GetTimestamp()});
+    kvDoc->SetDocInfo({0, rawDoc->GetTimestamp(), 0});
 
     regionid_t regionId = ExtractRegionIdFromRawDocument(schema, rawDoc, defaultRegionName);
     if (regionId == INVALID_REGIONID) {
@@ -391,7 +376,7 @@ NormalDocumentPtr DocumentCreator::CreateNormalDocument(const config::IndexParti
     NormalDocumentPtr doc(new NormalDocument);
     doc->SetDocOperateType(rawDoc->GetDocOperateType());
     doc->SetTimestamp(rawDoc->GetTimestamp());
-    doc->SetDocInfo({0, rawDoc->GetTimestamp()});
+    doc->SetDocInfo({0, rawDoc->GetTimestamp(), 0});
     doc->SetUserTimestamp(
         autil::StringUtil::strToInt64WithDefault(rawDoc->GetField(HA_RESERVED_TIMESTAMP).c_str(), INVALID_TIMESTAMP));
     doc->SetLocator(rawDoc->GetLocator());

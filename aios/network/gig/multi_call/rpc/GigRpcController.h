@@ -21,11 +21,13 @@
 
 namespace multi_call {
 
-class GigRpcController : public google::protobuf::RpcController {
+class GigRpcController : public google::protobuf::RpcController
+{
 public:
-    GigRpcController()
-        : _ec(MULTI_CALL_ERROR_NO_RESPONSE), _rpcController(nullptr) {}
-    ~GigRpcController() {}
+    GigRpcController() : _ec(MULTI_CALL_ERROR_NO_RESPONSE), _rpcController(nullptr) {
+    }
+    ~GigRpcController() {
+    }
 
 private:
     GigRpcController(const GigRpcController &);
@@ -39,8 +41,12 @@ public:
         _ec = MULTI_CALL_ERROR_NO_RESPONSE;
         _reason.clear();
     }
-    bool Failed() const override { return _ec > MULTI_CALL_ERROR_DEC_WEIGHT; }
-    std::string ErrorText() const override { return _reason; }
+    bool Failed() const override {
+        return _ec > MULTI_CALL_ERROR_DEC_WEIGHT;
+    }
+    std::string ErrorText() const override {
+        return _reason;
+    }
     void StartCancel() override {
         if (_rpcController) {
             _rpcController->StartCancel();
@@ -70,8 +76,12 @@ public:
     }
 
 public:
-    MultiCallErrorCode getErrorCode() const { return _ec; }
-    void setErrorCode(MultiCallErrorCode ec) { _ec = ec; }
+    MultiCallErrorCode getErrorCode() const {
+        return _ec;
+    }
+    void setErrorCode(MultiCallErrorCode ec) {
+        _ec = ec;
+    }
     void setRpcController(google::protobuf::RpcController *rpcController) {
         _rpcController = rpcController;
     }

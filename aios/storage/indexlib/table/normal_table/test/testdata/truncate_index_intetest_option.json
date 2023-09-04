@@ -1,0 +1,34 @@
+{
+    "offline_index_config": {
+        "merge_config":{
+            "max_merge_memory_use": 15528,
+            "merge_thread_count": 10,
+            "merge_strategy_param": "",
+            "merge_strategy": "optimize",
+            "keep_version_count": 100,
+            "truncate_strategy" : [
+            {
+                "strategy_name" : "ends_filter_normal_inc",
+                "diversity_constrain": {
+	        	    "filter_type" : "FilterByTimeStamp",
+	                "filter_parameter" : "fieldName=ends;beginTime=now;minInterval=1"
+                },
+	            "truncate_profiles" : [
+	                "ends_filter"
+	            ]
+            },
+            {
+                "strategy_name" : "ends_filter_big_inc",
+                "diversity_constrain": {
+	                "filter_type" : "FilterByTimeStamp",
+	                "filter_parameter" : "fieldName=ends;beginTime=8:0:4;adviseEndTime=23:00:00"
+                },
+	            "truncate_profiles" : [
+	                "ends_filter2"
+	            ]
+            }
+            ]
+        }
+    }
+}
+

@@ -1,0 +1,135 @@
+#import(Tool)
+#import(Log)
+
+--todo support add prepare data source task
+function graphDef()
+   local clusterNames = Tool.jsonToList(Graph.parameter["clusterNames"])
+   if (#clusterNames > 1)
+   then
+      Log.log("ERROR", "update2add graph not support multi clusters.")
+      return false;
+   end
+   
+   local clusterName = clusterNames[1]
+   local schemaIdMap = Tool.jsonToMap(Graph.parameter["schemaIdMap"])
+
+   -- start clone index task 
+   local cloneIndexParam = Tool.copyMap(Graph.parameter)
+   local taskInitParam = KVParamUtil()
+
+   if (Graph.parameter["source_admin_address"] == nil)
+   then
+      Log.log("ERROR", "clone index need param source_admin_address")
+      return false;
+   end
+
+   if (Graph.parameter["source_build_id"] == nil)
+   then
+      Log.log("ERROR", "clone index need param source_build_id")
+      return false;
+   end
+
+   if (Graph.parameter["madrox_admin_address"] == nil)
+   then
+      Log.log("ERROR", "clone index need param madrox_admin_address")
+      return false;
+   end
+
+   if (Graph.parameter["clusterNames"] == nil)
+   then
+      Log.log("ERROR", "clone index need param clusterNames")
+      return false;
+   end
+      
+   taskInitParam:setValue("source_admin_address", Graph.parameter["source_admin_address"]) 
+   taskInitParam:setValue("source_build_id", Graph.parameter["source_build_id"]) 
+   taskInitParam:setValue("madrox_admin_address", Graph.parameter["madrox_admin_address"])
+   taskInitParam:setValue("clusterNames", Graph.parameter["clusterNames"])
+   if (Graph.parameter["versionIds"] ~= nil)
+   then
+      taskInitParam:setValue("versionIds", Graph.parameter["versionIds"])
+   end
+   
+   cloneIndexParam["taskParam"] = taskInitParam:toJsonString()
+   cloneIndexParam["clusterName"] = clusterName 
+
+   cloneIndexFlow = Graph.loadSimpleFlow("clone_index_task", "cloneIndex", cloneIndexParam)
+   cloneIndexFlow:addTag("BSCloneIndex")
+   cloneIndexFlowId = cloneIndexFlow:getFlowId()
+
+   -- trigger full merger with align version merger
+   local fullParam = Tool.copyMap(Graph.parameter)
+   fullParam["clusterName"] = clusterName
+   fullParam["schemaId"] = schemaIdMap[clusterName]
+   fullParam["mergeConfigName"] = "align_version"
+   fullParam["skipBuildCheckpoint"] = "true"
+   fullParam["disableFillIndexInfo"] = "true"
+   local fullMerger = Graph.loadSimpleFlow("merger", "fullMerger", fullParam)
+   Graph.setUpstream(fullMerger, cloneIndexFlow)
+
+      
+   bookLatestIndex = {
+      ["clusterName"] = clusterName,
+      ["checkpoint_type"] = "syncIndex",
+      ["need_latest_version"] = "true",
+      ["type"] = "checkpoint",            
+      ["name"] = clusterName.."_src_latestCheckpoint"
+   }
+
+   --prepare sync task
+   local syncParam = Tool.copyMap(Graph.parameter)
+   local syncTaskInitParam = KVParamUtil()
+   syncTaskInitParam:setValue("resourceName", bookLatestIndex["name"])
+   syncParam["srcResourceName"] = bookLatestIndex["name"]
+   syncParam["clusterName"] = clusterName
+   syncParam["taskParam"] = syncTaskInitParam:toJsonString()
+   local syncIndexFlow = Graph.loadFlow("SyncTask.flow", syncParam)
+   syncIndexFlowId = syncIndexFlow:getFlowId()
+   Graph.setUpstream(syncIndexFlow, fullMerger)
+
+   --prepare inc processor
+   local incParam = Tool.copyMap(Graph.parameter)
+   incParam["clusterName"] = clusterName
+   incParam["schemaId"] = schemaIdMap[clusterName]
+   incParam["buildStep"] = "incremental"
+   incParam["cloneIndexFlowId"] = cloneIndexFlowId
+   incParam["syncIndexFlowId"] = syncIndexFlowId
+
+   incParam["srcResourceName"] = bookLatestIndex["name"]
+   Graph.openApi("book", "/resource/checkpoint", bookLatestIndex)
+   local incProcessor = Graph.loadFlow("IncProcessor.flow", incParam)
+   incProcessor:addTag("BSIncProcess")
+   incProcessor:addTag(clusterName..":BSIncProcessor")
+   incParam["processorFlowId"] = incProcessor:getFlowId()
+   Graph.setUpstream(incProcessor, fullMerger)   
+   
+   
+   --prepare merge crontab
+   local mergeCrontab = Graph.loadSimpleFlow(
+            "mergeCrontab", "mergeCrontab", incParam)
+   local mergeCrontabTag = clusterName..":MergeCrontab"
+   mergeCrontab:addTag(mergeCrontabTag)
+
+   --prepare inc build
+   incParam["mergeCrontabFlowId"] = mergeCrontab:getFlowId()
+   local incBuild = Graph.loadFlow("IncBuild.flow", incParam)
+   local incBuildTag = clusterName..":IncBuild"
+   incBuild:addTag(incBuildTag)
+   incBuild:setProperty("_is_first_finish_builder_", "false")
+   if (Graph.parameter["mergeConfig"] ~= nil) 
+   then
+      incBuild:setProperty("_trigger_merge_by_specified_config_", "true")
+      Log.log("INFO", "trigger merge by mergeConfig"..Graph.parameter["mergeConfig"])
+   end
+
+
+   Graph.declareFriend(mergeCrontab, incBuild)
+   Graph.declareFriend(incProcessor, incBuild)
+   Graph.declareFriend(cloneIndexFlow, incProcessor)
+   Graph.declareFriend(syncIndexFlow, incProcessor)   
+   Graph.setUpstream(incBuild, fullMerger)
+   Graph.setUpstream(mergeCrontab, fullMerger)
+
+   return true
+end
+

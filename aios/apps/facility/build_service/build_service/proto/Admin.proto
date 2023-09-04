@@ -21,6 +21,12 @@ enum AdminErrorCode {
     ADMIN_DUPLICATE = 4;
 }
 
+message InformRequest {
+    required string type = 1;
+    optional BuildId buildId = 2;
+    optional string paramStr = 3;
+}
+
 message InformResponse {
     repeated string errorMessage = 1;
     optional string response = 2 [default = ""];
@@ -35,6 +41,7 @@ message StartBuildRequest {
     optional string debugMode = 5;
     optional bool jobMode = 6 [default = false];
     optional string jobId = 7;
+    optional string extendParameters = 8;
 }
 
 message StartBuildResponse {
@@ -44,6 +51,17 @@ message StartBuildResponse {
 }
 
 message MigrateRoleRequest {
+    required BuildId buildId = 1;
+    repeated PartitionId pids = 2;
+    repeated string roleNames = 3;
+}
+
+message WorkerRoleInfoRequest {
+    required BuildId buildId = 1;
+    optional bool onlyActive = 2 [default = true];
+}
+
+message WorkerNodeStatusRequest {
     required BuildId buildId = 1;
     repeated PartitionId pids = 2;
     repeated string roleNames = 3;
@@ -133,19 +151,6 @@ message GetCommittedVersionsRequest {
     optional uint32 limit = 4 [default = 10];
 }
 
-message StartIndexTaskRequest {
-    required BuildId buildId = 1;
-    required int64 taskId = 2;
-    required string clusterName = 3;
-    optional string OBSOLETE_configPath = 4;
-    required string partitionIndexRoot = 5;
-    required string taskEpochId = 6;
-    required OperationPlan plan = 7;
-    repeated int64 sourceVersionIds = 8;
-    repeated string paramKeys = 9;
-    repeated string paramValues = 10;
-}
-
 message StartTaskRequest {
     required BuildId buildId = 1;
     required int64 taskId = 2;
@@ -226,6 +231,12 @@ message UpdateGsTemplateRequest {
     optional string jobId = 3;
 }
 
+message UpdateGlobalAgentConfigRequest {
+    optional string configFile = 1 [default = ""];
+    optional string configStr = 2 [default = ""];
+    optional string jobId = 3;
+}
+
 // gs related
 message ServiceInfoRequest {
     optional string appName = 2;
@@ -236,6 +247,7 @@ message ServiceInfoRequest {
     optional bool ignoreTemplate = 7 [default = false];
     optional bool fillEffectiveIndexInfo = 8 [default = false];
     optional string jobId = 9;
+    optional bool fillGlobalAgentInfo = 10 [default = false];
 }
 
 message Resource {
@@ -287,6 +299,7 @@ message ProcessorInfo {
 message AgentNodePlan {
     required string agentRoleName = 1;
     repeated string targetRoleName = 2;
+    optional string agentIdentifier = 3;
 }
 
 message TaskInfo {
@@ -306,8 +319,42 @@ message TaskInfoResponse {
    optional AdminErrorCode errorCode = 4;
 }
 
-// GeneralTask begin
+message WorkerRoleInfo {
+    required string roleName = 1;
+    required string roleType = 2;
+    required string identifier = 3;
+    required int64 heartbeatTime = 4;
+    required bool isFinish = 5;
+    optional string agentNodeName = 6;
+    optional string agentIdentifier = 7;
+    optional int64 workerStartTime = 8;    
+}
 
+message GenerationRoleInfo {
+    required BuildId buildId = 1;
+    repeated WorkerRoleInfo roleInfos = 2;
+    optional string errorMsg = 3;
+}
+
+message WorkerRoleInfoResponse {
+    repeated GenerationRoleInfo generationRoleInfos = 1;
+    repeated string errorMessage = 2;
+}
+
+message WorkerNodeStatus {
+    required string roleName = 1;
+    required PartitionId pid = 2;
+    required string targetStatus = 3;
+    required string currentStatus = 4;
+}
+
+message WorkerNodeStatusResponse {
+    repeated WorkerNodeStatus nodeStatus = 1;
+    repeated string errorMessage = 2;
+    optional AdminErrorCode errorCode = 3;
+}
+
+// GeneralTask begin
 message StartGeneralTaskRequest {
     required BuildId buildId = 1;
     required string clusterName = 2;
@@ -321,8 +368,14 @@ message StartGeneralTaskRequest {
     required int64 branchId = 10;
     optional Range range = 11;
 }
-
 // GeneralTask end
+
+message BulkloadInfoRequest {
+    required BuildId buildId = 1;
+    required string clusterName = 2;
+    required string bulkloadId = 3;
+    repeated Range ranges = 4;
+}
 
 message FlowTaskMeta {
     optional string taskId = 1;
@@ -537,6 +590,7 @@ message ServiceInfoResponse {
     repeated GenerationInfo generationInfos = 3;
     repeated string errorMessage = 4;
     optional AdminErrorCode errorCode = 5;
+    repeated AgentNodePlan globalAgentNodePlans = 6;
 }
 
 message SetLoggerLevelRequest {
@@ -626,9 +680,6 @@ service AdminService
     rpc updateGsTemplate ( UpdateGsTemplateRequest ) returns ( InformResponse ) {
         option (arpc.local_method_id) = 21;
     }
-    rpc startIndexTask ( StartIndexTaskRequest ) returns ( InformResponse ) {
-        option (arpc.local_method_id) = 22;
-    }
     rpc startGeneralTask ( StartGeneralTaskRequest ) returns ( InformResponse ) {
         option (arpc.local_method_id) = 23;
     }
@@ -655,6 +706,21 @@ service AdminService
     }
     rpc rollBackCheckpoint ( RollBackCheckpointRequest ) returns ( InformResponse ) {
         option (arpc.local_method_id) = 31;
+    }
+    rpc updateGlobalAgentConfig ( UpdateGlobalAgentConfigRequest ) returns ( InformResponse ) {
+	option (arpc.local_method_id) = 32;
+    }
+    rpc getWorkerRoleInfo ( WorkerRoleInfoRequest ) returns ( WorkerRoleInfoResponse ) {
+	option (arpc.local_method_id) = 33;
+    }
+    rpc getWorkerNodeStatus ( WorkerNodeStatusRequest ) returns ( WorkerNodeStatusResponse ) {
+	option (arpc.local_method_id) = 34;
+    }
+    rpc getGeneralInfo ( InformRequest ) returns ( InformResponse ) {
+	option (arpc.local_method_id) = 35;
+    }
+    rpc getBulkloadInfo ( BulkloadInfoRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 36;
     }
 }
 

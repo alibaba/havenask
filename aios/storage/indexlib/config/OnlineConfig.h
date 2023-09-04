@@ -57,6 +57,7 @@ public:
 public:
     BuildConfig& TEST_GetBuildConfig();
     void TEST_SetLoadConfigList(const std::string& jsonStr);
+    void TEST_SetLifecycleConfig(const std::string& jsonStr);
     void TEST_SetMaxRealtimeMemoryUse(int64_t quota);
     void TEST_SetPrintMetricsInterval(int64_t interval);
     void TEST_SetMaxRealtimeDumpIntervalSecond(uint32_t interval);
@@ -64,6 +65,7 @@ public:
     void TEST_SetNeedReadRemoteIndex(bool needReadRemoteIndex);
     void TEST_SetLoadRemainFlushRealtimeIndex(bool loadRemainFlushRealtimeIndex);
     void TEST_SetAllowLocatorRollback(bool allow);
+    void TEST_SetIncConsistentWithRealtime(bool incConsistentWithRealtime);
 
 private:
     struct Impl;

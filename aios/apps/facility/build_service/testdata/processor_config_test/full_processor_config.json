@@ -1,0 +1,4 @@
+{
+    "processor_thread_num" : 16,
+    "processor_queue_size" : 10000
+}

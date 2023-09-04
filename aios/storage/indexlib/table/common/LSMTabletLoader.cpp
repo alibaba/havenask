@@ -17,7 +17,7 @@
 
 #include <any>
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/ResourceMap.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/index/IIndexReader.h"
@@ -62,27 +62,24 @@ LSMTabletLoader::FinalLoad(const framework::TabletData& currentTabletData)
         }
     }
     if (!dropRt) {
-        auto slice = currentTabletData.CreateSlice();
         auto segmentDesc = _newVersion.GetSegmentDescriptions();
         auto levelInfo = segmentDesc->GetLevelInfo();
-        for (auto segment : slice) {
+
+        auto [status, allSegments] = GetRemainSegments(currentTabletData, _newSegments, _newVersion);
+        if (!status.IsOK()) {
+            AUTIL_LOG(ERROR, "get remain segments failed, tablet data locator [%s], new version locator [%s]",
+                      currentTabletData.GetLocator().DebugString().c_str(),
+                      _newVersion.GetLocator().DebugString().c_str());
+            return {status, nullptr};
+        }
+        _newSegments = allSegments;
+
+        for (const auto& segment : _newSegments) {
             if (_newVersion.HasSegment(segment->GetSegmentId())) {
                 continue;
             }
-
-            framework::Locator segLocator = segment->GetSegmentInfo()->GetLocator();
-            if (!segLocator.IsSameSrc(locator, true)) {
-                TABLET_LOG(INFO, "segment [%d] locator [%s] src not equal new version locator[%s] src, drop segment",
-                           segment->GetSegmentId(), segLocator.DebugString().c_str(), locator.DebugString().c_str());
-                continue;
-            }
-            auto compareResult = locator.IsFasterThan(segLocator, true);
-
-            if (compareResult != framework::Locator::LocatorCompareResult::LCR_FULLY_FASTER) {
-                _newSegments.push_back(segment);
-                if (levelInfo && segment->GetSegmentStatus() == framework::Segment::SegmentStatus::ST_BUILT) {
-                    levelInfo->AddSegment(segment->GetSegmentId());
-                }
+            if (levelInfo && segment->GetSegmentStatus() == framework::Segment::SegmentStatus::ST_BUILT) {
+                levelInfo->AddSegment(segment->GetSegmentId());
             }
         }
     }
@@ -90,17 +87,6 @@ LSMTabletLoader::FinalLoad(const framework::TabletData& currentTabletData)
     auto status =
         newTabletData->Init(_newVersion.Clone(), std::move(_newSegments), currentTabletData.GetResourceMap()->Clone());
     return {status, std::move(newTabletData)};
-}
-
-size_t LSMTabletLoader::EstimateMemUsed(const std::shared_ptr<config::TabletSchema>& schema,
-                                        const std::vector<framework::Segment*>& segments)
-{
-    size_t totalMemUsed = 0;
-    for (auto segment : segments) {
-        totalMemUsed += segment->EstimateMemUsed(schema);
-    }
-
-    return totalMemUsed;
 }
 
 } // namespace indexlibv2::table

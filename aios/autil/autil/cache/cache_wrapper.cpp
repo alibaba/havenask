@@ -17,9 +17,6 @@
 
 namespace autil {
 
-CacheWrapper::CacheWrapper(const std::shared_ptr<CacheBase> &cache)
-    : _internal(cache)
-{
-}
+CacheWrapper::CacheWrapper(const std::shared_ptr<CacheBase> &cache) : _internal(cache) {}
 
-}
+} // namespace autil

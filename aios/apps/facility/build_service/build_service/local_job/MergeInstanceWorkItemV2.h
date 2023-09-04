@@ -16,7 +16,6 @@
 #pragma once
 #include "autil/NoCopyable.h"
 #include "autil/WorkItem.h"
-#include "build_service/config/OfflineIndexConfigMap.h"
 #include "build_service/task_base/TaskBase.h"
 #include "build_service/util/Log.h"
 #include "future_lite/TaskScheduler.h"
@@ -50,15 +49,14 @@ private:
     indexlib::Status getLatestVersion(indexlibv2::framework::Version* version) const;
     void setFailFlag();
     std::unique_ptr<future_lite::Executor> createExecutor(const std::string& executorName, uint32_t threadCount) const;
-    int64_t getMachineTotalMemory() const;
+    int64_t getMachineTotalMemoryMb() const;
     bool createQuotaController(int64_t buildTotalMemory);
-    bool prepareResource(const config::OfflineIndexConfigMap& configMap);
+    bool prepareResource();
     std::shared_ptr<indexlibv2::framework::ITablet> prepareTablet();
-    std::shared_ptr<indexlibv2::framework::ITabletMergeController>
-    createMergeController(const config::OfflineIndexConfigMap& configMap);
+    std::shared_ptr<indexlibv2::framework::ITabletMergeController> createMergeController();
     std::shared_ptr<indexlibv2::framework::IdGenerator> getIdGenerator() const;
 
-    std::shared_ptr<indexlibv2::config::TabletSchema>
+    std::shared_ptr<indexlibv2::config::ITabletSchema>
     getTabletSchema(const std::shared_ptr<indexlibv2::config::TabletOptions>& tabletOptions) const;
 
 private:
@@ -76,7 +74,7 @@ private:
     std::unique_ptr<future_lite::TaskScheduler> _taskScheduler;
     std::shared_ptr<indexlibv2::MemoryQuotaController> _totalMemoryController;
     std::shared_ptr<indexlibv2::MemoryQuotaController> _buildMemoryController;
-    std::shared_ptr<indexlibv2::config::TabletSchema> _tabletSchema;
+    std::shared_ptr<indexlibv2::config::ITabletSchema> _tabletSchema;
     std::shared_ptr<indexlibv2::config::TabletOptions> _tabletOptions;
 
 private:

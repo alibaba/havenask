@@ -142,7 +142,7 @@ void VarNumAttributeUpdater<T>::Dump(const file_system::DirectoryPtr& attributeD
     std::sort(docIdVect.begin(), docIdVect.end());
 
     config::PackAttributeConfig* packAttrConfig = mAttrConfig->GetPackAttributeConfig();
-    std::string attrDir = packAttrConfig != NULL ? packAttrConfig->GetAttrName() + "/" + mAttrConfig->GetAttrName()
+    std::string attrDir = packAttrConfig != NULL ? packAttrConfig->GetPackName() + "/" + mAttrConfig->GetAttrName()
                                                  : mAttrConfig->GetAttrName();
 
     file_system::DirectoryPtr dir = attributeDir->MakeDirectory(attrDir);

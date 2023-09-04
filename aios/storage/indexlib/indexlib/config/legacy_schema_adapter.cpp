@@ -15,6 +15,7 @@
  */
 #include "indexlib/config/legacy_schema_adapter.h"
 
+#include "indexlib/config/MutableJson.h"
 #include "indexlib/config/attribute_schema.h"
 #include "indexlib/config/field_config.h"
 #include "indexlib/config/index_partition_schema.h"
@@ -23,6 +24,7 @@
 #include "indexlib/config/kv_index_config.h"
 #include "indexlib/config/primary_key_index_config.h"
 #include "indexlib/config/summary_schema.h"
+#include "indexlib/index/ann/Common.h"
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/common/Constant.h"
 #include "indexlib/index/inverted_index/Common.h"
@@ -30,6 +32,7 @@
 #include "indexlib/index/kkv/config/KKVIndexConfig.h"
 #include "indexlib/index/kv/Common.h"
 #include "indexlib/index/kv/config/KVIndexConfig.h"
+#include "indexlib/index/pack_attribute/Common.h"
 #include "indexlib/index/primary_key/Common.h"
 #include "indexlib/index/primary_key/config/PrimaryKeyIndexConfig.h"
 #include "indexlib/index/summary/Common.h"
@@ -52,6 +55,13 @@ LegacySchemaAdapter::LegacySchemaAdapter(const std::shared_ptr<IndexPartitionSch
 const std::string& LegacySchemaAdapter::GetTableType() const { return _legacySchema->GetTableTypeV2(); }
 
 const std::string& LegacySchemaAdapter::GetTableName() const { return _legacySchema->GetSchemaName(); }
+
+schemaid_t LegacySchemaAdapter::GetSchemaId() const { return _legacySchema->GetSchemaVersionId(); }
+
+std::string LegacySchemaAdapter::GetSchemaFileName() const
+{
+    return IndexPartitionSchema::GetSchemaFileName(GetSchemaId());
+}
 
 std::shared_ptr<indexlibv2::config::FieldConfig> LegacySchemaAdapter::GetFieldConfig(const std::string& fieldName) const
 {
@@ -78,23 +88,22 @@ std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>> LegacySchemaAdapte
 std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>>
 LegacySchemaAdapter::GetIndexFieldConfigs(const std::string& indexType) const
 {
-    if (indexType == indexlibv2::GENERALIZED_VALUE_INDEX_TYPE_STR) {
-        return _generalizedValueIndexFieldConfigs;
-    } else {
-        std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>> ret;
-        std::map<fieldid_t, std::shared_ptr<indexlibv2::config::FieldConfig>> fields;
-        auto indexConfigs = GetIndexConfigs(indexType);
-        for (const auto& indexConfig : indexConfigs) {
-            auto indexFields = indexConfig->GetFieldConfigs();
-            for (const auto& fieldConfig : indexFields) {
-                fields[fieldConfig->GetFieldId()] = fieldConfig;
-            }
+    std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>> ret;
+    std::map<fieldid_t, std::shared_ptr<indexlibv2::config::FieldConfig>> fields;
+    auto indexConfigs = GetIndexConfigs(indexType);
+    for (const auto& indexConfig : indexConfigs) {
+        if (indexConfig->IsDisabled()) {
+            continue;
         }
-        for (const auto& [fieldId, fieldConfig] : fields) {
-            ret.push_back(fieldConfig);
+        auto indexFields = indexConfig->GetFieldConfigs();
+        for (const auto& fieldConfig : indexFields) {
+            fields[fieldConfig->GetFieldId()] = fieldConfig;
         }
-        return ret;
     }
+    for (const auto& [fieldId, fieldConfig] : fields) {
+        ret.push_back(fieldConfig);
+    }
+    return ret;
 }
 
 LegacySchemaAdapter::IIndexConfigVector LegacySchemaAdapter::GetIndexConfigs(const std::string& indexType) const
@@ -105,6 +114,10 @@ LegacySchemaAdapter::IIndexConfigVector LegacySchemaAdapter::GetIndexConfigs(con
         return _invertedIndexConfigs;
     } else if (indexType == indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR) {
         return _attributeConfigs;
+    } else if (indexType == indexlibv2::index::PACK_ATTRIBUTE_INDEX_TYPE_STR) {
+        return _packAttributeConfigs;
+    } else if (indexType == indexlibv2::index::ANN_INDEX_TYPE_STR) {
+        return _annIndexConfigs;
     } else if (indexType == indexlibv2::table::VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR) {
         return _virtualAttributeConfigs;
     } else if (indexType == indexlibv2::index::SUMMARY_INDEX_TYPE_STR) {
@@ -113,9 +126,47 @@ LegacySchemaAdapter::IIndexConfigVector LegacySchemaAdapter::GetIndexConfigs(con
         return _kvIndexConfigs;
     } else if (indexType == indexlibv2::index::KKV_INDEX_TYPE_STR) {
         return _kkvIndexConfigs;
+    } else if (indexType == indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR) {
+        return _generalInvertedIndexConfigs;
+    } else if (indexType == indexlib::index::GENERAL_VALUE_INDEX_TYPE_STR) {
+        return _generalValueConfigs;
     } else {
         return {};
     }
+}
+
+LegacySchemaAdapter::IIndexConfigVector LegacySchemaAdapter::GetIndexConfigs() const
+{
+    assert(false); // never got hear
+    LegacySchemaAdapter::IIndexConfigVector indexConfigVector(_primaryKeyIndexConfigs);
+    indexConfigVector.insert(indexConfigVector.end(), _invertedIndexConfigs.begin(), _invertedIndexConfigs.end());
+    indexConfigVector.insert(indexConfigVector.end(), _annIndexConfigs.begin(), _annIndexConfigs.end());
+    indexConfigVector.insert(indexConfigVector.end(), _attributeConfigs.begin(), _attributeConfigs.end());
+    indexConfigVector.insert(indexConfigVector.end(), _packAttributeConfigs.begin(), _packAttributeConfigs.end());
+    indexConfigVector.insert(indexConfigVector.end(), _virtualAttributeConfigs.begin(), _virtualAttributeConfigs.end());
+    indexConfigVector.insert(indexConfigVector.end(), _summaryIndexConfigs.begin(), _summaryIndexConfigs.end());
+    indexConfigVector.insert(indexConfigVector.end(), _kvIndexConfigs.begin(), _kvIndexConfigs.end());
+    indexConfigVector.insert(indexConfigVector.end(), _kkvIndexConfigs.begin(), _kkvIndexConfigs.end());
+    return indexConfigVector;
+}
+
+LegacySchemaAdapter::IIndexConfigVector
+LegacySchemaAdapter::GetIndexConfigsByFieldName(const std::string& fieldName) const
+{
+    assert(false); // never got hear
+    auto indexConfigs = GetIndexConfigs();
+    indexConfigs.erase(std::remove_if(indexConfigs.begin(), indexConfigs.end(),
+                                      [&fieldName](const std::shared_ptr<IIndexConfig>& indexConfig) {
+                                          const auto& fieldConfigs = indexConfig->GetFieldConfigs();
+                                          for (const auto& fieldConfig : fieldConfigs) {
+                                              if (fieldConfig->GetFieldName() == fieldName) {
+                                                  return false;
+                                              }
+                                          }
+                                          return true;
+                                      }),
+                       indexConfigs.end());
+    return indexConfigs;
 }
 
 std::shared_ptr<LegacySchemaAdapter::IIndexConfig>
@@ -125,6 +176,7 @@ LegacySchemaAdapter::GetIndexConfig(const std::string& indexType, const std::str
     if (iter == _indexConfigMap.end()) {
         return nullptr;
     }
+    assert(!iter->second->IsDisabled());
     return iter->second;
 }
 
@@ -148,13 +200,24 @@ void LegacySchemaAdapter::Init()
                 continue;
             }
             std::shared_ptr<indexlibv2::config::InvertedIndexConfig> configV2 = legacyConfig->ConstructConfigV2();
-            if (configV2) {
-                _invertedIndexConfigs.push_back(configV2);
-                AddIndexConfigToMap(indexlib::index::INVERTED_INDEX_TYPE_STR, configV2);
+            if (configV2 && !configV2->IsDisabled()) {
+                _generalInvertedIndexConfigs.push_back(configV2);
+                AddIndexConfigToMap(indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR, configV2);
+                if (configV2->GetIndexType() == indexlib::index::INVERTED_INDEX_TYPE_STR) {
+                    _invertedIndexConfigs.push_back(configV2);
+                } else if (configV2->GetIndexType() == indexlibv2::index::ANN_INDEX_TYPE_STR) {
+                    _annIndexConfigs.push_back(configV2);
+                } else if (configV2->GetIndexType() == indexlibv2::index::PRIMARY_KEY_INDEX_TYPE_STR) {
+                    continue;
+                } else {
+                    // trie?
+                }
+                AddIndexConfigToMap(configV2->GetIndexType(), configV2);
             }
         }
         const auto& pkConfig = indexSchema->GetPrimaryKeyIndexConfig();
         if (pkConfig) {
+            assert(!pkConfig->IsDisabled());
             if (_legacySchema->GetTableType() == tt_kv) {
                 const auto& legacyKvIndexConfig = std::dynamic_pointer_cast<indexlib::config::KVIndexConfig>(pkConfig);
                 auto kvConfig = std::shared_ptr<indexlibv2::config::KVIndexConfig>(
@@ -163,8 +226,8 @@ void LegacySchemaAdapter::Init()
                 _kvIndexConfigs.emplace_back(kvConfig);
                 _primaryKeyIndexConfig = kvConfig;
                 AddIndexConfigToMap(indexlibv2::index::KV_INDEX_TYPE_STR, kvConfig);
-                _primaryKeyIndexConfigs.push_back(kvConfig);
-                AddIndexConfigToMap(indexlibv2::index::PRIMARY_KEY_INDEX_TYPE_STR, kvConfig);
+                //_primaryKeyIndexConfigs.push_back(kvConfig);
+                // AddIndexConfigToMap(indexlibv2::index::PRIMARY_KEY_INDEX_TYPE_STR, kvConfig);
             } else if (_legacySchema->GetTableType() == tt_kkv) {
                 const auto& legacyKkvIndexConfig =
                     std::dynamic_pointer_cast<indexlib::config::KKVIndexConfig>(pkConfig);
@@ -174,8 +237,8 @@ void LegacySchemaAdapter::Init()
                 _kkvIndexConfigs.emplace_back(kkvConfig);
                 _primaryKeyIndexConfig = kkvConfig;
                 AddIndexConfigToMap(indexlibv2::index::KKV_INDEX_TYPE_STR, kkvConfig);
-                _primaryKeyIndexConfigs.push_back(kkvConfig);
-                AddIndexConfigToMap(indexlibv2::index::PRIMARY_KEY_INDEX_TYPE_STR, kkvConfig);
+                //_primaryKeyIndexConfigs.push_back(kkvConfig);
+                // AddIndexConfigToMap(indexlibv2::index::PRIMARY_KEY_INDEX_TYPE_STR, kkvConfig);
             } else {
                 auto pkConfigV2 =
                     std::shared_ptr<indexlibv2::config::InvertedIndexConfig>(pkConfig->ConstructConfigV2());
@@ -187,58 +250,56 @@ void LegacySchemaAdapter::Init()
         }
     }
 
-    _generalizedValueIndexFieldConfigs.clear();
     if (attrSchema) {
         for (auto iter = attrSchema->Begin(); iter != attrSchema->End(); ++iter) {
             const auto& attrConfig = *iter;
-            _attributeConfigs.push_back(attrConfig);
-            _generalizedValueIndexFieldConfigs.push_back(attrConfig->GetFieldConfig());
-            AddIndexConfigToMap(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR, attrConfig);
+            if (attrConfig->IsDisabled()) {
+                continue;
+            }
+            _generalValueConfigs.push_back(attrConfig);
+            AddIndexConfigToMap(indexlib::index::GENERAL_VALUE_INDEX_TYPE_STR, attrConfig);
+            if (!attrConfig->GetPackAttributeConfig()) {
+                _attributeConfigs.push_back(attrConfig);
+                AddIndexConfigToMap(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR, attrConfig);
+            }
         }
-
         for (size_t i = 0; i < attrSchema->GetPackAttributeCount(); ++i) {
             const auto& packAttrConfig = attrSchema->GetPackAttributeConfig(i);
-            _attributeConfigs.push_back(packAttrConfig);
-            auto fields = packAttrConfig->GetFieldConfigs();
-            _generalizedValueIndexFieldConfigs.insert(_generalizedValueIndexFieldConfigs.end(), fields.begin(),
-                                                      fields.end());
-            AddIndexConfigToMap(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR, packAttrConfig);
+            if (packAttrConfig->IsDisabled()) {
+                continue;
+            }
+            _packAttributeConfigs.push_back(packAttrConfig);
+            AddIndexConfigToMap(indexlibv2::index::PACK_ATTRIBUTE_INDEX_TYPE_STR, packAttrConfig);
         }
     }
-    std::sort(_generalizedValueIndexFieldConfigs.begin(), _generalizedValueIndexFieldConfigs.end(),
-              [](const auto& lhs, const auto& rhs) { return lhs->GetFieldId() < rhs->GetFieldId(); });
     if (virtualAttrSchema) {
         for (auto iter = virtualAttrSchema->Begin(); iter != virtualAttrSchema->End(); ++iter) {
+            assert(!(*iter)->IsDisabled());
             _virtualAttributeConfigs.push_back(*iter);
             AddIndexConfigToMap(indexlibv2::table::VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR, *iter);
         }
-        for (size_t i = 0; i < virtualAttrSchema->GetPackAttributeCount(); ++i) {
-            const auto& packAttrConfig = virtualAttrSchema->GetPackAttributeConfig(i);
-            _virtualAttributeConfigs.push_back(packAttrConfig);
-            AddIndexConfigToMap(indexlibv2::table::VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR, packAttrConfig);
-        }
+        assert(virtualAttrSchema->GetPackAttributeCount() == 0);
+        // for (size_t i = 0; i < virtualAttrSchema->GetPackAttributeCount(); ++i) {
+        //     const auto& packAttrConfig = virtualAttrSchema->GetPackAttributeConfig(i);
+        //     assert(!iter->IsDisabled());
+        //     _virtualAttributeConfigs.push_back(packAttrConfig);
+        //     AddIndexConfigToMap(indexlibv2::table::VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR, packAttrConfig);
+        // }
     }
 
     if (summarySchema) {
         std::shared_ptr<indexlibv2::config::SummaryIndexConfig> summaryIndexConfig(
             summarySchema->MakeSummaryIndexConfigV2().release());
-        _summaryIndexConfigs.push_back(summaryIndexConfig);
-        AddIndexConfigToMap(indexlibv2::index::SUMMARY_INDEX_TYPE_STR, summaryIndexConfig);
+        if (!summaryIndexConfig->IsDisabled()) {
+            _summaryIndexConfigs.push_back(summaryIndexConfig);
+            AddIndexConfigToMap(indexlibv2::index::SUMMARY_INDEX_TYPE_STR, summaryIndexConfig);
+        }
     }
-}
-
-bool LegacySchemaAdapter::GetValueFromUserDefinedParam(const std::string& key, std::string& value) const
-{
-    return _legacySchema->GetValueFromUserDefinedParam(key, value);
-}
-
-void LegacySchemaAdapter::SetUserDefinedParam(const std::string& key, const std::string& value)
-{
-    _legacySchema->SetUserDefinedParam(key, value);
 }
 
 void LegacySchemaAdapter::AddIndexConfigToMap(const std::string& type, const std::shared_ptr<IIndexConfig>& indexConfig)
 {
+    assert(!indexConfig->IsDisabled());
     _indexConfigMap[std::make_pair(type, indexConfig->GetIndexName())] = indexConfig;
 }
 
@@ -257,7 +318,14 @@ std::shared_ptr<indexlibv2::config::ITabletSchema> LegacySchemaAdapter::LoadLega
     }
 }
 
-autil::legacy::json::JsonMap LegacySchemaAdapter::GetUserDefinedParam() const
+const indexlibv2::config::MutableJson& LegacySchemaAdapter::GetRuntimeSettings() const
+{
+    static indexlibv2::config::MutableJson empty;
+    assert(false);
+    return empty;
+}
+
+const indexlib::util::JsonMap& LegacySchemaAdapter::GetUserDefinedParam() const
 {
     return _legacySchema->GetUserDefinedParam();
 }

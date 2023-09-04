@@ -1,0 +1,251 @@
+{
+    "fields": [
+        {
+            "analyzer": "taobao_analyzer",
+            "field_name": "title",
+            "field_type": "TEXT"
+        },
+        {
+            "field_name": "user_name",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "user_id",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "price",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "category",
+            "field_type": "INTEGER",
+            "multi_value": true
+        },
+        {
+            "field_name": "auction_type",
+            "field_type": "ENUM",
+            "valid_values": [
+                "sale",
+                "buy"
+            ]
+        },
+        {
+            "field_name": "product_id",
+            "field_type": "LONG"
+        },
+        {
+            "analyzer": "taobao_analyzer",
+            "field_name": "body",
+            "field_type": "TEXT"
+        },
+        {
+            "analyzer": "b2b_analyzer",
+            "field_name": "b2b_body",
+            "field_type": "TEXT"
+        },
+        {
+            "analyzer": "taobao_analyzer",
+            "field_name": "taobao_body1",
+            "field_type": "TEXT"
+        },
+        {
+            "analyzer": "taobao_analyzer",
+            "field_name": "taobao_body2",
+            "field_type": "TEXT"
+        },
+        {
+            "field_name": "price2",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "price3",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "price4",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "price5",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "categoryp",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "catmap",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "non-corresponding-attribute-field",
+            "field_type": "STRING"
+        }
+    ],
+    "indexes": {
+        "attribute": [
+            {
+                "field_name": "user_id"
+            },
+            {
+                "field_name": "product_id"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "user_name"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "category"
+            },
+            {
+                "field_name": "price2"
+            },
+            {
+                "field_name": "price3"
+            },
+            {
+                "field_name": "price4"
+            },
+            {
+                "field_name": "price5"
+            }
+        ],
+        "inverted_index": [
+            {
+                "doc_payload_flag": 1,
+                "has_truncate": true,
+                "high_frequency_dictionary": "top10",
+                "high_frequency_term_posting_type": "both",
+                "index_analyzer": "taobao_analyzer",
+                "index_fields": [
+                    {
+                        "boost": 1000,
+                        "field_name": "title"
+                    },
+                    {
+                        "boost": 10,
+                        "field_name": "body"
+                    }
+                ],
+                "index_name": "phrase",
+                "index_type": "PACK",
+                "position_list_flag": 1,
+                "position_payload_flag": 1,
+                "term_frequency_bitmap": 0,
+                "term_payload_flag": 1
+            },
+            {
+                "doc_payload_flag": 1,
+                "has_truncate": true,
+                "high_frequency_dictionary": "top10",
+                "high_frequency_term_posting_type": "both",
+                "index_analyzer": "taobao_analyzer",
+                "index_fields": "title",
+                "index_name": "title",
+                "index_type": "TEXT",
+                "position_list_flag": 1,
+                "position_payload_flag": 1,
+                "term_frequency_bitmap": 0,
+                "term_payload_flag": 1,
+                "use_truncate_profiles": "desc_product_id;bad"
+            },
+            {
+                "doc_payload_flag": 1,
+                "has_truncate": true,
+                "index_fields": "user_name",
+                "index_name": "user_name",
+                "index_type": "STRING",
+                "term_payload_flag": 1,
+                "use_truncate_profiles": "desc_product_id;desc_user_name"
+            },
+            {
+                "doc_payload_flag": 1,
+                "has_section_attribute": false,
+                "index_analyzer": "taobao_analyzer",
+                "index_fields": [
+                    {
+                        "boost": 1000,
+                        "field_name": "title"
+                    },
+                    {
+                        "boost": 10,
+                        "field_name": "body"
+                    }
+                ],
+                "index_name": "phrase2",
+                "index_type": "EXPACK",
+                "position_list_flag": 1,
+                "position_payload_flag": 1,
+                "term_frequency_bitmap": 0,
+                "term_payload_flag": 1
+            },
+            {
+                "doc_payload_flag": 1,
+                "high_frequency_dictionary": "topNum",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "categoryp",
+                "index_name": "categoryp",
+                "index_type": "NUMBER",
+                "term_payload_flag": 1
+            },
+            {
+                "doc_payload_flag": 1,
+                "high_frequency_dictionary": "topNum",
+                "high_frequency_term_posting_type": "bitmap",
+                "index_fields": "catmap",
+                "index_name": "catmap",
+                "index_type": "NUMBER",
+                "term_payload_flag": 1
+            }
+        ],
+        "primarykey": [
+            {
+                "has_primary_key_attribute": true,
+                "index_fields": "product_id",
+                "index_name": "product_id",
+                "index_type": "PRIMARYKEY64"
+            }
+        ],
+        "summary": [
+            {
+                "compress_block_size": 5,
+                "summary_fields": [
+                    "title",
+                    "user_name",
+                    "user_id",
+                    "price",
+                    "auction_type"
+                ]
+            }
+        ]
+    },
+    "settings": {
+        "dictionaries": [
+            {
+                "content": "of;a;an",
+                "dictionary_name": "top10"
+            },
+            {
+                "content": "0;1;2;a;an",
+                "dictionary_name": "top100"
+            },
+            {
+                "content": "0;1;2;9;11",
+                "dictionary_name": "topNum"
+            }
+        ],
+        "truncate_profiles": [
+            {
+                "sort_descriptions": "-product_id;+user_id",
+                "truncate_profile_name": "desc_product_id"
+            },
+            {
+                "sort_descriptions": "+user_id",
+                "truncate_profile_name": "desc_user_name"
+            }
+        ]
+    },
+    "table_name": "auction"
+}

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/subscribe/SubscribeServiceFactory.h"
+
 #include "aios/network/gig/multi_call/subscribe/CM2SubscribeService.h"
 #include "aios/network/gig/multi_call/subscribe/IstioSubscribeService.h"
 #include "aios/network/gig/multi_call/subscribe/LocalSubscribeService.h"
@@ -23,24 +24,21 @@ using namespace std;
 
 namespace multi_call {
 
-SubscribeServicePtr
-SubscribeServiceFactory::createCm2Sub(const Cm2Config &cm2Config) {
+SubscribeServicePtr SubscribeServiceFactory::createCm2Sub(const Cm2Config &cm2Config) {
     return SubscribeServicePtr(new CM2SubscribeService(cm2Config));
 }
 
-SubscribeServicePtr
-SubscribeServiceFactory::createVipSub(const VipConfig &vipConfig) {
+SubscribeServicePtr SubscribeServiceFactory::createVipSub(const VipConfig &vipConfig) {
     return SubscribeServicePtr(new VIPSubscribeService(vipConfig));
 }
 
-SubscribeServicePtr SubscribeServiceFactory::createIstioSub(
-    const IstioConfig &istioConfig, const IstioMetricReporterPtr &reporter) {
-    return SubscribeServicePtr(
-        new IstioSubscribeService(istioConfig, reporter));
+SubscribeServicePtr
+SubscribeServiceFactory::createIstioSub(const IstioConfig &istioConfig,
+                                        const IstioMetricReporterPtr &reporter) {
+    return SubscribeServicePtr(new IstioSubscribeService(istioConfig, reporter));
 }
 
-SubscribeServicePtr
-SubscribeServiceFactory::createLocalSub(const LocalConfig &localConfig) {
+SubscribeServicePtr SubscribeServiceFactory::createLocalSub(const LocalConfig &localConfig) {
     return SubscribeServicePtr(new LocalSubscribeService(localConfig));
 }
 

@@ -1,0 +1,24 @@
+{
+    "deployment": {
+        "deploymentName": "test_deployment",
+        "clusters": [
+            {
+                "clusterName": "qrs",
+                "config": {
+                    "type": "CT_QRS",
+                    "configStr": "{\"resource_desc\": \"xxx\"}"
+                }
+            },
+            {
+                "clusterName": "searcher",
+                "config": {
+                    "type": "CT_SEARCHER",
+                    "configStr": "{\"resource_desc\": \"xxx\"}"
+                }
+            }
+        ],
+        "config": {
+            "configRoot": "$configRoot"
+        }
+    }
+}

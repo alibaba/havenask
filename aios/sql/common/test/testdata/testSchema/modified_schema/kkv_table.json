@@ -1,0 +1,98 @@
+{
+"distribution":
+  {
+  "hash_fields":
+    [
+    ],
+  "hash_function":
+    "",
+  "hash_params":
+    {
+    },
+  "partition_cnt":
+    0
+  },
+"fields":
+  [
+    {
+    "field_name":
+      "company_id",
+    "field_type":
+      {
+      "extend_infos":
+        {
+        },
+      "type":
+        "INTEGER"
+      },
+    "index_name":
+      "company_id",
+    "index_type":
+      "primary_key",
+    "is_attribute":
+      false
+    },
+    {
+    "field_name":
+      "company_name",
+    "field_type":
+      {
+      "extend_infos":
+        {
+        },
+      "type":
+        "STRING"
+      },
+    "index_name":
+      "company_name",
+    "index_type":
+      "secondary_key",
+    "is_attribute":
+      true
+    },
+    {
+    "field_name":
+      "country",
+    "field_type":
+      {
+      "extend_infos":
+        {
+        },
+      "type":
+        "STRING"
+      },
+    "is_attribute":
+      true
+    }
+  ],
+"join_info":
+  [
+  ],
+"location":
+  {
+  "db_name":
+    "",
+  "partition_cnt":
+    0,
+  "service_desc":
+    "",
+  "table_group_name":
+    ""
+  },
+"properties":
+  {
+  },
+"sort_desc":
+  [
+  ],
+"sub_tables":
+  [
+  ],
+"summary_fields":
+  [
+  ],
+"table_name":
+  "kkv1",
+"table_type":
+  "kkv"
+}

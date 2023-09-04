@@ -16,17 +16,16 @@
 #ifndef FSLIB_FILEBLOCK_H
 #define FSLIB_FILEBLOCK_H
 
-#include <cstdlib>
 #include <cassert>
+#include <cstdlib>
 #include <unistd.h>
-#include "fslib/common/common_define.h"
+
 #include "fslib/cache/FileBlockPool.h"
+#include "fslib/common/common_define.h"
 
 FSLIB_BEGIN_NAMESPACE(cache);
 
-
-class FileBlock
-{
+class FileBlock {
 public:
     FileBlock(int64_t offset = 0, size_t blockSize = DEFAULT_FILE_BLOCK_SIZE) {
         _blockSize = blockSize;
@@ -45,13 +44,15 @@ public:
             }
         }
     }
+
 private:
     FileBlock(const FileBlock &);
-    FileBlock& operator = (const FileBlock &);
+    FileBlock &operator=(const FileBlock &);
+
 public:
     int32_t init(FileBlockPool *pool = NULL) {
         assert(!_buffer);
-        int32_t errCode = 0; 
+        int32_t errCode = 0;
         size_t alignment = getpagesize();
         if (pool == NULL || pool->getBlockSize() != _blockSize) {
             errCode = posix_memalign(&_buffer, alignment, _blockSize);
@@ -66,20 +67,14 @@ public:
         _buffer = buffer;
         return 0;
     }
-    int64_t getOffset() const{return _offset;}
-    size_t getActualLen() const {return _actualLen;}
-    void setActualLen(const size_t actualLen) {
-        _actualLen = actualLen;
-    }
-    size_t getBlockSize() const {
-        return _blockSize;
-    }
-    void* getBuffer() const {
-        return _buffer;
-    }
+    int64_t getOffset() const { return _offset; }
+    size_t getActualLen() const { return _actualLen; }
+    void setActualLen(const size_t actualLen) { _actualLen = actualLen; }
+    size_t getBlockSize() const { return _blockSize; }
+    void *getBuffer() const { return _buffer; }
 
 private:
-    void* _buffer;
+    void *_buffer;
     int64_t _offset;
     size_t _actualLen;
     size_t _blockSize;
@@ -90,11 +85,9 @@ FSLIB_TYPEDEF_SHARED_PTR(FileBlock);
 
 class GetFileBlockSize {
 public:
-    uint64_t operator()(const FileBlockPtr& value) {
-        return value->getBlockSize();
-    }
+    uint64_t operator()(const FileBlockPtr &value) { return value->getBlockSize(); }
 };
 
 FSLIB_END_NAMESPACE(cache);
 
-#endif //FSLIB_FILEBLOCK_H
+#endif // FSLIB_FILEBLOCK_H

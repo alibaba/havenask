@@ -1,0 +1,35 @@
+{
+    "table_name": "auction",
+    "fields": 
+    [
+        {"field_name":"title", "field_type":"string"},
+        {"field_name":"cat", "field_type":"uint32",   "multi_value": true},
+        {"field_name":"dog", "field_type":"uint32"},
+        {"field_name":"mice", "field_type":"uint32"},
+        {"field_name":"abs", "field_type":"uint32"}
+    ],
+
+    "indexs": 
+    [
+	{
+	    "index_name": "pk",
+            "index_type" : "PRIMARYKEY64",
+	    "index_fields": "title",
+            "has_primary_key_attribute": true
+	}
+    ],
+
+    "attributes":
+    [
+        "cat",
+        {
+            "pack_name" : "pack_attr",
+            "sub_attributes" : ["dog", "mice"] 
+        }
+    ],
+    
+    "summarys":
+    {
+        "summary_fields": ["abs"]
+    }
+}

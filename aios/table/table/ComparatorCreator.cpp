@@ -16,94 +16,32 @@
 #include "table/ComparatorCreator.h"
 
 #include <memory>
-#include <memory>
 
 #include "autil/CommonMacros.h"
 #include "autil/mem_pool/Pool.h"
 #include "autil/mem_pool/PoolBase.h"
 #include "matchdoc/ValueType.h"
-#include "matchdoc/VectorDocStorage.h"
-
-#include "table/Common.h"
 #include "table/Column.h"
-#include "table/ColumnSchema.h"
-#include "table/DataCommon.h"
-#include "table/Table.h"
 #include "table/ColumnComparator.h"
+#include "table/ColumnSchema.h"
 #include "table/ComboComparator.h"
-#include "table/OneDimColumnComparator.h"
+#include "table/Table.h"
 
 namespace table {
-template <typename T> class ColumnData;
-}  // namespace table
+template <typename T>
+class ColumnData;
+} // namespace table
 
 using namespace std;
 using namespace matchdoc;
 
 namespace table {
-
 AUTIL_LOG_SETUP(sql, ComparatorCreator);
-ComboComparatorPtr ComparatorCreator::createOneDimColumnComparator(
-        const TablePtr &table,
-        const string &refName,
-        const bool order)
-{
-    auto column = table->getColumn(refName);
-    if (column == nullptr) {
-        // TODO(xinfei.sxf) return the detail error msg to caller
-        AUTIL_LOG(ERROR, "invalid column name [%s]", refName.c_str());
-        return ComboComparatorPtr();
-    }
-    switch (column->getColumnSchema()->getType().getBuiltinType()) {
-#define CASE_MACRO(ft)                                                  \
-        case ft: {                                                      \
-            bool isMulti = column->getColumnSchema()->getType().isMultiValue(); \
-            if (isMulti) {                                              \
-                typedef MatchDocBuiltinType2CppType<ft, true>::CppType T; \
-                ColumnData<T> *columnData = column->getColumnData<T>(); \
-                if (unlikely(!columnData)) {                            \
-                    AUTIL_LOG(ERROR, "impossible cast column data failed"); \
-                    return ComboComparatorPtr();                        \
-                }                                                       \
-                if (order) {                                            \
-                    return ComboComparatorPtr(new                       \
-                            OneDimColumnDescComparator<T>(columnData)); \
-                } else {                                                \
-                    return ComboComparatorPtr(new                       \
-                            OneDimColumnAscComparator<T>(columnData));  \
-                }                                                       \
-            } else {                                                    \
-                typedef MatchDocBuiltinType2CppType<ft, false>::CppType T; \
-                ColumnData<T> *columnData = column->getColumnData<T>(); \
-                if (unlikely(!columnData)) {                            \
-                    AUTIL_LOG(ERROR, "impossible cast column data failed"); \
-                    return ComboComparatorPtr();                        \
-                }                                                       \
-                if (order) {                                            \
-                    return ComboComparatorPtr(new                       \
-                            OneDimColumnDescComparator<T>(columnData)); \
-                } else {                                                \
-                    return ComboComparatorPtr(new                       \
-                            OneDimColumnAscComparator<T>(columnData));  \
-                }                                                       \
-            }                                                           \
-        }
-        BUILTIN_TYPE_MACRO_HELPER(CASE_MACRO);
-#undef CASE_MACRO
-    default: {
-        AUTIL_LOG(ERROR, "impossible reach this branch");
-        return ComboComparatorPtr();
-    }
-    }//switch
-    return ComboComparatorPtr();
-}
 
-ComboComparatorPtr ComparatorCreator::createComboComparator(
-        const TablePtr &table,
-        const vector<string> &refNames,
-        const vector<bool> &orders,
-        autil::mem_pool::Pool *pool)
-{
+ComboComparatorPtr ComparatorCreator::createComboComparator(const TablePtr &table,
+                                                            const vector<string> &refNames,
+                                                            const vector<bool> &orders,
+                                                            autil::mem_pool::Pool *pool) {
     ComboComparatorPtr comboComparator(new ComboComparator());
     for (size_t i = 0; i < refNames.size(); i++) {
         auto column = table->getColumn(refNames[i]);
@@ -112,57 +50,49 @@ ComboComparatorPtr ComparatorCreator::createComboComparator(
             return ComboComparatorPtr();
         }
         switch (column->getColumnSchema()->getType().getBuiltinType()) {
-#define CASE_MACRO(ft)                                                  \
-            case ft: {                                                  \
-                bool isMulti = column->getColumnSchema()->getType().isMultiValue(); \
-                if (isMulti) {                                          \
-                    typedef MatchDocBuiltinType2CppType<ft, true>::CppType T; \
-                    ColumnData<T> *columnData = column->getColumnData<T>(); \
-                    if (unlikely(!columnData)) {                        \
-                        AUTIL_LOG(ERROR, "impossible cast column data failed"); \
-                        return ComboComparatorPtr();                    \
-                    }                                                   \
-                    if (orders[i]) {                                    \
-                        auto comparator = POOL_NEW_CLASS(pool,          \
-                                ColumnDescComparator<T>,                \
-                                columnData);                            \
-                        comboComparator->addComparator(comparator);     \
-                    } else {                                            \
-                        auto comparator = POOL_NEW_CLASS(pool,          \
-                                ColumnAscComparator<T>,                 \
-                                columnData);                            \
-                        comboComparator->addComparator(comparator);     \
-                    }                                                   \
-                } else {                                                \
-                    typedef MatchDocBuiltinType2CppType<ft, false>::CppType T; \
-                    ColumnData<T> *columnData = column->getColumnData<T>(); \
-                    if (unlikely(!columnData)) {                        \
-                        AUTIL_LOG(ERROR, "impossible cast column data failed"); \
-                        return ComboComparatorPtr();                    \
-                    }                                                   \
-                    if (orders[i]) {                                    \
-                        auto comparator = POOL_NEW_CLASS(pool,          \
-                                ColumnDescComparator<T>,                \
-                                columnData);                            \
-                        comboComparator->addComparator(comparator);     \
-                    } else {                                            \
-                        auto comparator = POOL_NEW_CLASS(pool,          \
-                                ColumnAscComparator<T>,                 \
-                                columnData);                            \
-                        comboComparator->addComparator(comparator);     \
-                    }                                                   \
-                }                                                       \
-                break;                                                  \
-            }
+#define CASE_MACRO(ft)                                                                                                 \
+    case ft: {                                                                                                         \
+        bool isMulti = column->getColumnSchema()->getType().isMultiValue();                                            \
+        if (isMulti) {                                                                                                 \
+            typedef MatchDocBuiltinType2CppType<ft, true>::CppType T;                                                  \
+            ColumnData<T> *columnData = column->getColumnData<T>();                                                    \
+            if (unlikely(!columnData)) {                                                                               \
+                AUTIL_LOG(ERROR, "impossible cast column data failed");                                                \
+                return ComboComparatorPtr();                                                                           \
+            }                                                                                                          \
+            if (orders[i]) {                                                                                           \
+                auto comparator = POOL_NEW_CLASS(pool, ColumnDescComparator<T>, columnData);                           \
+                comboComparator->addComparator(comparator);                                                            \
+            } else {                                                                                                   \
+                auto comparator = POOL_NEW_CLASS(pool, ColumnAscComparator<T>, columnData);                            \
+                comboComparator->addComparator(comparator);                                                            \
+            }                                                                                                          \
+        } else {                                                                                                       \
+            typedef MatchDocBuiltinType2CppType<ft, false>::CppType T;                                                 \
+            ColumnData<T> *columnData = column->getColumnData<T>();                                                    \
+            if (unlikely(!columnData)) {                                                                               \
+                AUTIL_LOG(ERROR, "impossible cast column data failed");                                                \
+                return ComboComparatorPtr();                                                                           \
+            }                                                                                                          \
+            if (orders[i]) {                                                                                           \
+                auto comparator = POOL_NEW_CLASS(pool, ColumnDescComparator<T>, columnData);                           \
+                comboComparator->addComparator(comparator);                                                            \
+            } else {                                                                                                   \
+                auto comparator = POOL_NEW_CLASS(pool, ColumnAscComparator<T>, columnData);                            \
+                comboComparator->addComparator(comparator);                                                            \
+            }                                                                                                          \
+        }                                                                                                              \
+        break;                                                                                                         \
+    }
             BUILTIN_TYPE_MACRO_HELPER(CASE_MACRO);
 #undef CASE_MACRO
         default: {
             AUTIL_LOG(ERROR, "impossible reach this branch");
             return ComboComparatorPtr();
         }
-        }//switch
+        } // switch
     }
     return comboComparator;
 }
 
-}
+} // namespace table

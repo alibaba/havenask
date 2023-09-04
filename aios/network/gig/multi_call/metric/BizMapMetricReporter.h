@@ -22,7 +22,8 @@
 
 namespace multi_call {
 
-class BizMapMetricReporter {
+class BizMapMetricReporter
+{
 public:
     BizMapMetricReporter(kmonitor::KMonitor *kMonitor, bool isAgent);
     virtual ~BizMapMetricReporter();
@@ -36,8 +37,7 @@ public:
     void reportReplyInfo(const ReplyInfoCollector &replyInfo);
     BizMetricReporterPtr getBizMetricReporter(const std::string &bizName);
 
-    typedef std::unordered_map<std::string, BizMetricReporterPtr>
-        BizMetricReporterMap;
+    typedef std::unordered_map<std::string, BizMetricReporterPtr> BizMetricReporterMap;
 
 private:
     kmonitor::KMonitor *_kMonitor;

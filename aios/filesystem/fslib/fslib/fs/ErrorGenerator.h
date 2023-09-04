@@ -16,22 +16,15 @@
 #ifndef FSLIB_ERRORGENERATOR_H
 #define FSLIB_ERRORGENERATOR_H
 
-#include "autil/Log.h"
 #include "autil/Lock.h"
+#include "autil/Log.h"
 #include "fslib/fslib.h"
 #include "fslib/util/Singleton.h"
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
 struct FileSystemError {
-    FileSystemError()
-        : ec(EC_OK)
-        , offset(0)
-        , delay(0)
-        , retryCount(0)
-        , until(0)
-    {
-    }
+    FileSystemError() : ec(EC_OK), offset(0), delay(0), retryCount(0), until(0) {}
     ErrorCode ec;
     uint64_t offset;
     uint64_t delay;
@@ -39,13 +32,9 @@ struct FileSystemError {
     uint32_t until;
 };
 
-class ErrorTrigger
-{
+class ErrorTrigger {
 public:
-    ErrorTrigger(size_t normalIOCount)
-        : mNormalIOCount(normalIOCount)
-        , mIOCount(0)
-    {}
+    ErrorTrigger(size_t normalIOCount) : mNormalIOCount(normalIOCount), mIOCount(0) {}
     ~ErrorTrigger() {}
     bool triggerError();
 
@@ -56,8 +45,7 @@ private:
 };
 FSLIB_TYPEDEF_AUTO_PTR(ErrorTrigger);
 
-class ErrorGenerator : public util::Singleton<ErrorGenerator>
-{
+class ErrorGenerator : public util::Singleton<ErrorGenerator> {
 public:
     friend class util::LazyInstantiation;
     typedef std::map<std::pair<std::string, std::string>, FileSystemError> FileSystemErrorMap;
@@ -73,14 +61,11 @@ public:
     bool needGenerateError() const { return _needGenerateError; }
     void openErrorGenerate() { _needGenerateError = true; }
     void shutDownErrorGenerate() { _needGenerateError = false; }
-    void setErrorTrigger(ErrorTriggerPtr& errorTrigger)
-    { _errorTrigger.reset(errorTrigger.release()); }
-    ErrorCode generateFileSystemError(const std::string& operate,
-            const std::string& dest);
+    void setErrorTrigger(ErrorTriggerPtr &errorTrigger) { _errorTrigger.reset(errorTrigger.release()); }
+    ErrorCode generateFileSystemError(const std::string &operate, const std::string &dest);
 
-    ErrorCode generateFileError(const std::string& operate, const std::string& targetPath,
-                                uint64_t offset);
-    static ErrorGenerator* getInstance();
+    ErrorCode generateFileError(const std::string &operate, const std::string &targetPath, uint64_t offset);
+    static ErrorGenerator *getInstance();
     void clearMethodVisitCounter();
     MethodVisitCount getMethodVisitCounter();
     void setErrorMap(FileSystemErrorMap map);
@@ -90,18 +75,16 @@ public:
 
 private:
     void init();
-    bool parseErrorString(const std::string& errStr, std::string& method,
-                          FileSystemError& fsError) const;
+    bool parseErrorString(const std::string &errStr, std::string &method, FileSystemError &fsError) const;
     void doDelay(uint64_t delay);
-    bool needRetry(const std::string& parsePath, uint32_t retry);
-    bool reachUntil(const std::string& parsePath, uint32_t until);
-    FileSystemErrorMap::const_iterator getError(
-            const std::string& operate, const std::string& parsePath);
+    bool needRetry(const std::string &parsePath, uint32_t retry);
+    bool reachUntil(const std::string &parsePath, uint32_t until);
+    FileSystemErrorMap::const_iterator getError(const std::string &operate, const std::string &parsePath);
 
 private:
     ErrorGenerator();
-    ErrorGenerator(const ErrorGenerator&);
-    ErrorGenerator& operator=(const ErrorGenerator&);
+    ErrorGenerator(const ErrorGenerator &);
+    ErrorGenerator &operator=(const ErrorGenerator &);
 
 private:
     friend class ErrorGeneratorTest;
@@ -113,11 +96,10 @@ private:
     bool _needGenerateError;
     ErrorTriggerPtr _errorTrigger;
     autil::ThreadMutex mMutex;
-
 };
 
 FSLIB_TYPEDEF_AUTO_PTR(ErrorGenerator);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_ERRORGENERATOR_H
+#endif // FSLIB_ERRORGENERATOR_H

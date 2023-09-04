@@ -20,16 +20,15 @@
 #include <memory>
 #include <string>
 
-#include "aios/network/arpc/arpc/util/Log.h"
+#include "aios/network/anet/anet.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/arpc/arpc/Tracer.h"
-#include "aios/network/anet/anet.h"
 #include "aios/network/arpc/arpc/proto/rpc_extensions.pb.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 
 ARPC_BEGIN_NAMESPACE(arpc);
 
-class ANetRPCController : public RPCController
-{
+class ANetRPCController : public RPCController {
 public:
     ANetRPCController();
     ~ANetRPCController();
@@ -60,6 +59,7 @@ public:
     void PrintTraceInfo();
 
     void setProtoArena(const std::shared_ptr<google::protobuf::Arena> &arena);
+
 private:
     std::shared_ptr<google::protobuf::Arena> _arena;
     bool _failed;
@@ -74,4 +74,4 @@ private:
 };
 
 ARPC_END_NAMESPACE(arpc);
-#endif//ARPC_ANET_RPC_CONTROLLER_H
+#endif // ARPC_ANET_RPC_CONTROLLER_H

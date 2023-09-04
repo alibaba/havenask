@@ -144,7 +144,7 @@ bool SwiftProcessedDocConsumer::initCounters(const CounterMapPtr& counterMap, in
     std::string userData = _userDataCounter->Get();
     if (remoteSrc >= 0 && (uint64_t)remoteSrc >= _src) {
         _cachedLocator.SetSrc(remoteSrc);
-        _cachedLocator.SetOffset(max(startTimestamp, _checkpointCounter->Get()));
+        _cachedLocator.SetOffset({max(startTimestamp, _checkpointCounter->Get()), 0});
         _cachedLocator.SetUserData(userData);
     }
     _hasCounter = true;
@@ -162,7 +162,7 @@ bool SwiftProcessedDocConsumer::init(const map<string, SwiftWriterWithMetric>& w
         BS_LOG(INFO, "SwiftProcessedDocConsumer disable counter");
     } else if (counterSynchronizer) {
         _counterSynchronizer = counterSynchronizer;
-        if (!initCounters(_counterSynchronizer->getCounterMap(), locator.GetOffset())) {
+        if (!initCounters(_counterSynchronizer->getCounterMap(), locator.GetOffset().first)) {
             BS_LOG(ERROR, "initCounters failed");
         }
     } else {
@@ -200,7 +200,7 @@ FlowError SwiftProcessedDocConsumer::consume(const ProcessedDocumentVecPtr& item
 
         if (!document || document->GetDocOperateType() == SKIP_DOC || document->GetDocOperateType() == CHECKPOINT_DOC ||
             document->GetDocOperateType() == UNKNOWN_OP) {
-            int64_t docCheckpointId = locator.GetOffset();
+            int64_t docCheckpointId = locator.GetOffset().first;
             latestInvalidDocCheckpointId = max(latestInvalidDocCheckpointId, docCheckpointId);
             _checkpointIdToUserData.push_back(std::make_pair(latestInvalidDocCheckpointId, locator.GetUserData()));
             IE_DOC_TRACE(document, "processed doc to skip");
@@ -226,7 +226,8 @@ FlowError SwiftProcessedDocConsumer::consume(const ProcessedDocumentVecPtr& item
             if (_batchMask != -1) {
                 message.uint8Payload = _batchMask;
             }
-            message.checkpointId = locator.GetOffset();
+            // TODO(tianxiao) may need set progress in checkpoint
+            message.checkpointId = locator.GetOffset().first;
             ErrorCode ec = it->second.swiftWriter->write(message);
             if (ec != ERROR_NONE) {
                 if (ec == ERROR_CLIENT_SEND_BUFFER_FULL) {
@@ -245,7 +246,7 @@ FlowError SwiftProcessedDocConsumer::consume(const ProcessedDocumentVecPtr& item
         PeriodDocCounterHelper::count(PeriodDocCounterType::Processor, processedDoc->getTraceField(), _docCounter);
         IE_DOC_TRACE(document, "write processed doc to swift");
         _src = locator.GetSrc();
-        _checkpointIdToUserData.push_back(std::make_pair(locator.GetOffset(), locator.GetUserData()));
+        _checkpointIdToUserData.push_back(std::make_pair(locator.GetOffset().first, locator.GetUserData()));
         processedDoc->setNeedSkip(true);
     }
     if (_consumedDocCountCounter) {
@@ -304,9 +305,10 @@ bool SwiftProcessedDocConsumer::syncCounters(int64_t checkpointId, uint64_t src,
     }
     if (!_hasCounter) {
         autil::ScopedLock lock(_lock);
-        if (!_cachedLocator.IsSameSrc(common::Locator(_src, 0), false) || _cachedLocator.GetOffset() < checkpointId) {
+        if (!_cachedLocator.IsSameSrc(common::Locator(_src, indexlibv2::base::Progress::MIN_OFFSET), false) ||
+            _cachedLocator.GetOffset().first < checkpointId) {
             _cachedLocator.SetSrc(src);
-            _cachedLocator.SetOffset(checkpointId);
+            _cachedLocator.SetOffset({checkpointId, 0});
             _cachedLocator.SetUserData(userData);
         }
         return true;
@@ -320,10 +322,10 @@ bool SwiftProcessedDocConsumer::syncCounters(int64_t checkpointId, uint64_t src,
         BS_INTERVAL_LOG(10, INFO, "serialize checkpoint[%lu:%ld:%s]", src, checkpointId, userData.c_str());
         {
             autil::ScopedLock lock(_lock);
-            if (!_cachedLocator.IsSameSrc(common::Locator(src, 0), false) ||
-                _cachedLocator.GetOffset() < checkpointId) {
+            if (!_cachedLocator.IsSameSrc(common::Locator(src, indexlibv2::base::Progress::MIN_OFFSET), false) ||
+                _cachedLocator.GetOffset().first < checkpointId) {
                 _cachedLocator.SetSrc(src);
-                _cachedLocator.SetOffset(checkpointId);
+                _cachedLocator.SetOffset({checkpointId, 0});
                 _cachedLocator.SetUserData(userData);
             }
         }
@@ -404,7 +406,7 @@ void SwiftProcessedDocConsumer::getMinCheckpoint(int64_t* checkpointId, uint64_t
 bool SwiftProcessedDocConsumer::getLocator(common::Locator& locator) const
 {
     autil::ScopedLock lock(_lock);
-    if (_cachedLocator.GetOffset() != -1) {
+    if (_cachedLocator.GetOffset().first != -1) {
         locator = _cachedLocator;
     }
     return true;

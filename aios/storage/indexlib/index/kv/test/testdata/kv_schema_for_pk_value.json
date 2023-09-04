@@ -1,0 +1,58 @@
+{
+    "table_name": "table_for_pk_value",
+    "table_type": "kv",
+    "user_defined_param" : {
+        "need_store_pk_value" : true
+    },
+    "fields": [
+          {
+	      "field_type": "INT32",
+              "field_name": "key"
+          },
+          {
+	      "field_type":"STRING",
+	      "field_name":"value"
+         }
+    ],
+    "regions":[
+          {
+            "region_name": "raw_key",
+            "indexs": [
+                {
+                    "index_name": "index2",
+                    "index_fields": "key",
+                    "index_type": "PRIMARY_KEY"
+                }
+            ],
+            "attributes": [
+                "key"
+            ],
+            "table_type": "kv"
+        },
+        {
+            "region_name": "index2",
+            "indexs": [
+                {
+                    "index_name": "index2",
+                    "index_fields": "key",
+                    "index_type": "PRIMARY_KEY"
+                }
+            ],
+            "attributes": [
+                "value"
+            ],
+            "table_type": "kv"
+        }	
+    ],
+    "indexes": {
+        "kv": [
+            {
+                "index_name": "index2",
+		"key_field" : "key",
+		"value_fields" : ["value"],
+                "index_preference": {
+                }
+            }
+        ]
+    }
+}

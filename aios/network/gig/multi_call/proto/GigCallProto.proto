@@ -24,6 +24,11 @@ message PartRequest {
     optional string body = 2;
 }
 
+message MatchTagPair {
+    optional string key = 1;
+    optional GigTagMatchType value = 2;
+}
+
 message GigRequestPlan {
     optional string cluster_name = 1;
     optional string biz_name = 2;
@@ -54,6 +59,8 @@ message GigRequestPlan {
 
     optional bool disable_retry = 24 [default = false];
     optional bool disable_probe = 25 [default = false];
+
+    repeated MatchTagPair match_tags = 26;
 }
 
 message BatchGigRequestPlan {

@@ -29,6 +29,7 @@
 #include "indexlib/config/updateable_schema_standards.h"
 #include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/util/JsonMap.h"
 
 DECLARE_REFERENCE_CLASS(config, TruncateOptionConfig);
 DECLARE_REFERENCE_CLASS(config, IndexPartitionSchemaImpl);
@@ -86,9 +87,8 @@ public:
     const std::string& GetTableTypeV2() const;
     void SetTableType(const std::string& str);
 
-    const autil::legacy::json::JsonMap& GetUserDefinedParam() const;
-
-    autil::legacy::json::JsonMap& GetUserDefinedParam();
+    const indexlib::util::JsonMap& GetUserDefinedParam() const;
+    indexlib::util::JsonMap& GetUserDefinedParam();
 
     void SetUserDefinedParam(const autil::legacy::json::JsonMap& jsonMap);
 

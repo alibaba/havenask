@@ -48,6 +48,10 @@ public:
     std::shared_ptr<FileWriter> GetDataFileWriter() const noexcept { return _dataWriter; }
     std::shared_ptr<FileWriter> GetMetaFileWriter() const noexcept { return _metaWriter; }
 
+public:
+    static size_t EstimateCompressBufferSize(const std::string& compressorName, size_t bufferSize,
+                                             const util::KeyValueMap& compressorParam) noexcept;
+
 protected:
     virtual void FlushCompressorData() noexcept(false);
     void WriteCompressorData(const std::shared_ptr<util::BufferCompressor>& compressor, bool useHint) noexcept(false);

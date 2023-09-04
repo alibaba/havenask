@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <google/protobuf/descriptor.h>
-#include <stdint.h>
+#include "aios/network/arpc/arpc/MessageSerializable.h"
+
 #include <cassert>
 #include <cstddef>
+#include <google/protobuf/descriptor.h>
 #include <memory>
+#include <stdint.h>
 
-#include "aios/network/arpc/arpc/util/Log.h"
-#include "aios/network/arpc/arpc/MessageSerializable.h"
-#include "aios/network/arpc/arpc/DataBufferOutputStream.h"
-#include "google/protobuf/io/zero_copy_stream_impl_lite.h"
-#include "google/protobuf/io/coded_stream.h"
 #include "aios/network/anet/databuffer.h"
 #include "aios/network/anet/ilogger.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
+#include "aios/network/arpc/arpc/DataBufferOutputStream.h"
+#include "aios/network/arpc/arpc/util/Log.h"
+#include "google/protobuf/io/coded_stream.h"
+#include "google/protobuf/io/zero_copy_stream_impl_lite.h"
 
 using namespace std;
 using namespace anet;
@@ -35,32 +36,29 @@ using namespace google::protobuf::io;
 ARPC_BEGIN_NAMESPACE(arpc);
 ARPC_DECLARE_AND_SETUP_LOGGER(MessageSerializable);
 
-MessageSerializable::MessageSerializable(RPCMessage *message,
-                                         const std::shared_ptr<google::protobuf::Arena> &arena)
-{
+MessageSerializable::MessageSerializable(RPCMessage *message, const std::shared_ptr<google::protobuf::Arena> &arena) {
     _arena = arena;
     _message = message;
 }
 
-MessageSerializable::~MessageSerializable()
-{
-}
+MessageSerializable::~MessageSerializable() {}
 
-bool MessageSerializable::serialize(DataBuffer *outputBuffer) const
-{
+bool MessageSerializable::serialize(DataBuffer *outputBuffer) const {
     if (_message == NULL) {
         return true;
     }
 
     if (!_message->IsInitialized()) {
-        ARPC_LOG(ERROR, "failed to serialize: required fields may "
+        ARPC_LOG(ERROR,
+                 "failed to serialize: required fields may "
                  "not be initialized");
         return false;
     }
 
     int size = _message->ByteSize();
     if (size < 0 || size > MAX_RPC_MSG_BYTE_SIZE) {
-        ARPC_LOG(ERROR, "failed to serialize message. ByteSize %d should be between 0 and %d", size, MAX_RPC_MSG_BYTE_SIZE);
+        ARPC_LOG(
+            ERROR, "failed to serialize message. ByteSize %d should be between 0 and %d", size, MAX_RPC_MSG_BYTE_SIZE);
         return false;
     }
     outputBuffer->ensureFree(size);
@@ -70,9 +68,7 @@ bool MessageSerializable::serialize(DataBuffer *outputBuffer) const
     return ret;
 }
 
-
-bool MessageSerializable::deserialize(DataBuffer *inputBuffer, int length)
-{
+bool MessageSerializable::deserialize(DataBuffer *inputBuffer, int length) {
     if (length == 0) {
         return true;
     }
@@ -87,4 +83,3 @@ bool MessageSerializable::deserialize(DataBuffer *inputBuffer, int length)
 }
 
 ARPC_END_NAMESPACE(arpc);
-

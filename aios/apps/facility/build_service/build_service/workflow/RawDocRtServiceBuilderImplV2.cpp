@@ -132,7 +132,7 @@ bool RawDocRtServiceBuilderImplV2::getLastReadTimestampInProducer(int64_t& times
     return false;
 }
 
-bool RawDocRtServiceBuilderImplV2::seekProducerToLatest(std::pair<int64_t, int64_t>& forceSeekInfo)
+bool RawDocRtServiceBuilderImplV2::seekProducerToLatest()
 {
     assert(false);
     // TODO(hanyao): support force seek

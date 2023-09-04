@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/grpc/server/GigGrpcClosure.h"
+
 #include "aios/network/gig/multi_call/grpc/server/GrpcServerWorker.h"
 #include "aios/network/gig/multi_call/util/ProtobufByteBufferUtil.h"
 
@@ -26,36 +27,36 @@ GigGrpcClosure::GigGrpcClosure(GrpcCallData *callData) : _callData(callData) {
     setNeedFinishQueryInfo(true);
 }
 
-GigGrpcClosure::~GigGrpcClosure() {}
+GigGrpcClosure::~GigGrpcClosure() {
+}
 
-int64_t GigGrpcClosure::getStartTime() const { return _callData->beginTime; }
+int64_t GigGrpcClosure::getStartTime() const {
+    return _callData->beginTime;
+}
 
 void GigGrpcClosure::Run() {
     if (!_callData->response) {
         _controller.setErrorCode(MULTI_CALL_REPLY_ERROR_RESPONSE);
     }
     if (_queryInfo) {
-        auto latency =
-            (autil::TimeUtility::currentTime() - _callData->beginTime) /
-            FACTOR_US_TO_MS;
-        auto responseInfoStr = _queryInfo->finish(
-            latency, _controller.getErrorCode(), getTargetWeight());
-        _callData->serverContext.AddTrailingMetadata(GIG_GRPC_RESPONSE_INFO_KEY,
-                                                     responseInfoStr);
-        fillCompatibleInfo(_callData->response, _controller.getErrorCode(),
-                           responseInfoStr);
+        auto latency = (autil::TimeUtility::currentTime() - _callData->beginTime) / FACTOR_US_TO_MS;
+        auto responseInfoStr =
+            _queryInfo->finish(latency, _controller.getErrorCode(), getTargetWeight());
+        _callData->serverContext.AddTrailingMetadata(GIG_GRPC_RESPONSE_INFO_KEY, responseInfoStr);
+        fillCompatibleInfo(_callData->response, _controller.getErrorCode(), responseInfoStr);
     }
     if (_callData->response) {
-        ProtobufByteBufferUtil::serializeToBuffer(*_callData->response,
-                                                  &_callData->sendBuffer);
+        ProtobufByteBufferUtil::serializeToBuffer(*_callData->response, &_callData->sendBuffer);
     }
     writeResult();
 }
 
-ProtocolType GigGrpcClosure::getProtocolType() { return MC_PROTOCOL_GRPC; }
+ProtocolType GigGrpcClosure::getProtocolType() {
+    return MC_PROTOCOL_GRPC;
+}
 
 void GigGrpcClosure::writeResult() {
-    _callData->stream.WriteAndFinish(
-        _callData->sendBuffer, grpc::WriteOptions(), grpc::Status(), _callData);
+    _callData->stream.WriteAndFinish(_callData->sendBuffer, grpc::WriteOptions(), grpc::Status(),
+                                     _callData);
 }
 } // namespace multi_call

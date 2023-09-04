@@ -102,8 +102,7 @@ std::unique_ptr<IKVIterator> VarLenKVLeafReader::CreateIterator()
 
 size_t VarLenKVLeafReader::EvaluateCurrentMemUsed()
 {
-    return _offsetReader.EvaluateCurrentMemUsed() +
-           (InMemory() ? _valueFileReader->GetLength() : indexlib::file_system::ReaderOption::DEFAULT_BUFFER_SIZE);
+    return _offsetReader.EvaluateCurrentMemUsed() + _valueFileReader->EvaluateCurrentMemUsed();
 }
 
 } // namespace indexlibv2::index

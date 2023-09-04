@@ -1,0 +1,90 @@
+{
+    "packages" : [
+        {
+            "packageURI" : "pkg://10.125.224.29:59144/hippo-0.7.0-nightly_201502062049.x86_64",
+            "type" : "RPM"
+        }
+    ],
+    "role_default" : {
+        "count" : 1,
+        "processInfos" : [
+            {
+                "args" : [
+                    [
+                        "-l",
+                        "$HIPPO_APP_INST_ROOT/usr/local/etc/bs/bs_alog.conf"
+                    ]
+                ],
+                "envs" : [
+                    [
+                        "HADOOP_HOME",
+                        "/home/hadoop.devel/hadoop-2.2.0-cdh5.0.0-devel/hadoop/"
+                    ],
+                    [
+                        "LD_LIBRARY_PATH",
+                        "/usr/ali/java/jre/lib/amd64/server/"
+                    ]
+                ],
+                "isDaemon" : true
+            }
+        ]
+    },
+    "role_resource" : {
+        "admin" : [
+            {
+                "amount" : 1,
+                "name" : "cpu"
+            },
+            {
+                "amount" : 1,
+                "name" : "mem"
+            },
+            {
+                "amount" : 1,
+                "name" : "lantao"
+            }
+        ],
+        "builder.simple" : [
+            {
+                "amount" : 1,
+                "name" : "cpu"
+            },
+            {
+                "amount" : 1,
+                "name" : "mem"
+            },
+            {
+                "amount" : 1,
+                "name" : "lantao"
+            }
+        ],
+        "merger.simple" : [
+            {
+                "amount" : 1,
+                "name" : "cpu"
+            },
+            {
+                "amount" : 1,
+                "name" : "mem"
+            },
+            {
+                "amount" : 1,
+                "name" : "lantao"
+            }
+        ],
+        "processor" : [
+            {
+                "amount" : 1,
+                "name" : "cpu"
+            },
+            {
+                "amount" : 1,
+                "name" : "mem"
+            },
+            {
+                "amount" : 1,
+                "name" : "lantao"
+            }
+        ]
+    }
+}

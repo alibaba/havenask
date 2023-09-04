@@ -27,7 +27,8 @@
 
 namespace multi_call {
 
-class ChildNodeCaller {
+class ChildNodeCaller
+{
 public:
     ChildNodeCaller(const SearchServiceSnapshotPtr &snapshot,
                     const FlowConfigSnapshotPtr &flowConfigSnapshot,
@@ -49,19 +50,23 @@ public:
     bool isDetectionOn() const;
     bool isRetryOn() const;
     const CallerPtr &getCaller() const;
+
 public:
     // for java client
     bool initResource(SearchServiceResourceVector &resourceVec);
     const ReplyInfoCollectorPtr &getReplyInfoCollector() const {
         return _replyInfoCollector;
     }
+
 private:
     void initCaller();
     void prepareSearchResource(SearchServiceResourceVector &resourceVec);
     void doCall(const SearchServiceResourcePtr &resource);
     void fillSourceId();
+
 private:
     static uint64_t getMaxTimeout(const SearchServiceResourceVector &resourceVec);
+
 private:
     int64_t _callBeginTime;
     SearchServiceSnapshotPtr _snapshot;

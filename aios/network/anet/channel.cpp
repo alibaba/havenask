@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "aios/network/anet/channel.h"
+
 #include <stdint.h>
 #include <stdlib.h>
-#include "aios/network/anet/channel.h"
 
 namespace anet {
 class IPacketHandler;
 
-Channel::Channel() {
-    init(0);
-}
+Channel::Channel() { init(0); }
 
 void Channel::init(uint64_t id) {
     _prev = NULL;
@@ -34,46 +33,29 @@ void Channel::init(uint64_t id) {
     _args = NULL;
 }
 
-void Channel::setId(uint64_t id) {
-    _id = id;
-}
+void Channel::setId(uint64_t id) { _id = id; }
 
-uint64_t Channel::getId() {
-    return _id;
-}
+uint64_t Channel::getId() { return _id; }
 
-void Channel::setArgs(void *args) {
-    _args = args;
-}
+void Channel::setArgs(void *args) { _args = args; }
 
-void *Channel::getArgs() {
-    return _args;
-}
+void *Channel::getArgs() { return _args; }
 
-void Channel::setHandler(IPacketHandler *handler) {
-    _handler = handler;
-}
+void Channel::setHandler(IPacketHandler *handler) { _handler = handler; }
 
-IPacketHandler *Channel::getHandler() {
-    return _handler;
-}
+IPacketHandler *Channel::getHandler() { return _handler; }
 
 /*
  * set expirt time
  *
  * @param milliseconds, 0 never timeout
  */
-void Channel::setExpireTime(int64_t expireTime) {
-    _expireTime = expireTime;
-}
+void Channel::setExpireTime(int64_t expireTime) { _expireTime = expireTime; }
 
 /*
  * set raw expirt time
  *
  */
-void Channel::setTimeoutMs(int32_t timeoutMs) {
-    _timeoutMs = timeoutMs;
-}
+void Channel::setTimeoutMs(int32_t timeoutMs) { _timeoutMs = timeoutMs; }
 
-
-}
+} // namespace anet

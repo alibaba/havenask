@@ -49,6 +49,9 @@ public:
     //内部会做保护，外面调用清理的时候需要保证清理的版本在本地都有
     Status Clean(const std::vector<versionid_t>& reservedVersions);
 
+    Status Clean(const std::shared_ptr<indexlib::file_system::Directory>& rootDirInFs,
+                 const indexlibv2::framework::Version& targetVersion, const std::set<std::string>& toKeepFiles);
+
 private:
     Status CollectAllRelatedVersion(const std::shared_ptr<indexlib::file_system::IDirectory>& rootDir,
                                     const std::set<versionid_t>& reservedVersionIds, std::vector<Version>* versions,
@@ -69,6 +72,20 @@ private:
 
     Status CollectVersionFromLocal(const std::shared_ptr<indexlib::file_system::IDirectory>& rootDir,
                                    std::vector<Version>* allVersions);
+
+    bool CleanUnreferencedSegments(const std::shared_ptr<indexlib::file_system::Directory>& rootDirInFs,
+                                   const std::shared_ptr<indexlib::file_system::IDirectory>& physicalRootDir,
+                                   const indexlibv2::framework::Version& targetVersion,
+                                   const std::set<std::string>& toKeepFiles);
+    bool CleanUnreferencedLocalFiles(const std::shared_ptr<indexlib::file_system::Directory>& rootDirInFs,
+                                     const std::shared_ptr<indexlib::file_system::IDirectory>& physicalRootDir,
+                                     const indexlibv2::framework::Version& targetVersion,
+                                     const std::set<std::string>& toKeepFiles);
+    bool ListFilesInSegmentDirs(const std::shared_ptr<indexlib::file_system::Directory>& rootDirInFs,
+                                const std::shared_ptr<indexlib::file_system::IDirectory>& physicalRootDir,
+                                const indexlibv2::framework::Version& targetVersion, std::set<std::string>* files);
+
+    bool PrefixMatchAny(const std::string& prefix, const std::set<std::string>& candidates);
 
 private:
     std::mutex _mutex;

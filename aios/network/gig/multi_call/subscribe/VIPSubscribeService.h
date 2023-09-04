@@ -17,6 +17,7 @@
 #define ISEARCH_MULTI_CALL_VIPSUBSCRIBESERVICE_H
 
 #include <any>
+
 #include "aios/network/gig/multi_call/config/MultiCallConfig.h"
 #include "aios/network/gig/multi_call/config/SubscribeClustersConfig.h"
 #include "aios/network/gig/multi_call/subscribe/SubscribeService.h"
@@ -24,7 +25,8 @@
 
 namespace multi_call {
 
-class VIPSubscribeService : public SubscribeService {
+class VIPSubscribeService : public SubscribeService
+{
 public:
     VIPSubscribeService(const VipConfig &config);
     ~VIPSubscribeService();
@@ -42,20 +44,19 @@ public:
 
 public:
     bool init() override;
-    SubscribeType getType() override { return ST_VIP; }
+    SubscribeType getType() override {
+        return ST_VIP;
+    }
     bool clusterInfoNeedUpdate() override;
     bool getClusterInfoMap(TopoNodeVec &topoNodeVec, HeartbeatSpecVec &heartbeatSpecs) override;
 
     bool addSubscribe(const std::vector<std::string> &names) override;
     bool deleteSubscribe(const std::vector<std::string> &names) override;
-    bool
-    addSubscribeDomainConfig(const std::vector<VIPDomainConfig> &vipDomains);
-    bool
-    deleteSubscribeDomainConfig(const std::vector<VIPDomainConfig> &vipDomains);
+    bool addSubscribeDomainConfig(const std::vector<VIPDomainConfig> &vipDomains);
+    bool deleteSubscribeDomainConfig(const std::vector<VIPDomainConfig> &vipDomains);
 
 private:
-    virtual bool queryAllIp(const std::string &clusterName,
-                            std::any hosts) const;
+    virtual bool queryAllIp(const std::string &clusterName, std::any hosts) const;
 
 private:
     autil::ReadWriteLock _configLock;

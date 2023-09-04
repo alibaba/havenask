@@ -1,0 +1,649 @@
+syntax = "proto3";
+
+import "arpc/proto/rpc_extensions.proto";
+import "CatalogEntity.proto"; // CatalogStoreEntity中定义的实体不在RPC接口中透出
+
+package catalog.proto;
+
+option cc_enable_arenas = true;
+option cc_generic_services = true;
+option java_generic_services = true;
+
+option java_multiple_files = true;
+option java_package = "catalog.proto.service";
+option java_outer_classname = "CatalogServiceProto";
+
+message ResponseStatus {
+    enum Code {
+        OK = 0;
+        UNIMPLEMENTED = 1;
+        UNSUPPORTED = 2;
+        INTERNAL_ERROR = 3;
+        SERVICE_NOT_READY = 4;
+        UNAVAILABLE = 5;
+
+        OPERATION_FAILURE = 10;
+        NOT_FOUND = 11;
+        VERSION_EXPIRED = 12;
+        DUPLICATE_ENTITY = 13;
+
+        STORE_READ_ERROR = 20;
+        STORE_WRITE_ERROR = 21;
+
+        // error code for client
+        CONNECTION_BROKEN = 100;
+        RPC_TIMEOUT = 101;
+        INVALID_ARGUMENTS = 102;
+        IO_EXCEPTION = 103;
+        UNKNOWN = 1024;
+        // TIMEOUT = 1;
+        // MASTER_NOT_FOUND = 2;
+        // INVALID_TABLE_ID = 3;
+        // INVALID_USER_ID = 4;
+        // UPDATING_SCHEMA = 5;
+        // FAILED = 6;
+        // SERVICE_NOT_READY = 7;
+        // UNKNOWN = 50000;
+    }
+    Code code = 1;
+    string message = 2;
+}
+
+message DetailLevel {
+    enum Code {
+        DETAILED = 0; // 默认值，递归地返回当前Entity及其子节点的完整信息
+        SUMMARY = 1;  // 仅返回当前Entity信息及其下一级子节点的MINIMAL级别信息
+        MINIMAL = 2;  // 仅返回当前Entity的name、status和version等基本信息
+    }
+    Code code = 1;
+}
+
+// for create/update/drop
+message CommonResponse {
+    // 请求处理状态
+    ResponseStatus status = 1;
+    // 当前有效的catalog服务版本
+    int64 source_catalog_version = 2;
+    // 当前变更后生成的目标版本
+    int64 target_catalog_version = 3;
+}
+
+// ---------- API for Catalog ---------------
+message ListCatalogRequest { string unused = 1; }
+
+message ListCatalogResponse {
+    ResponseStatus status = 1;
+    repeated string catalog_names = 2;
+}
+
+message GetCatalogRequest {
+    int64 catalog_version = 1;         // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;           // 必选
+    DetailLevel.Code detail_level = 3; // 可选
+    bool ignore_not_found_error = 4;   // 可选
+}
+
+message GetCatalogResponse {
+    ResponseStatus status = 1;
+    Catalog catalog = 2;
+}
+
+message CreateCatalogRequest {
+    Catalog catalog = 1;                    // 必选
+    bool ignore_duplicate_entity_error = 2; // 可选。适配SQL的'IF NOT EXISTS'的关键字
+    bool dry_run = 3;
+}
+
+message UpdateCatalogRequest {
+    int64 catalog_version = 1; // 必选
+    Catalog catalog = 2;       // 必选，且更新对databases字段不生效
+    bool dry_run = 3;
+}
+
+message DropCatalogRequest {
+    int64 catalog_version = 1; // 必选
+    string catalog_name = 2;   // 必选
+    bool dry_run = 3;
+}
+
+message UpdateCatalogStatusRequest {
+    int64 catalog_version = 1; // 必选
+    string catalog_name = 2;   // 必选
+    EntityStatus status = 3;   // 必选
+    bool dry_run = 4;
+}
+
+// ---------- API for Database ---------------
+message ListDatabaseRequest {
+    int64 catalog_version = 1; // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;   // 必选
+}
+
+message ListDatabaseResponse {
+    ResponseStatus status = 1;
+    repeated string database_names = 2;
+}
+
+message GetDatabaseRequest {
+    int64 catalog_version = 1;         // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;           // 必选
+    string database_name = 3;          // 必选
+    DetailLevel.Code detail_level = 4; // 可选
+    bool ignore_not_found_error = 5;   // 可选。catalog不存在的情况，依旧会返回NOT_FOUND的错误
+}
+
+message GetDatabaseResponse {
+    ResponseStatus status = 1;
+    Database database = 2;
+}
+
+message CreateDatabaseRequest {
+    int64 catalog_version = 1;              // 必选
+    Database database = 2;                  // 必选
+    bool ignore_duplicate_entity_error = 3; // 可选。适配SQL的'IF NOT EXISTS'的关键字
+    bool dry_run = 4;
+}
+
+message UpdateDatabaseRequest {
+    int64 catalog_version = 1; // 必选
+    Database database = 2;     // 必选，且更新对tables,table_groups,functions,source_tables字段不生效
+    bool dry_run = 3;
+}
+
+message DropDatabaseRequest {
+    int64 catalog_version = 1;       // 必选
+    string catalog_name = 2;         // 必选
+    string database_name = 3;        // 必选
+    bool ignore_not_found_error = 4; // 可选。catalog不存在的情况，依旧会返回NOT_FOUND的错误
+    bool dry_run = 5;
+}
+
+// ---------- API for Table ------------------
+message ListTableRequest {
+    int64 catalog_version = 1; // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;   // 必选
+    string database_name = 3;  // 必选
+}
+
+message ListTableResponse {
+    ResponseStatus status = 1;
+    repeated string table_names = 2;
+}
+
+message GetTableRequest {
+    int64 catalog_version = 1;         // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;           // 必选
+    string database_name = 3;          // 必选
+    string table_name = 4;             // 必选
+    DetailLevel.Code detail_level = 5; // 可选
+    bool ignore_not_found_error = 6;   // 可选。catalog/databse不存在的情况，依旧会返回NOT_FOUND的错误
+}
+
+message GetTableResponse {
+    ResponseStatus status = 1;
+    Table table = 2;
+}
+
+message CreateTableRequest {
+    int64 catalog_version = 1;              // 必选
+    Table table = 2;                        // 必选
+    bool ignore_duplicate_entity_error = 3; // 可选。适配SQL的'IF NOT EXISTS'的关键字
+    bool dry_run = 4;
+}
+
+message UpdateTableRequest {
+    int64 catalog_version = 1; // 必选
+    Table table = 2;           // 必选，且更新对partitions和table_structure字段不生效
+    bool dry_run = 3;
+}
+
+message DropTableRequest {
+    int64 catalog_version = 1;       // 必选
+    string catalog_name = 2;         // 必选
+    string database_name = 3;        // 必选
+    string table_name = 4;           // 必选
+    bool ignore_not_found_error = 5; // 可选。catalog/databse不存在的情况，依旧会返回NOT_FOUND的错误
+    bool dry_run = 6;
+}
+
+message ListTableRelatedTableGroupRequest {
+    int64 catalog_version = 1; // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;   // 必选
+    string database_name = 3;  // 必选
+    string table_name = 4;     // 必选
+}
+
+message ListTableRelatedTableGroupResponse {
+    ResponseStatus status = 1;
+    repeated string table_group_names = 2;
+}
+
+// ---------- API for TableStructure ---------
+message GetTableStructureRequest {
+    int64 catalog_version = 1;         // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;           // 必选
+    string database_name = 3;          // 必选
+    string table_name = 4;             // 必选
+    DetailLevel.Code detail_level = 5; // 可选
+}
+
+message GetTableStructureResponse {
+    ResponseStatus status = 1;
+    TableStructure table_structure = 2;
+}
+
+message UpdateTableStructureRequest {
+    int64 catalog_version = 1;          // 必选
+    TableStructure table_structure = 2; // 必选
+    bool dry_run = 3;
+}
+
+message AddColumnRequest {
+    int64 catalog_version = 1;                  // 必选
+    string catalog_name = 2;                    // 必选
+    string database_name = 3;                   // 必选
+    string table_name = 4;                      // 必选
+    repeated TableStructure.Column columns = 5; // 必选，且不能为空
+    bool ignore_duplicate_entity_error = 6;     // 可选。适配SQL的'IF NOT EXISTS'的关键字
+    bool dry_run = 7;
+}
+
+message UpdateColumnRequest {
+    int64 catalog_version = 1;        // 必选
+    string catalog_name = 2;          // 必选
+    string database_name = 3;         // 必选
+    string table_name = 4;            // 必选
+    TableStructure.Column column = 5; // 必选
+    bool dry_run = 6;
+}
+
+message DropColumnRequest {
+    int64 catalog_version = 1;        // 必选
+    string catalog_name = 2;          // 必选
+    string database_name = 3;         // 必选
+    string table_name = 4;            // 必选
+    repeated string column_names = 5; // 必选，且不能为空
+    bool ignore_not_found_error = 6; // 可选。catalog/databse/table不存在的情况，依旧会返回NOT_FOUND的错误
+    bool dry_run = 7;
+}
+
+message CreateIndexRequest {
+    int64 catalog_version = 1;                 // 必选
+    string catalog_name = 2;                   // 必选
+    string database_name = 3;                  // 必选
+    string table_name = 4;                     // 必选
+    repeated TableStructure.Index indexes = 5; // 必选，且不能为空
+    bool ignore_duplicate_entity_error = 6;    // 可选。适配SQL的'IF NOT EXISTS'的关键字
+    bool dry_run = 7;
+}
+
+message UpdateIndexRequest {
+    int64 catalog_version = 1;      // 必选
+    string catalog_name = 2;        // 必选
+    string database_name = 3;       // 必选
+    string table_name = 4;          // 必选
+    TableStructure.Index index = 5; // 必选，且不能为空
+    bool dry_run = 6;
+}
+
+message DropIndexRequest {
+    int64 catalog_version = 1;       // 必选
+    string catalog_name = 2;         // 必选
+    string database_name = 3;        // 必选
+    string table_name = 4;           // 必选
+    repeated string index_names = 5; // 必选，且不能为空
+    bool ignore_not_found_error = 6; // 可选。catalog/databse/table不存在的情况，依旧会返回NOT_FOUND的错误
+    bool dry_run = 7;
+}
+
+// ---------- API for Partition --------------
+message ListPartitionRequest {
+    int64 catalog_version = 1;             // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;               // 必选
+    string database_name = 3;              // 必选
+    string table_name = 4;                 // 必选
+    PartitionType.Code partition_type = 5; // 必选
+}
+
+message ListPartitionResponse {
+    ResponseStatus status = 1;
+    repeated string partition_names = 2;
+}
+
+message GetPartitionRequest {
+    int64 catalog_version = 1;             // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;               // 必选
+    string database_name = 3;              // 必选
+    string table_name = 4;                 // 必选
+    string partition_name = 5;             // 必选
+    PartitionType.Code partition_type = 6; // 必选
+    DetailLevel.Code detail_level = 7;     // 可选
+    bool ignore_not_found_error = 8; // 可选。catalog/databse/table/source_table不存在的情况，依旧会返回NOT_FOUND的错误
+}
+
+message GetPartitionResponse {
+    ResponseStatus status = 1;
+    Partition partition = 2;
+}
+
+message CreatePartitionRequest {
+    int64 catalog_version = 1;              // 必选
+    Partition partition = 2;                // 必选
+    bool ignore_duplicate_entity_error = 4; // 可选。适配SQL的'IF NOT EXISTS'的关键字
+    bool dry_run = 5;
+}
+
+message UpdatePartitionRequest {
+    int64 catalog_version = 1; // 必选
+    Partition partition = 2;   // 必选，且不可更新table_structure字段
+    bool dry_run = 4;
+}
+
+message UpdatePartitionTableStructureRequest {
+    int64 catalog_version = 1; // 必选
+    string catalog_name = 2;   // 必选
+    string database_name = 3;  // 必选
+    string table_name = 4;     // 必选
+    string partition_name = 5; // 必选
+    bool dry_run = 6;
+}
+
+message DropPartitionRequest {
+    int64 catalog_version = 1;             // 必选
+    string catalog_name = 2;               // 必选
+    string database_name = 3;              // 必选
+    string table_name = 4;                 // 必选
+    string partition_name = 5;             // 必选
+    PartitionType.Code partition_type = 6; // 必选
+    bool ignore_not_found_error = 7; // 可选。catalog/databse/table/source_table不存在的情况，依旧会返回NOT_FOUND的错误
+    bool dry_run = 8;
+}
+
+// ---------- API for TableGroup -------------
+message ListTableGroupRequest {
+    int64 catalog_version = 1; // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;   // 必选
+    string database_name = 3;  // 必选
+}
+
+message ListTableGroupResponse {
+    ResponseStatus status = 1;
+    repeated string table_group_names = 2;
+}
+
+message GetTableGroupRequest {
+    int64 catalog_version = 1;         // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;           // 必选
+    string database_name = 3;          // 必选
+    string table_group_name = 4;       // 必选
+    DetailLevel.Code detail_level = 5; // 可选
+    bool ignore_not_found_error = 6;   // 可选。catalog/databse不存在的情况，依旧会返回NOT_FOUND的错误
+}
+
+message GetTableGroupResponse {
+    ResponseStatus status = 1;
+    TableGroup table_group = 2;
+}
+
+message CreateTableGroupRequest {
+    int64 catalog_version = 1;              // 必选
+    TableGroup table_group = 2;             // 必选
+    bool ignore_duplicate_entity_error = 3; // 可选。适配SQL的'IF NOT EXISTS'的关键字
+    bool dry_run = 4;
+}
+
+message UpdateTableGroupRequest {
+    int64 catalog_version = 1;  // 必选
+    TableGroup table_group = 2; // 必选，且更新对load_strategies字段不生效
+    bool dry_run = 3;
+}
+
+message DropTableGroupRequest {
+    int64 catalog_version = 1;       // 必选
+    string catalog_name = 2;         // 必选
+    string database_name = 3;        // 必选
+    string table_group_name = 4;     // 必选
+    bool ignore_not_found_error = 5; // 可选。catalog/databse不存在的情况，依旧会返回NOT_FOUND的错误
+    bool dry_run = 6;
+}
+
+// ---------- API for LoadStrategy -----------
+message ListLoadStrategyRequest {
+    int64 catalog_version = 1;   // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;     // 必选
+    string database_name = 3;    // 必选
+    string table_group_name = 4; // 必选
+}
+
+message ListLoadStrategyResponse {
+    ResponseStatus status = 1;
+    repeated string table_names = 2;
+}
+
+message GetLoadStrategyRequest {
+    int64 catalog_version = 1;         // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;           // 必选
+    string database_name = 3;          // 必选
+    string table_group_name = 4;       // 必选
+    string table_name = 5;             // 必选
+    DetailLevel.Code detail_level = 6; // 可选
+    bool ignore_not_found_error = 7; // 可选。catalog/databse/table_group不存在的情况，依旧会返回NOT_FOUND的错误
+}
+
+message GetLoadStrategyResponse {
+    ResponseStatus status = 1;
+    LoadStrategy load_strategy = 2;
+}
+
+message CreateLoadStrategyRequest {
+    int64 catalog_version = 1;              // 必选
+    LoadStrategy load_strategy = 2;         // 必选
+    bool ignore_duplicate_entity_error = 3; // 可选。适配SQL的'IF NOT EXISTS'的关键字
+    bool dry_run = 4;
+}
+
+message UpdateLoadStrategyRequest {
+    int64 catalog_version = 1;      // 必选
+    LoadStrategy load_strategy = 2; // 必选
+    bool dry_run = 3;
+}
+
+message DropLoadStrategyRequest {
+    int64 catalog_version = 1;   // 必选
+    string catalog_name = 2;     // 必选
+    string database_name = 3;    // 必选
+    string table_group_name = 4; // 必选
+    string table_name = 5;       // 必选
+    bool ignore_not_found_error = 6; // 可选。catalog/databse/table_group不存在的情况，依旧会返回NOT_FOUND的错误
+    bool dry_run = 7;
+}
+
+// TODO(chekong.ygm): 支持Table原子地切换TableGroup
+
+// ---------- API for Function ---------------
+message ListFunctionRequest {
+    int64 catalog_version = 1; // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;   // 必选
+    string database_name = 3;  // 必选
+}
+
+message ListFunctionResponse {
+    ResponseStatus status = 1;
+    repeated string function_names = 2;
+}
+
+message GetFunctionRequest {
+    int64 catalog_version = 1;         // 可选，小于或等于零表示不指定版本查询
+    string catalog_name = 2;           // 必选
+    string database_name = 3;          // 必选
+    string function_name = 4;          // 必选
+    DetailLevel.Code detail_level = 5; // 可选
+    bool ignore_not_found_error = 6;   // 可选。catalog/databse不存在的情况，依旧会返回NOT_FOUND的错误
+}
+
+message GetFunctionResponse {
+    ResponseStatus status = 1;
+    Function function = 2;
+}
+
+message CreateFunctionRequest {
+    int64 catalog_version = 1;              // 必选
+    Function function = 2;                  // 必选
+    bool ignore_duplicate_entity_error = 3; // 可选。适配SQL的'IF NOT EXISTS'的关键字
+    bool dry_run = 4;
+}
+
+message UpdateFunctionRequest {
+    int64 catalog_version = 1; // 必选
+    Function function = 2;     // 必选
+    bool dry_run = 3;
+}
+
+message DropFunctionRequest {
+    int64 catalog_version = 1;       // 必选
+    string catalog_name = 2;         // 必选
+    string database_name = 3;        // 必选
+    string function_name = 4;        // 必选
+    bool ignore_not_found_error = 5; // 可选。catalog/databse不存在的情况，依旧会返回NOT_FOUND的错误
+    bool dry_run = 6;
+}
+
+// ---------- API for Build ---------------
+
+// for create/update/drop
+message BuildCommonResponse {
+    // 请求处理状态
+    ResponseStatus status = 1;
+}
+
+message ListBuildRequest {
+    string catalog_name = 1;               // 必选
+    string database_name = 2;              // 可选
+    string table_name = 3;                 // 可选
+    string partition_name = 4;             // 可选
+}
+
+message ListBuildResponse {
+    ResponseStatus status = 1;
+    repeated BuildId build_ids = 2;
+    repeated BuildTarget build_targets = 3;
+}
+
+message GetBuildRequest {
+    BuildId build_id = 1; // catalog_name必选，其余可选，类似ListBuildRequest
+    DetailLevel.Code detail_level = 2;     // 可选
+}
+
+message GetBuildResponse {
+    ResponseStatus status = 1;
+    repeated Build builds = 2;
+}
+
+message CreateBuildRequest {
+    Partition partition = 1;                // 必选
+    string store_root = 2;                  // 必选
+    bool ignore_duplicate_entity_error = 3; // 可选。适配SQL的'IF NOT EXISTS'的关键字
+    bool dry_run = 4;
+}
+
+message CreateBuildResponse {
+    ResponseStatus status = 1;
+    BuildId build_id = 2;
+}
+
+message UpdateBuildRequest {
+    Build build = 1;   // 必选
+    bool dry_run = 2;
+}
+
+message DropBuildRequest {
+    BuildId build_id = 1;   // catalog_name必选，其余可选，类似ListBuildRequest
+    bool dry_run = 2;
+}
+
+// ------------ catalog SERVICE --------------
+service CatalogService {
+    option (arpc.global_service_id) = 901;
+
+    // ---------- API for Catalog ---------------
+    rpc listCatalog(ListCatalogRequest) returns (ListCatalogResponse) { option (arpc.local_method_id) = 1; }
+    rpc getCatalog(GetCatalogRequest) returns (GetCatalogResponse) { option (arpc.local_method_id) = 2; }
+    rpc createCatalog(CreateCatalogRequest) returns (CommonResponse) { option (arpc.local_method_id) = 3; }
+    rpc dropCatalog(DropCatalogRequest) returns (CommonResponse) { option (arpc.local_method_id) = 4; }
+    rpc updateCatalog(UpdateCatalogRequest) returns (CommonResponse) { option (arpc.local_method_id) = 5; }
+    rpc updateCatalogStatus(UpdateCatalogStatusRequest) returns (CommonResponse) { option (arpc.local_method_id) = 6; }
+
+    // ---------- API for Database ---------------
+    rpc listDatabase(ListDatabaseRequest) returns (ListDatabaseResponse) { option (arpc.local_method_id) = 10; }
+    rpc getDatabase(GetDatabaseRequest) returns (GetDatabaseResponse) { option (arpc.local_method_id) = 11; }
+    rpc createDatabase(CreateDatabaseRequest) returns (CommonResponse) { option (arpc.local_method_id) = 12; }
+    rpc dropDatabase(DropDatabaseRequest) returns (CommonResponse) { option (arpc.local_method_id) = 13; }
+    rpc updateDatabase(UpdateDatabaseRequest) returns (CommonResponse) { option (arpc.local_method_id) = 14; }
+
+    // ---------- API for Table ------------------
+    rpc listTable(ListTableRequest) returns (ListTableResponse) { option (arpc.local_method_id) = 20; }
+    rpc getTable(GetTableRequest) returns (GetTableResponse) { option (arpc.local_method_id) = 21; }
+    rpc createTable(CreateTableRequest) returns (CommonResponse) { option (arpc.local_method_id) = 22; }
+    rpc dropTable(DropTableRequest) returns (CommonResponse) { option (arpc.local_method_id) = 23; }
+    rpc updateTable(UpdateTableRequest) returns (CommonResponse) { option (arpc.local_method_id) = 24; }
+    rpc listTableRelatedTableGroup(ListTableRelatedTableGroupRequest) returns (ListTableRelatedTableGroupResponse) {
+        option (arpc.local_method_id) = 25;
+    }
+
+    // ---------- API for TableStructure ---------
+    rpc getTableStructure(GetTableStructureRequest) returns (GetTableStructureResponse) {
+        option (arpc.local_method_id) = 30;
+    }
+    rpc updateTableStructure(UpdateTableStructureRequest) returns (CommonResponse) {
+        option (arpc.local_method_id) = 31;
+    }
+    rpc addColumn(AddColumnRequest) returns (CommonResponse) { option (arpc.local_method_id) = 32; }
+    rpc updateColumn(UpdateColumnRequest) returns (CommonResponse) { option (arpc.local_method_id) = 33; }
+    rpc dropColumn(DropColumnRequest) returns (CommonResponse) { option (arpc.local_method_id) = 34; }
+    rpc createIndex(CreateIndexRequest) returns (CommonResponse) { option (arpc.local_method_id) = 35; }
+    rpc updateIndex(UpdateIndexRequest) returns (CommonResponse) { option (arpc.local_method_id) = 36; }
+    rpc dropIndex(DropIndexRequest) returns (CommonResponse) { option (arpc.local_method_id) = 37; }
+
+    // ---------- API for Partition --------------
+    rpc listPartition(ListPartitionRequest) returns (ListPartitionResponse) { option (arpc.local_method_id) = 40; }
+    rpc getPartition(GetPartitionRequest) returns (GetPartitionResponse) { option (arpc.local_method_id) = 41; }
+    rpc createPartition(CreatePartitionRequest) returns (CommonResponse) { option (arpc.local_method_id) = 42; }
+    rpc dropPartition(DropPartitionRequest) returns (CommonResponse) { option (arpc.local_method_id) = 43; }
+    rpc updatePartition(UpdatePartitionRequest) returns (CommonResponse) { option (arpc.local_method_id) = 44; }
+    // 将Table当前的TableStructure覆盖至指定的Partition
+    rpc updatePartitionTableStructure(UpdatePartitionTableStructureRequest) returns (CommonResponse) {
+        option (arpc.local_method_id) = 45;
+    }
+
+    // ---------- API for TableGroup -------------
+    rpc listTableGroup(ListTableGroupRequest) returns (ListTableGroupResponse) { option (arpc.local_method_id) = 50; }
+    rpc getTableGroup(GetTableGroupRequest) returns (GetTableGroupResponse) { option (arpc.local_method_id) = 51; }
+    rpc createTableGroup(CreateTableGroupRequest) returns (CommonResponse) { option (arpc.local_method_id) = 52; }
+    rpc dropTableGroup(DropTableGroupRequest) returns (CommonResponse) { option (arpc.local_method_id) = 53; }
+    rpc updateTableGroup(UpdateTableGroupRequest) returns (CommonResponse) { option (arpc.local_method_id) = 54; }
+
+    // ---------- API for LoadStrategy -----------
+    rpc listLoadStrategy(ListLoadStrategyRequest) returns (ListLoadStrategyResponse) {
+        option (arpc.local_method_id) = 60;
+    }
+    rpc getLoadStrategy(GetLoadStrategyRequest) returns (GetLoadStrategyResponse) {
+        option (arpc.local_method_id) = 61;
+    }
+    rpc createLoadStrategy(CreateLoadStrategyRequest) returns (CommonResponse) { option (arpc.local_method_id) = 62; }
+    rpc dropLoadStrategy(DropLoadStrategyRequest) returns (CommonResponse) { option (arpc.local_method_id) = 63; }
+    rpc updateLoadStrategy(UpdateLoadStrategyRequest) returns (CommonResponse) { option (arpc.local_method_id) = 64; }
+
+    // ---------- API for Function ---------------
+    rpc listFunction(ListFunctionRequest) returns (ListFunctionResponse) { option (arpc.local_method_id) = 70; }
+    rpc getFunction(GetFunctionRequest) returns (GetFunctionResponse) { option (arpc.local_method_id) = 71; }
+    rpc createFunction(CreateFunctionRequest) returns (CommonResponse) { option (arpc.local_method_id) = 72; }
+    rpc dropFunction(DropFunctionRequest) returns (CommonResponse) { option (arpc.local_method_id) = 73; }
+    rpc updateFunction(UpdateFunctionRequest) returns (CommonResponse) { option (arpc.local_method_id) = 74; }
+
+    // ---------- API for Build ---------------
+    rpc listBuild(ListBuildRequest) returns (ListBuildResponse) { option (arpc.local_method_id) = 80; }
+    rpc getBuild(GetBuildRequest) returns (GetBuildResponse) { option (arpc.local_method_id) = 81; }
+    rpc createBuild(CreateBuildRequest) returns (CreateBuildResponse) { option (arpc.local_method_id) = 82; }
+    rpc dropBuild(DropBuildRequest) returns (BuildCommonResponse) { option (arpc.local_method_id) = 83; }
+    rpc updateBuild(UpdateBuildRequest) returns (BuildCommonResponse) { option (arpc.local_method_id) = 84; }
+}

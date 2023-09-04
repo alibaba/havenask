@@ -1,0 +1,30 @@
+package(default_visibility=['//aios/sql/iquan/java:__subpackages__'])
+load('@rules_spring//springboot:springboot.bzl', 'springboot')
+springboot(
+    name='iquan_boot',
+    boot_app_class='com.taobao.search.iquan.boot.app.App',
+    java_library='iquan_boot_lib'
+)
+java_library(
+    name='iquan_boot_lib',
+    srcs=glob(['src/main/java/com/taobao/search/iquan/boot/**/*.java']),
+    resources=glob(['src/main/resources/**']),
+    deps=[
+        '//aios/sql/iquan/java/iquan_boot_common',
+        '@iquan_maven//:org_springframework_boot_spring_boot_starter_web',
+        '@iquan_maven//:org_springframework_boot_spring_boot_starter_log4j2',
+        '@iquan_maven//:org_springframework_boot_spring_boot_starter_tomcat',
+        '@iquan_maven//:org_springframework_boot_spring_boot_starter_jdbc',
+        '@iquan_maven//:org_springframework_boot_spring_boot_starter_test',
+        '@iquan_maven//:com_lmax_disruptor',
+        '@iquan_maven//:org_xerial_sqlite_jdbc',
+        '@iquan_maven//:org_springframework_boot_spring_boot_loader',
+        '@iquan_maven//:org_springframework_spring_aop',
+        '@iquan_maven//:org_springframework_spring_beans',
+        '@iquan_maven//:org_springframework_spring_context',
+        '@iquan_maven//:org_springframework_spring_core',
+        '@iquan_maven//:org_springframework_spring_expression',
+        '@iquan_maven//:org_springframework_spring_web',
+        '@iquan_maven//:org_springframework_spring_webmvc'
+    ]
+)

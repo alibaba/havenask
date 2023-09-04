@@ -42,20 +42,15 @@ class GigStreamMessage;
 
 struct SendBufferMessage {
 public:
-    SendBufferMessage()
-        : valid(false)
-        , cancel(false)
-        , eof(false)
-        , forceStop(false)
-        , hasMsg(false)
-    {
+    SendBufferMessage() : valid(false), cancel(false), eof(false), forceStop(false), hasMsg(false) {
     }
+
 public:
-    bool valid : 1;
-    bool cancel : 1;
-    bool eof : 1;
+    bool valid     : 1;
+    bool cancel    : 1;
+    bool eof       : 1;
     bool forceStop : 1;
-    bool hasMsg : 1;
+    bool hasMsg    : 1;
     grpc::Slice msg;
 };
 
@@ -63,8 +58,7 @@ class GigStreamHandlerBase : public autil::ObjectTracer<GigStreamHandlerBase>,
                              public std::enable_shared_from_this<GigStreamHandlerBase>
 {
 public:
-    GigStreamHandlerBase(PartIdTy partId,
-                         const std::shared_ptr<GigStreamBase> &stream);
+    GigStreamHandlerBase(PartIdTy partId, const std::shared_ptr<GigStreamBase> &stream);
     virtual ~GigStreamHandlerBase();
 
 private:
@@ -84,22 +78,25 @@ public:
 
 public:
     bool send(const SendBufferMessage &message);
+
 public:
     std::shared_ptr<GigStreamBase> getStream();
     int64_t getHandlerId() const {
         return _thisId;
     }
+    void endReceive();
+
 public:
     static SendBufferMessage createSendBufferMessage(bool eof, bool cancelled,
                                                      const google::protobuf::Message *message);
+
 protected:
     virtual bool init() = 0;
     virtual void initCallback(bool ok) = 0;
     void runNext(bool send);
     GigStreamClosureBase *sendNext();
-    virtual GigStreamClosureBase *doSend(bool sendEof,
-                                         grpc::ByteBuffer *message,
-                                         GigStreamClosureBase *closure) = 0;
+    virtual GigStreamClosureBase *doSend(bool sendEof, grpc::ByteBuffer *message,
+                                         GigStreamClosureBase *closure, bool &ok) = 0;
     virtual void tryCancel() {
     }
     void sendCallback(bool ok);
@@ -128,6 +125,7 @@ protected:
     void setSendStatus(SendStatus status);
     int64_t closureCount() const;
     std::shared_ptr<GigStreamBase> stealStream();
+
 public:
     void setLastClosure(GigStreamClosureBase *lastClosure);
 
@@ -136,15 +134,14 @@ private:
     bool sendCancel(const SendBufferMessage &message);
     virtual bool doStreamReceive(const std::shared_ptr<GigStreamBase> &stream,
                                  const GigStreamMessage &message);
-    virtual void doStreamReceiveCancel(
-            const std::shared_ptr<GigStreamBase> &stream,
-            const GigStreamMessage &message,
-            MultiCallErrorCode ec);
+    virtual void doStreamReceiveCancel(const std::shared_ptr<GigStreamBase> &stream,
+                                       const GigStreamMessage &message, MultiCallErrorCode ec);
     bool parseRequest(const std::shared_ptr<GigStreamBase> &stream, GigStreamMessage &message,
                       bool &cancelled, bool &asyncIo);
     void finishClosure();
     void serializeSendMessage(const SendBufferMessage &message, grpc::ByteBuffer *buffer);
     void updateNetLatency(const GigStreamHeader &header);
+
 private:
     friend class GigStreamClosureBase;
     friend class GigStreamSendClosure;
@@ -158,7 +155,7 @@ protected:
     mutable autil::ThreadMutex _streamLock;
     std::shared_ptr<GigStreamBase> _stream;
     bool _streamRpc : 1;
-    bool _asyncIo : 1;
+    bool _asyncIo   : 1;
     StreamState _streamState;
     // send
     mutable autil::ThreadMutex _sendLock;
@@ -179,15 +176,15 @@ protected:
     static atomic64_t _handlerCount;
     int64_t _timeDiff;
     int64_t _netLatency;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
 MULTI_CALL_TYPEDEF_PTR(GigStreamHandlerBase);
 
-#define HANDLER_LOG(level, msg, args...)                                       \
-    AUTIL_LOG(level, "handler [%p] partId[%d], " msg, (void *)_thisId,         \
-              _partId, ##args);
+#define HANDLER_LOG(level, msg, args...)                                                           \
+    AUTIL_LOG(level, "handler [%p] partId[%d], " msg, (void *)_thisId, _partId, ##args);
 } // namespace multi_call
 
 #endif // ISEARCH_MULTI_CALL_GIGSTREAMHANDLERBASE_H

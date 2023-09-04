@@ -27,23 +27,29 @@ class HeartbeatStreamCreator : public GigServerStreamCreator
 public:
     HeartbeatStreamCreator();
     ~HeartbeatStreamCreator();
+
 private:
     HeartbeatStreamCreator(const HeartbeatStreamCreator &);
     HeartbeatStreamCreator &operator=(const HeartbeatStreamCreator &);
+
 public:
     std::string methodName() const override;
     GigServerStreamPtr create() override;
+
 public:
     void setManager(const std::shared_ptr<HeartbeatServerManager> &manager);
+
 private:
     std::shared_ptr<HeartbeatServerManager> getManager() const;
+
 private:
     mutable autil::ThreadMutex _managerMutex;
     std::shared_ptr<HeartbeatServerManager> _manager;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
 MULTI_CALL_TYPEDEF_PTR(HeartbeatStreamCreator);
 
-}
+} // namespace multi_call

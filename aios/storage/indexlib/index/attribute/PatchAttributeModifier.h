@@ -29,7 +29,7 @@ namespace indexlibv2::index {
 class PatchAttributeModifier : public AttributeModifier
 {
 public:
-    PatchAttributeModifier(const std::shared_ptr<config::TabletSchema>& schema,
+    PatchAttributeModifier(const std::shared_ptr<config::ITabletSchema>& schema,
                            const std::shared_ptr<indexlib::file_system::IDirectory>& workDir);
     ~PatchAttributeModifier() = default;
 

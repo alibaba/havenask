@@ -1,0 +1,217 @@
+{
+  "plan": {
+    "exec_params": {}, 
+    "optimize_infos": {}, 
+    "plan_meta": {}, 
+    "rel_plan": [
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "kv2", 
+          "limit": 100, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "kv2"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$company_id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "company_id": "default.kv2.kkv1.company_id"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$company_id", 
+            "$company_name"
+          ], 
+          "output_fields_hash": -1863235759, 
+          "output_fields_internal": [
+            "$company_id", 
+            "$company_name"
+          ], 
+          "output_fields_internal_type": [
+            "INTEGER", 
+            "VARCHAR"
+          ], 
+          "output_fields_type": [
+            "INTEGER", 
+            "VARCHAR"
+          ], 
+          "push_down_ops": [
+            {
+              "attrs": {
+                "condition": {
+                  "op": "IN", 
+                  "params": [
+                    "$company_id", 
+                    1, 
+                    2
+                  ], 
+                  "type": "OTHER"
+                }, 
+                "output_fields": [
+                  "$company_id", 
+                  "$company_name"
+                ], 
+                "output_fields_type": [
+                  "INTEGER", 
+                  "VARCHAR"
+                ]
+              }, 
+              "op_name": "CalcOp"
+            }
+          ], 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$company_id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "hash_values": {
+              "$company_id": [
+                "1", 
+                "2"
+              ]
+            }, 
+            "partition_cnt": 1
+          }, 
+          "table_meta": {
+            "field_meta": [
+              {
+                "field_name": "$company_id", 
+                "field_type": "int32", 
+                "index_name": "company_id", 
+                "index_type": "primary_key", 
+                "is_attribute": "false"
+              }, 
+              {
+                "field_name": "$company_name", 
+                "field_type": "string", 
+                "index_name": "company_name", 
+                "index_type": "secondary_key", 
+                "is_attribute": "true"
+              }
+            ]
+          }, 
+          "table_name": "kkv1", 
+          "table_type": "kkv", 
+          "use_nest_table": false, 
+          "used_fields": [
+            "$company_id", 
+            "$company_name"
+          ], 
+          "used_fields_type": [
+            "INTEGER", 
+            "VARCHAR"
+          ]
+        }, 
+        "id": 0, 
+        "inputs": {
+          "input": []
+        }, 
+        "op_name": "TableScanOp", 
+        "outputs": [
+          1
+        ]
+      }, 
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "kv2", 
+          "distribution": {
+            "type": "SINGLETON"
+          }, 
+          "input_fields": [
+            "$company_id", 
+            "$company_name"
+          ], 
+          "input_fields_type": [
+            "INTEGER", 
+            "VARCHAR"
+          ], 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": -1863235759, 
+          "output_prunable": 0, 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$company_id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "company_id": "default.kv2.kkv1.company_id"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "table_group_name": "kv2", 
+          "table_name": "kkv1", 
+          "table_type": "kkv"
+        }, 
+        "id": 1, 
+        "inputs": {
+          "input": [
+            0
+          ]
+        }, 
+        "op_name": "ExchangeOp", 
+        "outputs": [
+          2
+        ]
+      }, 
+      {
+        "attrs": {
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "qrs"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": -1863235759, 
+          "type": "api"
+        }, 
+        "id": 2, 
+        "inputs": {
+          "input": [
+            1
+          ]
+        }, 
+        "op_name": "SinkOp"
+      }
+    ], 
+    "rel_plan_version": "plan_version_0.0.1"
+  }, 
+  "sql_params": {
+    "iquan.optimizer.debug.enable": "false", 
+    "iquan.plan.format.object.enable": "true", 
+    "iquan.plan.format.type": "json", 
+    "iquan.plan.format.version": "plan_version_0.0.1", 
+    "iquan.plan.output.exec_params": "false", 
+    "iquan.plan.prepare.level": "end"
+  }, 
+  "sqls": [
+    "SELECT company_id, company_name FROM kkv1 where company_id in (1,2)"
+  ]
+}

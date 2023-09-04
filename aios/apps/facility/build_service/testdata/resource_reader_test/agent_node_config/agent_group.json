@@ -1,0 +1,26 @@
+{
+    "agent_node_groups" :
+    [
+        {
+            "id" : "processor",
+            "role_pattern" : "*processor*",
+            "node_count" : 2
+        },
+        {
+            "id" : "default",
+            "role_pattern" : "*",
+            "node_count" : 1
+        }
+    ],
+    "for_general_tasks" :
+    {
+	"agent_node_groups" :
+	[
+            {
+		"id" : "generalTask",
+		"role_pattern" : "*generalTask*",
+		"node_count" : 4
+            }
+	]
+    }
+}

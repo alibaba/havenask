@@ -1,0 +1,26 @@
+{
+    "table_name": "auction",
+    "fields": 
+    [
+        {"field_name":"int8_single", "field_type":"int8"},
+        {"field_name":"int8_multi", "field_type":"int8",   "multi_value": true, "compress_type":"equal"},
+        {"field_name":"str_single", "field_type":"string"}
+    ],
+
+    "indexs": 
+    [
+	{
+	    "index_name": "pk",
+            "index_type" : "PRIMARYKEY64",
+	    "index_fields": "str_single"
+	}
+    ],
+
+    "attributes":
+    [
+        {
+            "pack_name" : "pack_attr",
+            "sub_attributes" : ["int8_single", "int8_multi"] 
+        }
+    ]
+}

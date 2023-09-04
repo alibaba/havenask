@@ -93,7 +93,7 @@ void PatchFileFinder::FindAttrPatchFiles(const AttributeConfigPtr& attrConfig, P
     assert(attrConfig);
     PackAttributeConfig* packAttrConfig = attrConfig->GetPackAttributeConfig();
     if (packAttrConfig) {
-        FindPatchFiles(PatchType::ATTRIBUTE, packAttrConfig->GetAttrName() + "/" + attrConfig->GetAttrName(),
+        FindPatchFiles(PatchType::ATTRIBUTE, packAttrConfig->GetPackName() + "/" + attrConfig->GetAttrName(),
                        INVALID_SCHEMA_OP_ID, patchInfos);
     } else {
         FindPatchFiles(PatchType::ATTRIBUTE, attrConfig->GetAttrName(), attrConfig->GetOwnerModifyOperationId(),
@@ -108,7 +108,7 @@ void PatchFileFinder::FindAttrPatchFilesForTargetSegment(const config::Attribute
     PackAttributeConfig* packAttrConfig = attrConfig->GetPackAttributeConfig();
     if (packAttrConfig) {
         FindPatchFilesForTargetSegment(PatchType::ATTRIBUTE,
-                                       packAttrConfig->GetAttrName() + "/" + attrConfig->GetAttrName(), targetSegmentId,
+                                       packAttrConfig->GetPackName() + "/" + attrConfig->GetAttrName(), targetSegmentId,
                                        INVALID_SCHEMA_OP_ID, patchInfo);
     } else {
         FindPatchFilesForTargetSegment(PatchType::ATTRIBUTE, attrConfig->GetAttrName(), targetSegmentId,
@@ -122,7 +122,7 @@ void PatchFileFinder::FindAttrPatchFilesFromSegment(const config::AttributeConfi
     assert(attrConfig);
     PackAttributeConfig* packAttrConfig = attrConfig->GetPackAttributeConfig();
     if (packAttrConfig) {
-        FindPatchFilesFromSegment(PatchType::ATTRIBUTE, packAttrConfig->GetAttrName() + "/" + attrConfig->GetAttrName(),
+        FindPatchFilesFromSegment(PatchType::ATTRIBUTE, packAttrConfig->GetPackName() + "/" + attrConfig->GetAttrName(),
                                   fromSegmentId, INVALID_SCHEMA_OP_ID, patchInfos);
     } else {
         FindPatchFilesFromSegment(PatchType::ATTRIBUTE, attrConfig->GetAttrName(), fromSegmentId,

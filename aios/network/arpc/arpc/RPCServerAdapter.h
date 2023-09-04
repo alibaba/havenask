@@ -16,6 +16,7 @@
 #ifndef ARPC_RPC_SERVER_ADAPTER_H
 #define ARPC_RPC_SERVER_ADAPTER_H
 #include <unordered_set>
+
 #include "aios/network/anet/anet.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/arpc/arpc/proto/rpc_extensions.pb.h"
@@ -32,15 +33,12 @@ public:
     RPCServerAdapter(RPCServer *pRpcServer);
 
     virtual ~RPCServerAdapter();
+
 public:
-    int getClientConnectionNum() {
-        return atomic_read(&_clientConnNum);
-    }
+    int getClientConnectionNum() { return atomic_read(&_clientConnNum); }
 
 protected:
-    ErrorCode doPushWorkItem(RPCServerWorkItem *pWorkItem,
-                        CodecContext *pContext,
-                        Tracer *tracer);
+    ErrorCode doPushWorkItem(RPCServerWorkItem *pWorkItem, CodecContext *pContext, Tracer *tracer);
 
 private:
     friend class RPCServerAdapterTest;
@@ -54,4 +52,4 @@ protected:
 
 ARPC_END_NAMESPACE(arpc);
 
-#endif //ARPC_RPC_SERVER_ADAPTER_H
+#endif // ARPC_RPC_SERVER_ADAPTER_H

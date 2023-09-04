@@ -1,0 +1,8 @@
+{
+    "cluster_config" : {
+	"hash_mode" : {
+            "hash_function" : "invalid",
+            "hash_field" : "id"
+	}
+    }
+}

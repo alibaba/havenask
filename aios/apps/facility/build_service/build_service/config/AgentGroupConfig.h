@@ -49,9 +49,13 @@ public:
     std::string identifier;
     std::string rolePattern;
     uint32_t agentNodeCount;
+    uint32_t flexibleIdleAgentCount; // 大于0则会触发尽量保持idle agent节点个数不变的动态调度策略，
+                                     // rolePlan频繁变化有可能触发agent节点频繁的分配和释放
+                                     // 可能存在分配任务同时创建agent节点的极端case
     int64_t inBlackListTimeout;
     bool lazyAllocate;
     bool dynamicRoleMapping;
+    bool exclusive;
     std::vector<ResourceLimitParam> resourceLimitParams;
 
 private:
@@ -61,7 +65,7 @@ private:
 class AgentGroupConfig : public autil::legacy::Jsonizable
 {
 public:
-    AgentGroupConfig();
+    AgentGroupConfig(bool defaultEnableGlobalAgent = false);
     ~AgentGroupConfig();
 
 public:
@@ -72,10 +76,21 @@ public:
     size_t size() const { return _agentConfigs.size(); }
     const AgentConfig& operator[](size_t idx) const { return _agentConfigs[idx]; }
     bool needDynamicMapping() const;
+    bool enableGlobalAgentNodes() const { return _enableGlobalAgentNodes; }
+
+    const std::string& getTargetGlobalAgentGroupId() const { return _targetGlobalAgentGroupName; }
+
+public:
+    static const std::string AGENT_CONFIG_GROUP_KEY;
 
 private:
+    static constexpr int64_t DEFAULT_CACHE_EXPIRE_TIME = 1800; // 30 min
+
     std::vector<AgentConfig> _agentConfigs;
+    bool _enableGlobalAgentNodes = false;
+    std::string _targetGlobalAgentGroupName; /* for generation level agent */
     mutable std::map<std::string, int32_t> _roleMatchInfoCache;
+    mutable int64_t _cacheExpireTimestamp = -1;
 
 private:
     BS_LOG_DECLARE();

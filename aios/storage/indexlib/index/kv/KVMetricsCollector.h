@@ -187,12 +187,13 @@ public:
     }
 
     void setSSTableLatency(int64_t tableLatency) { _sstTableLatency = tableLatency; }
+    void setMemTableLatency(int64_t tableLatency) { _memTableLatency = tableLatency; }
 
 private:
     // query
     int64_t _prepareLatency = 0;  // us
     int64_t _memTableLatency = 0; // us
-    int64_t _sstTableLatency = 0;  // us
+    int64_t _sstTableLatency = 0; // us
     int64_t _memTableCount = 0;
     int64_t _sstTableCount = 0; // including cache
     int64_t _searchCacheResultCount = 0;

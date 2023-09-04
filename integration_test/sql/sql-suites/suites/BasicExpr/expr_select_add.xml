@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="expr_select_add">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT nid, brand, price+1, size FROM phone
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"nid", "brand", "price+1", "size"</Resource>
+        <Resource name="column_types">uint64, multi_char, double, double</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1, "Huawei", 3600, 5.9
+2, "Huawei", 4389, 5.5
+3,   "Xiaomi", 900, 5
+4, "OPPO", 3000, 5.5
+5, "Meizu", 1300, 5.5
+6, "Nokia",  170, 1.4
+7, "Apple", 3600, 4.7
+8, "Apple", 5999, 5.5
+9, "Apple", 4299, 4.7
+10, "Samsung", 5689, 5.6
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#2(type=api)
+    ExchangeOp#1(distribution={type:SINGLETON})
+        TableScanOp#0(catalog_name=default,db_name=phone,limit=100,output_fields=[$nid,$brand,$price+1,$size],push_down_ops=[{attrs:{output_field_exprs:{$price+1:{op:+,params:[$price,1],type:OTHER}},output_fields:[$nid,$brand,$price+1,$size]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

@@ -33,13 +33,15 @@ public:
     static Status warmup(IquanImpl *pIquan, const WarmupConfig &config);
 
 private:
-    static Status readJsonQuerys(const WarmupConfig &config, std::vector<IquanDqlRequest> &sqlQueryRequestList);
+    static Status readJsonQuerys(const WarmupConfig &config,
+                                 std::vector<IquanDqlRequest> &sqlQueryRequestList);
     static void warmupSingleThread(IquanImpl *pIquan,
                                    const WarmupConfig &config,
                                    int threadId,
                                    std::vector<IquanDqlRequest> &sqlQueryRequestList,
                                    autil::AtomicCounter &successCnt);
-    static bool warmupQuery(IquanImpl *pIquan, IquanDqlRequest &request, int64_t &warmupNum, int64_t &failNum);
+    static bool
+    warmupQuery(IquanImpl *pIquan, IquanDqlRequest &request, int64_t &warmupNum, int64_t &failNum);
 
 private:
     AUTIL_LOG_DECLARE();

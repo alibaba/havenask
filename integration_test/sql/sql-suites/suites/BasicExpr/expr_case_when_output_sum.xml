@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="expr_case_when_output_sum">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT nid, sum(CASE WHEN brand = 'Huawei' THEN 1.0 WHEN brand = 'Xiaomi' THEN size ELSE price END) AS _case_ FROM phone GROUP BY nid ORDER BY nid asc LIMIT 6
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"nid", "_case_"</Resource>
+        <Resource name="column_types">uint64, double</Resource>
+        <Resource name="seq_required">true</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1,1.0
+2,1.0
+3,5.0
+4,2999.0
+5,1299.0
+6,169.0
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#4(type=api)
+    ExchangeOp#3(distribution={type:SINGLETON})
+        SortOp#2(directions=[ASC],limit=6,order_fields=[$nid])
+            AggregateOp#1(agg_funcs=[{approximate:false,distinct:false,filter_arg:-1,input:[$$f1],name:SUM,output:[$_case_],type:NORMAL}],group_fields=[$nid],scope=NORMAL)
+                TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$nid,$$f1],push_down_ops=[{attrs:{output_field_exprs:{$$f1:{op:CASE,params:[{op:=,params:[$brand,Huawei],type:OTHER},1.0,{op:=,params:[$brand,Xiaomi],type:OTHER},$size,$price],type:OTHER}},output_fields:[$nid,$$f1]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

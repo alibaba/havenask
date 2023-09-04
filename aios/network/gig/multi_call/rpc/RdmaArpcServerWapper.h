@@ -21,9 +21,10 @@
 #include "autil/LockFreeThreadPool.h"
 
 namespace arpc {
+class RPCServer;
 class RdmaRPCServer;
 class ThreadPoolDescriptor;
-}
+} // namespace arpc
 
 namespace multi_call {
 
@@ -34,23 +35,32 @@ class RdmaArpcServerWapper
 public:
     RdmaArpcServerWapper();
     ~RdmaArpcServerWapper();
+
 private:
     RdmaArpcServerWapper(const RdmaArpcServerWapper &);
     RdmaArpcServerWapper &operator=(const RdmaArpcServerWapper &);
-public:
-    bool startRdmaArpcServer(RdmaArpcServerDescription& desc);
-    int32_t getListenPort();
 
-    void registerService(ServiceWrapper* serviceWrapper,
+public:
+    bool startRdmaArpcServer(RdmaArpcServerDescription &desc);
+    int32_t getListenPort();
+    std::shared_ptr<arpc::RPCServer> getRPCServer() const;
+
+    void registerService(ServiceWrapper *serviceWrapper,
                          const arpc::ThreadPoolDescriptor &threadPoolDescriptor);
-    void registerService(ServiceWrapper* serviceWrapper,
-                         const autil::ThreadPoolBasePtr &pool);
+    void registerService(ServiceWrapper *serviceWrapper, const autil::ThreadPoolBasePtr &pool);
+    template <typename ThreadPoolRep>
+    void doRegisterService(ServiceWrapper *serviceWrapper, const ThreadPoolRep &poolRep);
 
     template <typename ThreadPoolRep>
-    void doRegisterService(ServiceWrapper* serviceWrapper,
-                         const ThreadPoolRep &poolRep);
+    void doRegisterService(const std::shared_ptr<ServiceWrapper> &serviceWrapper,
+                           const std::string &methodName, const ThreadPoolRep &poolRep);
+    void registerService(const std::shared_ptr<ServiceWrapper> &serviceWrapper,
+                         const std::string &methodName,
+                         const arpc::ThreadPoolDescriptor &threadPoolDescriptor);
+
 private:
     void stopRdmaArpcServer();
+
 private:
     RdmaArpcServerDescription _rdmaArpcDesc;
     std::shared_ptr<arpc::RdmaRPCServer> _rdmaArpcServer;
@@ -59,6 +69,6 @@ private:
 
 MULTI_CALL_TYPEDEF_PTR(RdmaArpcServerWapper);
 
-}
+} // namespace multi_call
 
-#endif //ISEARCH_MULTI_CALL_RDMAARPCSERVERWAPPER_H
+#endif // ISEARCH_MULTI_CALL_RDMAARPCSERVERWAPPER_H

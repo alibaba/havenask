@@ -1,0 +1,91 @@
+#/bin/sh
+
+maxDaemonFileCount=50
+
+cmd=$0
+cmd_parent_dir=${cmd%run_task_script}
+if [ $cmd_parent_dir = "./" ]; then
+    cmd_parent_dir=`pwd`"/"
+fi
+
+if [ $# -lt 3 ]; then
+   echo "invalid parameter"
+   exit -2
+fi
+parentPid=$1
+
+# check child process life cycle
+daemon_path=${cmd_parent_dir}/task_script_daemon
+if [ ! -f $daemon_path ];then
+   echo "daemon script [$daemon_path] not exist"
+   exit -2
+fi
+# prepare daemon log dir
+if [ $BS_TASK_LOG_ROOT_DIR ]; then
+    daemon_log_dir=$BS_TASK_LOG_ROOT_DIR/script_daemon_log
+else
+    daemon_log_dir=`pwd`/script_daemon_log
+fi
+if [ ! -d $daemon_log_dir ]; then
+   mkdir -p $daemon_log_dir
+fi
+
+# keep latest 50 daemon log file
+daemon_files=`ls -t $daemon_log_dir`
+count=0
+for f in $daemon_files; do
+    ((count++))
+    if [ $count -gt $maxDaemonFileCount ]; then
+       echo "rm $daemon_log_dir/$f"
+       rm $daemon_log_dir/$f
+    fi
+done
+
+# start child process check daemon
+daemon_log=$daemon_log_dir/task_script_daemon.${parentPid}_$$.log
+nohup $daemon_path $parentPid $$ 1>>$daemon_log 2>&1 &
+
+# prepare arguments
+idx=0
+for var in $@
+do
+   if [ $idx -gt 2 ]; then
+      cmdParam+=("$var")
+   fi
+   idx=$(($idx+1))
+done
+
+# prepare env params
+python_path=${cmd_parent_dir}../lib/python2.7/site-packages/:${cmd_parent_dir}../lib/python/site-packages/:${cmd_parent_dir}../../lib/python2.7/site-packages/:${cmd_parent_dir}../../lib/python/site-packages/:${cmd_parent_dir}../../lib64/python2.7/site-packages/:${cmd_parent_dir}../../lib64/python/site-packages/
+export PYTHONPATH=$PYTHONPATH:$python_path
+python_bin=${cmd_parent_dir}../../bin/python
+type=$2
+scriptFile=$3
+
+if [ ! -f $scriptFile ];then
+   echo "$scriptFile not exist"
+   exit -2
+fi
+
+workdir=${scriptFile%/*}
+cd $workdir
+
+if [ "$type" = "python" ]; then
+   if [ -f $python_bin ]; then
+      $python_bin "$scriptFile" "${cmdParam[@]}"
+      exit $?
+   fi
+
+   python "$scriptFile" "${cmdParam[@]}"
+   exit $?
+fi
+
+if [ "$type" = "shell" ]; then
+   /bin/sh $scriptFile "${cmdParam[@]}"
+   exit $?
+fi
+
+echo "invalid script type [$type]"
+exit -2
+
+

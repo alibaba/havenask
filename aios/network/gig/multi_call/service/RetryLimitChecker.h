@@ -32,7 +32,8 @@ struct RetryCheckerItem {
 private:
     AUTIL_LOG_DECLARE();
 };
-class RetryLimitChecker {
+class RetryLimitChecker
+{
 public:
     RetryLimitChecker();
     ~RetryLimitChecker();
@@ -42,7 +43,8 @@ private:
     RetryLimitChecker &operator=(const RetryLimitChecker &);
 
 public:
-    bool canRetry(const std::string &strategy, int64_t currentTimeInSeconds, int32_t retryCountLimit);
+    bool canRetry(const std::string &strategy, int64_t currentTimeInSeconds,
+                  int32_t retryCountLimit);
 
 private:
     std::unordered_map<std::string, std::unique_ptr<RetryCheckerItem>> _StrategyRetryChecker;

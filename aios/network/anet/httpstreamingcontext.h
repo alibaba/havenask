@@ -16,17 +16,16 @@
 #ifndef ANET_HTTPSTREAMINGCONTEXT_H_
 #define ANET_HTTPSTREAMINGCONTEXT_H_
 #include <cstring>
+
 #include "aios/network/anet/streamingcontext.h"
 
 namespace anet {
-class HTTPStreamingContext : public StreamingContext
-{
+class HTTPStreamingContext : public StreamingContext {
 public:
     HTTPStreamingContext();
     virtual ~HTTPStreamingContext();
-    
-    enum HTTPStreamingStep 
-    {
+
+    enum HTTPStreamingStep {
         HSS_START_LINE = 0,
         HSS_MESSAGE_HEADER,
         HSS_MESSAGE_BODY
@@ -55,5 +54,5 @@ public:
     size_t _headersCount;
 };
 
-}/*end namespace anet*/
+} /*end namespace anet*/
 #endif /*ANET_HTTPSTREAMINGCONTEXT_H_*/

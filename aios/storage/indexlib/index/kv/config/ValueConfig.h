@@ -19,10 +19,13 @@
 #include "indexlib/base/FieldType.h"
 #include "indexlib/base/Status.h"
 
-namespace indexlibv2::config {
+namespace indexlibv2::index {
 class AttributeConfig;
-class FieldConfig;
 class PackAttributeConfig;
+} // namespace indexlibv2::index
+
+namespace indexlibv2::config {
+class FieldConfig;
 
 class ValueConfig
 {
@@ -32,12 +35,12 @@ public:
     ~ValueConfig();
 
 public:
-    Status Init(const std::vector<std::shared_ptr<AttributeConfig>>& attrConfigs);
+    Status Init(const std::vector<std::shared_ptr<index::AttributeConfig>>& attrConfigs);
     size_t GetAttributeCount() const;
-    const std::shared_ptr<AttributeConfig>& GetAttributeConfig(size_t idx) const;
-    const std::vector<std::shared_ptr<AttributeConfig>>& GetAttributeConfigs() const;
+    const std::shared_ptr<index::AttributeConfig>& GetAttributeConfig(size_t idx) const;
+    const std::vector<std::shared_ptr<index::AttributeConfig>>& GetAttributeConfigs() const;
 
-    std::pair<Status, std::shared_ptr<PackAttributeConfig>> CreatePackAttributeConfig() const;
+    std::pair<Status, std::shared_ptr<index::PackAttributeConfig>> CreatePackAttributeConfig() const;
     void EnableCompactFormat(bool toSetCompactFormat);
     bool IsCompactFormatEnabled() const;
     int32_t GetFixedLength() const;
@@ -55,9 +58,9 @@ public:
 
 private:
     FieldType FixedLenToFieldType(int32_t size) const;
-    Status CheckIfAttributesSupportNull(const std::vector<std::shared_ptr<AttributeConfig>>& attrConfigs) const;
-    void SetActualFieldType(const std::vector<std::shared_ptr<AttributeConfig>>& attrConfigs);
-    void SetFixedValueLen(const std::vector<std::shared_ptr<AttributeConfig>>& attrConfigs);
+    Status CheckIfAttributesSupportNull(const std::vector<std::shared_ptr<index::AttributeConfig>>& attrConfigs) const;
+    void SetActualFieldType(const std::vector<std::shared_ptr<index::AttributeConfig>>& attrConfigs);
+    void SetFixedValueLen(const std::vector<std::shared_ptr<index::AttributeConfig>>& attrConfigs);
 
 private:
     struct Impl;

@@ -33,9 +33,7 @@ public:
 public:
     static std::pair<Status, bool> NeedResolvePkStoreConfig(config::UnresolvedSchema* schema);
     static Status ResolvePkStoreConfig(const std::string& indexTypeStr, config::UnresolvedSchema* schema);
-
-private:
-    Status Check(const config::TabletSchema& schema) override;
+    Status Check(const config::TabletSchema& schema) const override;
 
 private:
     Status LegacySchemaToTabletSchema(const indexlib::config::IndexPartitionSchema& legacySchema,
@@ -44,7 +42,7 @@ private:
     Status ResolveTabletSchema(const std::string& indexPath, config::UnresolvedSchema* schema) override;
 
 private:
-    void ResolveGeneralizedValue(config::UnresolvedSchema* schema);
+    Status ResolveGeneralValue(config::UnresolvedSchema* schema);
     Status FillIndexConfigs(const indexlib::config::IndexPartitionSchema& legacySchema,
                             config::UnresolvedSchema* schema);
     void FillTTLToSettings(const indexlib::config::IndexPartitionSchema& legacySchema,

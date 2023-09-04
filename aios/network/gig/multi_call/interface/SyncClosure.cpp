@@ -20,9 +20,11 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, SyncClosure);
 
-SyncClosure::SyncClosure() : _isFinished(false) {}
+SyncClosure::SyncClosure() : _isFinished(false) {
+}
 
-SyncClosure::~SyncClosure() {}
+SyncClosure::~SyncClosure() {
+}
 
 void SyncClosure::Run() {
     /**

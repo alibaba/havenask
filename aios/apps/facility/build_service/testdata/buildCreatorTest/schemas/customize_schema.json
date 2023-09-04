@@ -1,0 +1,35 @@
+{
+    "table_name": "simple",
+    "fields":
+    [
+        {"field_name":"price2", "field_type":"INTEGER"},
+        {"field_name":"id", "field_type":"INTEGER"},
+        {"field_name":"f1", "field_type":"RAW"},
+        {"field_name":"f2", "field_type":"RAW"} 
+    ],
+
+    "indexs":
+    [
+	{
+	    "index_name": "pk",
+	    "index_type": "PRIMARYKEY64",
+	    "index_fields": "id"
+	},
+	{
+	    "index_name": "cindex1",
+	    "index_type": "CUSTOMIZED",
+            "index_fields" : [ {"field_name" : "f1", "boost" : 0} ],
+            "indexer" : "demo_indexer1"
+	},
+	{
+	    "index_name": "cindex2",
+	    "index_type": "CUSTOMIZED",
+            "index_fields" : [ {"field_name" : "f2", "boost" : 0} ],
+            "indexer" : "demo_indexer2",
+            "parameters" : {}
+	} 
+    ],
+
+    "attributes": ["price2", "id"]
+
+}

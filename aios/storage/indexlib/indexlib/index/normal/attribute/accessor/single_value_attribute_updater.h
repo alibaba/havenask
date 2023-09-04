@@ -137,7 +137,7 @@ void SingleValueAttributeUpdater<T>::Dump(const file_system::DirectoryPtr& attri
     });
 
     config::PackAttributeConfig* packAttrConfig = mAttrConfig->GetPackAttributeConfig();
-    std::string attrDir = packAttrConfig != NULL ? packAttrConfig->GetAttrName() + "/" + mAttrConfig->GetAttrName()
+    std::string attrDir = packAttrConfig != NULL ? packAttrConfig->GetPackName() + "/" + mAttrConfig->GetAttrName()
                                                  : mAttrConfig->GetAttrName();
 
     file_system::DirectoryPtr dir = attributeDir->MakeDirectory(attrDir);

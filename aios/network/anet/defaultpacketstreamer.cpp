@@ -13,33 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "aios/network/anet/streamingcontext.h"
 #include "aios/network/anet/defaultpacketstreamer.h"
-#include "aios/network/anet/log.h"
-#include "aios/network/anet/databuffer.h"
-#include "aios/network/anet/ipacketfactory.h"
-#include "aios/network/anet/debug.h"
+
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 
 #include "aios/network/anet/controlpacket.h"
+#include "aios/network/anet/databuffer.h"
+#include "aios/network/anet/debug.h"
 #include "aios/network/anet/ilogger.h"
+#include "aios/network/anet/ipacketfactory.h"
 #include "aios/network/anet/ipacketstreamer.h"
+#include "aios/network/anet/log.h"
 #include "aios/network/anet/packet.h"
+#include "aios/network/anet/streamingcontext.h"
 
 namespace anet {
 
 const static int32_t max_package_size = 0x40000000; // 1G
 
-
 DefaultPacketStreamer::DefaultPacketStreamer(IPacketFactory *factory) : IPacketStreamer(factory) {}
 
 DefaultPacketStreamer::~DefaultPacketStreamer() {}
 
-StreamingContext* DefaultPacketStreamer::createContext() {
-    return new StreamingContext;
-}
+StreamingContext *DefaultPacketStreamer::createContext() { return new StreamingContext; }
 
 bool DefaultPacketStreamer::getPacketInfo(DataBuffer *input, PacketHeader *header, bool *broken) {
     if (_existPacketHeader) {
@@ -50,12 +48,14 @@ bool DefaultPacketStreamer::getPacketInfo(DataBuffer *input, PacketHeader *heade
         header->_chid = input->readInt32();
         header->_pcode = input->readInt32();
         header->_dataLen = input->readInt32();
-        if (flag != ANET_PACKET_FLAG || header->_dataLen < 0 || 
-            header->_dataLen > max_package_size) { // 1G
+        if (flag != ANET_PACKET_FLAG || header->_dataLen < 0 || header->_dataLen > max_package_size) { // 1G
             *broken = true;
-            ANET_LOG(WARN, "Broken Packet Detected! ANET FLAG(%08X) VS Packet(%08X), Packet Length(%d)",
-                     ANET_PACKET_FLAG, flag, header->_dataLen);
-            return false;//if broken the head must be wrong
+            ANET_LOG(WARN,
+                     "Broken Packet Detected! ANET FLAG(%08X) VS Packet(%08X), Packet Length(%d)",
+                     ANET_PACKET_FLAG,
+                     flag,
+                     header->_dataLen);
+            return false; // if broken the head must be wrong
         }
     } else if (input->getDataLen() == 0) {
         return false;
@@ -67,16 +67,16 @@ Packet *DefaultPacketStreamer::decode(DataBuffer *input, PacketHeader *header) {
     ANET_LOG(ERROR, "SHOULD NOT INVOKE DefaultPacketStreamer::decode(...)!");
     assert(false);
     return NULL;
-//     Packet *packet = _factory->createPacket(header->_pcode);
-//     if (packet != NULL) {
-//         if (!packet->decode(input, header)) { 
-//             packet->free();
-//             packet = NULL;
-//         }
-//     } else {
-//         input->drainData(header->_dataLen);
-//     }
-//     return packet;
+    //     Packet *packet = _factory->createPacket(header->_pcode);
+    //     if (packet != NULL) {
+    //         if (!packet->decode(input, header)) {
+    //             packet->free();
+    //             packet = NULL;
+    //         }
+    //     } else {
+    //         input->drainData(header->_dataLen);
+    //     }
+    //     return packet;
 }
 
 bool DefaultPacketStreamer::encode(Packet *packet, DataBuffer *output) {
@@ -126,14 +126,12 @@ bool DefaultPacketStreamer::encode(Packet *packet, DataBuffer *output) {
     return true;
 }
 
-bool DefaultPacketStreamer::processData(DataBuffer *dataBuffer,
-                                        StreamingContext *context) 
-{
-    Packet *packet = context->getPacket(); 
+bool DefaultPacketStreamer::processData(DataBuffer *dataBuffer, StreamingContext *context) {
+    Packet *packet = context->getPacket();
     if (NULL == packet) {
         PacketHeader header;
         bool brokenFlag = false;
-        //we did not get packet header;
+        // we did not get packet header;
         if (!getPacketInfo(dataBuffer, &header, &brokenFlag)) {
             context->setBroken(brokenFlag);
             return !brokenFlag && !context->isEndOfFile();
@@ -144,7 +142,7 @@ bool DefaultPacketStreamer::processData(DataBuffer *dataBuffer,
         context->setPacket(packet);
         dataBuffer->ensureFree(header._dataLen);
     }
-    
+
     PacketHeader *header = packet->getPacketHeader();
     if (dataBuffer->getDataLen() < header->_dataLen) {
         context->setBroken(context->isEndOfFile());
@@ -156,16 +154,15 @@ bool DefaultPacketStreamer::processData(DataBuffer *dataBuffer,
         assert(cmd);
         cmd->setPacketHeader(header);
         context->setPacket(cmd);
-	/*fix ticket #145*/
-	// packet->free(); 
-    }
-    else 
+        /*fix ticket #145*/
+        // packet->free();
+    } else
         DBGASSERT(packet->getDataLen() >= 0);
 
     context->setCompleted(true);
     return true;
 }
 
-}
+} // namespace anet
 
 /////////////

@@ -20,8 +20,8 @@
 
 #include "autil/legacy/jsonizable.h"
 #include "iquan/common/Common.h"
-#include "iquan/common/Status.h"
 #include "iquan/common/IquanException.h"
+#include "iquan/common/Status.h"
 #include "iquan/jni/DynamicParams.h"
 
 namespace iquan {
@@ -32,22 +32,26 @@ public:
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);
     bool isValid() const;
-    Status toCacheKey(std::string& jsonStr);
-    Status toWarmupJson(std::string& jsonStr);
-    Status fromWarmupJson(const std::string& jsonStr);
+    Status toCacheKey(std::string &jsonStr);
+    Status toWarmupJson(std::string &jsonStr);
+    Status fromWarmupJson(const std::string &jsonStr);
+
 private:
     void defaultConfig();
     void cacheKeyConfig();
     void warmupJsonConfig();
+
 public: // used for java
     std::vector<std::string> sqls;
     autil::legacy::json::JsonMap sqlParams;
     DynamicParams dynamicParams;
     std::string defaultCatalogName;
     std::string defaultDatabaseName;
-public: // not use in java
+
+public:                                            // not use in java
     std::map<std::string, std::string> execParams; // used for exec graph
     size_t queryHashKey;
+
 private: // for internal use
     bool _enableDynamicParams;
     bool _enableQueryHashKey;

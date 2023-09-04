@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/java/GigTcpGenerator.h"
+
 #include "autil/StringUtil.h"
 
 using namespace std;
@@ -22,7 +23,7 @@ namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GigTcpGenerator);
 
 RequestPtr GigTcpGenerator::generateRequest(const std::string &bodyStr,
-        const GigRequestPlan &requestPlan) {
+                                            const GigRequestPlan &requestPlan) {
     GigTcpRequestPtr request(new GigTcpRequest(getProtobufArena()));
     if (requestPlan.has_timeout()) {
         request->setTimeout(requestPlan.timeout());

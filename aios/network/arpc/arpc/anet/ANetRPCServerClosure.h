@@ -16,18 +16,17 @@
 #pragma once
 #include <memory>
 
-#include "aios/network/arpc/arpc/CommonMacros.h"
-#include "aios/network/arpc/arpc/util/Log.h"
-#include "aios/network/arpc/arpc/RPCServerClosure.h"
-#include "aios/network/arpc/arpc/ANetRPCController.h"
-#include "aios/network/arpc/arpc/anet/ANetRPCMessageCodec.h"
 #include "aios/network/anet/anet.h"
+#include "aios/network/arpc/arpc/ANetRPCController.h"
+#include "aios/network/arpc/arpc/CommonMacros.h"
+#include "aios/network/arpc/arpc/RPCServerClosure.h"
+#include "aios/network/arpc/arpc/anet/ANetRPCMessageCodec.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 #include "google/protobuf/arena.h"
 
 ARPC_BEGIN_NAMESPACE(arpc);
 
-class ANetRPCServerClosure : public RPCServerClosure
-{
+class ANetRPCServerClosure : public RPCServerClosure {
 public:
     ANetRPCServerClosure(channelid_t chid,
                          anet::Connection *connection,
@@ -39,24 +38,20 @@ public:
     virtual ~ANetRPCServerClosure();
 
     std::string getIpAndPortAddr() override;
+
 public:
     // for test
-    anet::Connection *GetConnection() const
-    {
-        return _connection;
-    }
+    anet::Connection *GetConnection() const { return _connection; }
 
-    channelid_t GetChid() const
-    {
-        return _chid;
-    }
+    channelid_t GetChid() const { return _chid; }
     anet::Packet *buildResponsePacket();
 
 protected:
     virtual void doPostPacket() override;
     friend class RPCServerClosureTest;
+
 private:
-    //need by anet
+    // need by anet
     channelid_t _chid;
     anet::Connection *_connection;
     ANetRPCMessageCodec *_messageCodec;

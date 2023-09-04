@@ -17,6 +17,4 @@
 
 FSLIB_BEGIN_NAMESPACE(cache);
 
-
 FSLIB_END_NAMESPACE(cache);
-

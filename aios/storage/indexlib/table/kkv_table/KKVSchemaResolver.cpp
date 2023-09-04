@@ -17,6 +17,7 @@
 
 #include <cassert>
 
+#include "indexlib/config/TabletSchema.h"
 #include "indexlib/config/UnresolvedSchema.h"
 #include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/kkv_index_config.h"
@@ -32,9 +33,21 @@ KKVSchemaResolver::KKVSchemaResolver() {}
 
 KKVSchemaResolver::~KKVSchemaResolver() {}
 
-Status KKVSchemaResolver::Check(const config::TabletSchema& schema)
+Status KKVSchemaResolver::Check(const config::TabletSchema& schema) const
 {
-    // TODO(makuo.mnb) implement
+    auto indexConfigs = schema.GetIndexConfigs(index::KKV_INDEX_TYPE_STR);
+    if (indexConfigs.empty()) {
+        return Status::ConfigError("no valid kkv index config");
+    }
+    for (const auto& indexConfig : indexConfigs) {
+        try {
+            indexConfig->Check();
+        } catch (const std::exception& e) {
+            AUTIL_LOG(ERROR, "check kvIndexConfig [%s] failed exception [%s].", indexConfig->GetIndexName().c_str(),
+                      e.what());
+            return Status::ConfigError("check kv index config failed");
+        }
+    }
     return Status::OK();
 }
 
@@ -44,19 +57,19 @@ void KKVSchemaResolver::FillTTLToSettings(const indexlib::config::IndexPartition
     if (!legacySchema.TTLEnabled()) {
         return;
     }
-    auto [status, ttlEnable] = schema->GetSetting<bool>("enable_ttl");
-    auto [status1, fieldName] = schema->GetSetting<std::string>("ttl_field_name");
-    auto [status2, defaultTTL] = schema->GetSetting<int64_t>("default_ttl");
-    auto [status3, ttlFromDoc] = schema->GetSetting<bool>("ttl_from_doc");
+    auto [status, ttlEnable] = schema->GetRuntimeSettings().GetValue<bool>("enable_ttl");
+    auto [status1, fieldName] = schema->GetRuntimeSettings().GetValue<std::string>("ttl_field_name");
+    auto [status2, defaultTTL] = schema->GetRuntimeSettings().GetValue<int64_t>("default_ttl");
+    auto [status3, ttlFromDoc] = schema->GetRuntimeSettings().GetValue<bool>("ttl_from_doc");
     if (status.IsOK() || status1.IsOK() || status2.IsOK() || status3.IsOK()) {
         // tablet schema setting has ttl config, not use legacy schema
         return;
     }
 
-    bool ret = schema->SetSetting("enable_ttl", true, false);
-    ret = schema->SetSetting("ttl_field_name", legacySchema.GetTTLFieldName(), false) && ret;
-    ret = schema->SetSetting("default_ttl", legacySchema.GetDefaultTTL(), false) && ret;
-    ret = schema->SetSetting("ttl_from_doc", legacySchema.TTLFromDoc(), false) && ret;
+    bool ret = schema->SetRuntimeSetting("enable_ttl", true, false);
+    ret = schema->SetRuntimeSetting("ttl_field_name", legacySchema.GetTTLFieldName(), false) && ret;
+    ret = schema->SetRuntimeSetting("default_ttl", legacySchema.GetDefaultTTL(), false) && ret;
+    ret = schema->SetRuntimeSetting("ttl_from_doc", legacySchema.TTLFromDoc(), false) && ret;
     assert(ret);
 }
 
@@ -105,22 +118,26 @@ Status KKVSchemaResolver::ResolveTabletSchema(const std::string& indexPath, conf
         const auto& kkvConfig = std::dynamic_pointer_cast<indexlibv2::config::KKVIndexConfig>(configs[0]);
         schema->SetPrimaryKeyIndexConfig(kkvConfig);
     }
-    ResolveGeneralizedValue(schema);
+    RETURN_IF_STATUS_ERROR(ResolveGeneralValue(schema), "ResolveGeneralValue failed for %s",
+                           schema->GetTableName().c_str());
     RETURN_IF_STATUS_ERROR(ResolvePkStoreConfig(schema), "ResolvePkStoreConfig failed for %s",
                            schema->GetTableName().c_str());
 
     auto settings = std::make_shared<config::TTLSettings>();
 
-    RETURN_STATUS_DIRECTLY_IF_ERROR(schema->GetSetting("enable_ttl", settings->enabled, settings->enabled));
-    RETURN_STATUS_DIRECTLY_IF_ERROR(schema->GetSetting("ttl_from_doc", settings->ttlFromDoc, settings->ttlFromDoc));
+    RETURN_STATUS_DIRECTLY_IF_ERROR(schema->GetRuntimeSetting("enable_ttl", settings->enabled, settings->enabled));
+    RETURN_STATUS_DIRECTLY_IF_ERROR(
+        schema->GetRuntimeSetting("ttl_from_doc", settings->ttlFromDoc, settings->ttlFromDoc));
 
     if (settings->enabled && settings->ttlFromDoc) {
-        RETURN_STATUS_DIRECTLY_IF_ERROR(schema->GetSetting("ttl_field_name", settings->ttlField, settings->ttlField));
+        RETURN_STATUS_DIRECTLY_IF_ERROR(
+            schema->GetRuntimeSetting("ttl_field_name", settings->ttlField, settings->ttlField));
     }
     bool denyEmptyPrimaryKey = false;
-    RETURN_STATUS_DIRECTLY_IF_ERROR(schema->GetSetting("deny_empty_pkey", denyEmptyPrimaryKey, denyEmptyPrimaryKey));
+    RETURN_STATUS_DIRECTLY_IF_ERROR(
+        schema->GetRuntimeSetting("deny_empty_pkey", denyEmptyPrimaryKey, denyEmptyPrimaryKey));
     bool denyEmptySKey = false;
-    RETURN_STATUS_DIRECTLY_IF_ERROR(schema->GetSetting("deny_empty_skey", denyEmptySKey, denyEmptySKey));
+    RETURN_STATUS_DIRECTLY_IF_ERROR(schema->GetRuntimeSetting("deny_empty_skey", denyEmptySKey, denyEmptySKey));
     configs = schema->GetIndexConfigs(index::KKV_INDEX_TYPE_STR);
     bool ignoreEmptyPrimaryKey = configs.size() > 1;
     for (const auto& indexConfig : configs) {
@@ -129,6 +146,9 @@ Status KKVSchemaResolver::ResolveTabletSchema(const std::string& indexPath, conf
         kkvIndexConfig->SetDenyEmptyPrimaryKey(denyEmptyPrimaryKey);
         kkvIndexConfig->SetDenyEmptySuffixKey(denyEmptySKey);
         kkvIndexConfig->SetIgnoreEmptyPrimaryKey(ignoreEmptyPrimaryKey);
+        if (schema->GetSchemaId() != DEFAULT_SCHEMAID) {
+            kkvIndexConfig->GetValueConfig()->DisableSimpleValue();
+        }
     }
     return Status::OK();
 }
@@ -143,7 +163,7 @@ Status KKVSchemaResolver::ResolvePkStoreConfig(config::UnresolvedSchema* schema)
     return Status::OK();
 }
 
-void KKVSchemaResolver::ResolveGeneralizedValue(config::UnresolvedSchema* schema)
+Status KKVSchemaResolver::ResolveGeneralValue(config::UnresolvedSchema* schema)
 {
     const auto& indexConfigs = schema->GetIndexConfigs(index::KKV_INDEX_TYPE_STR);
     if (indexConfigs.size() == 1) {
@@ -152,20 +172,24 @@ void KKVSchemaResolver::ResolveGeneralizedValue(config::UnresolvedSchema* schema
 
         const auto& valueConfig = kkvConfig->GetValueConfig();
         size_t attributeCount = valueConfig->GetAttributeCount();
-        std::vector<std::shared_ptr<config::FieldConfig>> fields;
-        fields.reserve(attributeCount);
         for (size_t i = 0; i < attributeCount; ++i) {
-            fields.emplace_back(valueConfig->GetAttributeConfig(i)->GetFieldConfig());
+            const auto& attrConfig = valueConfig->GetAttributeConfig(i);
+            if (!schema->GetIndexConfig(indexlib::index::GENERAL_VALUE_INDEX_TYPE_STR, attrConfig->GetIndexName())) {
+                RETURN_IF_STATUS_ERROR(
+                    schema->AddIndexConfig(indexlib::index::GENERAL_VALUE_INDEX_TYPE_STR, attrConfig),
+                    "add [%s] into general_value failed", attrConfig->GetIndexName().c_str());
+            }
         }
         const auto& skey = kkvConfig->GetSuffixFieldConfig();
-        // TODO(xinfei.sxf) kkv index config support this branch judge to reduce this cost
-        auto iter = find_if(fields.begin(), fields.end(),
-                            [&skey](auto field) { return field->GetFieldName() == skey->GetFieldName(); });
-        if (iter == fields.end()) {
-            fields.push_back(skey);
+        if (!schema->GetIndexConfig(indexlib::index::GENERAL_VALUE_INDEX_TYPE_STR, skey->GetFieldName())) {
+            auto attrConfig = std::make_shared<index::AttributeConfig>();
+            RETURN_IF_STATUS_ERROR(attrConfig->Init(skey), "init skey [%s] attribute config failed",
+                                   skey->GetFieldName().c_str());
+            RETURN_IF_STATUS_ERROR(schema->AddIndexConfig(indexlib::index::GENERAL_VALUE_INDEX_TYPE_STR, attrConfig),
+                                   "add [%s] into general_value failed", attrConfig->GetIndexName().c_str());
         }
-        schema->SetGeneralizedValueIndexFieldConfigs(fields);
     }
+    return Status::OK();
 }
 
 } // namespace indexlibv2::table

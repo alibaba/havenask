@@ -1,0 +1,29 @@
+#import(Tool)
+
+function graphDef()
+   local clusterNames = Tool.jsonToList(Graph.parameter["clusterNames"])
+   local schemaIdMap = Tool.jsonToMap(Graph.parameter["schemaIdMap"])
+   
+   for i, clusterName in ipairs(clusterNames)
+   do
+      local clusterParam = {}
+      clusterParam["clusterName"] = clusterName
+      clusterParam["schemaId"] = schemaIdMap[clusterName]
+      clusterParam["dataDescriptions"] = Graph.parameter["dataDescriptions"]
+      clusterParam["realtimeDataDescription"] = Graph.parameter["realtimeDataDescription"]
+      clusterParam["buildId"] = Graph.parameter["buildId"]
+      clusterParam["buildStep"] = Graph.parameter["buildStep"]
+
+      --prepare merge crontab
+      local mergeCrontab = Graph.loadSimpleFlow("mergeCrontab", "mergeCrontab", clusterParam)
+      local mergeCrontabTag = clusterName..":MergeCrontab"
+      mergeCrontab:addTag(mergeCrontabTag)
+      clusterParam["mergeCrontabFlowId"] = mergeCrontab:getFlowId()
+      
+      local fullBuild = Graph.loadFlow("NewBuild.flow", clusterParam)
+      fullBuild:addTag(clusterName..":Build")
+      fullBuild:addTag("BSBuild")
+      Graph.declareFriend(mergeCrontab, fullBuild)
+   end
+   return true
+end

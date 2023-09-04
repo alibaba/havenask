@@ -1,0 +1,348 @@
+{
+  "plan": {
+    "exec_params": {}, 
+    "optimize_infos": {}, 
+    "plan_meta": {}, 
+    "rel_plan": [
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "t1", 
+          "limit": 2147483647, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "t1"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$i1"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "i1": "default.t1.t1.i1"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$i1", 
+            "$i2"
+          ], 
+          "output_fields_hash": 1831636447, 
+          "output_fields_internal": [
+            "$i1", 
+            "$i2"
+          ], 
+          "output_fields_internal_type": [
+            "INTEGER", 
+            "INTEGER"
+          ], 
+          "output_fields_type": [
+            "INTEGER", 
+            "INTEGER"
+          ], 
+          "push_down_ops": [
+            {
+              "attrs": {
+                "output_fields": [
+                  "$i1", 
+                  "$i2"
+                ], 
+                "output_fields_type": [
+                  "INTEGER", 
+                  "INTEGER"
+                ]
+              }, 
+              "op_name": "CalcOp"
+            }
+          ], 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$i1"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "partition_cnt": 1
+          }, 
+          "table_meta": {
+            "field_meta": [
+              {
+                "field_name": "$i1", 
+                "field_type": "int32", 
+                "index_name": "i1", 
+                "index_type": "primarykey128", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$i2", 
+                "field_type": "int32", 
+                "index_name": "i2", 
+                "index_type": "number", 
+                "is_attribute": "true"
+              }
+            ]
+          }, 
+          "table_name": "t1", 
+          "table_type": "normal", 
+          "use_nest_table": false, 
+          "used_fields": [
+            "$i1", 
+            "$i2"
+          ], 
+          "used_fields_type": [
+            "INTEGER", 
+            "INTEGER"
+          ]
+        }, 
+        "id": 0, 
+        "inputs": {
+          "input": []
+        }, 
+        "op_name": "TableScanOp", 
+        "outputs": [
+          1
+        ]
+      }, 
+      {
+        "attrs": {
+          "agg_funcs": [
+            {
+              "approximate": false, 
+              "distinct": false, 
+              "filter_arg": -1, 
+              "name": "COUNT", 
+              "output": [
+                "$COUNT(i2)"
+              ], 
+              "type": "NORMAL"
+            }
+          ], 
+          "group_fields": [
+            "$i1", 
+            "$i2"
+          ], 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "t1"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$i1"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "i1": "default.t1.t1.i1"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$i1", 
+            "$i2", 
+            "$COUNT(i2)"
+          ], 
+          "output_fields_hash": 2008951065, 
+          "output_fields_type": [
+            "INTEGER", 
+            "INTEGER", 
+            "BIGINT"
+          ], 
+          "scope": "NORMAL"
+        }, 
+        "id": 1, 
+        "inputs": {
+          "input": [
+            0
+          ]
+        }, 
+        "op_name": "AggregateOp", 
+        "outputs": [
+          2
+        ]
+      }, 
+      {
+        "attrs": {
+          "condition": {
+            "op": ">", 
+            "params": [
+              "$COUNT(i2)", 
+              0
+            ], 
+            "type": "OTHER"
+          }, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "t1"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$i1"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "i1": "default.t1.t1.i1"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$i1", 
+            "$i2", 
+            "$COUNT(i2)"
+          ], 
+          "output_fields_hash": 2008951065, 
+          "output_fields_type": [
+            "INTEGER", 
+            "INTEGER", 
+            "BIGINT"
+          ]
+        }, 
+        "id": 2, 
+        "inputs": {
+          "input": [
+            1
+          ]
+        }, 
+        "op_name": "CalcOp", 
+        "outputs": [
+          3
+        ]
+      }, 
+      {
+        "attrs": {
+          "limit": 100, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "t1"
+          }, 
+          "offset": 0, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$i1"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "i1": "default.t1.t1.i1"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields_hash": 2008951065
+        }, 
+        "id": 3, 
+        "inputs": {
+          "input": [
+            2
+          ]
+        }, 
+        "op_name": "LimitOp", 
+        "outputs": [
+          4
+        ]
+      }, 
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "t1", 
+          "distribution": {
+            "type": "SINGLETON"
+          }, 
+          "input_fields": [
+            "$i1", 
+            "$i2", 
+            "$COUNT(i2)"
+          ], 
+          "input_fields_type": [
+            "INTEGER", 
+            "INTEGER", 
+            "BIGINT"
+          ], 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": 2008951065, 
+          "output_prunable": 0, 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$i1"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "i1": "default.t1.t1.i1"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "table_group_name": "t1"
+        }, 
+        "id": 4, 
+        "inputs": {
+          "input": [
+            3
+          ]
+        }, 
+        "op_name": "ExchangeOp", 
+        "outputs": [
+          5
+        ]
+      }, 
+      {
+        "attrs": {
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "qrs"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": 2008951065, 
+          "type": "api"
+        }, 
+        "id": 5, 
+        "inputs": {
+          "input": [
+            4
+          ]
+        }, 
+        "op_name": "SinkOp"
+      }
+    ], 
+    "rel_plan_version": "plan_version_0.0.1"
+  }, 
+  "sql_params": {
+    "iquan.optimizer.debug.enable": "false", 
+    "iquan.plan.format.object.enable": "true", 
+    "iquan.plan.format.type": "json", 
+    "iquan.plan.format.version": "plan_version_0.0.1", 
+    "iquan.plan.output.exec_params": "false", 
+    "iquan.plan.prepare.level": "end"
+  }, 
+  "sqls": [
+    "SELECT i1, i2, count(i2) FROM t1 GROUP BY i1, i2 HAVING count(i2) > 0"
+  ]
+}

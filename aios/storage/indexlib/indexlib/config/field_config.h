@@ -74,6 +74,9 @@ public:
     const std::string& GetUserDefineAttributeNullValue() const;
     void SetUserDefineAttributeNullValue(const std::string& nullStr);
 
+    bool IsBuiltInField() const;
+    void SetBuiltInField(bool isBuiltIn);
+
     static std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>>
     FieldConfigsToV2(const std::vector<std::shared_ptr<FieldConfig>>& fieldConfigs)
     {
@@ -88,7 +91,7 @@ private:
     // legacy interface, only for legacy AttributeConfig
     bool IsUpdatableMultiValue() const;
     CompressTypeOption GetCompressType() const;
-    float GetDefragSlicePercent() const;
+    uint64_t GetDefragSlicePercent() const;
     void SetUpdatableMultiValue(bool IsUpdatableMultiValue);
     void SetCompressType(const std::string& compressStr);
     void SetUniqEncode(bool isUniqEncode);

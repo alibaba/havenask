@@ -1,0 +1,40 @@
+package(default_visibility=['//aios/apps/facility/swift:__subpackages__'])
+cc_library(
+    name='swift_heartbeat_lib',
+    srcs=glob(['*.cpp', '*.h'],
+              exclude=['HeartbeatServiceImpl.cpp', 'HeartbeatServiceImpl.h']),
+    hdrs=glob(['*.h'], exclude=['HeartbeatServiceImpl.h']),
+    include_prefix='swift/heartbeat',
+    deps=[
+        '//aios/apps/facility/cm2/cm_basic',
+        '//aios/apps/facility/swift/common:swift_common',
+        '//aios/apps/facility/swift/config:swift_config',
+        '//aios/apps/facility/swift/util:swift_util'
+    ]
+)
+cc_library(
+    name='swift_heartbeat_service',
+    srcs=glob(['HeartbeatServiceImpl.cpp']),
+    hdrs=glob(['HeartbeatServiceImpl.h']),
+    include_prefix='swift/heartbeat',
+    deps=[
+        '//aios/apps/facility/swift/admin:swift_admin_lib',
+        '//aios/apps/facility/swift/heartbeat:swift_heartbeat_lib'
+    ]
+)
+cc_test(
+    name='swift_heartbeat_test',
+    srcs=glob(['test/*Test.cpp']),
+    copts=['-fno-access-control'],
+    data=['//aios/apps/facility/swift:swift_testdata'],
+    flaky=True,
+    shard_count=2,
+    deps=[
+        '//aios/apps/facility/swift:swift_test_h',
+        '//aios/apps/facility/swift/heartbeat:swift_heartbeat_lib',
+        '//aios/apps/facility/swift/protocol:fake_protocol',
+        '//aios/apps/facility/swift/protocol:swift_protocol',
+        '//aios/filesystem/fslib/fslib/fs/zookeeper:fslib_zookeeper_casehelper',
+        '//aios/unittest_framework'
+    ]
+)

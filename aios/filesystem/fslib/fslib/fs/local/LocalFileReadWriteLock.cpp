@@ -13,36 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <sys/file.h>
-#include <signal.h>
-#include <errno.h>
 #include "fslib/fs/local/LocalFileReadWriteLock.h"
+
+#include <errno.h>
+#include <signal.h>
+#include <sys/file.h>
+
 #include "fslib/util/LongIntervalLog.h"
 
 using namespace std;
 FSLIB_BEGIN_NAMESPACE(fs);
 AUTIL_DECLARE_AND_SETUP_LOGGER(fs, LocalFileReadWriteLock);
 
-LocalFileReadWriteLock::LocalFileReadWriteLock(const string& fileName) { 
+LocalFileReadWriteLock::LocalFileReadWriteLock(const string &fileName) {
     _fd = open(fileName.c_str(), O_RDWR | O_CREAT, 0666);
     if (_fd == -1) {
         AUTIL_LOG(ERROR, "create file lock fail, %s.", strerror(errno));
     }
 }
 
-LocalFileReadWriteLock::~LocalFileReadWriteLock() { 
+LocalFileReadWriteLock::~LocalFileReadWriteLock() {
     if (_fd != -1) {
         FSLIB_LONG_INTERVAL_LOG(" ");
         close(_fd);
     }
 }
 
-void LocalFileReadWriteLock::emptyHander(int signo) {
-    return;
-}
+void LocalFileReadWriteLock::emptyHander(int signo) { return; }
 
-int LocalFileReadWriteLock::lock_reg(int fd, int operation, uint32_t timeout)
-{
+int LocalFileReadWriteLock::lock_reg(int fd, int operation, uint32_t timeout) {
     FSLIB_LONG_INTERVAL_LOG(" ");
     if (_fd == -1) {
         AUTIL_LOG(ERROR, "operation fail, file description invalid.");
@@ -69,8 +68,8 @@ int LocalFileReadWriteLock::lock_reg(int fd, int operation, uint32_t timeout)
     if (timeout != 0) {
         alarm(sec);
         sigaction(SIGALRM, &oact, NULL);
-    }    
-    
+    }
+
     return ret;
 }
 
@@ -90,4 +89,3 @@ int LocalFileReadWriteLock::unlock() {
 }
 
 FSLIB_END_NAMESPACE(fs);
-

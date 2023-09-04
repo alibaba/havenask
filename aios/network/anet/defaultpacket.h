@@ -18,35 +18,35 @@
  * Author: zhangli
  * Create time: 2008-12-25 11:10:50
  * $Id$
- * 
+ *
  * Description: ***add description here***
- * 
+ *
  */
 
 #ifndef ANET_DEFAULTPACKET_H_
 #define ANET_DEFAULTPACKET_H_
-#include "aios/network/anet/packet.h"
 #include <stddef.h>
 #include <stdint.h>
+
+#include "aios/network/anet/packet.h"
 
 namespace anet {
 class DataBuffer;
 
-class DefaultPacket : public Packet
-{
+class DefaultPacket : public Packet {
 public:
     DefaultPacket();
     ~DefaultPacket();
-    
+
     bool setBody(const char *, size_t);
     bool appendBody(const char *, size_t);
-    const char* getBody(size_t&) const; 
-    char* getBody(size_t&); 
-    const char* getBody() const;
-    char* getBody();
+    const char *getBody(size_t &) const;
+    char *getBody(size_t &);
+    const char *getBody() const;
+    char *getBody();
 
     bool encode(DataBuffer *output);
-    bool decode(DataBuffer *input, PacketHeader *header); 
+    bool decode(DataBuffer *input, PacketHeader *header);
 
     int64_t getSpaceUsed();
     size_t getBodyLen() const;
@@ -59,5 +59,5 @@ protected:
     size_t _capacity;
 };
 
-}/*end namespace anet*/
+} /*end namespace anet*/
 #endif /*ANET_DEFAULTPACKET_H_*/

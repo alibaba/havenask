@@ -2,7 +2,7 @@
 
 import os
 import process
-import include.json as json
+import include.json_wrapper as json
 from common_define import *
 
 class BuildAppConfig(object):

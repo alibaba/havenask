@@ -18,8 +18,8 @@
 #include "KVDocumentBatch.h"
 #include "autil/DataBuffer.h"
 #include "autil/EnvUtil.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/util/Exception.h"
-
 namespace {
 static const size_t poolChunkSize = []() {
     size_t chunkSize = 10 * 1024; // 10k
@@ -46,9 +46,11 @@ void KVDocumentBatch::AddDocument(DocumentPtr doc)
 size_t KVDocumentBatch::GetAddedDocCount() const
 {
     size_t validAddDoc = 0;
-    for (size_t i = 0; i < GetBatchSize(); ++i) {
-        auto opType = (*this)[i]->GetDocOperateType();
-        if (!IsDropped(i) && (opType == ADD_DOC || opType == DELETE_DOC)) {
+    auto iter = DocumentIterator<document::KVDocument>::Create(this);
+    while (iter->HasNext()) {
+        std::shared_ptr<IDocument> doc = iter->Next();
+        DocOperateType opType = doc->GetDocOperateType();
+        if (opType == ADD_DOC || opType == DELETE_DOC) {
             validAddDoc++;
         }
     }
@@ -59,18 +61,23 @@ autil::mem_pool::UnsafePool* KVDocumentBatch::GetPool() const { return _unsafePo
 
 void KVDocumentBatch::serialize(autil::DataBuffer& dataBuffer) const
 {
-    uint32_t serializeVersion = KVDocument::MULTI_INDEX_KV_DOCUMENT_BINARY_VERSION;
-    dataBuffer.write(serializeVersion);
-    assert(serializeVersion >= KVDocument::KV_DOCUMENT_BINARY_VERSION);
+    uint32_t serializedVersion = KVDocument::SCHEMA_ID_KV_DOCUMENT_BINARY_VERSION;
+    dataBuffer.write(serializedVersion);
+    assert(serializedVersion >= KVDocument::KV_DOCUMENT_BINARY_VERSION);
     uint32_t docCount = GetBatchSize();
     dataBuffer.write(docCount);
     for (const auto& doc : _documents) {
         doc->serialize(dataBuffer);
     }
 
-    if (serializeVersion >= KVDocument::MULTI_INDEX_KV_DOCUMENT_BINARY_VERSION) {
+    if (serializedVersion >= KVDocument::MULTI_INDEX_KV_DOCUMENT_BINARY_VERSION) {
         for (const auto& doc : _documents) {
             doc->SerializeIndexNameHash(dataBuffer);
+        }
+    }
+    if (serializedVersion >= KVDocument::SCHEMA_ID_KV_DOCUMENT_BINARY_VERSION) {
+        for (const auto& doc : _documents) {
+            doc->SerializeSchemaId(dataBuffer);
         }
     }
 }
@@ -92,6 +99,12 @@ void KVDocumentBatch::deserialize(autil::DataBuffer& dataBuffer)
         if (serializedVersion >= KVDocument::MULTI_INDEX_KV_DOCUMENT_BINARY_VERSION) {
             for (auto& doc : _documents) {
                 doc->DeserializeIndexNameHash(dataBuffer);
+            }
+        }
+
+        if (serializedVersion >= KVDocument::SCHEMA_ID_KV_DOCUMENT_BINARY_VERSION) {
+            for (const auto& doc : _documents) {
+                doc->DeserializeSchemaId(dataBuffer);
             }
         }
     } else {

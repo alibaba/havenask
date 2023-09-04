@@ -18,17 +18,16 @@
 #include <memory>
 #include <vector>
 
-
 #include "autil/Log.h"
 #include "autil/LruCache.h"
 #include "iquan/common/Common.h"
 #include "iquan/common/Status.h"
-#include "iquan/config/ClientConfig.h"
 #include "iquan/common/catalog/LayerTablePlanMetaDef.h"
+#include "iquan/config/ClientConfig.h"
 
 namespace iquan {
 
-template<typename T>
+template <typename T>
 struct CacheValueInfo {
 public:
     using ValueType = T;
@@ -36,10 +35,14 @@ public:
     int64_t sizeInBytes;
     ValueType value;
 
-    CacheValueInfo() : updateTimeUs(0), sizeInBytes(1) {}
+    CacheValueInfo()
+        : updateTimeUs(0)
+        , sizeInBytes(1) {}
 
     CacheValueInfo(int64_t updateTimeUs, int64_t sizeInBytes, const ValueType &value)
-        : updateTimeUs(updateTimeUs), sizeInBytes(sizeInBytes), value(value) {}
+        : updateTimeUs(updateTimeUs)
+        , sizeInBytes(sizeInBytes)
+        , value(value) {}
 
     CacheValueInfo(const CacheValueInfo &other) {
         updateTimeUs = other.updateTimeUs;
@@ -57,7 +60,9 @@ public:
         return *this;
     }
 
-    inline int64_t size() const { return sizeInBytes; }
+    inline int64_t size() const {
+        return sizeInBytes;
+    }
 };
 
 template <typename T>
@@ -66,7 +71,9 @@ public:
     using CacheValueInfoTyped = CacheValueInfo<T>;
     class CacheValueGetSizeCallBack {
     public:
-        int64_t operator()(const CacheValueInfoTyped &value) { return value.size(); }
+        int64_t operator()(const CacheValueInfoTyped &value) {
+            return value.size();
+        }
     };
     using LruCacheType = autil::LruCache<uint64_t, CacheValueInfoTyped, CacheValueGetSizeCallBack>;
 
@@ -82,15 +89,13 @@ public:
     uint64_t keyCount() const;
     int64_t capcaity() const;
     int64_t size() const;
-    Status put(
-        const std::string &key,
-        int64_t size,
-        const typename CacheValueInfoTyped::ValueType &value,
-        uint64_t *pHashKey = nullptr);
-    Status get(
-        const std::string &key,
-        typename CacheValueInfoTyped::ValueType &value,
-        uint64_t *pHashKey = nullptr);
+    Status put(const std::string &key,
+               int64_t size,
+               const typename CacheValueInfoTyped::ValueType &value,
+               uint64_t *pHashKey = nullptr);
+    Status get(const std::string &key,
+               typename CacheValueInfoTyped::ValueType &value,
+               uint64_t *pHashKey = nullptr);
     Status calcHashKey(const std::string &key, uint64_t &keyHashValue);
 
 private:

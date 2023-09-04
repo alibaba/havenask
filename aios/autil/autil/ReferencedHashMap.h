@@ -15,12 +15,12 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <assert.h>
+#include <new>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <algorithm>
-#include <new>
 
 #include "autil/FixedSizeAllocator.h"
 #include "autil/Lock.h"
@@ -28,18 +28,14 @@
 namespace autil {
 
 template <class Key, class Value>
-class ReferencedHashMap
-{
+class ReferencedHashMap {
 public:
     typedef Value EntryData;
-    struct  HashEntry
-    {
+    struct HashEntry {
         EntryData data;
-        HashEntry* hashNext;
+        HashEntry *hashNext;
 
-        ~HashEntry() {
-            hashNext = NULL;
-        }
+        ~HashEntry() { hashNext = NULL; }
     };
 
 public:
@@ -48,12 +44,12 @@ public:
 
 private:
     ReferencedHashMap(const ReferencedHashMap &);
-    ReferencedHashMap& operator = (const ReferencedHashMap &);
+    ReferencedHashMap &operator=(const ReferencedHashMap &);
 
 public:
     bool init(uint32_t bucketCount, uint32_t lockCount);
-   
-    inline bool tryDelete(EntryData entryData);//only delete the node of which reference count is zero
+
+    inline bool tryDelete(EntryData entryData); // only delete the node of which reference count is zero
     inline EntryData find(Key key);
     inline EntryData findAndInsert(EntryData entryData);
 
@@ -61,11 +57,11 @@ public:
 
 private:
     inline EntryData findLockFree(uint32_t entryOffset, Key key) const;
-    inline bool deleteEntry(uint32_t entryOffset, EntryData entryData) ;
+    inline bool deleteEntry(uint32_t entryOffset, EntryData entryData);
     size_t adjustBucketNum(size_t n) const;
     void clear();
 
-    HashEntry* allocHashEntry();
+    HashEntry *allocHashEntry();
     void freeHashEntry(HashEntry *entry);
 
 private:
@@ -85,9 +81,7 @@ private:
 /////////////////////////////////////////////////////////////
 
 template <class Key, class Value>
-inline ReferencedHashMap<Key, Value>::ReferencedHashMap() 
-    : _hashEntryAllocator(sizeof(HashEntry))
-{ 
+inline ReferencedHashMap<Key, Value>::ReferencedHashMap() : _hashEntryAllocator(sizeof(HashEntry)) {
     _entryLock = NULL;
     _buckets = NULL;
     _lockCount = 0;
@@ -97,16 +91,13 @@ inline ReferencedHashMap<Key, Value>::ReferencedHashMap()
 }
 
 template <class Key, class Value>
-inline ReferencedHashMap<Key, Value>::~ReferencedHashMap() 
-{ 
+inline ReferencedHashMap<Key, Value>::~ReferencedHashMap() {
     clear();
 }
 
 template <class Key, class Value>
-inline bool ReferencedHashMap<Key, Value>::tryDelete(EntryData entryData) 
-{
-    assert(_bucketCount >0 && _lockCount > 0
-           && NULL != _entryLock && NULL != _buckets);
+inline bool ReferencedHashMap<Key, Value>::tryDelete(EntryData entryData) {
+    assert(_bucketCount > 0 && _lockCount > 0 && NULL != _entryLock && NULL != _buckets);
 
     if (NULL == entryData) {
         return false;
@@ -116,8 +107,7 @@ inline bool ReferencedHashMap<Key, Value>::tryDelete(EntryData entryData)
     bool ret = false;
     ScopedWriteLock lock(_entryLock[lockOffset]);
     ret = (entryData->getRefCount() == 0);
-    if (ret) 
-    {
+    if (ret) {
         ret = deleteEntry(entryOffset, entryData);
     }
 
@@ -125,25 +115,18 @@ inline bool ReferencedHashMap<Key, Value>::tryDelete(EntryData entryData)
 }
 
 template <class Key, class Value>
-inline bool ReferencedHashMap<Key, Value>::deleteEntry(
-        uint32_t entryOffset, EntryData entryData) 
-{
-    HashEntry* cur = _buckets[entryOffset];
-    HashEntry* prev = NULL;
-    while(cur && cur->data->getKey() != entryData->getKey()) 
-    {
+inline bool ReferencedHashMap<Key, Value>::deleteEntry(uint32_t entryOffset, EntryData entryData) {
+    HashEntry *cur = _buckets[entryOffset];
+    HashEntry *prev = NULL;
+    while (cur && cur->data->getKey() != entryData->getKey()) {
         prev = cur;
         cur = cur->hashNext;
     }
-    
-    if (cur) 
-    {
-        if (NULL == prev) 
-        {
-            _buckets[entryOffset] = cur->hashNext;    
-        } 
-        else 
-        {
+
+    if (cur) {
+        if (NULL == prev) {
+            _buckets[entryOffset] = cur->hashNext;
+        } else {
             prev->hashNext = cur->hashNext;
         }
         freeHashEntry(cur);
@@ -155,32 +138,25 @@ inline bool ReferencedHashMap<Key, Value>::deleteEntry(
 }
 
 template <class Key, class Value>
-inline typename ReferencedHashMap<Key, Value>::EntryData 
-ReferencedHashMap<Key, Value>::find(Key key) 
-{
-    assert(_bucketCount > 0 && _lockCount > 0 
-           && NULL != _entryLock && NULL != _buckets);
+inline typename ReferencedHashMap<Key, Value>::EntryData ReferencedHashMap<Key, Value>::find(Key key) {
+    assert(_bucketCount > 0 && _lockCount > 0 && NULL != _entryLock && NULL != _buckets);
 
     uint32_t entryOffset = key % _bucketCount;
     uint32_t lockOffset = entryOffset % _lockCount;
     ScopedReadLock lock(_entryLock[lockOffset]);
     EntryData entryData = findLockFree(entryOffset, key);
-    if (NULL != entryData) 
-    {
+    if (NULL != entryData) {
         entryData->incRefCount();
     }
     return entryData;
 }
 
 template <class Key, class Value>
-inline typename ReferencedHashMap<Key, Value>::EntryData 
-ReferencedHashMap<Key, Value>::findAndInsert(EntryData entryData) 
-{
-    assert(_bucketCount > 0 && _lockCount > 0 
-           && NULL != _entryLock && NULL != _buckets);
+inline typename ReferencedHashMap<Key, Value>::EntryData
+ReferencedHashMap<Key, Value>::findAndInsert(EntryData entryData) {
+    assert(_bucketCount > 0 && _lockCount > 0 && NULL != _entryLock && NULL != _buckets);
 
-    if (NULL == entryData) 
-    {
+    if (NULL == entryData) {
         return NULL;
     }
     uint32_t entryOffset = entryData->getKey() % _bucketCount;
@@ -188,9 +164,8 @@ ReferencedHashMap<Key, Value>::findAndInsert(EntryData entryData)
 
     ScopedWriteLock lock(_entryLock[lockOffset]);
     EntryData findEntryData = findLockFree(entryOffset, entryData->getKey());
-    if (NULL == findEntryData) 
-    {
-        HashEntry* newEntry = allocHashEntry();
+    if (NULL == findEntryData) {
+        HashEntry *newEntry = allocHashEntry();
         newEntry->data = entryData;
         newEntry->hashNext = _buckets[entryOffset];
 
@@ -198,22 +173,17 @@ ReferencedHashMap<Key, Value>::findAndInsert(EntryData entryData)
         __sync_add_and_fetch(&_elementCount, (uint64_t)1);
         entryData->incRefCount();
         return entryData;
-    }
-    else 
-    {
+    } else {
         findEntryData->incRefCount();
         return findEntryData;
     }
 }
 
 template <class Key, class Value>
-inline typename ReferencedHashMap<Key, Value>::EntryData 
-ReferencedHashMap<Key, Value>::findLockFree(
-        uint32_t entryOffset, Key key) const
-{
-    HashEntry* cur = _buckets[entryOffset];
-    while(cur && cur->data->getKey() != key) 
-    {
+inline typename ReferencedHashMap<Key, Value>::EntryData
+ReferencedHashMap<Key, Value>::findLockFree(uint32_t entryOffset, Key key) const {
+    HashEntry *cur = _buckets[entryOffset];
+    while (cur && cur->data->getKey() != key) {
         cur = cur->hashNext;
     }
     return cur ? cur->data : NULL;
@@ -226,33 +196,27 @@ inline size_t ReferencedHashMap<Key, Value>::size() const {
 
 template <class Key, class Value>
 inline bool ReferencedHashMap<Key, Value>::init(uint32_t bucketCount, uint32_t lockCount) {
-    if(_buckets) 
-    {
+    if (_buckets) {
         return false;
     }
 
     _bucketCount = adjustBucketNum(bucketCount);
 
-    _buckets = new (std::nothrow) HashEntry*[_bucketCount];
-    if (!_buckets) 
-    {
+    _buckets = new (std::nothrow) HashEntry *[_bucketCount];
+    if (!_buckets) {
         return false;
     }
-    memset(_buckets, 0, _bucketCount*sizeof(HashEntry*));
+    memset(_buckets, 0, _bucketCount * sizeof(HashEntry *));
 
-    if (lockCount == 0) 
-    {
+    if (lockCount == 0) {
         _lockCount = _bucketCount < 1024 ? _bucketCount : 1024;
-    }
-    else 
-    {
+    } else {
         _lockCount = lockCount;
     }
 
     _entryLock = new (std::nothrow) autil::ReadWriteLock[_lockCount];
-    if (!_entryLock) 
-    {
-        delete [] _buckets;
+    if (!_entryLock) {
+        delete[] _buckets;
         _buckets = NULL;
         return false;
     }
@@ -260,55 +224,45 @@ inline bool ReferencedHashMap<Key, Value>::init(uint32_t bucketCount, uint32_t l
 }
 
 template <class Key, class Value>
-inline size_t ReferencedHashMap<Key, Value>::adjustBucketNum(size_t n) const{
+inline size_t ReferencedHashMap<Key, Value>::adjustBucketNum(size_t n) const {
     static const size_t prime_list[] = {
-        5ul, 11ul, 17ul, 29ul, 37ul, 53ul, 67ul, 79ul,
-        97ul, 131ul, 193ul, 257ul, 389ul, 521ul, 769ul,
-        1031ul, 1543ul, 2053ul, 3079ul, 6151ul, 12289ul, 24593ul,
-        49157ul, 98317ul, 196613ul, 393241ul, 786433ul,
-        1572869ul, 3145739ul, 6291469ul, 12582917ul, 25165843ul,
-        50331653ul, 100663319ul, 201326611ul, 402653189ul, 805306457ul,
-        1610612741ul, 3221225473ul, 4294967291ul };
+        5ul,        11ul,        17ul,        29ul,        37ul,        53ul,         67ul,         79ul,
+        97ul,       131ul,       193ul,       257ul,       389ul,       521ul,        769ul,        1031ul,
+        1543ul,     2053ul,      3079ul,      6151ul,      12289ul,     24593ul,      49157ul,      98317ul,
+        196613ul,   393241ul,    786433ul,    1572869ul,   3145739ul,   6291469ul,    12582917ul,   25165843ul,
+        50331653ul, 100663319ul, 201326611ul, 402653189ul, 805306457ul, 1610612741ul, 3221225473ul, 4294967291ul};
 
-    static const size_t length = 
-        sizeof(prime_list) / sizeof(size_t);
-    
-    const size_t *bound =
-        std::lower_bound(prime_list, prime_list + length - 1, n);
+    static const size_t length = sizeof(prime_list) / sizeof(size_t);
+
+    const size_t *bound = std::lower_bound(prime_list, prime_list + length - 1, n);
 
     return *bound;
 }
 
 template <class Key, class Value>
-void ReferencedHashMap<Key, Value>::clear()
-{
-    if (_entryLock) 
-    {
-        delete [] _entryLock;
+void ReferencedHashMap<Key, Value>::clear() {
+    if (_entryLock) {
+        delete[] _entryLock;
         _entryLock = NULL;
     }
-    
-    for (uint32_t i = 0; i < _bucketCount; ++i)
-    {
-        HashEntry* entry = _buckets[i];
-        while (entry != NULL)
-        {
-            HashEntry* nextEntry = entry->hashNext;
+
+    for (uint32_t i = 0; i < _bucketCount; ++i) {
+        HashEntry *entry = _buckets[i];
+        while (entry != NULL) {
+            HashEntry *nextEntry = entry->hashNext;
             freeHashEntry(entry);
             entry = nextEntry;
         }
     }
-    if (_buckets) 
-    {
-        delete [] _buckets;
+    if (_buckets) {
+        delete[] _buckets;
         _buckets = NULL;
     }
     _hashEntryAllocator.clear();
 }
 
 template <class Key, class Value>
-inline typename ReferencedHashMap<Key, Value>::HashEntry* 
-ReferencedHashMap<Key, Value>::allocHashEntry() {
+inline typename ReferencedHashMap<Key, Value>::HashEntry *ReferencedHashMap<Key, Value>::allocHashEntry() {
     ScopedLock lock(_hashEntryAllocatorLock);
     return new (_hashEntryAllocator.allocate()) HashEntry();
 }
@@ -320,5 +274,4 @@ inline void ReferencedHashMap<Key, Value>::freeHashEntry(HashEntry *entry) {
     _hashEntryAllocator.free(entry);
 }
 
-}
-
+} // namespace autil

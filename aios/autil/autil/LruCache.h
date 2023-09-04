@@ -20,84 +20,61 @@
 #include <vector>
 
 #include "alog/Logger.h"
-
 #include "autil/Cache.h"
 #include "autil/Lock.h"
 #include "autil/Log.h"
 #include "autil/StringUtil.h"
 #include "autil/SynchronizedHashTable.h"
 #include "autil/SynchronizedList.h"
-#ifndef AIOS_OPEN_SOURCE
 #include "lockless_allocator/LocklessApi.h"
-#endif
 
 namespace autil {
 
-template<class K, class V>
-struct CacheValue
-{
+template <class K, class V>
+struct CacheValue {
     V value;
-    ListNode<K>* iter;
-    CacheValue():iter(0) {}
-    CacheValue(const V& v, ListNode<K>* iterator = 0)
-        :value(v), iter(iterator)
-    {
-    }
+    ListNode<K> *iter;
+    CacheValue() : iter(0) {}
+    CacheValue(const V &v, ListNode<K> *iterator = 0) : value(v), iter(iterator) {}
 };
 
-template<class K, class V, class GetSizeCallBack>
-class LruCache: public Cache<K, V>
-{
+template <class K, class V, class GetSizeCallBack>
+class LruCache : public Cache<K, V> {
 public:
-    LruCache(int64_t memSize,
-             GetSizeCallBack getSizeCallBack = GetSizeCallBack());
+    LruCache(int64_t memSize, GetSizeCallBack getSizeCallBack = GetSizeCallBack(), int64_t elemAvgEstMemSize = -1);
     ~LruCache();
 
 public:
-    void warmUp(const std::vector<K>& keyList, const std::vector<V>& valueList) override;
-    void invalidate(const std::vector<K>& keyList) override;
-    bool invalidate(const K& key) override;
+    void warmUp(const std::vector<K> &keyList, const std::vector<V> &valueList) override;
+    void invalidate(const std::vector<K> &keyList) override;
+    bool invalidate(const K &key) override;
 
-    bool put(const K& key, const V& val) override;
-    bool get(const K& key, V& val) override;
-    bool update(const K& key, const V& newVal) override;
-    bool isInCache(const K& key) override;
+    bool put(const K &key, const V &val) override;
+    bool get(const K &key, V &val) override;
+    bool update(const K &key, const V &newVal) override;
+    bool isInCache(const K &key) override;
 
     int64_t getCacheSizeUsed() const { return _memSizeUsed; }
     int64_t getCacheSize() const { return _memSize; }
     uint64_t getKeyCount() const { return _accessQueue.getSize(); }
 
-    void setCacheSize(uint64_t memSize) override{ _memSize = memSize; }
+    void setCacheSize(uint64_t memSize) override { _memSize = memSize; }
 
-    GetSizeCallBack& getGetSizeCallBack()
-    {
-        return _getSizeCallBack;
-    }
+    GetSizeCallBack &getGetSizeCallBack() { return _getSizeCallBack; }
 
-    int64_t getTotalQueryTimes()
-    {
-        return _totalQueryTimes;
-    }
+    int64_t getTotalQueryTimes() { return _totalQueryTimes; }
 
-    int64_t getHitQueryTimes()
-    {
-        return _hitQueryTimes;
-    }
+    int64_t getHitQueryTimes() { return _hitQueryTimes; }
 
-    float getHitRatio() const override
-    {
-        if (_totalQueryTimes != 0)
-        {
+    float getHitRatio() const override {
+        if (_totalQueryTimes != 0) {
             return (float)_hitQueryTimes / _totalQueryTimes;
-        }
-        else
-        {
+        } else {
             return 0.0f;
         }
     }
 
-    void resetHitStatistics()
-    {
+    void resetHitStatistics() {
         _totalQueryTimes = 0;
         _hitQueryTimes = 0;
     }
@@ -112,7 +89,7 @@ private:
     int64_t _memSizeUsed;
     RecursiveThreadMutex _mutexMemSizeUsed;
 
-    SynchronizedHashTable<K, CacheValue<K, V> > _hashTable;
+    SynchronizedHashTable<K, CacheValue<K, V>> _hashTable;
 
     int64_t _totalQueryTimes;
     int64_t _hitQueryTimes;
@@ -123,58 +100,49 @@ private:
     static alog::Logger *_logger;
 };
 
-template<class K, class V, class GetSizeCallBack>
-LruCache<K, V, GetSizeCallBack>::LruCache(int64_t memSize, GetSizeCallBack getSizeCallBack)
+template <class K, class V, class GetSizeCallBack>
+LruCache<K, V, GetSizeCallBack>::LruCache(int64_t memSize, GetSizeCallBack getSizeCallBack, int64_t elemAvgEstMemSize)
     : _getSizeCallBack(getSizeCallBack)
     , _memSize(memSize)
     , _memSizeUsed(0)
+    , _hashTable(elemAvgEstMemSize > 0 ? memSize / elemAvgEstMemSize
+                                       : SynchronizedHashTable<K, CacheValue<K, V>>::BUCKET_NUM_DEF)
     , _totalQueryTimes(0)
-    , _hitQueryTimes(0)
-{
-}
+    , _hitQueryTimes(0) {}
 
-template<class K, class V, class GetSizeCallBack>
-LruCache<K, V, GetSizeCallBack>::~LruCache()
-{
-}
+template <class K, class V, class GetSizeCallBack>
+LruCache<K, V, GetSizeCallBack>::~LruCache() {}
 
-template<class K, class V, class GetSizeCallBack>
-bool LruCache<K, V, GetSizeCallBack>::replacement(int64_t valSize)
-{
+template <class K, class V, class GetSizeCallBack>
+bool LruCache<K, V, GetSizeCallBack>::replacement(int64_t valSize) {
     AUTIL_LOG(TRACE1, "enter replacement, _memSizeUsed=%ld, valSize=%ld", _memSizeUsed, valSize);
-    if (_memSize < valSize)
-    {
+    if (_memSize < valSize) {
         AUTIL_LOG(WARN, "valSize exceeds the memory limit, _memSize=%ld", _memSize);
         return false;
     }
 
-    while (valSize + _memSizeUsed > _memSize)
-    {
+    while (valSize + _memSizeUsed > _memSize) {
         K nodeValue;
         bool exist = _accessQueue.getFront(nodeValue);
-        if (!exist)
-        {
+        if (!exist) {
             AUTIL_LOG(WARN, "Get Front From Access Queue Fail!");
             return false;
         }
 
         CacheValue<K, V> retVal;
-        ReadWriteLock* pLock;
-        HashEntry<K, CacheValue<K, V> >* entry = _hashTable.getHashEntry(nodeValue, pLock);
+        ReadWriteLock *pLock;
+        HashEntry<K, CacheValue<K, V>> *entry = _hashTable.getHashEntry(nodeValue, pLock);
         pLock->wrlock();
         exist = entry->deleteGet(nodeValue, retVal);
-        if (exist)
-        {
+        if (exist) {
             {
                 ScopedLock l(_mutexMemSizeUsed);
                 _memSizeUsed -= _getSizeCallBack(retVal.value);
             }
-            ListNode<K>* iter = retVal.iter;
+            ListNode<K> *iter = retVal.iter;
             _accessQueue.erase(iter);
             AUTIL_LOG(TRACE1, "delete succeeded, key=%s", StringUtil::toString(nodeValue).c_str());
-        }
-        else
-        {
+        } else {
             AUTIL_LOG(TRACE1, "delete failed, key=%s", StringUtil::toString(nodeValue).c_str());
         }
         pLock->unlock();
@@ -183,25 +151,20 @@ bool LruCache<K, V, GetSizeCallBack>::replacement(int64_t valSize)
     return true;
 }
 
-template<class K, class V, class GetSizeCallBack>
-bool LruCache<K, V, GetSizeCallBack>::put(const K& key, const V& val)
-{
-#ifndef AIOS_OPEN_SOURCE
+template <class K, class V, class GetSizeCallBack>
+bool LruCache<K, V, GetSizeCallBack>::put(const K &key, const V &val) {
     DisablePoolScope disableScope;
-#endif
     int64_t valSize = _getSizeCallBack(val);
-    if (valSize + _memSizeUsed > _memSize)
-    {
+    if (valSize + _memSizeUsed > _memSize) {
         bool succ = replacement(valSize);
-        if (!succ)
-        {
+        if (!succ) {
             AUTIL_LOG(WARN, "put failed, because of replacement _memSizeUsed=%ld", _memSizeUsed);
             return false;
         }
     }
 
-    ReadWriteLock* pLock;
-    HashEntry<K, CacheValue<K, V> >* entry = _hashTable.getHashEntry(key, pLock);
+    ReadWriteLock *pLock;
+    HashEntry<K, CacheValue<K, V>> *entry = _hashTable.getHashEntry(key, pLock);
     pLock->wrlock();
 
     // if key already exists in hash table and access queue,
@@ -209,11 +172,10 @@ bool LruCache<K, V, GetSizeCallBack>::put(const K& key, const V& val)
 
     CacheValue<K, V> cv(val);
     CacheValue<K, V> oldVal;
-    CacheValue<K, V>* pretVal;
+    CacheValue<K, V> *pretVal;
     bool firstTime = entry->putGet(key, cv, oldVal, pretVal); // FIXME: if overwrite called,
-                                                          // memory size used need re-calculate
-    if (!firstTime)
-    {
+                                                              // memory size used need re-calculate
+    if (!firstTime) {
         _accessQueue.moveToBack(oldVal.iter);
         pretVal->iter = oldVal.iter;
         assert(pretVal->iter);
@@ -222,9 +184,7 @@ bool LruCache<K, V, GetSizeCallBack>::put(const K& key, const V& val)
         int64_t oldSize = _getSizeCallBack(oldVal.value);
         ScopedLock l(_mutexMemSizeUsed);
         _memSizeUsed += valSize - oldSize;
-    }
-    else
-    {
+    } else {
         pretVal->iter = _accessQueue.pushBack(key);
         ScopedLock l(_mutexMemSizeUsed);
         _memSizeUsed += valSize;
@@ -232,46 +192,42 @@ bool LruCache<K, V, GetSizeCallBack>::put(const K& key, const V& val)
 
     pLock->unlock();
 
-    //std::cout << "Put to cache: key: " << key << std::endl;
+    // std::cout << "Put to cache: key: " << key << std::endl;
 
-    AUTIL_LOG(TRACE1, "put succeeded, key=%s, _memSizeUsed=%ld",
-            StringUtil::toString(key).c_str(), _memSizeUsed);
+    AUTIL_LOG(TRACE1, "put succeeded, key=%s, _memSizeUsed=%ld", StringUtil::toString(key).c_str(), _memSizeUsed);
     return true;
 }
 
-template<class K, class V, class GetSizeCallBack>
-bool LruCache<K, V, GetSizeCallBack>::get(const K& key, V& val)
-{
+template <class K, class V, class GetSizeCallBack>
+bool LruCache<K, V, GetSizeCallBack>::get(const K &key, V &val) {
     AUTIL_LOG(TRACE1, "enter get, key=%s", StringUtil::toString(key).c_str());
-    ReadWriteLock* pLock;
-    HashEntry<K, CacheValue<K, V> >* entry = _hashTable.getHashEntry(key, pLock);
+    ReadWriteLock *pLock;
+    HashEntry<K, CacheValue<K, V>> *entry = _hashTable.getHashEntry(key, pLock);
     pLock->rdlock();
 
     CacheValue<K, V> cacheVal;
     bool exist = entry->get(key, cacheVal);
-    if (exist)
-    {
+    if (exist) {
         _accessQueue.moveToBack(cacheVal.iter);
         val = cacheVal.value;
-        AUTIL_LOG(TRACE1, "value got, key=%s, valueSize=%ld",
-               StringUtil::toString(key).c_str(), (int64_t)_getSizeCallBack(val));
-        _hitQueryTimes ++;
-    }
-    else
-    {
+        AUTIL_LOG(TRACE1,
+                  "value got, key=%s, valueSize=%ld",
+                  StringUtil::toString(key).c_str(),
+                  (int64_t)_getSizeCallBack(val));
+        _hitQueryTimes++;
+    } else {
         AUTIL_LOG(TRACE1, "key not exist, key=%s", StringUtil::toString(key).c_str());
     }
     pLock->unlock();
-    _totalQueryTimes ++;
+    _totalQueryTimes++;
     AUTIL_LOG(TRACE1, "leave get");
     return exist;
 }
 
-template<class K, class V, class GetSizeCallBack>
-bool LruCache<K, V, GetSizeCallBack>::isInCache(const K& key)
-{
-    ReadWriteLock* pLock;
-    HashEntry<K, CacheValue<K, V> >* entry = _hashTable.getHashEntry(key, pLock);
+template <class K, class V, class GetSizeCallBack>
+bool LruCache<K, V, GetSizeCallBack>::isInCache(const K &key) {
+    ReadWriteLock *pLock;
+    HashEntry<K, CacheValue<K, V>> *entry = _hashTable.getHashEntry(key, pLock);
     pLock->rdlock();
 
     CacheValue<K, V> cacheVal;
@@ -280,29 +236,25 @@ bool LruCache<K, V, GetSizeCallBack>::isInCache(const K& key)
     return ret;
 }
 
-template<class K, class V, class GetSizeCallBack>
-bool LruCache<K, V, GetSizeCallBack>::update(
-        const K& key, const V& newVal)
-{
+template <class K, class V, class GetSizeCallBack>
+bool LruCache<K, V, GetSizeCallBack>::update(const K &key, const V &newVal) {
     return put(key, newVal);
 }
 
-template<class K, class V, class GetSizeCallBack>
-bool LruCache<K, V, GetSizeCallBack>::invalidate(const K& key)
-{
-    ReadWriteLock* pLock;
-    HashEntry<K, CacheValue<K, V> >* entry = _hashTable.getHashEntry(key, pLock);
+template <class K, class V, class GetSizeCallBack>
+bool LruCache<K, V, GetSizeCallBack>::invalidate(const K &key) {
+    ReadWriteLock *pLock;
+    HashEntry<K, CacheValue<K, V>> *entry = _hashTable.getHashEntry(key, pLock);
     pLock->wrlock();
 
     CacheValue<K, V> cacheVal;
     bool exist = entry->deleteGet(key, cacheVal);
-    if (exist)
-    {
+    if (exist) {
         {
             ScopedLock l(_mutexMemSizeUsed);
             _memSizeUsed -= _getSizeCallBack(cacheVal.value);
         }
-        ListNode<K>* iter = cacheVal.iter;
+        ListNode<K> *iter = cacheVal.iter;
         _accessQueue.erase(iter);
         AUTIL_LOG(TRACE1, "invalidated key, key=%s", StringUtil::toString(key).c_str());
     }
@@ -310,42 +262,33 @@ bool LruCache<K, V, GetSizeCallBack>::invalidate(const K& key)
     pLock->unlock();
     AUTIL_LOG(TRACE1, "not invalidated key, key=%s", StringUtil::toString(key).c_str());
     return exist;
-
 }
 
-template<class K, class V, class GetSizeCallBack>
-void LruCache<K, V, GetSizeCallBack>::invalidate(const std::vector<K>& keyList)
-{
+template <class K, class V, class GetSizeCallBack>
+void LruCache<K, V, GetSizeCallBack>::invalidate(const std::vector<K> &keyList) {
     typename std::vector<K>::const_iterator iter;
-    for (iter = keyList.begin(); iter != keyList.end(); ++iter)
-    {
+    for (iter = keyList.begin(); iter != keyList.end(); ++iter) {
         invalidate(*iter);
     }
 }
 
-template<class K, class V, class GetSizeCallBack>
-void LruCache<K, V, GetSizeCallBack>::warmUp(
-        const std::vector<K>& keyList, const std::vector<V>& valueList)
-{
+template <class K, class V, class GetSizeCallBack>
+void LruCache<K, V, GetSizeCallBack>::warmUp(const std::vector<K> &keyList, const std::vector<V> &valueList) {
     typename std::vector<K>::const_iterator iterK;
     typename std::vector<V>::const_iterator iterV;
-    for (iterK = keyList.begin(), iterV = valueList.begin();
-         iterK != keyList.end() && iterV != valueList.end();
-         ++iterK, ++iterV)
-    {
-        const K& key = *iterK;
-        const V& val = *iterV;
+    for (iterK = keyList.begin(), iterV = valueList.begin(); iterK != keyList.end() && iterV != valueList.end();
+         ++iterK, ++iterV) {
+        const K &key = *iterK;
+        const V &val = *iterV;
         V retVal;
         bool exist = get(key, retVal);
-        if (!exist)
-        {
+        if (!exist) {
             put(key, val);
         }
     }
 }
 
-template<class K, class V, class GetSizeCallBack>
-alog::Logger *LruCache<K, V, GetSizeCallBack>::_logger
-= alog::Logger::getLogger("autil.LruCache");
+template <class K, class V, class GetSizeCallBack>
+alog::Logger *LruCache<K, V, GetSizeCallBack>::_logger = alog::Logger::getLogger("autil.LruCache");
 
-}
+} // namespace autil

@@ -1,0 +1,184 @@
+{
+    "config" : "",
+    "zones" : {
+        "zone1" : {
+            "config" : "config_path",
+            "hippo_config" : {
+		"step_percent":10,
+		"force_update":false,
+		"group_id" : "zone0",
+		"role_desc": {
+		    "count": 10,
+		    "packageInfos":
+		    [
+			{
+			    "packageURI":"http://xxx"
+			}
+		    ],
+		    "processInfos":
+		    [
+			{
+			    "processName": "abc"
+			}
+		    ],
+		    "resources":
+		    [
+			{
+			    "resources":
+			    [
+				{
+				    "amount": 1,
+				    "name": "cpu"
+				}
+			    ]
+			}
+		    ],
+		    "roleName": "role"
+		},
+		"service_desc": {
+		}
+            },
+            "table_info" : {
+                "table1" : {
+		    "g1": {
+			"index_path" : "/path/to/table1/1",
+			"rt_status" : "",
+			"config_path" : "config_path",
+			"partitions": {
+                            "0_65535" : {
+                                "inc_version" : 10,
+                                "load_state" : "LOADED"
+                            }
+			}
+		    }, 
+		    "g2":{
+		    	"index_path" : "/path/to/table1/2",
+			"rt_status" : "",
+			"config_path" : "config_path",
+			"partitions": {
+                            "0_65535" : {
+                                "inc_version" : 12,
+                                "load_state" : "LOADED"
+                            }
+			}
+		    }
+                },
+		"table2": {
+		    "g1": {
+			"index_path" : "/path/to/table2/1",
+			"rt_status" : "",
+			"config_path" : "config_path",
+			"partitions": {
+                            "0_32767" : {
+                                "inc_version" : 10,
+                                "load_state" : "LOADED"
+                            },
+                            "32768_65535" : {
+                                "inc_version" : 10,
+                                "load_state" : "LOADED"
+                            }
+			}
+		    } 
+		},
+		"unknown":{}
+            },
+            "biz_info" : {
+                "biz1": {
+                    "config_path" : "config_path"
+                }
+            }
+        },
+        "zone2" : {
+            "config" : "config_path",
+            "hippo_config" : {
+		"step_percent":20,
+		"force_update":true,
+		"group_id" : "zone0",
+		"role_desc":{
+		    "count": 10,
+		    "packageInfos":
+		    [
+			{
+			    "packageURI":"http://xxx"
+			}
+		    ],
+		    "processInfos":
+		    [
+			{
+			    "processName": "abc"
+			}
+		    ],
+		    "resources":
+		    [
+			{
+			    "resources":
+			    [
+				{
+				    "amount": 1,
+				    "name": "cpu"
+				}
+			    ]
+			}
+		    ],
+		    "roleName": "role"
+		},
+		"service_desc": {
+		}
+            },
+            "table_info" : {
+                "table1" : {
+		    "g1": {
+			"index_path" : "/path/to/table1/1",
+			"rt_status" : "",
+			"config_path" : "config_path",
+			"partitions": {
+                            "0_65535" : {
+                                "inc_version" : 10,
+                                "load_state" : "LOADED"
+                            }
+			}
+		    }, 
+		    "g2":{
+		    	"index_path" : "/path/to/table1/2",
+			"rt_status" : "",
+			"config_path" : "config_path",
+			"partitions": {
+                            "0_65535" : {
+                                "inc_version" : 12,
+                                "load_state" : "LOADED"
+                            }
+			}
+		    }
+                },
+		"table2": {
+		    "g1": {
+			"index_path" : "/path/to/table2/1",
+			"rt_status" : "",
+			"config_path" : "config_path",
+			"partitions": {
+                            "0_36000" : {
+                                "inc_version" : 10,
+                                "load_state" : "LOADED"
+                            },
+                            "36001_40000" : {
+                                "inc_version" : 10,
+                                "load_state" : "LOADED"
+                            }
+			}
+		    } 
+		},
+		"unknown":{}
+            },
+            "biz_info" : {
+                "biz1": {
+                    "config_path" : "config_pathXXX"
+                },
+                "biz2": {
+		    "config_path" : "config_pathXXX"
+                }
+            }
+
+        }
+    }
+}
+

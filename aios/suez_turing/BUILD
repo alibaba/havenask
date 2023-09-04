@@ -1,0 +1,41 @@
+package(default_visibility=['//aios/suez_turing:__subpackages__'])
+cc_library(
+    name='turing_config',
+    hdrs=[
+        'suez/turing/common/GraphConfig.h', 'suez/turing/common/PoolConfig.h',
+        'suez/turing/common/PluginConfig.h',
+        'suez/turing/common/VersionConfig.h',
+        'suez/turing/common/JoinConfigInfo.h'
+    ],
+    srcs=[
+        'suez/turing/common/GraphConfig.cpp',
+        'suez/turing/common/JoinConfigInfo.cpp'
+    ],
+    deps=['//aios/autil:json'],
+    visibility=['//visibility:public'],
+    include_prefix='suez',
+    strip_include_prefix='suez'
+)
+cc_library(
+    name='closure',
+    hdrs=[
+        'suez/turing/common/Closure.h', 'suez/turing/common/CallbackClosure.h'
+    ],
+    include_prefix='suez',
+    strip_include_prefix='suez'
+)
+cc_library(
+    name='multi_table_wrapper',
+    hdrs=glob(['suez/turing/search/base/MultiTableWrapper.h']),
+    srcs=glob(['suez/turing/search/base/MultiTableWrapper.cpp']),
+    deps=[
+        '//aios/autil:log', '//aios/autil:range_util',
+        '//aios/autil:string_helper',
+        '//aios/storage/indexlib/indexlib/partition:reader_sdk',
+        '//aios/suez:suez_search_sdk',
+        '//aios/suez_turing/suez/turing/expression:turing_expression'
+    ],
+    visibility=['//visibility:public'],
+    include_prefix='suez',
+    strip_include_prefix='suez'
+)

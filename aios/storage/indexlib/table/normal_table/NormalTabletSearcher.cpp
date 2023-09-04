@@ -17,6 +17,7 @@
 
 #include "autil/memory.h"
 #include "indexlib/config/TabletSchema.h"
+#include "indexlib/document/normal/SearchSummaryDocument.h"
 #include "indexlib/index/attribute/AttrHelper.h"
 #include "indexlib/index/attribute/AttributeIteratorBase.h"
 #include "indexlib/index/attribute/AttributeIteratorTyped.h"
@@ -33,10 +34,14 @@
 #include "indexlib/index/inverted_index/config/PackageIndexConfig.h"
 #include "indexlib/index/inverted_index/format/TermMeta.h"
 #include "indexlib/index/primary_key/PrimaryKeyIndexReader.h"
+#include "indexlib/index/summary/SummaryReader.h"
+#include "indexlib/index/summary/config/SummaryConfig.h"
+#include "indexlib/index/summary/config/SummaryIndexConfig.h"
 #include "indexlib/table/BuiltinDefine.h"
 #include "indexlib/table/common/SearchUtil.h"
 #include "indexlib/table/normal_table/Common.h"
 #include "indexlib/table/normal_table/NormalTabletReader.h"
+#include "indexlib/util/ProtoJsonizer.h"
 #include "indexlib/util/TimestampUtil.h"
 
 namespace indexlib::index {
@@ -63,90 +68,35 @@ NormalTabletSearcher::NormalTabletSearcher(const NormalTabletReader* normalTable
     assert(_normalTabletReader);
 }
 
-/* json format:
-   {
-   "docid_list" : [ 0, 1, ...],
-   "pk_list" : [ "key1", "key2", ...],
-   "condition" : {
-       "index_name" : "index1",
-       "values" : [ "value1", "value2", ...]
-   },
-   "ignore_deletionmap" : false,
-   "truncate_name" : "__bitmap__",
-   "limit" : 10,
-   "attributes" : ["attr1", "attr2", ...]
-   }
+NormalTabletSearcher::~NormalTabletSearcher() {}
+
+/*protobuf query.proto:PartitionQuery to json
+ json format:
+ {
+    "docid" : [ 0, 1, ...],
+    "pk" : [ "key1", "key2", ...],
+    "condition" : {
+        "indexName" : "index1",
+        "truncateName" : "trunc1",
+        "values" : [ "value1", "value2", ...]
+    },
+    "ignoreDeletionMap" : false,
+    "truncateName" : "__bitmap__",
+    "limit" : 10,
+    "attrs" : ["attr1", "attr2", ...],
+    "pkNumber" : [5435621, 45938278, ...],
+    "needSectionInfo" : false,
+    "summarys" : ["summary1", "summary2", ...]
+ }
 */
 Status NormalTabletSearcher::Search(const std::string& jsonQuery, std::string& result) const
 {
-    std::vector<int64_t> docidVec;
-    std::vector<std::string> pkList;
-    std::vector<std::string> attributes;
-
     base::PartitionQuery query;
-    try {
-        autil::legacy::Any a = autil::legacy::json::ParseJson(jsonQuery);
-        autil::legacy::json::JsonMap am = autil::legacy::AnyCast<autil::legacy::json::JsonMap>(a);
-        auto iter = am.find("ignore_deletionmap");
-        if (iter != am.end()) {
-            query.set_ignoredeletionmap(autil::legacy::AnyCast<bool>(iter->second));
-        }
-        iter = am.find("truncate_name");
-        if (iter != am.end()) {
-            query.set_truncatename(autil::legacy::AnyCast<std::string>(iter->second));
-        }
-        iter = am.find("pk_list");
-        if (iter != am.end()) {
-            autil::legacy::FromJson(pkList, iter->second);
-        }
-        iter = am.find("docid_list");
-        if (iter != am.end()) {
-            autil::legacy::FromJson(docidVec, iter->second);
-        }
-        iter = am.find("attributes");
-        if (iter != am.end()) {
-            autil::legacy::FromJson(attributes, iter->second);
-        }
-        iter = am.find("limit");
-        if (iter != am.end()) {
-            query.set_limit(autil::legacy::AnyCast<int64_t>(iter->second));
-        }
-        iter = am.find("condition");
-        if (iter != am.end()) {
-            auto conditionMap = autil::legacy::AnyCast<autil::legacy::json::JsonMap>(iter->second);
-            auto condition = query.mutable_condition();
-            auto it = conditionMap.find("index_name");
-            if (it != conditionMap.end()) {
-                condition->set_indexname(autil::legacy::AnyCast<std::string>(it->second));
-            }
-
-            std::vector<std::string> values;
-            it = conditionMap.find("values");
-            if (it != conditionMap.end()) {
-                autil::legacy::FromJson(values, it->second);
-            }
-            condition->mutable_values()->CopyFrom({values.begin(), values.end()});
-        }
-    } catch (const std::exception& e) {
-        return Status::InvalidArgs("invalid query [%s]", jsonQuery.c_str());
-    }
-
-    if (!pkList.empty()) {
-        query.mutable_pk()->CopyFrom({pkList.begin(), pkList.end()});
-    }
-    if (!docidVec.empty()) {
-        query.mutable_docid()->CopyFrom({docidVec.begin(), docidVec.end()});
-    }
-    if (!attributes.empty()) {
-        query.mutable_attrs()->CopyFrom({attributes.begin(), attributes.end()});
-    }
-
+    RETURN_STATUS_DIRECTLY_IF_ERROR(indexlib::util::ProtoJsonizer::FromJson(jsonQuery, &query));
     base::PartitionResponse partitionResponse;
-    auto ret = QueryIndex(query, partitionResponse);
-    if (ret.IsOK()) {
-        SearchUtil::ConvertResponseToStringFormat(partitionResponse, result);
-    }
-    return ret;
+    RETURN_STATUS_DIRECTLY_IF_ERROR(QueryIndex(query, partitionResponse));
+    RETURN_STATUS_DIRECTLY_IF_ERROR(indexlib::util::ProtoJsonizer::ToJson(partitionResponse, &result));
+    return Status::OK();
 }
 
 Status NormalTabletSearcher::QueryIndex(const base::PartitionQuery& query,
@@ -167,7 +117,9 @@ Status NormalTabletSearcher::QueryIndex(const base::PartitionQuery& query,
 
     auto attrs = ValidateAttrs(_normalTabletReader->GetSchema(),
                                std::vector<std::string> {query.attrs().begin(), query.attrs().end()});
-    RETURN_STATUS_DIRECTLY_IF_ERROR(QueryIndexByDocId(attrs, docids, limit, partitionResponse));
+    auto summarys = ValidateSummarys(_normalTabletReader->GetSchema(),
+                                     std::vector<std::string> {query.summarys().begin(), query.summarys().end()});
+    RETURN_STATUS_DIRECTLY_IF_ERROR(QueryIndexByDocId(attrs, summarys, docids, limit, partitionResponse));
     if (IndexTableQueryType::ByRawPk == queryType) {
         for (int i = 0; i < query.pk().size(); ++i) {
             partitionResponse.mutable_rows(i)->set_pk(query.pk(i));
@@ -259,20 +211,50 @@ Status NormalTabletSearcher::ValidateDocIds(const std::shared_ptr<index::Deletio
     return Status::OK();
 }
 
-std::vector<std::string> NormalTabletSearcher::ValidateAttrs(const std::shared_ptr<config::TabletSchema>& tabletSchema,
+std::vector<std::string> NormalTabletSearcher::ValidateAttrs(const std::shared_ptr<config::ITabletSchema>& tabletSchema,
                                                              const std::vector<std::string>& attrs)
 {
-    auto legacySchema = tabletSchema->GetLegacySchema();
     std::vector<std::string> indexAttrs;
     const auto& indexConfigs = tabletSchema->GetIndexConfigs(index::ATTRIBUTE_INDEX_TYPE_STR);
     for (const auto& indexConfig : indexConfigs) {
-        auto attrConfig = dynamic_cast<const config::AttributeConfig*>(indexConfig.get());
-        if (attrConfig->IsDisable()) {
+        auto attrConfig = dynamic_cast<const index::AttributeConfig*>(indexConfig.get());
+        if (attrConfig->IsDisabled()) {
             continue;
         }
         indexAttrs.push_back(attrConfig->GetAttrName());
     }
     return indexlib::index::AttrHelper::ValidateAttrs(indexAttrs, attrs);
+}
+
+std::vector<std::string>
+NormalTabletSearcher::ValidateSummarys(const std::shared_ptr<config::ITabletSchema>& tabletSchema,
+                                       const std::vector<std::string>& summarys)
+{
+    std::vector<std::string> indexSummarys;
+    const auto& config =
+        tabletSchema->GetIndexConfig(indexlib::index::SUMMARY_INDEX_TYPE_STR, indexlib::index::SUMMARY_INDEX_NAME);
+    if (!config) {
+        return indexSummarys;
+    }
+    const auto& summaryConfig = std::dynamic_pointer_cast<indexlibv2::config::SummaryIndexConfig>(config);
+    assert(summaryConfig);
+    if (summarys.empty()) {
+        for (const auto& singleConfig : *summaryConfig) {
+            indexSummarys.push_back(singleConfig->GetSummaryName());
+        }
+        return indexSummarys;
+    }
+    for (const auto& summary : summarys) {
+        auto fieldConfig = tabletSchema->GetFieldConfig(summary);
+        if (!fieldConfig) {
+            continue;
+        }
+        if (!summaryConfig->GetSummaryConfig(fieldConfig->GetFieldId())) {
+            continue;
+        }
+        indexSummarys.push_back(summary);
+    }
+    return indexSummarys;
 }
 
 Status
@@ -333,7 +315,7 @@ Status NormalTabletSearcher::QueryDocIdsByCondition(const indexlibv2::base::Attr
 {
     const auto tabletSchema = _normalTabletReader->GetSchema();
     const std::string indexName = condition.indexname();
-    const auto config = tabletSchema->GetIndexConfig(indexlib::index::INVERTED_INDEX_TYPE_STR, indexName);
+    const auto config = tabletSchema->GetIndexConfig(indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR, indexName);
     const auto indexConfig = std::dynamic_pointer_cast<indexlibv2::config::InvertedIndexConfig>(config);
     if (indexConfig == nullptr) {
         return Status::InvalidArgs("fail to cast [%s] index config in schema", indexName.c_str());
@@ -385,17 +367,16 @@ Status NormalTabletSearcher::QueryDocIdsByCondition(const indexlibv2::base::Attr
     return Status::OK();
 }
 
-Status NormalTabletSearcher::QueryRowByDocId(const docid_t docid, const std::vector<std::string>& attrs,
-                                             base::Row& row) const
+Status NormalTabletSearcher::QueryRowAttrByDocId(const docid_t docid, const std::vector<std::string>& attrs,
+                                                 base::Row& row) const
 {
     const auto& schema = _normalTabletReader->GetSchema();
     autil::mem_pool::Pool pool;
-    row.set_docid(docid);
     for (const auto& attr : attrs) {
         auto indexConfig = schema->GetIndexConfig(index::ATTRIBUTE_INDEX_TYPE_STR, /*indexName*/ attr);
         assert(indexConfig);
-        auto attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
-        if (attrConfig->IsDisable()) {
+        auto attrConfig = std::dynamic_pointer_cast<index::AttributeConfig>(indexConfig);
+        if (attrConfig->IsDisabled()) {
             continue;
         }
         auto attrValue = row.add_attrvalues();
@@ -421,12 +402,58 @@ Status NormalTabletSearcher::QueryRowByDocId(const docid_t docid, const std::vec
     return Status::OK();
 }
 
+Status NormalTabletSearcher::QueryRowSummaryByDocId(const docid_t docid, const std::vector<std::string>& summarys,
+                                                    base::Row& row) const
+{
+    if (summarys.empty()) {
+        return Status::OK();
+    }
+    std::shared_ptr<index::SummaryReader> summaryReader = _normalTabletReader->GetSummaryReader();
+    if (!summaryReader) {
+        return Status::InternalError("get summary reader failed!");
+    }
+    const auto& schema = _normalTabletReader->GetSchema();
+    autil::mem_pool::Pool pool;
+    const auto& config =
+        schema->GetIndexConfig(indexlib::index::SUMMARY_INDEX_TYPE_STR, indexlib::index::SUMMARY_INDEX_NAME);
+    if (!config) {
+        return Status::ConfigError("get summary config failed");
+    }
+    const auto& summaryConfig = std::dynamic_pointer_cast<indexlibv2::config::SummaryIndexConfig>(config);
+    assert(summaryConfig);
+
+    auto doc = std::make_unique<indexlib::document::SearchSummaryDocument>(nullptr, summaryConfig->GetSummaryCount());
+    auto [status, ret] = summaryReader->GetDocument(docid, doc.get());
+    RETURN_STATUS_DIRECTLY_IF_ERROR(status);
+    if (!ret) {
+        return Status::InternalError("get document for docid [%d] failed", docid);
+    }
+    for (const auto& summary : summarys) {
+        fieldid_t fieldId = schema->GetFieldId(summary);
+        index::summaryfieldid_t summaryFieldId = summaryConfig->GetSummaryFieldId(fieldId);
+        const autil::StringView* fieldValue = doc->GetFieldValue(summaryFieldId);
+        std::string value;
+        if (fieldValue != NULL && fieldValue->size() > 0) {
+            value.assign(fieldValue->data(), fieldValue->size());
+        }
+        auto summaryValue = row.add_summaryvalues();
+        summaryValue->set_fieldname(summary);
+        summaryValue->set_value(value);
+    }
+    return Status::OK();
+}
+
 Status NormalTabletSearcher::QueryIndexByDocId(const std::vector<std::string>& attrs,
+                                               const std::vector<std::string>& summarys,
                                                const std::vector<docid_t>& docids, const int64_t limit,
                                                base::PartitionResponse& partitionResponse) const
 {
     for (int docCount = 0; docCount < std::min(docids.size(), size_t(limit)); ++docCount) {
-        RETURN_STATUS_DIRECTLY_IF_ERROR(QueryRowByDocId(docids[docCount], attrs, *partitionResponse.add_rows()));
+        auto row = partitionResponse.add_rows();
+        auto docid = docids[docCount];
+        row->set_docid(docid);
+        RETURN_STATUS_DIRECTLY_IF_ERROR(QueryRowAttrByDocId(docid, attrs, *row));
+        RETURN_STATUS_DIRECTLY_IF_ERROR(QueryRowSummaryByDocId(docid, summarys, *row));
     }
     if (partitionResponse.rows_size() > 0) {
         const auto& attrValues = partitionResponse.rows(0).attrvalues();
@@ -450,7 +477,8 @@ Status NormalTabletSearcher::QueryDocIdsByTerm(
     auto postingIter =
         autil::shared_ptr_pool_deallocated(&pool, indexReader->Lookup(term, limit, postingType, &pool).ValueOrThrow());
     if (!postingIter) {
-        return Status::NotFound("create index iterator for index name", term.GetIndexName().c_str(), "failed.");
+        return Status::NotFound("create index posting iterator for index name [%s] failed",
+                                term.GetIndexName().c_str());
     }
     auto termMeta = postingIter->GetTermMeta();
     if (termMeta) {

@@ -18,9 +18,9 @@
  * Author: lizhang
  * Create time: 2010-11-07 18:34:30
  * $Id$
- * 
+ *
  * Description: ***add description here***
- * 
+ *
  */
 
 #ifndef ANET_DELAYDECODEPACKETFACTORY_H_
@@ -31,15 +31,14 @@
 namespace anet {
 class Packet;
 
-class DelayDecodePacketFactory : public IPacketFactory
-{
+class DelayDecodePacketFactory : public IPacketFactory {
 public:
     DelayDecodePacketFactory();
 
     ~DelayDecodePacketFactory();
 
-    virtual Packet* createPacket(int pcode);
+    virtual Packet *createPacket(int pcode);
 };
 
-}/*end namespace anet*/
+} /*end namespace anet*/
 #endif /*ANET_DELAYDECODEPACKETFACTORY_H_*/

@@ -170,7 +170,7 @@ RawDocumentReader::ErrorCode RawDocumentReader::read(document::RawDocumentPtr& r
     if (!_documentFactoryWrapper) {
         // for test case : make EOF effective
         string docStr;
-        DocInfo docInfo(0, INVALID_TIMESTAMP);
+        DocInfo docInfo(0, INVALID_TIMESTAMP, 0);
         ErrorCode ec = readDocStr(docStr, checkpoint, docInfo);
         if (ec != ERROR_NONE) {
             return ec;
@@ -249,7 +249,7 @@ RawDocumentReader::ErrorCode RawDocumentReader::getNextRawDoc(document::RawDocum
                 rawDocSize += m.data.size();
             }
             if (!_msgBuffer.empty()) {
-                docInfo.docTimestamp = _msgBuffer.rbegin()->timestamp;
+                docInfo.timestamp = _msgBuffer.rbegin()->timestamp;
                 docInfo.hashId = _msgBuffer.rbegin()->hashId;
             }
         } else {
@@ -279,7 +279,7 @@ RawDocumentReader::ErrorCode RawDocumentReader::getNextRawDoc(document::RawDocum
             msgCount = 1;
             indexlibv2::document::IRawDocumentParser::Message msg;
             msg.data = std::move(docStr);
-            msg.timestamp = docInfo.docTimestamp;
+            msg.timestamp = docInfo.timestamp;
             msg.hashId = docInfo.hashId;
             hasValidDoc = _parser->parse(msg, rawDoc);
         }
@@ -313,7 +313,7 @@ RawDocumentReader::ErrorCode RawDocumentReader::read(document::RawDocument& rawD
         // add latency metric for readers  which override getNextRawDoc interface
         ScopeLatencyReporter reporter(_getNextDocLatencyMetric.get());
         ec = getNextRawDoc(rawDoc, checkpoint, docInfo);
-        timestamp = docInfo.docTimestamp;
+        timestamp = docInfo.timestamp;
     }
 
     if (ec != ERROR_NONE) {
@@ -352,7 +352,7 @@ RawDocumentReader::ErrorCode RawDocumentReader::read(document::RawDocument& rawD
 
     reportTimestampFieldValue(timestamp);
     rawDoc.setDocTimestamp(timestamp);
-    rawDoc.SetDocInfo({docInfo.hashId, docInfo.docTimestamp});
+    rawDoc.SetDocInfo(docInfo);
     if (!_traceField.empty()) {
         string traceValue = rawDoc.getField(_traceField);
         PkTracer::fromReadTrace(traceValue, checkpoint->offset);
@@ -549,12 +549,6 @@ void RawDocumentReader::fillDocTags(document::RawDocument& rawDoc)
     }
     doFillDocTags(rawDoc);
     rawDoc.AddTag("__print_document_tags__", "true");
-}
-
-bool RawDocumentReader::getMaxTimestampAfterStartTimestamp(int64_t& timestamp)
-{
-    BS_LOG(WARN, "getMaxTimestamp failed because reader not supported.");
-    return false;
 }
 
 }} // namespace build_service::reader

@@ -49,6 +49,7 @@ using indexlib::index::PREFIX_KEY_FILE_NAME;
 using indexlib::index::SUFFIX_KEY_FILE_NAME;
 
 static constexpr uint32_t INVALID_SKEY_OFFSET = std::numeric_limits<uint32_t>::max();
+static constexpr uint32_t KKV_DEFAULT_SKIPLIST_THRESHOLD = 100;
 static constexpr uint64_t INVALID_VALUE_OFFSET = std::numeric_limits<uint64_t>::max();
 static constexpr uint64_t SKEY_ALL_DELETED_OFFSET = std::numeric_limits<uint64_t>::max() - 1;
 static constexpr uint64_t ON_DISK_INVALID_SKEY_OFFSET = std::numeric_limits<uint64_t>::max();

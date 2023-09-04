@@ -16,6 +16,7 @@
 #include "indexlib/index/kkv/building/KKVMemIndexer.h"
 
 #include "indexlib/config/IndexConfigHash.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/index/BuildingIndexMemoryUseUpdater.h"
@@ -87,8 +88,8 @@ template <typename SKeyType>
 inline Status KKVMemIndexer<SKeyType>::InitValueWriter(size_t maxValueMemUse)
 {
     const uint64_t kMaxSliceLen = 32 * 1024 * 1024; // 32MB;
-    uint64_t sliceLen = (maxValueMemUse > kMaxSliceLen) ? kMaxSliceLen : maxValueMemUse;
-    size_t sliceNum = maxValueMemUse / sliceLen;
+    size_t sliceNum = (maxValueMemUse > kMaxSliceLen) ? std::ceil(maxValueMemUse * 1.0 / kMaxSliceLen) : 1;
+    uint64_t sliceLen = maxValueMemUse / sliceNum; // 16MB ~ 32MB
     _valueWriter.reset(new KKVValueWriter(false));
     return _valueWriter->Init(sliceLen, sliceNum);
 }
@@ -141,11 +142,10 @@ Status KKVMemIndexer<SKeyType>::Build(document::IDocumentBatch* docBatch)
     }
 
     size_t valueSize = 0;
-    for (size_t i = 0; i < kkvDocBatch->GetBatchSize(); ++i) {
-        if (kkvDocBatch->IsDropped(i)) {
-            continue;
-        }
-        auto kkvDoc = std::dynamic_pointer_cast<document::KKVDocument>((*kkvDocBatch)[i]);
+    std::unique_ptr<indexlibv2::document::DocumentIterator<indexlibv2::document::KKVDocument>> iter =
+        indexlibv2::document::DocumentIterator<indexlibv2::document::KKVDocument>::Create(kkvDocBatch);
+    while (iter->HasNext()) {
+        auto kkvDoc = iter->TypedNext();
         auto curIndexNameHash = kkvDoc->GetIndexNameHash();
         if (curIndexNameHash != 0 && indexNameHash != curIndexNameHash) {
             continue;
@@ -166,7 +166,7 @@ Status KKVMemIndexer<SKeyType>::BuildSingleDocument(const document::KKVDocument*
 {
     if (IsFull()) {
         AUTIL_LOG(WARN, "table [%s] index [%s] MemIndexer is full.", _tabletName.c_str(), _indexName.c_str());
-        return Status::NeedDump();
+        return Status::NeedDump("IsFull");
     }
 
     auto docType = doc->GetDocOperateType();
@@ -220,10 +220,10 @@ Status KKVMemIndexer<SKeyType>::AddDocument(const document::KKVDocument* doc)
     if (unlikely(value.size() + _valueWriter->GetUsedBytes() > _valueWriter->GetReserveBytes())) {
         AUTIL_LOG(WARN,
                   "table [%s] index [%s] insert pkey[%lu] skey[%s] failed, value memory not enough, "
-                  "reserve[%lu], used[%lu], need[%lu]",
+                  "reserve[%lu], used[%lu], value [%lu]",
                   _tabletName.c_str(), _indexName.c_str(), pkey, autil::StringUtil::toString(skey).c_str(),
                   _valueWriter->GetReserveBytes(), _valueWriter->GetUsedBytes(), value.size());
-        return Status::NeedDump();
+        return Status::NeedDump("value no space");
     }
 
     uint64_t valueOffset = 0;
@@ -238,12 +238,12 @@ Status KKVMemIndexer<SKeyType>::AddDocument(const document::KKVDocument* doc)
         if (!_skeyWriter->LinkSkeyNode(*listInfo, skeyOffset)) {
             AUTIL_LOG(WARN, "table [%s] index [%s] link skeyNode key[%lu] skey[%s] to skeyWriter failed, no space!",
                       _tabletName.c_str(), _indexName.c_str(), pkey, autil::StringUtil::toString(skey).c_str());
-            return Status::NeedDump();
+            return Status::NeedDump("skey no space");
         }
     } else if (!_pkeyTable->Insert(pkey, SKeyListInfo(skeyOffset, index::INVALID_SKEY_OFFSET, 1))) {
         AUTIL_LOG(WARN, "table [%s] index [%s] insert key[%lu] to pkeyTable failed, no space!", _tabletName.c_str(),
                   _indexName.c_str(), pkey);
-        return Status::NeedDump();
+        return Status::NeedDump("pkey no space");
     }
     MEMORY_BARRIER();
 
@@ -301,12 +301,12 @@ Status KKVMemIndexer<SKeyType>::DeleteSKey(const document::KKVDocument* doc)
         if (!_skeyWriter->LinkSkeyNode(*listInfo, skeyOffset)) {
             AUTIL_LOG(WARN, "table [%s] index [%s] link skeyNode key[%lu] skey[%s] to skeyWriter failed, no space!",
                       _tabletName.c_str(), _indexName.c_str(), pkey, autil::StringUtil::toString(skey).c_str());
-            return Status::NeedDump();
+            return Status::NeedDump("skey no space");
         }
     } else if (!_pkeyTable->Insert(pkey, SKeyListInfo(skeyOffset, index::INVALID_SKEY_OFFSET, 1))) {
         AUTIL_LOG(WARN, "table [%s] index [%s] insert key[%lu] to pkeyTable failed, no space!", _tabletName.c_str(),
                   _indexName.c_str(), pkey);
-        return Status::NeedDump();
+        return Status::NeedDump("pkey no space");
     }
     MEMORY_BARRIER();
 
@@ -330,12 +330,12 @@ Status KKVMemIndexer<SKeyType>::DeletePKey(const document::KKVDocument* doc)
         if (!_skeyWriter->LinkSkeyNode(*listInfo, skeyOffset)) {
             AUTIL_LOG(WARN, "table [%s] index [%s] link skeyNode key[%lu] skey[%s] to skeyWriter failed, no space!",
                       _tabletName.c_str(), _indexName.c_str(), pkey, autil::StringUtil::toString(skey).c_str());
-            return Status::NeedDump();
+            return Status::NeedDump("skey no space");
         }
     } else if (!_pkeyTable->Insert(pkey, SKeyListInfo(skeyOffset, index::INVALID_SKEY_OFFSET, 1))) {
         AUTIL_LOG(WARN, "table [%s] index [%s] insert key[%lu] to pkeyTable failed, no space!", _tabletName.c_str(),
                   _indexName.c_str(), pkey);
-        return Status::NeedDump();
+        return Status::NeedDump("pkey no space");
     }
     MEMORY_BARRIER();
 
@@ -471,9 +471,8 @@ void KKVMemIndexer<SKeyType>::UpdateMemUse(BuildingIndexMemoryUseUpdater* memUpd
     size_t memBufferMemUse = _memBuffer.GetBufferSize();
     size_t totalMemUse = pkeyMemUse + skeyMemUse + valueMemUse + memBufferMemUse;
     memUpdater->UpdateCurrentMemUse(totalMemUse);
-
-    memUpdater->EstimateDumpedFileSize(EstimateDumpFileSize());
     memUpdater->EstimateDumpTmpMemUse(EstimateDumpTmpMemUse());
+    // skey & value use BufferFileWriter now, so we do not need EstimateDumpedFileSize
 }
 
 template <typename SKeyType>

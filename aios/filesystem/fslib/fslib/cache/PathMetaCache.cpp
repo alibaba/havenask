@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "fslib/cache/PathMetaCache.h"
+
 #include "fslib/cache/DirectoryMapIterator.h"
 #include "fslib/util/PathUtil.h"
 
@@ -29,9 +30,7 @@ PathMetaCache::PathMetaCache() {}
 PathMetaCache::~PathMetaCache() {}
 
 void PathMetaCache::addPathMeta(
-        const string& normPath, int64_t fileLength,
-        uint64_t createTime, uint64_t modifyTime, bool isDirectory)
-{
+    const string &normPath, int64_t fileLength, uint64_t createTime, uint64_t modifyTime, bool isDirectory) {
     PathMetaPtr info(new PathMeta);
     info->isFile = !isDirectory;
     info->length = fileLength;
@@ -41,28 +40,24 @@ void PathMetaCache::addPathMeta(
     ScopedLock lock(_lock);
     FastPathMetaMap::const_iterator iter = _fastMap.find(normPath);
     if (iter != _fastMap.end()) {
-        AUTIL_LOG(INFO, "PathMeta for path [%s] already exist in MetaCache, will update",
-                  normPath.c_str());
+        AUTIL_LOG(INFO, "PathMeta for path [%s] already exist in MetaCache, will update", normPath.c_str());
     }
     _pathMetaMap[normPath] = info;
     _fastMap[normPath] = info;
 }
 
-void PathMetaCache::markImmutablePath(const string& normImmutablePath, bool exist)
-{
+void PathMetaCache::markImmutablePath(const string &normImmutablePath, bool exist) {
     ScopedLock lock(_lock);
     _immutablePathMap[normImmutablePath] = exist;
 }
 
-bool PathMetaCache::removeFile(const string& normalPath)
-{
+bool PathMetaCache::removeFile(const string &normalPath) {
     ScopedLock lock(_lock);
     PathMetaMap::const_iterator it = _pathMetaMap.find(normalPath);
     if (it != _pathMetaMap.end()) {
-        const PathMetaPtr& fileInfo = it->second;
+        const PathMetaPtr &fileInfo = it->second;
         if (!fileInfo->isFile) {
-            AUTIL_LOG(ERROR, "Path [%s] is not a file, remove failed",
-                      normalPath.c_str());  
+            AUTIL_LOG(ERROR, "Path [%s] is not a file, remove failed", normalPath.c_str());
             return false;
         }
         _fastMap.erase(normalPath); // fastFileNodeMap should erase first
@@ -71,9 +66,8 @@ bool PathMetaCache::removeFile(const string& normalPath)
     }
     return false;
 }
-    
-bool PathMetaCache::removeDirectory(const string& normalPath)
-{
+
+bool PathMetaCache::removeDirectory(const string &normalPath) {
     ScopedLock lock(_lock);
     PathMetaPtr infoPtr;
     FastPathMetaMap::const_iterator iter = _fastMap.find(normalPath);
@@ -98,8 +92,8 @@ bool PathMetaCache::removeDirectory(const string& normalPath)
     }
 
     ImmutablePathMap::const_iterator pIter = _immutablePathMap.begin();
-    for ( ; pIter != _immutablePathMap.end(); ) {
-        const string& immutablePath = pIter->first;
+    for (; pIter != _immutablePathMap.end();) {
+        const string &immutablePath = pIter->first;
         if (immutablePath == normalPath || PathUtil::isInRootPath(immutablePath, normalPath)) {
             _immutablePathMap.erase(pIter++);
             continue;
@@ -109,12 +103,11 @@ bool PathMetaCache::removeDirectory(const string& normalPath)
     return true;
 }
 
-bool PathMetaCache::matchImmutablePath(const string& normalPath) const
-{
+bool PathMetaCache::matchImmutablePath(const string &normalPath) const {
     ScopedLock lock(_lock);
     ImmutablePathMap::const_iterator iter = _immutablePathMap.begin();
-    for ( ; iter != _immutablePathMap.end(); iter++) {
-        const string& immutablePath = iter->first;
+    for (; iter != _immutablePathMap.end(); iter++) {
+        const string &immutablePath = iter->first;
         if (PathUtil::isInRootPath(normalPath, immutablePath)) {
             return true;
         }
@@ -122,8 +115,7 @@ bool PathMetaCache::matchImmutablePath(const string& normalPath) const
     return false;
 }
 
-bool PathMetaCache::isExist(const string& normalPath) const
-{
+bool PathMetaCache::isExist(const string &normalPath) const {
     ScopedLock lock(_lock);
     if (_fastMap.find(normalPath) != _fastMap.end()) {
         return true;
@@ -132,8 +124,7 @@ bool PathMetaCache::isExist(const string& normalPath) const
     return iter != _immutablePathMap.end() && iter->second;
 }
 
-bool PathMetaCache::getPathMeta(const string& normalPath, PathMeta& fileInfo) const
-{
+bool PathMetaCache::getPathMeta(const string &normalPath, PathMeta &fileInfo) const {
     ScopedLock lock(_lock);
     FastPathMetaMap::const_iterator iter = _fastMap.find(normalPath);
     if (iter != _fastMap.end()) {
@@ -152,8 +143,7 @@ bool PathMetaCache::getPathMeta(const string& normalPath, PathMeta& fileInfo) co
     return false;
 }
 
-size_t PathMetaCache::getFileLength(const string& normalPath) const
-{
+size_t PathMetaCache::getFileLength(const string &normalPath) const {
     ScopedLock lock(_lock);
     FastPathMetaMap::const_iterator iter = _fastMap.find(normalPath);
     if (iter == _fastMap.end()) {
@@ -162,10 +152,9 @@ size_t PathMetaCache::getFileLength(const string& normalPath) const
     return iter->second->length;
 }
 
-bool PathMetaCache::ListPathMetaInCache(const string& normalPath,
-                                        vector<pair<string, PathMeta>>& pathMetas,
-                                        bool recursive)
-{
+bool PathMetaCache::ListPathMetaInCache(const string &normalPath,
+                                        vector<pair<string, PathMeta>> &pathMetas,
+                                        bool recursive) {
     ScopedLock lock(_lock);
     PathMetaPtr infoPtr;
     FastPathMetaMap::const_iterator iter = _fastMap.find(normalPath);
@@ -176,11 +165,11 @@ bool PathMetaCache::ListPathMetaInCache(const string& normalPath,
         AUTIL_LOG(ERROR, "path [%s] is not directory!", normalPath.c_str());
         return false;
     }
-    
+
     DirectoryMapIterator<PathMetaPtr> iterator(_pathMetaMap, normalPath);
     while (iterator.hasNext()) {
         auto curIt = iterator.next();
-        const string& path = curIt->first;
+        const string &path = curIt->first;
         if (!recursive && path.find("/", normalPath.size() + 1) != string::npos) {
             continue;
         }
@@ -190,17 +179,14 @@ bool PathMetaCache::ListPathMetaInCache(const string& normalPath,
     return true;
 }
 
-int64_t PathMetaCache::getCachedPathCount() const
-{
+int64_t PathMetaCache::getCachedPathCount() const {
     ScopedLock lock(_lock);
     return _fastMap.size();
 }
 
-int64_t PathMetaCache::getImmutablePathCount() const
-{
+int64_t PathMetaCache::getImmutablePathCount() const {
     ScopedLock lock(_lock);
     return _immutablePathMap.size();
 }
 
 FSLIB_END_NAMESPACE(cache);
-

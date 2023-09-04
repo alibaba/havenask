@@ -30,18 +30,15 @@
 #include "indexlib/index/attribute/AttributeIndexerOrganizerUtil.h"
 #include "indexlib/index/attribute/AttributeModifier.h"
 
-namespace indexlibv2::config {
-class AttributeConfig;
-}
-
 namespace indexlibv2::index {
 class AttributeDiskIndexer;
 class AttributeMemIndexer;
+class AttributeConfig;
 
 class InplaceAttributeModifier : public AttributeModifier
 {
 public:
-    InplaceAttributeModifier(const std::shared_ptr<config::TabletSchema>& schema);
+    InplaceAttributeModifier(const std::shared_ptr<config::ITabletSchema>& schema);
     ~InplaceAttributeModifier() = default;
 
 public:
@@ -57,7 +54,7 @@ public:
 
 private:
     Status GetIndexerForAttributeConfig(indexlibv2::framework::Segment* segment,
-                                        std::shared_ptr<indexlibv2::config::AttributeConfig> attributeConfig,
+                                        std::shared_ptr<AttributeConfig> attributeConfig,
                                         std::shared_ptr<AttributeDiskIndexer>* diskIndexer,
                                         std::shared_ptr<AttributeMemIndexer>* dumpingMemIndexer,
                                         std::shared_ptr<AttributeMemIndexer>* buildingMemIndexer);

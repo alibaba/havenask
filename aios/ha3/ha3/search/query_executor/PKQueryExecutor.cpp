@@ -16,20 +16,17 @@
 #include "ha3/search/PKQueryExecutor.h"
 
 #include "alog/Logger.h"
+#include "autil/Log.h"
 #include "autil/StringUtil.h"
 #include "autil/mem_pool/PoolBase.h"
-
 #include "ha3/isearch.h"
 #include "ha3/search/QueryExecutor.h"
-#include "autil/Log.h"
 
 namespace isearch {
 namespace search {
 AUTIL_LOG_SETUP(ha3, PKQueryExecutor);
 
-PKQueryExecutor::PKQueryExecutor(QueryExecutor *queryExecutor,
-                                 docid_t docId)
-{
+PKQueryExecutor::PKQueryExecutor(QueryExecutor *queryExecutor, docid_t docId) {
     _queryExecutor = queryExecutor;
     if (_queryExecutor) {
         _hasSubDocExecutor = _queryExecutor->hasSubDocExecutor();
@@ -42,10 +39,9 @@ PKQueryExecutor::~PKQueryExecutor() {
     POOL_DELETE_CLASS(_queryExecutor);
 }
 
-indexlib::index::ErrorCode PKQueryExecutor::doSeek(docid_t id, docid_t& result)
-{
+indexlib::index::ErrorCode PKQueryExecutor::doSeek(docid_t id, docid_t &result) {
     if (!_queryExecutor) {
-        AUTIL_LOG(DEBUG,"_indexReader or _queryExecutor is NULL");
+        AUTIL_LOG(DEBUG, "_indexReader or _queryExecutor is NULL");
         result = END_DOCID;
         return IE_OK;
     }
@@ -88,9 +84,8 @@ bool PKQueryExecutor::isMainDocHit(docid_t docId) const {
     return _queryExecutor->isMainDocHit(docId);
 }
 
-indexlib::index::ErrorCode PKQueryExecutor::seekSubDoc(docid_t docId, docid_t subDocId,
-        docid_t subDocEnd, bool needSubMatchdata, docid_t& result)
-{
+indexlib::index::ErrorCode PKQueryExecutor::seekSubDoc(
+    docid_t docId, docid_t subDocId, docid_t subDocEnd, bool needSubMatchdata, docid_t &result) {
     if (getDocId() == docId && subDocId < subDocEnd) {
         result = subDocId;
         return IE_OK;

@@ -1,0 +1,58 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+strict_cc_fast_test(
+    name='RealtimeMergeStrategyTest',
+    srcs=['RealtimeMergeStrategyTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':MergeTestHelper',
+        '//aios/storage/indexlib/table/index_task/merger:RealtimeMergeStrategy',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='ShardBasedMergeStrategyTest',
+    srcs=['ShardBasedMergeStrategyTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':MergeTestHelper',
+        '//aios/storage/indexlib/table/index_task/merger:ShardBasedMergeStrategy',
+        '//aios/storage/indexlib/table/kv_table/test:KVTabletSchemaMaker',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='FenceDirDeleteOperationTest',
+    srcs=['FenceDirDeleteOperationTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/table/index_task/merger:FenceDirDeleteOperation',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='MergedVersionCommitOperationTest',
+    srcs=['MergedVersionCommitOperationTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/table/index_task/merger:MergedVersionCommitOperation',
+        '//aios/storage/indexlib/table/normal_table/test:NormalTabletSchemaMaker',
+        '//aios/unittest_framework'
+    ]
+)
+'\nstrict_cc_fast_test(\n    name = "SegmentFenceDirFinderTest",\n    srcs = [\n        "SegmentFenceDirFinderTest.cpp",\n    ],\n    copts = [\n        "-fno-access-control",\n    ],\n    data = glob(\n        ["testdata/**"],\n    ),\n    deps = [\n        ":MergeTestHelper",\n        "//aios/storage/indexlib/framework:Segment",\n        "//aios/storage/indexlib/table/index_task/merger:SegmentFenceDirFinder",\n    ],\n)\n'
+strict_cc_library(
+    name='MergeTestHelper',
+    testonly=True,
+    deps=[
+        '//aios/autil:log', '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/framework/mock:MockTabletSchema',
+        '//aios/storage/indexlib/index/deletionmap:merger',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategy',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine',
+        '//aios/unittest_framework'
+    ]
+)

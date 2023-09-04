@@ -15,53 +15,45 @@
  */
 #pragma once
 
-#include "table/Row.h"
 #include "table/Comparator.h"
+#include "table/Row.h"
 
 namespace table {
-template <typename T> class ColumnData;
-}  // namespace table
-
-namespace table {
-
 template <typename T>
-class ColumnAscComparator : public Comparator
-{
+class ColumnData;
+} // namespace table
+
+namespace table {
+
+namespace __detail {
+template <typename T, bool asc>
+class ColumnComparator : public Comparator {
 public:
-    ColumnAscComparator(const ColumnData<T> *columnData)
-        : _columnData(columnData)
-    {}
-    ~ColumnAscComparator() {}
+    ColumnComparator(const ColumnData<T> *columnData) : _columnData(columnData) {}
+    ~ColumnComparator() {}
+
 private:
-    ColumnAscComparator(const ColumnAscComparator &);
-    ColumnAscComparator& operator=(const ColumnAscComparator &);
+    ColumnComparator(const ColumnComparator &);
+    ColumnComparator &operator=(const ColumnComparator &);
+
 public:
     bool compare(Row a, Row b) const override {
-        return _columnData->get(a) < _columnData->get(b);
+        if constexpr (asc) {
+            return _columnData->get(a) < _columnData->get(b);
+        } else {
+            return _columnData->get(b) < _columnData->get(a);
+        }
     }
+
 private:
     const ColumnData<T> *_columnData;
 };
-
+} // namespace __detail
 
 template <typename T>
-class ColumnDescComparator : public Comparator
-{
-public:
-    ColumnDescComparator(const ColumnData<T> *columnData)
-        : _columnData(columnData)
-    {}
-    ~ColumnDescComparator() {}
-private:
-    ColumnDescComparator(const ColumnDescComparator &);
-    ColumnDescComparator& operator=(const ColumnDescComparator &);
-public:
-    bool compare(Row a, Row b) const override {
-        return _columnData->get(b) < _columnData->get(a);
-    }
-private:
-    const ColumnData<T> *_columnData;
-};
+using ColumnAscComparator = __detail::ColumnComparator<T, true>;
 
-}
+template <typename T>
+using ColumnDescComparator = __detail::ColumnComparator<T, false>;
 
+} // namespace table

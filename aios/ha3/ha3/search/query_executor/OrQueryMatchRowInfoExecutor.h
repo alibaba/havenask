@@ -28,16 +28,17 @@ namespace isearch {
 namespace search {
 class ExecutorVisitor;
 
-class OrQueryMatchRowInfoExecutor: public OrQueryExecutor {
+class OrQueryMatchRowInfoExecutor : public OrQueryExecutor {
 public:
     OrQueryMatchRowInfoExecutor();
     virtual ~OrQueryMatchRowInfoExecutor();
+
 public:
     const std::string getName() const override {
         return "OrQueryMatchRowInfoExecutor";
     }
     void accept(ExecutorVisitor *visitor) const override;
-    void getMatchedExecutor(std::vector<const QueryExecutor*>& matchs) const;
+    void getMatchedExecutor(std::vector<const QueryExecutor *> &matchs) const;
 };
 
 } // namespace search

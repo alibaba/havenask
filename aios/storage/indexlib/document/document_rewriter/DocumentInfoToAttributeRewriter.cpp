@@ -17,6 +17,7 @@
 
 #include "indexlib/base/Types.h"
 #include "indexlib/config/FieldConfig.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocument.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/normal/NormalDocument.h"
@@ -52,27 +53,29 @@ namespace indexlibv2::document {
 AUTIL_LOG_SETUP(indexlib.document, DocumentInfoToAttributeRewriter);
 
 DocumentInfoToAttributeRewriter::DocumentInfoToAttributeRewriter(
-    const std::shared_ptr<config::AttributeConfig>& timestampAttrConfig,
-    const std::shared_ptr<config::AttributeConfig>& hashIdAttrConfig)
+    const std::shared_ptr<index::AttributeConfig>& timestampAttrConfig,
+    const std::shared_ptr<index::AttributeConfig>& hashIdAttrConfig,
+    const std::shared_ptr<index::AttributeConfig>& concurrentIdxAttrConfig)
     : IDocumentRewriter()
     , _timestampFieldId(timestampAttrConfig->GetFieldId())
     , _hashIdFieldId(hashIdAttrConfig->GetFieldId())
+    , _concurrentFieldId(concurrentIdxAttrConfig->GetFieldId())
 {
     _timestampConvertor.reset(
         indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(timestampAttrConfig));
     _hashIdConvertor.reset(
         indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(hashIdAttrConfig));
+    _concurrentIdxConvertor.reset(
+        indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(concurrentIdxAttrConfig));
 }
 
 DocumentInfoToAttributeRewriter::~DocumentInfoToAttributeRewriter() {}
 
 indexlib::Status DocumentInfoToAttributeRewriter::Rewrite(document::IDocumentBatch* batch)
 {
-    for (size_t i = 0; i < batch->GetBatchSize(); ++i) {
-        if (batch->IsDropped(i)) {
-            continue;
-        }
-        auto document = (*batch)[i];
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(batch);
+    while (iter->HasNext()) {
+        auto document = iter->Next();
         assert(document);
         if (document->GetDocOperateType() != ADD_DOC) {
             continue;
@@ -90,6 +93,11 @@ indexlib::Status DocumentInfoToAttributeRewriter::Rewrite(document::IDocumentBat
         uint16_t hashId = docInfo.hashId;
         RETURN_IF_STATUS_ERROR(RewriteSingleField<uint16_t>(hashId, _hashIdFieldId, _hashIdConvertor, normalDoc),
                                "rewrite doc hash id [%u] failed", hashId);
+
+        uint16_t concurrentIdx = docInfo.concurrentIdx;
+        RETURN_IF_STATUS_ERROR(
+            RewriteSingleField<uint16_t>(concurrentIdx, _concurrentFieldId, _concurrentIdxConvertor, normalDoc),
+            "rewrite doc concurrent idx [%u] failed", concurrentIdx);
     }
     return indexlib::Status::OK();
 }

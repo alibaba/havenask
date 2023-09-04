@@ -16,7 +16,9 @@
 #pragma once
 
 #include "autil/Log.h"
+#include "indexlib/base/Progress.h"
 #include "indexlib/index/operation_log/OperationBlock.h"
+#include "indexlib/index/operation_log/OperationMeta.h"
 
 namespace indexlib::index {
 
@@ -27,8 +29,9 @@ public:
     CompressOperationBlock(const CompressOperationBlock& other);
     ~CompressOperationBlock();
 
-    void Init(size_t operationCount, const char* compressBuffer, size_t compressSize, int64_t opMinTimeStamp,
-              int64_t opMaxTimeStamp);
+    void Init(size_t operationCount, const char* compressBuffer, size_t compressSize,
+              indexlibv2::base::Progress::Offset opMinOffset, indexlibv2::base::Progress::Offset opMaxOffset,
+              const OperationMeta::BlockMeta& blockMeta);
 
     OperationBlock* Clone() const override;
 
@@ -37,7 +40,8 @@ public:
     std::pair<Status, std::shared_ptr<OperationBlock>>
     CreateOperationBlockForRead(const OperationFactory& mOpFactory) override;
 
-    Status Dump(const std::shared_ptr<file_system::FileWriter>& fileWriter, size_t maxOpSerializeSize) override;
+    Status Dump(const std::shared_ptr<file_system::FileWriter>& fileWriter, size_t maxOpSerializeSize,
+                bool hasConcurrentIdx) override;
 
     size_t GetCompressSize() const;
 
@@ -45,6 +49,7 @@ private:
     size_t _operationCount;
     const char* _compressDataBuffer;
     size_t _compressDataLen;
+    OperationMeta::BlockMeta _blockMeta;
 
 private:
     AUTIL_LOG_DECLARE();

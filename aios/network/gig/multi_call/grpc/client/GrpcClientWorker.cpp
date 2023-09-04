@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/grpc/client/GrpcClientWorker.h"
+
 #include "aios/network/gig/multi_call/stream/GigStreamClosure.h"
 
 using namespace std;
@@ -23,15 +24,13 @@ AUTIL_LOG_SETUP(multi_call, GrpcClientWorker);
 
 GrpcClientWorker::GrpcClientWorker(size_t threadNum) {
     for (size_t i = 0; i < threadNum; i++) {
-        CompletionQueueStatusPtr cqs(new CompletionQueueStatus(
-            CompletionQueuePtr(new grpc::CompletionQueue())));
+        CompletionQueueStatusPtr cqs(
+            new CompletionQueueStatus(CompletionQueuePtr(new grpc::CompletionQueue())));
         _completionQueues.push_back(cqs);
         _workThreads.push_back(autil::Thread::createThread(
-            std::bind(&GrpcClientWorker::workLoop, this, i, cqs),
-            "grpc_client_io"));
+            std::bind(&GrpcClientWorker::workLoop, this, i, cqs), "grpc_client_io"));
     }
-    AUTIL_LOG(INFO, "grpc client worker [%p] started, threads [%lu]", this,
-              threadNum);
+    AUTIL_LOG(INFO, "grpc client worker [%p] started, threads [%lu]", this, threadNum);
 }
 
 GrpcClientWorker::~GrpcClientWorker() {
@@ -47,24 +46,22 @@ void GrpcClientWorker::stop() {
         cqs->stopped = true;
     }
     for (const auto &cqs : _completionQueues) {
-        _shutdownAlarms.push_back(new ::grpc::Alarm(
-            cqs->cq.get(), gpr_now(GPR_CLOCK_MONOTONIC), nullptr));
+        _shutdownAlarms.push_back(
+            new ::grpc::Alarm(cqs->cq.get(), gpr_now(GPR_CLOCK_MONOTONIC), nullptr));
     }
     _completionQueues.clear();
     _workThreads.clear();
     AUTIL_LOG(INFO, "grpc client worker [%p] stopped", this);
 }
 
-const CompletionQueueStatusPtr &
-GrpcClientWorker::getCompletionQueue(size_t allocId) {
+const CompletionQueueStatusPtr &GrpcClientWorker::getCompletionQueue(size_t allocId) {
     size_t index = allocId % _completionQueues.size();
     return _completionQueues[index];
 }
 
 void GrpcClientWorker::workLoop(size_t idx, CompletionQueueStatusPtr cqsPtr) {
     auto &cq = *cqsPtr->cq;
-    AUTIL_LOG(INFO, "client work loop started, worker [%p] idx [%lu] cq [%p]",
-              this, idx, &cq);
+    AUTIL_LOG(INFO, "client work loop started, worker [%p] idx [%lu] cq [%p]", this, idx, &cq);
     for (;;) {
         void *tag;
         bool ok = false;
@@ -84,8 +81,7 @@ void GrpcClientWorker::workLoop(size_t idx, CompletionQueueStatusPtr cqsPtr) {
             AUTIL_LOG(INFO, "cq: %p shutdown", cqsPtr->cq.get());
         }
     }
-    AUTIL_LOG(INFO, "client work loop stopped, worker [%p] idx [%lu] cq [%p]",
-              this, idx, &cq);
+    AUTIL_LOG(INFO, "client work loop stopped, worker [%p] idx [%lu] cq [%p]", this, idx, &cq);
 }
 
 } // namespace multi_call

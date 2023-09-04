@@ -1,0 +1,47 @@
+#import(Tool)
+
+function graphDef()
+   local clusterNames = Tool.jsonToList(Graph.parameter["clusterNames"])
+   local schemaIdMap = Tool.jsonToMap(Graph.parameter["schemaIdMap"])
+
+   local processorCluster = clusterNames[1]
+   local processorParam = {}
+   processorParam["clusterName"] = processorCluster
+   processorParam["schemaId"] = schemaIdMap[processorCluster]
+   processorParam["dataDescriptions"] = Graph.parameter["dataDescriptions"]
+   processorParam["realtimeDataDescription"] = Graph.parameter["realtimeDataDescription"]
+   processorParam["buildId"] = Graph.parameter["buildId"]
+   processorParam["buildStep"] = Graph.parameter["buildStep"]
+
+
+   fullProcessor = Graph.loadSimpleFlow("processor", "fullProcessor", processorParam)
+   fullProcessor:addTag("BSFullProcess")
+   
+   for i, clusterName in ipairs(clusterNames)
+   do
+      local clusterParam = {}
+      clusterParam["clusterName"] = clusterName
+      clusterParam["schemaId"] = schemaIdMap[clusterName]
+      clusterParam["dataDescriptions"] = Graph.parameter["dataDescriptions"]
+      clusterParam["realtimeDataDescription"] = Graph.parameter["realtimeDataDescription"]
+      clusterParam["buildId"] = Graph.parameter["buildId"]
+      clusterParam["buildStep"] = Graph.parameter["buildStep"]
+
+      --prepare merge crontab
+      local mergeCrontab = Graph.loadSimpleFlow("mergeCrontab", "mergeCrontab", clusterParam)
+      local mergeCrontabTag = clusterName..":MergeCrontab"
+      mergeCrontab:addTag(mergeCrontabTag)
+      
+      clusterParam["fullProcessorFlowId"] = fullProcessor:getFlowId()
+      clusterParam["mergeCrontabFlowId"] = mergeCrontab:getFlowId()
+      clusterParam["shared_topic_cluster_name"] = processorCluster
+      
+      local fullBuild = Graph.loadFlow("NewFullBuild.flow", clusterParam)
+      fullBuild:addTag(clusterName..":FullBuild")
+      fullBuild:addTag("BSFullBuild")
+      Graph.setUpstream(mergeCrontab, fullProcessor)
+      Graph.declareFriend(fullProcessor, fullBuild)
+      Graph.declareFriend(mergeCrontab, fullBuild)
+   end
+   return true
+end

@@ -41,7 +41,7 @@ public:
     ~SingleValueAttributeUnCompressReader() = default;
 
 public:
-    Status Open(const std::shared_ptr<config::AttributeConfig>& attributeConfig,
+    Status Open(const std::shared_ptr<AttributeConfig>& attributeConfig,
                 const std::shared_ptr<indexlib::file_system::IDirectory>& attrIDir, uint64_t docCount,
                 segmentid_t segmentId);
 
@@ -82,7 +82,7 @@ AUTIL_LOG_SETUP_TEMPLATE(indexlib.index, SingleValueAttributeUnCompressReader, T
 
 template <typename T>
 inline Status
-SingleValueAttributeUnCompressReader<T>::Open(const std::shared_ptr<config::AttributeConfig>& attributeConfig,
+SingleValueAttributeUnCompressReader<T>::Open(const std::shared_ptr<AttributeConfig>& attributeConfig,
                                               const std::shared_ptr<indexlib::file_system::IDirectory>& attrIDir,
                                               uint64_t docCount, segmentid_t segmentId)
 {

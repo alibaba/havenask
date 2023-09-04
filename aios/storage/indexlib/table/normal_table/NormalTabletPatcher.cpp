@@ -16,7 +16,7 @@
 #include "indexlib/table/normal_table/NormalTabletPatcher.h"
 
 #include "indexlib/config/IIndexConfig.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/index/attribute/AttributeDiskIndexer.h"
@@ -44,15 +44,52 @@ NormalTabletPatcher::NormalTabletPatcher() {}
 
 NormalTabletPatcher::~NormalTabletPatcher() {}
 
+docid_t NormalTabletPatcher::GetSegmentBaseDocId(const std::shared_ptr<framework::Segment>& segment,
+                                                 const framework::TabletData& tabletData)
+{
+    docid_t baseDocId = 0;
+    auto slice = tabletData.CreateSlice(framework::Segment::SegmentStatus::ST_UNSPECIFY);
+    for (auto iter = slice.begin(); iter != slice.end(); iter++) {
+        if (segment->GetSegmentId() == (*iter)->GetSegmentId()) {
+            break;
+        }
+        baseDocId += (*iter)->GetSegmentInfo()->docCount;
+    }
+    return baseDocId;
+}
+
+size_t
+NormalTabletPatcher::CalculatePatchLoadExpandSize(const std::shared_ptr<config::ITabletSchema>& schema,
+                                                  const std::vector<std::shared_ptr<framework::Segment>>& segments)
+{
+    size_t ret = 0;
+    std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>> segmentPairs;
+    for (auto segment : segments) {
+        segmentPairs.emplace_back(/*unused*/ 0, segment);
+    }
+    if (auto attrPatchIter = index::PatchIteratorCreator::Create(schema, segmentPairs)) {
+        ret += attrPatchIter->GetPatchLoadExpandSize();
+    }
+    if (auto invertedPatchIter =
+            indexlib::index::InvertedIndexPatchIteratorCreator::Create(schema, segments, nullptr)) {
+        ret += invertedPatchIter->GetPatchLoadExpandSize();
+    }
+    return ret;
+}
+
 Status NormalTabletPatcher::LoadPatch(const std::vector<std::shared_ptr<framework::Segment>>& diffSegments,
                                       const framework::TabletData& newTabletData,
-                                      const std::shared_ptr<config::TabletSchema>& schema,
+                                      const std::shared_ptr<config::ITabletSchema>& schema,
                                       const std::shared_ptr<indexlib::file_system::IDirectory>& opLog2PatchRootDir,
                                       NormalTabletModifier* modifier)
 {
+    std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>> segmentPairs;
+    for (const auto& segment : diffSegments) {
+        segmentPairs.push_back(std::make_pair(GetSegmentBaseDocId(segment, newTabletData), segment));
+    }
     RETURN_IF_STATUS_ERROR(LoadPatchForDeletionMap(diffSegments, newTabletData, schema),
                            "load patch for deletion map failed");
-    RETURN_IF_STATUS_ERROR(LoadPatchForAttribute(diffSegments, schema, opLog2PatchRootDir, modifier),
+    RETURN_IF_STATUS_ERROR(LoadPatchForAttribute(segmentPairs, schema, opLog2PatchRootDir, modifier),
                            "load patch for attribute indexer failed");
     RETURN_IF_STATUS_ERROR(LoadPatchForInveredIndex(diffSegments, schema, opLog2PatchRootDir, modifier),
                            "load patch for inverted index indexer failed");
@@ -62,7 +99,7 @@ Status NormalTabletPatcher::LoadPatch(const std::vector<std::shared_ptr<framewor
 Status
 NormalTabletPatcher::LoadPatchForDeletionMap(const std::vector<std::shared_ptr<framework::Segment>>& diffSegments,
                                              const framework::TabletData& newTabletData,
-                                             const std::shared_ptr<config::TabletSchema>& schema)
+                                             const std::shared_ptr<config::ITabletSchema>& schema)
 {
     auto deletionMapConfigs = schema->GetIndexConfigs(index::DELETION_MAP_INDEX_TYPE_STR);
     for (auto deletionMapConfig : deletionMapConfigs) {
@@ -90,11 +127,10 @@ NormalTabletPatcher::LoadPatchForDeletionMap(const std::vector<std::shared_ptr<f
     return Status::OK();
 }
 
-Status
-NormalTabletPatcher::LoadPatchForAttribute(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                                           const std::shared_ptr<config::TabletSchema>& schema,
-                                           const std::shared_ptr<indexlib::file_system::IDirectory>& opLog2PatchRootDir,
-                                           NormalTabletModifier* modifier)
+Status NormalTabletPatcher::LoadPatchForAttribute(
+    const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& segments,
+    const std::shared_ptr<config::ITabletSchema>& schema,
+    const std::shared_ptr<indexlib::file_system::IDirectory>& opLog2PatchRootDir, NormalTabletModifier* modifier)
 {
     if (modifier) {
         return LoadAttributePatchWithModifier(segments, schema, modifier);
@@ -102,10 +138,9 @@ NormalTabletPatcher::LoadPatchForAttribute(const std::vector<std::shared_ptr<fra
     return LoadAttributePatch(segments, schema, opLog2PatchRootDir);
 }
 
-Status
-NormalTabletPatcher::LoadAttributePatchWithModifier(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                                                    const std::shared_ptr<config::TabletSchema>& schema,
-                                                    NormalTabletModifier* modifier)
+Status NormalTabletPatcher::LoadAttributePatchWithModifier(
+    const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& segments,
+    const std::shared_ptr<config::ITabletSchema>& schema, NormalTabletModifier* modifier)
 {
     auto patchIter = index::PatchIteratorCreator::Create(schema, segments);
     index::AttributeFieldValue value;
@@ -119,15 +154,19 @@ NormalTabletPatcher::LoadAttributePatchWithModifier(const std::vector<std::share
     return Status::OK();
 }
 
-Status
-NormalTabletPatcher::LoadAttributePatch(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                                        const std::shared_ptr<config::TabletSchema>& schema,
-                                        const std::shared_ptr<indexlib::file_system::IDirectory>& opLog2PatchRootDir)
+Status NormalTabletPatcher::LoadAttributePatch(
+    const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& segmentPairs,
+    const std::shared_ptr<config::ITabletSchema>& schema,
+    const std::shared_ptr<indexlib::file_system::IDirectory>& opLog2PatchRootDir)
 {
+    std::vector<std::shared_ptr<framework::Segment>> segments;
+    for (size_t i = 0; i < segmentPairs.size(); i++) {
+        segments.push_back(segmentPairs[i].second);
+    }
     auto attrConfigs = schema->GetIndexConfigs(index::ATTRIBUTE_INDEX_TYPE_STR);
     auto patchFinder = std::make_shared<index::AttributePatchFileFinder>();
     for (auto indexConfig : attrConfigs) {
-        auto attrConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(indexConfig);
+        auto attrConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(indexConfig);
         if (attrConfig == nullptr) {
             continue;
         }
@@ -179,7 +218,7 @@ NormalTabletPatcher::LoadAttributePatch(const std::vector<std::shared_ptr<framew
 
 Status NormalTabletPatcher::LoadPatchForInveredIndex(
     const std::vector<std::shared_ptr<framework::Segment>>& segments,
-    const std::shared_ptr<config::TabletSchema>& schema,
+    const std::shared_ptr<config::ITabletSchema>& schema,
     const std::shared_ptr<indexlib::file_system::IDirectory>& opLog2PatchRootDir, NormalTabletModifier* modifier)
 {
     if (modifier) {
@@ -190,7 +229,7 @@ Status NormalTabletPatcher::LoadPatchForInveredIndex(
 
 Status NormalTabletPatcher::LoadInvertedIndexPatchWithModifier(
     const std::vector<std::shared_ptr<framework::Segment>>& segments,
-    const std::shared_ptr<config::TabletSchema>& schema, NormalTabletModifier* modifier)
+    const std::shared_ptr<config::ITabletSchema>& schema, NormalTabletModifier* modifier)
 {
     auto patchIter =
         indexlib::index::InvertedIndexPatchIteratorCreator::Create(schema, segments, nullptr /*patchExtraDir*/);
@@ -211,7 +250,7 @@ Status NormalTabletPatcher::LoadInvertedIndexPatchWithModifier(
 
 Status NormalTabletPatcher::LoadInvertedIndexPatch(
     const std::vector<std::shared_ptr<framework::Segment>>& segments,
-    const std::shared_ptr<config::TabletSchema>& schema,
+    const std::shared_ptr<config::ITabletSchema>& schema,
     const std::shared_ptr<indexlib::file_system::IDirectory>& opLog2PatchRootDir)
 {
     std::map<segmentid_t, std::map<indexid_t, std::shared_ptr<indexlib::index::IInvertedDiskIndexer>>> indexers;

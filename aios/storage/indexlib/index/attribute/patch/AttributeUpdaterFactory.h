@@ -23,14 +23,12 @@
 #include "indexlib/util/Singleton.h"
 
 namespace indexlibv2::config {
-class AttributeConfig;
-}
-
-namespace indexlibv2::config {
 class IIndexConfig;
 }
 namespace indexlibv2::index {
 class AttributeUpdater;
+class AttributeConfig;
+
 class AttributeUpdaterFactory : public indexlib::util::Singleton<AttributeUpdaterFactory>
 {
 protected:
@@ -44,7 +42,7 @@ public:
     std::unique_ptr<AttributeUpdater> CreateAttributeUpdater(segmentid_t segId,
                                                              const std::shared_ptr<config::IIndexConfig>& indexConfig);
 
-    bool IsAttributeUpdatable(const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    bool IsAttributeUpdatable(const std::shared_ptr<AttributeConfig>& attrConfig);
 
 private:
     AUTIL_LOG_DECLARE();

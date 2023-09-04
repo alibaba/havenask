@@ -17,10 +17,9 @@
 
 #include <map>
 
-#include "indexlib/indexlib.h"
-
-#include "ha3/common/Term.h"
 #include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/common/Term.h"
+#include "indexlib/indexlib.h"
 
 namespace isearch {
 namespace search {
@@ -45,4 +44,3 @@ typedef std::map<common::Term, df_t> TermDFMap;
 
 } // namespace search
 } // namespace isearch
-

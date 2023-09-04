@@ -19,7 +19,7 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/index/operation_log/OperationLogProcessor.h"
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 namespace indexlibv2::document {
 class IDocumentBatch;
@@ -55,7 +55,7 @@ public:
     using IndexReaderMapKey = std::pair<std::string, std::string>;
 
 public:
-    Status Init(const std::shared_ptr<config::TabletSchema>& schema, const framework::TabletData& tabletData,
+    Status Init(const std::shared_ptr<config::ITabletSchema>& schema, const framework::TabletData& tabletData,
                 bool deleteInBranch, const std::shared_ptr<indexlib::file_system::IDirectory>& op2PatchDir);
     Status ModifyDocument(document::IDocumentBatch* batch);
     Status RemoveDocument(docid_t docid) override;
@@ -69,15 +69,15 @@ public:
 
 private:
     Status RemoveDocuments(document::IDocumentBatch* batch);
-    Status InitDeletionMapModifier(const std::shared_ptr<config::TabletSchema>& schema,
+    Status InitDeletionMapModifier(const std::shared_ptr<config::ITabletSchema>& schema,
                                    const framework::TabletData& tabletData);
-    Status InitAttributeModifier(const std::shared_ptr<config::TabletSchema>& schema,
+    Status InitAttributeModifier(const std::shared_ptr<config::ITabletSchema>& schema,
                                  const framework::TabletData& tabletData,
                                  const std::shared_ptr<indexlib::file_system::IDirectory>& op2PatchDir);
-    Status InitInvertedIndexModifier(const std::shared_ptr<config::TabletSchema>& schema,
+    Status InitInvertedIndexModifier(const std::shared_ptr<config::ITabletSchema>& schema,
                                      const framework::TabletData& tabletData,
                                      const std::shared_ptr<indexlib::file_system::IDirectory>& op2PatchDir);
-    Status InitPrimaryKeyReader(const std::shared_ptr<config::TabletSchema>& schema,
+    Status InitPrimaryKeyReader(const std::shared_ptr<config::ITabletSchema>& schema,
                                 const framework::TabletData& tabletData);
 
 private:

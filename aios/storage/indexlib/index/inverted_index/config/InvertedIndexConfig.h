@@ -109,32 +109,38 @@ public:
     InvertedIndexConfig();
     InvertedIndexConfig(const std::string& indexName, InvertedIndexType invertedIndexType);
     InvertedIndexConfig(const InvertedIndexConfig& other);
-    virtual ~InvertedIndexConfig();
+    ~InvertedIndexConfig();
     InvertedIndexConfig& operator=(const InvertedIndexConfig& other);
 
 public:
-    virtual uint32_t GetFieldCount() const = 0;
-    virtual int32_t GetFieldIdxInPack(fieldid_t id) const;
-    // Returns both IST_IS_SHARDING and IST_NEED_SHARDING configs.
-    Iterator CreateIterator() const;
-
-    virtual bool IsInIndex(fieldid_t fieldId) const = 0;
-    virtual Status CheckEqual(const InvertedIndexConfig& other) const; //= 0;
-    Status CheckCompatible(const IIndexConfig* other) const override;
-    virtual InvertedIndexConfig* Clone() const = 0;
-    void Check() const override;
+    const std::string& GetIndexType() const override;
+    const std::string& GetIndexName() const override;
+    const std::string& GetIndexCommonPath() const override final;
+    std::vector<std::string> GetIndexPath() const override;
     void Deserialize(const autil::legacy::Any& any, size_t idxInJsonArray,
                      const config::IndexConfigDeserializeResource& resource) override final;
     void Serialize(autil::legacy::Jsonizable::JsonWrapper& json) const override;
+    void Check() const override;
+    Status CheckCompatible(const IIndexConfig* other) const override;
+    bool IsDisabled() const override;
+
+public:
+    virtual InvertedIndexConfig* Clone() const = 0;
+    virtual uint32_t GetFieldCount() const = 0;
+    virtual int32_t GetFieldIdxInPack(fieldid_t id) const;
+    virtual bool IsInIndex(fieldid_t fieldId) const = 0;
+    virtual Status CheckEqual(const InvertedIndexConfig& other) const; //= 0;
     virtual bool CheckFieldType(FieldType ft) const = 0;
     virtual std::map<std::string, std::string> GetDictHashParams() const = 0;
     virtual void SetFileCompressConfig(const std::shared_ptr<indexlib::config::FileCompressConfig>& compressConfig);
     virtual void SetFileCompressConfigV2(const std::shared_ptr<FileCompressConfigV2>& fileCompressConfigV2);
     virtual void AppendShardingIndexConfig(const std::shared_ptr<InvertedIndexConfig>& shardingIndexConfig);
-    const std::vector<std::shared_ptr<InvertedIndexConfig>>& GetShardingIndexConfigs() const;
     virtual void AppendTruncateIndexConfig(const std::shared_ptr<InvertedIndexConfig>& truncateIndexConfig);
 
 public:
+    // Returns both IST_IS_SHARDING and IST_NEED_SHARDING configs.
+    Iterator CreateIterator() const;
+
     const std::shared_ptr<indexlib::config::FileCompressConfig>& GetFileCompressConfig() const;
     const std::shared_ptr<FileCompressConfigV2>& GetFileCompressConfigV2() const;
 
@@ -148,13 +154,9 @@ public:
     indexid_t GetParentIndexId() const;
     void SetParentIndexId(indexid_t indexId);
 
-    std::vector<std::string> GetIndexPath() const override;
-    const std::string& GetIndexName() const override;
     void SetIndexName(const std::string& indexName);
 
     InvertedIndexType GetInvertedIndexType() const;
-    const std::string& GetIndexType() const override;
-
     void SetInvertedIndexType(InvertedIndexType invertedIndexType);
 
     const std::string& GetAnalyzer() const;
@@ -167,7 +169,6 @@ public:
     bool IsVirtual() const;
 
     void Disable();
-    bool IsDisable() const;
     void Delete();
     bool IsDeleted() const;
     bool IsNormal() const;
@@ -190,10 +191,11 @@ public:
 
     void SetHasTruncateFlag(bool flag);
     bool HasTruncate() const;
-    void SetUseTruncateProfiles(const std::string& useTruncateProfiles);
-    bool HasTruncateProfile() const;
-    std::string GetAllTruncateProfile() const;
+    void SetUseTruncateProfilesStr(const std::string& useTruncateProfiles);
+
+    std::string GetUseTruncateProfilesStr() const;
     bool HasTruncateProfile(const TruncateProfileConfig* truncateProfileConfig) const;
+    virtual void SetUseTruncateProfiles(const std::vector<std::string>& profiles);
     std::vector<std::string> GetUseTruncateProfiles() const;
     Status LoadTruncateTermVocabulary(const std::shared_ptr<indexlib::file_system::ArchiveFolder>& metaFolder,
                                       const std::vector<std::string>& truncIndexNames);
@@ -219,6 +221,7 @@ public:
     bool IsBitmapOnlyTerm(const indexlib::index::DictKeyInfo& key) const;
     void SetShardingType(IndexShardingType shardingType);
     IndexShardingType GetShardingType() const;
+    const std::vector<std::shared_ptr<InvertedIndexConfig>>& GetShardingIndexConfigs() const;
 
     void SetOwnerModifyOperationId(indexlib::schema_opid_t opId);
     indexlib::schema_opid_t GetOwnerModifyOperationId() const;
@@ -235,9 +238,7 @@ public:
     static const char* InvertedIndexTypeToStr(InvertedIndexType invertedIndexType);
     static std::pair<Status, InvertedIndexType> StrToIndexType(const std::string& typeStr);
     static InvertedIndexType FieldTypeToInvertedIndexType(FieldType fieldType);
-    void TEST_SetIndexUpdatable(bool updatable);
 
-public:
     static std::string CreateTruncateIndexName(const std::string& indexName, const std::string& truncateProfileName);
     static std::string GetShardingIndexName(const std::string& indexName, size_t shardingIdx);
     static bool GetIndexNameFromShardingIndexName(const std::string& shardingIndexName, std::string& indexName);
@@ -246,6 +247,9 @@ public:
     template <typename Schema>
     static std::shared_ptr<InvertedIndexConfig> GetShardingIndexConfig(const Schema& schema,
                                                                        const std::string& shardingIndexName);
+
+public:
+    void TEST_SetIndexUpdatable(bool updatable);
 
 protected:
     virtual Iterator DoCreateIterator() const = 0;

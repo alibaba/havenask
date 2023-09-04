@@ -42,7 +42,10 @@ AttributeIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexCon
     AttributeDiskIndexerCreator* creator =
         AttributeFactory<AttributeDiskIndexer, AttributeDiskIndexerCreator>::GetInstance()->GetAttributeInstanceCreator(
             indexConfig);
-    assert(nullptr != creator);
+    if (!creator) {
+        AUTIL_LOG(ERROR, "get attribute creator failed, indexName[%s]", indexConfig->GetIndexName().c_str());
+        return nullptr;
+    }
     std::shared_ptr<AttributeMetrics> attributeMetrics;
     if (indexerParam.metricsManager != nullptr) {
         attributeMetrics = std::dynamic_pointer_cast<AttributeMetrics>(indexerParam.metricsManager->CreateMetrics(
@@ -61,8 +64,11 @@ AttributeIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IIndexConf
     AttributeMemIndexerCreator* creator =
         AttributeFactory<AttributeMemIndexer, AttributeMemIndexerCreator>::GetInstance()->GetAttributeInstanceCreator(
             indexConfig);
-    assert(nullptr != creator);
-    return creator->Create(indexerParam);
+    if (!creator) {
+        AUTIL_LOG(ERROR, "get attribute creator failed, indexName[%s]", indexConfig->GetIndexName().c_str());
+        return nullptr;
+    }
+    return creator->Create(indexConfig, indexerParam);
 }
 std::unique_ptr<IIndexReader>
 AttributeIndexFactory::CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
@@ -71,7 +77,10 @@ AttributeIndexFactory::CreateIndexReader(const std::shared_ptr<config::IIndexCon
     AttributeReaderCreator* creator =
         AttributeFactory<AttributeReader, AttributeReaderCreator>::GetInstance()->GetAttributeInstanceCreator(
             indexConfig);
-    assert(nullptr != creator);
+    if (!creator) {
+        AUTIL_LOG(ERROR, "get attribute creator failed, indexName[%s]", indexConfig->GetIndexName().c_str());
+        return nullptr;
+    }
     return creator->Create(indexConfig, indexerParam);
 }
 std::unique_ptr<IIndexMerger>
@@ -80,8 +89,11 @@ AttributeIndexFactory::CreateIndexMerger(const std::shared_ptr<config::IIndexCon
     AttributeMergerCreator* creator =
         AttributeFactory<AttributeMerger, AttributeMergerCreator>::GetInstance()->GetAttributeInstanceCreator(
             indexConfig);
-    assert(nullptr != creator);
-    const auto& attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+    if (!creator) {
+        AUTIL_LOG(ERROR, "get attribute creator failed, indexName[%s]", indexConfig->GetIndexName().c_str());
+        return nullptr;
+    }
+    const auto& attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
     if (nullptr == attrConfig) {
         AUTIL_LOG(ERROR, "create attribute index merger [%s] fail because of wrong config type",
                   indexConfig->GetIndexName().c_str());
@@ -92,9 +104,9 @@ AttributeIndexFactory::CreateIndexMerger(const std::shared_ptr<config::IIndexCon
 }
 std::unique_ptr<config::IIndexConfig> AttributeIndexFactory::CreateIndexConfig(const autil::legacy::Any& any) const
 {
-    return std::make_unique<config::AttributeConfig>(config::AttributeConfig::ct_normal);
+    return std::make_unique<AttributeConfig>();
 }
 std::string AttributeIndexFactory::GetIndexPath() const { return index::ATTRIBUTE_INDEX_PATH; }
 
-REGISTER_INDEX(attribute, AttributeIndexFactory);
+REGISTER_INDEX_FACTORY(attribute, AttributeIndexFactory);
 } // namespace indexlibv2::index

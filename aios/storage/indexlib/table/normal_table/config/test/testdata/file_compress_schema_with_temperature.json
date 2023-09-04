@@ -1,0 +1,124 @@
+{
+    "attributes": [
+	"status",
+	"time"
+    ],
+    "file_compress": [
+        {
+            "name":"compress1",
+            "type":"zstd"
+        },
+        {
+            "name":"compress2",
+            "type":"snappy",
+	    "exclude_file_pattern" : ".*/(dictionary|posting)$"
+        },
+	{
+            "name":"hybrid_compressor",
+	    "type":"lz4",
+	    "temperature_compressor":
+	    {
+		"warm" : "compress1",
+		"COLD"  : "compress2"
+	    }
+	}
+    ],
+    "fields": [
+	{
+	    "field_name": "pk",
+	    "field_type": "STRING"
+	},
+	{
+	    "field_name": "status",
+	    "field_type": "STRING",
+            "compress_type" : "equal",
+            "updatable_multi_value" : true
+	},
+	{
+	    "field_name": "time",
+	    "field_type": "UINT32"
+	},
+        {
+	    "field_name":"location",
+	    "field_type":"location"
+	}	
+    ],
+    "indexs": [
+	{
+	    "has_primary_key_attribute": true,
+	    "index_fields": "pk",
+	    "index_name": "pk",
+	    "index_type": "PRIMARYKEY64"
+	},
+	{
+	    "index_fields":"status",
+	    "index_type" : "STRING",
+	    "index_name" : "status",
+	    "file_compress" : "hybrid_compressor"
+	},
+     	{
+	    "index_name": "spatial_index",
+            "index_type" : "SPATIAL",
+	    "index_fields": "location",
+	    "max_search_dist" : 10000,
+	    "max_dist_err" : 20,
+	    "dist_calculator" : "haversine",
+	    "file_compress" : "hybrid_compressor"
+	}
+    ],
+    "enable_temperature_layer" : true,
+    "temperature_layer_config" : {
+        "default_property" : "HOT",
+        "conditions" : [
+            {
+                "property" : "HOT",
+                "filters" : [
+                    {"type" : "Range", "field_name" : "time", "function" : {"functionName" : "time_to_now" }, "value" : "[0, 1000]", "value_type" : "UINT64"},
+                    {"type" : "Equal", "field_name" : "status",  "value" : "1", "value_type" : "STRING"}
+                ]
+            },
+            {
+                "property" : "WARM",
+                "filters" : [
+                    {"type" : "Range", "field_name" : "time", "function" : {"functionName" : "time_to_now" }, "value" : "[1000,10000]", "value_type" : "UINT64"},
+                    {"type" : "Equal", "field_name" : "status",  "value" : "1", "value_type" : "STRING"}
+                ]
+            },
+            {
+                "property" : "COLD",
+                "filters" : [
+                    {"type" : "Range", "field_name" : "time", "function" : {"functionName" : "time_to_now" }, "value" : "[10000, 400000000]", "value_type" : "UINT64"},
+                    {"type" : "Equal", "field_name" : "status",  "value" : "0", "value_type" : "STRING"}
+                ]
+            }
+        ]
+    },
+    "table_name": "noname",
+    "modify_operations": [
+        {
+            "add": {
+                "fields": [
+                    {
+                        "field_name": "nid",
+                        "field_type": "LONG"
+                    }
+                ],
+                "indexs": [
+                    {
+                        "index_name": "nid",
+                        "index_type": "NUMBER",
+                        "index_fields": "nid",
+                        "file_compress" : "hybrid_compressor"
+                    }
+                ],
+                "attributes": [
+                    {
+			"field_name" : "nid",
+			"file_compress" : "hybrid_compressor"
+		    }
+                ]
+            }
+        }
+    ]
+}
+

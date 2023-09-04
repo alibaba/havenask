@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 #include <string>
 
 #include "autil/Log.h" // IWYU pragma: keep
@@ -27,22 +27,22 @@
 
 namespace autil {
 class DataBuffer;
-}  // namespace autil
+} // namespace autil
 namespace isearch {
 namespace common {
 class ModifyQueryVisitor;
 class QueryVisitor;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace common {
 
-class TermQuery : public Query
-{
+class TermQuery : public Query {
 public:
-    TermQuery(const Term& term, const std::string &label);
-    TermQuery(const std::string &word, const std::string &indexName,
+    TermQuery(const Term &term, const std::string &label);
+    TermQuery(const std::string &word,
+              const std::string &indexName,
               const RequiredFields &requiredFields,
               const std::string &label,
               int32_t boost = DEFAULT_BOOST_VALUE,
@@ -51,7 +51,8 @@ public:
         setQueryLabelTerm(label);
     }
 
-    TermQuery(const build_service::analyzer::Token& token, const char *indexName,
+    TermQuery(const build_service::analyzer::Token &token,
+              const char *indexName,
               const RequiredFields &requiredFields,
               const std::string &label,
               int32_t boost = DEFAULT_BOOST_VALUE,
@@ -59,16 +60,17 @@ public:
         : _term(token, indexName, requiredFields, boost, truncateName) {
         setQueryLabelTerm(label);
     }
-    TermQuery(const TermQuery& other);
+    TermQuery(const TermQuery &other);
     ~TermQuery();
+
 public:
-    bool operator == (const Query &query) const override;
+    bool operator==(const Query &query) const override;
     void accept(QueryVisitor *visitor) const override;
     void accept(ModifyQueryVisitor *visitor) override;
     Query *clone() const override;
-    void setTerm(const Term& term);
-    const Term& getTerm() const;
-    Term& getTerm();
+    void setTerm(const Term &term);
+    const Term &getTerm() const;
+    Term &getTerm();
     std::string getQueryName() const override;
     std::string toString() const override;
     void serialize(autil::DataBuffer &dataBuffer) const override;
@@ -79,8 +81,10 @@ public:
     void setQueryLabelWithDefaultLevel(const std::string &label) override {
         setQueryLabelTerm(label);
     }
+
 private:
     Term _term;
+
 private:
     AUTIL_LOG_DECLARE();
 };

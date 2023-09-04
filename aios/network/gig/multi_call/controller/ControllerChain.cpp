@@ -51,8 +51,7 @@ void ControllerChain::toString(std::string &ret) const {
         serverAvgWeight = INVALID_FLOAT_OUTPUT_VALUE;
     }
     if (latencyController.serverValueReady()) {
-        latencyServerSum =
-            trimSmall(netLatency + latencyController.serverValue());
+        latencyServerSum = trimSmall(netLatency + latencyController.serverValue());
         loadBalanceLatencyServer = latencyController.loadBalanceServerValue();
         loadBalanceLatencyServerSum = trimSmall(netLatency + loadBalanceLatencyServer);
     }

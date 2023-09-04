@@ -8,12 +8,13 @@
 #ifndef KMONITOR_CLIENT_NET_AGENTCLIENT_H_
 #define KMONITOR_CLIENT_NET_AGENTCLIENT_H_
 
-#include <vector>
 #include <string>
-#include "kmonitor/client/common/Common.h"
+#include <vector>
+
 #include "autil/Log.h"
-#include "kmonitor/client/net/BatchFlumeEvent.h"
+#include "kmonitor/client/common/Common.h"
 #include "kmonitor/client/net/BaseAgentClient.h"
+#include "kmonitor/client/net/BatchFlumeEvent.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
@@ -23,8 +24,8 @@ class TCompactProtocol;
 class ThriftProtocolClient;
 class ThriftFlumeEvent;
 
-class AgentClient : public BaseAgentClient{
- public:
+class AgentClient : public BaseAgentClient {
+public:
     AgentClient(const std::string &host, int port, int32_t timeOutMs);
     AgentClient(const std::string &address, int32_t timeOutMs);
     ~AgentClient();
@@ -35,13 +36,13 @@ class AgentClient : public BaseAgentClient{
     void Close() override;
     bool ReConnect() override;
 
- private:
+private:
     AgentClient(const AgentClient &);
     AgentClient &operator=(const AgentClient &);
     void CheckSocket();
     void init(const std::string &host, int port, int32_t timeOutMs);
 
- private:
+private:
     std::string host_;
     int port_;
     std::string address_;
@@ -52,10 +53,10 @@ class AgentClient : public BaseAgentClient{
     ThriftProtocolClient *thrift_client_;
     bool started_;
 
- private:
+private:
     AUTIL_LOG_DECLARE();
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_NET_AGENTCLIENT_H_
+#endif // KMONITOR_CLIENT_NET_AGENTCLIENT_H_

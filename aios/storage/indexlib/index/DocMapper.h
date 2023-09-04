@@ -28,7 +28,9 @@ public:
     {
     }
     virtual ~DocMapper() {}
+    static std::string GetDocMapperType() { return "DOC_MAPPER"; }
 
+public:
     virtual std::pair<segmentid_t, docid_t> Map(docid_t oldDocId) const = 0;
     virtual std::pair<segmentid_t, docid_t> ReverseMap(docid_t newDocId) const = 0;
     virtual segmentid_t GetTargetSegmentId(int32_t targetSegmentIdx) const = 0;
@@ -40,8 +42,6 @@ public:
     virtual uint32_t GetNewDocCount() const = 0;
     virtual segmentid_t GetLocalId(docid_t newId) const = 0;
     virtual segmentid_t GetTargetSegmentIndex(docid_t newId) const = 0;
-
-    static std::string GetDocMapperType() { return "DOC_MAPPER"; }
 };
 
 } // namespace indexlibv2::index

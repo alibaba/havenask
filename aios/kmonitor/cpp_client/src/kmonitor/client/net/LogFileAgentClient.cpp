@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <string>
-#include <vector>
+#include "kmonitor/client/net/LogFileAgentClient.h"
+
+#include <dirent.h>
+#include <fstream>
 #include <iostream>
 #include <limits.h>
+#include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <dirent.h>
-#include <fstream>
+#include <vector>
+
+#include "autil/Log.h"
 #include "autil/StringUtil.h"
 #include "kmonitor/client/common/Common.h"
-#include "autil/Log.h"
-#include "kmonitor/client/net/LogFileAgentClient.h"
 #include "kmonitor/client/common/Util.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
@@ -33,33 +35,22 @@ AUTIL_LOG_SETUP(kmonmetrics, LogFileAgentClient);
 
 using namespace std;
 
+LogFileAgentClient::LogFileAgentClient() {}
 
-LogFileAgentClient::LogFileAgentClient() {
-}
+LogFileAgentClient::~LogFileAgentClient() { Close(); }
 
-LogFileAgentClient::~LogFileAgentClient() {
-    Close();
-}
+bool LogFileAgentClient::Init() { return true; }
 
-bool LogFileAgentClient::Init() {
-    return true;
-}
+bool LogFileAgentClient::Started() const { return started_; }
 
-bool LogFileAgentClient::Started() const {
-    return started_;
-}
-
-void LogFileAgentClient::Close() {
-    started_ = false;
-}
-
+void LogFileAgentClient::Close() { started_ = false; }
 
 bool LogFileAgentClient::AppendBatch(const BatchFlumeEventPtr &batchEvents) {
     if (!Started()) {
         ReConnect();
     }
-    std::vector<ThriftFlumeEvent*> events = *(batchEvents->Get());
-    for(auto event : events) {
+    std::vector<ThriftFlumeEvent *> events = *(batchEvents->Get());
+    for (auto event : events) {
         string eventBody = event->GetBody();
         AUTIL_LOG(INFO, "%s", eventBody.c_str());
     }
@@ -73,4 +64,3 @@ bool LogFileAgentClient::ReConnect() {
 }
 
 END_KMONITOR_NAMESPACE(kmonitor);
-

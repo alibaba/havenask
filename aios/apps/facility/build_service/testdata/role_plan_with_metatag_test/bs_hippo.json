@@ -1,0 +1,98 @@
+{
+    "packages" : [
+	{
+	    "type" : "RPM",
+	    "packageURI" : "bs_package"
+	},
+	{
+	    "type" : "ARCHIVE",
+	    "packageURI" : "other_packages"
+	}
+    ],
+    "role_default" : {
+        "containerConfigs": [
+            "ENVS=(hello world)"
+        ],
+        "count" : 3,
+        "processInfos" : [
+            {
+                "isDaemon" : true,
+                "args" : [
+                    ["-l" , "/path/to/logconf"],
+                    ["-cc" , "/path/to/logconf"]
+                ]
+            }
+        ],
+	"dataInfos" : [
+	    {
+		"name" : "isearch5_data",
+		"src" : "hdfs://path/to/isearch5_data",
+		"dst" : "$HIPP_APP_WORKDIR/isearch5_data"
+	    }
+	],
+        "properties" : {
+            "key" : "value"
+        },
+	"queue" : "build_service_queue",
+	"allocateMode" : 2
+    },
+    "role_customize" : [
+	{
+            "_bs_role" : "builder.cluster1",
+            "containerConfigs": [
+		"ENVS=(hello world1)"
+            ],
+            "count" : 3,
+            "processInfos" : [
+                {
+                    "envs" : [
+                        ["HADOOP_HOME","/hadoop/home/path"]
+                    ],
+                    "args" : [
+                        ["-l" , "/path/to/logconf"],
+                        ["-cc" , "/path/to/logconf"]
+                    ]
+                }
+            ],
+	    "dataInfos" : [],
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        { "name" : "cpu", "amount" : 1 },
+                        { "name" : "mem", "amount" : 1000}
+                    ]
+                }
+            ]
+	},
+        {
+            "_bs_role" : "processor.data_table1.*",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        { "name" : "cpu", "amount" : 6 },
+                        { "name" : "mem", "amount" : 1000}
+                    ]
+                }
+            ]
+	},
+	{
+            "_bs_role" : "merger.*",
+            "metatags" : {
+		"app.hippo.io/failoverCost" : "90"
+	    }
+	}
+    ],
+    "role_resource" : {
+        "processor" : [
+            { "name" : "cpu", "amount" : 2 },
+            { "name" : "mem", "amount" : 1000 }
+        ],
+        "builder_cluster2" : [
+        ],
+	"merger.cluster1" : [
+            { "name" : "cpu", "amount" : 3 },
+            { "name" : "mem", "amount" : 1000 }
+	]
+    },
+    "enable_gang_region" : true
+}

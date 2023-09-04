@@ -1,0 +1,24 @@
+{
+    "table_name": "kv_table",
+    "table_type": "kv",
+    "fields": [
+        {
+            "field_name": "nid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "uid",
+            "field_type": "INT64"
+        }
+    ],
+    "indexs": [
+        {
+            "index_name": "nid",
+            "index_fields": "nid",
+            "index_type": "PRIMARY_KEY"
+        }
+    ],
+    "attributes": [
+        "uid"
+    ]
+}

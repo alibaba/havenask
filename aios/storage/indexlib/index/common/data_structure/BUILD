@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='VarLenDataAccessor',
     deps=[
         ':VarLenDataIterator', '//aios/storage/indexlib/base:Status',
@@ -10,7 +10,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:KeyHasherTyped'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VarLenDataParam',
     srcs=[],
     deps=[
@@ -18,7 +18,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VarLenDataParamHelper',
     deps=[
         ':AttributeCompressInfo', ':VarLenDataParam',
@@ -28,7 +28,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/summary/config:SummaryGroupConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='EqualValueCompressDumper',
     srcs=[],
     deps=[
@@ -37,14 +37,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:typed_slice_list'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AdaptiveAttributeOffsetDumper',
     deps=[
         ':AttributeCompressInfo', ':EqualValueCompressDumper',
         '//aios/autil:mem_pool_base'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='EqualValueCompressAdvisor',
     srcs=[],
     deps=[
@@ -52,7 +52,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:numeric_compress'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VarLenDataWriter',
     deps=[
         ':AdaptiveAttributeOffsetDumper', ':VarLenDataParam',
@@ -61,28 +61,28 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format:attribute_field_format'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VarLenDataDumper',
     deps=[
         ':VarLenDataAccessor', ':VarLenDataIterator', ':VarLenDataWriter',
         '//aios/autil:const_string_util'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeCompressInfo',
     deps=[
         '//aios/storage/indexlib/config:CompressTypeOption',
         '//aios/storage/indexlib/index/attribute/config:AttributeConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VarLenDataIterator',
     deps=[
         '//aios/storage/indexlib/index/common:radix_tree',
         '//aios/storage/indexlib/index/common:typed_slice_list'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='CompressOffsetReader',
     deps=[
         '//aios/storage/indexlib/base:Status',
@@ -92,7 +92,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/numeric_compress:EquivalentCompressSessionReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='UncompressOffsetReader',
     deps=[
         '//aios/storage/indexlib/base:Status',
@@ -102,15 +102,15 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:error_code'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VarLenOffsetReader',
     deps=[
         ':CompressOffsetReader', ':UncompressOffsetReader', ':VarLenDataParam',
         '//aios/storage/indexlib/index/common/field_format/attribute:MultiValueAttributeFormatter'
     ]
 )
-indexlib_cc_library(name='VarLenDataReader', deps=[':VarLenOffsetReader'])
-indexlib_cc_library(
+strict_cc_library(name='VarLenDataReader', deps=[':VarLenOffsetReader'])
+strict_cc_library(
     name='VarLenDataMerger',
     deps=[
         ':VarLenDataParam', ':VarLenDataReader', ':VarLenDataWriter',
@@ -122,7 +122,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute:util'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ExpandableValueAccessor',
     srcs=[],
     deps=[

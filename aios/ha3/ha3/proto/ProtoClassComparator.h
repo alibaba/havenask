@@ -22,8 +22,9 @@ namespace proto {
 
 bool operator<(const Range &lhs, const Range &rhs);
 bool operator<(const PartitionID &lhs, const PartitionID &rhs);
-inline bool operator>(const PartitionID &lhs, const PartitionID &rhs) 
-{return rhs < lhs;}
+inline bool operator>(const PartitionID &lhs, const PartitionID &rhs) {
+    return rhs < lhs;
+}
 
 bool operator==(const PartitionID &lhs, const PartitionID &rhs);
 bool operator!=(const PartitionID &lhs, const PartitionID &rhs);
@@ -32,4 +33,3 @@ bool operator!=(const Range &lhs, const Range &rhs);
 
 } // namespace proto
 } // namespace isearch
-

@@ -19,6 +19,7 @@
 #include "indexlib/document/RawDocument.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/index/attribute/Common.h"
+#include "indexlib/index/common/Constant.h"
 #include "indexlib/index/summary/Common.h"
 #include "indexlib/index/summary/config/SummaryIndexConfig.h"
 #include "indexlib/table/normal_table/NormalTabletDocIterator.h"
@@ -28,7 +29,7 @@ namespace build_service { namespace reader {
 BS_LOG_SETUP(reader, SourceFieldExtractorDocIterator);
 
 SourceFieldExtractorDocIterator::SourceFieldExtractorDocIterator(
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema)
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema)
     : _docIter(std::make_shared<indexlibv2::table::NormalTabletDocIterator>())
     , _targetSchema(schema)
 {
@@ -43,21 +44,12 @@ indexlib::Status SourceFieldExtractorDocIterator::Seek(const std::string& checkp
 
 bool SourceFieldExtractorDocIterator::HasNext() const { return _docIter->HasNext(); }
 
-indexlib::Status
-SourceFieldExtractorDocIterator::Init(const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData,
-                                      std::pair<uint32_t, uint32_t> rangeInRatio,
-                                      const std::shared_ptr<indexlibv2::framework::MetricsManager>& metricsManager,
-                                      const std::map<std::string, std::string>& params)
+indexlib::Status SourceFieldExtractorDocIterator::Init(
+    const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData, std::pair<uint32_t, uint32_t> rangeInRatio,
+    const std::shared_ptr<indexlibv2::framework::MetricsManager>& metricsManager,
+    const std::vector<std::string>& requiredFields, const std::map<std::string, std::string>& params)
 {
-    std::string requiredFieldsStr = indexlib::util::GetValueFromKeyValueMap(params, "read_index_required_fields");
-    assert(!requiredFieldsStr.empty());
-    std::vector<std::string> fieldNames;
-    try {
-        autil::legacy::FromJsonString(fieldNames, requiredFieldsStr);
-        AUTIL_LOG(INFO, "required [%lu] fields [%s]", fieldNames.size(), requiredFieldsStr.c_str());
-    } catch (const autil::legacy::ExceptionBase& e) {
-        RETURN_STATUS_ERROR(InvalidArgs, "parse required fields [%s] failed", requiredFieldsStr.c_str());
-    }
+    std::vector<std::string> fieldNames = requiredFields;
     _requiredFields = std::set<std::string>(fieldNames.begin(), fieldNames.end());
     auto readSchema = tabletData->GetOnDiskVersionReadSchema();
     std::vector<std::string> sourceFieldNames;
@@ -67,7 +59,7 @@ SourceFieldExtractorDocIterator::Init(const std::shared_ptr<indexlibv2::framewor
     for (const auto& fieldName : fieldNames) {
         auto fieldConfig = _targetSchema->GetFieldConfig(fieldName);
         assert(fieldConfig);
-        if (readSchema->GetIndexConfig(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR, fieldName)) {
+        if (readSchema->GetIndexConfig(indexlib::index::GENERAL_VALUE_INDEX_TYPE_STR, fieldName)) {
             sourceFieldNames.push_back(fieldName);
         } else if (summaryConfig && summaryConfig->GetSummaryConfig(fieldName)) {
             sourceFieldNames.push_back(fieldName);
@@ -84,11 +76,9 @@ SourceFieldExtractorDocIterator::Init(const std::shared_ptr<indexlibv2::framewor
         }
     }
 
-    auto cloneParams = params;
-    cloneParams["read_index_required_fields"] = autil::legacy::ToJsonString(sourceFieldNames);
-    BS_LOG(INFO, "source required fields [%s], after extractor required fields [%s]", requiredFieldsStr.c_str(),
-           cloneParams["read_index_required_fields"].c_str());
-    return _docIter->Init(tabletData, rangeInRatio, metricsManager, cloneParams);
+    BS_LOG(INFO, "source required fields [%s], after extractor required fields [%s]",
+           autil::legacy::ToJsonString(requiredFields).c_str(), autil::legacy::ToJsonString(sourceFieldNames).c_str());
+    return _docIter->Init(tabletData, rangeInRatio, metricsManager, sourceFieldNames, params);
 }
 
 indexlib::Status SourceFieldExtractorDocIterator::Next(indexlibv2::document::RawDocument* rawDocument,

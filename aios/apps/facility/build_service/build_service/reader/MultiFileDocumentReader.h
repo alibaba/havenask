@@ -41,8 +41,8 @@ public:
     bool initForFormatDocument(const std::string& docPrefix, const std::string& docSuffix);
 
     // init for format document by seperators, and file is encrypted with aes cipher
-    bool initForCipherFormatDocument(autil::cipher::CipherOption option,
-                                     const std::string& docPrefix, const std::string& docSuffix);
+    bool initForCipherFormatDocument(autil::cipher::CipherOption option, const std::string& docPrefix,
+                                     const std::string& docSuffix);
 
     // init for binary document
     bool initForFixLenBinaryDocument(size_t length);

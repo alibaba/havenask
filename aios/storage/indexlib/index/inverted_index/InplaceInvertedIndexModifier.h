@@ -15,7 +15,7 @@
  */
 #pragma once
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/index/inverted_index/IInvertedDiskIndexer.h"
 #include "indexlib/index/inverted_index/IInvertedMemIndexer.h"
@@ -30,7 +30,7 @@ namespace indexlib::index {
 class InplaceInvertedIndexModifier final : public InvertedIndexModifier
 {
 public:
-    InplaceInvertedIndexModifier(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema);
+    InplaceInvertedIndexModifier(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema);
     ~InplaceInvertedIndexModifier() {}
 
 public:

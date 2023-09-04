@@ -1,0 +1,77 @@
+{
+"config_path":
+  "test_configPath",
+"data_table":
+  "simple2",
+"full_merge_configs":
+  {
+  "cluster1":
+    "full",
+  "cluster3":
+    ""
+  },
+"has_crontab":
+  true,
+"merge_crontabs":
+  {
+  "cluster1":
+    {
+    "merge_triggers":
+      [
+        {
+        "merge_config_name":
+          "inc",
+        "next_trigger_time":
+          1528350282,
+        "period":
+          1800
+        },
+        {
+        "merge_config_name":
+          "inc_merge",
+        "next_trigger_time":
+          1528363800,
+        "period":
+          86400
+        }
+      ]
+    },
+  "cluster3":
+    {
+    "merge_triggers":
+      [
+        {
+        "merge_config_name":
+          "inc",
+        "next_trigger_time":
+          1528350282,
+        "period":
+          1800
+        },
+        {
+        "merge_config_name":
+          "inc_merge",
+        "next_trigger_time":
+          1528363800,
+        "period":
+          86400
+        }
+      ]
+    }
+  },
+"merging_tasks":
+  {
+  "cluster3":
+    ""
+  },
+"pending_tasks":
+  {
+  "cluster1":
+    [
+      "full"
+    ],
+  "cluster3":
+    [
+    ]
+  }
+}

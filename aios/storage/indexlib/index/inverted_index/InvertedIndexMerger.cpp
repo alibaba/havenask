@@ -15,7 +15,7 @@
  */
 #include "indexlib/index/inverted_index/InvertedIndexMerger.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/file_system/file/CompressFileInfo.h"
 #include "indexlib/file_system/relocatable/RelocatableFolder.h"
 #include "indexlib/framework/Segment.h"
@@ -503,7 +503,7 @@ Status InvertedIndexMerger::LoadBucketMaps(
         std::shared_ptr<index::BucketMap> bucketMap;
         // in case of failover, try load resource first
         auto status = taskResourceManager->LoadResource(bucketMapName, index::BucketMap::GetBucketMapType(), bucketMap);
-        if (!status.IsOK() && !status.IsNoEntry()) {
+        if (!status.IsOK() && !status.IsNotFound()) {
             AUTIL_LOG(ERROR, "load bucket map failed.");
             return status;
         }

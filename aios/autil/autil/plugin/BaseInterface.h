@@ -15,26 +15,24 @@
  */
 #pragma once
 
-#include <string>
 #include <memory>
+#include <string>
+
 #include "autil/Log.h"
 
 namespace autil {
 
 class BaseInterface {
 public:
-    BaseInterface() {};
-    virtual ~BaseInterface() {};
+    BaseInterface(){};
+    virtual ~BaseInterface(){};
     virtual const std::string interfaceName() const { return "builtin"; }
-    virtual BaseInterface* create() { return nullptr; }
+    virtual BaseInterface *create() { return nullptr; }
     virtual void destroy() { delete this; }
 };
 
-#define EXPORT_INTERFACE_CREATOR(prefix, name, classtype, classname)    \
-    extern "C" classtype* prefix##name()                                \
-    {                                                                   \
-        return new classname();                                         \
-    }
+#define EXPORT_INTERFACE_CREATOR(prefix, name, classtype, classname)                                                   \
+    extern "C" classtype *prefix##name() { return new classname(); }
 
 typedef std::shared_ptr<BaseInterface> BaseInterfacePtr;
 

@@ -20,7 +20,8 @@
 
 namespace multi_call {
 
-class ErrorController {
+class ErrorController
+{
 public:
     ErrorController();
     ~ErrorController();

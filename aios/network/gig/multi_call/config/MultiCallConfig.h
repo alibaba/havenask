@@ -26,12 +26,17 @@ namespace multi_call {
 
 struct TopoNode;
 
-class Cm2Config : public autil::legacy::Jsonizable {
+class Cm2Config : public autil::legacy::Jsonizable
+{
 public:
     Cm2Config()
-        : enableClusterBizSearch(false), subMasterOnly(false),
-          subProtocolVersion(INVALID_VERSION_ID), allGroupsTopo(false) {}
-    ~Cm2Config() {}
+        : enableClusterBizSearch(false)
+        , subMasterOnly(false)
+        , subProtocolVersion(INVALID_VERSION_ID)
+        , allGroupsTopo(false) {
+    }
+    ~Cm2Config() {
+    }
 
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);
@@ -53,10 +58,13 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-class VipConfig : public autil::legacy::Jsonizable {
+class VipConfig : public autil::legacy::Jsonizable
+{
 public:
-    VipConfig() {}
-    ~VipConfig() {}
+    VipConfig() {
+    }
+    ~VipConfig() {
+    }
 
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);
@@ -71,15 +79,22 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-class IstioConfig : public autil::legacy::Jsonizable {
+class IstioConfig : public autil::legacy::Jsonizable
+{
 public:
     IstioConfig()
-        : xdsCallbackQueueSize(1000),
-          cacheFile("./local_cache/istio_cluster_cache"), readCache(true),
-          writeCache(true), writeInterval(5 * 60),
-          xdsClientWorkerThreadNumber(1), asyncSubscribe(true),
-          asyncSubIntervalSec(2), enableHostTransform(true) {}
-    ~IstioConfig() {}
+        : xdsCallbackQueueSize(1000)
+        , cacheFile("./local_cache/istio_cluster_cache")
+        , readCache(true)
+        , writeCache(true)
+        , writeInterval(5 * 60)
+        , xdsClientWorkerThreadNumber(1)
+        , asyncSubscribe(true)
+        , asyncSubIntervalSec(2)
+        , enableHostTransform(true) {
+    }
+    ~IstioConfig() {
+    }
 
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);
@@ -109,7 +124,8 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-class LocalJsonize : public autil::legacy::Jsonizable {
+class LocalJsonize : public autil::legacy::Jsonizable
+{
 public:
     LocalJsonize();
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);
@@ -119,6 +135,7 @@ public:
     bool supportHeartbeat() const {
         return _supportHeartbeat;
     }
+
 public:
     std::string _bizName;
     PartIdTy _partCnt;
@@ -134,7 +151,8 @@ public:
     bool _supportHeartbeat;
 };
 
-class LocalConfig {
+class LocalConfig
+{
 public:
     LocalConfig();
     ~LocalConfig();
@@ -151,19 +169,19 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-class SubscribeConfig : public autil::legacy::Jsonizable {
+class SubscribeConfig : public autil::legacy::Jsonizable
+{
 public:
-    SubscribeConfig()
-        : allowEmptySub(true)
-    {
+    SubscribeConfig() : allowEmptySub(true) {
     }
-    ~SubscribeConfig() {}
+    ~SubscribeConfig() {
+    }
 
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);
     // virtual for ut
-    virtual bool validate(bool &cm2Enabled, bool &vipEnabled,
-                          bool &localEnabled, bool &istioEnabled) const;
+    virtual bool validate(bool &cm2Enabled, bool &vipEnabled, bool &localEnabled,
+                          bool &istioEnabled) const;
     bool operator==(const SubscribeConfig &rhs) const;
     bool getCm2Configs(std::vector<Cm2Config> &cm2Configs) const;
     bool getIstioConfigs(std::vector<IstioConfig> &istioConfigs) const;
@@ -181,10 +199,13 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-class SecureConfig : public autil::legacy::Jsonizable {
+class SecureConfig : public autil::legacy::Jsonizable
+{
 public:
-    SecureConfig() {}
-    ~SecureConfig() {}
+    SecureConfig() {
+    }
+    ~SecureConfig() {
+    }
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);
     bool operator==(const SecureConfig &rhs) const;
 
@@ -198,8 +219,9 @@ public:
 struct GigRpcServerConfig : public autil::legacy::Jsonizable {
     GigRpcServerConfig()
         : heartbeatThreadNum(5) // default
-          ,
-          heartbeatQueueSize(1000), enableAgentStat(true) {}
+        , heartbeatQueueSize(1000)
+        , enableAgentStat(true) {
+    }
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);
     bool operator==(const GigRpcServerConfig &rhs) const;
@@ -220,9 +242,11 @@ struct GrpcServerDescription {
     SecureConfig secureConfig;
 };
 
-class ArpcServerDescription {
+class ArpcServerDescription
+{
 public:
-    ArpcServerDescription() : threadNum(1), queueSize(256), ioThreadNum(1) {}
+    ArpcServerDescription() : threadNum(1), queueSize(256), ioThreadNum(1) {
+    }
 
     std::string name;
     std::string port;
@@ -231,11 +255,16 @@ public:
     uint32_t ioThreadNum;
 };
 
-class HttpArpcServerDescription {
+class HttpArpcServerDescription
+{
 public:
     HttpArpcServerDescription()
-        : threadNum(8), queueSize(10000), ioThreadNum(5), decodeUri(false),
-          haCompatible(false) {}
+        : threadNum(8)
+        , queueSize(10000)
+        , ioThreadNum(5)
+        , decodeUri(false)
+        , haCompatible(false) {
+    }
 
     std::string name;
     std::string port;
@@ -246,13 +275,15 @@ public:
     bool haCompatible;
 };
 
-class RdmaArpcServerDescription {
+class RdmaArpcServerDescription
+{
 public:
     RdmaArpcServerDescription()
         : arpcWorkerThreadNum(5)
         , arpcWorkerQueueSize(50)
         , rdmaIoThreadNum(1)
-        , rdmaWorkerThreadNum(5) {}
+        , rdmaWorkerThreadNum(5) {
+    }
     std::string name;
     std::string ip;
     std::string port;
@@ -262,12 +293,16 @@ public:
     uint32_t rdmaWorkerThreadNum;
 };
 
-class ProtocolConfig : public autil::legacy::Jsonizable {
+class ProtocolConfig : public autil::legacy::Jsonizable
+{
 public:
     ProtocolConfig()
-        : threadNum(DEFAULT_THREAD_NUM), queueSize(DEFAULT_QUEUE_SIZE),
-          anetLoopTimeout(DEFAULT_TIMEOUT_LOOP_INTERVAL) {}
-    ~ProtocolConfig() {}
+        : threadNum(DEFAULT_THREAD_NUM)
+        , queueSize(DEFAULT_QUEUE_SIZE)
+        , anetLoopTimeout(DEFAULT_TIMEOUT_LOOP_INTERVAL) {
+    }
+    ~ProtocolConfig() {
+    }
 
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);
@@ -277,8 +312,8 @@ public:
     uint32_t threadNum;
     uint32_t queueSize;
     int64_t anetLoopTimeout;
-    int64_t keepAliveInterval = 4000;   // ms
-    int64_t keepAliveTimeout = 2000; // ms
+    int64_t keepAliveInterval = 4000; // ms
+    int64_t keepAliveTimeout = 2000;  // ms
     SecureConfig secureConfig;
 
 private:
@@ -287,23 +322,31 @@ private:
 
 typedef std::map<std::string, ProtocolConfig> ConnectionConfig;
 
-class MiscConfig : public autil::legacy::Jsonizable {
+class MiscConfig : public autil::legacy::Jsonizable
+{
 public:
     MiscConfig()
-        : snapshotLogCount(2000), snapshotInterval(0), virtualNodeCount(3000),
-          metricReportSamplingRate(0), heartbeatTimeout(DEFAULT_TIMEOUT),
-          heartbeatThreadCount(DEFAULT_HEARTBEAT_THREAD_NUM),
-          heartbeatUnhealthInterval(DEFAULT_HEARTBEAT_UNHEALTH_INTERVAL),
-          callbackThreadNum(DEFAULT_CALLBACK_THREAD_NUM),
-          callProcessInterval(PROCESS_INTERVAL),
-          grpcChannelPollIntervalMs(DEFAULT_GRPC_CHANNEL_POLL_INTERVAL_MS),
-          weightUpdateStep(MIN_WEIGHT_UPDATE_STEP_FLOAT),
-          enableHeartbeat(false), checkNeedUpdateSnapshot(false),
-          disableBizNotExistLog(false), disableMetricReport(false),
-          simplifyMetricReport(false),
-          updateTimeInterval(UPDATE_TIME_INTERVAL),
-          callDelegationQueueSize(CALL_DELEGATION_QUEUE_SIZE) {}
-    ~MiscConfig() {}
+        : snapshotLogCount(2000)
+        , snapshotInterval(0)
+        , virtualNodeCount(3000)
+        , metricReportSamplingRate(0)
+        , heartbeatTimeout(DEFAULT_TIMEOUT)
+        , heartbeatThreadCount(DEFAULT_HEARTBEAT_THREAD_NUM)
+        , heartbeatUnhealthInterval(DEFAULT_HEARTBEAT_UNHEALTH_INTERVAL)
+        , callbackThreadNum(DEFAULT_CALLBACK_THREAD_NUM)
+        , callProcessInterval(PROCESS_INTERVAL)
+        , grpcChannelPollIntervalMs(DEFAULT_GRPC_CHANNEL_POLL_INTERVAL_MS)
+        , weightUpdateStep(MIN_WEIGHT_UPDATE_STEP_FLOAT)
+        , enableHeartbeat(false)
+        , checkNeedUpdateSnapshot(false)
+        , disableBizNotExistLog(false)
+        , disableMetricReport(false)
+        , simplifyMetricReport(false)
+        , updateTimeInterval(UPDATE_TIME_INTERVAL)
+        , callDelegationQueueSize(CALL_DELEGATION_QUEUE_SIZE) {
+    }
+    ~MiscConfig() {
+    }
 
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);
@@ -339,10 +382,13 @@ private:
 
 MULTI_CALL_TYPEDEF_PTR(MiscConfig);
 
-class MultiCallConfig : public autil::legacy::Jsonizable {
+class MultiCallConfig : public autil::legacy::Jsonizable
+{
 public:
-    MultiCallConfig() {}
-    ~MultiCallConfig() {}
+    MultiCallConfig() {
+    }
+    ~MultiCallConfig() {
+    }
 
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);
@@ -360,10 +406,13 @@ private:
 
 MULTI_CALL_TYPEDEF_PTR(MultiCallConfig);
 
-class EagleeyeConfig : public autil::legacy::Jsonizable {
+class EagleeyeConfig : public autil::legacy::Jsonizable
+{
 public:
-    EagleeyeConfig() {}
-    ~EagleeyeConfig() {}
+    EagleeyeConfig() {
+    }
+    ~EagleeyeConfig() {
+    }
 
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);

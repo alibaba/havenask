@@ -60,13 +60,13 @@ void PartialIndexPartitionReaderWrapper::getTermKeyStr(const Term &term,
     }
 }
 
-indexlib::index::PostingIterator *
-PartialIndexPartitionReaderWrapper::doLookupByRanges(const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReaderPtr,
-                                                     const indexlib::index::Term *indexTerm,
-                                                     PostingType pt1,
-                                                     PostingType pt2,
-                                                     const LayerMeta *layerMeta,
-                                                     bool isSubIndex) {
+indexlib::index::PostingIterator *PartialIndexPartitionReaderWrapper::doLookupByRanges(
+    const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReaderPtr,
+    const indexlib::index::Term *indexTerm,
+    PostingType pt1,
+    PostingType pt2,
+    const LayerMeta *layerMeta,
+    bool isSubIndex) {
     if (NULL == layerMeta) {
         return IndexPartitionReaderWrapper::doLookupByRanges(
             indexReaderPtr, indexTerm, pt1, pt2, layerMeta, isSubIndex);

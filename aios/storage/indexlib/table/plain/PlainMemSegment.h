@@ -48,7 +48,7 @@ class MemoryQuotaController;
 
 namespace indexlibv2::config {
 class TabletOptions;
-class TabletSchema;
+class ITabletSchema;
 class IIndexConfig;
 } // namespace indexlibv2::config
 
@@ -94,13 +94,14 @@ public:
         size_t lastMemUseSize = 0;
     };
 
-    PlainMemSegment(const config::TabletOptions* options, const std::shared_ptr<config::TabletSchema>& schema,
+    PlainMemSegment(const config::TabletOptions* options, const std::shared_ptr<config::ITabletSchema>& schema,
                     const framework::SegmentMeta& segmentMeta)
         : framework::MemSegment(segmentMeta)
         , _options(options)
         , _schema(schema)
         , _isDirty(false)
     {
+        assert(_options);
     }
     ~PlainMemSegment() = default;
 
@@ -122,7 +123,8 @@ public:
     bool IsDirty() const override { return _isDirty; }
 
 public:
-    void PostBuildActions(document::IDocumentBatch* batch);
+    void PostBuildActions(const indexlibv2::framework::Locator& locator, int64_t maxTimestamp, int64_t maxTTL,
+                          uint64_t addDocCount);
 
 public:
     void TEST_AddIndexer(const std::string& type, const std::string& indexName,
@@ -150,19 +152,25 @@ private:
         IndexMapKey indexMapKey = std::make_pair(indexType, indexName);
         return indexMapKey;
     }
-    void UpdateSegmentInfo(document::IDocumentBatch* batch);
+    void UpdateSegmentInfo(const indexlibv2::framework::Locator& locator, int64_t maxTimestamp, int64_t maxTTL,
+                           uint64_t addDocCount);
     Status GenerateIndexerResource(const framework::BuildResource& resource,
                                    std::vector<IndexerResource>& indexerResources);
     Status BuildPlainDoc(document::TemplateDocumentBatch<document::PlainDocument>* plainDocBatch);
     void ValidateDocumentBatch(document::TemplateDocumentBatch<document::PlainDocument>* plainDocBatch);
 
 protected:
-    const config::TabletOptions* _options;
-    std::shared_ptr<config::TabletSchema> _schema;
+    const config::TabletOptions* _options = nullptr;
+    std::shared_ptr<config::ITabletSchema> _schema;
     std::shared_ptr<indexlib::util::BuildResourceMetrics> _buildResourceMetrics;
     config::SortDescriptions _sortDescriptions;
-    bool _isDirty;
+    bool _isDirty = false;
     std::map<IndexMapKey, IndexerAndMemUpdaterPair> _indexMap;
+    // _indexMapForValidation is an optimization to be used in ValidateDocumentBatch.
+    // Currently all attribute indexers validate documents in the same way, so we can validate attribute indexers only
+    // once. The same goes for inverted indexers. This becomes more important when we have a lot of indexers like
+    // mainse.
+    std::map<IndexMapKey, IndexerAndMemUpdaterPair> _indexMapForValidation;
     std::vector<std::shared_ptr<indexlibv2::index::IMemIndexer>> _indexers;
     std::shared_ptr<indexlib::framework::SegmentMetrics> _lastSegmentMetrics;
 

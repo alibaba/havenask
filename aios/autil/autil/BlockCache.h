@@ -15,10 +15,10 @@
  */
 #pragma once
 
+#include <memory>
+#include <new>
 #include <stddef.h>
 #include <stdint.h>
-#include <new>
-#include <memory>
 
 #include "autil/Block.h"
 #include "autil/BlockAllocator.h"
@@ -30,20 +30,17 @@
 
 namespace autil {
 
-class BlockCache
-{
+class BlockCache {
 public:
     BlockCache();
     virtual ~BlockCache();
+
 private:
     BlockCache(const BlockCache &);
-    BlockCache& operator = (const BlockCache &);
+    BlockCache &operator=(const BlockCache &);
 
 public:
-    bool init(size_t maxMemory,
-              uint32_t blockSize,
-              BlockAllocatorPtr& blockAllocator,
-              ReplacePolicyPtr& replacePolicy);
+    bool init(size_t maxMemory, uint32_t blockSize, BlockAllocatorPtr &blockAllocator, ReplacePolicyPtr &replacePolicy);
 
     /**
      * Put a Block to cache
@@ -51,9 +48,9 @@ public:
      * @return
      *    (1) NULL
      *        the cache is full and the ReplacePolicy failed to
-     *        recycle any blocks from cache. 
+     *        recycle any blocks from cache.
      *    (2) equals to @param block,
-     *        it means the put is successful, the block's reference count 
+     *        it means the put is successful, the block's reference count
      *        is increased by one automatically.
      *    (3) doesn't equal to  @param block
      *        it means some else has put a block with the same id into the cache,
@@ -74,9 +71,9 @@ public:
      *    {
      *         use myBlock
      *    }
-     *        
+     *
      */
-    Block* put(Block* block);
+    Block *put(Block *block);
 
     /**
      * Get a block from cache
@@ -84,10 +81,10 @@ public:
      * @return
      *    (1) NULL
      *        There's no such a block with @param blockId
-     *    (2) NOT NULL, it's the block with  @param blockId, and the block's 
+     *    (2) NOT NULL, it's the block with  @param blockId, and the block's
      *        referenced count is increased by one automatically.
      */
-    Block* get(blockid_t blockId);
+    Block *get(blockid_t blockId);
 
     /*
      * setMaxBlockCount is used to adjust cache's max size
@@ -105,15 +102,15 @@ public:
 
 private:
     uint32_t replaceBlocks();
-    BlockLinkListNode* allocBlockLinkListNode();
-    void freeBlockLinkListNode(BlockLinkListNode* blockNode);
+    BlockLinkListNode *allocBlockLinkListNode();
+    void freeBlockLinkListNode(BlockLinkListNode *blockNode);
 
 private:
-    ReferencedHashMap<blockid_t, BlockLinkListNode*> _blockMap;
+    ReferencedHashMap<blockid_t, BlockLinkListNode *> _blockMap;
     BlockAllocatorPtr _blockAllocator;
     ReplacePolicyPtr _replacePolicy;
 
-    ThreadMutex _blockNodeAllocatorLock;    
+    ThreadMutex _blockNodeAllocatorLock;
     FixedSizeAllocator _blockNodeAllocator;
 
     uint32_t _maxBlockCount;
@@ -123,7 +120,7 @@ private:
     uint64_t _totalAccessCount;
     uint64_t _totalHitCount;
     uint32_t _last1000HitCount;
-    bool  _last1000Hit[1000];
+    bool _last1000Hit[1000];
 
     friend class BlockCacheTest;
 };
@@ -133,16 +130,15 @@ typedef std::shared_ptr<BlockCache> BlockCachePtr;
 /////////////////////////////////////////////////////////
 // inline methods
 
-inline BlockLinkListNode* BlockCache::allocBlockLinkListNode() {
+inline BlockLinkListNode *BlockCache::allocBlockLinkListNode() {
     ScopedLock lock(_blockNodeAllocatorLock);
     return new (_blockNodeAllocator.allocate()) BlockLinkListNode();
 }
- 
-inline void BlockCache::freeBlockLinkListNode(BlockLinkListNode* blockNode) {
+
+inline void BlockCache::freeBlockLinkListNode(BlockLinkListNode *blockNode) {
     ScopedLock lock(_blockNodeAllocatorLock);
     blockNode->~BlockLinkListNode();
     _blockNodeAllocator.free(blockNode);
 }
 
-}
-
+} // namespace autil

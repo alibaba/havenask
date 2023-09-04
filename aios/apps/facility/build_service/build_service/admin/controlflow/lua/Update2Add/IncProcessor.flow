@@ -1,0 +1,224 @@
+#import(Tool)
+#import(Log)
+
+--todo deal error --yijie
+function createTopicResource(topicConfigName, tag, clusterName)
+   resourceName = "topic_"..topicConfigName.."_"..tag.."_"..clusterName
+   createTopicParam = {
+      ["topicConfigName"] = topicConfigName,
+      ["tag"] = tag, 
+      ["clusterName"] = clusterName,
+      ["name"] = resourceName
+   }
+   topicInfo = {}
+   if (not Flow.openApi("book", "/resource/swift", createTopicParam))
+   then
+      Log.log("ERROR", "openapi create swift resource failed!")
+      return topicInfo
+   end
+   topicInfo["resourceName"] = resourceName
+   topicInfo["documentFormat"] = "processed"
+   return topicInfo
+end
+
+function calculateSrcCnt(dataDescriptions)
+   local ret = 0
+   local idx = 1
+   local matchCnt = 0
+   while( idx <= string.len(dataDescriptions) )
+   do
+        substr = string.sub(dataDescriptions, idx, idx)
+        if ("{"  == substr)
+        then
+            matchCnt = matchCnt + 1
+
+        elseif ("}" == substr)
+        then
+            matchCnt = matchCnt - 1
+            if (matchCnt == 0)
+            then
+                ret = ret + 1
+            end
+        end
+        idx = idx + 1
+   end
+   return ret
+end
+
+function getLastDescrion(dataDescriptions)
+   local reserveDescription = string.reverse(dataDescriptions)
+
+   local startIndex = string.find(reserveDescription, "}", 0)
+   local matchCnt = 1
+   local idx = startIndex + 1
+   while( idx <= string.len(reserveDescription) )
+   do
+        substr = string.sub(reserveDescription, idx, idx)
+        if ("{"  == substr)
+        then
+            matchCnt = matchCnt - 1
+        elseif ("}" == substr)
+        then
+            matchCnt = matchCnt + 1
+        end
+        if (matchCnt == 0)
+        then
+            local reversedRet = string.sub(reserveDescription,startIndex, idx)
+            return string.reverse(reversedRet)
+        end
+        idx = idx + 1
+   end
+   return ""
+end
+
+
+function getStartTs(dataDescription, key)
+   local mapJson = jsonToMap(dataDescription)
+   local ret = mapJson[key]
+   if (ret == nil)
+   then
+        return "0"
+   end
+   return ret
+end
+
+
+function getCloneIndexCheckpoint()
+   local cloneIndexFlowId = Flow.parameter['cloneIndexFlowId']
+   if (cloneIndexFlowId ~= nil)
+   then
+      local cloneIndexTask = Flow.getTaskInFlow("cloneIndex", cloneIndexFlowId)
+      if (cloneIndexTask:isValid())
+      then
+         -- the locator key of single cluster format like: ${clusterName}-cloned-index-locator
+         local locator = cloneIndexTask:getProperty(Flow.parameter["clusterName"].."-cloned-index-locator")
+         if (locator == "")
+         then
+            Log.log("ERROR", "no cloned-index-locator defined in CloneIndexTask: "..Flow.parameter["buildId"])
+            return false, "-1"
+         end
+         return true, locator
+      end
+      return false, "-1"
+   end
+   return true, "-1"
+end
+
+
+function initProcessorParam(topicConfigName, stage)
+   clusterName = Flow.parameter["clusterName"]
+   topicInfo1 = createTopicResource(topicConfigName, "update2add", clusterName)
+   depends = {}
+   inputParam = {}
+   outputParam = {}
+   local startDataDescriptionIdStr
+   local startDataDescriptionId
+   local checkpoint
+   if (stage == "1")
+   then
+      inputParam["type"] = "dataDescriptions"
+      inputParam["params"] = mapToJson({["dataDescriptions"] = Flow.parameter["dataDescriptions"]})
+      local lastDes = getLastDescrion(Flow.parameter["dataDescriptions"]);
+      local startDataDescriptionId = calculateSrcCnt(Flow.parameter["dataDescriptions"])
+      startDataDescriptionIdStr = tostring(startDataDescriptionId - 1)
+      checkpoint = getStartTs(lastDes, "swift_start_timestamp")
+      isValid, locator = getCloneIndexCheckpoint()
+      if (not isValid)
+      then 
+         return nil
+      end
+      if (locator ~= "-1")
+      then 
+         if (tonumber(locator) < tonumber(checkpoint))
+         then
+            Log.log("ERROR", "swift startTs is invalid as it ".. checkpoint.."is bigger than index locator "..locator)
+            return nil
+         end
+         checkpoint = locator
+         Log.log("INFO", "set build "..Flow.parameter["buildId"].. " processor locator " ..checkpoint)
+      end
+      outputParam["type"] = "dependResource"
+      outputParam["params"] = mapToJson(topicInfo1)
+      depends[1] = topicInfo1["resourceName"]
+   elseif (stage == "2")
+   then
+      bookLatestIndex = {
+         ["clusterName"] = clusterName,
+         ["version"] = "latest",
+         ["name"] = clusterName.."_src_latestCheckpoint"
+      }
+      Flow.openApi("book", "/resource/index_checkpoint", bookLatestIndex)
+      topicInfo2 = createTopicResource(topicConfigName, "", clusterName)
+      inputParam["type"] = "dependResource"
+      inputParam["params"] = mapToJson(topicInfo1)
+      outputParam["type"] = "dependResource"
+      outputParam["params"] = mapToJson(topicInfo2)
+      depends[1] = bookLatestIndex["name"]
+      depends[2] = topicInfo1["resourceName"]
+      depends[3] = topicInfo2["resourceName"]
+   end
+
+   processorParam = Tool.copyMap(Flow.parameter)
+   processorParam["input"] = mapToJson(inputParam)
+   processorParam["output"] = mapToJson(outputParam)
+   processorParam["stage"] = stage 
+   if (stage == "2")
+   then
+      processorParam["preStage"] = "1"
+      processorParam["startDataDescriptionId"] = "0"
+      processorParam["checkpoint"] = "0"
+      processorParam["isLastStage"] = "true"
+   elseif (stage == "1")
+   then
+      processorParam["startDataDescriptionId"] = startDataDescriptionIdStr
+      processorParam["checkpoint"] = checkpoint
+   end
+   processorParam["read_src_config"] = "processor_"..stage
+   processorParam["depends"] = listToJson(depends)
+   return processorParam   
+end
+
+function stepRunFlow()
+   local flowState = Flow.getProperty("_flow_status_")
+   if (flowState == "")
+   then
+      processorParam1 = initProcessorParam("topic_inc", "1")
+      if (processorParam1 == nil)
+      then
+         Log.log("ERROR", "init processor param failed for buildId "..Flow.parameter["buildId"])
+         return false
+      end
+      local incProcessor1 = Flow.createTask("incProcessor1", "processor", processorParam1)
+      
+      processorParam2 = initProcessorParam("topic_inc", "2")
+      local incProcessor2 = Flow.createTask("incProcessor2", "processor", processorParam2)
+
+      if (Flow.startTask(incProcessor1, {}) and Flow.startTask(incProcessor2, {}))
+      then
+         Flow.setProperty("_flow_status_", "running")
+      end
+      return false
+   end
+   local incProcessor1 = Flow.getTask("incProcessor1")
+   local incProcessor2 = Flow.getTask("incProcessor2")
+   if (flowState == "running")
+   then
+      if (incProcessor1:isTaskFinish())
+      then
+         if (Flow.finishTask(incProcessor2, {}))
+         then
+            Flow.setProperty("_flow_status_", "finishing")
+         end
+      end
+      return false
+   end
+   if (flowState == "finishing")
+   then
+      if (incProcessor2:isTaskFinish())
+      then
+         Flow.setProperty("_flow_status_", "finished")
+         return true
+      end
+   end
+   return false
+end

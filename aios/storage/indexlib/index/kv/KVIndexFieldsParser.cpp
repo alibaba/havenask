@@ -61,7 +61,7 @@ Status KVIndexFieldsParser::Init(const std::vector<std::shared_ptr<config::IInde
 }
 
 indexlib::util::PooledUniquePtr<document::IIndexFields>
-KVIndexFieldsParser::Parse(const document::ExtendDocument& extendDoc, autil::mem_pool::Pool* pool)
+KVIndexFieldsParser::Parse(const document::ExtendDocument& extendDoc, autil::mem_pool::Pool* pool) const
 {
     auto kvIndexFields = indexlib::util::MakePooledUniquePtr<KVIndexFields>(pool, pool);
     auto rawDoc = extendDoc.getRawDocument();
@@ -110,7 +110,7 @@ bool KVIndexFieldsParser::ParseSingleField(const FieldResource& fieldResource,
 }
 
 indexlib::util::PooledUniquePtr<document::IIndexFields> KVIndexFieldsParser::Parse(autil::StringView serializedData,
-                                                                                   autil::mem_pool::Pool* pool)
+                                                                                   autil::mem_pool::Pool* pool) const
 {
     autil::DataBuffer dataBuffer(const_cast<char*>(serializedData.data()), serializedData.size());
     auto kvIndexFields = indexlib::util::MakePooledUniquePtr<KVIndexFields>(pool, pool);

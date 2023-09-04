@@ -1,0 +1,96 @@
+{
+    "build_option_config": {
+        "async_build": true,
+        "async_queue_size": 1000,
+        "document_filter": true,
+        "max_recover_time": 30,
+        "sort_build": ${sort_build},
+        "sort_descriptions": ${sort_descriptions},
+        "sort_queue_mem": 2048,
+        "sort_queue_size": 10000000
+    },
+    "cluster_config": {
+        "builder_rule_config": {
+            "batch_mode": false,
+            "build_parallel_num": 1,
+            "inc_build_parallel_num": 1,
+            "merge_parallel_num": 1,
+            "partition_count": ${partition_count}
+        },
+        "keep_checkpoint_count": 50,
+        "cluster_name": "${table_name}",
+        "hash_mode": ${hash_mode},
+        "table_name": "${table_name}"
+    },
+    "offline_index_config": {
+        "build_config": {
+            "build_total_memory": 6144,
+            "keep_version_count": 40,
+            "enable_package_file": true
+        },
+        "customized_merge_config": {
+            "small_segment_merge": {
+                "merge_config": {
+                    "merge_strategy": "priority_queue",
+                    "merge_strategy_params": {
+                        "input_limits": "max-segment-size=1536",
+                        "strategy_conditions": "priority-feature=valid-doc-count#asc;conflict-segment-count=2;conflict-delete-percent=20",
+                        "output_limits": "max-merged-segment-size=1536;max-total-merged-size=3072"
+                    },
+                    "merge_thread_count": 10
+                }
+            },
+            "large_segment_reclaim": {
+                "period": "period=1200",
+                "merge_config": {
+                    "merge_strategy": "priority_queue",
+                    "merge_strategy_params": {
+                        "input_limits": "max-segment-size=12288",
+                        "strategy_conditions": "priority-feature=delete-doc-count#desc;conflict-segment-count=10000;conflict-delete-percent=10",
+                        "output_limits": "max-merged-segment-size=6144;max-total-merged-size=8192"
+                    },
+                    "merge_thread_count": 10
+                }
+            },
+            "full": {
+                "merge_config": {
+                    "merge_strategy": "optimize",
+                    "merge_strategy_param": "after-merge-max-segment-count=1",
+                    "merge_thread_count": 4
+                }
+            }
+        },
+        "merge_config": {
+            "keep_version_count": 40,
+            "merge_strategy": "optimize",
+            "merge_strategy_param": "after-merge-max-segment-count=1",
+            "merge_thread_count": 4
+        }
+    },
+    "swift_config": {
+        "topic_full": {
+            "obsolete_file_interval": 24,
+            "partition_count": 32,
+            "partition_limit": 1,
+            "partition_max_buffer_size": 2048,
+            "partition_min_buffer_size": 64,
+            "partition_resource": 1,
+            "reserved_file_count": 10,
+            "topic_mode": "normal",
+            "topic_group": "default",
+            "reader_config": "oneRequestReadCount=1000;readBufferSize=50000;decompress=true",
+            "writer_config": "functionChain=hashId2partId;compressThresholdInBytes=1024;mode=async|safe;maxBufferSize=2147483648;oneRequestSendByteCount=1048576;maxKeepInBufferTime=100000"
+        },
+        "topic_inc": {
+            "obsolete_file_interval": 24,
+            "partition_count": 4,
+            "partition_limit": 1,
+            "partition_max_buffer_size": 2048,
+            "partition_min_buffer_size": 64,
+            "partition_resource": 1,
+            "reserved_file_count": 10,
+            "reader_config": "oneRequestReadCount=1000;readBufferSize=50000;decompress=true",
+            "writer_config": "functionChain=hashId2partId;compressThresholdInBytes=1024;mode=async|safe;maxBufferSize=2147483648;oneRequestSendByteCount=1048576;maxKeepInBufferTime=100000"
+        }
+    }
+}

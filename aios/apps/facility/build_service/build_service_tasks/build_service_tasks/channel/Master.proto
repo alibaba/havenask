@@ -1,0 +1,200 @@
+syntax = "proto2";
+import "arpc/proto/rpc_extensions.proto";
+
+package madrox.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+message MasterErrorInfo {
+    optional MasterErrorCode errorCode = 1;
+    optional string errorMsg = 2;
+}
+
+enum MasterErrorCode {
+    MASTER_ERROR_NONE = 0;
+    MASTER_ERROR_BAD_REQUEST = 1;
+    MASTER_ERROR_INTERNAL = 2;
+}
+
+enum SyncStatus {
+    TODO = 1;
+    SCHEDULED = 2;
+    RUNNING = 3;
+    DONE = 4;
+    NEED_RETRY = 5;
+    FAILED = 6;
+    CANCELED = 7;
+    LOCKED = 8;
+}
+
+message ControlDestRequest {
+    required string srcRoot = 1;
+    repeated string destRoot = 2;
+    required string cmd = 3;
+}
+
+message ControlDestResponse {
+    required MasterErrorInfo errorInfo = 1;
+}
+
+message UpdateRequest {
+    required string srcRoot = 1;
+    repeated string destRoot = 2;
+    repeated string item = 3;
+    repeated string deployMeta = 4;
+    optional string fsConfig = 5;
+    optional bool removeOuter = 6;  // // 默认 True， True: 全量请求，False：增量请求
+    optional bool force = 7;
+    optional int64 priority = 8;
+    repeated string unsealedItem = 9;
+}
+
+message UpdateResponse {
+    required MasterErrorInfo errorInfo = 1;
+}
+
+message GetStatusRequest {
+    repeated string destRoot = 1;
+    optional bool detail = 2;
+    optional bool ignoreInconsistent = 3;
+    repeated string item = 4;
+    repeated string deployMeta = 5;
+    repeated string unsealedItem = 6;
+}
+
+message ItemDetail {
+    required string path = 1;
+    required SyncStatus status = 2;
+    optional string ip = 3;
+}
+
+message DeployMetaDetail {
+    required string path = 1;
+    required SyncStatus status = 2;
+}
+
+message DestCurrent {
+    required string destRoot = 1;
+    required uint32 finishedItemCount = 2;
+    required uint32 failedItemCount = 3;
+    required uint32 totalItemCount = 4;
+    required int64 finishTimestamp = 5;
+    repeated ItemDetail itemDetail = 6;
+    required uint32 canceledCount = 7;
+    required uint32 pendingRequests = 8;
+    required int64 lastUpdateTimestamp = 9;
+    required int64 initTimestamp = 10;
+    required bool locked = 11;
+    required uint64 destHash = 12;
+    repeated DeployMetaDetail deployMetaDetail = 13;
+    required int32 configId = 14;
+    required string deployMetaDescription = 15;
+    required int64 unfinishedTimestamp = 16;
+    required int32 scheduleStatus = 17;
+    required int64 priority = 18;
+    required string srcRoot = 19;
+    optional string errorMsg = 20;
+    optional int64 lastScheduleTime = 21;
+    optional int64 updateNum = 22;
+    optional int64 scheduleNum = 23;
+    optional SyncStatus status = 24;
+}
+
+message GetStatusResponse {
+    required MasterErrorInfo errorInfo = 1;
+    repeated DestCurrent dest = 2;
+    required SyncStatus status = 3;
+}
+
+message Progress {
+    required uint64 completed = 1;
+    required uint64 total = 2;
+}
+
+message SyncDescription {
+    optional string srcRoot = 1;
+    required string destRoot = 2;
+    required string item = 3;
+    required int64 version = 4;
+    required SyncStatus status = 5;
+    optional Progress progress = 6;
+    optional string fsConfig = 7;
+    optional string ecFsConfig = 8;
+    optional int64 ecMinLength = 9 [default = -1];
+    optional int64 fileLength = 10 [default = -1];
+}
+
+message DeleteDestRequest {
+    repeated string destRoot = 1;
+    optional bool removeFile = 2 [default = true];
+}
+
+message DeleteDestResponse {
+    required MasterErrorInfo errorInfo = 1;
+}
+
+message ListDestRequest {
+    repeated string destRoot = 1;
+    optional bool detail = 2;
+}
+
+message ListDestResponse {
+    repeated ListItem items = 1;
+    required MasterErrorInfo errorInfo = 2;
+}
+
+message ListItem {
+    required string destRoot = 1;
+    repeated string fileName = 2;
+}
+message HeartbeatRequest {
+    repeated SyncDescription current = 1;
+    required uint32 idle = 2;
+    optional string workerId = 3;
+    optional string ip = 4;
+}
+
+message HeartbeatResponse {
+    repeated SyncDescription target = 1;
+    required string workdirPrefix = 2;
+}
+
+service MasterService
+{
+    option (arpc.global_service_id) = 1700;
+
+    rpc update ( UpdateRequest) returns ( UpdateResponse ) {
+    option (arpc.local_method_id) = 1701;
+    };
+
+    rpc getStatus ( GetStatusRequest ) returns ( GetStatusResponse ) {
+    option (arpc.local_method_id) = 1702;
+    };
+
+    rpc deleteDest ( DeleteDestRequest ) returns ( DeleteDestResponse ) {
+    option (arpc.local_method_id) = 1703;
+    };
+
+    rpc listDest ( ListDestRequest ) returns ( ListDestResponse ) {
+        option (arpc.local_method_id) = 1704;
+    };
+
+    rpc controlDest ( ControlDestRequest ) returns ( ControlDestResponse ) {
+        option (arpc.local_method_id) = 1705;
+    };
+}
+
+message DestState {
+  required UpdateRequest request = 1;
+  repeated string deployMetas = 2;
+  required bool deleteDest = 3;
+  optional int64 createTime = 4;
+  optional int64 firstUpdateTime = 5;
+  optional int64 lastUpdateTime = 6;
+  optional int64 lastScheduleTime = 7;
+  optional int64 updateNum = 8;
+  optional int64 scheduleNum = 9;
+  optional bool isFinished = 10;
+  optional int64 finishTime = 11;
+}

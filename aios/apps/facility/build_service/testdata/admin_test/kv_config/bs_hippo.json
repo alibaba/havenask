@@ -1,0 +1,210 @@
+{
+    "packages": [
+        {
+            "packageURI": "hdfs://hdpst3igraph/autoumars_igraph/autoumars_igraph_online/binary/pj_test_igraph_bs_external_201810301742.tar",
+            "type": "ARCHIVE"
+        },
+        {
+            "packageURI": "hdfs://hdpet2main/app/suez_ops/suez_rpm/search_pe_hadoop_java_2_replication-2.6.16-1_na61storage2.x86_64.rpm",
+            "type": "ARCHIVE"
+        }, 
+        {
+            "packageURI": "registry.invalid.docker.com/hippo/hippo_alios7u2_base:1.8", 
+            "type": "IMAGE"
+        },
+        {
+            "packageURI": "hdfs://hdpet2main/app/suez_ops/suez_rpm/tcmalloc_minimal.tar",
+            "type": "ARCHIVE"
+        }
+    ], 
+    "role_customize": [
+    	{
+            "_bs_role": "processor.*.full.0", 
+            "slotResources": [
+                {
+                    "slotResources": [
+                        {
+                            "amount": 300,
+                            "name": "cpu"
+                        }, 
+                        {
+                            "amount": 7168,
+                            "name": "mem"
+                        }, 
+			{
+			    "amount": 0,
+			    "name": "HIGH_CPU",
+			    "type": "TEXT"
+			}
+                    ]
+                }            
+	    ]
+        },
+        {
+            "_bs_role": "processor", 
+            "slotResources": [
+                {
+                    "slotResources": [
+                        {
+                            "amount": 300, 
+                            "name": "cpu"
+                        }, 
+                        {
+                            "amount": 7168,
+                            "name": "mem"
+                        }, 
+			{
+			    "amount": 0,
+			    "name": "HIGH_CPU",
+			    "type": "TEXT"
+			}
+                    ]
+                }            
+            ]
+        }, 
+        {
+            "_bs_role": "builder", 
+            "slotResources": [
+                {
+                    "slotResources": [
+                        {
+                            "amount": 200, 
+                            "name": "cpu"
+                        }, 
+                        {
+                            "amount": 7168,
+                            "name": "mem"
+                        }, 
+			{
+                            "amount": 0,
+                            "name": "HIGH_CPU",
+                            "type": "TEXT"
+                        }
+                    ]
+                }            
+            ]
+        },
+        {
+            "_bs_role": "job",
+            "slotResources": [
+                {
+                    "slotResources": [
+                        {
+                            "amount": 300,
+                            "name": "cpu"
+                        },
+                        {
+                            "amount": 7168,
+                            "name": "mem"
+                        },
+                        {
+                            "amount": 0,
+                            "name": "HIGH_CPU",
+                            "type": "TEXT"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "_bs_role": "merger.*.full", 
+            "slotResources": [
+                {
+                    "slotResources": [
+                        {
+                            "amount": 400, 
+                            "name": "cpu"
+                        }, 
+                        {
+			    "amount" : 9216,
+                            "name": "mem"
+                        }, 
+			{
+			    "amount": 0,
+                            "name": "HIGH_CPU",
+                            "type": "TEXT"  
+			}
+                    ]
+                }            
+            ]
+        }, 
+        {
+            "_bs_role": "merger.*", 
+            "slotResources": [
+                {
+                    "slotResources": [
+                        {
+                            "amount": 400, 
+                            "name": "cpu"
+                        }, 
+                        {
+                            "amount" : 9216,
+                            "name": "mem"
+                        }, 
+			{
+			    "amount": 0,
+                            "name": "HIGH_CPU",
+                            "type": "TEXT"
+			}
+                    ]
+                }            
+            ]
+        }
+    ], 
+    "role_default": {
+        "count": 1, 
+        "priority": {
+            "major_priority": 64, 
+            "minor_priority": 0
+        }, 
+        "processInfos": [
+            {
+                "args": [
+                    [
+                        "-l", 
+                        "$HIPPO_APP_INST_ROOT/_external/usr/local/etc/bs/bs_alog.conf"
+                    ],
+		    [
+			"--amonitor_service_name",
+			"__server_discard__.igraph"
+		    ]
+                ], 
+                "envs": [
+                    [
+                        "HADOOP_HOME", 
+                        "$HIPPO_APP_INST_ROOT/usr/local/hadoop/hadoop"
+                    ],
+		    [
+			"COLLECT_ERROR_LOG",
+			"true"
+                    ],
+                    [
+                        "HADOOP_USER_NAME", 
+                        "admin"
+                    ], 
+                    [
+                        "PATH", 
+                        "$HIPPO_APP_INST_ROOT/_external/usr/local/bin/"
+                    ], 
+                    [
+                        "LD_LIBRARY_PATH",
+			"$HIPPO_APP_INST_ROOT/_external/usr/local/lib64:$HIPPO_APP_INST_ROOT/_external/usr/local/lib:$HIPPO_APP_INST_ROOT/_external/usr/lib64:$HIPPO_APP_INST_ROOT/_external/usr/lib:$HIPPO_APP_INST_ROOT/_external/home/admin/sap/lib64:$HIPPO_APP_INST_ROOT/_external/home/admin/diamond-client4cpp/lib:$HIPPO_APP_INST_ROOT/_external/home/admin/eagleeye-core/lib:$HIPPO_APP_INST_ROOT/usr/local/java/jdk/jre/lib/amd64/server/:"
+                    ],
+                    [
+                        "VIPCLIENT_SET_FAILOVER_PATH",
+                        "/tmp"
+                    ],
+		    [
+		        "DEFAULT_DOWNLOAD_MODE",
+			"dp2"
+		    ],
+		    [
+			"LD_PRELOAD",
+			"$HIPPO_APP_INST_ROOT/usr/lib64/libtcmalloc_minimal.so"
+		    ]
+                ],
+                "isDaemon": true
+            }
+        ]
+    }
+}

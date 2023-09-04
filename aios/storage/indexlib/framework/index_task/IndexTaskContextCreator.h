@@ -37,7 +37,7 @@ class MetricProvider;
 
 namespace indexlibv2::config {
 class TabletOptions;
-class TabletSchema;
+class ITabletSchema;
 } // namespace indexlibv2::config
 
 namespace indexlibv2::framework {
@@ -48,6 +48,7 @@ class IndexTaskContextCreator
 {
 public:
     IndexTaskContextCreator() = default;
+    IndexTaskContextCreator(const std::shared_ptr<framework::MetricsManager>& metricsManager);
     ~IndexTaskContextCreator() = default;
 
 public:
@@ -60,13 +61,23 @@ public:
     IndexTaskContextCreator& AddSourceVersion(const std::string& root, versionid_t srcVersionId);
     IndexTaskContextCreator& SetDestDirectory(const std::string& destRoot);
     IndexTaskContextCreator& SetTabletOptions(const std::shared_ptr<config::TabletOptions>& options);
-    IndexTaskContextCreator& SetTabletSchema(const std::shared_ptr<config::TabletSchema>& schema);
+    IndexTaskContextCreator& SetTabletSchema(const std::shared_ptr<config::ITabletSchema>& schema);
     IndexTaskContextCreator& SetMetricProvider(const std::shared_ptr<indexlib::util::MetricProvider>& provider);
     IndexTaskContextCreator& SetFinishedOpExecuteEpochIds(const std::map<IndexOperationId, std::string>& epochIds,
                                                           bool useOpFenceDir);
     IndexTaskContextCreator& SetFileBlockCacheContainer(
         const std::shared_ptr<indexlib::file_system::FileBlockCacheContainer>& fileBlockCacheContainer);
     IndexTaskContextCreator& SetClock(const std::shared_ptr<util::Clock>& clock);
+    IndexTaskContextCreator& SetTaskType(const std::string& taskType)
+    {
+        _context._taskType = taskType;
+        return *this;
+    }
+    IndexTaskContextCreator& SetTaskName(const std::string& taskName)
+    {
+        _context._taskName = taskName;
+        return *this;
+    }
     IndexTaskContextCreator& SetDesignateTask(const std::string& taskType, const std::string& taskName);
     IndexTaskContextCreator& AddParameter(const std::string& key, const std::string& value);
     // NOT thread safe
@@ -85,7 +96,7 @@ private:
     Status UpdateMaxMergedId(const std::string& root);
     Status InitResourceManager();
     std::string GetFenceRoot(const std::string& epochId) const;
-    std::pair<Status, std::shared_ptr<config::TabletSchema>>
+    std::pair<Status, std::shared_ptr<config::ITabletSchema>>
     LoadSchema(const std::shared_ptr<indexlib::file_system::IDirectory>& directory, schemaid_t schemaId) const;
     Status FillSchemaGroup(const std::string& root, const framework::Version& version,
                            framework::ResourceMap* resourceMap) const;
@@ -98,16 +109,20 @@ private:
 private:
     std::string _tabletName;
     std::string _executeEpochId;
+    std::optional<std::pair<std::string, std::string>> _designateTask; /* first: taskType, second: taskName */
     framework::ITabletFactory* _tabletFactory;
     std::shared_ptr<MemoryQuotaController> _memoryQuotaController;
     std::vector<SrcInfo> _srcInfos;
     std::string _destRoot;
     std::shared_ptr<indexlib::file_system::FileBlockCacheContainer> _fileBlockCacheContainer;
+    std::string _taskType;
+    std::string _taskName;
+    std::shared_ptr<framework::MetricsManager> _metricsManager;
     IndexTaskContext _context;
 
     bool _basicInited = false;
 
-    mutable std::map<schemaid_t, std::shared_ptr<config::TabletSchema>> _tabletSchemaCache;
+    mutable std::map<schemaid_t, std::shared_ptr<config::ITabletSchema>> _tabletSchemaCache;
 
 private:
     AUTIL_LOG_DECLARE();

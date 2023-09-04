@@ -172,7 +172,7 @@ SingleValueAttributeDiskIndexer<T>::Open(const std::shared_ptr<config::IIndexCon
                                          const std::shared_ptr<indexlib::file_system::IDirectory>& indexDirectory)
 {
     autil::ScopedTime2 timer;
-    _attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+    _attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
     SliceInfo sliceInfo(_attrConfig->GetSliceCount(), _attrConfig->GetSliceIdx());
     int64_t sliceDocCount = sliceInfo.GetSliceDocCount(_indexerParam.docCount);
     if (0 == sliceDocCount) {

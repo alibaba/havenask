@@ -15,24 +15,23 @@
  */
 #include "autil/metric/ProcessCpu.h"
 
-#include <unistd.h>
-#include <stdint.h>
-#include <stdio.h>
 #include <fstream> // IWYU pragma: keep
 #include <sstream> // IWYU pragma: keep
+#include <stdint.h>
+#include <stdio.h>
+#include <unistd.h>
 
 using namespace std;
 
 namespace autil {
 namespace metric {
 
-ProcessCpu::ProcessCpu() { 
+ProcessCpu::ProcessCpu() {
     _curProcessCpuTotTime = 0;
     _preProcessCpuTotTime = 0;
 }
 
-ProcessCpu::~ProcessCpu() { 
-}
+ProcessCpu::~ProcessCpu() {}
 
 double ProcessCpu::getUsage() {
     _cpu.update();
@@ -61,9 +60,7 @@ void ProcessCpu::getProcessCpuStat() {
     return parseProcCPUStat(line, _curProcessCpuTotTime);
 }
 
-void ProcessCpu::parseProcCPUStat(string line, 
-                                  jiffies_t &processCpuTotTime)
-{
+void ProcessCpu::parseProcCPUStat(string line, jiffies_t &processCpuTotTime) {
     /*
      * the line string in /proc/[pid]/stat is:
      * pid %d, comm %s, state %c, ppid %d, pgrp %d, session %d,
@@ -85,10 +82,8 @@ void ProcessCpu::parseProcCPUStat(string line,
     line = line.substr(pos);
 
     istringstream iss(line);
-    iss >> processCpuStat.utime >> processCpuStat.stime
-        >> processCpuStat.cutime >> processCpuStat.cstime;
-    processCpuTotTime = processCpuStat.utime + processCpuStat.stime +
-                        processCpuStat.cutime + processCpuStat.cstime;
+    iss >> processCpuStat.utime >> processCpuStat.stime >> processCpuStat.cutime >> processCpuStat.cstime;
+    processCpuTotTime = processCpuStat.utime + processCpuStat.stime + processCpuStat.cutime + processCpuStat.cstime;
 }
 
 jiffies_t ProcessCpu::getProcessTime() {
@@ -98,6 +93,5 @@ jiffies_t ProcessCpu::getProcessTime() {
     return _curProcessCpuTotTime - _preProcessCpuTotTime;
 }
 
-}
-}
-
+} // namespace metric
+} // namespace autil

@@ -15,9 +15,9 @@
  */
 #include "indexlib/table/normal_table/index_task/NormalTableSplitPlanCreator.h"
 
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/IndexTaskConfig.h"
 #include "indexlib/config/TabletOptions.h"
-#include "indexlib/config/TabletSchema.h"
 #include "indexlib/table/normal_table/Common.h"
 #include "indexlib/table/normal_table/config/SegmentGroupConfig.h"
 #include "indexlib/table/normal_table/index_task/merger/SplitStrategy.h"
@@ -29,8 +29,9 @@ const std::string NormalTableSplitPlanCreator::DEFAULT_TASK_NAME = "__default_sp
 const std::string NormalTableSplitPlanCreator::TASK_TYPE = "split";
 const std::string NormalTableSplitPlanCreator::DEFAULT_TASK_PERIOD = "daytime=1:00";
 
-NormalTableSplitPlanCreator::NormalTableSplitPlanCreator(const std::string& taskName)
-    : NormalTableCompactPlanCreator(taskName)
+NormalTableSplitPlanCreator::NormalTableSplitPlanCreator(const std::string& taskName,
+                                                         const std::map<std::string, std::string>& params)
+    : NormalTableCompactPlanCreator(taskName, params)
 {
 }
 
@@ -42,9 +43,10 @@ NormalTableSplitPlanCreator::CreateCompactStrategy(const std::string& mergeStrat
     return {NORMAL_TABLE_SPLIT_TYPE, std::make_unique<SplitStrategy>()};
 }
 
-static std::pair<Status, bool> IsGroupEnabled(const std::shared_ptr<config::TabletSchema>& schema)
+static std::pair<Status, bool> IsGroupEnabled(const std::shared_ptr<config::ITabletSchema>& schema)
 {
-    auto [status, segmentGroupConfig] = schema->GetSetting<SegmentGroupConfig>(NORMAL_TABLE_GROUP_CONFIG_KEY);
+    auto [status, segmentGroupConfig] =
+        schema->GetRuntimeSettings().GetValue<SegmentGroupConfig>(NORMAL_TABLE_GROUP_CONFIG_KEY);
     if (!status.IsOK() && !status.IsNotFound()) {
         return {status, false};
     }

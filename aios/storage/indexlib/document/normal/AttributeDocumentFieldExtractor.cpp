@@ -20,8 +20,9 @@
 #include "indexlib/document/normal/AttributeDocument.h"
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
-#include "indexlib/index/attribute/config/PackAttributeConfig.h"
 #include "indexlib/index/common/field_format/attribute/AttributeConvertor.h"
+#include "indexlib/index/pack_attribute/Common.h"
+#include "indexlib/index/pack_attribute/PackAttributeConfig.h"
 #include "indexlib/util/ErrorLogCollector.h"
 
 namespace indexlibv2::document {
@@ -33,27 +34,30 @@ AUTIL_LOG_SETUP(indexlib.framework, AttributeDocumentFieldExtractor);
 Status AttributeDocumentFieldExtractor::Init(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     assert(schema);
-    auto indexConfigs = schema->GetIndexConfigs(index::ATTRIBUTE_INDEX_TYPE_STR);
+    const auto& indexConfigs = schema->GetIndexConfigs(index::ATTRIBUTE_INDEX_TYPE_STR);
     for (const auto& indexConfig : indexConfigs) {
-        const auto& attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
-        if (attrConfig) {
-            AddAttributeConfig(attrConfig);
-        } else {
-            const auto& packAttrConfig = std::dynamic_pointer_cast<config::PackAttributeConfig>(indexConfig);
-            if (!packAttrConfig) {
-                TABLET_LOG(ERROR, "unrecognized attribute[%s]", indexConfig->GetIndexName().c_str());
-                return Status::Corruption("unrecognized attribute");
-            }
-            auto formatter = std::make_unique<index::PackAttributeFormatter>();
-            if (!formatter->Init(packAttrConfig)) {
-                TABLET_LOG(ERROR, "init pack attribute formatter for attr[%s] failed",
-                           indexConfig->GetIndexName().c_str());
-                return Status::InternalError("init pack attr formatter failed");
-            }
-            AddPackAttributeFormatter(std::move(formatter), packAttrConfig->GetPackAttrId());
-            for (const auto& configInPack : packAttrConfig->GetAttributeConfigVec()) {
-                AddAttributeConfig(configInPack);
-            }
+        const auto& attrConfig = std::dynamic_pointer_cast<index::AttributeConfig>(indexConfig);
+        if (!attrConfig) {
+            TABLET_LOG(ERROR, "unrecognized attribute[%s]", indexConfig->GetIndexName().c_str());
+            return Status::Corruption("unrecognized attribute");
+        }
+        AddAttributeConfig(attrConfig);
+    }
+    const auto& packIndexConfigs = schema->GetIndexConfigs(index::PACK_ATTRIBUTE_INDEX_TYPE_STR);
+    for (const auto& indexConfig : packIndexConfigs) {
+        const auto& packAttrConfig = std::dynamic_pointer_cast<index::PackAttributeConfig>(indexConfig);
+        if (!packAttrConfig) {
+            TABLET_LOG(ERROR, "unrecognized attribute[%s]", indexConfig->GetIndexName().c_str());
+            return Status::Corruption("unrecognized attribute");
+        }
+        auto formatter = std::make_unique<index::PackAttributeFormatter>();
+        if (!formatter->Init(packAttrConfig)) {
+            TABLET_LOG(ERROR, "init pack attribute formatter for attr[%s] failed", indexConfig->GetIndexName().c_str());
+            return Status::InternalError("init pack attr formatter failed");
+        }
+        AddPackAttributeFormatter(std::move(formatter), packAttrConfig->GetPackAttrId());
+        for (const auto& configInPack : packAttrConfig->GetAttributeConfigVec()) {
+            AddAttributeConfig(configInPack);
         }
     }
     return Status::OK();
@@ -68,7 +72,7 @@ void AttributeDocumentFieldExtractor::AddPackAttributeFormatter(
     _packFormatters[packId] = std::move(formatter);
 }
 
-void AttributeDocumentFieldExtractor::AddAttributeConfig(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+void AttributeDocumentFieldExtractor::AddAttributeConfig(const std::shared_ptr<index::AttributeConfig>& attrConfig)
 {
     auto fieldId = attrConfig->GetFieldId();
     assert(fieldId >= 0);
@@ -78,11 +82,11 @@ void AttributeDocumentFieldExtractor::AddAttributeConfig(const std::shared_ptr<c
     _attrConfigs[fieldId] = attrConfig;
 }
 
-const std::shared_ptr<config::AttributeConfig>&
+const std::shared_ptr<index::AttributeConfig>&
 AttributeDocumentFieldExtractor::GetAttributeConfig(fieldid_t fieldId) const
 {
     if (fieldId < 0 || static_cast<size_t>(fieldId) >= _attrConfigs.size()) {
-        static std::shared_ptr<config::AttributeConfig> NULL_ATTR_CONF;
+        static std::shared_ptr<index::AttributeConfig> NULL_ATTR_CONF;
         return NULL_ATTR_CONF;
     }
     return _attrConfigs[fieldId];
@@ -108,7 +112,7 @@ AttributeDocumentFieldExtractor::GetField(const std::shared_ptr<indexlib::docume
         return autil::StringView::empty_instance();
     }
 
-    config::PackAttributeConfig* packAttrConfig = attrConfig->GetPackAttributeConfig();
+    index::PackAttributeConfig* packAttrConfig = attrConfig->GetPackAttributeConfig();
     if (!packAttrConfig) {
         // empty single value field will trigger this log
         TABLET_LOG(DEBUG,

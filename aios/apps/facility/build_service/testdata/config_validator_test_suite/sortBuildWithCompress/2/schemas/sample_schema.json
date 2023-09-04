@@ -1,0 +1,139 @@
+{
+    "attributes" : [
+        "id",
+        "cat_id",
+        "company_id",
+        "price",
+        "gender",
+        "score1",
+        "score2",
+        "score4",
+        "names"
+    ],
+    "fields" : [
+        {
+            "field_name" : "id",
+            "field_type" : "INTEGER"
+        },
+        {
+            "field_name" : "company_id",
+            "field_type" : "UINT32",
+            "enable_null": true
+        },
+        {
+            "analyzer" : "internet_analyzer",
+            "field_name" : "subject",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "internet_analyzer",
+            "field_name" : "title",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "internet_analyzer",
+            "field_name" : "keywords",
+            "field_type" : "TEXT",
+            "enable_null": true,
+            "updatable_multi_value":true
+        },
+        {
+            "field_name" : "cat_id",
+            "field_type" : "INTEGER",
+            "enable_null": true
+        },
+        {
+            "field_name" : "price",
+            "field_type" : "float",
+            "multi_value": true,
+            "enable_null": true
+        },
+        {
+            "field_name" : "gender",
+            "field_type" : "string",
+            "enable_null": true
+        },
+        {
+            "field_name" : "score1",
+            "field_type" : "float",
+            "multi_value": false,
+            "compress_type": "fp16"
+        },
+        {
+            "field_name" : "score2",
+            "field_type" : "float",
+            "multi_value": false,
+            "compress_type": "int8#1"
+        },
+        {
+            "field_name" : "score3",
+            "field_type" : "float",
+            "multi_value": false,
+            "compress_type": "fp16"
+        },
+        {
+            "field_name" : "score4",
+            "field_type" : "double",
+            "multi_value": true,
+            "enable_null": true
+        },
+        {
+            "field_name" : "names",
+            "field_type" : "string",
+            "multi_value": true,
+            "enable_null": true,
+            "updatable_multi_value":true
+        }
+        
+    ],
+    "indexs" : [
+        {
+            "doc_payload_flag" : 1,
+            "index_fields" : [
+                {
+                    "boost" : 100,
+                    "field_name" : "subject"
+                },
+                {
+                    "boost" : 80,
+                    "field_name" : "title"
+                },
+                {
+                    "boost" : 80,
+                    "field_name" : "keywords"
+                }
+            ],
+            "index_name" : "default",
+            "index_type" : "PACK",
+            "poosition_payload_flag" : 1,
+            "term_payload_flag" : 1
+        },
+        {
+            "index_fields" : "company_id",                          
+            "index_name" : "company_index",
+            "index_type" : "NUMBER"
+        },
+        {
+            "index_fields" : "names", 
+            "index_name" : "names_index",
+            "index_type" : "STRING"
+ 
+        },
+        {
+            "index_fields" : "id",
+            "index_name" : "pk",
+            "index_type" : "PRIMARYKEY64"
+        }
+    ],
+    "summarys" : {
+        "compress" : false,
+        "summary_fields" : [
+            "id",
+            "company_id",
+            "subject",
+            "cat_id",
+            "keywords"
+        ]
+    },
+    "table_name" : "sample"
+}

@@ -36,21 +36,12 @@ EndMergeTaskOperation::~EndMergeTaskOperation() {}
 
 Status EndMergeTaskOperation::Execute(const framework::IndexTaskContext& context)
 {
-    std::string versionStr;
-    if (!_desc.GetParameter(PARAM_TARGET_VERSION, versionStr)) {
-        AUTIL_LOG(ERROR, "get target version from desc failed");
-        return Status::Corruption("get target version from desc failed");
-    }
-    framework::Version lastVersion;
-    RETURN_IF_STATUS_ERROR(indexlib::file_system::JsonUtil::FromString(versionStr, &lastVersion).Status(),
-                           "parse version [%s] failed", versionStr.c_str());
-    auto versionId = lastVersion.GetVersionId();
-
+    auto [status, targetVersionId] = GetTargetVersionId();
+    RETURN_IF_STATUS_ERROR(status, "get target version id failed");
     framework::Version version;
     auto indexRoot = context.GetIndexRoot();
-    RETURN_IF_STATUS_ERROR(framework::VersionLoader::GetVersion(indexRoot, versionId, &version),
-                           "load version [%d] from [%s]", versionId, indexRoot->GetRootDir().c_str());
-
+    RETURN_IF_STATUS_ERROR(framework::VersionLoader::GetVersion(indexRoot, targetVersionId, &version),
+                           "load version [%d] from [%s]", targetVersionId, indexRoot->GetRootDir().c_str());
     framework::MergeResult mergeResult;
     mergeResult.baseVersionId = context.GetTabletData()->GetOnDiskVersion().GetVersionId();
     mergeResult.targetVersionId = version.GetVersionId();
@@ -60,6 +51,22 @@ Status EndMergeTaskOperation::Execute(const framework::IndexTaskContext& context
     context.SetResult(std::move(resultStr));
     AUTIL_LOG(INFO, "End Merge Operation done");
     return Status::OK();
+}
+
+std::pair<Status, versionid_t> EndMergeTaskOperation::GetTargetVersionId() const
+{
+    std::string versionStr;
+    versionid_t targetVersionId = INVALID_VERSIONID;
+    if (_desc.GetParameter(PARAM_TARGET_VERSION, versionStr)) {
+        framework::Version lastVersion;
+        RETURN2_IF_STATUS_ERROR(indexlib::file_system::JsonUtil::FromString(versionStr, &lastVersion).Status(),
+                                INVALID_VERSIONID, "parse version [%s] failed", versionStr.c_str());
+        return {Status::OK(), lastVersion.GetVersionId()};
+    } else if (_desc.GetParameter(PARAM_TARGET_VERSION_ID, targetVersionId) && targetVersionId != INVALID_VERSIONID) {
+        return {Status::OK(), targetVersionId};
+    }
+    AUTIL_LOG(ERROR, "get target version from desc failed");
+    return {Status::Corruption(), targetVersionId};
 }
 
 framework::IndexOperationDescription
@@ -72,4 +79,13 @@ EndMergeTaskOperation::CreateOperationDescription(framework::IndexOperationId op
     endTaskOpDesc.AddParameter(PARAM_TARGET_VERSION, versionContent);
     return endTaskOpDesc;
 }
+
+framework::IndexOperationDescription EndMergeTaskOperation::CreateOperationDescription(framework::IndexOperationId opId,
+                                                                                       versionid_t targetVersionId)
+{
+    framework::IndexOperationDescription endTaskOpDesc(opId, framework::END_TASK_OPERATION);
+    endTaskOpDesc.AddParameter(PARAM_TARGET_VERSION_ID, targetVersionId);
+    return endTaskOpDesc;
+}
+
 } // namespace indexlibv2::table

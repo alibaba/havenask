@@ -22,17 +22,14 @@
 
 namespace indexlibv2::index {
 class AttributeConvertor;
-} // namespace indexlibv2::index
-
-namespace indexlibv2::config {
 class AttributeConfig;
-}
+} // namespace indexlibv2::index
 namespace indexlibv2::document {
 
 class TTLSetter : public IDocumentRewriter
 {
 public:
-    TTLSetter(const std::shared_ptr<config::AttributeConfig>& ttlAttributeConfig, uint32_t defalutTTLInSeconds);
+    TTLSetter(const std::shared_ptr<index::AttributeConfig>& ttlAttributeConfig, uint32_t defalutTTLInSeconds);
     ~TTLSetter();
 
 public:

@@ -20,6 +20,8 @@
 #include "indexlib/config/index_partition_schema.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/FenceDirectory.h"
+#include "indexlib/file_system/MergeDirsOption.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_segment_writer.h"
@@ -354,9 +356,10 @@ void ParallelPartitionDataMerger::MoveParallelInstanceSegments(const Version& ve
             FSResult<bool> isExistRet = FslibWrapper::IsExist(srcPath);
             THROW_IF_FS_ERROR(isExistRet.ec, "check instance seg dir exist failed [%s]", srcPath.c_str());
             if (isExistRet.result) {
-                THROW_IF_FS_ERROR(
-                    mRoot->GetFileSystem()->MergeDirs({srcPath}, segmentDirName, true, mRoot->GetFenceContext().get()),
-                    "merge dirs failed");
+                THROW_IF_FS_ERROR(mRoot->GetFileSystem()->MergeDirs(
+                                      {srcPath}, segmentDirName,
+                                      MergeDirsOption::MergePackageWithFence(mRoot->GetFenceContext().get())),
+                                  "merge dirs failed");
                 IE_LOG(INFO, "move parallel build segment of version.%d from [%s] to [%s/%s]", version.GetVersionId(),
                        srcPath.c_str(), mRoot->DebugString().c_str(), segmentDirName.c_str());
             } else if (!mRoot->IsExist(segmentDirName)) {

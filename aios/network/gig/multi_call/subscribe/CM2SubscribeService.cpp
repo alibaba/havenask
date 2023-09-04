@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/subscribe/CM2SubscribeService.h"
+
 #include "aios/apps/facility/cm2/cm_basic/basic_struct/cm_central_sub.h"
 #include "aios/apps/facility/cm2/cm_sub/config/subscriber_config.h"
 #include "aios/network/gig/multi_call/util/MiscUtil.h"
 #include "autil/ConstString.h"
+#include "autil/EnvUtil.h"
 #include "autil/StringConvertor.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
-#include "autil/EnvUtil.h"
 
 using namespace std;
 using namespace cm_basic;
@@ -33,14 +34,16 @@ AUTIL_LOG_SETUP(multi_call, CM2SubscribeService);
 
 int CM2SubscribeService::_rdmaPortDiff = 0;
 
-CM2SubscribeService::CM2SubscribeService(const Cm2Config &config)
-    : _config(config) {
+CM2SubscribeService::CM2SubscribeService(const Cm2Config &config) : _config(config) {
     _rdmaPortDiff = autil::EnvUtil::getEnv(GIG_RDMA_PORT_DIFF_KEY, _rdmaPortDiff);
 }
 
-CM2SubscribeService::~CM2SubscribeService() {}
+CM2SubscribeService::~CM2SubscribeService() {
+}
 
-bool CM2SubscribeService::init() { return initGroupSub() && initPartSub(); }
+bool CM2SubscribeService::init() {
+    return initGroupSub() && initPartSub();
+}
 
 bool CM2SubscribeService::initGroupSub() {
     if (_config.groups.empty()) {
@@ -88,8 +91,7 @@ bool CM2SubscribeService::initPartSub() {
     return true;
 }
 
-cm_sub::SubscriberConfig *
-CM2SubscribeService::newSubConfig(const Cm2Config &config) {
+cm_sub::SubscriberConfig *CM2SubscribeService::newSubConfig(const Cm2Config &config) {
     auto *subConfig = new cm_sub::SubscriberConfig();
     subConfig->_disableTopo = true;
     subConfig->_subMaster = config.subMasterOnly;
@@ -110,8 +112,7 @@ CM2SubscribeService::newSubConfig(const Cm2Config &config) {
     return subConfig;
 }
 
-CMSubscriberPtr
-CM2SubscribeService::createSubscriber(SubscriberConfig *subConfig) {
+CMSubscriberPtr CM2SubscribeService::createSubscriber(SubscriberConfig *subConfig) {
     CMSubscriberPtr sub(new CMSubscriber());
     if (0 != sub->init(subConfig, NULL)) {
         return CMSubscriberPtr();
@@ -134,8 +135,7 @@ bool CM2SubscribeService::checkClusters(cm_basic::CMCentralSub *central) {
     int64_t curVersion;
     for (const auto &clusterName : clusterNameVec) {
         curVersion = central->getClusterVersion(clusterName);
-        if (0 == _clusterVersions.count(clusterName) ||
-            curVersion != _clusterVersions[clusterName])
+        if (0 == _clusterVersions.count(clusterName) || curVersion != _clusterVersions[clusterName])
         // version should only be compared with !=, not >
         {
             return true; // cluster version has changed
@@ -159,7 +159,8 @@ bool CM2SubscribeService::clusterInfoNeedUpdate() {
     return false;
 }
 
-bool CM2SubscribeService::getClusterInfoMap(TopoNodeVec &topoNodeVec, HeartbeatSpecVec &heartbeatSpecs) {
+bool CM2SubscribeService::getClusterInfoMap(TopoNodeVec &topoNodeVec,
+                                            HeartbeatSpecVec &heartbeatSpecs) {
     if (_partSubscriber) {
         if (!addClusters(_partSubscriber->getCMCentral(), topoNodeVec, heartbeatSpecs)) {
             return false;
@@ -174,8 +175,7 @@ bool CM2SubscribeService::getClusterInfoMap(TopoNodeVec &topoNodeVec, HeartbeatS
 }
 
 bool CM2SubscribeService::addClusters(CMCentralSub *central, TopoNodeVec &topoNodeVec,
-                                      HeartbeatSpecVec &heartbeatSpecs)
-{
+                                      HeartbeatSpecVec &heartbeatSpecs) {
     if (!central) {
         AUTIL_LOG(ERROR, "cm central is null");
         return false;
@@ -191,8 +191,7 @@ bool CM2SubscribeService::addClusters(CMCentralSub *central, TopoNodeVec &topoNo
         vector<CMNode *> cmNodeVec;
         curVersion = central->getClusterVersion(clusterName);
         if (0 != central->getClusterNodeList(clusterName, cmNodeVec)) {
-            AUTIL_LOG(ERROR, "get cluster node failed, cm2 clusterName: %s",
-                      clusterName.c_str());
+            AUTIL_LOG(ERROR, "get cluster node failed, cm2 clusterName: %s", clusterName.c_str());
             continue;
         }
         clusterNewVersions.emplace(clusterName, curVersion);
@@ -200,9 +199,8 @@ bool CM2SubscribeService::addClusters(CMCentralSub *central, TopoNodeVec &topoNo
         bool ignoreTopo = false;
         {
             autil::ScopedLock lock(_mutex);
-            ignoreTopo =
-                !_config.allGroupsTopo &&
-                (_topoClusterSet.find(clusterName) == _topoClusterSet.end());
+            ignoreTopo = !_config.allGroupsTopo &&
+                         (_topoClusterSet.find(clusterName) == _topoClusterSet.end());
         }
         addCluster(cmNodeVec, clusterName, ignoreTopo, _config.enableClusterBizSearch,
                    _config.subProtocolVersion, topoNodeVec, heartbeatSpecs);
@@ -215,8 +213,7 @@ bool CM2SubscribeService::addClusters(CMCentralSub *central, TopoNodeVec &topoNo
 void CM2SubscribeService::addCluster(const vector<CMNode *> &cmNodeVec, const string &clusterName,
                                      bool ignoreTopo, bool enableClusterBizSearch,
                                      VersionTy subProtocolVersion, TopoNodeVec &topoNodeVec,
-                                     HeartbeatSpecVec &heartbeatSpecs)
-{
+                                     HeartbeatSpecVec &heartbeatSpecs) {
     for (const auto node : cmNodeVec) {
         const auto &topoInfoStr = node->topo_info();
         if (ignoreTopo || topoInfoStr.empty()) {
@@ -251,16 +248,15 @@ void CM2SubscribeService::addTopoNodeFromTopoStr(CMNode *node, const string &clu
                                                  bool enableClusterBizSearch,
                                                  VersionTy subProtocolVersion,
                                                  TopoNodeVec &topoNodeVec,
-                                                 HeartbeatSpecVec &heartbeatSpecs)
-{
+                                                 HeartbeatSpecVec &heartbeatSpecs) {
     const auto &topoInfoStr = node->topo_info();
     auto weight = getNodeWeight(node);
     auto isValid = isValidNode(node);
-    const auto &topoStrVec = StringTokenizer::constTokenize(
-        StringView(topoInfoStr.data(), topoInfoStr.length()), "|");
+    const auto &topoStrVec =
+        StringTokenizer::constTokenize(StringView(topoInfoStr.data(), topoInfoStr.length()), "|");
     for (const auto &topoStr : topoStrVec) {
-        const auto &topoInfoVec = StringTokenizer::constTokenize(
-            StringView(topoStr.data(), topoStr.length()), ":");
+        const auto &topoInfoVec =
+            StringTokenizer::constTokenize(StringView(topoStr.data(), topoStr.length()), ":");
         if (topoInfoVec.size() > 8) {
             const auto &info = topoInfoVec[8];
             const auto &portVec =
@@ -280,14 +276,13 @@ void CM2SubscribeService::addTopoNodeFromTopoStr(CMNode *node, const string &clu
             }
         }
         if (topoInfoVec.size() < 3) {
-            AUTIL_LOG(WARN, "error topo info [%s]",
-                      topoStr.to_string().c_str());
+            AUTIL_LOG(WARN, "error topo info [%s]", topoStr.to_string().c_str());
             continue;
         }
         if (INVALID_VERSION_ID != subProtocolVersion) {
             if (topoInfoVec.size() > 5) {
-                auto protocalVersion = StringConvertor::atoi<VersionTy>(
-                    topoInfoVec[5].data(), topoInfoVec[5].length());
+                auto protocalVersion = StringConvertor::atoi<VersionTy>(topoInfoVec[5].data(),
+                                                                        topoInfoVec[5].length());
                 if (protocalVersion != subProtocolVersion) {
                     continue;
                 }
@@ -296,35 +291,34 @@ void CM2SubscribeService::addTopoNodeFromTopoStr(CMNode *node, const string &clu
         TopoNode topoNode;
         fillSpec(node, topoNode.spec);
         if (enableClusterBizSearch) {
-            topoNode.bizName = MiscUtil::createBizName(
-                clusterName, topoInfoVec[0].to_string());
+            topoNode.bizName = MiscUtil::createBizName(clusterName, topoInfoVec[0].to_string());
         } else {
             topoNode.bizName = topoInfoVec[0].to_string();
         }
-        topoNode.partCnt = StringConvertor::atoi<PartIdTy>(
-            topoInfoVec[1].data(), topoInfoVec[1].length());
-        topoNode.partId = StringConvertor::atoi<PartIdTy>(
-            topoInfoVec[2].data(), topoInfoVec[2].length());
+        topoNode.partCnt =
+            StringConvertor::atoi<PartIdTy>(topoInfoVec[1].data(), topoInfoVec[1].length());
+        topoNode.partId =
+            StringConvertor::atoi<PartIdTy>(topoInfoVec[2].data(), topoInfoVec[2].length());
         if (topoInfoVec.size() > 3) {
-            topoNode.version = StringConvertor::atoi<VersionTy>(
-                topoInfoVec[3].data(), topoInfoVec[3].length());
+            topoNode.version =
+                StringConvertor::atoi<VersionTy>(topoInfoVec[3].data(), topoInfoVec[3].length());
         } else {
             topoNode.version = DEFAULT_VERSION_ID;
         }
         if (topoInfoVec.size() > 4) {
-            topoNode.weight = StringConvertor::atoi<WeightTy>(
-                topoInfoVec[4].data(), topoInfoVec[4].length());
+            topoNode.weight =
+                StringConvertor::atoi<WeightTy>(topoInfoVec[4].data(), topoInfoVec[4].length());
         } else {
             topoNode.weight = weight;
         }
         if (topoInfoVec.size() > 5) {
-            auto protocalVersion = StringConvertor::atoi<VersionTy>(
-                topoInfoVec[5].data(), topoInfoVec[5].length());
+            auto protocalVersion =
+                StringConvertor::atoi<VersionTy>(topoInfoVec[5].data(), topoInfoVec[5].length());
             topoNode.protocalVersion = protocalVersion;
         }
         if (topoInfoVec.size() > 6) {
-            int32_t grpcPort = StringConvertor::atoi<int32_t>(
-                topoInfoVec[6].data(), topoInfoVec[6].length());
+            int32_t grpcPort =
+                StringConvertor::atoi<int32_t>(topoInfoVec[6].data(), topoInfoVec[6].length());
             if (grpcPort == 0) {
                 grpcPort = INVALID_PORT;
             }
@@ -333,8 +327,7 @@ void CM2SubscribeService::addTopoNodeFromTopoStr(CMNode *node, const string &clu
         }
         if (topoInfoVec.size() > 7) {
             bool supportHeartbeat = false;
-            if (StringUtil::fromString<bool>(topoInfoVec[7].to_string(),
-                                             supportHeartbeat)) {
+            if (StringUtil::fromString<bool>(topoInfoVec[7].to_string(), supportHeartbeat)) {
                 topoNode.supportHeartbeat = supportHeartbeat;
             }
         }
@@ -346,8 +339,7 @@ void CM2SubscribeService::addTopoNodeFromTopoStr(CMNode *node, const string &clu
             topoNodeVec.push_back(topoNode);
         } else {
             AUTIL_LOG(WARN, "generateNodeId failed: topoStr [%s], node [%s]",
-                      topoStr.to_string().c_str(),
-                      node->ShortDebugString().c_str());
+                      topoStr.to_string().c_str(), node->ShortDebugString().c_str());
         }
     }
 }
@@ -390,8 +382,7 @@ void CM2SubscribeService::freeNodeVec(const vector<CMNode *> &nodeVec) {
 
 bool CM2SubscribeService::isValidNode(CMNode *node) {
     return node->online_status() == cm_basic::OS_ONLINE &&
-           node->cur_status() == cm_basic::NS_NORMAL &&
-           node->proto_port_size() > 0;
+           node->cur_status() == cm_basic::NS_NORMAL && node->proto_port_size() > 0;
 }
 
 bool CM2SubscribeService::addSubscribe(const std::vector<std::string> &names) {
@@ -407,8 +398,7 @@ bool CM2SubscribeService::addSubscribe(const std::vector<std::string> &names) {
     return result;
 }
 
-bool CM2SubscribeService::deleteSubscribe(
-    const std::vector<std::string> &names) {
+bool CM2SubscribeService::deleteSubscribe(const std::vector<std::string> &names) {
     bool result = true;
     for (const auto &name : names) {
         if (0 != _partSubscriber->removeSubCluster(name)) {
@@ -418,14 +408,12 @@ bool CM2SubscribeService::deleteSubscribe(
     return result;
 }
 
-void CM2SubscribeService::addTopoCluster(
-    const std::vector<std::string> &names) {
+void CM2SubscribeService::addTopoCluster(const std::vector<std::string> &names) {
     autil::ScopedLock lock(_mutex);
     _topoClusterSet.insert(names.begin(), names.end());
 }
 
-void CM2SubscribeService::deleteTopoCluster(
-    const std::vector<std::string> &names) {
+void CM2SubscribeService::deleteTopoCluster(const std::vector<std::string> &names) {
     autil::ScopedLock lock(_mutex);
     for (const auto &name : names) {
         _topoClusterSet.erase(name);

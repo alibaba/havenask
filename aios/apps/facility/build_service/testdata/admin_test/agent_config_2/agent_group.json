@@ -1,0 +1,15 @@
+{
+    "agent_node_groups" :
+    [
+        {
+            "id" : "group1",
+            "role_pattern" : "processor",
+            "node_count" : 1
+        },
+        {
+            "id" : "group2",
+            "role_pattern" : "no_match_pattern",
+            "node_count" : 1
+        }
+    ] 
+}

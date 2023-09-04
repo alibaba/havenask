@@ -21,6 +21,7 @@
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/proto/ProtoComparator.h"
+#include "build_service/proto/ProtoJsonizer.h"
 #include "build_service/proto/RoleNameGenerator.h"
 #include "hippo/proto/Common.pb.h"
 
@@ -160,6 +161,10 @@ public:
     virtual void setSlotInfo(const PBSlotInfos& slotInfos) = 0;
     virtual void changeSlots() = 0;
     virtual bool getToReleaseSlots(PBSlotInfos& toReleaseSlotInfos) { return false; }
+    virtual std::string getCurrentIdentifier() const = 0;
+
+    virtual std::string getCurrentStatusJsonStr() const = 0;
+    virtual std::string getTargetStatusJsonStr() const = 0;
 
     /*
         below function only mark a worker is finished,
@@ -174,6 +179,12 @@ public:
     bool isSuspended() const { return _suspended; }
     void setSuspended(bool isSuspended) { _suspended = isSuspended; }
 
+    void updateHeartbeatTime(int64_t ts) { _heartbeatUpdateTime = ts; }
+    int64_t getHeartbeatUpdateTime() const { return _heartbeatUpdateTime; }
+
+    void updateWorkerStartTime(int64_t ts) { _workerStartTime = ts; }
+    int64_t getWorkerStartTime() const { return _workerStartTime; }
+    
     /*
         optimization for tiny table of igraph, do not reallocate hippo role during the whole procedure.
     */
@@ -332,6 +343,8 @@ protected:
     uint32_t _nodeId = 0;
     uint32_t _instanceIdx = 0;
     uint32_t _sourceNodeId = -1; // if backup node exist, sourceNodeId is mainNodeId
+    int64_t _heartbeatUpdateTime = -1;
+    int64_t _workerStartTime = -1;
 };
 
 BS_TYPEDEF_PTR(WorkerNodeBase);
@@ -386,6 +399,16 @@ public: // for worker/admin heartbeat
         _partitionInfo.mutable_slotinfos()->CopyFrom(slotInfos);
     }
 
+    std::string getCurrentStatusJsonStr() const override
+    {
+        return proto::ProtoJsonizer::toJsonString(getCurrentStatus());
+    }
+
+    std::string getTargetStatusJsonStr() const override
+    {
+        return proto::ProtoJsonizer::toJsonString(getTargetStatus());
+    }
+
 public: // for admin access
     void setTargetStatus(const TargetStatusType& status) { setTargetStatus(status, ""); }
     void setTargetStatus(const TargetStatusType& status, const std::string& requiredIdentifier)
@@ -408,6 +431,12 @@ public: // for admin access
     {
         autil::ScopedLock lock(_partitionInfoLock);
         return {_partitionInfo.currentstatus(), _currentIdentifier};
+    }
+
+    std::string getCurrentIdentifier() const override
+    {
+        autil::ScopedLock lock(_partitionInfoLock);
+        return _currentIdentifier;
     }
 
     virtual int32_t getWorkerProtocolVersion() const override

@@ -27,17 +27,10 @@ using namespace anet;
 ARPC_BEGIN_NAMESPACE(arpc);
 ARPC_DECLARE_AND_SETUP_LOGGER(RPCChannelManagerBase);
 
-RPCChannelManagerBase::RPCChannelManagerBase()
-{
-}
+RPCChannelManagerBase::RPCChannelManagerBase() {}
 
-RPCChannelManagerBase::~RPCChannelManagerBase()
-{
-}
+RPCChannelManagerBase::~RPCChannelManagerBase() {}
 
-void RPCChannelManagerBase::Close()
-{
-}
+void RPCChannelManagerBase::Close() {}
 
 ARPC_END_NAMESPACE(arpc);
-

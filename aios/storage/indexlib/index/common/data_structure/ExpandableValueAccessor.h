@@ -46,9 +46,9 @@ public:
 
     const char* GetValue(ValueOffsetType valueOffset) const
     {
-        ValueOffsetType idx = valueOffset >> _offsetShiftBit;
+        ValueOffsetType idx = valueOffset / _sliceLen;
         assert(_valueAccessors.size() > idx);
-        ValueOffsetType localValueOffset = valueOffset & _offsetMask;
+        ValueOffsetType localValueOffset = valueOffset - _sliceLen * idx;
         return _valueAccessors[idx].GetValue(localValueOffset);
     }
 
@@ -59,9 +59,9 @@ public:
         if (!_enableRewrite) {
             return Status::InternalError("value rewrite is disabled");
         }
-        ValueOffsetType idx = valueOffset >> _offsetShiftBit;
+        ValueOffsetType idx = valueOffset / _sliceLen;
         assert(_valueAccessors.size() > idx);
-        ValueOffsetType localValueOffset = valueOffset & _offsetMask;
+        ValueOffsetType localValueOffset = valueOffset - _sliceLen * idx;
         _valueAccessors[idx].Rewrite(value, localValueOffset);
         return Status::OK();
     }
@@ -96,8 +96,8 @@ private:
 private:
     ValueOffsetType _reserveBytes {0};
     ValueOffsetType _usedBytes {0};
-    int32_t _offsetShiftBit {0};
-    ValueOffsetType _offsetMask {0};
+    size_t _sliceNum {0};
+    ValueOffsetType _sliceLen {0};
     ValueOffsetType _baseOffset {0};
     std::unique_ptr<indexlib::util::SliceArray<char>> _sliceAllocator;
     std::vector<SingleValueAccessor> _valueAccessors;
@@ -118,28 +118,12 @@ Status ExpandableValueAccessor<ValueOffsetType>::Init(ValueOffsetType sliceLen, 
         return Status::InvalidArgs("both slice len [%ld] and slice num [%lu] must be positive value", (int64_t)sliceLen,
                                    sliceNum);
     }
-
-    if (sliceNum > 1) {
-        if ((sliceLen & (sliceLen - 1)) != 0) {
-            return Status::InvalidArgs("slice len [%lu] must be power of two when slice num [%lu] is larger than one",
-                                       (size_t)sliceLen, sliceNum);
-        }
-        _offsetMask = sliceLen - 1;
-        while ((sliceLen >> _offsetShiftBit) > 1) {
-            ++_offsetShiftBit;
-        }
-    } else {
-        _offsetMask = std::numeric_limits<ValueOffsetType>::max();
-        while ((_offsetMask >> _offsetShiftBit) > 1) {
-            ++_offsetShiftBit;
-        }
-    }
-
     if (__builtin_mul_overflow(sliceLen, sliceNum, &_reserveBytes)) {
         return Status::InvalidArgs("overflow when multiply slice len [%lu] by slice num [%lu]", (size_t)sliceLen,
                                    sliceNum);
     }
-
+    _sliceLen = sliceLen;
+    _sliceNum = sliceNum;
     bool ownPool = false;
     if (_pool == nullptr) {
         _pool = new autil::mem_pool::UnsafePool(1024 * 1024);
@@ -197,7 +181,7 @@ Status ExpandableValueAccessor<ValueOffsetType>::Expand()
     uint64_t sliceLen = _sliceAllocator->GetSliceLen();
 
     if (sliceNum * sliceLen >= _reserveBytes) {
-        return Status::NoMem("slice num [%d] reaches limit", sliceNum);
+        return Status::NoMem("slice [%d] * [%lu] reaches limit [%lu B]", sliceNum, sliceLen, _reserveBytes);
     }
 
     char* slice = _sliceAllocator->AllocateSlice(/*sliceIndex*/ _curAccessorIdx + 1);

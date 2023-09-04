@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='OnDiskPackIndexIterator',
     srcs=[],
     deps=[
@@ -9,11 +9,12 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:DictionaryCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PackIndexMerger',
     deps=[
         ':OnDiskPackIndexIterator',
         '//aios/storage/indexlib/index:IIndexFactory',
-        '//aios/storage/indexlib/index/inverted_index:InvertedIndexMerger'
+        '//aios/storage/indexlib/index/inverted_index:InvertedIndexMerger',
+        '//aios/storage/indexlib/index/inverted_index/section_attribute:factory'
     ]
 )

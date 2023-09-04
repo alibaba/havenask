@@ -120,22 +120,13 @@ void DocBuildWorkItemGenerator::CreateAttributeWorkItem(
         segmentWriter->GetInMemoryAttributeSegmentWriter(isVirtual);
     index::AttributeModifierPtr attrModifier = modifier->GetAttributeModifier();
 
-    config::AttributeConfigIteratorPtr attrConfIter = attrSchema->CreateIterator(is_normal_or_disable);
+    config::AttributeConfigIteratorPtr attrConfIter = attrSchema->CreateIterator();
     for (config::AttributeSchema::Iterator iter = attrConfIter->Begin(); iter != attrConfIter->End(); iter++) {
         config::AttributeConfigPtr attrConfig = *iter;
         if (attrConfig->GetPackAttributeConfig() != NULL) {
             // skip attributes defined in pack attribute
             continue;
         }
-        if (attrConfig->IsDisable()) {
-            IE_LOG(DEBUG, "attribute [%s] is disable", attrConfig->GetAttrName().c_str());
-            continue;
-        }
-        if (!attrConfig->IsNormal()) {
-            IE_LOG(DEBUG, "attribute [%s] is deleted", attrConfig->GetAttrName().c_str());
-            continue;
-        }
-
         auto item = std::make_unique<index::legacy::AttributeBuildWorkItem>(attrConfig.get(), attrModifier.get(),
                                                                             attrSegmentWriter.get(), isSub,
                                                                             buildingSegmentBaseDocId, docCollector);
@@ -156,8 +147,8 @@ void DocBuildWorkItemGenerator::CreateAttributeWorkItem(
     for (size_t i = 0; i < packAttrCount; ++i) {
         const config::PackAttributeConfigPtr& packAttrConfig = attrSchema->GetPackAttributeConfig(packattrid_t(i));
         assert(packAttrConfig);
-        if (packAttrConfig->IsDisable()) {
-            IE_LOG(DEBUG, "attribute [%s] is disable", packAttrConfig->GetAttrName().c_str());
+        if (packAttrConfig->IsDisabled()) {
+            IE_LOG(DEBUG, "attribute [%s] is disable", packAttrConfig->GetPackName().c_str());
             continue;
         }
 

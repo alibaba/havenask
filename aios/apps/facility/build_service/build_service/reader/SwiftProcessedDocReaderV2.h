@@ -86,16 +86,16 @@ public:
     void ExtractFieldInfos(document::RawDocument& rawDoc,
                            const std::shared_ptr<indexlibv2::document::IDocument>& indexDoc);
 
-    bool initAttributeExtractResource(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema);
+    bool initAttributeExtractResource(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema);
 
 private:
     std::unique_ptr<indexlibv2::document::IDocumentFactory>
-    createDocumentFactory(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema) const;
+    createDocumentFactory(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema) const;
     void ExtractTagInfoMap(document::RawDocument& rawDoc, const std::map<std::string, std::string>& tagInfoMap);
 
 private:
     std::unique_ptr<indexlibv2::document::IDocumentParser> _docParser;
-    std::shared_ptr<indexlibv2::config::TabletSchema> _schema;
+    std::shared_ptr<indexlibv2::config::ITabletSchema> _schema;
     std::vector<std::shared_ptr<indexlibv2::index::PackAttributeFormatter>> _packFormatters;
     std::vector<std::shared_ptr<indexlibv2::index::AttributeConvertor>> _attrConvertors;
     bool _printToken;

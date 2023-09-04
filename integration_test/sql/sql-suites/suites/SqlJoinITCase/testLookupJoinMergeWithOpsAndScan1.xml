@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="testLookupJoinMergeWithOpsAndScan1">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT t3.i1, t3.a FROM ( SELECT i1, count(i2) as a FROM t2 WHERE i1 > 1 GROUP BY i1) t3 JOIN t1 ON t1.i1 = t3.i1 WHERE t1.i1 >= 2 AND t1.i1 < 4
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"i1", "a"</Resource>
+        <Resource name="column_types">int32,uint64</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+3,1
+2,1
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#7(type=api)
+    LimitOp#6(limit=100)
+        ExchangeOp#5(distribution={type:SINGLETON})
+            LimitOp#4(limit=100)
+                CalcOp#3(output_fields=[$i1,$a])
+                    LookupJoinOp#2(build_node={catalog_name:default,db_name:t1,limit:2147483647,output_fields:[$i1],push_down_ops:[{attrs:{condition:{op:AND,params:[{op:>=,params:[$i1,2],type:OTHER},{op:<,params:[$i1,4],type:OTHER}],type:OTHER},output_fields:[$i1]},op_name:CalcOp}],table_name:t1,table_type:normal,use_nest_table:false},condition==($i10,$i1),equi_condition==($i1,$i10),is_equi_join=true,is_internal_build=false,join_type=INNER,left_is_build=false,output_fields=[$i1,$a,$i10],semi_join_type=INNER)
+                        AggregateOp#1(agg_funcs=[{approximate:false,distinct:false,filter_arg:-1,name:COUNT,output:[$a],type:NORMAL}],group_fields=[$i1],scope=NORMAL)
+                            TableScanOp#0(catalog_name=default,db_name=t1,limit=2147483647,output_fields=[$i1],push_down_ops=[{attrs:{condition:{op:>,params:[$i1,1],type:OTHER},output_fields:[$i1]},op_name:CalcOp}],table_name=t2,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

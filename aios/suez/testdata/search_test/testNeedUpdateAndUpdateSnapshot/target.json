@@ -1,0 +1,87 @@
+{
+    "app_info":
+    {
+	"config_path" : "hdfs:\/\/hdpet2main\/app\/suez_ops\/online_config\/mainse_online\/app\/app_info\/config\/1480647478",
+	"keep_count" : 3
+    },
+    "custom_app_info":
+    {
+	"a" : "b",
+	"c" : 1
+    },
+    "biz_info":
+    {
+	"default":
+	{
+	    "config_path":
+	    "hdfs:\/\/hdpet2main\/app\/suez_ops\/online_config\/mainse_online\/biz\/default\/config\/1480647479",
+	    "config_version":
+	    1480647491,
+	    "online_biz_id":
+	    "57d0cb7d12da0b462c3dc45d"
+	}
+    },
+    "service_info":
+    {
+	"part_count":
+	4,
+	"part_id":
+	0,
+	"role_name":
+	"mainse_excellent_partition_0",
+	"version":
+	1480660471,
+	"zone_name":
+	"mainse_excellent"
+    },
+    "table_info":{
+        "TPP_gul_xgc_content_info_v1":{
+            "1640046390":{
+                "config_path":"dfs:\/\/ea120dfssearch1--cn-shanghai\/igraph\/moss_igraph_online\/config\/config_4_pangu_index_igraph_ea119-igraph-recommended_algorithm-TPP_gul_xgc_content_info_v1-8185453-1640046396200-1640046396308_pangu_config",
+                "distribute_mode":"replica",
+                "index_root":"dfs:\/\/ea120dfssearch1--cn-shanghai\/igraph\/moss_igraph_online\/index\/index-igraph-recommended_algorithm-TPP_gul_xgc_content_info_v1",
+                "moss_build_deploy_id":"b1328ee6-e7fe-489d-9875-573f7db56a66",
+                "moss_data_version":"ds=20211215",
+                "moss_index_id":35315732,
+                "moss_index_version":"0.6.0",
+                "partitions":{
+                    "0_65535":{
+                        "inc_version":0,
+                        "keep_count":0,
+                        "table_load_type":1
+                    }
+                },
+                "raw_index_root":"dfs:\/\/ea120dfssearch1--cn-shanghai\/igraph\/moss_igraph_online\/index\/index-igraph-recommended_algorithm-TPP_gul_xgc_content_info_v1",
+		"user_defined_param" : {
+	            "e" : "i",
+	            "f" : 1
+                },
+                "total_partition_count":1
+            }
+        },
+        "TPP_gul_xgc_content_info_v2":{
+            "1640046390":{
+                "config_path":"dfs:\/\/ea120dfssearch1--cn-shanghai\/igraph\/moss_igraph_online\/config\/config_4_pangu_index_igraph_ea119-igraph-recommended_algorithm-TPP_gul_xgc_content_info_v1-8185453-1640046396200-1640046396308_pangu_config",
+                "distribute_mode":"replica",
+                "index_root":"dfs:\/\/ea120dfssearch1--cn-shanghai\/igraph\/moss_igraph_online\/index\/index-igraph-recommended_algorithm-TPP_gul_xgc_content_info_v1",
+                "moss_build_deploy_id":"b1328ee6-e7fe-489d-9875-573f7db56a66",
+                "moss_data_version":"ds=20211215",
+                "moss_index_id":35315732,
+                "moss_index_version":"0.6.0",
+                "partitions":{
+                    "0_65535":{
+                        "inc_version":0,
+                        "keep_count":0,
+                        "table_load_type":1
+                    }
+                },
+                "raw_index_root":"dfs:\/\/ea120dfssearch1--cn-shanghai\/igraph\/moss_igraph_online\/index\/index-igraph-recommended_algorithm-TPP_gul_xgc_content_info_v1",
+		"user_defined_param" : {
+	            "e" : "i",
+	            "f" : 2
+                },
+                "total_partition_count":1
+            }
+	}
+    }
+}

@@ -56,6 +56,7 @@ Status KeyWriter::AllocateMemory(autil::mem_pool::PoolBase* pool, size_t maxMemo
 {
     occupancyPct = _hashTable->GetRecommendedOccupancy(occupancyPct);
     size_t size = _hashTable->BuildMemoryToTableMemory(maxMemoryUse, occupancyPct);
+    assert(size <= maxMemoryUse);
     char* buffer = (char*)pool->allocate(size);
     if (buffer == nullptr) {
         return Status::NoMem("allocate ", size, " bytes failed");
@@ -80,7 +81,7 @@ Status KeyWriter::Add(uint64_t key, const autil::StringView& value, uint32_t tim
     if (likely(succ)) {
         return Status::OK();
     }
-    return Status::NeedDump();
+    return Status::NeedDump("key no space");
 }
 
 bool KeyWriter::Find(uint64_t key, autil::StringView& value, uint32_t& timestamp)
@@ -99,7 +100,7 @@ Status KeyWriter::Delete(uint64_t key, uint32_t timestamp)
     if (likely(succ)) {
         return Status::OK();
     }
-    return Status::NeedDump();
+    return Status::NeedDump("key no space");
 }
 
 Status KeyWriter::Dump(const std::shared_ptr<indexlib::file_system::Directory>& directory)
@@ -145,7 +146,7 @@ void KeyWriter::FillStatistics(SegmentStatistics& stat) const
     stat.occupancyPct = _hashTable->GetOccupancyPct();
 }
 
-void KeyWriter::UpdateMemoryUsage(MemoryUsage& memoryUsage) const
+void KeyWriter::FillMemoryUsage(MemoryUsage& memoryUsage) const
 {
     memoryUsage.buildMemory = _hashTable->MemoryUse() + _hashTable->BuildAssistantMemoryUse();
     memoryUsage.dumpMemory = 0;

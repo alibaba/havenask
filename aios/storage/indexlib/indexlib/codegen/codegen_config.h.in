@@ -1,4 +1,0 @@
-#ifndef __INDEXLIB_CODEGEN_CONFIG_H
-#define __INDEXLIB_CODEGEN_CONFIG_H
-#define INDEXLIB_CODEGEN_VERSION "version"
-#endif

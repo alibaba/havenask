@@ -24,7 +24,6 @@
 #include "indexlib/config/configurator_define.h"
 #include "indexlib/config/customized_config.h"
 #include "indexlib/config/field_config.h"
-#include "indexlib/config/truncate_term_vocabulary.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/inverted_index/config/AdaptiveDictionaryConfig.h"
 #include "indexlib/index/inverted_index/config/DictionaryConfig.h"
@@ -45,15 +44,11 @@ namespace indexlib { namespace config {
 IE_LOG_SETUP(config, IndexConfig);
 
 struct IndexConfig::Impl {
-    string useTruncateProfiles;
-    TruncateTermVocabularyPtr truncateTermVocabulary;
-    bool hasTruncate = false;
-    PayloadConfig payloadConfig;
     vector<IndexConfigPtr> shardingIndexConfigs;
     // customized config
     CustomizedConfigVector customizedConfigs;
     Impl() {}
-    Impl(const Impl& other) : useTruncateProfiles(other.useTruncateProfiles), hasTruncate(other.hasTruncate) {}
+    Impl(const Impl& other) {}
 };
 
 IndexConfig::IndexConfig() : mImpl(make_unique<Impl>()) {}
@@ -115,19 +110,22 @@ bool IndexConfig::FulfillConfigV2(indexlibv2::config::InvertedIndexConfig* confi
     return true;
 }
 
+void IndexConfig::SetUseTruncateProfiles(const std::vector<std::string>& profiles)
+{
+    indexlibv2::config::InvertedIndexConfig::SetUseTruncateProfiles(profiles);
+    if (GetShardingType() == IndexConfig::IST_NEED_SHARDING) {
+        for (size_t i = 0; i < mImpl->shardingIndexConfigs.size(); ++i) {
+            mImpl->shardingIndexConfigs[i]->SetUseTruncateProfiles(profiles);
+        }
+    }
+}
+
 void IndexConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
 {
     map<string, Any> jsonMap = json.GetMap();
     // TODO split to PackIndexConfig and SingleIndexConfig
     if (json.GetMode() == TO_JSON) {
         indexlibv2::config::InvertedIndexConfig::Serialize(json);
-        if (mImpl->hasTruncate) {
-            json.Jsonize(HAS_TRUNCATE, mImpl->hasTruncate);
-            if (!mImpl->useTruncateProfiles.empty()) {
-                json.Jsonize(USE_TRUNCATE_PROFILES, mImpl->useTruncateProfiles);
-            }
-        }
-
         if (mImpl->customizedConfigs.size() > 1) {
             vector<Any> anyVec;
             anyVec.reserve(mImpl->customizedConfigs.size());
@@ -146,11 +144,6 @@ void IndexConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
         }
     } else {
         indexlib::index::InvertedIndexConfigSerializer::DeserializeCommonFields(jsonMap, this);
-        json.Jsonize(HAS_TRUNCATE, mImpl->hasTruncate, mImpl->hasTruncate);
-        if (mImpl->hasTruncate) {
-            json.Jsonize(USE_TRUNCATE_PROFILES, mImpl->useTruncateProfiles, mImpl->useTruncateProfiles);
-        }
-
         auto iter = jsonMap.find(CUSTOMIZED_CONFIG);
         if (iter != jsonMap.end()) {
             JsonArray customizedConfigVec = AnyCast<JsonArray>(iter->second);
@@ -165,81 +158,6 @@ void IndexConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
         }
     }
 }
-
-void IndexConfig::SetHasTruncateFlag(bool flag) { mImpl->hasTruncate = flag; }
-bool IndexConfig::HasTruncate() const { return mImpl->hasTruncate; }
-void IndexConfig::SetUseTruncateProfiles(const string& useTruncateProfiles)
-{
-    mImpl->useTruncateProfiles = useTruncateProfiles;
-}
-bool IndexConfig::HasTruncateProfile(const TruncateProfileConfig* truncateProfileConfig) const
-{
-    assert(mImpl->hasTruncate);
-
-    if (mImpl->useTruncateProfiles.empty() and !truncateProfileConfig->GetPayloadConfig().IsInitialized()) {
-        return true;
-    }
-    StringTokenizer st(mImpl->useTruncateProfiles, USE_TRUNCATE_PROFILES_SEPRATOR,
-                       StringTokenizer::TOKEN_TRIM | StringTokenizer::TOKEN_IGNORE_EMPTY);
-    for (StringTokenizer::Iterator it = st.begin(); it != st.end(); ++it) {
-        if (truncateProfileConfig->GetTruncateProfileName() == *it) {
-            return true;
-        }
-    }
-    return false;
-}
-vector<string> IndexConfig::GetUseTruncateProfiles() const
-{
-    vector<string> profiles;
-    StringTokenizer st(mImpl->useTruncateProfiles, USE_TRUNCATE_PROFILES_SEPRATOR,
-                       StringTokenizer::TOKEN_TRIM | StringTokenizer::TOKEN_IGNORE_EMPTY);
-    return st.getTokenVector();
-}
-void IndexConfig::LoadTruncateTermVocabulary(const file_system::ArchiveFolderPtr& metaFolder,
-                                             const vector<string>& truncIndexNames)
-{
-    TruncateTermVocabularyPtr truncTermVocabulary(new TruncateTermVocabulary(metaFolder));
-
-    truncTermVocabulary->Init(truncIndexNames);
-    if (truncTermVocabulary->GetTermCount() > 0) {
-        mImpl->truncateTermVocabulary = truncTermVocabulary;
-    }
-}
-void IndexConfig::LoadTruncateTermVocabulary(const file_system::DirectoryPtr& truncMetaDir,
-                                             const vector<string>& truncIndexNames)
-{
-    TruncateTermVocabularyPtr truncTermVocabulary(new TruncateTermVocabulary(file_system::ArchiveFolderPtr()));
-
-    truncTermVocabulary->Init(truncMetaDir, truncIndexNames);
-    if (truncTermVocabulary->GetTermCount() > 0) {
-        mImpl->truncateTermVocabulary = truncTermVocabulary;
-    }
-}
-const TruncateTermVocabularyPtr& IndexConfig::GetTruncateTermVocabulary() const
-{
-    return mImpl->truncateTermVocabulary;
-}
-
-bool IndexConfig::IsTruncateTerm(const index::DictKeyInfo& key) const
-{
-    if (!mImpl->truncateTermVocabulary) {
-        return false;
-    }
-    return mImpl->truncateTermVocabulary->Lookup(key);
-}
-
-bool IndexConfig::GetTruncatePostingCount(const index::DictKeyInfo& key, int32_t& count) const
-{
-    count = 0;
-    if (!mImpl->truncateTermVocabulary) {
-        return false;
-    }
-    return mImpl->truncateTermVocabulary->LookupTF(key, count);
-}
-
-void IndexConfig::SetTruncatePayloadConfig(const PayloadConfig& payloadConfig) { mImpl->payloadConfig = payloadConfig; }
-
-const PayloadConfig& IndexConfig::GetTruncatePayloadConfig() const { return mImpl->payloadConfig; }
 
 void IndexConfig::SetCustomizedConfig(const CustomizedConfigVector& customizedConfigs)
 {
@@ -298,11 +216,6 @@ InvertedIndexType IndexConfig::StrToIndexType(const string& typeStr, TableType t
 
     INDEXLIB_FATAL_ERROR(Schema, "%s", ss.str().c_str());
     return it_unknown;
-}
-
-string IndexConfig::CreateTruncateIndexName(const string& indexName, const string& truncateProfileName)
-{
-    return indexName + "_" + truncateProfileName;
 }
 
 void IndexConfig::AppendShardingIndexConfig(const shared_ptr<InvertedIndexConfig>& shardingIndexConfig)

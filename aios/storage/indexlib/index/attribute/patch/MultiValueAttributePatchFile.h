@@ -28,7 +28,7 @@ namespace indexlibv2::index {
 class MultiValueAttributePatchFile
 {
 public:
-    MultiValueAttributePatchFile(segmentid_t segmentId, const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    MultiValueAttributePatchFile(segmentid_t segmentId, const std::shared_ptr<AttributeConfig>& attrConfig);
     ~MultiValueAttributePatchFile() = default;
 
 public:

@@ -30,82 +30,160 @@ struct LackResponseInfo {
     PartIdTy partCount = -1;
 };
 
-class Response {
+class Response
+{
 public:
     Response()
-        : _partCount(INVALID_PART_COUNT), _partId(INVALID_PART_ID),
-          _version(INVALID_VERSION_ID), _agentInfo(nullptr), _isReturned(false),
-          _isRetried(false) {}
+        : _partCount(INVALID_PART_COUNT)
+        , _partId(INVALID_PART_ID)
+        , _version(INVALID_VERSION_ID)
+        , _agentInfo(nullptr)
+        , _isReturned(false)
+        , _isRetried(false) {
+    }
     virtual ~Response();
 
 public:
     // response should always free data
     virtual void init(void *data) = 0;
-    virtual bool deserializeApp() { return true; }
+    virtual bool deserializeApp() {
+        return true;
+    }
     virtual size_t size() const = 0;
     virtual void fillSpan() {};
 
 public:
-    const std::string &getBizName() const { return _bizName; }
-    void setBizName(const std::string &bizName) { _bizName = bizName; }
-    void setRequestId(const std::string &requestId) { _requestId = requestId; }
-    const std::string &getRequestId() const { return _requestId; }
-    const std::string &getSpecStr() const { return _specStr; }
-    void setSpecStr(const std::string &specStr) { _specStr = specStr; }
-    const std::string &getNodeId() const { return _nodeId; }
-    void setNodeId(const std::string &nodeId) { _nodeId = nodeId; }
-    PartIdTy getPartCount() const { return _partCount; }
-    void setPartCount(PartIdTy partCount) { _partCount = partCount; }
-    PartIdTy getPartId() const { return _partId; }
-    void setPartId(PartIdTy partId) { _partId = partId; }
-    VersionTy getVersion() const { return _version; }
-    void setVersion(VersionTy version) { _version = version; }
-    WeightTy getWeight() const { return _stat.targetWeight; }
-    void setWeight(WeightTy weight) { _stat.setTargetWeight(weight); }
+    const std::string &getBizName() const {
+        return _bizName;
+    }
+    void setBizName(const std::string &bizName) {
+        _bizName = bizName;
+    }
+    void setRequestId(const std::string &requestId) {
+        _requestId = requestId;
+    }
+    const std::string &getRequestId() const {
+        return _requestId;
+    }
+    const std::string &getSpecStr() const {
+        return _specStr;
+    }
+    void setSpecStr(const std::string &specStr) {
+        _specStr = specStr;
+    }
+    const std::string &getNodeId() const {
+        return _nodeId;
+    }
+    void setNodeId(const std::string &nodeId) {
+        _nodeId = nodeId;
+    }
+    PartIdTy getPartCount() const {
+        return _partCount;
+    }
+    void setPartCount(PartIdTy partCount) {
+        _partCount = partCount;
+    }
+    PartIdTy getPartId() const {
+        return _partId;
+    }
+    void setPartId(PartIdTy partId) {
+        _partId = partId;
+    }
+    VersionTy getVersion() const {
+        return _version;
+    }
+    void setVersion(VersionTy version) {
+        _version = version;
+    }
+    WeightTy getWeight() const {
+        return _stat.targetWeight;
+    }
+    void setWeight(WeightTy weight) {
+        _stat.setTargetWeight(weight);
+    }
     void setAgentInfo(const std::string &info) {
         initAgentInfo(info);
         if (hasStatInAgentInfo()) {
             _stat.setAgentInfo(_agentInfo);
         }
     }
-    const GigResponseInfo *getAgentInfo() { return _agentInfo; }
-    void setCallBegTime(int64_t beginTime) { _stat.setCallBegTime(beginTime); }
-    void rpcBegin() { _stat.rpcBegin(); }
-    void callEnd() { _stat.callEnd(); }
-    int64_t getCallBegTime() const { return _stat.callBegTime; }
-    int64_t getCallEndTime() { return _stat.callEndTime; }
-    int64_t callUsedTime() { return _stat.getLatency(); }
-    int64_t rpcUsedTime() { return _stat.getRpcLatency(); }
-    float netLatency() { return _stat.getNetLatency(); }
-    void setLatencyMs(float latencyMs) {
-        _stat.callEndTime =
-            _stat.callBegTime + (int64_t)(latencyMs * FACTOR_US_TO_MS);
+    const GigResponseInfo *getAgentInfo() {
+        return _agentInfo;
     }
-    MultiCallErrorCode getErrorCode() const { return _stat.ec; }
-    void setErrorCode(MultiCallErrorCode ec,
-                      const std::string &errorString = "") {
+    void setCallBegTime(int64_t beginTime) {
+        _stat.setCallBegTime(beginTime);
+    }
+    void rpcBegin() {
+        _stat.rpcBegin();
+    }
+    void callEnd() {
+        _stat.callEnd();
+    }
+    int64_t getCallBegTime() const {
+        return _stat.callBegTime;
+    }
+    int64_t getCallEndTime() {
+        return _stat.callEndTime;
+    }
+    int64_t callUsedTime() {
+        return _stat.getLatency();
+    }
+    int64_t rpcUsedTime() {
+        return _stat.getRpcLatency();
+    }
+    float netLatency() {
+        return _stat.getNetLatency();
+    }
+    void setLatencyMs(float latencyMs) {
+        _stat.callEndTime = _stat.callBegTime + (int64_t)(latencyMs * FACTOR_US_TO_MS);
+    }
+    MultiCallErrorCode getErrorCode() const {
+        return _stat.ec;
+    }
+    void setErrorCode(MultiCallErrorCode ec, const std::string &errorString = "") {
         _stat.ec = ec;
         _stat.errorString = errorString;
     }
-    void setReturned() { _isReturned = true; }
-    bool isReturned() const { return _isReturned; }
-    void setRetried() { _isRetried = true; }
-    bool isRetried() const { return _isRetried; }
-    bool isFailed() const { return _stat.isFailed(); }
-    std::string errorString() const { return _stat.errorString; }
-    QueryResultStatistic &getStat() { return _stat; }
+    void setReturned() {
+        _isReturned = true;
+    }
+    bool isReturned() const {
+        return _isReturned;
+    }
+    void setRetried() {
+        _isRetried = true;
+    }
+    bool isRetried() const {
+        return _isRetried;
+    }
+    bool isFailed() const {
+        return _stat.isFailed();
+    }
+    std::string errorString() const {
+        return _stat.errorString;
+    }
+    QueryResultStatistic &getStat() {
+        return _stat;
+    }
     virtual std::string toString() const {
         return "bizName: " + _bizName + ", requestId: " + _requestId + ", spec: " + _specStr +
                ", part: " + std::to_string(_partId) + "/" + std::to_string(_partCount);
     }
-    void
-    setProtobufArena(const std::shared_ptr<google::protobuf::Arena> &arena) {
+    void setProtobufArena(const std::shared_ptr<google::protobuf::Arena> &arena) {
         _arena = arena;
     }
-    void setSpan(const opentelemetry::SpanPtr &span) { _span = span; }
-    const opentelemetry::SpanPtr &getSpan() { return _span; }
-    void setProtocolType(ProtocolType type) { _type = type; }
-    ProtocolType getProtocolType() const { return _type; }
+    void setSpan(const opentelemetry::SpanPtr &span) {
+        _span = span;
+    }
+    const opentelemetry::SpanPtr &getSpan() {
+        return _span;
+    }
+    void setProtocolType(ProtocolType type) {
+        _type = type;
+    }
+    ProtocolType getProtocolType() const {
+        return _type;
+    }
 
 protected:
     void initAgentInfo(const std::string &agentInfoStr);

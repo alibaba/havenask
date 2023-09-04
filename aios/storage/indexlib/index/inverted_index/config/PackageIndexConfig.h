@@ -20,6 +20,7 @@
 
 namespace indexlibv2::config {
 class SectionAttributeConfig;
+class FileCompressConfigV2;
 
 class PackageIndexConfig : public InvertedIndexConfig
 {
@@ -58,6 +59,7 @@ public:
     pos_t GetMaxFirstOccInDoc() const;
     std::vector<std::string> GetIndexPath() const override;
     void SetFileCompressConfig(const std::shared_ptr<indexlib::config::FileCompressConfig>& compressConfig) override;
+    void SetFileCompressConfigV2(const std::shared_ptr<config::FileCompressConfigV2>& compressConfigV2) override;
     void SetSectionAttributeConfig(std::shared_ptr<SectionAttributeConfig> sectionAttributeConfig);
 
     void Check() const override;

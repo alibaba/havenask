@@ -1,0 +1,17 @@
+    string field = "string1:string;pk:string;price:uint32";
+    string index = "index:string:string1;pk:primarykey64:pk";
+    string attribute = "string1;price";
+
+    IndexPartitionSchemaPtr schema = SchemaMaker::MakeSchema(field, index,
+            attribute, attribute);
+
+    string docString = "cmd=add,pk=0,string1=hello,price=0;"
+                       "cmd=add,pk=1,string1=hello,price=1;"
+                       "cmd=add,pk=2,string1=hello,price=2;";
+
+    mOptions.GetBuildConfig().maxDocCount = 1;
+    PartitionStateMachine psm;
+    INDEXLIB_TEST_TRUE(psm.Init(schema, mOptions, mRootDir));
+    INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, docString,
+                                    "index:hello",
+                                    "docid=0;docid=1;docid=2"));

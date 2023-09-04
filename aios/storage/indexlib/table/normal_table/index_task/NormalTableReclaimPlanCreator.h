@@ -32,7 +32,7 @@ namespace indexlibv2::table {
 class NormalTableReclaimPlanCreator : public SimpleIndexTaskPlanCreator
 {
 public:
-    NormalTableReclaimPlanCreator(const std::string& taskName);
+    NormalTableReclaimPlanCreator(const std::string& taskName, const std::map<std::string, std::string>& params);
     ~NormalTableReclaimPlanCreator();
 
 public:

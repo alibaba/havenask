@@ -24,30 +24,28 @@
 namespace autil {
 
 template <typename T>
-class MultiValueWriter
-{
+class MultiValueWriter {
 public:
-    MultiValueWriter()
-        : _data(NULL)
-        , _recordNum(0)
-    {}
-    
+    MultiValueWriter() : _data(NULL), _recordNum(0) {}
+
     ~MultiValueWriter() {}
+
 private:
     MultiValueWriter(const MultiValueWriter &);
-    MultiValueWriter& operator = (const MultiValueWriter &);
+    MultiValueWriter &operator=(const MultiValueWriter &);
+
 public:
-    bool init(char* buffer, size_t bufLen, size_t recordNum);
-    bool set(size_t idx, const T& value);
-    T* getData() { return _data; }
+    bool init(char *buffer, size_t bufLen, size_t recordNum);
+    bool set(size_t idx, const T &value);
+    T *getData() { return _data; }
+
 private:
-    T* _data;
+    T *_data;
     size_t _recordNum;
 };
 
 template <typename T>
-inline bool MultiValueWriter<T>::init(char* buffer, size_t bufLen, size_t recordNum)
-{
+inline bool MultiValueWriter<T>::init(char *buffer, size_t bufLen, size_t recordNum) {
     if (!buffer) {
         return false;
     }
@@ -59,20 +57,19 @@ inline bool MultiValueWriter<T>::init(char* buffer, size_t bufLen, size_t record
     if (bufLen - countLen < recordNum * sizeof(T)) {
         return false;
     }
-    _data = (T*)(buffer + countLen);
+    _data = (T *)(buffer + countLen);
     _recordNum = recordNum;
     return true;
 }
 
 template <>
-inline bool MultiValueWriter<MultiChar>::init(char* buffer, size_t bufLen, size_t recordNum)
-{
+inline bool MultiValueWriter<MultiChar>::init(char *buffer, size_t bufLen, size_t recordNum) {
     assert(false);
     return false;
 }
 
 template <typename T>
-inline bool MultiValueWriter<T>::set(size_t idx, const T& value) {
+inline bool MultiValueWriter<T>::set(size_t idx, const T &value) {
     if (idx >= _recordNum) {
         return false;
     }
@@ -81,10 +78,9 @@ inline bool MultiValueWriter<T>::set(size_t idx, const T& value) {
 }
 
 template <>
-inline bool MultiValueWriter<MultiChar>::set(size_t idx, const MultiChar& value) {
+inline bool MultiValueWriter<MultiChar>::set(size_t idx, const MultiChar &value) {
     assert(false);
     return false;
 }
 
-}
-
+} // namespace autil

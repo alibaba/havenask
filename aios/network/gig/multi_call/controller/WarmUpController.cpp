@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/controller/WarmUpController.h"
+
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
 
 using namespace std;
@@ -26,8 +27,7 @@ float WarmUpController::update(ControllerFeedBack &feedBack) {
         return 0.0f;
     }
     const auto &agentInfo = *feedBack.stat.agentInfo;
-    if (agentInfo.has_warm_up_status() &&
-        !agentInfo.warm_up_status().finished()) {
+    if (agentInfo.has_warm_up_status() && !agentInfo.warm_up_status().finished()) {
         _isFinished = false;
         return -MAX_WEIGHT_FLOAT;
     } else {

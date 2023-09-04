@@ -15,12 +15,9 @@
  */
 #include "fslib/fs/http/HttpFileSystem.h"
 
-extern "C"
-fslib::fs::AbstractFileSystem* createFileSystem() {
+extern "C" fslib::fs::AbstractFileSystem *createFileSystem() {
     static fslib::fs::http::HttpFileSystem fileSystem;
     return &fileSystem;
 }
 
-extern "C"
-void destroyFileSystem(fslib::fs::AbstractFileSystem* fileSystem) {
-}
+extern "C" void destroyFileSystem(fslib::fs::AbstractFileSystem *fileSystem) {}

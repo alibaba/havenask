@@ -22,20 +22,28 @@
 
 namespace multi_call {
 
-class LocalSubscribeService : public SubscribeService {
+class LocalSubscribeService : public SubscribeService
+{
 public:
-    LocalSubscribeService(const LocalConfig &localConfig)
-        : _localConfig(localConfig) {}
-    ~LocalSubscribeService() {}
+    LocalSubscribeService(const LocalConfig &localConfig) : _localConfig(localConfig) {
+    }
+    ~LocalSubscribeService() {
+    }
 
 private:
     LocalSubscribeService(const LocalSubscribeService &);
     LocalSubscribeService &operator=(const LocalSubscribeService &);
 
 public:
-    bool init() override { return true; }
-    SubscribeType getType() override { return ST_LOCAL; }
-    bool clusterInfoNeedUpdate() override { return true; }
+    bool init() override {
+        return true;
+    }
+    SubscribeType getType() override {
+        return ST_LOCAL;
+    }
+    bool clusterInfoNeedUpdate() override {
+        return true;
+    }
     void updateLocalConfig(const LocalConfig &localConfig) {
         autil::ScopedWriteLock lock(_configLock);
         _localConfig = localConfig;

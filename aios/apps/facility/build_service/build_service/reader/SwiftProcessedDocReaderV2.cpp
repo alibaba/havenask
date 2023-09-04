@@ -37,6 +37,7 @@
 #include "indexlib/index/common/field_format/pack_attribute/PackAttributeFormatter.h"
 #include "indexlib/index/kv/config/KVIndexConfig.h"
 #include "indexlib/index/kv/config/ValueConfig.h"
+#include "indexlib/index/pack_attribute/Common.h"
 #include "indexlib/index/summary/Common.h"
 #include "indexlib/index/summary/config/SummaryIndexConfig.h"
 #include "indexlib/table/BuiltinDefine.h"
@@ -91,7 +92,7 @@ bool SwiftProcessedDocReaderV2::init(const ReaderInitParam& params)
         _printKVValue = (it->second == "true");
     }
 
-    std::shared_ptr<indexlibv2::config::TabletSchema> schema;
+    std::shared_ptr<indexlibv2::config::ITabletSchema> schema;
     if (!tableName.empty() && params.resourceReader) {
         schema = params.resourceReader->getTabletSchemaBySchemaTableName(tableName);
     }
@@ -134,7 +135,7 @@ bool SwiftProcessedDocReaderV2::init(const ReaderInitParam& params)
 }
 
 std::unique_ptr<indexlibv2::document::IDocumentFactory>
-SwiftProcessedDocReaderV2::createDocumentFactory(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema) const
+SwiftProcessedDocReaderV2::createDocumentFactory(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema) const
 {
     if (!schema) {
         BS_LOG(ERROR, "tablet schema is nullptr");
@@ -157,7 +158,7 @@ SwiftProcessedDocReaderV2::createDocumentFactory(const std::shared_ptr<indexlibv
 }
 
 bool SwiftProcessedDocReaderV2::initAttributeExtractResource(
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema)
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema)
 {
     _schema = schema;
     auto tableType = schema->GetTableType();
@@ -176,23 +177,22 @@ bool SwiftProcessedDocReaderV2::initAttributeExtractResource(
         return true;
     }
 
-    // TODO: uncomment when indexlibv2 support pack attribute
-    // if (schema->GetLegacySchema() && schema->GetLegacySchema()->GetAttributeSchema()) {
-    //     auto attrSchema = schema->GetLegacySchema()->GetAttributeSchema();
-    //     for (size_t i = 0; i < attrSchema->GetPackAttributeCount(); i++) {
-    //         auto packConfig = attrSchema->GetPackAttributeConfig(i);
-    //         PackAttributeFormatterPtr packFormatter(new PackAttributeFormatter);
-    //         packFormatter->Init(packConfig);
-    //         _packFormatters.push_back(packFormatter);
-    //     }
-    // }
-    const auto& configs = schema->GetIndexConfigs(indexlib::index::ATTRIBUTE_INDEX_TYPE_STR);
+    if (const auto& indexConfigs = schema->GetIndexConfigs(indexlib::index::PACK_ATTRIBUTE_INDEX_TYPE_STR);
+        !indexConfigs.empty()) {
+        for (const auto& indexConfig : indexConfigs) {
+            const auto& packConfig = std::dynamic_pointer_cast<indexlibv2::index::PackAttributeConfig>(indexConfig);
+            auto packFormatter = std::make_shared<indexlibv2::index::PackAttributeFormatter>();
+            packFormatter->Init(packConfig);
+            _packFormatters.push_back(packFormatter);
+        }
+    }
+    const auto& configs = schema->GetIndexConfigs(indexlib::index::GENERAL_VALUE_INDEX_TYPE_STR);
     if (!configs.empty()) {
         _attrConvertors.resize(schema->GetFieldCount());
         bool kvOrKKVTable =
             (tableType == indexlib::table::TABLE_TYPE_KV || tableType == indexlib::table::TABLE_TYPE_KKV);
         for (const auto& config : configs) {
-            const auto& attrConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(config);
+            const auto& attrConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(config);
             assert(attrConfig);
             _attrConvertors[attrConfig->GetFieldId()].reset(
                 indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(attrConfig,

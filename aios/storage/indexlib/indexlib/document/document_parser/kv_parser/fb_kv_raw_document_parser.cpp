@@ -457,7 +457,7 @@ bool FbKvRawDocumentParser::parse(const RawDocumentParser::Message& msg, documen
 
     guard.release();
     kvDoc.setDocTimestamp(msg.timestamp);
-    kvDoc.SetDocInfo({msg.hashId, msg.timestamp});
+    kvDoc.SetDocInfo({msg.hashId, msg.timestamp, 0});
     kvDoc.SetDocOperateType(ADD_DOC);
     return true;
 #undef RETURN_IF_FAIL

@@ -8,31 +8,32 @@
 #ifndef KMONITOR_CLIENT_COMMON_UTIL_H_
 #define KMONITOR_CLIENT_COMMON_UTIL_H_
 
-#include <string>
 #include <cstdlib>
 #include <iostream>
+#include <string>
+
 #include "kmonitor/client/common/Common.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 class Util {
- public:
+public:
     static bool GetHostIP(std::string &host);
     static int64_t TimeAlign(int64_t curTime, int64_t timeBucket);
-    static const char* GetEnv(const char* key, const char* defaultValue);
     static bool HostnameToIp(std::string hostname, std::string &ip);
     static const std::string GetMachineName();
 
- private:
+private:
     Util(const Util &);
-    Util& operator=(const Util &);
+    Util &operator=(const Util &);
 
-    static const std::string getMachineName(std::istream& is);
- private:
+    static const std::string getMachineName(std::istream &is);
+
+private:
     static const int BUF_SIZE = 1000;
     static const std::string HOST_INFO_PATH;
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_COMMON_UTIL_H_
+#endif // KMONITOR_CLIENT_COMMON_UTIL_H_

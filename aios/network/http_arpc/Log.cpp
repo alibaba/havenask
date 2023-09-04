@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 #include "aios/network/http_arpc/Log.h"
+
 #include "aios/network/anet/alogadapter.h"
 
 namespace http_arpc {
 
 AlogAdapter alogadapter(std::string("http_arpc"));
-ILogger * httparpclogger = &alogadapter;
+ILogger *httparpclogger = &alogadapter;
 
-}
+} // namespace http_arpc

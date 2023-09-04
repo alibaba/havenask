@@ -18,7 +18,7 @@
 #include "autil/StringUtil.h"
 #include "indexlib/base/PathUtil.h"
 #include "indexlib/config/IIndexConfig.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/framework/SegmentMetrics.h"
@@ -29,14 +29,13 @@
 #include "indexlib/index/IndexFactoryCreator.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/table/index_task/merger/MergePlan.h"
-#include "indexlib/table/index_task/merger/MergeUtil.h"
 
 using namespace std;
 
 namespace indexlibv2 { namespace table {
 AUTIL_LOG_SETUP(indexlib.table, IndexMergeOperation);
 
-Status IndexMergeOperation::Init(const std::shared_ptr<config::TabletSchema> schema)
+Status IndexMergeOperation::Init(const std::shared_ptr<config::ITabletSchema> schema)
 {
     string indexType;
     if (!_desc.GetParameter(MERGE_INDEX_TYPE, indexType)) {
@@ -82,7 +81,7 @@ Status IndexMergeOperation::Init(const std::shared_ptr<config::TabletSchema> sch
 
 std::pair<Status, std::shared_ptr<config::IIndexConfig>>
 IndexMergeOperation::GetIndexConfig(const framework::IndexOperationDescription& opDesc, const std::string& indexType,
-                                    const std::string& indexName, const std::shared_ptr<config::TabletSchema>& schema)
+                                    const std::string& indexName, const std::shared_ptr<config::ITabletSchema>& schema)
 {
     auto indexConfig = schema->GetIndexConfig(indexType, indexName);
     if (!indexConfig) {
@@ -213,11 +212,10 @@ IndexMergeOperation::PrepareSegmentMergeInfos(const framework::IndexTaskContext&
     index::IIndexMerger::SegmentMergeInfos segMergeInfos;
     segMergeInfos.relocatableGlobalRoot = context.GetGlobalRelocatableFolder();
     for (size_t i = 0; i < segMergePlan.GetSrcSegmentCount(); i++) {
-        auto sourceSegment = MergeUtil::GetSourceSegment(segMergePlan.GetSrcSegmentId(i), tabletData);
+        index::IIndexMerger::SourceSegment sourceSegment;
+        std::tie(sourceSegment.segment, sourceSegment.baseDocid) =
+            tabletData->GetSegmentWithBaseDocid(segMergePlan.GetSrcSegmentId(i));
         segMergeInfos.srcSegments.push_back(sourceSegment);
-    }
-    for (const auto& segment : tabletData->CreateSlice()) {
-        segMergeInfos.baseVersionSegments.push_back(segment);
     }
     auto [status2, fenceDir] = context.GetOpFenceRoot(_desc.GetId(), _desc.UseOpFenceDir());
     if (!status2.IsOK()) {

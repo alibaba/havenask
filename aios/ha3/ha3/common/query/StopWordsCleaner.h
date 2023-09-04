@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stddef.h>
 #include <memory>
+#include <stddef.h>
 #include <string>
 
 #include "autil/Log.h" // IWYU pragma: keep
@@ -34,30 +34,31 @@ class OrQuery;
 class PhraseQuery;
 class RankQuery;
 class TermQuery;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace qrs {
 
-class StopWordsCleaner : public common::QueryVisitor
-{
+class StopWordsCleaner : public common::QueryVisitor {
 public:
     StopWordsCleaner();
     ~StopWordsCleaner();
+
 private:
     StopWordsCleaner(const StopWordsCleaner &other);
-    StopWordsCleaner &operator = (const StopWordsCleaner &);
+    StopWordsCleaner &operator=(const StopWordsCleaner &);
+
 public:
     bool clean(const common::Query *query) {
         reset();
-        query->accept(this); 
+        query->accept(this);
         return _errorCode == ERROR_NONE;
     }
     ErrorCode getErrorCode() const {
         return _errorCode;
     }
-    const std::string& getErrorMsg() const {
+    const std::string &getErrorMsg() const {
         return _errorMsg;
     }
 
@@ -69,12 +70,13 @@ public:
     void visitRankQuery(const common::RankQuery *query);
     void visitNumberQuery(const common::NumberQuery *query);
     void visitMultiTermQuery(const common::MultiTermQuery *query);
-   
-    common::Query* stealQuery() {
+
+    common::Query *stealQuery() {
         common::Query *tmpQuery = _visitedQuery;
         _visitedQuery = NULL;
         return tmpQuery;
     }
+
 private:
     void visitAndOrQuery(common::Query *resultQuery, const common::Query *srcQuery);
     void visitAndNotRankQuery(common::Query *resultQuery, const common::Query *srcQuery);
@@ -92,10 +94,12 @@ private:
         _errorCode = ec;
         _errorMsg = errorMsg;
     }
+
 private:
     common::Query *_visitedQuery;
     ErrorCode _errorCode;
     std::string _errorMsg;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -104,4 +108,3 @@ typedef std::shared_ptr<StopWordsCleaner> StopWordsCleanerPtr;
 
 } // namespace qrs
 } // namespace isearch
-

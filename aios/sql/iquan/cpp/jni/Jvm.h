@@ -30,12 +30,15 @@ public:
     Jvm() = delete;
     ~Jvm() = delete;
 
-    static Status setup(JvmType jvmType, const std::vector<std::string> &classPaths, const std::string &jvmStartOpts);
+    static Status setup(JvmType jvmType,
+                        const std::vector<std::string> &classPaths,
+                        const std::string &jvmStartOpts);
     static JNIEnv *env() noexcept;
     static JNIEnv *checkedEnv();
 
 private:
-    static Status hdfsSetup(const std::vector<std::string> &classPaths, const std::string &jvmStartOpts);
+    static Status hdfsSetup(const std::vector<std::string> &classPaths,
+                            const std::string &jvmStartOpts);
 
 private:
     static JvmType _jvmType;

@@ -26,15 +26,12 @@
 #include "indexlib/index/IIndexReader.h"
 #include "indexlib/index/attribute/AttributeDiskIndexer.h"
 #include "indexlib/index/attribute/AttributeDiskIndexerCreator.h"
+#include "indexlib/index/attribute/AttributeMemIndexer.h"
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/attribute/DefaultValueAttributeMemReader.h"
 #include "indexlib/index/attribute/MultiSliceAttributeDiskIndexer.h"
 #include "indexlib/index/attribute/RangeDescription.h"
 #include "indexlib/index/common/field_format/attribute/AttributeFieldPrinter.h"
-
-namespace indexlib { namespace index {
-class DeletionMapReader;
-}} // namespace indexlib::index
 
 namespace indexlibv2::index {
 class AttributeIteratorBase;
@@ -66,7 +63,7 @@ public:
     Status Open(const std::shared_ptr<config::IIndexConfig>& indexConfig,
                 const framework::TabletData* tabletData) override;
 
-    Status OpenWithSegments(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+    Status OpenWithSegments(const std::shared_ptr<AttributeConfig>& attrConfig,
                             std::vector<std::shared_ptr<framework::Segment>> segments);
 
 public:
@@ -79,16 +76,7 @@ public:
     virtual bool GetSortedDocIdRange(const indexlib::index::RangeDescription& range, const DocIdRange& rangeLimit,
                                      DocIdRange& resultRange) const = 0;
     virtual std::string GetAttributeName() const = 0;
-    virtual size_t EstimateLoadSize(const Segments& allSegments,
-                                    const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                    const framework::Version& lastLoadVersion)
-    {
-        // compatible with PrimaryKey interface(PrimaryKeyAttributeReader)
-        assert(false);
-        return 0;
-    }
-
-    virtual std::shared_ptr<AttributeDiskIndexer> GetIndexer(docid_t docId) const = 0;
+    virtual std::shared_ptr<AttributeDiskIndexer> TEST_GetIndexer(docid_t docId) const = 0;
 
     virtual void EnableAccessCountors() = 0;
     virtual void EnableGlobalReadContext() = 0;
@@ -97,15 +85,14 @@ protected:
     virtual Status DoOpen(const std::shared_ptr<config::IIndexConfig>& indexConfig,
                           const std::vector<IndexerInfo>& indexers) = 0;
 
-    template <typename DiskIndexer, typename MemIndexer, typename MemReader>
-    Status InitAllIndexers(const std::shared_ptr<config::AttributeConfig>& attrConfig,
-                           const std::vector<IndexerInfo>& indexers,
+    template <typename DiskIndexer, typename MemReader>
+    Status InitAllIndexers(const std::shared_ptr<AttributeConfig>& attrConfig, const std::vector<IndexerInfo>& indexers,
                            std::vector<std::shared_ptr<DiskIndexer>>& diskIndexers,
                            std::vector<std::pair<docid_t, std::shared_ptr<MemReader>>>& memReaders,
                            std::shared_ptr<DefaultValueAttributeMemReader>& defaultValueReader);
 
-    template <typename MemIndexer, typename MemReader>
-    Status InitBuildingAttributeReader(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+    template <typename MemReader>
+    Status InitBuildingAttributeReader(const std::shared_ptr<AttributeConfig>& attrConfig,
                                        const std::vector<IndexerInfo>& indexers,
                                        std::vector<std::pair<docid_t, std::shared_ptr<MemReader>>>& memReaders);
 
@@ -115,7 +102,7 @@ protected:
 
     AttributeFieldPrinter _fieldPrinter;
     std::vector<uint64_t> _segmentDocCount;
-    std::shared_ptr<config::AttributeConfig> _attrConfig;
+    std::shared_ptr<AttributeConfig> _attrConfig;
     bool _isIntegrated;
     bool _fillDefaultAttrReader;
     bool _enableGlobalContext = false;
@@ -124,8 +111,8 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-template <typename DiskIndexer, typename MemIndexer, typename MemReader>
-inline Status AttributeReader::InitAllIndexers(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+template <typename DiskIndexer, typename MemReader>
+inline Status AttributeReader::InitAllIndexers(const std::shared_ptr<AttributeConfig>& attrConfig,
                                                const std::vector<IndexerInfo>& indexers,
                                                std::vector<std::shared_ptr<DiskIndexer>>& diskIndexers,
                                                std::vector<std::pair<docid_t, std::shared_ptr<MemReader>>>& memReaders,
@@ -181,7 +168,7 @@ inline Status AttributeReader::InitAllIndexers(const std::shared_ptr<config::Att
         }
     }
 
-    auto st = InitBuildingAttributeReader<MemIndexer, MemReader>(attrConfig, memIndexers, memReaders);
+    auto st = InitBuildingAttributeReader<MemReader>(attrConfig, memIndexers, memReaders);
     if (!st.IsOK()) {
         AUTIL_LOG(ERROR, "init building attr reader failed, error[%s]", st.ToString().c_str());
         return st;
@@ -196,14 +183,14 @@ inline Status AttributeReader::InitAllIndexers(const std::shared_ptr<config::Att
     return Status::OK();
 }
 
-template <typename MemIndexer, typename MemReader>
+template <typename MemReader>
 inline Status
-AttributeReader::InitBuildingAttributeReader(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+AttributeReader::InitBuildingAttributeReader(const std::shared_ptr<AttributeConfig>& attrConfig,
                                              const std::vector<IndexerInfo>& indexers,
                                              std::vector<std::pair<docid_t, std::shared_ptr<MemReader>>>& memReaders)
 {
     for (auto& [indexer, segment, baseDocId] : indexers) {
-        auto memIndexer = std::dynamic_pointer_cast<MemIndexer>(indexer);
+        auto memIndexer = std::dynamic_pointer_cast<AttributeMemIndexer>(indexer);
         if (memIndexer) {
             auto memReader = std::dynamic_pointer_cast<MemReader>(memIndexer->CreateInMemReader());
             assert(memReader);

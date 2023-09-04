@@ -1,0 +1,5 @@
+package(default_visibility=['//aios/apps/facility/swift:__subpackages__'])
+load('//bazel:bundle.bzl', 'bundle_files')
+filegroup(name='swift_tools_conf', srcs=['etc/swift_tools/tools_conf.py'])
+filegroup(name='swift_tools', srcs=glob(['swift_tools/*.py']))
+bundle_files(name='swift_bin', srcs=glob(['bin/swift']), prefix='usr/local/')

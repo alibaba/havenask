@@ -26,8 +26,9 @@
 //
 // Functions in the CityHash family are not suitable for cryptography.
 
-#include <tmmintrin.h>
 #include <stddef.h>
+#include <tmmintrin.h>
+
 #include "autil/cityhash/city.h"
 
 #ifdef __x86_64__
@@ -45,8 +46,7 @@
 ///    An unsigned 64-bit integer operand used to compute the CRC-32C checksum.
 /// \returns The result of adding operand \a __C to the CRC-32C checksum of
 ///    operand \a __D.
-static __inline__ unsigned long long _mm_crc32_u64(unsigned long long __C, unsigned long long __D)
-{
+static __inline__ unsigned long long _mm_crc32_u64(unsigned long long __C, unsigned long long __D) {
     return __builtin_ia32_crc32di(__C, __D);
 }
 #endif /* __x86_64__ */
@@ -63,4 +63,4 @@ uint128 CityHashCrc128WithSeed(const char *s, size_t len, uint128 seed);
 // Hash function for a byte array.  Sets result[0] ... result[3].
 void CityHashCrc256(const char *s, size_t len, uint64 *result);
 
-}
+} // namespace autil

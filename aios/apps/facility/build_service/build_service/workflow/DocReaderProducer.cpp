@@ -15,6 +15,7 @@
  */
 #include "build_service/workflow/DocReaderProducer.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
 #include "build_service/reader/SwiftRawDocumentReader.h"
@@ -55,9 +56,9 @@ DocReaderProducer::DocReaderProducer(const proto::PartitionId& pid, const config
 {
     _checksum.reset(new RawDocChecksumer(pid, resourceReader));
     _ckpDocReportTime = autil::TimeUtility::currentTimeInSeconds();
-    const char* param = getenv("checkpoint_report_interval_in_s");
+    string param = autil::EnvUtil::getEnv("checkpoint_report_interval_in_s");
     int64_t interval;
-    if (param && autil::StringUtil::fromString(string(param), interval)) {
+    if (!param.empty() && autil::StringUtil::fromString(param, interval)) {
         _ckpDocReportInterval = interval;
     }
     if (_ckpDocReportInterval >= 0) {
@@ -101,6 +102,7 @@ FlowError DocReaderProducer::produce(document::RawDocumentPtr& rawDocPtr)
     } else if (RawDocumentReader::ERROR_WAIT == ec) {
         int64_t currentTime = autil::TimeUtility::currentTimeInSeconds();
         if (_ckpDocReportInterval >= 0 && currentTime - _ckpDocReportTime >= _ckpDocReportInterval) {
+            // TODO(tianxiao) high bit, detect locator slow
             AUTIL_LOG(DEBUG, "Create CHECKPOINT_DOC, locator: src[%lu], offset[%ld], userData[%s].", _srcSignature,
                       checkpoint.offset, checkpoint.userData.c_str());
             _ckpDocReportTime = currentTime;
@@ -119,7 +121,7 @@ FlowError DocReaderProducer::produce(document::RawDocumentPtr& rawDocPtr)
             // no message more than 60s, report processor checkpoint use current time
         }
         return FE_WAIT;
-    } else if (RawDocumentReader::ERROR_PARSE == ec) {
+    } else if (RawDocumentReader::ERROR_PARSE == ec || RawDocumentReader::ERROR_SKIP == ec) {
         return FE_SKIP;
     } else if (RawDocumentReader::ERROR_EXCEPTION == ec) {
         return FE_FATAL;
@@ -146,7 +148,7 @@ bool DocReaderProducer::seek(const common::Locator& locator)
         userData = tmpUserData;
     }
     BS_LOG(INFO, "seek locator [%s]", locator.DebugString().c_str());
-    return _reader->seek(Checkpoint(locator.GetOffset(), locator.GetProgress(), userData));
+    return _reader->seek(Checkpoint(locator.GetOffset().first, locator.GetProgress(), userData));
 }
 
 bool DocReaderProducer::stop(StopOption stopOption) { return true; }
@@ -157,9 +159,12 @@ bool DocReaderProducer::getMaxTimestamp(int64_t& timestamp)
         BS_LOG(WARN, "getMaxTimestamp failed because has no reader.");
         return false;
     }
-    if (_reader->getMaxTimestampAfterStartTimestamp(timestamp)) {
-        return true;
+
+    SwiftRawDocumentReader* swiftReader = dynamic_cast<SwiftRawDocumentReader*>(_reader);
+    if (swiftReader) {
+        return swiftReader->getMaxTimestampAfterStartTimestamp(timestamp);
     }
+
     if (_reader->isEof()) {
         BS_LOG(INFO, "getMaxTimestamp, read file source EOF.");
         timestamp = -1;
@@ -175,7 +180,8 @@ bool DocReaderProducer::getLastReadTimestamp(int64_t& timestamp)
         return false;
     }
 
-    if (_reader->isStreamReader()) {
+    SwiftRawDocumentReader* swiftReader = dynamic_cast<SwiftRawDocumentReader*>(_reader);
+    if (swiftReader) {
         timestamp = _lastReadOffset.load(std::memory_order_relaxed);
         return true;
     }
@@ -185,7 +191,6 @@ bool DocReaderProducer::getLastReadTimestamp(int64_t& timestamp)
         timestamp = -1;
         return true;
     }
-    BS_LOG(WARN, "getLastReadTimestamp failed because reader not supported.");
     return false;
 }
 

@@ -15,8 +15,9 @@
  */
 #include "fslib/fs/SpeedController.h"
 
-#include <autil/StringUtil.h>
 #include <autil/Regex.h>
+#include <autil/StringUtil.h>
+
 #include "fslib/util/PathUtil.h"
 
 using namespace std;
@@ -25,22 +26,18 @@ using namespace autil;
 FSLIB_BEGIN_NAMESPACE(fs);
 AUTIL_DECLARE_AND_SETUP_LOGGER(fs, SpeedController);
 
-SpeedController::SpeedController() 
+SpeedController::SpeedController()
     : _inited(false)
     , _quotaSizeInByte(std::numeric_limits<uint32_t>::max())
     , _quotaUsageRatio(1.0)
     , _interval(1)
     , _baseLineTs(0)
     , _remainQuota(std::numeric_limits<uint32_t>::max())
-    , _totalWaitCount(0)
-{
-}
+    , _totalWaitCount(0) {}
 
-SpeedController::~SpeedController() { 
-}
+SpeedController::~SpeedController() {}
 
-void SpeedController::initFromString(const string& paramStr)
-{
+void SpeedController::initFromString(const string &paramStr) {
     ScopedLock lock(_lock);
     if (_inited) {
         AUTIL_LOG(INFO, "SpeedController has already been inited!");
@@ -88,15 +85,14 @@ void SpeedController::initFromString(const string& paramStr)
             _pathPattern = util::PathUtil::normalizePath(patternStrVec[j][1]);
             continue;
         }
-        AUTIL_LOG(ERROR, "unknown key [%s] in fslib speed limit args [%s]!", patternStrVec[j][0].c_str(),
-                  paramStr.c_str());
+        AUTIL_LOG(
+            ERROR, "unknown key [%s] in fslib speed limit args [%s]!", patternStrVec[j][0].c_str(), paramStr.c_str());
         return;
     }
     _inited = true;
 }
 
-bool SpeedController::matchPathPattern(const std::string& path) const
-{
+bool SpeedController::matchPathPattern(const std::string &path) const {
     if (_pathPattern.empty()) {
         return true;
     }
@@ -104,8 +100,7 @@ bool SpeedController::matchPathPattern(const std::string& path) const
     return autil::Regex::match(path, _pathPattern);
 }
 
-int64_t SpeedController::reserveQuota(int64_t quota)
-{
+int64_t SpeedController::reserveQuota(int64_t quota) {
     assert(quota > 0);
     if (!_inited) {
         return quota;
@@ -146,33 +141,20 @@ int64_t SpeedController::reserveQuota(int64_t quota)
     return availableQuota;
 }
 
-int64_t SpeedController::TEST_getInterval() const {
-    return _interval;
-}
+int64_t SpeedController::TEST_getInterval() const { return _interval; }
 
-string SpeedController::TEST_getPathPattern() const {
-    return _pathPattern;
-}
+string SpeedController::TEST_getPathPattern() const { return _pathPattern; }
 
-bool SpeedController::TEST_isInit() const {
-    return _inited;
-}
+bool SpeedController::TEST_isInit() const { return _inited; }
 
-uint32_t SpeedController::TEST_getQuotaSize() const {
-    return _quotaSizeInByte;
-}
+uint32_t SpeedController::TEST_getQuotaSize() const { return _quotaSizeInByte; }
 
-size_t SpeedController::TEST_getTotalWaitCount() const {
-    return _totalWaitCount;
-}
+size_t SpeedController::TEST_getTotalWaitCount() const { return _totalWaitCount; }
 
-int64_t SpeedController::getQuotaPerSecond() const {
-    return (int64_t)(_quotaSizeInByte * (double)1000000 / _interval);
-}
+int64_t SpeedController::getQuotaPerSecond() const { return (int64_t)(_quotaSizeInByte * (double)1000000 / _interval); }
 
 void SpeedController::resetQuotaPerSecond(int64_t quota) {
     _quotaSizeInByte = (int64_t)(quota * (double)_interval / 1000000);
 }
 
 FSLIB_END_NAMESPACE(fs);
-

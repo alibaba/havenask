@@ -1,0 +1,16 @@
+{
+"DocCount":
+  1,
+"IsMergedSegment":
+  false,
+"Locator":
+  "00000000000000000200000000000000",
+"MaxTTL":
+  0,
+"ShardingColumnCount":
+  1,
+"ShardingColumnId":
+  4294967295,
+"Timestamp":
+  1
+}

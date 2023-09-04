@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/java/arpc/GigRPCMessageSerializable.h"
+
 #include "aios/network/arpc/arpc/RPCMessageSerializable.h"
 
 using namespace std;
@@ -23,14 +24,15 @@ using namespace anet;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GigRPCMessageSerializable);
 
-GigRPCMessageSerializable::GigRPCMessageSerializable(RPCMessage *header,
-                                                     std::string *body)
-    : _header(header), _body(body) {}
+GigRPCMessageSerializable::GigRPCMessageSerializable(RPCMessage *header, std::string *body)
+    : _header(header)
+    , _body(body) {
+}
 
-GigRPCMessageSerializable::~GigRPCMessageSerializable() {}
+GigRPCMessageSerializable::~GigRPCMessageSerializable() {
+}
 
-bool GigRPCMessageSerializable::serialize(
-    anet::DataBuffer *outputBuffer) const {
+bool GigRPCMessageSerializable::serialize(anet::DataBuffer *outputBuffer) const {
     if (_header == NULL || _body == NULL || outputBuffer == NULL) {
         return false;
     }
@@ -47,8 +49,7 @@ bool GigRPCMessageSerializable::serialize(
     return true;
 }
 
-bool GigRPCMessageSerializable::deserialize(anet::DataBuffer *inputBuffer,
-                                            int length) {
+bool GigRPCMessageSerializable::deserialize(anet::DataBuffer *inputBuffer, int length) {
     if (length == 0) {
         return true;
     }
@@ -59,8 +60,7 @@ bool GigRPCMessageSerializable::deserialize(anet::DataBuffer *inputBuffer,
 
     int leftPacketDataLen = length;
 
-    if (!RPCMessageSerializable::deserializeMessage(inputBuffer, _header,
-                                                    leftPacketDataLen)) {
+    if (!RPCMessageSerializable::deserializeMessage(inputBuffer, _header, leftPacketDataLen)) {
         inputBuffer->drainData(leftPacketDataLen);
         AUTIL_LOG(ERROR, "deserialize header error");
         return false;
@@ -75,8 +75,8 @@ bool GigRPCMessageSerializable::deserialize(anet::DataBuffer *inputBuffer,
     return true;
 }
 
-bool GigRPCMessageSerializable::serializeStringMessage(
-    const std::string *message, DataBuffer *outputBuffer) const {
+bool GigRPCMessageSerializable::serializeStringMessage(const std::string *message,
+                                                       DataBuffer *outputBuffer) const {
     int oldLen = outputBuffer->getDataLen();
     int size = message->length();
     if (size < 0 || size > MAX_RPC_MSG_BYTE_SIZE) {
@@ -97,9 +97,9 @@ bool GigRPCMessageSerializable::serializeStringMessage(
     return true;
 }
 
-bool GigRPCMessageSerializable::deserializeStringMessage(
-    anet::DataBuffer *inputBuffer, std::string *message,
-    int32_t &leftPacketDataLen) {
+bool GigRPCMessageSerializable::deserializeStringMessage(anet::DataBuffer *inputBuffer,
+                                                         std::string *message,
+                                                         int32_t &leftPacketDataLen) {
     int32_t len = inputBuffer->readInt32();
     leftPacketDataLen -= sizeof(int32_t);
 

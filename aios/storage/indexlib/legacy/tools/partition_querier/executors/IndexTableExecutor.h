@@ -83,13 +83,18 @@ private:
 
     static std::vector<std::string> ValidateAttrs(const std::shared_ptr<config::IndexPartitionSchema>& legacySchema,
                                                   const std::vector<std::string>& attrs);
+    static std::vector<std::string> ValidateSummarys(const std::shared_ptr<config::IndexPartitionSchema>& legacySchema,
+                                                     const std::vector<std::string>& summarys);
 
-    static Status QueryRowByDocId(const IndexPartitionReaderPtr& indexPartitionReader, const docid_t docid,
-                                  const std::vector<std::string>& attrs, Row& row);
+    static Status QueryRowAttrByDocId(const IndexPartitionReaderPtr& indexPartitionReader, const docid_t docid,
+                                      const std::vector<std::string>& attrs, Row& row);
+    static Status QueryRowSummaryByDocId(const IndexPartitionReaderPtr& indexPartitionReader, const docid_t docid,
+                                         const std::vector<std::string>& summarys, Row& row);
 
     static Status QueryIndexByDocId(const IndexPartitionReaderPtr& indexPartitionReader,
-                                    const std::vector<std::string>& attrs, const std::vector<docid_t>& docids,
-                                    const int64_t limit, PartitionResponse& partitionResponse);
+                                    const std::vector<std::string>& attrs, const std::vector<std::string>& summarys,
+                                    const std::vector<docid_t>& docids, const int64_t limit,
+                                    PartitionResponse& partitionResponse);
 
     static Status QueryDocIdsByTerm(const std::shared_ptr<index::InvertedIndexReader>& indexReader,
                                     const std::shared_ptr<indexlib::index::DeletionMapReader>& deletionMapReader,

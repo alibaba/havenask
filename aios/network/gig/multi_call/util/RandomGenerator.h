@@ -23,24 +23,32 @@
 
 namespace multi_call {
 
-class RandomGenerator {
+class RandomGenerator
+{
 public:
     RandomGenerator(uint64_t randomSeed) : _randomSeed(randomSeed) {
         _supportHWRandom = supportRdRand();
     }
-    ~RandomGenerator() {}
+    ~RandomGenerator() {
+    }
 
 private:
     RandomGenerator(const RandomGenerator &);
     RandomGenerator &operator=(const RandomGenerator &);
 
 public:
-    void init(uint64_t randomSeed) { _randomSeed = randomSeed; }
+    void init(uint64_t randomSeed) {
+        _randomSeed = randomSeed;
+    }
     uint64_t get();
 
 public:
-    static void setUseHDRandom(bool value) { _useHWRandom = value; }
-    static bool useHDRandom() { return _supportHWRandom && _useHWRandom; }
+    static void setUseHDRandom(bool value) {
+        _useHWRandom = value;
+    }
+    static bool useHDRandom() {
+        return _supportHWRandom && _useHWRandom;
+    }
 
 private:
     static bool supportRdRand();

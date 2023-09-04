@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 #include "fslib/fs/MMapFile.h"
-#include "fslib/fs/local/LocalFileSystem.h"
-#include <sys/mman.h>
+
 #include <errno.h>
+#include <sys/mman.h>
+
+#include "fslib/fs/local/LocalFileSystem.h"
 
 using namespace std;
 FSLIB_BEGIN_NAMESPACE(fs);
@@ -24,35 +26,18 @@ AUTIL_DECLARE_AND_SETUP_LOGGER(fs, MMapFile);
 
 const int64_t MMapFile::MUNMAP_SLICE_SIZE = 1024 * 1024;
 
-MMapFile::MMapFile(string fileName, int fd, char* base,
-                   int64_t length, int64_t pos,
-                   ErrorCode ec)
-    : _fileName(fileName)
-    , _fd(fd)
-    , _length(length)
-    , _pos(pos)
-    , _base(base)
-    , _lastErrorCode(ec)
-{
-}
+MMapFile::MMapFile(string fileName, int fd, char *base, int64_t length, int64_t pos, ErrorCode ec)
+    : _fileName(fileName), _fd(fd), _length(length), _pos(pos), _base(base), _lastErrorCode(ec) {}
 
-MMapFile::~MMapFile() {
-    close();
-}
+MMapFile::~MMapFile() { close(); }
 
+char *MMapFile::getBaseAddress() { return _base; }
 
-char* MMapFile::getBaseAddress() {
-    return _base;
-}
+int64_t MMapFile::getLength() { return _length; }
 
-int64_t MMapFile::getLength() {
-    return _length;
-}
-
-ssize_t MMapFile::read(void* buffer, size_t len) {
+ssize_t MMapFile::read(void *buffer, size_t len) {
     if (_base == NULL) {
-        AUTIL_LOG(ERROR, "read mmapfile %s fail, file is not opened.",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "read mmapfile %s fail, file is not opened.", _fileName.c_str());
         _lastErrorCode = EC_BADF;
         return -1;
     }
@@ -72,10 +57,9 @@ ssize_t MMapFile::read(void* buffer, size_t len) {
     return rlen;
 }
 
-ssize_t MMapFile::write(const void* buffer, size_t len) {
+ssize_t MMapFile::write(const void *buffer, size_t len) {
     if (_base == NULL) {
-        AUTIL_LOG(ERROR, "write mmap file %s fail, file is not opened.",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "write mmap file %s fail, file is not opened.", _fileName.c_str());
         _lastErrorCode = EC_BADF;
         return -1;
     }
@@ -93,32 +77,28 @@ ssize_t MMapFile::write(const void* buffer, size_t len) {
     return wlen;
 }
 
-ssize_t MMapFile::pread(void* buffer, size_t len, off_t offset) {
-    AUTIL_LOG(ERROR, "pread mmap file %s fail, not support.",
-              _fileName.c_str());
+ssize_t MMapFile::pread(void *buffer, size_t len, off_t offset) {
+    AUTIL_LOG(ERROR, "pread mmap file %s fail, not support.", _fileName.c_str());
     _lastErrorCode = EC_NOTSUP;
     return -1;
 }
 
-ssize_t MMapFile::pwrite(const void* buffer, size_t len, off_t offset) {
-    AUTIL_LOG(ERROR, "pwrite mmap file %s fail, not support.",
-              _fileName.c_str());
+ssize_t MMapFile::pwrite(const void *buffer, size_t len, off_t offset) {
+    AUTIL_LOG(ERROR, "pwrite mmap file %s fail, not support.", _fileName.c_str());
     _lastErrorCode = EC_NOTSUP;
     return -1;
 }
 
 ErrorCode MMapFile::flush() {
     if (_base == NULL) {
-        AUTIL_LOG(ERROR, "flush mmap file %s fail, file is not opened.",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "flush mmap file %s fail, file is not opened.", _fileName.c_str());
         _lastErrorCode = EC_BADF;
         return _lastErrorCode;
     }
 
     int ret = msync(_base, _length, MS_SYNC);
     if (ret == -1) {
-        AUTIL_LOG(ERROR, "flush mmap file %s fail, %s.", _fileName.c_str(),
-                  strerror(errno));
+        AUTIL_LOG(ERROR, "flush mmap file %s fail, %s.", _fileName.c_str(), strerror(errno));
         _lastErrorCode = LocalFileSystem::convertErrno(errno);
         return _lastErrorCode;
     }
@@ -131,8 +111,7 @@ ErrorCode MMapFile::close() {
 
     if (_fd >= 0) {
         if (::close(_fd) < 0) {
-            AUTIL_LOG(ERROR, "close fd of mmap file %s fail, %s.",
-                      _fileName.c_str(), strerror(errno));
+            AUTIL_LOG(ERROR, "close fd of mmap file %s fail, %s.", _fileName.c_str(), strerror(errno));
             ec = LocalFileSystem::convertErrno(errno);
         }
         _fd = -1;
@@ -148,13 +127,12 @@ ErrorCode MMapFile::close() {
 
 ErrorCode MMapFile::seek(int64_t offset, SeekFlag flag) {
     if (_base == NULL) {
-        AUTIL_LOG(ERROR, "seek mmap file[%s] fail, file is not opened.",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "seek mmap file[%s] fail, file is not opened.", _fileName.c_str());
         _lastErrorCode = EC_BADF;
         return _lastErrorCode;
     }
 
-    switch(flag) {
+    switch (flag) {
     case FILE_SEEK_SET:
         break;
     case FILE_SEEK_CUR:
@@ -164,16 +142,17 @@ ErrorCode MMapFile::seek(int64_t offset, SeekFlag flag) {
         offset += _length;
         break;
     default:
-        AUTIL_LOG(ERROR, "seek mmap file %s fail, SeekFlag %d is not supported.",
-                  _fileName.c_str(), flag);
+        AUTIL_LOG(ERROR, "seek mmap file %s fail, SeekFlag %d is not supported.", _fileName.c_str(), flag);
         _lastErrorCode = EC_NOTSUP;
         return _lastErrorCode;
     };
 
     if (offset < 0 || offset > _length) {
         _pos = 0;
-        AUTIL_LOG(ERROR, "seek mmap file %s fail, seek too many. current position can not be"
-                  "negative.", _fileName.c_str());
+        AUTIL_LOG(ERROR,
+                  "seek mmap file %s fail, seek too many. current position can not be"
+                  "negative.",
+                  _fileName.c_str());
         _lastErrorCode = EC_NOTSUP;
         return _lastErrorCode;
     }
@@ -184,8 +163,7 @@ ErrorCode MMapFile::seek(int64_t offset, SeekFlag flag) {
 
 int64_t MMapFile::tell() {
     if (_base == NULL) {
-        AUTIL_LOG(ERROR, "tell mmap file %s fail, file is not opened.",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "tell mmap file %s fail, file is not opened.", _fileName.c_str());
         _lastErrorCode = EC_BADF;
         return -1;
     }
@@ -193,31 +171,21 @@ int64_t MMapFile::tell() {
     return _pos;
 }
 
-ErrorCode MMapFile::getLastError() const {
-    return _lastErrorCode;
-}
+ErrorCode MMapFile::getLastError() const { return _lastErrorCode; }
 
-bool MMapFile::isOpened() const {
-    return _lastErrorCode == EC_OK;
-}
+bool MMapFile::isOpened() const { return _lastErrorCode == EC_OK; }
 
-ErrorCode MMapFile::unloadData()
-{
-    if (!_base)
-    {
+ErrorCode MMapFile::unloadData() {
+    if (!_base) {
         return EC_OK;
     }
-    AUTIL_LOG(DEBUG, "Begin unload mmap file [%s], length [%ldB]",
-           _fileName.c_str(), _length);
+    AUTIL_LOG(DEBUG, "Begin unload mmap file [%s], length [%ldB]", _fileName.c_str(), _length);
 
     ErrorCode ec = EC_OK;
-    for (int64_t offset = 0; offset < _length; offset += MUNMAP_SLICE_SIZE)
-    {
+    for (int64_t offset = 0; offset < _length; offset += MUNMAP_SLICE_SIZE) {
         int64_t actualLen = min(_length - offset, MUNMAP_SLICE_SIZE);
-        if (munmap(_base + offset, actualLen) < 0)
-        {
-            AUTIL_LOG(ERROR, "munmap file %s offset[%ld] fail, %s.",
-                   _fileName.c_str(), offset, strerror(errno));
+        if (munmap(_base + offset, actualLen) < 0) {
+            AUTIL_LOG(ERROR, "munmap file %s offset[%ld] fail, %s.", _fileName.c_str(), offset, strerror(errno));
             ec = LocalFileSystem::convertErrno(errno);
         }
         usleep(0);
@@ -226,23 +194,13 @@ ErrorCode MMapFile::unloadData()
     return ec;
 }
 
-int MMapFile::getFd() const
-{
-    return _fd;
-}
+int MMapFile::getFd() const { return _fd; }
 
-const char* MMapFile::getFileName() const
-{
-    return _fileName.c_str();
-}
+const char *MMapFile::getFileName() const { return _fileName.c_str(); }
 
-ErrorCode MMapFile::populate(bool lock, int64_t sliceSize, int64_t interval)
-{
-    return EC_NOTSUP;
-}
+ErrorCode MMapFile::populate(bool lock, int64_t sliceSize, int64_t interval) { return EC_NOTSUP; }
 
-void MMapFile::setDontDump()
-{
+void MMapFile::setDontDump() {
     if (_base) {
         if (-1 == madvise(_base, _length, MADV_DONTDUMP)) {
             AUTIL_LOG(WARN, "mmap file %s set MADV_DONTDUMP failed", _fileName.c_str());

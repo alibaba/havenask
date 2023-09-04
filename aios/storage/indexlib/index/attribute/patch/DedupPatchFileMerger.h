@@ -26,7 +26,7 @@ namespace indexlibv2::index {
 class DedupPatchFileMerger : public PatchFileMerger
 {
 public:
-    DedupPatchFileMerger(const std::shared_ptr<config::AttributeConfig>& attrConfig, const PatchInfos& allPatchInfos,
+    DedupPatchFileMerger(const std::shared_ptr<AttributeConfig>& attrConfig, const PatchInfos& allPatchInfos,
                          const std::shared_ptr<AttributeUpdateBitmap>& attrUpdateBitmap)
         : PatchFileMerger(allPatchInfos)
         , _attrConfig(attrConfig)
@@ -40,7 +40,7 @@ public:
     Status FindPatchFiles(const IIndexMerger::SegmentMergeInfos& segMergeInfos, PatchInfos* patchInfos) override;
 
 private:
-    std::shared_ptr<config::AttributeConfig> _attrConfig;
+    std::shared_ptr<AttributeConfig> _attrConfig;
     std::shared_ptr<AttributeUpdateBitmap> _attrUpdateBitmap;
 
 private:

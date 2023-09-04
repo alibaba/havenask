@@ -18,12 +18,12 @@
 #include <google/protobuf/descriptor.h>
 #include <stddef.h>
 
-#include "aios/network/arpc/arpc/DataBufferOutputStream.h"
-#include "google/protobuf/io/zero_copy_stream_impl_lite.h"
-#include "google/protobuf/io/coded_stream.h"
 #include "aios/network/anet/databuffer.h"
 #include "aios/network/anet/ilogger.h"
+#include "aios/network/arpc/arpc/DataBufferOutputStream.h"
 #include "aios/network/arpc/arpc/util/Log.h"
+#include "google/protobuf/io/coded_stream.h"
+#include "google/protobuf/io/zero_copy_stream_impl_lite.h"
 
 using namespace anet;
 using namespace google::protobuf::io;
@@ -31,20 +31,16 @@ ARPC_BEGIN_NAMESPACE(arpc);
 ARPC_DECLARE_AND_SETUP_LOGGER(RPCMessageSerializable);
 
 RPCMessageSerializable::RPCMessageSerializable(RPCMessage *header,
-        RPCMessage *body, const std::shared_ptr<google::protobuf::Arena> &arena)
-{
+                                               RPCMessage *body,
+                                               const std::shared_ptr<google::protobuf::Arena> &arena) {
     _arena = arena;
     _header = header;
     _body = body;
 }
 
-RPCMessageSerializable::~RPCMessageSerializable()
-{
-}
+RPCMessageSerializable::~RPCMessageSerializable() {}
 
-bool RPCMessageSerializable::serialize(
-    DataBuffer *outputBuffer) const
-{
+bool RPCMessageSerializable::serialize(DataBuffer *outputBuffer) const {
     if (_header == NULL || _body == NULL || outputBuffer == NULL) {
         return false;
     }
@@ -62,9 +58,7 @@ bool RPCMessageSerializable::serialize(
     return true;
 }
 
-bool RPCMessageSerializable::deserialize(anet::DataBuffer *inputBuffer,
-        int length)
-{
+bool RPCMessageSerializable::deserialize(anet::DataBuffer *inputBuffer, int length) {
     if (length == 0) {
         return true;
     }
@@ -90,13 +84,12 @@ bool RPCMessageSerializable::deserialize(anet::DataBuffer *inputBuffer,
     return true;
 }
 
-bool RPCMessageSerializable::serializeMessage(
-    const RPCMessage *message, DataBuffer *outputBuffer)
-{
+bool RPCMessageSerializable::serializeMessage(const RPCMessage *message, DataBuffer *outputBuffer) {
     int oldLen = outputBuffer->getDataLen();
     int size = message->ByteSize();
     if (size < 0 || size > MAX_RPC_MSG_BYTE_SIZE) {
-        ARPC_LOG(ERROR, "failed to serialize message. ByteSize %d should be between 0 and %d", size, MAX_RPC_MSG_BYTE_SIZE);
+        ARPC_LOG(
+            ERROR, "failed to serialize message. ByteSize %d should be between 0 and %d", size, MAX_RPC_MSG_BYTE_SIZE);
         return false;
     }
 
@@ -107,7 +100,8 @@ bool RPCMessageSerializable::serializeMessage(
     bool ret = message->IsInitialized();
 
     if (!ret) {
-        ARPC_LOG(ERROR, "failed to serialize message: required fields"
+        ARPC_LOG(ERROR,
+                 "failed to serialize message: required fields"
                  " may not be initialized");
         return false;
     }
@@ -126,11 +120,9 @@ bool RPCMessageSerializable::serializeMessage(
     return true;
 }
 
-
-bool RPCMessageSerializable::deserializeMessage(
-    DataBuffer *inputBuffer, RPCMessage *message,
-    int32_t &leftPacketDataLen)
-{
+bool RPCMessageSerializable::deserializeMessage(DataBuffer *inputBuffer,
+                                                RPCMessage *message,
+                                                int32_t &leftPacketDataLen) {
     int32_t len = inputBuffer->readInt32();
     leftPacketDataLen -= sizeof(int32_t);
 
@@ -155,4 +147,3 @@ bool RPCMessageSerializable::deserializeMessage(
 
 TYPEDEF_PTR(RPCMessageSerializable);
 ARPC_END_NAMESPACE(arpc);
-

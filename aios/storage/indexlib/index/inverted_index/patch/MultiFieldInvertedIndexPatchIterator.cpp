@@ -39,6 +39,20 @@ MultiFieldInvertedIndexPatchIterator::MultiFieldInvertedIndexPatchIterator(
 
 MultiFieldInvertedIndexPatchIterator::~MultiFieldInvertedIndexPatchIterator() {}
 
+Status MultiFieldInvertedIndexPatchIterator::AddSingleFieldPatchIterator(
+    const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& invertedIndexConfig,
+    const std::vector<std::shared_ptr<indexlibv2::framework::Segment>>& segments)
+{
+    std::unique_ptr<SingleFieldInvertedIndexPatchIterator> singleFieldPatchIter(
+        new SingleFieldInvertedIndexPatchIterator(invertedIndexConfig, _patchExtraDir));
+    auto status = singleFieldPatchIter->Init(segments);
+    RETURN_IF_STATUS_ERROR(status, "add single field patch iterator for index [%s] failed",
+                           invertedIndexConfig->GetIndexName().c_str());
+    _patchLoadExpandSize += singleFieldPatchIter->GetPatchLoadExpandSize();
+    _singleFieldPatchIters.push_back(std::move(singleFieldPatchIter));
+    return Status::OK();
+}
+
 Status
 MultiFieldInvertedIndexPatchIterator::Init(const std::vector<std::shared_ptr<indexlibv2::framework::Segment>>& segments)
 {
@@ -50,15 +64,13 @@ MultiFieldInvertedIndexPatchIterator::Init(const std::vector<std::shared_ptr<ind
         }
         if (invertedIndexConfig->GetShardingType() ==
             indexlibv2::config::InvertedIndexConfig::IndexShardingType::IST_NEED_SHARDING) {
-            continue;
+            auto shardingIndexConfigs = invertedIndexConfig->GetShardingIndexConfigs();
+            for (const auto& shardingIndexConfig : shardingIndexConfigs) {
+                RETURN_IF_STATUS_ERROR(AddSingleFieldPatchIterator(shardingIndexConfig, segments),
+                                       "add sharding patch iterator failed");
+            }
         }
-        std::unique_ptr<SingleFieldInvertedIndexPatchIterator> singleFieldPatchIter(
-            new SingleFieldInvertedIndexPatchIterator(invertedIndexConfig, _patchExtraDir));
-        auto status = singleFieldPatchIter->Init(segments);
-        RETURN_IF_STATUS_ERROR(status, "add single field patch iterator for index [%s] failed",
-                               invertedIndexConfig->GetIndexName().c_str());
-        _patchLoadExpandSize += singleFieldPatchIter->GetPatchLoadExpandSize();
-        _singleFieldPatchIters.push_back(std::move(singleFieldPatchIter));
+        RETURN_IF_STATUS_ERROR(AddSingleFieldPatchIterator(invertedIndexConfig, segments), "add patch iterator failed");
     }
     if (!_singleFieldPatchIters.empty()) {
         _cursor = 0;

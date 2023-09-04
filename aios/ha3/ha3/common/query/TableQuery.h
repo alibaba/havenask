@@ -25,34 +25,35 @@
 
 namespace autil {
 class DataBuffer;
-}  // namespace autil
+} // namespace autil
 
 namespace isearch {
 namespace common {
 class ColumnTerm;
 class ModifyQueryVisitor;
 class QueryVisitor;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace common {
 
-class TableQuery : public Query
-{
+class TableQuery : public Query {
 public:
-    using TermArray = std::vector<ColumnTerm*>;
+    using TermArray = std::vector<ColumnTerm *>;
+
 public:
-    TableQuery(
-        const std::string &label,
-        QueryOperator rowOp = OP_OR,
-        QueryOperator columnOp = OP_AND,
-        QueryOperator multiValueOp = OP_OR);
+    TableQuery(const std::string &label,
+               QueryOperator rowOp = OP_OR,
+               QueryOperator columnOp = OP_AND,
+               QueryOperator multiValueOp = OP_OR);
     ~TableQuery();
+
 private:
     TableQuery(const TableQuery &) = default;
+
 public:
-    bool operator == (const Query& query) const override;
+    bool operator==(const Query &query) const override;
     void accept(QueryVisitor *visitor) const override;
     void accept(ModifyQueryVisitor *visitor) override;
     Query *clone() const override;
@@ -61,10 +62,10 @@ public:
         return "TableQuery";
     }
     std::string toString() const override;
-    const TermArray& getTermArray() const {
+    const TermArray &getTermArray() const {
         return _terms;
     }
-    TermArray& getTermArray() {
+    TermArray &getTermArray() {
         return _terms;
     }
     void serialize(autil::DataBuffer &dataBuffer) const override;
@@ -85,11 +86,13 @@ public:
     void setQueryLabelWithDefaultLevel(const std::string &label) override {
         setQueryLabelTerm(label);
     }
+
 private:
     TermArray _terms;
     QueryOperator _rowOp;
     QueryOperator _columnOp;
     QueryOperator _multiValueOp;
+
 private:
     AUTIL_LOG_DECLARE();
 };

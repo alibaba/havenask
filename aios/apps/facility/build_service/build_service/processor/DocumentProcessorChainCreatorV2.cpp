@@ -118,7 +118,7 @@ DocumentProcessorChainCreatorV2::create(const DocProcessorChainConfig& docProces
 }
 
 std::unique_ptr<indexlibv2::document::IDocumentFactory>
-DocumentProcessorChainCreatorV2::createDocumentFactory(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+DocumentProcessorChainCreatorV2::createDocumentFactory(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                                        const std::vector<std::string>& clusterNames) const
 {
     if (!schema) {
@@ -133,21 +133,12 @@ DocumentProcessorChainCreatorV2::createDocumentFactory(const std::shared_ptr<ind
                autil::legacy::ToJsonString(tabletFactoryCreator->GetRegisteredType()).c_str());
         return nullptr;
     }
-    std::shared_ptr<indexlibv2::config::TabletOptions> options;
-    if (_resourceReaderPtr && clusterNames.size() == 1) {
-        const auto& clusterName = clusterNames[0];
-        options = _resourceReaderPtr->getTabletOptions(clusterName);
-    }
-    if (!tabletFactory->Init(options, nullptr)) {
-        BS_LOG(ERROR, "init tablet factory with type [%s] failed", tableType.c_str());
-        return nullptr;
-    }
     return tabletFactory->CreateDocumentFactory(schema);
 }
 
 bool DocumentProcessorChainCreatorV2::initDocumentProcessorChain(
     const DocProcessorChainConfig& docProcessorChainConfig, const ProcessorInfos& mainProcessorInfos,
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema, const vector<string>& clusterNames,
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema, const vector<string>& clusterNames,
     const string& tableName, DocumentProcessorChainPtr retChain) const
 {
     DocumentInitParamPtr docInitParam =
@@ -216,7 +207,7 @@ std::string DocumentProcessorChainCreatorV2::getTableName(const std::string& clu
 SingleDocProcessorChain*
 DocumentProcessorChainCreatorV2::createSingleChain(const PlugInManagerPtr& plugInManager,
                                                    const ProcessorInfos& processorInfos,
-                                                   const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+                                                   const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                                    const vector<string>& clusterNames, bool processForSubDoc) const
 {
     unique_ptr<SingleDocProcessorChain> singleChain(
@@ -351,7 +342,7 @@ bool DocumentProcessorChainCreatorV2::needAdd2UpdateRewriter(const config::Proce
 }
 
 bool DocumentProcessorChainCreatorV2::initParamForAdd2UpdateRewriter(
-    const shared_ptr<indexlibv2::config::TabletSchema>& schema, const vector<string>& clusterNames,
+    const shared_ptr<indexlibv2::config::ITabletSchema>& schema, const vector<string>& clusterNames,
     vector<shared_ptr<indexlibv2::config::TruncateOptionConfig>>& optionsVec,
     std::vector<indexlibv2::config::SortDescriptions>& sortDescVec) const
 {
@@ -383,10 +374,16 @@ bool DocumentProcessorChainCreatorV2::initParamForAdd2UpdateRewriter(
         if (!tabletOptions[i]) {
             continue;
         }
-        const auto& truncateStrategys = tabletOptions[i]->GetMergeConfig().GetTruncateStrategys();
-        auto truncOptionConfig = make_shared<indexlibv2::config::TruncateOptionConfig>(truncateStrategys);
+        const auto* truncateStrategys = std::any_cast<std::vector<indexlibv2::config::TruncateStrategy>>(
+            tabletOptions[i]->GetDefaultMergeConfig().GetHookOption(index::TRUNCATE_STRATEGY));
+        if (!truncateStrategys) {
+            BS_LOG(ERROR, "get truncate strategy from merge config failed");
+            return false;
+        }
+        auto truncOptionConfig = make_shared<indexlibv2::config::TruncateOptionConfig>(*truncateStrategys);
         auto [status, truncateProfileConfigs] =
-            schema->GetSetting<std::vector<indexlibv2::config::TruncateProfileConfig>>("truncate_profile");
+            schema->GetRuntimeSettings().GetValue<std::vector<indexlibv2::config::TruncateProfileConfig>>(
+                "truncate_profile");
         if (!status.IsOK()) {
             if (!status.IsNotFound()) {
                 BS_LOG(ERROR, "get truncate profile from setting failed.");
@@ -403,7 +400,7 @@ bool DocumentProcessorChainCreatorV2::initParamForAdd2UpdateRewriter(
 
 std::shared_ptr<indexlibv2::document::IDocumentRewriter>
 DocumentProcessorChainCreatorV2::createAndInitAdd2UpdateRewriter(
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema, const vector<string>& clusterNames) const
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema, const vector<string>& clusterNames) const
 {
     vector<shared_ptr<indexlibv2::config::TruncateOptionConfig>> optionsVec;
     vector<indexlibv2::config::SortDescriptions> sortDescVec;
@@ -422,9 +419,9 @@ DocumentProcessorChainCreatorV2::createAndInitAdd2UpdateRewriter(
     return add2updateDocRewriter;
 }
 
-DocumentInitParamPtr
-DocumentProcessorChainCreatorV2::createBuiltInInitParam(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
-                                                        const vector<string>& clusterNames, bool needAdd2Update) const
+DocumentInitParamPtr DocumentProcessorChainCreatorV2::createBuiltInInitParam(
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema, const vector<string>& clusterNames,
+    bool needAdd2Update) const
 {
     std::vector<std::shared_ptr<indexlibv2::document::IDocumentRewriter>> documentRewriters;
     if (needAdd2Update) {

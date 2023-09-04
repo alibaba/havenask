@@ -1,7 +1,9 @@
-
 # global platform related opts configured here
 #   others may configure in .bazelrc
-load("@org_tensorflow//tensorflow/core:platform/default/build_config.bzl", "tf_proto_library")
+
+#load("@org_tensorflow//tensorflow/core:platform/default/build_config.bzl", "tf_proto_library")
+load("//bazel:tf_proto.bzl", "tf_proto_library")
+
 load("@rules_cc//examples:experimental_cc_shared_library.bzl", "cc_shared_library")
 load("@pip//:requirements.bzl", "requirement")
 
@@ -26,6 +28,12 @@ def new_abi_flag():
 def if_rdma(a, b=[]):
     return select({
         "//:enable_rdma" : a,
+        "//conditions:default" : b,
+    })
+
+def if_solar(a, b=[]):
+    return select({
+        "//:enable_solar" : a,
         "//conditions:default" : b,
     })
 
@@ -114,6 +122,59 @@ def cc_proto(
         visibility = visibility,
     )
     return name + "_cc_proto"
+
+def cc_and_py_proto(
+        name,
+        srcs,
+        deps=None,
+        include = ".",
+        import_prefix=None,
+        strip_import_prefix=None,
+        visibility=None,
+        use_grpc_plugin=False,
+        cc_compile_grpc=True,
+        py_compile_grpc=True):
+    cc_compile_grpc = cc_compile_grpc if use_grpc_plugin else False
+    py_compile_grpc = py_compile_grpc if use_grpc_plugin else False
+    tf_proto_library(
+        name = name,
+        srcs = srcs,
+        protodeps = deps,
+        visibility = visibility,
+        include = include,
+        cc_grpc_version = cc_compile_grpc,
+        has_services = py_compile_grpc,
+    )
+    native.cc_library(
+        name = name + "_cc_proto",
+        hdrs = [s[:-len(".proto")] + ".pb.h" for s in srcs],
+        deps = [name + "_cc_impl"],
+        include_prefix = import_prefix,
+        strip_include_prefix = strip_import_prefix,
+        visibility = visibility,
+    )
+    header_deps = []
+    for dep in deps:
+        if str(dep).startswith("//"):
+            header_deps.append(dep + "_cc_proto_headers")
+        else:
+            # tensorflow proto library
+            header_deps.append(dep + "_cc_headers_only")
+    native.cc_library(
+        name = name + "_cc_proto_headers",
+        hdrs = [s[:-len(".proto")] + ".pb.h" for s in srcs],
+        deps = header_deps,
+        include_prefix = import_prefix,
+        strip_include_prefix = strip_import_prefix,
+        visibility = visibility,
+    )
+    native.py_library(
+        name=name + "_py_proto",
+        srcs=[s[:-len(".proto")] + "_pb2.py" for s in srcs],
+        deps=[dep + "_py_proto" for dep in deps] if deps else None,
+        imports=(["."] if import_prefix == None else [import_prefix]) + ([".."] if strip_import_prefix == None else [strip_import_prefix]),
+        visibility=visibility,
+    )
 
 def rpm_library(
         name,

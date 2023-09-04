@@ -1,0 +1,448 @@
+sub_graphs {
+  nodes {
+    name: "14"
+    kernel_name: "sql.SinkKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10014}"
+  }
+  nodes {
+    name: "sql.DelayDpKernel_0"
+    kernel_name: "sql.DelayDpKernel"
+    binary_attrs {
+      key: "debug"
+      value: "0"
+    }
+    binary_attrs {
+      key: "graph"
+      value: "\022\237\005\022;\n\0012\022\024sql.LookupJoinKernel\032 {\"source_spec\":\"\",\"op_id\":10002}\022;\n\0013\022\024sql.LookupJoinKernel\032 {\"source_spec\":\"\",\"op_id\":10003}\0229\n\0016\022\022sql.HashJoinKernel\032 {\"source_spec\":\"\",\"op_id\":10006}\0226\n\0017\022\017sql.UnionKernel\032 {\"source_spec\":\"\",\"op_id\":10007}\022\030\n\004ph_0\022\020navi.placeholder\022\030\n\004ph_1\022\020navi.placeholder\032\035\n\014\n\0013\022\007output0\022\013\n\0016\022\006input0\030\001\032\037\n\014\n\0012\022\007output0\022\r\n\0017\022\010input0:0\030\001\032\037\n\014\n\0016\022\007output0\022\r\n\0017\022\010input0:1\030\001\032-\n\034\n\004ph_0\022\024navi.placeholder_out\022\013\n\0013\022\006input0\030\001\032-\n\034\n\004ph_0\022\024navi.placeholder_out\022\013\n\0012\022\006input0\030\001\032-\n\034\n\004ph_1\022\024navi.placeholder_out\022\013\n\0016\022\006input1\030\001\"\"\n\017db3.default_sql\022\000\030\377\377\377\377\377\377\377\377\377\001\"\002\010\001:e\n\022table_distribution\022O{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":64}B\001\000H\001\032\002\010\001"
+    }
+    binary_attrs {
+      key: "input_dists"
+      value: "\002O{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":64}O{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":64}\0009X\032;\001\000\000\000\271y7\236"
+    }
+    binary_attrs {
+      key: "input_names"
+      value: "\002\004ph_0\004ph_1\0009X\032;\001\000\000\000\271y7\236"
+    }
+    binary_attrs {
+      key: "output_names"
+      value: "\001\0017\0009X\032;\001\000\000\000\271y7\236"
+    }
+  }
+  nodes {
+    name: "sql.DelayDpKernel_1"
+    kernel_name: "sql.DelayDpKernel"
+    binary_attrs {
+      key: "debug"
+      value: "0"
+    }
+    binary_attrs {
+      key: "graph"
+      value: "\022\273\003\022;\n\0019\022\024sql.LookupJoinKernel\032 {\"source_spec\":\"\",\"op_id\":10009}\022:\n\00212\022\022sql.HashJoinKernel\032 {\"source_spec\":\"\",\"op_id\":10012}\022\030\n\004ph_0\022\020navi.placeholder\022\030\n\004ph_1\022\020navi.placeholder\032\036\n\014\n\0019\022\007output0\022\014\n\00212\022\006input0\030\001\032-\n\034\n\004ph_0\022\024navi.placeholder_out\022\013\n\0019\022\006input0\030\001\032.\n\034\n\004ph_1\022\024navi.placeholder_out\022\014\n\00212\022\006input1\030\001\"\"\n\017db5.default_sql\022\000\030\377\377\377\377\377\377\377\377\377\001\"\002\010\001:d\n\022table_distribution\022N{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":8}B\001\000H\001\032\002\010\001"
+    }
+    binary_attrs {
+      key: "input_dists"
+      value: "\002N{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":8}N{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":8}\0009X\032;\001\000\000\000\271y7\236"
+    }
+    binary_attrs {
+      key: "input_names"
+      value: "\002\004ph_0\004ph_1\0009X\032;\001\000\000\000\271y7\236"
+    }
+    binary_attrs {
+      key: "output_names"
+      value: "\001\00212\0009X\032;\001\000\000\000\271y7\236"
+    }
+  }
+  nodes {
+    name: "merge:1:0"
+    kernel_name: "sql.TableMergeKernel"
+    type: NT_MERGE
+  }
+  nodes {
+    name: "merge:3:2"
+    kernel_name: "sql.TableMergeKernel"
+    type: NT_MERGE
+  }
+  nodes {
+    name: "merge:5:4"
+    kernel_name: "sql.TableMergeKernel"
+    type: NT_MERGE
+  }
+  edges {
+    input {
+      node_name: "merge:1:0"
+      port_name: "out"
+    }
+    output {
+      node_name: "sql.DelayDpKernel_0"
+      port_name: "input0:0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "merge:3:2"
+      port_name: "out"
+    }
+    output {
+      node_name: "sql.DelayDpKernel_0"
+      port_name: "input0:1"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "sql.DelayDpKernel_0"
+      port_name: "output0:0"
+    }
+    output {
+      node_name: "sql.DelayDpKernel_1"
+      port_name: "input0:0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "merge:5:4"
+      port_name: "out"
+    }
+    output {
+      node_name: "sql.DelayDpKernel_1"
+      port_name: "input0:1"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "sql.DelayDpKernel_1"
+      port_name: "output0:0"
+    }
+    output {
+      node_name: "14"
+      port_name: "input0"
+    }
+    require: true
+  }
+  location {
+    biz_name: "qrs.default_sql"
+    part_info {
+    }
+    this_part_id: -1
+    gig_info {
+      enable_probe: true
+    }
+  }
+  borders {
+    peer {
+      graph_id: 1
+      part_info {
+      }
+    }
+    edges {
+      edge_id: 1
+      edge {
+        input {
+          node_name: "0"
+          port_name: "output0"
+        }
+        output {
+          node_name: "sql.DelayDpKernel_0"
+          port_name: "input0:0"
+        }
+      }
+      node: "merge:1:0"
+    }
+  }
+  borders {
+    peer {
+      graph_id: 2
+      part_info {
+      }
+    }
+    edges {
+      edge_id: 3
+      edge {
+        input {
+          node_name: "4"
+          port_name: "output0"
+        }
+        output {
+          node_name: "sql.DelayDpKernel_0"
+          port_name: "input0:1"
+        }
+      }
+      peer_edge_id: 2
+      node: "merge:3:2"
+    }
+  }
+  borders {
+    peer {
+      graph_id: 3
+      part_info {
+      }
+    }
+    edges {
+      edge_id: 5
+      edge {
+        input {
+          node_name: "10"
+          port_name: "output0"
+        }
+        output {
+          node_name: "sql.DelayDpKernel_1"
+          port_name: "input0:1"
+        }
+      }
+      peer_edge_id: 4
+      node: "merge:5:4"
+    }
+  }
+  binary_attrs {
+    key: "table_distribution"
+    value: "{\"assigned_hash_values\":\"\",\"assigned_partition_ids\":\"\",\"hash_mode\":{\"hash_field\":\"\",\"hash_fields\":[],\"hash_function\":\"HASH\",\"hash_params\":{}},\"hash_values\":{},\"hash_values_sep\":{},\"partition_cnt\":1,\"type\":\"\"}"
+  }
+  scopes: 0
+  next_scope_id: 1
+}
+sub_graphs {
+  graph_id: 1
+  nodes {
+    name: "0"
+    kernel_name: "sql.ScanKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10000}"
+  }
+  nodes {
+    name: "split:0:1"
+    kernel_name: "sql.TableSplitKernel"
+    binary_attrs {
+      key: "table_distribution"
+      value: "{\"assigned_hash_values\":\"\",\"assigned_partition_ids\":\"\",\"hash_mode\":{\"hash_field\":\"\",\"hash_fields\":[],\"hash_function\":\"HASH\",\"hash_params\":{}},\"hash_values\":{},\"hash_values_sep\":{},\"partition_cnt\":1,\"type\":\"\"}"
+    }
+    type: NT_SPLIT
+    is_scope_border: true
+  }
+  nodes {
+    name: "navi.terminator"
+    kernel_name: "navi.TerminatorKernel"
+    type: NT_TERMINATOR
+  }
+  edges {
+    input {
+      node_name: "split:0:1"
+      port_name: "node@finish"
+    }
+    output {
+      node_name: "navi.terminator"
+      port_name: "navi.terminator@input"
+    }
+  }
+  edges {
+    input {
+      node_name: "0"
+      port_name: "output0"
+    }
+    output {
+      node_name: "split:0:1"
+      port_name: "in"
+    }
+  }
+  location {
+    biz_name: "db1.default_sql"
+    part_info {
+    }
+    this_part_id: -1
+    gig_info {
+      enable_probe: true
+    }
+  }
+  borders {
+    io_type: 1
+    peer {
+      part_info {
+      }
+    }
+    edges {
+      edge {
+        input {
+          node_name: "0"
+          port_name: "output0"
+        }
+        output {
+          node_name: "sql.DelayDpKernel_0"
+          port_name: "input0:0"
+        }
+      }
+      peer_edge_id: 1
+      node: "split:0:1"
+    }
+  }
+  binary_attrs {
+    key: "table_distribution"
+    value: "{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":4}"
+  }
+  scopes: 0
+  next_scope_id: 1
+}
+sub_graphs {
+  graph_id: 2
+  nodes {
+    name: "4"
+    kernel_name: "sql.ScanKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10004}"
+  }
+  nodes {
+    name: "split:2:3"
+    kernel_name: "sql.TableSplitKernel"
+    binary_attrs {
+      key: "table_distribution"
+      value: "{\"assigned_hash_values\":\"\",\"assigned_partition_ids\":\"\",\"hash_mode\":{\"hash_field\":\"\",\"hash_fields\":[],\"hash_function\":\"HASH\",\"hash_params\":{}},\"hash_values\":{},\"hash_values_sep\":{},\"partition_cnt\":1,\"type\":\"\"}"
+    }
+    type: NT_SPLIT
+    is_scope_border: true
+  }
+  nodes {
+    name: "navi.terminator"
+    kernel_name: "navi.TerminatorKernel"
+    type: NT_TERMINATOR
+  }
+  edges {
+    input {
+      node_name: "split:2:3"
+      port_name: "node@finish"
+    }
+    output {
+      node_name: "navi.terminator"
+      port_name: "navi.terminator@input"
+    }
+  }
+  edges {
+    input {
+      node_name: "4"
+      port_name: "output0"
+    }
+    output {
+      node_name: "split:2:3"
+      port_name: "in"
+    }
+  }
+  location {
+    biz_name: "db2.default_sql"
+    part_info {
+    }
+    this_part_id: -1
+    gig_info {
+      enable_probe: true
+    }
+  }
+  borders {
+    io_type: 1
+    peer {
+      part_info {
+      }
+    }
+    edges {
+      edge_id: 2
+      edge {
+        input {
+          node_name: "4"
+          port_name: "output0"
+        }
+        output {
+          node_name: "sql.DelayDpKernel_0"
+          port_name: "input0:1"
+        }
+      }
+      peer_edge_id: 3
+      node: "split:2:3"
+    }
+  }
+  binary_attrs {
+    key: "table_distribution"
+    value: "{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":4}"
+  }
+  scopes: 0
+  next_scope_id: 1
+}
+sub_graphs {
+  graph_id: 3
+  nodes {
+    name: "10"
+    kernel_name: "sql.ScanKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10010}"
+  }
+  nodes {
+    name: "split:4:5"
+    kernel_name: "sql.TableSplitKernel"
+    binary_attrs {
+      key: "table_distribution"
+      value: "{\"assigned_hash_values\":\"\",\"assigned_partition_ids\":\"\",\"hash_mode\":{\"hash_field\":\"\",\"hash_fields\":[],\"hash_function\":\"HASH\",\"hash_params\":{}},\"hash_values\":{},\"hash_values_sep\":{},\"partition_cnt\":1,\"type\":\"\"}"
+    }
+    type: NT_SPLIT
+    is_scope_border: true
+  }
+  nodes {
+    name: "navi.terminator"
+    kernel_name: "navi.TerminatorKernel"
+    type: NT_TERMINATOR
+  }
+  edges {
+    input {
+      node_name: "split:4:5"
+      port_name: "node@finish"
+    }
+    output {
+      node_name: "navi.terminator"
+      port_name: "navi.terminator@input"
+    }
+  }
+  edges {
+    input {
+      node_name: "10"
+      port_name: "output0"
+    }
+    output {
+      node_name: "split:4:5"
+      port_name: "in"
+    }
+  }
+  location {
+    biz_name: "db4.default_sql"
+    part_info {
+    }
+    this_part_id: -1
+    gig_info {
+      enable_probe: true
+    }
+  }
+  borders {
+    io_type: 1
+    peer {
+      part_info {
+      }
+    }
+    edges {
+      edge_id: 4
+      edge {
+        input {
+          node_name: "10"
+          port_name: "output0"
+        }
+        output {
+          node_name: "sql.DelayDpKernel_1"
+          port_name: "input0:1"
+        }
+      }
+      peer_edge_id: 5
+      node: "split:4:5"
+    }
+  }
+  binary_attrs {
+    key: "table_distribution"
+    value: "{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":64}"
+  }
+  scopes: 0
+  next_scope_id: 1
+}
+counter_info {
+  next_graph_id: 4
+  next_edge_id: 6
+}

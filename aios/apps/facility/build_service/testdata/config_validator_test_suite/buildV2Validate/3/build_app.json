@@ -1,0 +1,12 @@
+{
+    "amonitor_port" : 10086,
+    "apsara_package_name" : "",
+    "hadoop_package_name" : "LOCAL://home/hippo/bs_dailyrun/bs_func_test_in_docker/search_in_one/local_dir/2020-02-05-11-16-45/dfs/bs_dialyrun/hadoop_build_package.tar.gz",
+    "hippo_root" : "zfs://10.255.205.3:2181/hippo",
+    "index_root" : "LOCAL://home/hippo/bs_dailyrun/bs_func_test_in_docker/search_in_one/local_dir/2020-02-05-11-16-45/dfs/bs_dialyrun/grp_simple_process/sut_build_kv_index/testBuildSimpleMultiRegion/index",
+    "nuwa_service_ip" : "",
+    "service_name" : "simple",
+    "swift_root" : "zfs://10.255.205.3:2181/swift",
+    "user_name" : "Bs",
+    "zookeeper_root" : "zfs://10.255.205.3:2181/bsdailyrun/grp_simple_process/sut_build_kv_index/testBuildSimpleMultiRegion"
+}

@@ -15,6 +15,7 @@
  */
 
 #include "aios/network/gig/multi_call/stream/GigStreamHandlerBase.h"
+
 #include "aios/network/gig/multi_call/proto/GigStreamHeader.pb.h"
 #include "aios/network/gig/multi_call/stream/GigStreamBase.h"
 #include "aios/network/gig/multi_call/stream/GigStreamClosure.h"
@@ -47,8 +48,7 @@ GigStreamHandlerBase::GigStreamHandlerBase(PartIdTy partId, const GigStreamBaseP
     , _peerId(0)
     , _lastClosure(nullptr)
     , _timeDiff(0)
-    , _netLatency(0)
-{
+    , _netLatency(0) {
     _thisId = atomic_inc_return(&_handlerId);
     _streamState.setHandlerId(_thisId);
     atomic_inc(&_handlerCount);
@@ -71,13 +71,11 @@ GigStreamHandlerBase::~GigStreamHandlerBase() {
 #endif
 }
 
-void GigStreamHandlerBase::setCallBackThreadPool(
-    autil::LockFreeThreadPool *threadPool) {
+void GigStreamHandlerBase::setCallBackThreadPool(autil::LockFreeThreadPool *threadPool) {
     _callBackThreadPool = threadPool;
 }
 
-autil::LockFreeThreadPool *
-GigStreamHandlerBase::getCallBackThreadPool() const {
+autil::LockFreeThreadPool *GigStreamHandlerBase::getCallBackThreadPool() const {
     return _callBackThreadPool;
 }
 
@@ -97,8 +95,7 @@ bool GigStreamHandlerBase::sendNormal(const SendBufferMessage &message) {
         return false;
     }
     if (_streamState.sendEof()) {
-        HANDLER_LOG(ERROR, "send msg overrun, this type: %s",
-                    typeid(*this).name());
+        HANDLER_LOG(ERROR, "send msg overrun, this type: %s", typeid(*this).name());
         _streamState.logState();
         return false;
     }
@@ -117,9 +114,8 @@ bool GigStreamHandlerBase::sendNormal(const SendBufferMessage &message) {
 void GigStreamHandlerBase::runNext(bool send) {
     _streamState.logState();
     auto handlerOp = _streamState.next();
-    HANDLER_LOG(DEBUG, "this type: %s, next op: %s, send: %d",
-                typeid(*this).name(), StreamState::getOpString(handlerOp),
-                send);
+    HANDLER_LOG(DEBUG, "this type: %s, next op: %s, send: %d", typeid(*this).name(),
+                StreamState::getOpString(handlerOp), send);
     GigStreamClosureBase *closure = nullptr;
     switch (handlerOp) {
     case HO_RUN:
@@ -154,42 +150,47 @@ void GigStreamHandlerBase::runNext(bool send) {
 }
 
 GigStreamClosureBase *GigStreamHandlerBase::sendNext() {
-    autil::ScopedLock lock(_sendLock);
-    if (SS_IDLE != _sendStatus) {
-        HANDLER_LOG(DEBUG, "send busy: %d, type: %s", _sendStatus,
-                    typeid(*this).name());
-        _streamState.logState();
-        return nullptr;
-    }
     GigStreamClosureBase *closure = nullptr;
-    bool eof = _streamState.sendEof();
-    if (_cancelBuffer.valid) {
-        if (!_streamState.startCancel()) {
+    bool ok = false;
+    {
+        autil::ScopedLock lock(_sendLock);
+        if (SS_IDLE != _sendStatus) {
+            HANDLER_LOG(DEBUG, "send busy: %d, type: %s", _sendStatus, typeid(*this).name());
+            _streamState.logState();
             return nullptr;
         }
-        HANDLER_LOG(DEBUG, "sending cancel msg, type: %s",
-                    typeid(*this).name());
-        grpc::ByteBuffer byteBuffer;
-        serializeSendMessage(_cancelBuffer, &byteBuffer);
-        _streamRpcInfoController._sendRecord.cancel();
-        atomic_add(byteBuffer.Length(), &_streamRpcInfoController._totalSendSize);
-        closure = doSend(eof, &byteBuffer, getCancelClosure());
-        _cancelBuffer.valid = false;
-        _sendStatus = SS_SENDING;
-    } else if (!_sendQueue.empty()) {
-        auto msg = _sendQueue.front();
-        _sendQueue.pop();
-        grpc::ByteBuffer byteBuffer;
-        serializeSendMessage(msg, &byteBuffer);
-        _streamRpcInfoController._sendRecord.begin();
-        atomic_add(byteBuffer.Length(), &_streamRpcInfoController._totalSendSize);
-        closure = doSend(eof, &byteBuffer, getSendClosure());
-        _sendStatus = SS_SENDING;
-    } else {
-        // no msg
+        bool eof = _streamState.sendEof();
+        if (_cancelBuffer.valid) {
+            if (!_streamState.startCancel()) {
+                return nullptr;
+            }
+            HANDLER_LOG(DEBUG, "sending cancel msg, type: %s", typeid(*this).name());
+            grpc::ByteBuffer byteBuffer;
+            serializeSendMessage(_cancelBuffer, &byteBuffer);
+            _streamRpcInfoController._sendRecord.cancel();
+            atomic_add(byteBuffer.Length(), &_streamRpcInfoController._totalSendSize);
+            closure = doSend(true, &byteBuffer, getCancelClosure(), ok);
+            _cancelBuffer.valid = false;
+            _sendStatus = SS_SENDING;
+        } else if (!_sendQueue.empty()) {
+            auto msg = _sendQueue.front();
+            _sendQueue.pop();
+            grpc::ByteBuffer byteBuffer;
+            serializeSendMessage(msg, &byteBuffer);
+            _streamRpcInfoController._sendRecord.begin();
+            atomic_add(byteBuffer.Length(), &_streamRpcInfoController._totalSendSize);
+            closure = doSend(eof && _sendQueue.empty(), &byteBuffer, getSendClosure(), ok);
+            _sendStatus = SS_SENDING;
+        } else {
+            // no msg
+        }
+        if (eof) {
+            _streamRpcInfoController._sendRecord.eof();
+        }
     }
-    if (eof) {
-        _streamRpcInfoController._sendRecord.eof();
+    if (closure && ok) {
+        closure->run(ok);
+        return nullptr;
     }
     return closure;
 }
@@ -197,8 +198,7 @@ GigStreamClosureBase *GigStreamHandlerBase::sendNext() {
 void GigStreamHandlerBase::sendCallback(bool ok) {
     if (!ok) {
         if (!_streamState.hasError()) {
-            HANDLER_LOG(DEBUG,
-                        "post stream message failed, peer: %p, this type: %s",
+            HANDLER_LOG(DEBUG, "post stream message failed, peer: %p, this type: %s",
                         (void *)_peerId, typeid(*this).name());
             _streamState.logState();
             _streamState.setErrorCode(MULTI_CALL_REPLY_ERROR_POST);
@@ -217,10 +217,8 @@ bool GigStreamHandlerBase::sendCancel(const SendBufferMessage &message) {
     stealStream();
     if (!_streamState.running() || _streamState.bidiEof()) {
         _streamState.logState();
-        HANDLER_LOG(
-            DEBUG,
-            "stream stopped, cancel msg ignored, stream [%p] this type: %s",
-            getStream().get(), typeid(*this).name());
+        HANDLER_LOG(DEBUG, "stream stopped, cancel msg ignored, stream [%p] this type: %s",
+                    getStream().get(), typeid(*this).name());
         return true;
     }
     HANDLER_LOG(DEBUG, "begin send cancel");
@@ -268,8 +266,7 @@ GigStreamClosureBase *GigStreamHandlerBase::finishNext() {
 }
 
 void GigStreamHandlerBase::serializeSendMessage(const SendBufferMessage &message,
-                                                grpc::ByteBuffer *buffer)
-{
+                                                grpc::ByteBuffer *buffer) {
     GigStreamHeader header;
     header.set_eof(message.eof);
     header.set_cancelled(message.cancel);
@@ -288,9 +285,9 @@ void GigStreamHandlerBase::serializeSendMessage(const SendBufferMessage &message
     ProtobufByteBufferUtil::serializeToBuffer(&header, msg, buffer);
 }
 
-SendBufferMessage GigStreamHandlerBase::createSendBufferMessage(
-        bool eof, bool cancelled, const google::protobuf::Message *message)
-{
+SendBufferMessage
+GigStreamHandlerBase::createSendBufferMessage(bool eof, bool cancelled,
+                                              const google::protobuf::Message *message) {
     SendBufferMessage sendBuffer;
     sendBuffer.valid = true;
     sendBuffer.cancel = cancelled;
@@ -312,8 +309,7 @@ void GigStreamHandlerBase::receiveCallback(bool ok) {
                 typeid(*this).name(), _streamState.receiveEof());
     if (!ok) {
         if (!ignoreReceiveError() && !_streamState.hasError()) {
-            HANDLER_LOG(DEBUG, "receive failed, ok[%d], this type: %s", ok,
-                        typeid(*this).name());
+            HANDLER_LOG(DEBUG, "receive failed, ok[%d], this type: %s", ok, typeid(*this).name());
             _streamState.logState();
             _streamState.setErrorCode(MULTI_CALL_ERROR_RPC_FAILED);
         }
@@ -333,8 +329,7 @@ void GigStreamHandlerBase::receiveCallback(bool ok) {
     bool cancelled = true;
     bool asyncIo = true;
     if (!parseRequest(stream, message, cancelled, asyncIo)) {
-        HANDLER_LOG(DEBUG, "parse query failed, this type: %s",
-                    typeid(*this).name());
+        HANDLER_LOG(DEBUG, "parse query failed, this type: %s", typeid(*this).name());
         _streamState.setErrorCode(MULTI_CALL_REPLY_ERROR_REQUEST);
         return;
     }
@@ -344,26 +339,22 @@ void GigStreamHandlerBase::receiveCallback(bool ok) {
     stream->setAsyncMode(asyncIo);
     if (_streamState.receiveEof()) {
         if (!cancelled) {
-            HANDLER_LOG(ERROR, "receive msg overrun, this type: %s",
-                        typeid(*this).name());
+            HANDLER_LOG(ERROR, "receive msg overrun, this type: %s", typeid(*this).name());
             _streamState.setErrorCode(MULTI_CALL_ERROR_STREAM_OVERRUN);
             return;
         }
     }
     if (message.message) {
         HANDLER_LOG(TRACE1, "receive msg:[%s], this type: %s",
-                    message.message->DebugString().c_str(),
-                    typeid(*this).name());
+                    message.message->DebugString().c_str(), typeid(*this).name());
     }
     _streamRpcInfoController._receiveRecord.begin();
     if (cancelled) {
         _streamRpcInfoController._receiveRecord.cancel();
-        HANDLER_LOG(DEBUG, "stream cancelled on peer side, this type: %s",
-                    typeid(*this).name());
+        HANDLER_LOG(DEBUG, "stream cancelled on peer side, this type: %s", typeid(*this).name());
         stream = stealStream();
         if (stream) {
-            doStreamReceiveCancel(stream, message,
-                                  MULTI_CALL_ERROR_STREAM_CANCELLED);
+            doStreamReceiveCancel(stream, message, MULTI_CALL_ERROR_STREAM_CANCELLED);
         }
         _streamState.setReceiveCancel();
         _streamState.setErrorCode(MULTI_CALL_ERROR_STREAM_CANCELLED);
@@ -371,8 +362,7 @@ void GigStreamHandlerBase::receiveCallback(bool ok) {
     }
     if (message.eof) {
         _streamRpcInfoController._receiveRecord.eof();
-        _streamState.setReceiveEof();
-        _streamState.setReceiveFinished();
+        endReceive();
     }
     atomic_inc(&_streamRpcInfoController._totalReceiveCount);
     if (!doStreamReceive(stream, message)) {
@@ -382,9 +372,8 @@ void GigStreamHandlerBase::receiveCallback(bool ok) {
     }
 }
 
-bool GigStreamHandlerBase::parseRequest(
-    const std::shared_ptr<GigStreamBase> &stream, GigStreamMessage &message,
-    bool &cancelled, bool &asyncIo) {
+bool GigStreamHandlerBase::parseRequest(const std::shared_ptr<GigStreamBase> &stream,
+                                        GigStreamMessage &message, bool &cancelled, bool &asyncIo) {
     message.initArena();
     auto arena = message.arena.get();
     auto request = stream->newReceiveMessage(arena);
@@ -397,8 +386,7 @@ bool GigStreamHandlerBase::parseRequest(
         message.eof = header->eof() || cancelled;
         asyncIo = header->async_io();
     } else {
-        if (!ProtobufByteBufferUtil::deserializeFromBuffer(_receiveBuffer,
-                                                           request)) {
+        if (!ProtobufByteBufferUtil::deserializeFromBuffer(_receiveBuffer, request)) {
             return false;
         }
         message.eof = true;
@@ -409,8 +397,7 @@ bool GigStreamHandlerBase::parseRequest(
 }
 
 bool GigStreamHandlerBase::parseReceiveMessage(GigStreamHeader *&resultHeader,
-                                               google::protobuf::Message *&resultMessage)
-{
+                                               google::protobuf::Message *&resultMessage) {
     assert(resultHeader);
     assert(resultMessage);
     GrpcByteBufferSource stream;
@@ -468,6 +455,11 @@ void GigStreamHandlerBase::clearSendQueue() {
     }
 }
 
+void GigStreamHandlerBase::endReceive() {
+    _streamState.setReceiveEof();
+    _streamState.setReceiveFinished();
+}
+
 void GigStreamHandlerBase::setSendStatus(SendStatus status) {
     autil::ScopedLock lock(_sendLock);
     _sendStatus = status;
@@ -515,8 +507,7 @@ void GigStreamHandlerBase::setLastClosure(GigStreamClosureBase *lastClosure) {
     _lastClosure = lastClosure;
 }
 
-GigStreamHeader *
-GigStreamHandlerBase::createHeader(google::protobuf::Arena *arena) {
+GigStreamHeader *GigStreamHandlerBase::createHeader(google::protobuf::Arena *arena) {
     assert(arena);
     return google::protobuf::Arena::CreateMessage<GigStreamHeader>(arena);
 }
@@ -526,8 +517,8 @@ void GigStreamHandlerBase::notifyFinish() {
     if (!_terminated.compare_exchange_weak(expect, true)) {
         return;
     }
-    HANDLER_LOG(DEBUG, "handler finished, type: %s, closureCount: %ld",
-                typeid(*this).name(), closureCount());
+    HANDLER_LOG(DEBUG, "handler finished, type: %s, closureCount: %ld", typeid(*this).name(),
+                closureCount());
     _streamState.logState();
     clean();
     auto stream = stealStream();
@@ -543,17 +534,14 @@ void GigStreamHandlerBase::notifyFinish() {
     }
 }
 
-bool GigStreamHandlerBase::doStreamReceive(
-    const std::shared_ptr<GigStreamBase> &stream,
-    const GigStreamMessage &message)
-{
+bool GigStreamHandlerBase::doStreamReceive(const std::shared_ptr<GigStreamBase> &stream,
+                                           const GigStreamMessage &message) {
     return stream->innerReceive(message, MULTI_CALL_ERROR_NONE);
 }
 
-void GigStreamHandlerBase::doStreamReceiveCancel(
-    const std::shared_ptr<GigStreamBase> &stream,
-    const GigStreamMessage &message, MultiCallErrorCode ec)
-{
+void GigStreamHandlerBase::doStreamReceiveCancel(const std::shared_ptr<GigStreamBase> &stream,
+                                                 const GigStreamMessage &message,
+                                                 MultiCallErrorCode ec) {
     stream->innerReceive(message, ec);
 }
 
@@ -573,6 +561,7 @@ void GigStreamHandlerBase::finishCallback(bool ok) {
     _streamState.endFinish();
 }
 
-void GigStreamHandlerBase::doFinishCallback(bool ok) {}
+void GigStreamHandlerBase::doFinishCallback(bool ok) {
+}
 
 } // namespace multi_call

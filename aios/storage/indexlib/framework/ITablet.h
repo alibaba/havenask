@@ -27,13 +27,14 @@
 #include "indexlib/framework/OpenOptions.h"
 #include "indexlib/framework/VersionCoord.h"
 #include "indexlib/framework/VersionMeta.h"
+#include "indexlib/framework/index_task/MergeTaskDefine.h"
 
 namespace indexlibv2::document {
 class IDocumentBatch;
 } // namespace indexlibv2::document
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 class TabletOptions;
 } // namespace indexlibv2::config
 
@@ -46,7 +47,7 @@ public:
     virtual ~ITablet() = default;
 
 public:
-    virtual Status Open(const IndexRoot& indexRoot, const std::shared_ptr<config::TabletSchema>& schema,
+    virtual Status Open(const IndexRoot& indexRoot, const std::shared_ptr<config::ITabletSchema>& schema,
                         const std::shared_ptr<config::TabletOptions>& options, const VersionCoord& versionCoord) = 0;
     virtual Status Reopen(const ReopenOptions& reopenOptions, const VersionCoord& versionCoord) = 0;
     virtual void Close() = 0;
@@ -59,17 +60,21 @@ public:
     virtual bool NeedCommit() const = 0;
     virtual std::pair<Status, VersionMeta> Commit(const CommitOptions& commitOptions) = 0;
     virtual Status CleanIndexFiles(const std::vector<versionid_t>& reservedVersions) = 0;
-    virtual Status AlterTable(const std::shared_ptr<config::TabletSchema>& newSchema) = 0;
+    virtual Status CleanUnreferencedDeployFiles(const std::set<std::string>& toKeepFiles) = 0;
+    virtual Status AlterTable(const std::shared_ptr<config::ITabletSchema>& newSchema) = 0;
     virtual std::pair<Status, versionid_t> ExecuteTask(const Version& sourceVersion, const std::string& taskType,
                                                        const std::string& taskName,
                                                        const std::map<std::string, std::string>& params) = 0;
     virtual Status Import(const std::vector<Version>& versions, const ImportOptions& options) = 0;
+    virtual Status ImportExternalFiles(const std::string& bulkloadId, const std::vector<std::string>& externalFiles,
+                                       const std::shared_ptr<ImportExternalFileOptions>& options,
+                                       const Action action) = 0;
 
 public:
     // read
     virtual std::shared_ptr<ITabletReader> GetTabletReader() const = 0;
     virtual const TabletInfos* GetTabletInfos() const = 0;
-    virtual std::shared_ptr<config::TabletSchema> GetTabletSchema() const = 0;
+    virtual std::shared_ptr<config::ITabletSchema> GetTabletSchema() const = 0;
     virtual std::shared_ptr<config::TabletOptions> GetTabletOptions() const = 0;
 };
 

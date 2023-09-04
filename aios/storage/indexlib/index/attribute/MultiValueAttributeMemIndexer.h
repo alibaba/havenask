@@ -66,7 +66,8 @@ public:
     public:
         FieldType GetAttributeType() const override { return TypeInfo<T>::GetFieldType(); }
 
-        std::unique_ptr<AttributeMemIndexer> Create(const IndexerParameter& indexerParam) const override
+        std::unique_ptr<AttributeMemIndexer> Create(const std::shared_ptr<config::IIndexConfig>& indexConfig,
+                                                    const IndexerParameter& indexerParam) const override
         {
             return std::make_unique<MultiValueAttributeMemIndexer<T>>(indexerParam);
         }
@@ -205,7 +206,7 @@ MultiValueAttributeMemIndexer<T>::Dump(autil::mem_pool::PoolBase* dumpPool,
                                       ->MakeDirectory(attributeName, indexlib::file_system::DirectoryOption())
                                       .StatusWith();
     if (!mkDirStatus.IsOK()) {
-        AUTIL_LOG(ERROR, "make diretory fail. file: [%s], error: [%s]", attributeName.c_str(),
+        AUTIL_LOG(ERROR, "make directory fail. file: [%s], error: [%s]", attributeName.c_str(),
                   mkDirStatus.ToString().c_str());
         return mkDirStatus;
     }
@@ -238,9 +239,8 @@ MultiValueAttributeMemIndexer<T>::Dump(autil::mem_pool::PoolBase* dumpPool,
 template <typename T>
 inline const std::shared_ptr<AttributeMemReader> MultiValueAttributeMemIndexer<T>::CreateInMemReader() const
 {
-    return std::make_shared<MultiValueAttributeMemReader<T>>(_accessor, _attrConfig->GetCompressType(),
-                                                             _attrConfig->GetFieldConfig()->GetFixedMultiValueCount(),
-                                                             _attrConfig->SupportNull());
+    return std::make_shared<MultiValueAttributeMemReader<T>>(
+        _accessor, _attrConfig->GetCompressType(), _attrConfig->GetFixedMultiValueCount(), _attrConfig->SupportNull());
 }
 
 template <typename T>

@@ -1,0 +1,36 @@
+{
+    "wtn_f_feed_feature": {
+        "1597642576": {
+            "build_version_id": "5f3a17540b7bdc415a092f24",
+            "config_path": "hdfs://na61storage/app/suez_ops_turing/online_config//weitao_be_ea120_7u/table/wtn_f_feed_feature/config/1597141219",
+            "generation_id": 1597642576,
+            "index_root": "hdfs://et2prod3/app/suez_ops/be_index_test/be//test_first_dataspace/wtn_f_feed_feature/index",
+            "offline_table_id": "5f23e2cf7eb9d34a278e7860",
+            "online_biz_id": [
+                "5f1e937b5259934d3a9b3488"
+            ],
+            "online_table_config_id": "5f3270e94f1d0d220b9b8e32",
+            "online_table_id": "5f23ebb64e12ad105f141295",
+	    "total_partition_count" : 2,
+            "partitions": {
+                "32768_65535": {
+                    "effective_field_info": {
+                        "attributes": [
+                            "AttributeO2oInfoGenerator_CTR"
+                        ],
+                        "indexes": [
+                            "pk"
+                        ]
+                    },
+                    "inc_version": 3,
+                    "index_size": 49729799379,
+                    "schema_version": 2,
+                    "rollback_timestamp" : 123,
+                    "branch_id" : 1234
+                }
+            },
+            "rt_status": 0,
+            "version_timestamp": 1597654809
+        }
+    }
+}

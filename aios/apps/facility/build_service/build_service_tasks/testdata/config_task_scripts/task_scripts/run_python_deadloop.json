@@ -1,0 +1,9 @@
+{
+    "script_type" : "python",
+    "script_file" : "run_python_deadloop.py",
+    "resources" : [
+	{ "path" : "bin", "type" : "binary" },
+	{ "path" : "lib", "type" : "library" }
+    ],
+    "arguments" : "3 6"
+}

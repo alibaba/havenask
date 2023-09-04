@@ -20,10 +20,10 @@
 #include "fslib/common/common_define.h"
 #include "fslib/common/common_type.h"
 #include "fslib/fs/File.h"
-#include "fslib/fs/MMapFile.h"
 #include "fslib/fs/FileLock.h"
 #include "fslib/fs/FileLockCreator.h"
 #include "fslib/fs/FileReadWriteLock.h"
+#include "fslib/fs/MMapFile.h"
 #include "fslib/fs/ScopedFileLock.h"
 #include "fslib/fs/ScopedFileReadWriteLock.h"
 
@@ -49,23 +49,22 @@ FSLIB_BEGIN_NAMESPACE(fs);
 class AbstractFileSystem;
 
 struct PathInfo {
-    PathInfo(AbstractFileSystem* fs, const std::string& path)
-    {
+    PathInfo(AbstractFileSystem *fs, const std::string &path) {
         _fs = fs;
         _path = path;
     }
 
-    AbstractFileSystem* _fs;
+    AbstractFileSystem *_fs;
     std::string _path;
 };
 
-class FileSystem
-{
+class FileSystem {
 public:
     friend class tools::FsUtil;
     friend class FileSystemGtest;
     friend class FileSystemMetricTest;
     friend class FileSystemMetricTest_testInitReporter_Test;
+
 public:
     const static int64_t BUFFER_SIZE;
     const static std::string SUFFIX;
@@ -96,8 +95,7 @@ public:
      *             user=admin&groups=users,supergroup/test
      *
      */
-    static File* openFile(const std::string& fileName, Flag mode,
-                          bool useDirectIO = false, ssize_t fileLength = -1);
+    static File *openFile(const std::string &fileName, Flag mode, bool useDirectIO = false, ssize_t fileLength = -1);
 
     /**
      * mmapFile mmap local file
@@ -111,8 +109,13 @@ public:
      * @param fileLength [in] fileLength hint to to avoid getFileMeta before open, -1 means unknown
      * @return File*
      */
-    static MMapFile* mmapFile(const std::string& fileName, Flag openMode, char* start,
-                              size_t length, int prot, int mapFlag, off_t offset,
+    static MMapFile *mmapFile(const std::string &fileName,
+                              Flag openMode,
+                              char *start,
+                              size_t length,
+                              int prot,
+                              int mapFlag,
+                              off_t offset,
                               ssize_t fileLength = -1);
 
     /**
@@ -121,15 +124,14 @@ public:
      * @param fileMeta [out] meta of file
      * @return ErrorCode, EC_OK means success, otherwise means fail.
      */
-    static ErrorCode getFileMeta(const std::string& fileName,
-                                 FileMeta& fileMeta);
+    static ErrorCode getFileMeta(const std::string &fileName, FileMeta &fileMeta);
 
     /**
      * getFileChecksum return the checksum of a file's content
      * @param fileName [in] file name
      * @return FileChecksum, currently it always return 0.
      */
-    static FileChecksum getFileChecksum(const std::string& fileName);
+    static FileChecksum getFileChecksum(const std::string &fileName);
 
     /**
      * isFile check whether the path is a file
@@ -137,7 +139,7 @@ public:
      * @return ErrorCode, EC_TRUE means path is file, EC_FALSE means
      *         the path is not a file, or return other error code
      */
-    static ErrorCode isFile(const std::string& path);
+    static ErrorCode isFile(const std::string &path);
 
     /**
      * mkDir create a directory
@@ -146,14 +148,14 @@ public:
      *        parent does not exist.
      * @return ErrorCode, EC_OK means success, otherwise means fail.
      */
-    static ErrorCode mkDir(const std::string& dirName, bool recursive = false);
+    static ErrorCode mkDir(const std::string &dirName, bool recursive = false);
 
     /**
      * listDir list files and dirs in the specific directory
      * @param dirName [in] dir name
      * @return FileList, a set of string.
      */
-    static ErrorCode listDir(const std::string& dirName, FileList& fileList);
+    static ErrorCode listDir(const std::string &dirName, FileList &fileList);
 
     /**
      * listDir list files and dirs in the specific directory
@@ -161,14 +163,14 @@ public:
      * @return EntryList, a set of file entry, include entry name and whether
      *         this entry is dir
      */
-    static ErrorCode listDir(const std::string& dirName, EntryList& entryList);
+    static ErrorCode listDir(const std::string &dirName, EntryList &entryList);
 
     /**
      * listDir list files and dirs in the specific directory
      * @param dirName [in] dir name
      * @return RichFileList, a list of RichFileMeta, include name, size, time, isdir
      */
-    static ErrorCode listDir(const std::string& dirName, RichFileList& fileList);
+    static ErrorCode listDir(const std::string &dirName, RichFileList &fileList);
 
     /**
      * listDir recursively list files and dirs in the specific directory
@@ -176,8 +178,8 @@ public:
      * @return a map of EntryInfo, a set of file entry, include entry name
      * and length of this entry
      */
-    static ErrorCode listDir(const std::string& dirName,
-                             EntryInfoMap& entryInfoMap,
+    static ErrorCode listDir(const std::string &dirName,
+                             EntryInfoMap &entryInfoMap,
                              int32_t threadNum = DEFAULT_THREAD_NUM,
                              int32_t threadQueueSize = DEFAULT_THREAD_QUEUE_SIZE);
 
@@ -187,7 +189,7 @@ public:
      * @return ErrorCode, EC_TRUE if the path is directory, EC_FALSE if the path
      *         is not directory, or return other error code
      */
-    static ErrorCode isDirectory(const std::string& path);
+    static ErrorCode isDirectory(const std::string &path);
 
     /**
      * isLink check whether the path is a Link
@@ -195,7 +197,7 @@ public:
      * @return ErrorCode, EC_TRUE if the path is Link, EC_FALSE if the path
      *         is not Link, or return other error code
      */
-    static ErrorCode isLink(const std::string& path);
+    static ErrorCode isLink(const std::string &path);
 
     /**
      * rename rename a file or a directory, can only be used in one FileSystem
@@ -203,8 +205,7 @@ public:
      * @param newPath [in] new file or directory name
      * @return ErrorCode, EC_OK means success, otherwise means fail.
      */
-    static ErrorCode rename(const std::string& oldPath,
-                            const std::string& newPath);
+    static ErrorCode rename(const std::string &oldPath, const std::string &newPath);
 
     /**
      * copy copy the file or dir from src to dst, file system of which can be different
@@ -213,8 +214,16 @@ public:
      * @param srcPath [in] src file or dir name
      * @return ErrorCode, EC_OK means success, otherwise means fail.
      */
-    static ErrorCode copy(const std::string& srcPath,
-                          const std::string& dstPath);
+    static ErrorCode copy(const std::string &srcPath, const std::string &dstPath);
+
+    /**
+     * link - create a new hard link (directory entry) for the existing file.
+     * link an existing directory is not supported.
+     * @param srcPath points to a pathname naming an existing file.
+     * @param dstPath points to a pathname naming the new link entry to be created.
+     * @return ErrorCode, EC_OK means success, otherwise means fail.
+     */
+    static ErrorCode link(const std::string &srcPath, const std::string &dstPath);
 
     /**
      * move move the file or dir from src to dst, file system of which can be different
@@ -223,8 +232,7 @@ public:
      * @param srcPath [in] src file or dir name
      * @return ErrorCode, EC_OK means success, otherwise means fail.
      */
-    static ErrorCode move(const std::string& srcPath,
-                          const std::string& dstPath);
+    static ErrorCode move(const std::string &srcPath, const std::string &dstPath);
 
     /**
      * remove remove the path
@@ -233,9 +241,9 @@ public:
      *         removeFile on a dir, may return EC_ISDIR or EC_OK(compitable)
      *         removeDir on a file, may return EC_NOTDIR or EC_OK(compitable)
      */
-    static ErrorCode remove(const std::string& path);
-    static ErrorCode removeFile(const std::string& path);
-    static ErrorCode removeDir(const std::string& path);
+    static ErrorCode remove(const std::string &path);
+    static ErrorCode removeFile(const std::string &path);
+    static ErrorCode removeDir(const std::string &path);
 
     /**
      * isExist check whether the path exist
@@ -243,7 +251,7 @@ public:
      * @return ErrorCode, EC_TRUE if the path exist, EC_FALSE if path does
      *         not exist, or return other error code.
      */
-    static ErrorCode isExist(const std::string& path);
+    static ErrorCode isExist(const std::string &path);
 
     /**
      * getErrorString return the detail error description of the error code
@@ -258,7 +266,7 @@ public:
      * @param fileName [in] fileName of file lock
      * @return FileLock, a corresponding FileLock
      */
-    static FileLock* getFileLock(const std::string& fileName);
+    static FileLock *getFileLock(const std::string &fileName);
 
     /**
      * getFileReadWriteLock return a fileLock which is only for multi processes.
@@ -266,7 +274,7 @@ public:
      * @param fileName [in] fileName of file lock
      * @return FileReadWriteLock, a corresponding FileReadWriteLock
      */
-    static FileReadWriteLock* getFileReadWriteLock(const std::string& fileName);
+    static FileReadWriteLock *getFileReadWriteLock(const std::string &fileName);
 
     /**
      * getScopedFileLock return a ScopedFileLock with mode passed
@@ -274,7 +282,7 @@ public:
      * @param scopedLock [out] ScopedFileReadWriteLock to use
      * @return bool, true if succeed, otherwise false
      */
-    static bool getScopedFileLock(const std::string& fileName, ScopedFileLock& scopedLock);
+    static bool getScopedFileLock(const std::string &fileName, ScopedFileLock &scopedLock);
 
     /**
      * getScopedFileReadWriteLock return a ScopedFileReadWriteLock with mode passed
@@ -283,17 +291,16 @@ public:
      * @param scopedLock [out] ScopedFileReadWriteLock to use
      * @return bool, true if succeed, otherwise false
      */
-    static bool getScopedFileReadWriteLock(const std::string& fileName,
-            const char mode, ScopedFileReadWriteLock& scopedLock);
+    static bool
+    getScopedFileReadWriteLock(const std::string &fileName, const char mode, ScopedFileReadWriteLock &scopedLock);
 
     /**
      * getFsType return file system type of path
      * @param path [in] path name
      * @return FsType, file system type of path
      */
-//    static FsType getFsType(const std::string& path);
-    static ErrorCode parseInternal(const std::string& srcPath,
-                                   AbstractFileSystem*& fs);
+    //    static FsType getFsType(const std::string& path);
+    static ErrorCode parseInternal(const std::string &srcPath, AbstractFileSystem *&fs);
 
     /**
      * getPathMeta return the meta info of path
@@ -301,13 +308,12 @@ public:
      * @param pathMeta [out] meta of path
      * @return ErrorCode, EC_OK means success, otherwise means fail.
      */
-    static ErrorCode getPathMeta(const std::string& path,
-                                 PathMeta& pathMeta);
+    static ErrorCode getPathMeta(const std::string &path, PathMeta &pathMeta);
     static std::string getPathFromZkPath(const std::string &zkPath);
-    static bool isZkLikeFileSystem(const AbstractFileSystem* fileSystem);
-    static bool isOssFileSystem(const AbstractFileSystem* fileSystem);
-    static ErrorCode copyZKLikeFsToOtherFs(const PathInfo& srcInfo,
-            const PathInfo& dstInfo, bool recursive, bool toConsole);
+    static bool isZkLikeFileSystem(const AbstractFileSystem *fileSystem);
+    static bool isOssFileSystem(const AbstractFileSystem *fileSystem);
+    static ErrorCode
+    copyZKLikeFsToOtherFs(const PathInfo &srcInfo, const PathInfo &dstInfo, bool recursive, bool toConsole);
     static FsType getFsType(const std::string &srcPath);
 
     static ErrorCode readFile(const std::string &filePath, std::string &content);
@@ -318,91 +324,70 @@ public:
     // public for test
     static bool reuseThreadPool();
     static int32_t getThreadNum();
-    static ErrorCode forward(const std::string &command, const std::string &path,
-                             const std::string &args, std::string &output);
+    static ErrorCode
+    forward(const std::string &command, const std::string &path, const std::string &args, std::string &output);
     static void close();
 
-    static fslib::cache::FSCacheModule* getCacheModule();
+    static fslib::cache::FSCacheModule *getCacheModule();
 
 private:
-    static bool generatePath(const std::string& srcPath,
-                             const std::string& dstDir,
-                             std::string& dstPath);
+    static bool generatePath(const std::string &srcPath, const std::string &dstDir, std::string &dstPath);
 
-    static bool appendPath(const std::string& dstDir,
-                           const std::string& relativeName,
-                           std::string& dstPath);
+    static bool appendPath(const std::string &dstDir, const std::string &relativeName, std::string &dstPath);
 
-    static ErrorCode copyFileInternal(const PathInfo& srcInfo,
-            const PathInfo& dstInfo);
+    static ErrorCode copyFileInternal(const PathInfo &srcInfo, const PathInfo &dstInfo);
 
-    static ErrorCode copyAll(const PathInfo& srcInfo, const PathInfo& dstInfo,
-                             bool recursive, bool toConsole);
+    static ErrorCode copyAll(const PathInfo &srcInfo, const PathInfo &dstInfo, bool recursive, bool toConsole);
 
-    static ErrorCode copyFile(const PathInfo& srcInfo, const PathInfo& dstInfo,
-                              bool toConsole, bool& created);
+    static ErrorCode copyFile(const PathInfo &srcInfo, const PathInfo &dstInfo, bool toConsole, bool &created);
 
-    static ErrorCode copyDir(const PathInfo& srcInfo, const PathInfo& dstInfo,
-                             FileList& fileList, bool toConsole,
-                             bool created, bool special);
+    static ErrorCode copyDir(const PathInfo &srcInfo,
+                             const PathInfo &dstInfo,
+                             FileList &fileList,
+                             bool toConsole,
+                             bool created,
+                             bool special);
 
-    static ErrorCode moveInternal(const std::string& srcPath,
-                                  const std::string& dstPath,
-                                  bool toConsole);
+    static ErrorCode moveInternal(const std::string &srcPath, const std::string &dstPath, bool toConsole);
 
-    static ErrorCode renameInternal(const PathInfo& oldInfo,
-                                    const PathInfo& newInfo);
+    static ErrorCode renameInternal(const PathInfo &oldInfo, const PathInfo &newInfo);
 
-    static FileLockCreator* getFileLockCreatorForPath(const std::string& fileName);
+    static ErrorCode linkInternal(const PathInfo &oldInfo, const PathInfo &newInfo);
 
-    static ErrorCode parseInternal(const std::string& srcPath,
-                                   AbstractFileSystem*& fs,
-                                   std::string& fsType,
-                                   std::string& fsName);
+    static FileLockCreator *getFileLockCreatorForPath(const std::string &fileName);
+
+    static ErrorCode
+    parseInternal(const std::string &srcPath, AbstractFileSystem *&fs, std::string &fsType, std::string &fsName);
+
 public:
-    static void reportErrorMetric(const std::string& filePath,
-                                  const std::string& opType,
-                                  double value = 1.0);
-    static void reportQpsMetric(const std::string& filePath,
-                                const std::string& opType,
-                                double value = 1.0);
-    static void reportLatencyMetric(const std::string& filePath,
-                                    const std::string& opType,
-                                    int64_t latency);
+    static void reportErrorMetric(const std::string &filePath, const std::string &opType, double value = 1.0);
+    static void reportQpsMetric(const std::string &filePath, const std::string &opType, double value = 1.0);
+    static void reportLatencyMetric(const std::string &filePath, const std::string &opType, int64_t latency);
 
-    static void reportDNErrorQps(const std::string& filePath,
-                                 const std::string& opType,
-                                 double value = 1.0);
-    static void reportDNReadErrorQps(const std::string& filePath,
-                                     double value = 1.0);
-    static void reportDNReadSpeed(const std::string& filePath,
-                                  double speed);
-    static void reportDNReadLatency(const std::string& filePath,
-                                    int64_t latency);
+    static void reportDNErrorQps(const std::string &filePath, const std::string &opType, double value = 1.0);
+    static void reportDNReadErrorQps(const std::string &filePath, double value = 1.0);
+    static void reportDNReadSpeed(const std::string &filePath, double speed);
+    static void reportDNReadLatency(const std::string &filePath, int64_t latency);
     // read latency per KB
-    static void reportDNReadAvgLatency(const std::string& filePath,
-                                       int64_t latency);
+    static void reportDNReadAvgLatency(const std::string &filePath, int64_t latency);
 
-    static void reportDNWriteErrorQps(const std::string& filePath,
-                                      double value = 1.0);
-    static void reportDNWriteSpeed(const std::string& filePath,
-                                   double speed);
-    static void reportDNWriteLatency(const std::string& filePath,
-                                     int64_t latency);
+    static void reportDNWriteErrorQps(const std::string &filePath, double value = 1.0);
+    static void reportDNWriteSpeed(const std::string &filePath, double speed);
+    static void reportDNWriteLatency(const std::string &filePath, int64_t latency);
     // write latency per KB
-    static void reportDNWriteAvgLatency(const std::string& filePath,
-                                        int64_t latency);
+    static void reportDNWriteAvgLatency(const std::string &filePath, int64_t latency);
 
     static void reportMetaCachedPathCount(int64_t fileCount);
     static void reportMetaCacheImmutablePathCount(int64_t fileCount);
-    static void reportMetaCacheHitQps(const std::string& filePath, double value = 1.0);
+    static void reportMetaCacheHitQps(const std::string &filePath, double value = 1.0);
     static void reportDataCachedFileCount(int64_t fileCount);
     static void reportDataCacheMemUse(int64_t fileCount);
-    static void reportDataCacheHitQps(const std::string& filePath, double value = 1.0);
+    static void reportDataCacheHitQps(const std::string &filePath, double value = 1.0);
 
-    static ErrorCode GENERATE_ERROR(const std::string& operate, const std::string& filename);
+    static ErrorCode GENERATE_ERROR(const std::string &operate, const std::string &filename);
     static bool _useMock;
     static bool _mmapDontDump;
+
 public:
     static bool setMetricTagsHandler(util::MetricTagsHandlerPtr tagsHandler);
     static util::MetricTagsHandlerPtr getMetricTagsHandler();
@@ -410,4 +395,4 @@ public:
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_FILESYSTEM_H
+#endif // FSLIB_FILESYSTEM_H

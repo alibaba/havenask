@@ -17,7 +17,7 @@
 
 #include "autil/EnvUtil.h"
 #include "indexlib/config/FieldConfig.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/document/BuiltinParserInitParam.h"
 #include "indexlib/document/DocumentBatch.h"
 #include "indexlib/document/RawDocumentDefine.h"
@@ -41,7 +41,7 @@ NormalDocumentParser::NormalDocumentParser(const std::shared_ptr<analyzer::IAnal
 
 NormalDocumentParser::~NormalDocumentParser() {}
 
-Status NormalDocumentParser::Init(const std::shared_ptr<config::TabletSchema>& schema,
+Status NormalDocumentParser::Init(const std::shared_ptr<config::ITabletSchema>& schema,
                                   const std::shared_ptr<DocumentInitParam>& initParam)
 {
     if (!schema) {
@@ -150,7 +150,7 @@ std::pair<Status, std::unique_ptr<IDocumentBatch>> NormalDocumentParser::Parse(E
     assert(rawDoc);
     int64_t timestamp = rawDoc->getDocTimestamp();
     DocOperateType opType = rawDoc->getDocOperateType();
-    auto docInfo = indexDoc->GetDocInfo();
+    auto docInfo = rawDoc->GetDocInfo();
     docInfo.timestamp = timestamp;
     indexDoc->SetDocInfo(docInfo);
     indexDoc->SetSource(rawDoc->getDocSource());
@@ -329,7 +329,7 @@ void NormalDocumentParser::ReportIndexAddToUpdateQps(const NormalDocument& doc) 
         return;
     }
 
-    auto reportSingleDoc = [this](const NormalDocument& doc, const config::TabletSchema& schema) mutable {
+    auto reportSingleDoc = [this](const NormalDocument& doc, const config::ITabletSchema& schema) mutable {
         const auto& indexDoc = doc.GetIndexDocument();
         if (!indexDoc) {
             return;
@@ -353,7 +353,7 @@ void NormalDocumentParser::ReportAddToUpdateFailQps(const NormalDocument& doc) c
         return;
     }
 
-    auto reportSingleDoc = [this](const NormalDocument& doc, const config::TabletSchema& schema) mutable {
+    auto reportSingleDoc = [this](const NormalDocument& doc, const config::ITabletSchema& schema) mutable {
         const auto& modifyFailedFields = doc.GetModifyFailedFields();
         if (modifyFailedFields.empty()) {
             return;

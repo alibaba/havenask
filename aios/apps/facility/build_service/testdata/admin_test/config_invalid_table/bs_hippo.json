@@ -1,0 +1,119 @@
+{
+    "packages" : [
+	    {
+	        "type" : "RPM",
+	        "packageURI" : "bs_package"
+	    },
+	    {
+	        "type" : "ARCHIVE",
+	        "packageURI" : "other_packages"
+	    }
+    ],
+    "role_default" : {
+        "count" : 1,
+        "processInfos" : [
+            {
+                "isDaemon" : true,
+                "envs" : [
+                    ["HADOOP_HOME","/hadoop/home/path"]
+                ],
+                "args" : [
+                    ["-l" , "/path/to/logconf"]
+                ]
+            }
+        ],
+        "properties" : {
+            "key" : "value"
+        },
+	"queue" : "build_service_queue",
+	"allocateMode" : 0
+    },
+    "role_resource" : {
+        "admin" : [
+            {
+                "name" : "cpu",
+                "amount" : 100
+            },
+            {
+                "name" : "mem",
+                "amount" : 1000
+            }
+        ],
+        "processor" : [
+            {
+                "name" : "cpu",
+                "amount" : 100
+            },
+            {
+                "name" : "mem",
+                "amount" : 1000
+            }
+        ],
+        "builder.cluster1" : [
+            {
+                "name" : "cpu",
+                "amount" : 200
+            },
+            {
+                "name" : "mem",
+                "amount" : 1000
+            }
+        ],
+        "builder.cluster3" : [
+            {
+                "name" : "cpu",
+                "amount" : 200
+            },
+            {
+                "name" : "mem",
+                "amount" : 1000
+            }
+        ],
+	"merger.cluster1" : [
+	    {
+                "name" : "cpu",
+                "amount" : 200
+	    },
+            {
+                "name" : "mem",
+                "amount" : 1000
+            }
+	]
+    },
+    "role_customize" : [
+        {
+            "_bs_role" : "merger.cluster1.*",
+	    "slotResources" : [
+		{
+		    "slotResources" : [
+			{
+			    "name" : "cpu",
+			    "amount" : 200
+			},
+			{
+			    "name" : "mem",
+			    "amount" : 1000
+			}
+		    ]
+		}
+	    ]
+        },
+        {
+            "_bs_role" : "processor.simple.full",
+	    "slotResources" : [
+		{
+		    "slotResources" : [
+			{
+			    "name" : "cpu",
+			    "amount" : 200
+			},
+			{
+			    "name" : "mem",
+			    "amount" : 1000
+			}
+		    ]
+		}
+	    ]
+        }
+    ]
+}

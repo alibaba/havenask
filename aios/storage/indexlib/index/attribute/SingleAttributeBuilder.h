@@ -22,7 +22,7 @@
 #include "autil/NoCopyable.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/document/IDocument.h"
 #include "indexlib/document/normal/NormalDocument.h"
 #include "indexlib/framework/TabletData.h"
@@ -45,12 +45,12 @@ template <typename DiskIndexerType, typename MemIndexerType>
 class SingleAttributeBuilder : public autil::NoCopyable
 {
 public:
-    SingleAttributeBuilder(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema);
+    SingleAttributeBuilder(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema);
     virtual ~SingleAttributeBuilder();
 
 public:
     Status Init(const indexlibv2::framework::TabletData& tabletData,
-                const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig);
+                const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig, bool isOnline);
 
 public:
     Status AddDocument(indexlibv2::document::IDocument* doc);
@@ -64,7 +64,7 @@ public:
 
 protected:
     Status InitBuildInfoHolder(const indexlibv2::framework::TabletData& tabletData,
-                               const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
+                               const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig, bool isOnline,
                                SingleAttributeBuildInfoHolder<DiskIndexerType, MemIndexerType>* buildInfoHolder);
 
 private:
@@ -74,7 +74,7 @@ private:
     virtual Status InitConfigRelated(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig);
 
 protected:
-    const std::shared_ptr<indexlibv2::config::TabletSchema> _schema = nullptr;
+    const std::shared_ptr<indexlibv2::config::ITabletSchema> _schema = nullptr;
     indexlibv2::index::UpdateFieldExtractor _extractor;
     IndexerOrganizerMeta _indexerOrganizerMeta;
     SingleAttributeBuildInfoHolder<DiskIndexerType, MemIndexerType> _buildInfoHolder;
@@ -87,7 +87,7 @@ AUTIL_LOG_SETUP_TEMPLATE_2(indexlib.table, SingleAttributeBuilder, T1, T2);
 
 template <typename DiskIndexerType, typename MemIndexerType>
 SingleAttributeBuilder<DiskIndexerType, MemIndexerType>::SingleAttributeBuilder(
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema)
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema)
     : _schema(schema)
 {
 }
@@ -109,7 +109,7 @@ Status SingleAttributeBuilder<DiskIndexerType, MemIndexerType>::InitConfigRelate
     std::vector<std::shared_ptr<indexlibv2::config::IIndexConfig>> attrConfigs;
     attrConfigs.push_back(indexConfig);
 
-    auto attributeConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(indexConfig);
+    auto attributeConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(indexConfig);
     if (attributeConfig == nullptr) {
         return Status::InvalidArgs("Invalid indexConfig, name: %s", indexConfig->GetIndexName().c_str());
     }
@@ -123,7 +123,7 @@ Status SingleAttributeBuilder<DiskIndexerType, MemIndexerType>::InitConfigRelate
 template <typename DiskIndexerType, typename MemIndexerType>
 Status SingleAttributeBuilder<DiskIndexerType, MemIndexerType>::InitBuildInfoHolder(
     const indexlibv2::framework::TabletData& tabletData,
-    const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
+    const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig, bool isOnline,
     SingleAttributeBuildInfoHolder<DiskIndexerType, MemIndexerType>* buildInfoHolder)
 {
     docid_t baseDocId = 0;
@@ -136,6 +136,10 @@ Status SingleAttributeBuilder<DiskIndexerType, MemIndexerType>::InitBuildInfoHol
         baseDocId += docCount;
         // Lazily init disk indexer. Current segment will load data once Segment::GetIndexer() is called.
         if (segStatus == indexlibv2::framework::Segment::SegmentStatus::ST_BUILT) {
+            if (!isOnline) {
+                AUTIL_LOG(INFO, "Skip updating attribute for disk segment in offline build");
+                continue;
+            }
             if (docCount == 0) {
                 continue;
             }
@@ -166,13 +170,13 @@ Status SingleAttributeBuilder<DiskIndexerType, MemIndexerType>::InitBuildInfoHol
 template <typename DiskIndexerType, typename MemIndexerType>
 Status SingleAttributeBuilder<DiskIndexerType, MemIndexerType>::Init(
     const indexlibv2::framework::TabletData& tabletData,
-    const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig)
+    const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig, bool isOnline)
 {
     IndexerOrganizerMeta::InitIndexerOrganizerMeta(tabletData, &_indexerOrganizerMeta);
 
     RETURN_STATUS_DIRECTLY_IF_ERROR(InitConfigRelated(indexConfig));
 
-    return InitBuildInfoHolder(tabletData, indexConfig, &_buildInfoHolder);
+    return InitBuildInfoHolder(tabletData, indexConfig, isOnline, &_buildInfoHolder);
 }
 
 template <typename DiskIndexerType, typename MemIndexerType>

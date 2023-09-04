@@ -3,18 +3,24 @@ load(
     '@rules_cc//examples:experimental_cc_shared_library.bzl',
     'cc_shared_library'
 )
-load('//bazel:defs.bzl', 'gen_conf_lib')
 load('//bazel:bundle.bzl', 'bundle_files')
 bundle_files(
-    name='analyzer_plugin_package',
+    name='jieba_analyzer_plugin_package',
     prefix='usr/local/lib64',
-    srcs=[':analyzer_plugin'],
+    srcs=[':jieba_analyzer'],
+    deps=[':jieba_dict_package'],
+    visibility=['//visibility:public']
+)
+bundle_files(
+    name='jieba_dict_package',
+    prefix='usr/local/share/jieba_dict',
+    strip_prefix='cppjieba/dict',
+    srcs=['@cppjieba//:cppjieba_dict'],
     deps=[],
-    visibility=['//visibility:public'],
-    tags=['manual']
+    visibility=['//visibility:public']
 )
 cc_shared_library(
-    name='analyzer_plugin',
+    name='jieba_analyzer',
     visibility=['//visibility:public'],
     roots=[':analyzer'],
     preloaded_deps=[

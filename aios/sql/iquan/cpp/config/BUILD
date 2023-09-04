@@ -1,11 +1,20 @@
 package(default_visibility=['//aios/sql/iquan/cpp:__subpackages__'])
-load('//bazel:defs.bzl', 'copy_target_to')
 cc_library(
     name='iquan_config',
     srcs=glob(['*.cpp']),
     hdrs=glob(['*.h']),
     copts=['-Werror'],
-    deps=['//aios/sql/iquan/cpp/common:iquan_common'],
+    include_prefix='iquan/config',
     visibility=['//visibility:public'],
-    include_prefix='iquan/config'
+    deps=['//aios/sql/iquan/cpp/common:iquan_common']
+)
+cc_test(
+    name='iquan_config_test',
+    srcs=glob(['test/*.cpp']),
+    copts=['-fno-access-control'],
+    data=['//aios/sql/iquan/cpp:test_alog_conf'],
+    deps=[
+        ':iquan_config', '//aios/autil/autil/legacy/test:json_testlib',
+        '//aios/unittest_framework'
+    ]
 )

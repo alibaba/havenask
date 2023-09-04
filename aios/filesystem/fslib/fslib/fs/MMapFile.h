@@ -22,28 +22,26 @@
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class MMapFile
-{
+class MMapFile {
 public:
     friend class MMapFileTest;
 
 public:
-    MMapFile(std::string fileName, int fd, char* base,
-             int64_t length, int64_t pos, ErrorCode ec);
+    MMapFile(std::string fileName, int fd, char *base, int64_t length, int64_t pos, ErrorCode ec);
     virtual ~MMapFile();
 
 public:
-    char* getBaseAddress();
+    char *getBaseAddress();
 
     int64_t getLength();
 
-    ssize_t read(void* buffer, size_t length);
+    ssize_t read(void *buffer, size_t length);
 
-    ssize_t write(const void* buffer, size_t length);
+    ssize_t write(const void *buffer, size_t length);
 
-    ssize_t pread(void* buffer, size_t length, off_t offset);
+    ssize_t pread(void *buffer, size_t length, off_t offset);
 
-    ssize_t pwrite(const void* buffer, size_t length, off_t offset);
+    ssize_t pwrite(const void *buffer, size_t length, off_t offset);
 
     ErrorCode flush();
 
@@ -59,7 +57,7 @@ public:
 
     int getFd() const;
 
-    const char* getFileName() const;
+    const char *getFileName() const;
 
     virtual ErrorCode populate(bool lock, int64_t sliceSize, int64_t interval);
 
@@ -73,7 +71,7 @@ protected:
     int _fd;
     int64_t _length;
     int64_t _pos;
-    char* _base;
+    char *_base;
     ErrorCode _lastErrorCode;
 
     static const int64_t MUNMAP_SLICE_SIZE;
@@ -83,4 +81,4 @@ FSLIB_TYPEDEF_AUTO_PTR(MMapFile);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_MMAPFILE_H
+#endif // FSLIB_MMAPFILE_H

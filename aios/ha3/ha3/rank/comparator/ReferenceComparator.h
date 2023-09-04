@@ -17,42 +17,49 @@
 
 #include <string>
 
+#include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/rank/Comparator.h"
 #include "matchdoc/MatchDoc.h"
 
-#include "ha3/rank/Comparator.h"
-#include "autil/Log.h" // IWYU pragma: keep
-
 namespace matchdoc {
-template <typename T> class Reference;
-}  // namespace matchdoc
+template <typename T>
+class Reference;
+} // namespace matchdoc
 
 namespace isearch {
 namespace rank {
 
-template<typename T>
-class ReferenceComparator : public Comparator
-{
+template <typename T>
+class ReferenceComparator : public Comparator {
 public:
     ReferenceComparator(const matchdoc::Reference<T> *variableReference, bool flag = false) {
         _reference = variableReference;
         _flag = flag;
     }
-    ~ReferenceComparator() {
-    }
+    ~ReferenceComparator() {}
+
 public:
-    bool compare(matchdoc::MatchDoc a, matchdoc::MatchDoc b) const  override {
+    bool compare(matchdoc::MatchDoc a, matchdoc::MatchDoc b) const override {
         if (_flag) {
             return *_reference->getPointer(b) < *_reference->getPointer(a);
         } else {
             return *_reference->getPointer(a) < *_reference->getPointer(b);
         }
     }
-    void setReverseFlag(bool flag) { _flag = flag; }
-    bool getReverseFlag() const { return _flag; }
-    std::string getType() const  override { return "reference"; }
+    void setReverseFlag(bool flag) {
+        _flag = flag;
+    }
+    bool getReverseFlag() const {
+        return _flag;
+    }
+    std::string getType() const override {
+        return "reference";
+    }
+
 protected:
     const matchdoc::Reference<T> *_reference;
     bool _flag;
+
 private:
     AUTIL_LOG_DECLARE();
 };

@@ -32,7 +32,7 @@ class NormalDocIdDispatcher : private autil::NoCopyable
 {
 public:
     NormalDocIdDispatcher(const std::string& tableName, const std::shared_ptr<index::PrimaryKeyIndexReader>& pkReader,
-                          docid_t baseDocId);
+                          docid_t buildingSegmentBaseDocId, docid_t currentSegmentDocCount);
     virtual ~NormalDocIdDispatcher() {};
     void DispatchDocId(const std::shared_ptr<indexlibv2::document::NormalDocument>& doc);
 
@@ -42,14 +42,15 @@ protected:
     void ProcessDeleteDocument(const std::shared_ptr<indexlibv2::document::NormalDocument>& doc);
 
 private:
-    virtual docid_t Lookup(const std::string& pkStr) const;
-    void Update(std::string pk, docid_t docId);
-    void Remove(docid_t docId);
+    docid_t Lookup(const std::string& pkStr) const;
+    void Update(const std::string& pk, docid_t docId);
+    void Remove(const std::string& pk);
 
 private:
     std::string _tableName;
     std::shared_ptr<index::PrimaryKeyIndexReader> _pkReader;
-    docid_t _baseDocId;
+    docid_t _buildingSegmentBaseDocId;
+    docid_t _currentSegmentDocCount;
     std::map<std::string, docid_t> _pkToDocIdMap;
     std::map<docid_t, std::string> _docIdToPkMap;
 

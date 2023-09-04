@@ -65,8 +65,8 @@ public:
     virtual std::unique_ptr<document::IIndexFieldsParser> CreateIndexFieldsParser() = 0;
 };
 
-#define REGISTER_INDEX(INDEX_TYPE, INDEX_FACTORY)                                                                      \
-    __attribute__((constructor)) void Register##INDEX_TYPE##Factory()                                                  \
+#define REGISTER_INDEX_FACTORY(INDEX_TYPE, INDEX_FACTORY)                                                              \
+    __attribute__((constructor)) static void Register##INDEX_TYPE##Factory()                                           \
     {                                                                                                                  \
         auto indexFactoryCreator = indexlibv2::index::IndexFactoryCreator::GetInstance();                              \
         indexFactoryCreator->Register(#INDEX_TYPE, (new INDEX_FACTORY));                                               \

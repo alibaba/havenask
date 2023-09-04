@@ -15,6 +15,7 @@
  */
 #include "indexlib/document/normal/rewriter/NormalDocumentRewriterBase.h"
 
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/normal/NormalDocument.h"
 
@@ -23,18 +24,16 @@ AUTIL_LOG_SETUP(indexlib.document, NormalDocumentRewriterBase);
 
 Status NormalDocumentRewriterBase::Rewrite(IDocumentBatch* batch)
 {
-    for (size_t i = 0; i < batch->GetBatchSize(); ++i) {
-        if (batch->IsDropped(i)) {
-            continue;
-        }
-        auto doc = (*batch)[i];
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(batch);
+    while (iter->HasNext()) {
+        std::shared_ptr<IDocument> doc = iter->Next();
         assert(doc);
         auto normalDoc = std::dynamic_pointer_cast<NormalDocument>(doc);
         if (!normalDoc) {
             AUTIL_LOG(ERROR, "cast normal doc failed");
             return Status::Corruption("cast normal doc failed");
         }
-        RETURN_IF_STATUS_ERROR(RewriteOneDoc(normalDoc), "rewrite doc[%lu] failed in batch", i);
+        RETURN_IF_STATUS_ERROR(RewriteOneDoc(normalDoc), "rewrite doc[%d] failed in batch", doc->GetDocId());
     }
     return Status::OK();
 }

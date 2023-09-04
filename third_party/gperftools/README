@@ -1,0 +1,6 @@
+http://search-cicd.oss-cn-hangzhou-zmf.aliyuncs.com/third_party_archives/gperftools_2_9_1_modify_261_code.tar.gz
+sha256: 52f3d9f2672ee79eb9877f7196964da2cda5971707cb4059e3e2b9b9a56a1741
+
+源码编译，在2.9.1的源码上修改gperftool_291.diff，以提升tcmalloc性能， 编译采用默的的编译方式
+https://github.com/gperftools/gperftools/archive/refs/tags/gperftools-2.9.1.tar.gz
+https://github.com/gperftools/gperftools/releases/download/gperftools-2.9.1/gperftools-2.9.1.tar.gz

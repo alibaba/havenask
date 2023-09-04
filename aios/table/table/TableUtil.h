@@ -15,40 +15,30 @@
  */
 #pragma once
 #include <assert.h>
-#include <stdint.h>
 #include <functional>
 #include <memory>
+#include <stdint.h>
 #include <string>
-#include <memory>
 #include <vector>
 
-#include "table/Common.h"
 #include "table/Column.h"
-#include "table/DataCommon.h"
 #include "table/Row.h"
 #include "table/Table.h"
 
 namespace table {
-class ComboComparator;
+class Comparator;
 class TableJson;
-template <typename T> class ColumnData;
-}  // namespace table
+template <typename T>
+class ColumnData;
+} // namespace table
 
 namespace table {
 
-class TableUtil
-{
+class TableUtil {
 public:
-    TableUtil();
-    ~TableUtil();
-private:
-    TableUtil(const TableUtil &);
-    TableUtil& operator=(const TableUtil &);
-public:
-    static void sort(const TablePtr &table, ComboComparator *comparator);
-    static void topK(const TablePtr &table, ComboComparator *comparator, size_t topk, bool reserve = false);
-    static void topK(const TablePtr &table, ComboComparator *comparator,
-                     size_t topk, std::vector<Row> &rowVec);
+    static void sort(const TablePtr &table, Comparator *comparator);
+    static void topK(const TablePtr &table, Comparator *comparator, size_t topk, bool reserve = false);
+    static void topK(const TablePtr &table, Comparator *comparator, size_t topk, std::vector<Row> &rowVec);
     static std::string toString(const TablePtr &table);
     static std::string toString(const TablePtr &table, size_t maxRowCount);
     static std::string toString(const TablePtr &table, size_t rowOffset, size_t maxRowCount);
@@ -56,27 +46,29 @@ public:
     static std::string rowToString(const TablePtr &table, size_t rowOffset);
     static std::string toJsonString(const TablePtr &table);
     static bool toTableJson(const TablePtr &table, TableJson &tableJson);
-    template<typename T>
+    template <typename T>
     static ColumnData<T> *getColumnData(const TablePtr &table, const std::string &name);
-    template<typename T>
-    static ColumnData<T> *tryGetTypedColumnData(const TablePtr &table,
-            const std::string &name);
-    template<typename T>
-    static ColumnData<T> *declareAndGetColumnData(const TablePtr &table, const std::string &name,
-            bool endGroup = false, bool existAsError = true);
+    template <typename T>
+    static ColumnData<T> *tryGetTypedColumnData(const TablePtr &table, const std::string &name);
+    template <typename T>
+    static ColumnData<T> *declareAndGetColumnData(const TablePtr &table,
+                                                  const std::string &name,
+                                                  bool endGroup = false,
+                                                  bool existAsError = true);
     static std::string valueTypeToString(ValueType vt);
     static bool calculateGroupKeyHash(table::TablePtr table,
-            const std::vector<std::string> &groupKeyVec, std::vector<size_t> &hashValue);
+                                      const std::vector<std::string> &groupKeyVec,
+                                      std::vector<size_t> &hashValue);
     static bool calculateGroupKeyHashWithSpecificRow(table::TablePtr table,
-            const std::vector<std::string> &groupKeyVec,
-            const std::vector<table::Row> &rows, std::vector<size_t> &hashValue);
+                                                     const std::vector<std::string> &groupKeyVec,
+                                                     const std::vector<table::Row> &rows,
+                                                     std::vector<size_t> &hashValue);
 
 private:
     AUTIL_LOG_DECLARE();
-
 };
 
-template<typename T>
+template <typename T>
 ColumnData<T> *TableUtil::getColumnData(const TablePtr &table, const std::string &name) {
     assert(table != nullptr);
     auto column = table->getColumn(name);
@@ -92,9 +84,8 @@ ColumnData<T> *TableUtil::getColumnData(const TablePtr &table, const std::string
     return ret;
 }
 
-template<typename T>
-ColumnData<T> *TableUtil::tryGetTypedColumnData(const TablePtr &table,
-        const std::string &name) {
+template <typename T>
+ColumnData<T> *TableUtil::tryGetTypedColumnData(const TablePtr &table, const std::string &name) {
     assert(table != nullptr);
     auto column = table->getColumn(name);
     if (column == nullptr) {
@@ -103,10 +94,9 @@ ColumnData<T> *TableUtil::tryGetTypedColumnData(const TablePtr &table,
     return column->getColumnData<T>();
 }
 
-template<typename T>
-ColumnData<T> *TableUtil::declareAndGetColumnData(const TablePtr &table,
-        const std::string &name, bool endGroup, bool existAsError)
-{
+template <typename T>
+ColumnData<T> *
+TableUtil::declareAndGetColumnData(const TablePtr &table, const std::string &name, bool endGroup, bool existAsError) {
     assert(table != nullptr);
     if (table->getColumn(name) != nullptr) {
         if (existAsError) {
@@ -124,7 +114,4 @@ ColumnData<T> *TableUtil::declareAndGetColumnData(const TablePtr &table,
     return column->template getColumnData<T>();
 }
 
-
-TABLE_TYPEDEF_PTR(TableUtil);
-
-}
+} // namespace table

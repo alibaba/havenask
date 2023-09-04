@@ -19,7 +19,7 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
 #include "indexlib/config/IIndexConfig.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/index/operation_log/Common.h"
 #include "indexlib/table/normal_table/virtual_attribute/Common.h"
@@ -58,7 +58,7 @@ Status IndexerOrganizerUtil::GetIndexer(indexlibv2::framework::Segment* segment,
     auto [status, indexer] = segment->GetIndexer(indexType, indexName);
     if (!status.IsOK()) {
         assert(indexer == nullptr);
-        std::shared_ptr<indexlibv2::config::TabletSchema> segmentSchema = segment->GetSegmentSchema();
+        std::shared_ptr<indexlibv2::config::ITabletSchema> segmentSchema = segment->GetSegmentSchema();
         if (status.IsNotFound()) {
             if (segmentSchema != nullptr && segmentSchema->GetIndexConfig(indexType, indexName) == nullptr) {
                 // This case happens in alter table scenario.

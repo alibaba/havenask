@@ -44,7 +44,7 @@ public:
     ~InMemoryValueWriter();
 
 public:
-    Status Init(autil::mem_pool::PoolBase* pool, size_t maxMemoryUse,
+    Status Init(autil::mem_pool::PoolBase* pool, size_t maxMemoryUse, float lastValueCompressRatio,
                 indexlibv2::framework::IIndexMemoryReclaimer* memReclaimer);
     Status Dump(const std::shared_ptr<indexlib::file_system::Directory>& directory) override;
     bool IsFull() const override;
@@ -52,7 +52,7 @@ public:
     const char* GetBaseAddress() const override;
     int64_t GetLength() const override;
     void FillStatistics(SegmentStatistics& stat) const override;
-    void UpdateMemoryUsage(MemoryUsage& memUsage) const override;
+    void FillMemoryUsage(MemoryUsage& memUsage) const override;
     std::pair<Status, std::shared_ptr<indexlib::file_system::FileWriter>>
     CreateValueFileWriter(const std::shared_ptr<indexlib::file_system::Directory>& directory) const;
 
@@ -69,6 +69,7 @@ private:
     std::shared_ptr<indexlibv2::config::KVIndexConfig> _indexConfig;
     std::shared_ptr<indexlibv2::index::ExpandableValueAccessor<uint64_t>> _valueAccessor;
     std::shared_ptr<ReclaimedValueCollector<uint64_t>> _reclaimedValueCollector;
+    float _lastValueCompressRatio = 1.0f;
 };
 
 } // namespace indexlibv2::index

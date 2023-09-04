@@ -1,0 +1,50 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "update2add" 
+            ],
+            "document_processor_chain" : [
+            ]
+        }
+    ],
+    "processor_config" : {
+        "processor_queue_size" : 2000,
+        "processor_thread_num" : 10,
+        "src_thread_num" : 500,
+        "src_queue_size" : 1000
+    },
+    "processor_rule_config" : {
+        "parallel_num" : 1,
+        "inc_parallel_num" : 1,
+        "partition_count" : 1
+    },
+    "src_node_config": {
+        "online_index_config":{
+            "on_disk_flush_realtime_index" : true,
+            "build_config" : {
+                "build_total_memory": 1024
+            },
+            "load_config" : [
+                {
+                    "file_patterns": [
+            "_SOURCE_DATA_"
+                    ],
+                    "load_strategy": "cache",
+                    "load_strategy_param": {
+                        "global_cache":true,
+                        "direct_io": true
+                    },
+                    "remote": true,
+                    "deploy": false
+                }
+        ]
+        },
+        "has_src_node": true,
+        "enable_order_preserving": true,
+        "enable_update_to_add": true,
+        "allow_force_reopen": false,
+        "block_cache_param": "cache_size=0;block_size=4096"
+    }
+
+}

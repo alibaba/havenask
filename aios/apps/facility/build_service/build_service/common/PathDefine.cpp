@@ -57,6 +57,8 @@ const string PathDefine::SNAPSHOT_CHECKPOINT_FILENAME = "snapshot_checkpoints";
 const string PathDefine::CHECK_POINT_STATUS_FILE = "checkpoint_status";
 const string PathDefine::ZK_GENERATION_INDEX_INFOS = "generation_index_infos";
 const string PathDefine::ZK_SERVICE_INFO_TEMPLATE = "service_info_template";
+const string PathDefine::ZK_GLOBAL_AGENT_CONFIG = "global_agent_config";
+const string PathDefine::ZK_GLOBAL_AGENT_TARGET_INFO = "global_agent_target_info";
 const string PathDefine::WORKER_RUNTIMEDATA_PATH = "runtimedata";
 
 // string PathDefine::getPartitionCurrentStatusZkPath(
@@ -107,6 +109,24 @@ string PathDefine::getGenerationStatusFile(const std::string& zkRoot, const Buil
 string PathDefine::getGenerationStopFile(const std::string& zkRoot, const proto::BuildId& buildId)
 {
     return fslib::util::FileUtil::joinFilePath(getGenerationZkRoot(zkRoot, buildId), ZK_GENERATION_STATUS_STOP_FILE);
+}
+
+std::string PathDefine::getRoleZkPath(const std::string& generationRoot, const proto::PartitionId& pid,
+                                      bool ignoreBackupId)
+{
+    string roleId;
+    if (!ProtoUtil::partitionIdToRoleId(pid, roleId, ignoreBackupId)) {
+        BS_LOG(WARN, "pid [%s] to roleId failed", pid.DebugString().c_str());
+        return "";
+    }
+
+    if (pid.role() == ROLE_AGENT) {
+        string zkRoot = fslib::util::FileUtil::getParentDir(generationRoot);
+        string agentRootDir = getAgentNodeRoot(zkRoot);
+        return fslib::util::FileUtil::joinFilePath(agentRootDir, roleId);
+    }
+
+    return fslib::util::FileUtil::joinFilePath(generationRoot, roleId);
 }
 
 string PathDefine::getPartitionZkRoot(const string& zkRoot, const PartitionId& pid, bool ignoreBackupId)

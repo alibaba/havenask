@@ -1,0 +1,44 @@
+{
+    "table_name": "test_ttl_from_doc",
+    "table_type": "kkv",
+    "fields": [
+        {
+            "field_name": "pkey",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "skey",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "value",
+            "field_type": "STRING"
+        }
+    ],
+    "indexes": {
+        "kkv": [
+            {
+                "index_fields": [
+                    {
+                        "field_name": "pkey",
+                        "key_type": "prefix"
+                    },
+                    {
+                        "field_name": "skey",
+                        "key_type": "suffix"
+                    }
+                ],
+                "index_name": "pkey",
+                "index_type": "PRIMARY_KEY",
+                "value_fields" : ["value"],
+                "default_ttl": 300,
+                "store_expire_time": true
+            }
+        ]
+    },
+    "settings": {
+        "enable_ttl": true,
+        "ttl_from_doc": true,
+        "ttl_field_name": "field_for_ttl"
+    }
+}

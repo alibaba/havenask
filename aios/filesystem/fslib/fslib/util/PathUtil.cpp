@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "fslib/util/PathUtil.h"
+
 #include "fslib/util/URLParser.h"
 
 using namespace std;
@@ -25,30 +26,22 @@ PathUtil::PathUtil() {}
 
 PathUtil::~PathUtil() {}
 
-string PathUtil::normalizePath(const string& path) {
-    return URLParser::normalizePath(path);
-}
+string PathUtil::normalizePath(const string &path) { return URLParser::normalizePath(path); }
 
-bool PathUtil::isInRootPath(const string& normPath,
-                            const string& normRootPath)
-{
+bool PathUtil::isInRootPath(const string &normPath, const string &normRootPath) {
     size_t prefixLen = normRootPath.size();
     if (!normRootPath.empty() && *normRootPath.rbegin() == '/') {
         prefixLen--;
     }
 
-    if (normPath.size() < normRootPath.size()
-        || normPath.compare(0, normRootPath.size(), normRootPath) != 0
-        || (normPath.size() > normRootPath.size()
-            && normPath[prefixLen] != '/'))
-    {
+    if (normPath.size() < normRootPath.size() || normPath.compare(0, normRootPath.size(), normRootPath) != 0 ||
+        (normPath.size() > normRootPath.size() && normPath[prefixLen] != '/')) {
         return false;
     }
     return true;
 }
 
-string PathUtil::joinPath(const string& path, const string& name)
-{
+string PathUtil::joinPath(const string &path, const string &name) {
     if (path.empty()) {
         return name;
     }
@@ -59,8 +52,7 @@ string PathUtil::joinPath(const string& path, const string& name)
     return path + name;
 }
 
-string PathUtil::GetParentDirPath(const string& path)
-{
+string PathUtil::GetParentDirPath(const string &path) {
     string::const_reverse_iterator it;
     for (it = path.rbegin(); it != path.rend() && *it == '/'; it++)
         ;
@@ -71,8 +63,7 @@ string PathUtil::GetParentDirPath(const string& path)
     return path.substr(0, path.rend() - it);
 }
 
-string PathUtil::GetFileName(const string& path)
-{
+string PathUtil::GetFileName(const string &path) {
     string::const_reverse_iterator it;
     for (it = path.rbegin(); it != path.rend() && *it != '/'; it++)
         ;
@@ -100,6 +91,4 @@ bool PathUtil::rewriteToDcachePath(const string &source, string &target) {
     return true;
 }
 
-
 FSLIB_END_NAMESPACE(util);
-

@@ -1,0 +1,13 @@
+{
+    "cluster_config" : {
+        "table_name" : "kv_table2",
+        "region_hash_mode" : [
+            {"region_name": "region3", "hash_field": "nid2", "hash_function": "KINGSO_HASH#720"},
+            {"region_name": "region4", "hash_field": "friendid2", "hash_function": "NUMBER_HASH"}
+        ],
+	"hash_mode" : {
+            "hash_function" : "KINGSO_HASH#720",
+            "hash_field" : "nid2"
+	}
+    }
+}

@@ -16,23 +16,27 @@
 #ifndef ISEARCH_MULTI_CALL_GIGSTREAMMESSAGE_H
 #define ISEARCH_MULTI_CALL_GIGSTREAMMESSAGE_H
 
-#include "aios/network/gig/multi_call/common/common.h"
 #include <google/protobuf/message.h>
+
+#include "aios/network/gig/multi_call/common/common.h"
 
 namespace multi_call {
 
-class GigStreamMessage {
+class GigStreamMessage
+{
 public:
     GigStreamMessage()
         : partId(INVALID_PART_ID)
         , message(nullptr)
         , eof(false)
         , handlerId(-1)
-        , netLatencyUs(0)
-    {
+        , netLatencyUs(0) {
     }
+
 public:
-    void initArena() { arena.reset(new google::protobuf::Arena()); }
+    void initArena() {
+        arena.reset(new google::protobuf::Arena());
+    }
 
 public:
     PartIdTy partId;

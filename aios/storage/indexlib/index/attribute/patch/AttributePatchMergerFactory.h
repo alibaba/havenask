@@ -18,11 +18,8 @@
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 
-namespace indexlibv2::config {
-class AttributeConfig;
-}
 namespace indexlibv2::index {
-
+class AttributeConfig;
 class AttributePatchMerger;
 class SegmentUpdateBitmap;
 
@@ -33,7 +30,7 @@ public:
     ~AttributePatchMergerFactory() = default;
 
 public:
-    static std::unique_ptr<AttributePatchMerger> Create(const std::shared_ptr<config::AttributeConfig>& attributeConfig,
+    static std::unique_ptr<AttributePatchMerger> Create(const std::shared_ptr<AttributeConfig>& attributeConfig,
                                                         const std::shared_ptr<SegmentUpdateBitmap>& updateBitmap);
 
 private:

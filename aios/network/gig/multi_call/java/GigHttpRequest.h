@@ -22,13 +22,15 @@
 
 namespace multi_call {
 
-class GigHttpRequest : public HttpRequest {
+class GigHttpRequest : public HttpRequest
+{
 public:
     GigHttpRequest(const std::shared_ptr<google::protobuf::Arena> &arena =
-                   std::shared_ptr<google::protobuf::Arena>())
-        : HttpRequest(HM_GET, arena)
-    {}
-    ~GigHttpRequest() {}
+                       std::shared_ptr<google::protobuf::Arena>())
+        : HttpRequest(HM_GET, arena) {
+    }
+    ~GigHttpRequest() {
+    }
 
 private:
     GigHttpRequest(const GigHttpRequest &);

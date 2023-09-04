@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 #include <string>
 
 namespace autil {
@@ -47,9 +47,7 @@ struct MemStat {
     uint64_t sReclaimable;
     uint64_t sUnreclaim;
 
-    MemStat() {
-        reset();
-    }
+    MemStat() { reset(); }
 
     void reset() {
         memTotal = 0;
@@ -78,16 +76,18 @@ struct MemStat {
     }
 };
 
-class Memory
-{
+class Memory {
 public:
     Memory();
     ~Memory();
+
 private:
     Memory(const Memory &);
-    Memory& operator = (const Memory &);
+    Memory &operator=(const Memory &);
+
 private:
     static const std::string MEM_PROC_STAT;
+
 public:
     void update();
     uint64_t getMemTotal() const { return _curStat.memTotal; }
@@ -118,6 +118,7 @@ private:
     void parseMemInfoLine(const char *str, MemStat &stat);
     void setMemInfoFile(const std::string &file);
     friend class MemoryTest;
+
 private:
     MemStat _curStat;
     std::string _memInfoFile;
@@ -125,5 +126,5 @@ private:
 
 typedef std::shared_ptr<Memory> MemoryPtr;
 
-}
-}
+} // namespace metric
+} // namespace autil

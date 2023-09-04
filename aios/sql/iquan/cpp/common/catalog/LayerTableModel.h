@@ -35,7 +35,7 @@ public:
     }
 
     bool isValid() const {
-        if (tableName.empty() ||!tableContent.isValid()) {
+        if (tableName.empty() || !tableContent.isValid()) {
             return false;
         }
         return true;
@@ -50,7 +50,7 @@ public:
 
 class LayerTableModels : public autil::legacy::Jsonizable {
 public:
-    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override{
+    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("layer_tables", tables);
     }
 
@@ -63,8 +63,13 @@ public:
         return true;
     }
 
-    void merge(const LayerTableModels &other) { tables.insert(tables.end(), other.tables.begin(), other.tables.end()); }
-    bool empty() const { return tables.empty(); }
+    void merge(const LayerTableModels &other) {
+        tables.insert(tables.end(), other.tables.begin(), other.tables.end());
+    }
+    bool empty() const {
+        return tables.empty();
+    }
+
 public:
     std::vector<LayerTableModel> tables;
 };

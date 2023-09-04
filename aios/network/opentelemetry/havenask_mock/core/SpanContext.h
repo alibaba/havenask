@@ -35,32 +35,26 @@ public:
     SpanContext(const SpanContext &ctx) = default;
 
     // @returns the trace_id associated with this span_context
-    const std::string& getTraceId() const  { return EMPTY_STRING; }
+    const std::string &getTraceId() const { return EMPTY_STRING; }
 
     // @returns the span_id associated with this span_context
-    const std::string& getSpanId() const  { return EMPTY_STRING; }
+    const std::string &getSpanId() const { return EMPTY_STRING; }
 
     // @returns whether this context is valid
-    virtual bool isValid() const  { return false; }
+    virtual bool isValid() const { return false; }
 
     /*
-    * @param that SpanContext for comparing.
-    * @return true if `that` equals the current SpanContext.
-    * N.B. trace_state is ignored for the comparison.
-    */
-    bool operator==(const SpanContext& that) const
-    {
-        return false;
-    }
+     * @param that SpanContext for comparing.
+     * @return true if `that` equals the current SpanContext.
+     * N.B. trace_state is ignored for the comparison.
+     */
+    bool operator==(const SpanContext &that) const { return false; }
 
-    SpanContext &operator=(const SpanContext& ctx) = default;
+    SpanContext &operator=(const SpanContext &ctx) = default;
 
-    bool isRemote() const  { return false; }
-    bool isSampled() const  { return false; }
-    bool isDebug() const  {
-        return false;
-    }
-    void setDebug() {
-    }
+    bool isRemote() const { return false; }
+    bool isSampled() const { return false; }
+    bool isDebug() const { return false; }
+    void setDebug() {}
 };
-}
+} // namespace opentelemetry

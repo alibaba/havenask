@@ -47,9 +47,9 @@ public:
               framework::MetricsManager* metricsManager) override;
     std::unique_ptr<config::SchemaResolver> CreateSchemaResolver() const override;
     std::unique_ptr<framework::TabletWriter>
-    CreateTabletWriter(const std::shared_ptr<config::TabletSchema>& schema) override;
+    CreateTabletWriter(const std::shared_ptr<config::ITabletSchema>& schema) override;
     std::unique_ptr<framework::TabletReader>
-    CreateTabletReader(const std::shared_ptr<config::TabletSchema>& schema) override;
+    CreateTabletReader(const std::shared_ptr<config::ITabletSchema>& schema) override;
     std::shared_ptr<framework::ITabletReader>
     CreateTabletSessionReader(const std::shared_ptr<framework::ITabletReader>& tabletReader,
                               const std::shared_ptr<framework::IIndexMemoryReclaimer>& memReclaimer) override;
@@ -60,11 +60,12 @@ public:
 
     std::unique_ptr<framework::IIndexTaskResourceCreator> CreateIndexTaskResourceCreator() override;
     std::unique_ptr<framework::IIndexOperationCreator>
-    CreateIndexOperationCreator(const std::shared_ptr<config::TabletSchema>& schema) override;
+    CreateIndexOperationCreator(const std::shared_ptr<config::ITabletSchema>& schema) override;
     std::unique_ptr<framework::IIndexTaskPlanCreator> CreateIndexTaskPlanCreator() override;
     std::unique_ptr<indexlib::framework::ITabletExporter> CreateTabletExporter() override;
+    std::unique_ptr<framework::ITabletImporter> CreateTabletImporter(const std::string& type) override;
     std::unique_ptr<document::IDocumentFactory>
-    CreateDocumentFactory(const std::shared_ptr<config::TabletSchema>& schema) override;
+    CreateDocumentFactory(const std::shared_ptr<config::ITabletSchema>& schema) override;
     std::unique_ptr<indexlib::framework::ITabletValidator> CreateTabletValidator() override;
 
 private:

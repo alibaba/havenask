@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/agent/QueryInfoStatistics.h"
+
 #include "aios/network/gig/multi_call/common/ControllerParam.h"
 #include "aios/network/gig/multi_call/util/MiscUtil.h"
 
@@ -24,30 +25,30 @@ namespace multi_call {
 
 AUTIL_LOG_SETUP(multi_call, QueryInfoStatistics);
 
-QueryInfoStatistics::QueryInfoStatistics(GigQueryInfo *queryInfo,
-                                         WarmUpStrategy *warmUpStrategy,
+QueryInfoStatistics::QueryInfoStatistics(GigQueryInfo *queryInfo, WarmUpStrategy *warmUpStrategy,
                                          BizStatPtr bizStat)
-    : _queryInfo(queryInfo), _bizStat(bizStat), _warmUpStrategy(warmUpStrategy),
-      _queryCounted(false), _degradePercent(MIN_PERCENT),
-      _delayMs(INVALID_FILTER_VALUE) {
+    : _queryInfo(queryInfo)
+    , _bizStat(bizStat)
+    , _warmUpStrategy(warmUpStrategy)
+    , _queryCounted(false)
+    , _degradePercent(MIN_PERCENT)
+    , _delayMs(INVALID_FILTER_VALUE) {
     assert(_bizStat);
     initBizStat();
 }
 
-QueryInfoStatistics::~QueryInfoStatistics() {}
+QueryInfoStatistics::~QueryInfoStatistics() {
+}
 
 void QueryInfoStatistics::initBizStat() {
-    _delayMs =
-        _bizStat->updatePropagationStats(_queryInfo->propagation_stats());
+    _delayMs = _bizStat->updatePropagationStats(_queryInfo->propagation_stats());
     _bizStat->weightFilter.update(_queryInfo->gig_weight());
-    bool normalRequest =
-        !_queryInfo->has_request_type() // query from anywhere but gig client
-        || RT_NORMAL == _queryInfo->request_type(); // query from gig client
-    bool userProbe = _queryInfo->has_user_request_type() &&
-                     RT_NORMAL != _queryInfo->user_request_type();
+    bool normalRequest = !_queryInfo->has_request_type() // query from anywhere but gig client
+                         || RT_NORMAL == _queryInfo->request_type(); // query from gig client
+    bool userProbe =
+        _queryInfo->has_user_request_type() && RT_NORMAL != _queryInfo->user_request_type();
     if (normalRequest && !userProbe) {
-        _bizStat->lastQueryTimestamp =
-            autil::TimeUtility::currentTimeInMicroSeconds();
+        _bizStat->lastQueryTimestamp = autil::TimeUtility::currentTimeInMicroSeconds();
     }
 }
 
@@ -61,8 +62,7 @@ float QueryInfoStatistics::degradeLevel(float fullLevel) {
     const auto &degradeFilter = _bizStat->degradeMetricFilter.loadBalanceValue;
     if (percent != MIN_PERCENT && degradeFilter.isValid()) {
         auto adjustedDegradeRatio = _bizStat->getAdjustLbDegradeRatio();
-        if (rand > percent * MAX_WEIGHT_FLOAT ||
-            adjustedDegradeRatio > percent * MAX_RATIO) {
+        if (rand > percent * MAX_WEIGHT_FLOAT || adjustedDegradeRatio > percent * MAX_RATIO) {
             percent = MIN_PERCENT;
         }
     }
@@ -76,8 +76,7 @@ float QueryInfoStatistics::degradePercent() const {
 
 float QueryInfoStatistics::degradePercentLatency() const {
     const auto &queryInfo = *_queryInfo;
-    if (!queryInfo.has_begin_server_degrade_latency() ||
-        !queryInfo.has_begin_degrade_latency()) {
+    if (!queryInfo.has_begin_server_degrade_latency() || !queryInfo.has_begin_degrade_latency()) {
         return MIN_PERCENT;
     }
     const auto &latencyFilter = _bizStat->latencyMetricFilter.loadBalanceValue;
@@ -86,8 +85,7 @@ float QueryInfoStatistics::degradePercentLatency() const {
     }
     auto adjustedAvgLatency = _bizStat->getAdjustedLoadBalanceLatency();
     return MiscUtil::scaleLinear(queryInfo.begin_server_degrade_latency(),
-                                 queryInfo.begin_degrade_latency(),
-                                 adjustedAvgLatency);
+                                 queryInfo.begin_degrade_latency(), adjustedAvgLatency);
 }
 
 float QueryInfoStatistics::degradePercentErrorRatio() const {
@@ -101,9 +99,8 @@ float QueryInfoStatistics::degradePercentErrorRatio() const {
         return MIN_PERCENT;
     }
     auto errorRatio = errorFilter.output();
-    return MiscUtil::scaleLinear(
-        queryInfo.begin_server_degrade_error_ratio() * MAX_RATIO,
-        queryInfo.begin_degrade_error_ratio() * MAX_RATIO, errorRatio);
+    return MiscUtil::scaleLinear(queryInfo.begin_server_degrade_error_ratio() * MAX_RATIO,
+                                 queryInfo.begin_degrade_error_ratio() * MAX_RATIO, errorRatio);
 }
 
 void QueryInfoStatistics::beginQuery(float percent) {
@@ -112,17 +109,14 @@ void QueryInfoStatistics::beginQuery(float percent) {
     _queryCounted = true;
 }
 
-void QueryInfoStatistics::fillResponseInfo(GigResponseInfo *responseInfo,
-                                           float responseLatencyMs,
-                                           MultiCallErrorCode ec,
-                                           WeightTy targetWeight) {
+void QueryInfoStatistics::fillResponseInfo(GigResponseInfo *responseInfo, float responseLatencyMs,
+                                           MultiCallErrorCode ec, WeightTy targetWeight) {
     if (unlikely(!_bizStat->started)) {
         targetWeight = MIN_WEIGHT;
     } else {
         updateErrorRatio(ec, *responseInfo->mutable_error_ratio());
         updateDegradeRatio(ec, *responseInfo->mutable_degrade_ratio());
-        updateAverageLatency(ec, responseLatencyMs,
-                             *responseInfo->mutable_avg_latency());
+        updateAverageLatency(ec, responseLatencyMs, *responseInfo->mutable_avg_latency());
         updateWarmUpStatus(responseInfo);
     }
     responseInfo->set_target_weight(targetWeight);
@@ -130,8 +124,7 @@ void QueryInfoStatistics::fillResponseInfo(GigResponseInfo *responseInfo,
     endQuery();
 }
 
-void QueryInfoStatistics::updateErrorRatio(MultiCallErrorCode ec,
-                                           ServerRatioFilter &errorRatio) {
+void QueryInfoStatistics::updateErrorRatio(MultiCallErrorCode ec, ServerRatioFilter &errorRatio) {
     float error = ec > MULTI_CALL_ERROR_DEC_WEIGHT ? MAX_RATIO : MIN_RATIO;
     auto errorRatioLimit = INVALID_FILTER_VALUE;
     const auto &queryInfo = *_queryInfo;
@@ -162,8 +155,7 @@ void QueryInfoStatistics::updateDegradeRatio(MultiCallErrorCode ec,
     _bizStat->fillDegradeRatio(degradeRatio);
 }
 
-void QueryInfoStatistics::updateAverageLatency(MultiCallErrorCode ec,
-                                               float responseLatencyMs,
+void QueryInfoStatistics::updateAverageLatency(MultiCallErrorCode ec, float responseLatencyMs,
                                                AverageLatency &avgLatency) {
     updateLatency(ec, responseLatencyMs);
     updateLoadBalanceLatency(ec, responseLatencyMs);
@@ -171,31 +163,26 @@ void QueryInfoStatistics::updateAverageLatency(MultiCallErrorCode ec,
     _bizStat->fillAvgLatency(avgLatency);
 }
 
-void QueryInfoStatistics::updateLatency(MultiCallErrorCode ec,
-                                        float responseLatencyMs) {
+void QueryInfoStatistics::updateLatency(MultiCallErrorCode ec, float responseLatencyMs) {
     auto &latencyFilter = _bizStat->latencyMetricFilter.value;
     auto latencyLimit = INVALID_FILTER_VALUE;
     const auto &queryInfo = *_queryInfo;
     if (queryInfo.has_latency_limit_ms()) {
         latencyLimit = queryInfo.latency_limit_ms();
     }
-    if (ec <= MULTI_CALL_ERROR_DEC_WEIGHT ||
-        responseLatencyMs > (uint64_t)latencyFilter.output()) {
+    if (ec <= MULTI_CALL_ERROR_DEC_WEIGHT || responseLatencyMs > (uint64_t)latencyFilter.output()) {
         latencyFilter.update(responseLatencyMs, latencyLimit);
     }
 }
 
-void QueryInfoStatistics::updateLoadBalanceLatency(MultiCallErrorCode ec,
-                                                   float responseLatencyMs) {
+void QueryInfoStatistics::updateLoadBalanceLatency(MultiCallErrorCode ec, float responseLatencyMs) {
     auto loadBalanceLatency = responseLatencyMs;
     const auto &queryInfo = *_queryInfo;
     if (queryInfo.has_load_balance_latency_limit_ms()) {
-        loadBalanceLatency =
-            min(loadBalanceLatency, queryInfo.load_balance_latency_limit_ms());
+        loadBalanceLatency = min(loadBalanceLatency, queryInfo.load_balance_latency_limit_ms());
     }
 
-    auto &loadBalanceLatencyFilter =
-        _bizStat->latencyMetricFilter.loadBalanceValue;
+    auto &loadBalanceLatencyFilter = _bizStat->latencyMetricFilter.loadBalanceValue;
     if (ec <= MULTI_CALL_ERROR_DEC_WEIGHT ||
         responseLatencyMs > (uint64_t)loadBalanceLatencyFilter.output()) {
         loadBalanceLatencyFilter.update(loadBalanceLatency);
@@ -224,29 +211,19 @@ void QueryInfoStatistics::endQuery() {
 }
 
 void QueryInfoStatistics::reportBizStat(BizMetricReporter &bizReporter) {
-    bizReporter.reportAgentErrorRatio(
-        _bizStat->errorMetricFilter.value.output());
-    bizReporter.reportAgentLBErrorRatio(
-        _bizStat->errorMetricFilter.loadBalanceValue.output());
+    bizReporter.reportAgentErrorRatio(_bizStat->errorMetricFilter.value.output());
+    bizReporter.reportAgentLBErrorRatio(_bizStat->errorMetricFilter.loadBalanceValue.output());
 
-    bizReporter.reportAgentDegradeRatio(
-        _bizStat->degradeMetricFilter.value.output());
-    bizReporter.reportAgentLBDegradeRatio(
-        _bizStat->degradeMetricFilter.loadBalanceValue.output());
+    bizReporter.reportAgentDegradeRatio(_bizStat->degradeMetricFilter.value.output());
+    bizReporter.reportAgentLBDegradeRatio(_bizStat->degradeMetricFilter.loadBalanceValue.output());
 
-    bizReporter.reportAgentAvgLatency(
-        _bizStat->latencyMetricFilter.value.output());
-    bizReporter.reportAgentLBAvgLatency(
-        _bizStat->latencyMetricFilter.loadBalanceValue.output());
+    bizReporter.reportAgentAvgLatency(_bizStat->latencyMetricFilter.value.output());
+    bizReporter.reportAgentLBAvgLatency(_bizStat->latencyMetricFilter.loadBalanceValue.output());
 
-    bizReporter.reportAgentNormalProcessingCount(
-        _bizStat->processingCount.normalCount);
-    bizReporter.reportAgentDegradeProcessingCount(
-        _bizStat->processingCount.degradeCount);
-    bizReporter.reportAgentNormalAvgLatency(
-        _bizStat->normalLatencyFilter.output());
-    bizReporter.reportAgentDegradeAvgLatency(
-        _bizStat->degradeLatencyFilter.output());
+    bizReporter.reportAgentNormalProcessingCount(_bizStat->processingCount.normalCount);
+    bizReporter.reportAgentDegradeProcessingCount(_bizStat->processingCount.degradeCount);
+    bizReporter.reportAgentNormalAvgLatency(_bizStat->normalLatencyFilter.output());
+    bizReporter.reportAgentDegradeAvgLatency(_bizStat->degradeLatencyFilter.output());
 
     bizReporter.reportAgentAvgWeight(_bizStat->weightFilter.output());
     if (_delayMs != INVALID_FILTER_VALUE) {

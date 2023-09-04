@@ -24,31 +24,22 @@ namespace autil {
 AUTIL_DECLARE_AND_SETUP_LOGGER(autil, SimpleBlockAllocator);
 
 SimpleBlockAllocator::SimpleBlockAllocator(uint32_t blockSize)
-    : BlockAllocator(blockSize)
-    , _blockHeaderAllocator(sizeof(Block))
-    , _blockDataAllocator(blockSize)
-{ 
-}
+    : BlockAllocator(blockSize), _blockHeaderAllocator(sizeof(Block)), _blockDataAllocator(blockSize) {}
 
-SimpleBlockAllocator::~SimpleBlockAllocator() { 
-    clear();
-}
+SimpleBlockAllocator::~SimpleBlockAllocator() { clear(); }
 
-Block* SimpleBlockAllocator::allocBlock()
-{
+Block *SimpleBlockAllocator::allocBlock() {
     ScopedLock lock(_blockAllocatorLock);
     Block *block = new (_blockHeaderAllocator.allocate()) Block();
     block->_data = (uint8_t *)_blockDataAllocator.allocate();
     return block;
 }
 
-void SimpleBlockAllocator::freeBlock(Block* block)
-{
+void SimpleBlockAllocator::freeBlock(Block *block) {
     ScopedLock lock(_blockAllocatorLock);
     _blockDataAllocator.free(block->_data);
     block->~Block();
     _blockHeaderAllocator.free(block);
 }
 
-}
-
+} // namespace autil

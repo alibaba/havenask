@@ -19,31 +19,23 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 
-
 namespace autil {
 
-struct SysAllocator
-{
-    void* allocate(size_t nBytes) {
-        return ::malloc(nBytes);
-    }
-    void deallocate(void *ptr, size_t /*nBytes*/) {
-        ::free(ptr);
-    }
+struct SysAllocator {
+    void *allocate(size_t nBytes) { return ::malloc(nBytes); }
+    void deallocate(void *ptr, size_t /*nBytes*/) { ::free(ptr); }
 };
 
-struct MmapAllocator
-{
-    void* allocate(size_t nBytes) {
-        void *ret = mmap(NULL, nBytes, PROT_READ | PROT_WRITE,
-                         MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+struct MmapAllocator {
+    void *allocate(size_t nBytes) {
+        void *ret = mmap(NULL, nBytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
         return (ret == MAP_FAILED) ? NULL : ret;
     }
     void deallocate(void *ptr, size_t nBytes) {
         int ret = munmap(ptr, nBytes);
-        (void) ret; assert(ret == 0);
+        (void)ret;
+        assert(ret == 0);
     }
 };
 
-}
-
+} // namespace autil

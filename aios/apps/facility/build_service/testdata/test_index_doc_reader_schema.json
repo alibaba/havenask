@@ -1,0 +1,84 @@
+{
+    "attributes": [
+        {
+            "field_name": "sort1",
+            "slice_count": 2
+        },
+        "sort2",
+        "string1",
+        "pk",
+        "multi_int16"
+    ],
+    "dictionaries": [
+        {
+            "content": "1",
+            "dictionary_name": "top"
+        }
+    ],
+    "fields": [
+        {
+            "field_name": "sort1",
+            "field_type": "INT8",
+            "enable_null" : true
+        },
+        {
+            "field_name": "sort2",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "string1",
+            "field_type": "string",
+            "updatable_multi_value": true,
+            "enable_null" : true
+        },
+        {
+            "compress_type": "uniq|equal",
+            "field_name": "multi_int16",
+            "field_type": "INT16",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "field_name": "pk",
+            "field_type": "STRING"
+        }
+    ],
+    "indexs": [
+        {
+            "has_primary_key_attribute": false,
+            "index_fields": "pk",
+            "index_name": "pk",
+            "index_type": "PRIMARYKEY64",
+            "is_primary_key_sorted": true
+        },
+        {
+            "high_frequency_dictionary": "top",
+            "index_fields": "string1",
+            "index_name": "string1",
+            "index_type": "STRING",
+            "term_frequency_flag": 0,
+            "index_updatable": true
+        },
+        {
+            "index_fields": "sort1",
+            "index_name": "sort1",
+            "index_type": "NUMBER",
+            "term_frequency_flag": 0,
+            "index_updatable": true
+        },
+        {
+            "index_fields": "sort2",
+            "index_name": "sort2",
+            "index_type": "NUMBER"
+        }
+    ],
+    "summarys": {
+        "compress": false,
+        "summary_fields": [
+            "sort1",
+            "sort2"
+        ]
+    },
+    "table_name": "normal_table",
+    "table_type": "normal"
+}

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/ConnectionPool.h"
+
 #include "aios/network/gig/multi_call/service/ConnectionFactory.h"
 
 using namespace std;
@@ -22,10 +23,12 @@ using namespace autil;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, ConnectionPool);
 
-ConnectionPool::ConnectionPool()
-    : _transport(NULL), _queueSize(0), _threadNum(0) {}
+ConnectionPool::ConnectionPool() : _transport(NULL), _queueSize(0), _threadNum(0) {
+}
 
-ConnectionPool::~ConnectionPool() { stop(); }
+ConnectionPool::~ConnectionPool() {
+    stop();
+}
 
 void ConnectionPool::stop() {
     if (_transport) {
@@ -67,8 +70,7 @@ ConnectionPtr ConnectionPool::addConnection(const std::string &spec) {
         if (_connectionMap.end() == it) {
             con = _connectionFactory->createConnection(spec);
             if (!con) {
-                AUTIL_LOG(ERROR, "create connection failed, spec [%s]",
-                          spec.c_str());
+                AUTIL_LOG(ERROR, "create connection failed, spec [%s]", spec.c_str());
                 return ConnectionPtr();
             }
             _connectionMap[spec] = con;
@@ -100,8 +102,7 @@ void ConnectionPool::removeConnection(const std::string &spec) {
     _connectionMap.erase(spec);
 }
 
-std::vector<std::string>
-ConnectionPool::getRemoveList(const set<string> &keepSpecs) {
+std::vector<std::string> ConnectionPool::getRemoveList(const set<string> &keepSpecs) {
     std::vector<std::string> allSpec;
     std::vector<std::string> removeList;
     {

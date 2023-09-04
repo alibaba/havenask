@@ -47,8 +47,9 @@ struct LeaderInfo : public autil::legacy::Jsonizable {
 
 } // namespace
 
-bool RpcChannelManager::Init(const std::string& zkRoot)
+bool RpcChannelManager::Init(const std::string& zkRoot, bool isJsonFormat)
 {
+    _isJsonFormat = isJsonFormat;
     auto zkHost = getHostFromZkPath(zkRoot);
     if (zkHost.empty()) {
         return false;
@@ -113,19 +114,30 @@ std::string RpcChannelManager::getAdminTcpAddress()
     }
     std::string content;
     std::string leaderPath = fslib::util::FileUtil::joinFilePath(_zkPath, "admin/LeaderElection");
+    if (!_isJsonFormat) {
+        leaderPath = fslib::util::FileUtil::joinFilePath(leaderPath, "leader_election0000000000");
+    }
     if (_zkWrapper->getData(leaderPath, content) != ZOK) {
         BS_LOG(ERROR, "get leader info from [%s] failed", leaderPath.c_str());
         return std::string();
     }
-    LeaderInfo leaderInfo;
-    try {
-        autil::legacy::FromJsonString(leaderInfo, content);
-    } catch (const std::exception& e) {
-        BS_LOG(ERROR, "from json string failed: content[%s], exception[%s]", content.c_str(), e.what());
-        return std::string();
+    if (_isJsonFormat) {
+        LeaderInfo leaderInfo;
+        try {
+            autil::legacy::FromJsonString(leaderInfo, content);
+        } catch (const std::exception& e) {
+            BS_LOG(ERROR, "from json string failed: content[%s], exception[%s]", content.c_str(), e.what());
+            return std::string();
+        }
+        return leaderInfo.address;
+    } else {
+        const auto& addresses = autil::StringUtil::split(content, '\n');
+        if (!addresses.empty()) {
+            return addresses[0];
+        } else {
+            return std::string();
+        }
     }
-
-    return leaderInfo.address;
 }
 
 std::string RpcChannelManager::getHostFromZkPath(const std::string& zkPath)

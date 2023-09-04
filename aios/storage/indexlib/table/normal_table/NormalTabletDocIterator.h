@@ -37,7 +37,7 @@ class AttributeIteratorBase;
 } // namespace indexlibv2::index
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::table {
@@ -53,6 +53,7 @@ public:
     Status Init(const std::shared_ptr<framework::TabletData>& tabletData,
                 std::pair<uint32_t /*0-99*/, uint32_t /*0-99*/> rangeInRatio,
                 const std::shared_ptr<indexlibv2::framework::MetricsManager>& metricsManager,
+                const std::vector<std::string>& requiredFields,
                 const std::map<std::string, std::string>& params) override;
     Status Next(indexlibv2::document::RawDocument* rawDocument, std::string* checkpoint,
                 document::IDocument::DocInfo* docInfo) override;
@@ -61,7 +62,7 @@ public:
 
 private:
     Status SeekByDocId(docid_t docId);
-    Status InitFieldReaders(const std::string& requiredFieldsStr);
+    Status InitFieldReaders(const std::vector<std::string>& fieldNames);
 
     Status InitPostingExecutor(const std::string& userDefineIndexParamStr);
     std::shared_ptr<indexlib::index::PostingExecutor>
@@ -84,7 +85,6 @@ private:
     std::shared_ptr<indexlib::index::PostingExecutor> _postingExecutor;
     docid_t _currentDocId = INVALID_DOCID;
     bool _tryBestExport = false;
-    const static std::string USER_REQUIRED_FIELDS;
     const static std::string USER_DEFINE_INDEX_PARAM;
     const static std::string BUILDIN_KEEP_DELETED_DOC;
     const static std::string BUILDIN_DOCID_RANGE;

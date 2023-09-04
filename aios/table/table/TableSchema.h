@@ -18,34 +18,34 @@
 #include <map>
 #include <string>
 
-#include "table/Common.h"
 #include "table/ColumnSchema.h"
 
 namespace table {
 
-class TableSchema
-{
+class TableSchema {
 public:
     TableSchema() {}
     ~TableSchema() {}
+
 private:
     TableSchema(const TableSchema &);
-    TableSchema& operator=(const TableSchema &);
+    TableSchema &operator=(const TableSchema &);
+
 public:
     bool addColumnSchema(const ColumnSchemaPtr &columnSchema);
-    // bool addColumnSchema(const std::string &name, ValueType vt);
     bool eraseColumnSchema(const std::string &name);
-    ColumnSchema* getColumnSchema(const std::string &name) const;
+    ColumnSchema *getColumnSchema(const std::string &name) const;
     std::string toString() const;
-    bool operator == (const TableSchema& other) const;
-    bool hasMultiValueColumn() const;
+    bool operator==(const TableSchema &other) const;
+    bool operator!=(const TableSchema &other) const { return !(*this == other); }
+
 private:
     std::map<std::string, ColumnSchemaPtr> _columnSchema;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
-TABLE_TYPEDEF_PTR(TableSchema);
+using TableSchemaPtr = std::shared_ptr<TableSchema>;
 
-}
-
+} // namespace table

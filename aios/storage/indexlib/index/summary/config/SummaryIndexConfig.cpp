@@ -99,7 +99,9 @@ const std::string& SummaryIndexConfig::GetIndexType() const { return indexlibv2:
 
 const std::string& SummaryIndexConfig::GetIndexName() const { return indexlibv2::index::SUMMARY_INDEX_NAME; }
 
-std::vector<std::string> SummaryIndexConfig::GetIndexPath() const { return {index::SUMMARY_INDEX_PATH}; }
+const std::string& SummaryIndexConfig::GetIndexCommonPath() const { return index::SUMMARY_INDEX_PATH; }
+
+std::vector<std::string> SummaryIndexConfig::GetIndexPath() const { return {GetIndexCommonPath()}; }
 
 std::shared_ptr<indexlib::config::SummaryConfig> SummaryIndexConfig::GetSummaryConfig(fieldid_t fieldId) const
 {
@@ -385,5 +387,5 @@ Status SummaryIndexConfig::CheckCompatible(const IIndexConfig* other) const
     }
     return Status::OK();
 }
-
+bool SummaryIndexConfig::IsDisabled() const { return IsAllFieldsDisabled(); }
 } // namespace indexlibv2::config

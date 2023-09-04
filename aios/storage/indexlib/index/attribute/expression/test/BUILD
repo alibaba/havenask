@@ -1,0 +1,68 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+strict_cc_library(
+    name='AttributeExpressionTestHelper',
+    testonly=True,
+    srcs=[],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/expression', '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/index/attribute/expression:TabletSessionResource',
+        '//aios/storage/indexlib/index/attribute/test:AttributeTestUtil'
+    ]
+)
+strict_cc_fast_test(
+    name='FunctionConfigTest',
+    srcs=['FunctionConfigTest.cpp'],
+    data=['testdata/schema.json'],
+    deps=[
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
+        '//aios/storage/indexlib/index/attribute:Common',
+        '//aios/storage/indexlib/index/attribute/expression:FunctionConfig',
+        '//aios/storage/indexlib/table/normal_table:table',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='DocumentEvaluatorMaintainerTest',
+    srcs=['DocumentEvaluatorMaintainerTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['testdata/schema2.json', 'testdata/schema3.json'],
+    deps=[
+        ':AttributeExpressionTestHelper',
+        '//aios/storage/indexlib/index/attribute/expression:DocumentEvaluatorMaintainer',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='AtomicAttributeExpressionTest',
+    srcs=['AtomicAttributeExpressionTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['testdata/schema2.json'],
+    deps=[
+        ':AttributeExpressionTestHelper',
+        '//aios/storage/indexlib/index/attribute/expression:AtomicAttributeExpression',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='AttributePrefetcherTest',
+    srcs=['AttributePrefetcherTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':AttributeExpressionTestHelper',
+        '//aios/storage/indexlib/index/attribute/expression:AttributePrefetcher',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='AtomicExpressionCreatorTest',
+    srcs=['AtomicExpressionCreatorTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['testdata/schema2.json'],
+    deps=[
+        ':AttributeExpressionTestHelper',
+        '//aios/storage/indexlib/index/attribute/expression:AtomicExpressionCreator',
+        '//aios/unittest_framework'
+    ]
+)

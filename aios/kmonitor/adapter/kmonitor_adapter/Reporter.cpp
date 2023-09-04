@@ -27,14 +27,12 @@ namespace kmonitor_adapter {
 
 AUTIL_DECLARE_AND_SETUP_LOGGER(kmonitor, Reporter);
 
-Reporter* Reporter::getInstance()
-{
+Reporter *Reporter::getInstance() {
     static Reporter reporter;
     return &reporter;
 }
 
-Reporter::Reporter()
-{
+Reporter::Reporter() {
     // TODO: multi-threading report
     int64_t reportInterval = autil::EnvUtil::getEnv<size_t>("KMONITOR_ADAPTER_REPORT_INTERVAL",
                                                             1); // 1s
@@ -57,16 +55,14 @@ Reporter::Reporter()
     });
     AUTIL_LOG(INFO, "report thread started");
 }
-Reporter::~Reporter()
-{
+Reporter::~Reporter() {
     if (_running.load()) {
         _running = false;
         _reportThread.join();
     }
 }
 
-void Reporter::registerRecorder(Recorder* r)
-{
+void Reporter::registerRecorder(Recorder *r) {
     std::lock_guard<std::mutex> l(_mtx);
     if (r) {
         _recorders.insert(r);
@@ -74,8 +70,7 @@ void Reporter::registerRecorder(Recorder* r)
     }
 }
 
-void Reporter::unregisterRecoder(Recorder* r)
-{
+void Reporter::unregisterRecoder(Recorder *r) {
     std::lock_guard<std::mutex> l(_mtx);
     if (r) {
         _recorders.erase(r);
@@ -86,15 +81,13 @@ void Reporter::unregisterRecoder(Recorder* r)
 Recorder::Recorder() : _threadData(new autil::ThreadLocalPtr(&unrefHandle)) {}
 Recorder::~Recorder() {}
 
-void Recorder::registerRecorder()
-{
+void Recorder::registerRecorder() {
     auto reporter = Reporter::getInstance();
     assert(reporter);
     reporter->registerRecorder(this);
 }
 
-void Recorder::unregisterRecoder()
-{
+void Recorder::unregisterRecoder() {
     auto reporter = Reporter::getInstance();
     assert(reporter);
     reporter->unregisterRecoder(this);

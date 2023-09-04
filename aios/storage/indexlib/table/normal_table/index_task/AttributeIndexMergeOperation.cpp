@@ -16,7 +16,7 @@
 #include "indexlib/table/normal_table/index_task/AttributeIndexMergeOperation.h"
 
 #include "indexlib/base/PathUtil.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/index/IIndexMerger.h"
 #include "indexlib/index/attribute/Common.h"
@@ -38,7 +38,7 @@ AttributeIndexMergeOperation::AttributeIndexMergeOperation(const framework::Inde
 std::pair<Status, std::shared_ptr<config::IIndexConfig>>
 AttributeIndexMergeOperation::GetIndexConfig(const framework::IndexOperationDescription& opDesc,
                                              const std::string& indexType, const std::string& indexName,
-                                             const std::shared_ptr<config::TabletSchema>& schema)
+                                             const std::shared_ptr<config::ITabletSchema>& schema)
 {
     auto indexConfig = schema->GetIndexConfig(indexType, indexName);
     if (!indexConfig) {
@@ -48,8 +48,8 @@ AttributeIndexMergeOperation::GetIndexConfig(const framework::IndexOperationDesc
         return std::make_pair(Status::Corruption("get index config failed"), nullptr);
     }
 
-    std::shared_ptr<indexlibv2::config::AttributeConfig> attributeConfig =
-        std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(indexConfig);
+    std::shared_ptr<indexlibv2::index::AttributeConfig> attributeConfig =
+        std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(indexConfig);
 
     if (attributeConfig == nullptr) {
         auto status = Status::Corruption("Invalid attribute config encountered [%s]", indexName.c_str());

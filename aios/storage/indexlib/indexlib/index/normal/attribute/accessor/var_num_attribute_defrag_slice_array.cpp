@@ -22,7 +22,8 @@ namespace indexlib { namespace index {
 IE_LOG_SETUP(index, VarNumAttributeDefragSliceArray);
 
 VarNumAttributeDefragSliceArray::VarNumAttributeDefragSliceArray(const DefragSliceArray::SliceArrayPtr& sliceArray,
-                                                                 const string& attrName, float defragPercentThreshold)
+                                                                 const string& attrName,
+                                                                 uint64_t defragPercentThreshold)
     : DefragSliceArray(sliceArray)
     , mOffsetReader(NULL)
     , mAttributeMetrics(NULL)
@@ -100,7 +101,7 @@ bool VarNumAttributeDefragSliceArray::NeedDefrag(int64_t sliceIdx)
     }
 
     size_t wastedSize = GetWastedSize(sliceIdx);
-    size_t threshold = (size_t)(GetSliceLen() * mDefragPercentThreshold);
+    size_t threshold = (size_t)(GetSliceLen() * (mDefragPercentThreshold / 100.0));
 
     return wastedSize >= threshold;
 }

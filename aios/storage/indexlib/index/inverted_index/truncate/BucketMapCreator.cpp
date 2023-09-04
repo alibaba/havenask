@@ -18,8 +18,8 @@
 #include <algorithm>
 
 #include "autil/ThreadPool.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/SortParam.h"
-#include "indexlib/config/TabletSchema.h"
 #include "indexlib/index/DocMapper.h"
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/inverted_index/truncate/SortWorkItem.h"
@@ -29,7 +29,7 @@ AUTIL_LOG_SETUP(indexlib.index, BucketMapCreator);
 
 std::pair<Status, BucketMaps> BucketMapCreator::CreateBucketMaps(
     const std::shared_ptr<indexlibv2::config::TruncateOptionConfig>& truncateOptionConfig,
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& tabletSchema,
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& tabletSchema,
     const std::shared_ptr<indexlibv2::index::DocMapper>& docMapper, TruncateAttributeReaderCreator* attrReaderCreator,
     int64_t segmentMergePlanIdx)
 {
@@ -99,7 +99,7 @@ std::string BucketMapCreator::GetBucketMapName(size_t segmentMergePlanIdx, const
 bool BucketMapCreator::NeedCreateBucketMap(
     const std::shared_ptr<indexlibv2::config::TruncateProfile>& truncateProfile,
     const std::shared_ptr<indexlibv2::config::TruncateStrategy>& truncateStrategy,
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& tabletSchema)
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& tabletSchema)
 {
     if (!truncateProfile->HasSort()) {
         return false;

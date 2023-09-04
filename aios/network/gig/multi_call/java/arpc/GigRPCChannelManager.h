@@ -22,7 +22,8 @@
 
 namespace multi_call {
 
-class GigRPCChannelManager : public arpc::ANetRPCChannelManager {
+class GigRPCChannelManager : public arpc::ANetRPCChannelManager
+{
 public:
     GigRPCChannelManager(anet::Transport *transport = NULL);
     virtual ~GigRPCChannelManager();
@@ -34,11 +35,9 @@ private:
 public:
     // queueSize : default queue size for rpcchannel
     // timout    : default timeout for rpcchannel(miliseconds)
-    RPCChannel *
-    OpenChannel(const std::string &address, bool block = false,
-                size_t queueSize = 50ul, int timeout = 5000,
-                bool autoReconn = true,
-                anet::CONNPRIORITY prio = anet::ANET_PRIORITY_NORMAL) override;
+    RPCChannel *OpenChannel(const std::string &address, bool block = false, size_t queueSize = 50ul,
+                            int timeout = 5000, bool autoReconn = true,
+                            anet::CONNPRIORITY prio = anet::ANET_PRIORITY_NORMAL) override;
 
 private:
     AUTIL_LOG_DECLARE();

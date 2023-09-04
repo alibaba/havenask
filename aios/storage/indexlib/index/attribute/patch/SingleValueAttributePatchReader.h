@@ -91,7 +91,7 @@ public:
     using PatchHeap = std::priority_queue<SinglePatchFile*, std::vector<SinglePatchFile*>, PatchComparator>;
 
 public:
-    SingleValueAttributePatchReader(const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    SingleValueAttributePatchReader(const std::shared_ptr<AttributeConfig>& attrConfig);
     virtual ~SingleValueAttributePatchReader();
 
 public:
@@ -171,8 +171,7 @@ inline void SinglePatchFile::GetPatchValue<autil::LongHashValue<2>>(autil::LongH
 
 /////////////////////////////////////////////////////
 template <typename T>
-SingleValueAttributePatchReader<T>::SingleValueAttributePatchReader(
-    const std::shared_ptr<config::AttributeConfig>& attrConfig)
+SingleValueAttributePatchReader<T>::SingleValueAttributePatchReader(const std::shared_ptr<AttributeConfig>& attrConfig)
     : AttributePatchReader(attrConfig)
     , _patchFileLength(0)
     , _patchItemCount(0)

@@ -1,0 +1,215 @@
+{
+  "layer_tables": [
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "layer_table_name": "layer_table_tj_shop_01",
+      "content": {
+        "layer_table_name": "layer_table_tj_shop_01",
+        "layer_format": [
+          {
+            "field_name":"ts",
+            "layer_method":"range",
+            "value_type": "int"
+          },
+          {
+            "field_name": "md5",
+            "layer_method": "grouping",
+            "value_type": "string"
+          }
+        ],
+        "layers": [
+          {
+            "database_name": "db1",
+            "table_name": "layer_table_t1",
+            "layer_info": {
+              "ts":[[45, 78]],
+              "md5":["123456"]
+            }
+          },
+          {
+            "database_name": "db1",
+            "table_name": "layer_table_t2",
+            "layer_info": {
+              "ts":[[99, 145]],
+              "md5":["123456"]
+            }
+          },
+          {
+            "database_name": "db1",
+            "table_name": "layer_table_t3",
+            "layer_info": {
+              "ts":[[0, 38]],
+              "md5":["-123456"]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "layer_table_name": "layer_table_tj_shop_02",
+      "content": {
+        "layer_table_name": "layer_table_tj_shop_02",
+        "layer_format": [
+          {
+            "field_name":"ts",
+            "layer_method":"range",
+            "value_type": "int"
+          }
+        ],
+        "layers": [
+          {
+            "database_name": "db1",
+            "table_name": "layer_table_t1",
+            "layer_info": {
+              "ts": [[45, 78]]
+            }
+          },
+          {
+            "database_name": "db1",
+            "table_name": "layer_table_t2",
+            "layer_info": {
+              "ts": [[99, 145]]
+            }
+          },
+          {
+            "database_name": "db1",
+            "table_name": "layer_table_t3",
+            "layer_info": {
+              "ts": [[0, 38]]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "layer_table_name": "layer_table_order",
+      "content": {
+        "layer_table_name": "layer_table_order",
+        "layer_format": [
+          {
+            "field_name":"is_online",
+            "layer_method":"grouping",
+            "value_type": "int"
+          }
+        ],
+        "layers": [
+          {
+            "database_name": "db1",
+            "table_name": "layer_table_t1",
+            "layer_info": {
+              "is_online": [0]
+            }
+          },
+          {
+            "database_name": "db1",
+            "table_name": "layer_table_t2",
+            "layer_info": {
+              "is_online": [1]
+            }
+          }
+        ],
+        "properties": {
+          "distinct" : {
+            "type": "agg",
+            "params": {
+              "primary": "max",
+              "default": "ARBITRARY"
+            }
+          }
+        }
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "layer_table_name": "layer_table_order_simple",
+      "content": {
+        "layer_table_name": "layer_table_order_simple",
+        "layer_format": [
+          {
+            "field_name":"is_online",
+            "layer_method":"grouping",
+            "value_type": "int"
+          }
+        ],
+        "layers": [
+          {
+            "database_name": "db1",
+            "table_name": "layer_table_simple_01",
+            "layer_info": {
+              "is_online": [0]
+            }
+          },
+          {
+            "database_name": "db1",
+            "table_name": "layer_table_simple_02",
+            "layer_info": {
+              "is_online": [1]
+            }
+          }
+        ],
+        "properties": {
+          "distinct" : {
+            "type": "agg",
+            "params": {
+              "primary": "max",
+              "default": "ARBITRARY"
+            }
+          }
+        }
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "layer_table_name": "layer_table_simple_three",
+      "content": {
+        "layer_table_name": "layer_table_simple_three",
+        "layer_format": [
+          {
+            "field_name":"ds",
+            "layer_method":"grouping",
+            "value_type": "int"
+          }
+        ],
+        "layers": [
+          {
+            "database_name": "db1",
+            "table_name": "layer_table_simple_01",
+            "layer_info": {
+              "ds": [0]
+            }
+          },
+          {
+            "database_name": "db1",
+            "table_name": "layer_table_simple_02",
+            "layer_info": {
+              "ds": [1]
+            }
+          },
+          {
+            "database_name": "db1",
+            "table_name": "layer_table_simple_03",
+            "layer_info": {
+              "ds": [2]
+            }
+          }
+        ],
+        "properties": {
+          "distinct" : {
+            "type": "agg",
+            "params": {
+              "primary": "max",
+              "default": "ARBITRARY"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

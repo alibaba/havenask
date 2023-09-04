@@ -19,7 +19,8 @@
 #include <limits>
 
 namespace autil {
-TimeoutTerminator::TimeoutTerminator() : TimeoutTerminator(std::numeric_limits<int64_t>::max(), autil::TimeUtility::currentTime()) {}
+TimeoutTerminator::TimeoutTerminator()
+    : TimeoutTerminator(std::numeric_limits<int64_t>::max(), autil::TimeUtility::currentTime()) {}
 TimeoutTerminator::TimeoutTerminator(int64_t timeout) : TimeoutTerminator(timeout, autil::TimeUtility::currentTime()) {}
 
 TimeoutTerminator::TimeoutTerminator(int64_t timeout, int64_t startTime) {
@@ -50,9 +51,7 @@ void TimeoutTerminator::init(int32_t checkStep, int32_t restrictStep) {
 
 int32_t TimeoutTerminator::getCheckTimes() const { return _checkTimes; }
 int32_t TimeoutTerminator::getRestrictorCheckTimes() const { return _restrictorCheckTimes; }
-int64_t TimeoutTerminator::getLeftTime() {
-    return _expireTime - getCurrentTime();
-}
+int64_t TimeoutTerminator::getLeftTime() { return _expireTime - getCurrentTime(); }
 int64_t TimeoutTerminator::getExpireTime() const { return _expireTime; }
 int64_t TimeoutTerminator::getStartTime() const { return _startTime; }
 int64_t TimeoutTerminator::getTimeout() const { return _timeout; }

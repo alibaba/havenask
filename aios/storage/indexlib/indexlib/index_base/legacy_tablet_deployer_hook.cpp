@@ -48,10 +48,6 @@ void LegacyTabletDeployerHook::RewriteLoadConfigList(const std::string& rootPath
     }
 }
 
-__attribute__((constructor)) void RegisterLegacyTabletDeployerHook()
-{
-    framework::TabletHooksCreator::GetInstance()->RegisterTabletDeployerHook(
-        LEGACY_TABLE_TYPE, std::make_unique<LegacyTabletDeployerHook>());
-}
+REGISTER_TABLET_DEPLOYER_HOOK(__LEGACY_TABLE__, LegacyTabletDeployerHook);
 
 }} // namespace indexlib::index_base

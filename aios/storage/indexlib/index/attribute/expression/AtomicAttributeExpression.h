@@ -36,7 +36,7 @@ template <typename T>
 class AtomicAttributeExpression : public expression::AttributeExpressionTyped<T>, public AtomicAttributeExpressionBase
 {
 public:
-    AtomicAttributeExpression(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+    AtomicAttributeExpression(const std::shared_ptr<AttributeConfig>& attrConfig)
         : expression::AttributeExpressionTyped<T>(
               expression::ET_ATOMIC, expression::AttrValueType2ExprValueType<T>::evt,
               expression::AttrValueType2ExprValueType<T>::isMulti, attrConfig->GetAttrName())
@@ -52,7 +52,7 @@ public:
     Status Prefetch(const matchdoc::MatchDoc& matchDoc) override;
 
 private:
-    std::shared_ptr<config::AttributeConfig> _attrConfig;
+    std::shared_ptr<AttributeConfig> _attrConfig;
     AttributePrefetcher<T> _prefetcher;
 
 private:

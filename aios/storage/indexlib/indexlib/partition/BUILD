@@ -21,6 +21,16 @@ cc_library(
     ]
 )
 cc_library(
+    name='index_roll_back_util',
+    srcs=['index_roll_back_util.cpp'],
+    hdrs=['index_roll_back_util.h'],
+    copts=['-Werror'],
+    include_prefix='indexlib/partition',
+    visibility=['//visibility:public'],
+    deps=['//aios/storage/indexlib/indexlib/index_base'],
+    alwayslink=True
+)
+cc_library(
     name='partition-info-holder',
     srcs=['partition_info_holder.cpp'],
     hdrs=['partition_info_holder.h'],

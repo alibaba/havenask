@@ -21,45 +21,49 @@
 
 namespace iquan {
 
-template<typename T>
+template <typename T>
 IquanCache<T>::IquanCache(const CacheConfig &cacheConfig)
     : maxSizeInBytes(cacheConfig.maxSize) {}
 
-template<typename T>
+template <typename T>
 IquanCache<T>::~IquanCache() {
     if (likely(cachePtr != nullptr)) {
         cachePtr.reset();
     }
 }
 
-template<typename T>
+template <typename T>
 Status IquanCache<T>::reset() {
     cachePtr.reset(new LruCacheType(maxSizeInBytes));
     return Status::OK();
 }
 
-template<typename T>
-uint64_t IquanCache<T>::keyCount() const { return cachePtr->getKeyCount(); }
+template <typename T>
+uint64_t IquanCache<T>::keyCount() const {
+    return cachePtr->getKeyCount();
+}
 
-template<typename T>
-int64_t IquanCache<T>::capcaity() const { return cachePtr->getCacheSize(); }
+template <typename T>
+int64_t IquanCache<T>::capcaity() const {
+    return cachePtr->getCacheSize();
+}
 
-template<typename T>
-int64_t IquanCache<T>::size() const { return cachePtr->getCacheSizeUsed(); }
+template <typename T>
+int64_t IquanCache<T>::size() const {
+    return cachePtr->getCacheSizeUsed();
+}
 
-template<typename T>
+template <typename T>
 Status IquanCache<T>::calcHashKey(const std::string &key, uint64_t &keyHashValue) {
     keyHashValue = autil::HashAlgorithm::hashString64(key.c_str(), key.size());
     return Status::OK();
 }
 
-template<typename T>
-Status IquanCache<T>::put(
-    const std::string &key,
-    int64_t size,
-    const typename CacheValueInfoTyped::ValueType &value,
-    uint64_t *pHashKey)
-{
+template <typename T>
+Status IquanCache<T>::put(const std::string &key,
+                          int64_t size,
+                          const typename CacheValueInfoTyped::ValueType &value,
+                          uint64_t *pHashKey) {
     if (unlikely(cachePtr == nullptr)) {
         return Status(IQUAN_FAIL, "cache is not reset");
     }
@@ -77,12 +81,10 @@ Status IquanCache<T>::put(
     return Status::OK();
 }
 
-template<typename T>
-Status IquanCache<T>::get(
-    const std::string &key,
-    typename CacheValueInfoTyped::ValueType &value,
-    uint64_t *pHashKey)
-{
+template <typename T>
+Status IquanCache<T>::get(const std::string &key,
+                          typename CacheValueInfoTyped::ValueType &value,
+                          uint64_t *pHashKey) {
     if (unlikely(cachePtr == nullptr)) {
         return Status(IQUAN_FAIL, "cache is not reset");
     }

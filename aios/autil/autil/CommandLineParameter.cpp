@@ -15,9 +15,9 @@
  */
 #include "autil/CommandLineParameter.h"
 
+#include <iosfwd>
 #include <stdint.h>
 #include <string.h>
-#include <iosfwd>
 
 #include "autil/Log.h"
 #include "autil/StringTokenizer.h"
@@ -27,14 +27,14 @@ AUTIL_DECLARE_AND_SETUP_LOGGER(autil, CommandLineParameter);
 
 using namespace std;
 
-CommandLineParameter::CommandLineParameter(const string& cmd) {
-    //tokenize the cmd
-    StringTokenizer st(cmd, " ", StringTokenizer::TOKEN_TRIM
-                       | StringTokenizer::TOKEN_IGNORE_EMPTY);
+CommandLineParameter::CommandLineParameter(const string &cmd) {
+    // tokenize the cmd
+    StringTokenizer st(cmd, " ", StringTokenizer::TOKEN_TRIM | StringTokenizer::TOKEN_IGNORE_EMPTY);
 
-    //copy tokenized cmd into argv
-    _argc = st.getNumTokens();;
-    _argv = new char*[_argc];
+    // copy tokenized cmd into argv
+    _argc = st.getNumTokens();
+    ;
+    _argv = new char *[_argc];
     for (int32_t i = 0; i < _argc; ++i) {
         int32_t size = st[i].length() + 1;
         _argv[i] = new char[size];
@@ -43,7 +43,7 @@ CommandLineParameter::CommandLineParameter(const string& cmd) {
     }
 }
 
-CommandLineParameter::~CommandLineParameter() { 
+CommandLineParameter::~CommandLineParameter() {
     for (int32_t i = 0; i < _argc; ++i) {
         delete[] _argv[i];
         _argv[i] = NULL;
@@ -52,5 +52,4 @@ CommandLineParameter::~CommandLineParameter() {
     _argv = NULL;
 }
 
-}
-
+} // namespace autil

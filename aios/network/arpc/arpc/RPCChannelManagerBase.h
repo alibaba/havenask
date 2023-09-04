@@ -19,11 +19,10 @@
 #include <stddef.h>
 #include <string>
 
-#include "aios/network/arpc/arpc/CommonMacros.h"
-#include "aios/network/arpc/arpc/util/Log.h"
-#include "aios/network/arpc/arpc/RPCInterface.h"
 #include "aios/network/anet/connectionpriority.h"
-
+#include "aios/network/arpc/arpc/CommonMacros.h"
+#include "aios/network/arpc/arpc/RPCInterface.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 
 ARPC_BEGIN_NAMESPACE(arpc);
 
@@ -32,17 +31,15 @@ ARPC_BEGIN_NAMESPACE(arpc);
  * Base class for ARPCChannelManager.
  * Implemented useful functions.
  */
-class RPCChannelManagerBase : public RPCChannelManager
-{
+class RPCChannelManagerBase : public RPCChannelManager {
 public:
-
     /**
      * Constructor
      */
     RPCChannelManagerBase();
     virtual ~RPCChannelManagerBase();
-public:
 
+public:
     /**
      * Empty virtual base function, implementation is in ARPCChannelManager.
      */
@@ -65,4 +62,4 @@ public:
 TYPEDEF_PTR(RPCChannelManagerBase);
 ARPC_END_NAMESPACE(arpc);
 
-#endif //ARPC_RPCCHANNELMANAGERBASE_H
+#endif // ARPC_RPCCHANNELMANAGERBASE_H

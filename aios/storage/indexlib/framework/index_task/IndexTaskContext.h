@@ -22,6 +22,7 @@
 #include "autil/StringUtil.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/config/IndexTaskConfig.h"
 #include "indexlib/framework/index_task/BasicDefs.h"
 #include "indexlib/util/Clock.h"
 
@@ -41,7 +42,8 @@ class Clock;
 
 namespace indexlibv2::config {
 class TabletOptions;
-class TabletSchema;
+class ITabletSchema;
+class MergeConfig;
 } // namespace indexlibv2::config
 
 namespace indexlibv2::framework {
@@ -71,18 +73,20 @@ public:
     std::pair<Status, std::shared_ptr<indexlib::file_system::IDirectory>> CreateOpFenceRoot(IndexOperationId id,
                                                                                             bool useOpFenceDir) const;
 
+    const std::string& GetTableName() const;
     const std::shared_ptr<TabletData>& GetTabletData() const;
 
     void SetTabletOptions(const std::shared_ptr<config::TabletOptions>& options);
     const std::shared_ptr<config::TabletOptions>& GetTabletOptions() const;
-    const std::shared_ptr<config::TabletSchema>& GetTabletSchema() const;
-    std::shared_ptr<config::TabletSchema> GetTabletSchema(schemaid_t schemaId) const;
+    const std::shared_ptr<config::ITabletSchema>& GetTabletSchema() const;
+    std::shared_ptr<config::ITabletSchema> GetTabletSchema(schemaid_t schemaId) const;
     const std::shared_ptr<IndexTaskResourceManager>& GetResourceManager() const;
     const std::shared_ptr<indexlib::util::MetricProvider>& GetMetricProvider() const;
     const std::shared_ptr<framework::MetricsManager>& GetMetricsManager() const;
     const std::shared_ptr<util::Clock>& GetClock() const;
     segmentid_t GetMaxMergedSegmentId() const;
     versionid_t GetMaxMergedVersionId() const;
+    versionid_t GetBaseVersionId() const;
     const std::string& GetTaskEpochId() const { return _taskEpochId; }
     template <typename T>
     void AddParameter(std::string key, T value);
@@ -95,13 +99,12 @@ public:
 
     void SetResult(std::string result) const { _result = std::move(result); }
     const std::string& GetResult() const { return _result; }
+    const std::string& GetTaskType() const { return _taskType; }
+    const std::string& GetTaskName() const { return _taskName; }
     const std::string& GetTaskTempWorkRoot() { return _taskTempWorkRoot; }
     const std::string& GetSourceRoot() const { return _sourceRoot; }
     bool NeedSwitchIndexPath() const;
     void Log() const;
-    void SetDesignateTask(const std::string& taskType, const std::string& taskName);
-    std::optional<std::pair<std::string, std::string>> GetDesignateTask() const;
-
     void SetFinishedOpFences(std::map<IndexOperationId, std::shared_ptr<indexlib::file_system::IDirectory>> opFences);
 
     void SetGlobalRelocatableFolder(const std::shared_ptr<indexlib::file_system::RelocatableFolder>& folder) const;
@@ -110,13 +113,17 @@ public:
     Status RelocateAllDependOpFolders() const;
 
     static std::string GetRelocatableFolderWorkRoot(const std::string& fenceRoot, IndexOperationId opId);
+    bool SetDesignateTask(const std::string& taskType, const std::string& taskName) const;
+
+    std::shared_ptr<config::IndexTaskConfig> GetDesignateTaskConfig() const { return _designateTaskConfig; }
+    config::MergeConfig GetMergeConfig() const;
 
 public:
     void TEST_SetResourceManager(const std::shared_ptr<IndexTaskResourceManager>& manager)
     {
         _resourceManager = manager;
     }
-    void TEST_SetTabletSchema(std::shared_ptr<config::TabletSchema> tabletSchema) { _tabletSchema = tabletSchema; }
+    void TEST_SetTabletSchema(std::shared_ptr<config::ITabletSchema> tabletSchema) { _tabletSchema = tabletSchema; }
     void TEST_SetSpecifyMaxMergedSegId(segmentid_t maxMergeSegId) { _maxMergedSegmentId = maxMergeSegId; }
     void TEST_SetSpecifyMaxMergedVersionId(versionid_t maxVersionId) { _maxMergedVersionId = maxVersionId; }
     void TEST_SetTabletData(const std::shared_ptr<framework::TabletData>& tabletData) { _tabletData = tabletData; }
@@ -125,28 +132,36 @@ public:
     {
         _fenceRoot = fenceRoot;
     }
+    void TEST_SetIndexRoot(const std::shared_ptr<indexlib::file_system::Directory>& indexRoot)
+    {
+        _indexRoot = indexRoot;
+    }
 
 protected:
+    std::string _tableName;
     std::string _taskEpochId;
     std::string _taskTempWorkRoot;
-    std::optional<std::pair<std::string, std::string>> _designateTask; /* first: taskType, second: taskName */
     std::shared_ptr<indexlib::file_system::Directory> _indexRoot;
     std::shared_ptr<indexlib::file_system::Directory> _fenceRoot;
     std::shared_ptr<TabletData> _tabletData;
     std::shared_ptr<config::TabletOptions> _tabletOptions;
-    std::shared_ptr<config::TabletSchema> _tabletSchema;
+    std::shared_ptr<config::ITabletSchema> _tabletSchema;
     std::shared_ptr<IndexTaskResourceManager> _resourceManager;
     std::shared_ptr<indexlib::util::MetricProvider> _metricProvider;
     std::shared_ptr<framework::MetricsManager> _metricsManager;
     std::shared_ptr<util::Clock> _clock = std::make_shared<indexlibv2::util::Clock>();
     segmentid_t _maxMergedSegmentId = INVALID_SEGMENTID;
     versionid_t _maxMergedVersionId = INVALID_VERSIONID;
+    versionid_t _baseVersionId = INVALID_VERSIONID;
     Parameters _parameters;
     std::map<IndexOperationId, std::shared_ptr<indexlib::file_system::IDirectory>> _finishedOpFenceRoots;
 
     mutable std::shared_ptr<indexlib::file_system::RelocatableFolder> _globalRelocatableFolder;
     mutable std::string _result;
     std::string _sourceRoot;
+    mutable std::string _taskType;
+    mutable std::string _taskName;
+    mutable std::shared_ptr<config::IndexTaskConfig> _designateTaskConfig;
 
 private:
     friend class IndexTaskContextCreator;

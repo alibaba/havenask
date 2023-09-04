@@ -1,0 +1,5 @@
+{
+    "madrox_admin_address" : "zfs://test/",
+    "sync_index_root" : "dfs://test/",
+    "prefer_sync_index" : true
+}

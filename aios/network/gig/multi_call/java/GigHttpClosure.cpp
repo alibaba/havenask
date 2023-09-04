@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/java/GigHttpClosure.h"
+
 #include "aios/network/anet/httppacket.h"
 #include "aios/network/gig/multi_call/interface/HttpResponse.h"
 #include "aios/network/gig/multi_call/java/GigJavaUtil.h"
@@ -25,12 +26,13 @@ AUTIL_LOG_SETUP(multi_call, GigHttpClosure);
 
 GigHttpClosure::GigHttpClosure(JavaCallback callback, long callbackId,
                                const GigRequestGeneratorPtr &generator)
-    : GigJavaClosure(callback, callbackId, generator) {}
+    : GigJavaClosure(callback, callbackId, generator) {
+}
 
-GigHttpClosure::~GigHttpClosure() {}
+GigHttpClosure::~GigHttpClosure() {
+}
 
-bool GigHttpClosure::extractResponse(ResponsePtr response,
-                                     GigResponseHeader *responseHeader,
+bool GigHttpClosure::extractResponse(ResponsePtr response, GigResponseHeader *responseHeader,
                                      const char *&body, size_t &bodySize) {
     auto httpResponse = dynamic_pointer_cast<HttpResponse>(response);
     if (!httpResponse) {
@@ -44,15 +46,12 @@ bool GigHttpClosure::extractResponse(ResponsePtr response,
 
     HTTPPacketPtr httpPacket = httpResponse->getPacket();
     if (!httpPacket) {
-        AUTIL_LOG(ERROR,
-                  "gig call failed, packet is null, biz [%s], remote [%s]",
-                  httpResponse->getBizName().c_str(),
-                  httpResponse->getSpecStr().c_str());
+        AUTIL_LOG(ERROR, "gig call failed, packet is null, biz [%s], remote [%s]",
+                  httpResponse->getBizName().c_str(), httpResponse->getSpecStr().c_str());
         return false;
     }
     body = httpPacket->getBody(bodySize);
-    for (auto it = httpPacket->headerBegin(); it != httpPacket->headerEnd();
-         it++) {
+    for (auto it = httpPacket->headerBegin(); it != httpPacket->headerEnd(); it++) {
         auto header = responseHeader->add_headers();
         header->set_key(string(it->first));
         header->set_value(string(it->second));
@@ -63,8 +62,7 @@ bool GigHttpClosure::extractResponse(ResponsePtr response,
                   "gig call failed, ec [%d], http code [%d], err [%s], biz "
                   "[%s], remote [%s]",
                   httpResponse->getErrorCode(), httpResponse->getStatusCode(),
-                  httpResponse->errorString().c_str(),
-                  httpResponse->getBizName().c_str(),
+                  httpResponse->errorString().c_str(), httpResponse->getBizName().c_str(),
                   httpResponse->getSpecStr().c_str());
         return false;
     }

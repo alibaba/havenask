@@ -25,7 +25,8 @@ namespace iquan {
 
 class TableModel : public autil::legacy::Jsonizable {
 public:
-    TableModel() : tableVersion(-1) {}
+    TableModel()
+        : tableVersion(-1) {}
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("catalog_name", catalogName);
@@ -39,8 +40,8 @@ public:
     }
 
     bool isValid() const {
-        if (tableName.empty() || tableType.empty() || tableVersion < 0 || tableContentVersion.empty() ||
-            !tableContent.isValid()) {
+        if (tableName.empty() || tableType.empty() || tableVersion < 0
+            || tableContentVersion.empty() || !tableContent.isValid()) {
             return false;
         }
         return true;
@@ -59,7 +60,9 @@ public:
 
 class TableModels : public autil::legacy::Jsonizable {
 public:
-    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override { json.Jsonize("tables", tables); }
+    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
+        json.Jsonize("tables", tables);
+    }
 
     bool isValid() const {
         for (const auto &table : tables) {
@@ -70,8 +73,13 @@ public:
         return true;
     }
 
-    void merge(const TableModels &other) { tables.insert(tables.end(), other.tables.begin(), other.tables.end()); }
-    bool empty() const { return tables.empty(); }
+    void merge(const TableModels &other) {
+        tables.insert(tables.end(), other.tables.begin(), other.tables.end());
+    }
+    bool empty() const {
+        return tables.empty();
+    }
+
 public:
     std::vector<TableModel> tables;
 };

@@ -19,26 +19,24 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "matchdoc/MatchDoc.h"
-
-#include "ha3/rank/Comparator.h"
 #include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/rank/Comparator.h"
+#include "matchdoc/MatchDoc.h"
 
 namespace autil {
 namespace mem_pool {
 class Pool;
-}  // namespace mem_pool
-}  // namespace autil
+} // namespace mem_pool
+} // namespace autil
 
 namespace isearch {
 namespace rank {
 
-class MatchDocPriorityQueue
-{
+class MatchDocPriorityQueue {
 public:
-    MatchDocPriorityQueue(uint32_t size, autil::mem_pool::Pool *pool,
-                          const Comparator *cmp);
+    MatchDocPriorityQueue(uint32_t size, autil::mem_pool::Pool *pool, const Comparator *cmp);
     virtual ~MatchDocPriorityQueue();
+
 public:
     enum PUSH_RETURN_CODE {
         ITEM_ACCEPTED = 1,
@@ -51,7 +49,7 @@ public:
         _queueCmp = cmp;
     }
 
-    const Comparator* getComparator() const {
+    const Comparator *getComparator() const {
         return _queueCmp;
     }
 
@@ -89,16 +87,20 @@ public:
     matchdoc::MatchDoc &item(uint32_t idx) {
         return _items[idx];
     }
+
 public:
-    PUSH_RETURN_CODE push(matchdoc::MatchDoc item,
-                          matchdoc::MatchDoc *retItem);
-    bool isFull() const { return _size == _count; }
+    PUSH_RETURN_CODE push(matchdoc::MatchDoc item, matchdoc::MatchDoc *retItem);
+    bool isFull() const {
+        return _size == _count;
+    }
     virtual void swap(uint32_t a, uint32_t b);
+
 protected:
     uint32_t _size;
     uint32_t _count;
     const Comparator *_queueCmp;
     matchdoc::MatchDoc *_items;
+
 private:
     friend class MatchDocPriorityQueueTest;
     AUTIL_LOG_DECLARE();
@@ -129,4 +131,3 @@ MatchDocPriorityQueue::push(matchdoc::MatchDoc item, matchdoc::MatchDoc *retItem
 
 } // namespace rank
 } // namespace isearch
-

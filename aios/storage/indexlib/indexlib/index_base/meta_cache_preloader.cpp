@@ -17,6 +17,7 @@
 
 #include <unistd.h>
 
+#include "autil/EnvUtil.h"
 #include "autil/TimeUtility.h"
 #include "fslib/cache/FSCacheModule.h"
 #include "fslib/fs/FileSystem.h"
@@ -59,8 +60,8 @@ void MetaCachePreloader::Load(const DirectoryPtr& indexDir, versionid_t version)
         return;
     }
 
-    char* envParam = getenv("DISABLE_INDEX_META_PRELOADER");
-    if (envParam && string(envParam) == "true") {
+    string envParam = autil::EnvUtil::getEnv("DISABLE_INDEX_META_PRELOADER");
+    if (envParam == "true") {
         IE_LOG(INFO, "disable index_meta preloader");
         return;
     }

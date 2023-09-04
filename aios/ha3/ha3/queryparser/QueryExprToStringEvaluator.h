@@ -18,8 +18,8 @@
 #include <sstream>
 #include <string>
 
-#include "ha3/queryparser/QueryExprEvaluator.h"
 #include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/queryparser/QueryExprEvaluator.h"
 
 namespace isearch {
 namespace queryparser {
@@ -31,18 +31,17 @@ class OrQueryExpr;
 class PhraseTermExpr;
 class RankQueryExpr;
 class WordsTermExpr;
-}  // namespace queryparser
-}  // namespace isearch
-
+} // namespace queryparser
+} // namespace isearch
 
 namespace isearch {
 namespace queryparser {
 
-class QueryExprToStringEvaluator : public QueryExprEvaluator
-{
+class QueryExprToStringEvaluator : public QueryExprEvaluator {
 public:
     QueryExprToStringEvaluator();
     ~QueryExprToStringEvaluator();
+
 public:
     void evaluateAndExpr(AndQueryExpr *andExpr);
     void evaluateOrExpr(OrQueryExpr *orExpr);
@@ -57,12 +56,13 @@ public:
     std::string getString();
     std::string stealString();
     void reset();
+
 private:
     std::stringstream _ss;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
 } // namespace queryparser
 } // namespace isearch
-

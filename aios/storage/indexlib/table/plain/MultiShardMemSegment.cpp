@@ -15,9 +15,11 @@
  */
 #include "indexlib/table/plain/MultiShardMemSegment.h"
 
+#include "autil/UnitUtil.h"
 #include "indexlib/base/PathUtil.h"
 #include "indexlib/config/BuildConfig.h"
 #include "indexlib/config/TabletOptions.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/kv/KVDocument.h"
 #include "indexlib/file_system/Directory.h"
@@ -28,6 +30,9 @@
 
 namespace indexlibv2::plain {
 AUTIL_LOG_SETUP(indexlib.plain, MultiShardMemSegment);
+
+#define SEGMENT_LOG(level, format, args...)                                                                            \
+    AUTIL_LOG(level, "[%s] [%p] segment[%d] " format, _options->GetTabletName().c_str(), this, GetSegmentId(), ##args)
 
 Status MultiShardMemSegment::Open(const framework::BuildResource& resource,
                                   indexlib::framework::SegmentMetrics* lastSegmentMetrics)
@@ -51,7 +56,7 @@ Status MultiShardMemSegment::Open(const framework::BuildResource& resource,
     }
     UpdateMemUse();
 
-    AUTIL_LOG(INFO, "open multi shard mem segment with dir[%s]", GetSegmentDirectory()->DebugString().c_str());
+    SEGMENT_LOG(INFO, "open multi shard mem segment with dir[%s]", GetSegmentDirectory()->DebugString().c_str());
     return Status::OK();
 }
 
@@ -92,7 +97,7 @@ MultiShardMemSegment::GetShardSegmentMetrics(uint32_t shardId, indexlib::framewo
 {
     auto multiShardSegmentMetrics = dynamic_cast<MultiShardSegmentMetrics*>(metrics);
     if (multiShardSegmentMetrics == nullptr) {
-        AUTIL_LOG(WARN, "dynamic cast to MultiShardSegmentMetrics failed");
+        SEGMENT_LOG(WARN, "dynamic cast to MultiShardSegmentMetrics failed");
         return nullptr;
     }
     return multiShardSegmentMetrics->GetSegmentMetrics(shardId).get();
@@ -123,11 +128,9 @@ Status MultiShardMemSegment::Build(document::IDocumentBatch* batch)
     }
     assert(_shardPartitioner->GetShardCount() == shardCount);
     std::vector<std::shared_ptr<document::IDocumentBatch>> shardBatches(shardCount);
-    for (size_t i = 0; i < batch->GetBatchSize(); i++) {
-        if (batch->IsDropped(i)) {
-            continue;
-        }
-        auto doc = (*batch)[i];
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(batch);
+    while (iter->HasNext()) {
+        std::shared_ptr<indexlibv2::document::IDocument> doc = iter->Next();
         uint64_t keyHash = ExtractKeyHash(doc);
         uint32_t shardIdx = 0;
         _shardPartitioner->GetShardIdx(keyHash, shardIdx);
@@ -144,7 +147,7 @@ Status MultiShardMemSegment::Build(document::IDocumentBatch* batch)
         auto status = _shardSegments[i]->Build(shardBatches[i].get());
         UpdateMemUse();
         if (status.IsNeedDump()) {
-            AUTIL_LOG(INFO, "segment [%d] need dump", GetSegmentId());
+            SEGMENT_LOG(INFO, "segment shardidx[%lu] need dump, reason[%s]", i, status.ToString().c_str());
             return status;
         }
         RETURN_IF_STATUS_ERROR(status, "build doc failed");
@@ -199,10 +202,8 @@ uint64_t MultiShardMemSegment::ExtractKeyHash(const std::shared_ptr<document::ID
 bool MultiShardMemSegment::NeedDump() const
 {
     if (_segmentMeta.segmentInfo->docCount >= _options->GetBuildConfig().GetMaxDocCount()) {
-        AUTIL_LOG(INFO,
-                  "DumpSegment for reach doc count limit : "
-                  "docCount [%lu] over maxDocCount [%lu]",
-                  _segmentMeta.segmentInfo->docCount, _options->GetBuildConfig().GetMaxDocCount());
+        SEGMENT_LOG(INFO, "DumpSegment for reach doc count limit : docCount [%lu] over maxDocCount [%lu]",
+                    _segmentMeta.segmentInfo->docCount, _options->GetBuildConfig().GetMaxDocCount());
         return true;
     }
     return false;
@@ -231,6 +232,8 @@ void MultiShardMemSegment::EndDump()
 
 void MultiShardMemSegment::Seal()
 {
+    SEGMENT_LOG(INFO, "seal segment, EvaluateCurrentMemUsed[%s]",
+                autil::UnitUtil::GiBDebugString(EvaluateCurrentMemUsed()).c_str());
     for (auto& shardSegment : _shardSegments) {
         shardSegment->Seal();
         UpdateMemUse();
@@ -254,7 +257,7 @@ void MultiShardMemSegment::TEST_AddSegment(const std::shared_ptr<PlainMemSegment
 
 std::shared_ptr<PlainMemSegment>
 MultiShardMemSegment::CreatePlainMemSegment(const config::TabletOptions* options,
-                                            const std::shared_ptr<config::TabletSchema>& schema,
+                                            const std::shared_ptr<config::ITabletSchema>& schema,
                                             const framework::SegmentMeta& segmentMeta)
 {
     return std::make_shared<PlainMemSegment>(options, schema, segmentMeta);

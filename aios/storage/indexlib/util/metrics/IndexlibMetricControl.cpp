@@ -15,6 +15,7 @@
  */
 #include "indexlib/util/metrics/IndexlibMetricControl.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 #include "fslib/fs/File.h"
 #include "fslib/fs/FileSystem.h"
@@ -49,25 +50,23 @@ IndexlibMetricControl::Status IndexlibMetricControl::Get(const string& metricNam
 
 void IndexlibMetricControl::InitFromEnv()
 {
-    char* envParam = getenv("INDEXLIB_METRIC_PARAM");
-    if (envParam) {
+    string envParam = autil::EnvUtil::getEnv("INDEXLIB_METRIC_PARAM");
+    if (!envParam.empty()) {
         AUTIL_LOG(INFO, "Init IndexlibMetricControl by env INDEXLIB_METRIC_PARAM!");
-        InitFromString(string(envParam));
+        InitFromString(envParam);
         return;
     }
 
-    char* envFilePath = getenv("INDEXLIB_METRIC_PARAM_FILE_PATH");
-    if (envFilePath) {
+    string filePath = autil::EnvUtil::getEnv("INDEXLIB_METRIC_PARAM_FILE_PATH");
+    if (!filePath.empty()) {
         AUTIL_LOG(INFO,
                   "Init IndexlibMetricControl by env "
                   "INDEXLIB_METRIC_PARAM_FILE_PATH [%s]!",
-                  envFilePath);
-        string filePath(envFilePath);
+                  filePath.c_str());
         if (!IsExist(filePath)) {
             AUTIL_LOG(INFO, "INDEXLIB_METRIC_PARAM_FILE_PATH [%s] not exist!", filePath.c_str());
             return;
         }
-
         string fileContent;
         try {
             AtomicLoad(filePath, fileContent);

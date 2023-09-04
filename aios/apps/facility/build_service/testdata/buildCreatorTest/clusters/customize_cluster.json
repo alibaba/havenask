@@ -1,0 +1,9 @@
+{
+    "cluster_config" : {
+	"table_name" : "customize"
+    },
+    "build_option_config" : {
+	"sort_build" : false,
+	"async_build" : false
+    }
+}

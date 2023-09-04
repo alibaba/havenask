@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/SearchServiceProvider.h"
-#include "aios/network/gig/multi_call/stream/GigStreamRequest.h"
-#include "aios/network/gig/multi_call/new_heartbeat/HostHeartbeatInfo.h"
+
+#include <math.h>
+
 #include "aios/network/gig/multi_call/new_heartbeat/ClientTopoInfoMap.h"
+#include "aios/network/gig/multi_call/new_heartbeat/HostHeartbeatInfo.h"
+#include "aios/network/gig/multi_call/stream/GigStreamRequest.h"
 #include "autil/HashAlgorithm.h"
 #include "autil/StringUtil.h"
-#include <math.h>
 
 using namespace std;
 using namespace autil;
@@ -27,12 +29,12 @@ using namespace autil;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, SearchServiceProvider);
 
-bool operator==(const SearchServiceProvider &lhs,
-                const SearchServiceProvider &rhs) {
+bool operator==(const SearchServiceProvider &lhs, const SearchServiceProvider &rhs) {
     return lhs.getNodeId() == rhs.getNodeId();
 }
 
-SearchServiceProvider::SearchServiceProvider(const ConnectionManagerPtr &connectionManager, const TopoNode &topoNode)
+SearchServiceProvider::SearchServiceProvider(const ConnectionManagerPtr &connectionManager,
+                                             const TopoNode &topoNode)
     : _randomGenerator(autil::TimeUtility::currentTimeInMicroSeconds())
     , _clockDrift(200)
     , _weightBonus(WEIGHT_DEC_LIMIT)
@@ -45,10 +47,8 @@ SearchServiceProvider::SearchServiceProvider(const ConnectionManagerPtr &connect
     , _protocalVersion(topoNode.protocalVersion)
     , _isCopy(false)
     , _isValid(false)
-    , _ssType(topoNode.ssType)
-{
-    _agentId = HashAlgorithm::hashString64(_nodeId.c_str(),
-            _nodeId.size());
+    , _ssType(topoNode.ssType) {
+    _agentId = HashAlgorithm::hashString64(_nodeId.c_str(), _nodeId.size());
 
     atomic_set(&_previousServerVersion, 0);
     _nodeMeta = topoNode.meta;
@@ -71,7 +71,8 @@ SearchServiceProvider::SearchServiceProvider(const ConnectionManagerPtr &connect
     _clockDrift.setMinValue(-INVALID_FILTER_VALUE);
 }
 
-SearchServiceProvider::~SearchServiceProvider() {}
+SearchServiceProvider::~SearchServiceProvider() {
+}
 
 const HbInfoPtr &SearchServiceProvider::getHeartbeatInfo() const {
     return _hbInfo;
@@ -89,8 +90,7 @@ std::string SearchServiceProvider::getHeartbeatSpec() const {
     return _hbInfo ? _hbInfo->heartbeatSpec : "";
 }
 
-void SearchServiceProvider::updateHeartbeatInfo(
-    const HbMetaInfoPtr &hbMetaPtr) {
+void SearchServiceProvider::updateHeartbeatInfo(const HbMetaInfoPtr &hbMetaPtr) {
     if (_hbInfo) {
         _hbInfo->updateHbMeta(hbMetaPtr);
     }
@@ -107,8 +107,7 @@ bool SearchServiceProvider::isHeartbeatHealth() const {
         return false;
     }
     int64_t now = TimeUtility::currentTime();
-    if (now - _hbInfo->getTime() >
-        ControllerParam::HEARTBEAT_UNHEALTH_INTERVAL) {
+    if (now - _hbInfo->getTime() > ControllerParam::HEARTBEAT_UNHEALTH_INTERVAL) {
         return false;
     }
     return true;
@@ -141,8 +140,7 @@ ConnectionPtr SearchServiceProvider::getConnection(ProtocolType type) {
                   "attempt to use two type of protocol in one biz"
                   ", previous [%s], current [%s], spec[%s]",
                   convertProtocolTypeToStr(con->getType()).c_str(),
-                  convertProtocolTypeToStr(type).c_str(),
-                  getAnetSpec(type).c_str());
+                  convertProtocolTypeToStr(type).c_str(), getAnetSpec(type).c_str());
         return ConnectionPtr();
     }
     if (!con) {
@@ -154,8 +152,7 @@ ConnectionPtr SearchServiceProvider::getConnection(ProtocolType type) {
     return con;
 }
 
-bool SearchServiceProvider::needProbe(WeightTy probePercent,
-                                      RequestType &type) {
+bool SearchServiceProvider::needProbe(WeightTy probePercent, RequestType &type) {
     WeightTy rand = _randomGenerator.get() % MAX_WEIGHT;
     if (unlikely(probePercent < 0)) {
         type = RT_COPY;
@@ -169,10 +166,9 @@ bool SearchServiceProvider::needProbe(WeightTy probePercent,
     if (_controllerChain.warmUpController.needProbe()) {
         probePercent = MAX_WEIGHT;
     }
-    auto controllerNeedProbe =
-        _controllerChain.latencyController.needProbe() ||
-        _controllerChain.errorRatioController.needProbe() ||
-        _controllerChain.degradeRatioController.needProbe();
+    auto controllerNeedProbe = _controllerChain.latencyController.needProbe() ||
+                               _controllerChain.errorRatioController.needProbe() ||
+                               _controllerChain.degradeRatioController.needProbe();
     if (rand < MAX_PROBE_PERCENT || (!stopped && controllerNeedProbe)) {
         // probe more aggressively if new start
         type = RT_PROBE;
@@ -221,8 +217,7 @@ void SearchServiceProvider::updateWeight(ControllerFeedBack &feedBack) {
     doUpdateWeight(diff, feedBack.minWeight);
 }
 
-void SearchServiceProvider::updateLoadBalance(ControllerFeedBack &feedBack,
-                                              bool updateWeight) {
+void SearchServiceProvider::updateLoadBalance(ControllerFeedBack &feedBack, bool updateWeight) {
     if (unlikely(isCopy())) {
         // copy provider
         return;
@@ -233,8 +228,7 @@ void SearchServiceProvider::updateLoadBalance(ControllerFeedBack &feedBack,
     float newFactor = MAX_PERCENT;
 
     errorRatioController.updateLoadBalance(feedBack);
-    newFactor =
-        min(newFactor, degradeRatioController.updateLoadBalance(feedBack));
+    newFactor = min(newFactor, degradeRatioController.updateLoadBalance(feedBack));
     newFactor = min(newFactor, latencyController.updateLoadBalance(feedBack));
 
     updateWeightFactor(latencyController.serverValueVersion(), newFactor);
@@ -243,11 +237,9 @@ void SearchServiceProvider::updateLoadBalance(ControllerFeedBack &feedBack,
     }
 }
 
-void SearchServiceProvider::updateWeightFactor(int64_t version,
-                                               float newFactor)
-{
-    AUTIL_LOG(DEBUG, "update new factor, node: %s, factor: %f, version: %ld",
-              _nodeId.c_str(), newFactor, version);
+void SearchServiceProvider::updateWeightFactor(int64_t version, float newFactor) {
+    AUTIL_LOG(DEBUG, "update new factor, node: %s, factor: %f, version: %ld", _nodeId.c_str(),
+              newFactor, version);
     if (unlikely(0 == version)) {
         // compatible logic
         _loadBalanceWeightFactor = std::min(1.0f, std::max(0.0f, newFactor));
@@ -262,15 +254,13 @@ void SearchServiceProvider::updateWeightFactor(int64_t version,
             return;
         }
         int64_t timeDiff = version - previousVersion;
-        auto diffRange = std::min(1.0f, timeDiff / FACTOR_US_TO_MS /
-                                            LOAD_BALANCE_TIME_FACTOR_MS);
+        auto diffRange = std::min(1.0f, timeDiff / FACTOR_US_TO_MS / LOAD_BALANCE_TIME_FACTOR_MS);
         float diff = newFactor - oldFactor;
         if (diff < 0.0f) {
             diff = std::max(-1.0f * diffRange, diff);
         }
         newValue = oldFactor + diff;
-    } while (
-        !compare_and_swap(&_previousServerVersion, previousVersion, version));
+    } while (!compare_and_swap(&_previousServerVersion, previousVersion, version));
     _loadBalanceWeightFactor = std::max(0.0f, newValue);
 }
 
@@ -278,14 +268,12 @@ void SearchServiceProvider::updateCachedWeight(float minWeight) {
     auto weightFloat = _weight.f;
     auto loadBalanceWeightFactor = _loadBalanceWeightFactor;
     if (unlikely(isCopy())) {
-        if (weightFloat < MIN_WEIGHT_FLOAT &&
-            loadBalanceWeightFactor < MIN_PERCENT) {
+        if (weightFloat < MIN_WEIGHT_FLOAT && loadBalanceWeightFactor < MIN_PERCENT) {
             _weightCached = min(-1.0f, ceilf(weightFloat));
         }
         return;
     }
-    if (weightFloat < MIN_WEIGHT_FLOAT ||
-        loadBalanceWeightFactor < MIN_PERCENT) {
+    if (weightFloat < MIN_WEIGHT_FLOAT || loadBalanceWeightFactor < MIN_PERCENT) {
         return;
     }
     float newWeight = 0.0f;
@@ -298,21 +286,21 @@ void SearchServiceProvider::updateCachedWeight(float minWeight) {
     } else {
         newWeight = ceilf(weightFloat);
     }
-    newWeight =
-        std::max(MIN_WEIGHT_FLOAT, std::min(MAX_WEIGHT_FLOAT, newWeight));
+    newWeight = std::max(MIN_WEIGHT_FLOAT, std::min(MAX_WEIGHT_FLOAT, newWeight));
     if (newWeight < WEIGHT_DEC_LIMIT && newWeight > MIN_WEIGHT_FLOAT) {
         newWeight = WEIGHT_DEC_LIMIT;
     }
     WeightTy targetWeight = getTargetWeight();
-    _weightCached = std::max((WeightTy)minWeight,
-                             std::min(targetWeight, (WeightTy)newWeight));
+    _weightCached = std::max((WeightTy)minWeight, std::min(targetWeight, (WeightTy)newWeight));
     AUTIL_LOG(DEBUG,
               "update cached weight, node: %s, newWeight: %f, hasServer: %d, "
               "_weightCached: %d",
               _nodeId.c_str(), newWeight, hasServerAgent(), _weightCached);
 }
 
-WeightTy SearchServiceProvider::getWeight() const { return _weightCached; }
+WeightTy SearchServiceProvider::getWeight() const {
+    return _weightCached;
+}
 
 WeightTy SearchServiceProvider::getTargetWeight() const {
     WeightTy agentTargetWeight = _controllerChain.targetWeight;
@@ -377,31 +365,26 @@ bool SearchServiceProvider::isLegal(const ControllerChain *candidateChain,
     assert(candidateChain);
     assert(baseChain);
     auto newMetricLimits = metricLimits;
-    newMetricLimits.errorRatioLimit = std::min(
-        ERROR_RATIO_TOLERANCE / MAX_RATIO, newMetricLimits.errorRatioLimit);
-    return candidateChain->degradeRatioController.isLegal(baseChain,
-                                                          newMetricLimits) &&
-           candidateChain->latencyController.isLegal(baseChain,
-                                                     newMetricLimits) &&
-           candidateChain->errorRatioController.isLegal(baseChain,
-                                                        newMetricLimits);
+    newMetricLimits.errorRatioLimit =
+        std::min(ERROR_RATIO_TOLERANCE / MAX_RATIO, newMetricLimits.errorRatioLimit);
+    return candidateChain->degradeRatioController.isLegal(baseChain, newMetricLimits) &&
+           candidateChain->latencyController.isLegal(baseChain, newMetricLimits) &&
+           candidateChain->errorRatioController.isLegal(baseChain, newMetricLimits);
 }
 
 bool SearchServiceProvider::thisIsBest(const ControllerChain &thisChain,
-                                       const ControllerChain &otherChain,
-                                       bool errorFirst) {
-    auto errorBetter = thisChain.errorRatioController.compare(
-        otherChain.errorRatioController, ERROR_RATIO_TOLERANCE);
+                                       const ControllerChain &otherChain, bool errorFirst) {
+    auto errorBetter = thisChain.errorRatioController.compare(otherChain.errorRatioController,
+                                                              ERROR_RATIO_TOLERANCE);
     if (errorFirst && errorBetter.isValid()) {
         return errorBetter;
     }
-    auto degradeBetter = thisChain.degradeRatioController.compare(
-        otherChain.degradeRatioController, DEGRADE_RATIO_TOLERANCE);
+    auto degradeBetter = thisChain.degradeRatioController.compare(otherChain.degradeRatioController,
+                                                                  DEGRADE_RATIO_TOLERANCE);
     if (degradeBetter.isValid()) {
         return degradeBetter;
     }
-    auto latencyBetter =
-        thisChain.latencyController.compare(otherChain.latencyController);
+    auto latencyBetter = thisChain.latencyController.compare(otherChain.latencyController);
     if (latencyBetter.isValid()) {
         return latencyBetter;
     }
@@ -417,8 +400,8 @@ float SearchServiceProvider::approachTargetWeight(float targetWeight) {
         // stopped, use user probe percent when restarted
         _useDefaultProbePercent = false;
     }
-    float step = (ControllerParam::WEIGHT_UPDATE_STEP + _weightBonus) *
-                 targetWeight / MAX_WEIGHT_FLOAT;
+    float step =
+        (ControllerParam::WEIGHT_UPDATE_STEP + _weightBonus) * targetWeight / MAX_WEIGHT_FLOAT;
     auto diff = 0.0f;
     float currentWeight = _weight.f;
     if (targetWeight > currentWeight) {
@@ -456,11 +439,9 @@ bool SearchServiceProvider::controllerValid() const {
 }
 
 void SearchServiceProvider::updateWeightBonus(float diff) {
-    const auto &degradeRatioController =
-        _controllerChain.degradeRatioController;
-    auto degrading =
-        degradeRatioController.isValid() &&
-        degradeRatioController.controllerOutput() > DEGRADE_RATIO_TOLERANCE;
+    const auto &degradeRatioController = _controllerChain.degradeRatioController;
+    auto degrading = degradeRatioController.isValid() &&
+                     degradeRatioController.controllerOutput() > DEGRADE_RATIO_TOLERANCE;
     auto newBonus = 0.0f;
     if (diff < 0.0f || degrading) {
         newBonus = 0.0f;
@@ -529,6 +510,16 @@ void SearchServiceProvider::updateTags(const TagInfoMapPtr &tags) {
 TagInfoMapPtr SearchServiceProvider::getTags() const {
     ScopedReadWriteLock lock(_heartbeatLock, 'r');
     return _tags;
+}
+
+void SearchServiceProvider::updateHeartbeatMetas(const MetaMapPtr &metas) {
+    ScopedReadWriteLock lock(_heartbeatLock, 'w');
+    _metas = metas;
+}
+
+MetaMapPtr SearchServiceProvider::getHeartbeatMetas() const {
+    ScopedReadWriteLock lock(_heartbeatLock, 'r');
+    return _metas;
 }
 
 void SearchServiceProvider::fillTagMaxVersion(MatchTagMap &matchTagMap) {
@@ -613,16 +604,13 @@ std::string SearchServiceProvider::getTagVersionStr(int64_t version, int64_t cur
     return ret;
 }
 
-bool SearchServiceProvider::post(const RequestPtr &request,
-                                 const CallBackPtr &callBack)
-{
+bool SearchServiceProvider::post(const RequestPtr &request, const CallBackPtr &callBack) {
     ConnectionPtr con = getConnection(request->getProtocolType());
     if (con) {
         con->post(request, callBack);
         return true;
     } else {
-        callBack->run(NULL, MULTI_CALL_REPLY_ERROR_CONNECTION, string(),
-                      string());
+        callBack->run(NULL, MULTI_CALL_REPLY_ERROR_CONNECTION, string(), string());
         return false;
     }
 }
@@ -722,7 +710,8 @@ void SearchServiceProvider::toString(const ControllerChain *bestChain,
     debugStr += ", bonus: ";
     debugStr += StringUtil::fToString(_weightBonus);
 
-    debugStr += ", "; debugStr += _subscribeTime;
+    debugStr += ", ";
+    debugStr += _subscribeTime;
     auto tags = getTags();
     if (tags) {
         debugStr += ", tags:";

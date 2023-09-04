@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <utime.h>
 
+#include "autil/EnvUtil.h"
 #include "autil/Log.h"
 #include "autil/MurmurHash.h"
 #include "autil/StringUtil.h"
@@ -47,10 +48,7 @@ LeaderElector::LeaderElector(cm_basic::ZkWrapper *zkWrapper,
                              int64_t loopIntervalInSec,
                              const string &progressKey,
                              const string &workDir)
-                             : LeaderElector(zkWrapper, leaderPath, leaseInSec * 1000,
-                               loopIntervalInSec * 1000, true, progressKey, workDir)
-{
-}
+    : LeaderElector(zkWrapper, leaderPath, leaseInSec * 1000, loopIntervalInSec * 1000, true, progressKey, workDir) {}
 
 LeaderElector::LeaderElector(cm_basic::ZkWrapper *zkWrapper,
                              const string &leaderPath,
@@ -68,8 +66,8 @@ LeaderElector::LeaderElector(cm_basic::ZkWrapper *zkWrapper,
     , _progressKey(progressKey)
     , _workDir(workDir)
     , _isPreempted(false) {
-    const char *value = getenv(WF_PREEMPTIVE_LEADER.c_str());
-    if (value) {
+    string value = autil::EnvUtil::getEnv(WF_PREEMPTIVE_LEADER);
+    if (!value.empty()) {
         bool enable = false;
         autil::StringUtil::parseTrueFalse(value, enable);
         if (enable) {
@@ -79,8 +77,11 @@ LeaderElector::LeaderElector(cm_basic::ZkWrapper *zkWrapper,
                     StringUtil::toString(MurmurHash::MurmurHash64A(leaderPath.c_str(), leaderPath.length(), 0)));
         }
     }
-    AUTIL_LOG(INFO, "init LeaderElector, leaderPath = [%s], leaseTimeoutUs = [%ld], loopIntervalUs = [%ld]",
-            _leaderInfoPath.c_str(), _leaseTimeoutUs, _loopIntervalUs);
+    AUTIL_LOG(INFO,
+              "init LeaderElector, leaderPath = [%s], leaseTimeoutUs = [%ld], loopIntervalUs = [%ld]",
+              _leaderInfoPath.c_str(),
+              _leaseTimeoutUs,
+              _loopIntervalUs);
 }
 
 LeaderElector::~LeaderElector() { stop(); }
@@ -272,7 +273,8 @@ bool LeaderElector::checkStillLeader(int64_t currentTime) {
         AUTIL_LOG(WARN,
                   "no longer leader, lease expiration time [%ld], current time [%ld], next campiagn time [%ld]",
                   leaseExpirationTime,
-                  currentTime, _nextCanCampaignTime.load());
+                  currentTime,
+                  _nextCanCampaignTime.load());
         updateLeaderInfo(false, -1);
         if (_noLongerLeaderHandler) {
             _noLongerLeaderHandler();
@@ -458,9 +460,7 @@ void LeaderElector::setNoLongerLeaderHandler(HandlerFuncType handler) { _noLonge
 void LeaderElector::setBecomeLeaderHandler(HandlerFuncType handler) { _becomeLeaderHandler = handler; }
 
 void LeaderElector::setPreemptedHandler(HandlerFuncType handler) { _preemptedHandler = handler; }
-void LeaderElector::setForbidCampaignLeaderTimeMs(uint64_t forbitTime) {
-    _forbidCampaignTimeMs = forbitTime;
-}
+void LeaderElector::setForbidCampaignLeaderTimeMs(uint64_t forbitTime) { _forbidCampaignTimeMs = forbitTime; }
 void LeaderElector::updateLeaderInfo(bool toBeLeader, int64_t leaseExpirationTime) {
     // set leader info only when become leader
     if (!isLeader() && toBeLeader) {
@@ -578,8 +578,8 @@ bool LeaderElector::readValidLocalLockFile(const string &localFilePath, int64_t 
     }
     auto currentTs = TimeUtility::currentTimeInSeconds();
     int64_t leaseInMin = 30, tmpMin = -1;
-    const char *value = getenv("WF_LOCAL_LOCK_LEASE_IN_MIN");
-    if (value) {
+    string value = autil::EnvUtil::getEnv("WF_LOCAL_LOCK_LEASE_IN_MIN");
+    if (!value.empty()) {
         if (StringUtil::fromString(value, tmpMin) && tmpMin > 0) {
             leaseInMin = tmpMin;
         }

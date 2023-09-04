@@ -1,0 +1,227 @@
+--[[
+   Flow.parameter : flow related kv parameters 
+   Flow.createTask(taskId, taskType, taskKvParam = nil) 
+   Flow.getTaskProperty(taskId, key, flowId = nil) 
+   Flow.getTaskInFlow(taskId, flowId) 
+   Flow.setError(msg) 
+   Flow.setFatalError(msg) 
+   Flow.setProperty(key, value) 
+   Flow.getProperty(key) 
+   Flow.startTask(taskObj, kvParam = nil) 
+   Flow.finishTask(taskObj, kvParam = nil) 
+   ######################################################### 
+   function stepRunFlow() will be called by single TaskFlow, return true means eof of flow
+--]]
+
+#import(Log)
+
+function stepRunFlow()
+   local processorFlowId = Flow.parameter['processorFlowId']
+   local schemaId = Flow.parameter["schemaId"]
+   local finishTime = Flow.getProperty("finishTime")
+   if (finishTime == "" and processorFlowId ~= '' and processorFlowId ~=nil)
+   then
+      local processorFlowStatus = Flow.getFlowStatus(processorFlowId)
+      if (processorFlowStatus == "finish" or processorFlowStatus == "stopped")
+      then
+         local processorTask = Flow.getTaskInFlow("incProcessor", processorFlowId)
+         local stopTime = tostring(processorTask:getEndTime())
+         Flow.setProperty("finishTime", stopTime)
+         Log.log("INFO", "inc flow for cluster["..Flow.parameter["clusterName"].."], set stop time ["..stopTime.."]")
+      end
+   end
+
+   local udfStartTime = Flow.getProperty("userDefineStartTimestamp")
+   local builderStartTime = Flow.parameter["builderStartTimestamp"]
+   if (builderStartTime == udfStartTime or builderStartTime == nil)
+   then
+      builderStartTime = ""
+   end
+   
+   local mergeCrontabFlowId = Flow.parameter['mergeCrontabFlowId']
+   local incBuilder = Flow.createTask("incBuilder", "builder", Flow.parameter)
+   local incMerger = Flow.createTask("incMerger", "merger", Flow.parameter)
+   local docReclaimer = Flow.createTask("1", "doc_reclaim_task", Flow.parameter)  
+   local mergeCrontab = Flow.getTaskInFlow("mergeCrontab", mergeCrontabFlowId)
+   local flowState = Flow.getProperty("_flow_status_")
+   Log.log("INFO", "inc flow for cluster["..Flow.parameter["clusterName"].."], is running", 10) 
+
+   local mergeConfig
+   local hasMergingTask
+   local mergingTaskFinish
+   if (mergeCrontab:isValid())
+   then
+      local triggerMerge = Flow.getProperty("_trigger_merge_by_specified_config_")
+      if (triggerMerge ~= nil and triggerMerge == "true" and Flow.parameter["mergeConfig"] ~= nil)
+      then
+         local config = "{\"mergeConfig\":\""..Flow.parameter["mergeConfig"].."\"}"
+         mergeCrontab:executeCmd("syncVersion", config)
+         Flow.setProperty("_trigger_merge_by_specified_config_", "false")
+      end
+      mergeConfig = mergeCrontab:getProperty("merging_task_name")
+      hasMergingTask = mergeCrontab:getProperty("has_merging_task")
+      mergingTaskFinish = mergeCrontab:getProperty("current_merging_task_finished")
+      if (hasMergingTask == "true" and mergingTaskFinish == "true")
+      then
+	 hasMergingTask = "false"
+      end
+   end
+
+   if (flowState == "")
+   then
+      local param = {}
+      param["versionTsAlignSrc"] = "true"
+      if (schemaId ~= nil)
+      then
+         param["schemaId"] = schemaId
+      end
+      
+      if (builderStartTime ~= "")
+      then
+         param["startTimestamp"] = builderStartTime
+      end
+
+      if (finishTime ~= "")
+      then
+         if (Flow.startTask(incBuilder, param))
+         then
+            Flow.setProperty("_flow_status_", "incBuilding")
+            if (builderStartTime ~= "")
+            then
+               Flow.setProperty("userDefineStartTimestamp", builderStartTime)
+            end
+         end
+         return false
+      end
+
+      local batchMode = incBuilder:getProperty("batchMode")
+      if (batchMode == "true" and hasMergingTask ~= "true")
+      then
+         return false
+      end
+
+      if (Flow.startTask(incBuilder, param))
+      then
+         Flow.setProperty("_flow_status_", "incBuilding")
+         if (builderStartTime ~= "")
+         then
+            Flow.setProperty("userDefineStartTimestamp", builderStartTime)
+         end
+      end
+      return false
+   end
+   
+   if (flowState == "incBuilding")
+   then
+      local isFirstFinishBuilder = Flow.getProperty("_is_first_finish_builder_")
+      local kvParam = {}
+      if (isFirstFinishBuilder ~= "false")
+      then
+         kvParam["stop_build_required_latency_in_second"] = "900"
+         kvParam["stop_build_timeout_in_second"] = "3600"
+         local stopBuildTimeout = Flow.parameter["stop_build_timeout_in_second"]
+         local stopBuildLatencyInSecond = Flow.parameter["stop_build_required_latency_in_second"]
+         if ( stopBuildLatencyInSecond ~= nil)
+         then
+            kvParam["stop_build_required_latency_in_second"] = stopBuildLatencyInSecond
+         end
+
+         local stopBuildTimeoutInSecond = Flow.parameter["stop_build_timeout_in_second"]
+         if ( stopBuildTimeoutInSecond ~= nil)
+         then
+            kvParam["stop_build_timeout_in_second"] = stopBuildTimeoutInSecond
+         end
+         -- required processor checkpoint commit checkpoint gap is less than 15 min
+      end
+      if (finishTime ~= "")
+      then
+         kvParam["finishTimeInSecond"] = finishTime
+
+         if (Flow.finishTask(incBuilder, kvParam))
+         then
+            Flow.setProperty("_is_first_finish_builder_", "false")
+            Flow.setProperty("_flow_status_", "incBuildFinishing")
+         end
+         return false
+      end
+      if (hasMergingTask ~= "true")
+      then
+         return false
+      end
+      if (Flow.finishTask(incBuilder, kvParam))
+      then
+         Flow.setProperty("_is_first_finish_builder_", "false")
+         Flow.setProperty("_flow_status_", "incBuildStopping")
+      end
+      return false
+   end
+
+   if (flowState == "incBuildFinishing")
+   then
+      Log.log("INFO", "inc flow for cluster["..Flow.parameter["clusterName"].."], is finishing", 10)
+      if (incBuilder:isTaskFinish())
+      then
+         Flow.setProperty("_flow_status_", "incBuildFinished")
+         Log.log("INFO", "inc flow for cluster["..Flow.parameter["clusterName"].."],  is finished")	 
+         Flow.setProperty("_flow_status_", "finished")
+         return true
+      end
+      return false
+   end
+   
+   if (flowState == "incBuildStopping")
+   then
+      if (incBuilder:isTaskFinish())
+      then
+         if (finishTime ~= "") 
+         then
+            Flow.setProperty("_flow_status_", "")
+            return false
+         end
+         local param = {}
+         param["mergeConfigName"] = mergeConfig
+         Log.log("INFO", "begin doc reclaim "..Flow.parameter["clusterName"].." with mergeConfig["..mergeConfig.."]")       
+         if (Flow.startTask(docReclaimer, param))
+         then
+            Flow.setProperty("_flow_status_", "docReclaiming")
+         end
+         return false
+      end
+      return false
+   end
+
+   if (flowState == "docReclaiming")
+   then
+      if (docReclaimer:isTaskFinish())
+      then
+         local mergeParam = {}
+         mergeParam["mergeConfigName"] = mergeConfig
+         if (schemaId ~= nil)
+         then
+            mergeParam["schemaId"] = schemaId
+         end
+         Log.log("INFO", "begin merge "..Flow.parameter["clusterName"].." with mergeConfig["..mergeConfig.."]")
+         if (Flow.startTask(incMerger, mergeParam))
+         then
+            Flow.setProperty("_flow_status_", "incMerging")
+         end
+         return false
+      end
+      return false
+   end
+   
+   if (flowState == "incMerging")
+   then
+      if (incMerger:isTaskFinish())
+      then
+         mergeCrontab:setProperty("current_merging_task_finished", "true")
+         Log.log("INFO", "merge "..Flow.parameter["clusterName"].." with mergeConfig["..mergeConfig.."] end")
+         --incBuilder:start()
+         Flow.setProperty("_flow_status_", "")
+         return false
+      end
+      return false
+   end
+   
+   return true
+end

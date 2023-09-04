@@ -1,0 +1,14 @@
+function graphDef()
+   local taskName = Graph.parameter["taskName"]
+   local taskTag = "TaskId:"..Graph.parameter["taskId"]
+   local flowIds = Graph.getFlowIdByTag(taskTag)
+   if (#flowIds ~= 0)
+   then
+        Log.log("ERROR", "start task["..taskName.."] taskId["..Graph.parameter["taskId"].."] fail, already has same taskId")
+        return false
+   end
+   local buildinTaskFlow = Graph.loadSimpleFlow(Graph.parameter["kernalType"],
+						Graph.parameter["taskId"], Graph.parameter)
+   buildinTaskFlow:addTag(taskTag)
+   return true
+end

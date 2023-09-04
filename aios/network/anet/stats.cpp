@@ -13,27 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "aios/network/anet/log.h"
 #include "aios/network/anet/stats.h"
-#include <stdint.h>
+
 #include <ostream>
+#include <stdint.h>
 
 #include "aios/network/anet/atomic.h"
 #include "aios/network/anet/ilogger.h"
+#include "aios/network/anet/log.h"
 
 using namespace std;
 namespace anet {
-    
+
 StatCounter StatCounter::_gStatCounter;
 
-StatCounter::StatCounter() {
-    clear();
-}
+StatCounter::StatCounter() { clear(); }
 
 StatCounter::~StatCounter() {}
 
 void StatCounter::log() {
-    ANET_LOG(INFO, 
+    ANET_LOG(INFO,
              "_packetReadCnt: %lld, _packetWriteCnt: %lld, "
              "_packetTimeoutCnt: %lld, _dataReadCnt: %lld, "
              "_dataWriteCnt: %lld, _inputBufferSpaceAllocated: %lld, "
@@ -51,11 +50,11 @@ void StatCounter::log() {
              atomic_read(&_outputQueueSize));
 }
 
-int StatCounter::dump(ostringstream &buf){
+int StatCounter::dump(ostringstream &buf) {
     buf << "===============================Global Counters==================================\n";
     buf << "Network Statistics:\n";
     buf << "packet read count: " << atomic_read(&_packetReadCnt);
-    buf << "\tpacket write count: " << atomic_read( &_packetWriteCnt);
+    buf << "\tpacket write count: " << atomic_read(&_packetWriteCnt);
     buf << "\tpacket timeout count: " << atomic_read(&_packetTimeoutCnt) << endl;
     buf << "bytes read : " << atomic_read(&_dataReadCnt);
     buf << "\tbytes write: " << atomic_read(&_dataWriteCnt) << endl << endl;
@@ -82,44 +81,24 @@ void StatCounter::clear() {
     atomic_set(&_outputQueueSize, 0);
 }
 
-int64_t StatCounter::getPacketReadCnt() {
-    return atomic_read(&_packetReadCnt);
-}
+int64_t StatCounter::getPacketReadCnt() { return atomic_read(&_packetReadCnt); }
 
-int64_t StatCounter::getPacketWriteCnt() {
-    return atomic_read(&_packetWriteCnt);
-}
+int64_t StatCounter::getPacketWriteCnt() { return atomic_read(&_packetWriteCnt); }
 
-int64_t StatCounter::getPacketTimeoutCnt() {
-    return atomic_read(&_packetTimeoutCnt);
-}
+int64_t StatCounter::getPacketTimeoutCnt() { return atomic_read(&_packetTimeoutCnt); }
 
-int64_t StatCounter::getDataReadCnt() {
-    return atomic_read(&_dataReadCnt);
-}
+int64_t StatCounter::getDataReadCnt() { return atomic_read(&_dataReadCnt); }
 
-int64_t StatCounter::getDataWriteCnt() {
-    return atomic_read(&_dataWriteCnt);
-}
+int64_t StatCounter::getDataWriteCnt() { return atomic_read(&_dataWriteCnt); }
 
-int64_t StatCounter::getInputBufferSpaceAllocated() {
-    return atomic_read(&_inputBufferSpaceAllocated);
-}
+int64_t StatCounter::getInputBufferSpaceAllocated() { return atomic_read(&_inputBufferSpaceAllocated); }
 
-int64_t StatCounter::getOutputBufferSpaceAllocated() {
-    return atomic_read(&_outputBufferSpaceAllocated);
-}
+int64_t StatCounter::getOutputBufferSpaceAllocated() { return atomic_read(&_outputBufferSpaceAllocated); }
 
-int64_t StatCounter::getOutputBufferSpaceUsed() {
-    return atomic_read(&_outputBufferSpaceUsed);
-}
+int64_t StatCounter::getOutputBufferSpaceUsed() { return atomic_read(&_outputBufferSpaceUsed); }
 
-int64_t StatCounter::getOutputQueueSpaceUsed() {
-    return atomic_read(&_outputQueueSpaceUsed);
-}
+int64_t StatCounter::getOutputQueueSpaceUsed() { return atomic_read(&_outputQueueSpaceUsed); }
 
-int64_t StatCounter::getOutputQueueSize() {
-    return atomic_read(&_outputQueueSize);
-}
+int64_t StatCounter::getOutputQueueSize() { return atomic_read(&_outputQueueSize); }
 
-}
+} // namespace anet

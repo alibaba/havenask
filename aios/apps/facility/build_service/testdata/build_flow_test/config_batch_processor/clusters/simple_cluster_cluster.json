@@ -1,0 +1,9 @@
+{
+    "cluster_config" : {
+	"table_name" : "simple_table",
+	"hash_mode" : {
+            "hash_function" : "HASH",
+            "hash_field" : "id"
+	}
+    }
+}

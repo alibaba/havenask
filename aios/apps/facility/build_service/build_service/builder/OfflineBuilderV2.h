@@ -29,7 +29,7 @@ class TaskScheduler;
 
 namespace indexlibv2::config {
 class TabletOptions;
-class TabletSchema;
+class ITabletSchema;
 } // namespace indexlibv2::config
 
 namespace build_service::builder {
@@ -64,10 +64,10 @@ public:
 
 private:
     std::unique_ptr<future_lite::Executor> createExecutor(const std::string& executorName, uint32_t threadCount) const;
-    std::pair<indexlib::Status, indexlibv2::framework::VersionCoord> getLatestVersion() const;
     std::shared_ptr<indexlibv2::framework::ITabletMergeController>
-    createMergeController(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    createMergeController(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                           const std::shared_ptr<indexlibv2::config::TabletOptions>& options);
+    std::pair<indexlib::Status, indexlibv2::framework::VersionCoord> getLatestVersion() const;
 
 private:
     std::string _clusterName;

@@ -17,8 +17,8 @@
 
 #include <string>
 
-#include "autil/legacy/jsonizable.h"
 #include "autil/legacy/any.h"
+#include "autil/legacy/jsonizable.h"
 
 namespace iquan {
 
@@ -40,6 +40,7 @@ public:
         json.Jsonize("op", op);
         json.Jsonize("normalized_value", value);
     }
+
 public:
     std::string layerTableName;
     std::string fieldName;
@@ -52,6 +53,7 @@ public:
 class LayerTablePlanMeta {
 public:
     LayerTablePlanMeta(const LayerTablePlanMetaDef &metaDef);
+
 public:
     std::string layerTableName;
     std::string fieldName;

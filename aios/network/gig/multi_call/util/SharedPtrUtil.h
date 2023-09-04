@@ -16,16 +16,17 @@
 #ifndef ISEARCH_MULTI_CALL_SHAREDPTRUTIL_H
 #define ISEARCH_MULTI_CALL_SHAREDPTRUTIL_H
 
-#include "aios/network/gig/multi_call/common/common.h"
 #include <unistd.h>
+
+#include "aios/network/gig/multi_call/common/common.h"
 
 namespace multi_call {
 
-class SharedPtrUtil {
+class SharedPtrUtil
+{
 public:
     template <class T>
-    static bool waitUseCount(const std::shared_ptr<T> &ptr,
-                             uint32_t expectUseCount = 1,
+    static bool waitUseCount(const std::shared_ptr<T> &ptr, uint32_t expectUseCount = 1,
                              int64_t timeout = -1) {
         const int64_t interval = 10 * 1000;
         while (ptr.use_count() > expectUseCount) {

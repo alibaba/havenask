@@ -16,22 +16,21 @@
 #ifndef FSLIB_LOCALDIRECTFILE_H
 #define FSLIB_LOCALDIRECTFILE_H
 
+#include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include "autil/Log.h"
 #include "fslib/common/common_define.h"
 #include "fslib/common/common_type.h"
 #include "fslib/fs/File.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <errno.h>
-
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class LocalDirectFile : public File
-{
+class LocalDirectFile : public File {
 public:
     using File::pread;
     using File::preadv;
@@ -39,27 +38,27 @@ public:
     using File::pwritev;
 
 public:
-    LocalDirectFile(const std::string& fileName, int fd, ErrorCode ec = EC_OK);
+    LocalDirectFile(const std::string &fileName, int fd, ErrorCode ec = EC_OK);
     ~LocalDirectFile();
 
 public:
-    /*override*/ ssize_t read(void* buffer, size_t length) override;
+    /*override*/ ssize_t read(void *buffer, size_t length) override;
 
-    /*override*/ ssize_t write(const void* buffer, size_t length) override;
+    /*override*/ ssize_t write(const void *buffer, size_t length) override;
 
-    /*override*/ ssize_t pread(void* buffer, size_t length, off_t offset) override;
+    /*override*/ ssize_t pread(void *buffer, size_t length, off_t offset) override;
 
-    /*override*/ ssize_t pwrite(const void* buffer, size_t length, off_t offset) override;
+    /*override*/ ssize_t pwrite(const void *buffer, size_t length, off_t offset) override;
 
 #if (__cplusplus >= 201703L)
-    void pread(IOController* controller, void* buffer, size_t length, off_t offset,
-               std::function<void()> callback) override;
-    void preadv(IOController* controller, const iovec* iov, int iovcnt, off_t offset,
-                std::function<void()> callback) override;
-    void pwrite(IOController* controller, void* buffer, size_t length, off_t offset,
-                std::function<void()> callback) override;
-    void pwritev(IOController* controller, const iovec* iov, int iovcnt, off_t offset,
-                 std::function<void()> callback) override;
+    void
+    pread(IOController *controller, void *buffer, size_t length, off_t offset, std::function<void()> callback) override;
+    void preadv(
+        IOController *controller, const iovec *iov, int iovcnt, off_t offset, std::function<void()> callback) override;
+    void pwrite(
+        IOController *controller, void *buffer, size_t length, off_t offset, std::function<void()> callback) override;
+    void pwritev(
+        IOController *controller, const iovec *iov, int iovcnt, off_t offset, std::function<void()> callback) override;
 #endif
     /*override*/ ErrorCode flush() override;
 
@@ -78,13 +77,13 @@ public:
 private:
     ssize_t removeDirectIO();
     bool isAppendMode();
-    ssize_t doWrite(const void* buffer, size_t length);
+    ssize_t doWrite(const void *buffer, size_t length);
 
 private:
     int _fd;
     bool _isEof;
+    size_t _minAlignment;
     static size_t _alignment;
-    static size_t _minAlignment;
     static bool _asyncCoroRead;
 };
 
@@ -92,4 +91,4 @@ FSLIB_TYPEDEF_AUTO_PTR(LocalDirectFile);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_LOCALDIRECTFILE_H
+#endif // FSLIB_LOCALDIRECTFILE_H

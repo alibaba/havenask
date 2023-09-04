@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/ConnectionFactory.h"
+
 #include <grpc++/generic/generic_stub.h>
 
 using namespace std;
@@ -27,13 +28,10 @@ void GrpcConnectionFactory::initChannelArgs(GrpcChannelInitParams params) {
     _channelArgs->SetMaxSendMessageSize(-1);
     if (params.keepAliveInterval > 0) {
         // ref https://github.com/grpc/grpc/blob/master/doc/keepalive.md
-        AUTIL_LOG(INFO,
-                  "enable grpc keep-alive with interval[%ld] timeout[%ld]",
+        AUTIL_LOG(INFO, "enable grpc keep-alive with interval[%ld] timeout[%ld]",
                   params.keepAliveInterval, params.keepAliveTimeout);
-        _channelArgs->SetInt(GRPC_ARG_KEEPALIVE_TIME_MS,
-                             params.keepAliveInterval);
-        _channelArgs->SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS,
-                             params.keepAliveTimeout);
+        _channelArgs->SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, params.keepAliveInterval);
+        _channelArgs->SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, params.keepAliveTimeout);
     }
     if (_secureConfig.pemRootCerts.empty()) {
         _channelCredentials = grpc::InsecureChannelCredentials();

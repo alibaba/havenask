@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/ProtocolCallBack.h"
+
 #include "aios/network/anet/httppacket.h"
 #include "aios/network/gig/multi_call/service/ArpcConnection.h"
 #include "aios/network/gig/multi_call/service/HttpConnection.h"
@@ -34,13 +35,11 @@ AUTIL_LOG_SETUP(multi_call, TcpCallBack);
 AUTIL_LOG_SETUP(multi_call, ArpcCallBack);
 AUTIL_LOG_SETUP(multi_call, ArpcCallBackWorkItem);
 
-anet::IPacketHandler::HPRetCode TcpCallBack::handlePacket(anet::Packet *packet,
-                                                          void *args) {
+anet::IPacketHandler::HPRetCode TcpCallBack::handlePacket(anet::Packet *packet, void *args) {
     assert(_callBack);
     CallBackWorkItem *item = new CallBackWorkItem(packet, _callBack);
     if (!_callBackThreadPool ||
-        autil::ThreadPool::ERROR_NONE !=
-            _callBackThreadPool->pushWorkItem(item, false)) {
+        autil::ThreadPool::ERROR_NONE != _callBackThreadPool->pushWorkItem(item, false)) {
         item->process();
         item->destroy();
     }
@@ -49,8 +48,7 @@ anet::IPacketHandler::HPRetCode TcpCallBack::handlePacket(anet::Packet *packet,
     return anet::IPacketHandler::FREE_CHANNEL;
 }
 
-anet::IPacketHandler::HPRetCode HttpCallBack::handlePacket(anet::Packet *packet,
-                                                           void *args) {
+anet::IPacketHandler::HPRetCode HttpCallBack::handlePacket(anet::Packet *packet, void *args) {
     assert(_callBack);
     assert(_httpConnection);
     assert(_anetConnection);
@@ -61,8 +59,7 @@ anet::IPacketHandler::HPRetCode HttpCallBack::handlePacket(anet::Packet *packet,
         keepAlive = httpPacket->isKeepAlive();
     }
     if (!_callBackThreadPool ||
-        autil::ThreadPool::ERROR_NONE !=
-            _callBackThreadPool->pushWorkItem(item, false)) {
+        autil::ThreadPool::ERROR_NONE != _callBackThreadPool->pushWorkItem(item, false)) {
         item->process();
         item->destroy();
     }
@@ -84,7 +81,9 @@ void CallBackWorkItem::process() {
     }
 }
 
-void CallBackWorkItem::destroy() { delete this; }
+void CallBackWorkItem::destroy() {
+    delete this;
+}
 
 void CallBackWorkItem::drop() {
     process();
@@ -111,7 +110,7 @@ void HttpCallBackWorkItem::process() {
             const auto &span = _callBack->getSpan();
             if (span) {
                 span->setAttribute("gig.http.status_code",
-                        StringUtil::toString(httpPacket->getStatusCode()));
+                                   StringUtil::toString(httpPacket->getStatusCode()));
             }
         }
         _callBack->run(_packet, ec, errorString, responseInfo);
@@ -123,8 +122,7 @@ void HttpCallBackWorkItem::process() {
 void ArpcCallBack::Run() {
     if (_callBackThreadPool) {
         _callBack->rpcEnd();
-        if (autil::ThreadPool::ERROR_NONE ==
-            _callBackThreadPool->pushWorkItem(&_item, false)) {
+        if (autil::ThreadPool::ERROR_NONE == _callBackThreadPool->pushWorkItem(&_item, false)) {
             return;
         }
     }
@@ -170,23 +168,24 @@ MultiCallErrorCode ArpcCallBack::getCompatibleInfo(MultiCallErrorCode currentEc,
         const auto &flowControlStrategy = resource->getFlowControlConfig();
         if (flowControlStrategy) {
             if (MULTI_CALL_ERROR_NONE == currentEc) {
-                const auto &ecField =
-                    flowControlStrategy->compatibleFieldInfo.ecField;
-                ProtobufCompatibleUtil::getErrorCodeField(_response, ecField,
-                                                          ec);
+                const auto &ecField = flowControlStrategy->compatibleFieldInfo.ecField;
+                ProtobufCompatibleUtil::getErrorCodeField(_response, ecField, ec);
             }
             const auto &responseInfoField =
                 flowControlStrategy->compatibleFieldInfo.responseInfoField;
-            ProtobufCompatibleUtil::getGigMetaField(
-                _response, responseInfoField, responseInfo);
+            ProtobufCompatibleUtil::getGigMetaField(_response, responseInfoField, responseInfo);
         }
     }
     return ec;
 }
 
-void ArpcCallBackWorkItem::process() { _callBack->callBack(); }
+void ArpcCallBackWorkItem::process() {
+    _callBack->callBack();
+}
 
-void ArpcCallBackWorkItem::destroy() { delete _callBack; }
+void ArpcCallBackWorkItem::destroy() {
+    delete _callBack;
+}
 
 void ArpcCallBackWorkItem::drop() {
     _callBack->callBack();

@@ -15,52 +15,48 @@
  */
 #include "ha3/common/AndNotQuery.h"
 
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
 
+#include "autil/Log.h"
 #include "ha3/common/ModifyQueryVisitor.h"
 #include "ha3/common/Query.h"
 #include "ha3/common/QueryVisitor.h"
-#include "autil/Log.h"
 
 namespace isearch {
 namespace common {
 AUTIL_LOG_SETUP(ha3, AndNotQuery);
 
-
-AndNotQuery::AndNotQuery(const std::string& label) {
+AndNotQuery::AndNotQuery(const std::string &label) {
     setQueryLabelBinary(label);
 }
 
-AndNotQuery::~AndNotQuery() {
-}
+AndNotQuery::~AndNotQuery() {}
 
-
-bool AndNotQuery::operator == (const Query& query) const {
+bool AndNotQuery::operator==(const Query &query) const {
     if (&query == this) {
         return true;
     }
     if (query.getQueryName() != getQueryName()) {
         return false;
     }
-    const QueryVector &children2 = dynamic_cast<const AndNotQuery&>(query)._children;
+    const QueryVector &children2 = dynamic_cast<const AndNotQuery &>(query)._children;
 
     if (_children.size() != children2.size()) {
         return false;
     }
     QueryVector::const_iterator it1 = _children.begin();
     QueryVector::const_iterator it2 = children2.begin();
-    for (; it1 != _children.end(); it1++, it2++)
-    {
-        if (!( *(*it1) == *(*it2) )) {
+    for (; it1 != _children.end(); it1++, it2++) {
+        if (!(*(*it1) == *(*it2))) {
             return false;
         }
     }
     return true;
 }
 
-void AndNotQuery::accept(QueryVisitor *visitor) const  {
+void AndNotQuery::accept(QueryVisitor *visitor) const {
     visitor->visitAndNotQuery(this);
 }
 

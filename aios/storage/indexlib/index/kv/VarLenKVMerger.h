@@ -31,7 +31,7 @@ private:
     Status PrepareMerge(const SegmentMergeInfos& segMergeInfos) override;
     Status AddRecord(const Record& record) override;
     Status Dump() override;
-    std::pair<int64_t, int64_t> EstimateMemoryUsage(const std::vector<SegmentStatistics>& statVec) const override;
+    std::pair<int64_t, int64_t> EstimateMemoryUsage(const std::vector<SegmentStatistics>& statVec) override;
     void FillSegmentMetrics(indexlib::framework::SegmentMetrics* segMetrics) override;
 
 private:

@@ -30,7 +30,7 @@ class Directory;
 }
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::framework {
@@ -52,10 +52,6 @@ public:
 protected:
     Status DoPreLoad(const framework::TabletData& lastTabletData, Segments newOnDiskVersionSegments,
                      const framework::Version& newOnDiskVersion) override;
-
-private:
-    size_t EstimateMemUsed(const std::shared_ptr<config::TabletSchema>& schema,
-                           const std::vector<framework::Segment*>& segments) override;
 
 private:
     friend class LSMTabletLoaderTest;

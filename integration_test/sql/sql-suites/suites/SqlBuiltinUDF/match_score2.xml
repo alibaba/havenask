@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="match_score2">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT nid, matchscore2(field_int32, '100#5;200#10;', 0) as score FROM phone where nid > 8
+]]>
+</Element>
+        </Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="column_names">"nid", "score"</Resource>
+        <Resource name="column_types">uint64, double</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+9, 15
+10, 15
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#2(type=api)
+    ExchangeOp#1(distribution={type:SINGLETON})
+        TableScanOp#0(catalog_name=default,db_name=phone,limit=100,output_fields=[$nid,$score],push_down_ops=[{attrs:{condition:{op:>,params:[$nid,8],type:OTHER},output_field_exprs:{$score:{op:matchscore2,params:[$field_int32,100#5;200#10;,0],type:UDF}},output_fields:[$nid,$score]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

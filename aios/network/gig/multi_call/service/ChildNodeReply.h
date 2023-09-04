@@ -30,7 +30,8 @@
 
 namespace multi_call {
 
-class ChildNodeReply {
+class ChildNodeReply
+{
 public:
     ChildNodeReply(const FlowConfigSnapshotPtr &flowConfigSnapshot,
                    const ReplyInfoCollectorPtr &replyInfoCollector,
@@ -39,12 +40,14 @@ public:
     ~ChildNodeReply();
 
 public:
-    class ClusterResponse {
+    class ClusterResponse
+    {
     public:
         ClusterResponse()
-            : fastestResponseTime(std::numeric_limits<int64_t>::max()),
-              startRetryTime(std::numeric_limits<int64_t>::max()),
-              retried(false) {}
+            : fastestResponseTime(std::numeric_limits<int64_t>::max())
+            , startRetryTime(std::numeric_limits<int64_t>::max())
+            , retried(false) {
+        }
         std::string flowControlStrategy;
         int64_t fastestResponseTime;
         int64_t startRetryTime;
@@ -58,37 +61,38 @@ private:
 
 public:
     size_t fillResponses(std::vector<ResponsePtr> &bizResponseVec);
-    size_t fillResponses(std::vector<ResponsePtr> &bizResponseVec, std::vector<LackResponseInfo> &lackInfos);
+    size_t fillResponses(std::vector<ResponsePtr> &bizResponseVec,
+                         std::vector<LackResponseInfo> &lackInfos);
     void endStreamQuery();
-    void getRetryBizs(int64_t currentTime,
-                      std::map<std::string, int32_t> &retryBizInfos);
+    void getRetryBizs(int64_t currentTime, std::map<std::string, int32_t> &retryBizInfos);
     void updateRetryBizs(const std::map<std::string, int32_t> &retryBizInfos);
     void updateDetectInfo(const std::string &bizName, bool retryEnabled);
     bool collectStatistic(const std::string &bizName, size_t providerCount,
                           bool disableRetry = false);
-    void prepareCallDelegationStatistic(
-        const std::vector<std::string> &bizNameVec,
-        const std::vector<std::string> &flowControlStrategyVec);
+    void prepareCallDelegationStatistic(const std::vector<std::string> &bizNameVec,
+                                        const std::vector<std::string> &flowControlStrategyVec);
     bool shouldEt(int64_t currentTime);
     void setEtInfo(const EtInfo &etInfo);
     SearchServiceResourceVector getUnReturnedResourceVec();
     void reportMetrics();
 
 public:
-    void setMetricReportManager(
-        const MetricReporterManagerPtr &metricReportManager) {
+    void setMetricReportManager(const MetricReporterManagerPtr &metricReportManager) {
         _metricReporterManager = metricReportManager;
     }
 
-    void
-    appendSearchServiceResource(const SearchServiceResourcePtr &retryResource) {
+    void appendSearchServiceResource(const SearchServiceResourcePtr &retryResource) {
         _searchResourceVec.push_back(retryResource);
     }
-    int64_t getCallerStartTime() { return _startTime; }
+    int64_t getCallerStartTime() {
+        return _startTime;
+    }
     bool needDetection(int64_t currentTime) const {
         return _startDetectionTime <= currentTime;
     }
-    void setRpcTimeout(int64_t ms) { _rpcTimeout = ms * 1000; }
+    void setRpcTimeout(int64_t ms) {
+        _rpcTimeout = ms * 1000;
+    }
     void addExpectProviderCount(uint32_t count) {
         _expectProviderCount += count;
     }
@@ -107,16 +111,25 @@ public:
         _searchResourceVec = group;
     }
 
-    void setEtTime(int64_t time) { _etTime = time; }
+    void setEtTime(int64_t time) {
+        _etTime = time;
+    }
 
-    int64_t getEtTime() const { return _etTime; }
-    int64_t getStartDetectionTime() const { return _startDetectionTime; }
-    void setStartDetectionTime(int64_t t) { _startDetectionTime = t; }
+    int64_t getEtTime() const {
+        return _etTime;
+    }
+    int64_t getStartDetectionTime() const {
+        return _startDetectionTime;
+    }
+    void setStartDetectionTime(int64_t t) {
+        _startDetectionTime = t;
+    }
 
-    void setStartTime(int64_t time) { _startTime = time; }
+    void setStartTime(int64_t time) {
+        _startTime = time;
+    }
 
-    void setClusterResponse(const std::string &bizName,
-                            const ClusterResponse &clusterRsp) {
+    void setClusterResponse(const std::string &bizName, const ClusterResponse &clusterRsp) {
         _clusterResponseMap[bizName] = clusterRsp;
     }
     const SearchServiceResourceVector &getServiceResourceVec() const {
@@ -129,7 +142,9 @@ public:
     void setSingleRetryEnabled(bool singleRetryEnabled) {
         _singleRetryEnabled = singleRetryEnabled;
     }
-    bool singleRetryEnabled() const { return _singleRetryEnabled; }
+    bool singleRetryEnabled() const {
+        return _singleRetryEnabled;
+    }
 
 private:
     int64_t _rpcTimeout; // us

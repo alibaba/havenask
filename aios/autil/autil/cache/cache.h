@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stddef.h>
 #include <memory>
+#include <stddef.h>
+#include <stdint.h>
 #include <string>
 
 #include "autil/ConstString.h"
@@ -40,16 +40,20 @@ class CacheBase;
 // is set, insert to the cache will fail when cache is full. User can also
 // set percentage of the cache reserves for high priority entries via
 // high_pri_pool_pct.
-extern std::shared_ptr<CacheBase> NewLRUCache(size_t capacity, int num_shard_bits = 6, bool strict_capacity_limit = false,
-                                          double high_pri_pool_ratio = 0.0,
-                                          const CacheAllocatorPtr& allocator = CacheAllocatorPtr());
+extern std::shared_ptr<CacheBase> NewLRUCache(size_t capacity,
+                                              int num_shard_bits = 6,
+                                              bool strict_capacity_limit = false,
+                                              double high_pri_pool_ratio = 0.0,
+                                              const CacheAllocatorPtr &allocator = CacheAllocatorPtr());
 
-class CacheBase
-{
+class CacheBase {
 public:
     // Depending on implementation, cache entries with high priority could be less
     // likely to get evicted than low priority entries.
-    enum class Priority { HIGH, LOW };
+    enum class Priority {
+        HIGH,
+        LOW
+    };
 
     CacheBase() {}
 
@@ -60,11 +64,10 @@ public:
     virtual ~CacheBase() {}
 
     // Opaque handle to an entry stored in the cache.
-    struct Handle {
-    };
+    struct Handle {};
 
     // The type of the Cache
-    virtual const char* Name() const = 0;
+    virtual const char *Name() const = 0;
 
     // Insert a mapping from key->value into the cache and assign it
     // the specified charge against the total cache capacity.
@@ -81,39 +84,41 @@ public:
     //
     // When the inserted entry is no longer needed, the key and
     // value will be passed to "deleter".
-    virtual bool Insert(const autil::StringView& key, void* value, size_t charge,
-                        void (*deleter)(const autil::StringView& key, void* value,
-                                const CacheAllocatorPtr& allocator),
-                        Handle** handle = nullptr, Priority priority = Priority::LOW) = 0;
+    virtual bool Insert(const autil::StringView &key,
+                        void *value,
+                        size_t charge,
+                        void (*deleter)(const autil::StringView &key, void *value, const CacheAllocatorPtr &allocator),
+                        Handle **handle = nullptr,
+                        Priority priority = Priority::LOW) = 0;
 
     // If the cache has no mapping for "key", returns nullptr.
     //
     // Else return a handle that corresponds to the mapping.  The caller
     // must call this->Release(handle) when the returned mapping is no
     // longer needed.
-    virtual Handle* Lookup(const autil::StringView& key) = 0;
+    virtual Handle *Lookup(const autil::StringView &key) = 0;
 
     // Increments the reference count for the handle if it refers to an entry in
     // the cache. Returns true if refcount was incremented; otherwise, returns
     // false.
     // REQUIRES: handle must have been returned by a method on *this.
-    virtual bool Ref(Handle* handle) = 0;
+    virtual bool Ref(Handle *handle) = 0;
 
     // Release a mapping returned by a previous Lookup().
     // REQUIRES: handle must not have been released yet.
     // REQUIRES: handle must have been returned by a method on *this.
-    virtual void Release(Handle* handle) = 0;
+    virtual void Release(Handle *handle) = 0;
 
     // Return the value encapsulated in a handle returned by a
     // successful Lookup().
     // REQUIRES: handle must not have been released yet.
     // REQUIRES: handle must have been returned by a method on *this.
-    virtual void* Value(Handle* handle) = 0;
+    virtual void *Value(Handle *handle) = 0;
 
     // If the cache contains entry for key, erase it.  Note that the
     // underlying entry will be kept around until all existing handles
     // to it have been released.
-    virtual void Erase(const autil::StringView& key) = 0;
+    virtual void Erase(const autil::StringView &key) = 0;
     // Return a new numeric id.  May be used by multiple clients who are
     // sharding the same cache to partition the key space.  Typically the
     // client will allocate a new id at startup and prepend the id to
@@ -141,7 +146,7 @@ public:
     virtual size_t GetUsage() const = 0;
 
     // returns the memory size for a specific entry in the cache.
-    virtual size_t GetUsage(Handle* handle) const = 0;
+    virtual size_t GetUsage(Handle *handle) const = 0;
 
     // returns the memory size for the entries in use by the system
     virtual size_t GetPinnedUsage() const = 0;
@@ -151,14 +156,14 @@ public:
     // memory - call this only if you're shutting down the process.
     // Any attempts of using cache after this call will fail terribly.
     // Always delete the DB object before calling this method!
-    virtual void DisownData() {
+    virtual void DisownData(){
         // default implementation is noop
     };
 
     // Apply callback to all entries in the cache
     // If thread_safe is true, it will also lock the accesses. Otherwise, it will
     // access the cache without the lock held
-    virtual void ApplyToAllCacheEntries(void (*callback)(void*, size_t), bool thread_safe) = 0;
+    virtual void ApplyToAllCacheEntries(void (*callback)(void *, size_t), bool thread_safe) = 0;
 
     // Remove all entries.
     // Prerequisit: no entry is referenced.
@@ -168,8 +173,8 @@ public:
 
 private:
     // No copying allowed
-    CacheBase(const CacheBase&);
-    CacheBase& operator=(const CacheBase&);
+    CacheBase(const CacheBase &);
+    CacheBase &operator=(const CacheBase &);
 };
 
-}
+} // namespace autil

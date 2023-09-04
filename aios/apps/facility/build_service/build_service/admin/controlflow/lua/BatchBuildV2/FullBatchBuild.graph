@@ -1,0 +1,110 @@
+#import(Tool)
+#import(Log)
+#import(BatchBuildV2/FlowIdTools)
+
+function graphDef()
+   local clusterNames = Graph.parameter["clusterNames"]
+   local schemaIdMap = Tool.jsonToMap(Graph.parameter["schemaIdMap"])
+   local schemaId = '0'
+
+   if (clusterNames == nil)
+   then
+      Log.log("ERROR", "lack of clusterNames")
+      return false
+   end
+   if (schemaIdMap == nil)
+   then
+      Log.log("ERROR", "lack of schemaId")
+      return false
+   end
+
+   clusterNames = Tool.jsonToList(Graph.parameter["clusterNames"])
+   local dataDesc = Graph.parameter["dataDescriptions"]
+   if (dataDesc == nil)
+   then
+      Log.log("ERROR", "lack of dataDescriptions")
+      return false
+   end
+   local buildId = Graph.parameter["buildId"]
+   if (buildId == nil)
+   then
+      Log.log("ERROR", "lack of buildId")
+      return false
+   end
+   local buildStep = Graph.parameter["buildStep"]
+   if (buildStep == nil)
+   then
+      Log.log("ERROR", "lack of buildStep")
+      return false
+   end
+
+   -- prepare data source
+   local kvMap = KVParamUtil()
+   kvMap:setValue("dataSource", dataDesc)
+   local datasourceParam = {}
+   datasourceParam["taskParam"] = kvMap:toJsonString()
+   datasourceParam["clusterName"] = "AllCluster"
+   datasourceParam["buildId"] = buildId
+   local prepareDataSource = Graph.loadSimpleFlow("prepare_data_source", "0", datasourceParam)
+
+   -- batch control flow
+   local kvMapBatchControl = KVParamUtil()
+   kvMapBatchControl:setValue("dataDescriptions", dataDesc)
+   kvMapBatchControl:setValue("clusters", Graph.parameter["clusterNames"])
+   kvMapBatchControl:setValue("useV2Graph", "true")
+   local controlParam = {}
+   controlParam["taskParam"] = kvMapBatchControl:toJsonString()
+   controlParam["buildId"] = buildId
+   controlParam["clusterName"] = "AllCluster"
+   local controlFlow = Graph.loadSimpleFlow("batch_control_task", "batchController", controlParam)
+   if (controlFlow == nil)
+   then
+      Log.log("ERROR", "start batch controller fail.")
+      return false
+   end
+   controlFlow:addTag(FlowIdTools.getBatchControlTag())
+
+   -- prepare full processor
+   local processorParam = Tool.copyMap(Graph.parameter)
+   processorParam['schemaId'] = schemaId
+   processorParam['clusterName'] = Graph.parameter["clusterNames"]
+   processorParam['batchMode'] = "true"
+   processorParam['isTablet'] = "true"
+   local fullProcessor = Graph.loadSimpleFlow("processor", "fullProcessor", processorParam)
+   if (fullProcessor == nil)
+   then
+      Log.log("ERROR", "start full processor fail.");
+      return false
+   end   
+   fullProcessor:addTag("BSFullProcess")
+   Graph.setUpstream(fullProcessor, prepareDataSource)
+
+   for i, v in ipairs(clusterNames)
+   do
+      local clusterParam = {}
+      clusterParam["clusterName"] = v
+      clusterParam["dataDescriptions"] = dataDesc
+      clusterParam["buildId"] = buildId
+      clusterParam["buildStep"] = buildStep
+      clusterParam["schemaId"] = schemaIdMap[v]
+   
+      -- prepare full builder
+      clusterParam["processorFlowId"] = fullProcessor:getFlowId()
+      clusterParam["processorTaskName"] = "fullProcessor"
+      clusterParam["isFullBuilder"] = "true"
+      local fullBuilder = Graph.loadFlow("BatchBuildV2/BatchBuilder.flow", clusterParam)
+      fullBuilder:addTag(FlowIdTools.getFullBuilder(v))
+      fullBuilder:addTag("BSFullBuild")
+      fullBuilder:addTag("BSBuildV2")
+      if (fullBuilder == nil)
+      then
+         Log.log("ERROR", "start full builder fail.");
+         return false
+      end
+      Graph.declareFriend(fullProcessor, fullBuilder)
+      Graph.setUpstream(fullBuilder, prepareDataSource)
+      Graph.setUpstream(controlFlow, fullBuilder)
+   end
+   return true
+end
+

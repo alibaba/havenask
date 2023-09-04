@@ -1,0 +1,1182 @@
+{
+  "functions": [
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_matchindex",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_query",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 200,
+      "function_name": "_contain",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "int32"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "array",
+                "value_type": {
+                  "type": "int32"
+                }
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "int64"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "array",
+                "value_type": {
+                  "type": "int64"
+                }
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "array",
+                "value_type": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "int32"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "array",
+                "value_type": {
+                  "type": "int32"
+                }
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "int64"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "array",
+                "value_type": {
+                  "type": "int64"
+                }
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "array",
+                "value_type": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 200,
+      "function_name": "_notcontain",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "int32"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "array",
+                "value_type": {
+                  "type": "int32"
+                }
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "int64"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "array",
+                "value_type": {
+                  "type": "int64"
+                }
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "array",
+                "value_type": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_range",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "int32"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "int64"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "float"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "double"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_multivalue",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "array",
+                "value_type": {
+                  "type": "int32"
+                }
+              }
+            ],
+            "returns": [
+              {
+                "type": "int32"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "array",
+                "value_type": {
+                  "type": "int64"
+                }
+              }
+            ],
+            "returns": [
+              {
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "array",
+                "value_type": {
+                  "type": "string"
+                }
+              }
+            ],
+            "returns": [
+              {
+                "type": "string"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_timestamp",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "timestamp"
+              }
+            ],
+            "returns": [
+              {
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "timestamp"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_time",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "time"
+              }
+            ],
+            "returns": [
+              {
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "time"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_date",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "date"
+              }
+            ],
+            "returns": [
+              {
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "date"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_concat",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "prototypes": [
+          {
+            "variable_args": true,
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "string"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_rand",
+      "function_type": "UDF",
+      "is_deterministic": 0,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "prototypes": [
+          {
+            "params": [
+            ],
+            "returns": [
+              {
+                "type": "int32"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_model_recall",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+          "physical_type": "model_recall"
+        },
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_model_recall2",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+          "physical_type": "model_recall",
+          "replace_params_num": 2
+        },
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_match_type_scorer1",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+          "match_type": ""
+        },
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "double"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_match_type_scorer2",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+          "match_type": "simple"
+        },
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "double"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_match_type_scorer3",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+          "match_type": "simple|value"
+        },
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "double"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_double",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+        },
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "integer"
+              }
+            ],
+            "returns": [
+              {
+                "type": "double"
+              }
+            ]
+          },
+          {
+            "params": [
+              {
+                "type": "float"
+              }
+            ],
+            "returns": [
+              {
+                "type": "double"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_float",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+        },
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "integer"
+              }
+            ],
+            "returns": [
+              {
+                "type": "float"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_foo_f32",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+        },
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "float"
+              }
+            ],
+            "returns": [
+              {
+                "type": "float"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_foo_f64",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+        },
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "double"
+              }
+            ],
+            "returns": [
+              {
+                "type": "double"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_foo_i32",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+        },
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "integer"
+              }
+            ],
+            "returns": [
+              {
+                "type": "integer"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_foo_i64",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+        },
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "int64"
+              }
+            ],
+            "returns": [
+              {
+                "type": "int64"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "_foo_s",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+        },
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "string"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "NOW",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+        },
+        "prototypes": [
+          {
+            "params": [
+            ],
+            "returns": [
+              {
+                "type": "string"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "catalog_name": "default",
+      "database_name": "db1",
+      "function_version": 300,
+      "function_name": "aitheta",
+      "function_type": "UDF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "properties": {
+          "physical_type": "model_recall",
+          "replace_params_num": 1
+        },
+        "prototypes": [
+          {
+            "params": [
+              {
+                "is_multi": false,
+                "type": "string"
+              },
+              {
+                "is_multi": false,
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "is_multi": false,
+                "type": "boolean"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

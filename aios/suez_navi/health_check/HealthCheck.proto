@@ -1,0 +1,26 @@
+import "arpc/proto/rpc_extensions.proto";
+
+package suez_navi.health_check;
+
+option cc_generic_services = true;
+option cc_enable_arenas = true;
+
+message HealthCheckRequest {
+    optional string request = 1;
+}
+
+message HealthCheckResponse {
+    optional bool serviceReady = 1;
+    optional int32 httpStatusCode = 2 [default = 200];
+}
+
+service HealthCheckService {
+    option (arpc.global_service_id) = 3100;
+
+    rpc cm2_status(HealthCheckRequest) returns(HealthCheckResponse) {
+	option (arpc.local_method_id) = 3101;
+    }
+    rpc vip_status(HealthCheckRequest) returns(HealthCheckResponse) {
+	option (arpc.local_method_id) = 3102;
+    }
+}

@@ -96,6 +96,8 @@ DocOperateType RawDocument::getDocOperateType(const autil::StringView& cmdString
         return CHECKPOINT_DOC;
     } else if (cmdString == CMD_ALTER) {
         return ALTER_DOC;
+    } else if (cmdString == CMD_BULKLOAD) {
+        return BULKLOAD_DOC;
     }
     return UNKNOWN_OP;
 }
@@ -117,6 +119,8 @@ const std::string& RawDocument::getCmdString(DocOperateType type)
         return CMD_CHECKPOINT;
     case ALTER_DOC:
         return CMD_ALTER;
+    case BULKLOAD_DOC:
+        return CMD_BULKLOAD;
     default:
         return CMD_UNKNOWN;
     }

@@ -137,7 +137,7 @@ FSResult<void> LocalDirectory::InnerRename(const std::string& srcPath, const std
         util::PathUtil::JoinPath(destDirectory->GetLogicalPath(), (destPath.empty() ? srcPath : destPath));
 
     if (unlikely(_fileSystem != destDirectory->GetFileSystem())) {
-        AUTIL_LOG(ERROR, "only support rename in one fs, not support from [%s] [%s] to [%s] [%s]",
+        AUTIL_LOG(ERROR, "only support rename in the same fs, not support from [%s] [%s] to [%s] [%s]",
                   _fileSystem->DebugString().c_str(), DebugString("").c_str(),
                   destDirectory->GetFileSystem()->DebugString().c_str(), destDirectory->DebugString().c_str());
         return FSEC_NOTSUP;

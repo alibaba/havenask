@@ -15,9 +15,9 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <stddef.h>
 #include <stdint.h>
-#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -28,14 +28,14 @@
 namespace isearch {
 namespace search {
 
-class MultiQueryExecutor : public QueryExecutor
-{
+class MultiQueryExecutor : public QueryExecutor {
 public:
     typedef std::vector<QueryExecutor *> QueryExecutorVector;
 
 public:
     MultiQueryExecutor();
     virtual ~MultiQueryExecutor();
+
 public:
     const std::string getName() const override;
     void reset() override;
@@ -43,7 +43,7 @@ public:
     void setEmpty() override;
     void setCurrSub(docid_t docid) override;
     uint32_t getSeekDocCount() override;
-    virtual void addQueryExecutors(const std::vector<QueryExecutor*> &queryExecutors) = 0;
+    virtual void addQueryExecutors(const std::vector<QueryExecutor *> &queryExecutors) = 0;
 
     inline QueryExecutor *getQueryExecutor(int idx) {
         return _queryExecutors[idx];
@@ -61,11 +61,11 @@ public:
         return _queryExecutors.size();
     }
 
-    inline const QueryExecutorVector& getQueryExecutors() const {
+    inline const QueryExecutorVector &getQueryExecutors() const {
         return _queryExecutors;
     }
 
-    inline QueryExecutorVector& getQueryExecutors() {
+    inline QueryExecutorVector &getQueryExecutors() {
         return _queryExecutors;
     }
 
@@ -76,11 +76,12 @@ public:
     }
 
     template <class QueryExcutorType>
-    static std::string convertToString(const std::vector<QueryExcutorType*> &queryExecutors);
+    static std::string convertToString(const std::vector<QueryExcutorType *> &queryExecutors);
     std::string toString() const override;
 
 protected:
     QueryExecutorVector _queryExecutors;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -88,7 +89,8 @@ private:
 ////////////////////////////////////////////////////////////////
 
 template <class QueryExcutorType>
-std::string MultiQueryExecutor::convertToString(const std::vector<QueryExcutorType*> &queryExecutors) {
+std::string
+MultiQueryExecutor::convertToString(const std::vector<QueryExcutorType *> &queryExecutors) {
     std::string queryStr = "(";
     for (size_t i = 0; i < queryExecutors.size(); ++i) {
         queryStr += queryExecutors[i]->toString();

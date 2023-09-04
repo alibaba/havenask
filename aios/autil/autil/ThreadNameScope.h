@@ -15,17 +15,19 @@
  */
 #pragma once
 
-#include <string>
 #include <pthread.h>
+#include <string>
 
 namespace autil {
 
 class ThreadNameScope {
 private:
     static constexpr int MAX_LENGTH = 16;
+
 public:
     ThreadNameScope(const std::string &name);
     ~ThreadNameScope();
+
 private:
     std::string _name;
     pthread_t _self;
@@ -33,4 +35,4 @@ private:
     bool _ok;
 };
 
-}
+} // namespace autil

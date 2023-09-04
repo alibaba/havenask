@@ -1,0 +1,25 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "cluster1"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "ModifiedFieldsDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+                {
+                    "module_name" : "MainseOfflineBuild",
+                    "module_path" : "libMainseBuild.so",
+                    "parameters" : {
+                    }
+                }
+            ]
+        }
+    ]
+}

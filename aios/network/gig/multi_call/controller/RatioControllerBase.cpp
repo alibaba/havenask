@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/controller/RatioControllerBase.h"
+
 #include "aios/network/gig/multi_call/controller/ControllerChain.h"
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
 
@@ -22,9 +23,10 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, RatioControllerBase);
 
-RatioControllerBase::RatioControllerBase(const std::string &controllerName,
-                                         float decStep)
-    : ControllerBase(controllerName), _decStep(decStep) {}
+RatioControllerBase::RatioControllerBase(const std::string &controllerName, float decStep)
+    : ControllerBase(controllerName)
+    , _decStep(decStep) {
+}
 
 float RatioControllerBase::update(ControllerFeedBack &feedBack) {
     assert(!feedBack.mirrorResponse);
@@ -59,8 +61,7 @@ void RatioControllerBase::updateServerRatio(const QueryResultStatistic &stat) {
     if (invalidServerVersion(avgLatency)) {
         return;
     }
-    const ServerRatioFilter &serverRatioFilter =
-        getServerRatioFilter(agentInfo);
+    const ServerRatioFilter &serverRatioFilter = getServerRatioFilter(agentInfo);
     setServerFilterReady(serverRatioFilter.filter_ready());
     if (serverFilterReady()) {
         doUpdateServerRatio(serverRatioFilter);
@@ -70,8 +71,7 @@ void RatioControllerBase::updateServerRatio(const QueryResultStatistic &stat) {
     }
 }
 
-void RatioControllerBase::updateServerRatioMirror(
-    const QueryResultStatistic &stat) {
+void RatioControllerBase::updateServerRatioMirror(const QueryResultStatistic &stat) {
     if (!stat.validateMirror()) {
         return;
     }
@@ -90,8 +90,7 @@ void RatioControllerBase::updateServerRatioMirror(
     }
 }
 
-void RatioControllerBase::doUpdateServerRatio(
-    const ServerRatioFilter &serverRatioFilter) {
+void RatioControllerBase::doUpdateServerRatio(const ServerRatioFilter &serverRatioFilter) {
     setServerValue(serverRatioFilter.ratio());
     if (serverRatioFilter.has_load_balance_ratio()) {
         setLoadBalanceServerValue(serverRatioFilter.load_balance_ratio());

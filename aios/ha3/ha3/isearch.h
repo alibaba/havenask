@@ -15,14 +15,14 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <map>
 #include <memory>
+#include <stdint.h>
 #include <string>
 #include <utility>
 
 #include "autil/LongHashValue.h"
-#include "indexlib/indexlib.h"  // IWYU pragma: keep
+#include "indexlib/indexlib.h" // IWYU pragma: keep
 #include "matchdoc/CommonDefine.h"
 #include "matchdoc/ValueType.h"
 
@@ -50,9 +50,9 @@ const uint8_t SL_QRS = SL_PROXY;
 typedef matchdoc::BuiltinType VariableType;
 
 enum VRGroupKey {
-    FOR_DISTINCT = 1,     // hack flag, to declare DistinctInfo.
-    FOR_ATTRIBUTE,        // flag to show attribute in result.
-    FOR_USER_DATA,        // flag to show user data in result.
+    FOR_DISTINCT = 1, // hack flag, to declare DistinctInfo.
+    FOR_ATTRIBUTE,    // flag to show attribute in result.
+    FOR_USER_DATA,    // flag to show user data in result.
 };
 
 enum QueryTermType {
@@ -129,7 +129,7 @@ enum QuotaMode {
 
 enum QuotaType {
     QT_PROPOTION = 0, // propotion by per range doc count, must be 0
-    QT_AVERAGE, // average
+    QT_AVERAGE,       // average
     QT_QUOTA,
     QT_UNKNOW
 };
@@ -139,14 +139,14 @@ enum DispatchType {
     DISPATCH_BY_REPLICA
 };
 
-enum MergeInStep{
+enum MergeInStep {
     MERGE_IN_STEP_FULL,
     MERGE_IN_STEP_BEGIN,
     MERGE_IN_STEP_DOING,
     MERGE_IN_STEP_END
 };
 
-enum SummarySearchType{
+enum SummarySearchType {
     SUMMARY_SEARCH_NORMAL = 0,
     SUMMARY_SEARCH_EXTRA,
     SUMMARY_SEARCH_COUNT
@@ -176,16 +176,13 @@ inline std::string transSessionSrcType(SessionSrcType type) {
 
 constexpr uint32_t SEARCH_PHASE_ONE = 1;
 constexpr uint32_t SEARCH_PHASE_TWO = 2;
-constexpr uint32_t SEARCH_PHASE_SQL = 3;
 
 typedef std::map<std::string, std::string> KeyValueMap;
 typedef std::shared_ptr<KeyValueMap> KeyValueMapPtr;
 
-inline std::string getValueFromKeyValueMap(
-        const std::map<std::string, std::string> &keyValueMap,
-        const std::string &key,
-        const std::string &defaultValue = "")
-{
+inline std::string getValueFromKeyValueMap(const std::map<std::string, std::string> &keyValueMap,
+                                           const std::string &key,
+                                           const std::string &defaultValue = "") {
     KeyValueMap::const_iterator iter = keyValueMap.find(key);
     if (iter != keyValueMap.end()) {
         return iter->second;
@@ -201,7 +198,6 @@ constexpr uint32_t MAX_AGGREGATE_GROUP_COUNT = 1000;
 
 constexpr char DOCID_PARTITION_MODE[] = "docid";
 constexpr char NULL_CLUSTER[] = "";
-
 
 // build mode
 typedef std::string BuildMode;
@@ -226,14 +222,13 @@ constexpr char LAYERKEY_PERCENT[] = "%percent";
 constexpr char LAYERKEY_UNSORTED[] = "%unsorted";
 constexpr char LAYERKEY_SORTED[] = "%sorted";
 
-
 constexpr char PLUGIN_PATH_NAME[] = "plugins/";
 
 constexpr char DEFAULT_QRS_CHAIN[] = "DEFAULT";
 constexpr char DEFAULT_DEBUG_QRS_CHAIN[] = "_@_build_in_DebugQueryMatchQrsChain";
 constexpr char DEFAULT_DEBUG_PROCESSOR[] = "_@_build_in_MatchInfoProcessor";
 constexpr char DEFAULT_DEBUG_RANK_PROFILE[] = "_@_build_in_DebugQueryMatchRankProfile";
-constexpr char DEFAULT_DEBUG_SCORER[] =  "_@_build_in_RecordInfoScorer";
+constexpr char DEFAULT_DEBUG_SCORER[] = "_@_build_in_RecordInfoScorer";
 
 constexpr char DEFAULT_RANK_PROFILE[] = "DefaultProfile";
 
@@ -271,20 +266,20 @@ constexpr char FSUTIL_BINARY[] = "fs_util_bin";
 
 constexpr uint32_t MAX_PARTITION_RANGE = 65535;
 constexpr uint32_t MAX_PARTITION_COUNT = MAX_PARTITION_RANGE + 1;
-constexpr int64_t UPDATE_DEPLOY_STATUS_INTERVAL = 5 * 1000 * 1000; // 5s
-constexpr int64_t WORKER_MANAGER_INTERVAL = 30 * 1000 * 1000; // 30s
-constexpr int64_t DOWNLOAD_LOOP_INTERVAL = 5 * 1000 * 1000; // 5s
+constexpr int64_t UPDATE_DEPLOY_STATUS_INTERVAL = 5 * 1000 * 1000;   // 5s
+constexpr int64_t WORKER_MANAGER_INTERVAL = 30 * 1000 * 1000;        // 30s
+constexpr int64_t DOWNLOAD_LOOP_INTERVAL = 5 * 1000 * 1000;          // 5s
 constexpr int64_t SERIALIZE_WORKER_ERROR_INTERVAL = 5 * 1000 * 1000; // 5s
 constexpr int64_t REOPEN_INDEX_PARTITION_INTERVAL = 2 * 1000 * 1000; // 2s
-constexpr int64_t SCAN_INDEX_INTERVAL = 6 * 1000 * 1000; // 6s
+constexpr int64_t SCAN_INDEX_INTERVAL = 6 * 1000 * 1000;             // 6s
 constexpr int32_t KEEP_INCREMENTAL_VERSION_COUNT = 10;
-constexpr int64_t APP_ITERATOR_INTERVAL = 100 * 1000; // 100ms
+constexpr int64_t APP_ITERATOR_INTERVAL = 100 * 1000;        // 100ms
 constexpr int64_t ARPC_RECONNECT_INTERVAL = 3 * 1000 * 1000; // 3s
-constexpr int64_t BUILDER_MONITOR_INTERVAL = 500 * 1000; // 0.5s
-constexpr int32_t LOCAL_BUILDER_METRICS_STDOUT_COUNT = 10; // BUILDER_MONITOR_INTERVAL * 10
+constexpr int64_t BUILDER_MONITOR_INTERVAL = 500 * 1000;     // 0.5s
+constexpr int32_t LOCAL_BUILDER_METRICS_STDOUT_COUNT = 10;   // BUILDER_MONITOR_INTERVAL * 10
 
 constexpr int32_t SERVER_MAX_IDLE_TIME = 100 * 7200 * 1000; // 200h
-constexpr int32_t SERVER_TIMEOUT = 5 * 1000; // 5s
+constexpr int32_t SERVER_TIMEOUT = 5 * 1000;                // 5s
 
 constexpr uint32_t FETCHSUMMARY_GID_FIELD_SIZE = 5;
 constexpr uint32_t STATUS_CHECK_PREFIX_LEN = 6;
@@ -293,22 +288,21 @@ constexpr int64_t GET_FILE_SIZE_LIMIT = 100 * 1024; // 100k
 
 constexpr int DEFAULT_WORKER_RESOURCE = 100;
 constexpr int DEFAULT_PARTITION_RESOURCE = DEFAULT_WORKER_RESOURCE;
-constexpr int64_t OLD_SNAPSHOT_EXPIRE_TIME = 5 * 1000 * 1000; //5s
+constexpr int64_t OLD_SNAPSHOT_EXPIRE_TIME = 5 * 1000 * 1000; // 5s
 
 #define HA3_REQUEST_VERSION 3700000
 #define HA3_MAJOR_VERSION 3
 #define HA3_MINOR_VERSION 8
 #define HA3_MICRO_VERSION 0
 
-constexpr int32_t OLD_SEARCH_REQUEST_VERSION = HA3_MAJOR_VERSION * 1000000
-                                           + HA3_MINOR_VERSION * 10000
-                                           + HA3_MICRO_VERSION * 100
-                                           + 1;
+constexpr int32_t OLD_SEARCH_REQUEST_VERSION
+    = HA3_MAJOR_VERSION * 1000000 + HA3_MINOR_VERSION * 10000 + HA3_MICRO_VERSION * 100 + 1;
 
 // compatible suez version, change when request serial
-constexpr int32_t SEARCH_REQUEST_VERSION = (HA3_REQUEST_VERSION == 0) ? OLD_SEARCH_REQUEST_VERSION : HA3_REQUEST_VERSION;
+constexpr int32_t SEARCH_REQUEST_VERSION
+    = (HA3_REQUEST_VERSION == 0) ? OLD_SEARCH_REQUEST_VERSION : HA3_REQUEST_VERSION;
 
-//HA3_MAJOR_VERSION.HA3_MINOR_VERSION.HA3_MICRO_VERSION_rc1
+// HA3_MAJOR_VERSION.HA3_MINOR_VERSION.HA3_MICRO_VERSION_rc1
 
 constexpr uint32_t INVALID_SEARCHER_CACHE_EXPIRE_TIME = uint32_t(-1);
 
@@ -320,5 +314,6 @@ constexpr char DEFAULT_TASK_QUEUE_NAME[] = "__ha3_runtime_default_task_queue";
 
 extern const std::string HA3_EMPTY_STRING;
 
-/// This macro can be appended to a function definition to generate a compiler warning if the result is ignored.
+/// This macro can be appended to a function definition to generate a compiler warning if the result
+/// is ignored.
 #define WARN_UNUSED_RESULT __attribute__((warn_unused_result))

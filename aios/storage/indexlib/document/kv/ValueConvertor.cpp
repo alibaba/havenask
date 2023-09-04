@@ -20,7 +20,7 @@
 #include "indexlib/index/common/field_format/attribute/AttributeConvertor.h"
 #include "indexlib/index/common/field_format/attribute/AttributeConvertorFactory.h"
 #include "indexlib/index/common/field_format/pack_attribute/PackAttributeFormatter.h"
-#include "indexlib/index/kv/config/ValueConfig.h"
+#include "indexlib/index/kv/config/ValueConfig.h" // TODO: make ValueConvertor do not dependents on config
 #include "indexlib/util/DocTracer.h"
 #include "indexlib/util/ErrorLogCollector.h"
 

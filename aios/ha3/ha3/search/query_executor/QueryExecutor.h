@@ -106,10 +106,10 @@ public:
         return ret;
     }
     indexlib::index::ErrorCode seekSub(docid_t docId,
-                                        docid_t subDocId,
-                                        docid_t subDocEnd,
-                                        bool needSubMatchdata,
-                                        docid_t &result) {
+                                       docid_t subDocId,
+                                       docid_t subDocEnd,
+                                       bool needSubMatchdata,
+                                       docid_t &result) {
         auto ec = seekSubDoc(docId, subDocId, subDocEnd, needSubMatchdata, _currentSub);
         result = _currentSub;
         return ec;

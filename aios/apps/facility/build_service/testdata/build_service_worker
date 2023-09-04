@@ -1,0 +1,11 @@
+#!/bin/bash
+
+env
+echo '##################################'
+echo $@
+echo $0
+
+for((i=0; i < 10000; i++))
+do
+    sleep 1
+done

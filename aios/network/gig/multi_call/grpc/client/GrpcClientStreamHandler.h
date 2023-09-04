@@ -16,13 +16,14 @@
 #ifndef ISEARCH_MULTI_CALL_GRPCCLIENTSTREAMHANDLER_H
 #define ISEARCH_MULTI_CALL_GRPCCLIENTSTREAMHANDLER_H
 
+#include <grpc++/generic/async_generic_service.h>
+#include <grpc++/generic/generic_stub.h>
+
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/grpc/CompletionQueueStatus.h"
 #include "aios/network/gig/multi_call/stream/GigStreamHandlerBase.h"
 #include "aios/network/gig/multi_call/stream/GigStreamMessage.h"
 #include "aios/network/opentelemetry/core/Span.h"
-#include <grpc++/generic/async_generic_service.h>
-#include <grpc++/generic/generic_stub.h>
 
 // #define SET_DEBUG
 
@@ -35,10 +36,11 @@ class CallBack;
 class SearchServiceProvider;
 struct CompletionQueueStatus;
 
-class GrpcClientStreamHandler : public GigStreamHandlerBase {
+class GrpcClientStreamHandler : public GigStreamHandlerBase
+{
 public:
     GrpcClientStreamHandler(const std::shared_ptr<GigStreamBase> &stream, PartIdTy partId,
-                            const std::string &bizName, const std::string &spec);
+                            const std::string &bizName, const std::string &spec, bool corked);
     ~GrpcClientStreamHandler();
 
 private:
@@ -62,26 +64,28 @@ public:
         }
 #endif
     }
+
 public:
     bool init() override;
     void abort();
+
 private:
     void initCallback(bool ok) override;
     GigStreamClosureBase *doSend(bool sendEof, grpc::ByteBuffer *message,
-                                 GigStreamClosureBase *closure) override;
+                                 GigStreamClosureBase *closure, bool &ok) override;
     void tryCancel() override;
     GigStreamClosureBase *receiveNext() override;
     bool doStreamReceive(const std::shared_ptr<GigStreamBase> &stream,
                          const GigStreamMessage &message) override;
     void doStreamReceiveCancel(const std::shared_ptr<GigStreamBase> &stream,
-                               const GigStreamMessage &message,
-                               MultiCallErrorCode ec) override;
+                               const GigStreamMessage &message, MultiCallErrorCode ec) override;
     bool ignoreReceiveError() override;
     GigStreamClosureBase *finish() override;
     void doFinishCallback(bool ok) override;
     void initChildSpan();
     void clean() override;
     void updateClockDrift();
+
 private:
     // receive
     std::string _bizName;
@@ -95,6 +99,7 @@ private:
     std::shared_ptr<SearchServiceProvider> _provider;
     std::atomic<bool> _cleaned;
     grpc::Status _status;
+    bool _corked;
     bool _isRetry;
     opentelemetry::SpanPtr _span;
 #ifdef SET_DEBUG

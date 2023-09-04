@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="expr_case_when_output_str">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT nid, brand, price, size, CASE WHEN brand = 'Huawei' THEN '_hw_' WHEN brand = 'Xiaomi' THEN '_xm_' ELSE '_oo_' END AS _case_ FROM phone
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"nid", "brand", "price", "size", "_case_"</Resource>
+        <Resource name="column_types">uint64, multi_char, double, double, multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1, "Huawei", 3599, 5.9, "_hw_"
+2, "Huawei", 4388, 5.5, "_hw_"
+3, "Xiaomi", 899, 5, "_xm_"
+4, "OPPO", 2999, 5.5, "_oo_"
+5, "Meizu", 1299, 5.5, "_oo_"
+6, "Nokia",  169, 1.4, "_oo_"
+7, "Apple", 3599, 4.7, "_oo_"
+8, "Apple", 5998, 5.5, "_oo_"
+9, "Apple", 4298, 4.7, "_oo_"
+10, "Samsung", 5688, 5.6, "_oo_"
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#2(type=api)
+    ExchangeOp#1(distribution={type:SINGLETON})
+        TableScanOp#0(catalog_name=default,db_name=phone,limit=100,output_fields=[$nid,$brand,$price,$size,$_case_],push_down_ops=[{attrs:{output_field_exprs:{$_case_:{op:CASE,params:[{op:=,params:[$brand,Huawei],type:OTHER},_hw_,{op:=,params:[$brand,Xiaomi],type:OTHER},_xm_,_oo_],type:OTHER}},output_fields:[$nid,$brand,$price,$size,$_case_]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

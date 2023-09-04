@@ -209,7 +209,7 @@ void SchemaRewriter::RewriteOneRegionForKV(const IndexPartitionSchemaPtr& schema
 
     // kv
     if (schema->GetTableType() == tt_kv) {
-        if (options.IsOnline() && getenv("KV_SUPPORT_SWAP_MMAP_FILE") != NULL) {
+        if (options.IsOnline() && autil::EnvUtil::hasEnv("KV_SUPPORT_SWAP_MMAP_FILE")) {
             kvConfig->SetUseSwapMmapFile(options.GetOnlineConfig().useSwapMmapFile);
             kvConfig->SetMaxSwapMmapFileSize(options.GetOnlineConfig().maxSwapMmapFileSize);
         }

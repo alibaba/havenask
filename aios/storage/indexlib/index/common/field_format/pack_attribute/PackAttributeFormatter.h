@@ -21,10 +21,10 @@
 #include "autil/MultiValueType.h"
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
-#include "indexlib/index/attribute/config/PackAttributeConfig.h"
 #include "indexlib/index/common/field_format/attribute/DefaultAttributeValueInitializer.h"
 #include "indexlib/index/common/field_format/pack_attribute/AttributeReferenceTyped.h"
 #include "indexlib/index/common/field_format/pack_attribute/PlainFormatEncoder.h"
+#include "indexlib/index/pack_attribute/PackAttributeConfig.h"
 #include "indexlib/util/MemBuffer.h"
 
 namespace indexlibv2::index {
@@ -49,7 +49,7 @@ public:
     ~PackAttributeFormatter() = default;
 
 public:
-    bool Init(const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& packAttrConfig);
+    bool Init(const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& packAttrConfig);
     const std::vector<std::shared_ptr<AttributeReference>>& GetAttributeReferences() const { return _attrRefs; }
     AttributeReference* GetAttributeReference(const std::string& subAttrName) const;
     AttributeReference* GetAttributeReference(attrid_t subAttrId) const;
@@ -72,7 +72,7 @@ public:
     autil::StringView MergeAndFormatUpdateFields(const char* baseAddr, const PackAttributeFields& packAttrFields,
                                                  bool hasHashKeyInAttrFields, indexlib::util::MemBuffer& buffer);
 
-    const std::shared_ptr<config::AttributeConfig>& GetAttributeConfig(const std::string& attrName) const;
+    const std::shared_ptr<index::AttributeConfig>& GetAttributeConfig(const std::string& attrName) const;
 
     static size_t EncodePatchValues(const PackAttributeFields& patchFields, uint8_t* buffer, size_t bufferLen);
 
@@ -81,7 +81,7 @@ public:
     static size_t GetEncodePatchValueLen(const PackAttributeFields& patchFields);
 
     static PlainFormatEncoder*
-    CreatePlainFormatEncoder(const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& config);
+    CreatePlainFormatEncoder(const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& config);
 
     std::shared_ptr<AttributeConvertor> GetAttributeConvertorByAttrId(attrid_t attrId) const
     {
@@ -94,7 +94,7 @@ public:
 
     bool CheckLength(const autil::StringView& packAttrField);
 
-    const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& GetPackAttributeConfig() const
+    const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& GetPackAttributeConfig() const
     {
         return _packAttrConfig;
     }
@@ -117,23 +117,23 @@ private:
     bool GetMergedAttributeFieldData(const char* baseAddr, const PackAttributeFields& packAttrFields,
                                      bool hasHashKeyInAttrFields, std::vector<AttributeFieldData>& attrFieldData);
 
-    void ClassifySubAttributeConfigs(const std::vector<std::shared_ptr<config::AttributeConfig>>& subAttrConfs);
+    void ClassifySubAttributeConfigs(const std::vector<std::shared_ptr<index::AttributeConfig>>& subAttrConfs);
 
     bool InitAttributeConvertors();
     bool InitAttributeReferences();
     bool InitSingleValueAttributeInitializers();
 
-    bool AddNormalAttributeReference(const std::shared_ptr<config::AttributeConfig>& attrConfig, size_t& offset);
-    bool AddImpactAttributeReference(const std::shared_ptr<config::AttributeConfig>& attrConfig, size_t varIdx);
+    bool AddNormalAttributeReference(const std::shared_ptr<index::AttributeConfig>& attrConfig, size_t& offset);
+    bool AddImpactAttributeReference(const std::shared_ptr<index::AttributeConfig>& attrConfig, size_t varIdx);
 
     bool IsAttributeReferenceExist(const std::string& attrName) const;
 
     template <typename T>
     std::shared_ptr<AttributeReference>
-    CreateAttributeReference(size_t offset, const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    CreateAttributeReference(size_t offset, const std::shared_ptr<index::AttributeConfig>& attrConfig);
 
     std::shared_ptr<AttributeReference>
-    CreateStringAttributeReference(size_t offset, const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    CreateStringAttributeReference(size_t offset, const std::shared_ptr<index::AttributeConfig>& attrConfig);
 
     size_t CalculatePackDataSize(const std::vector<AttributeFieldData>& attrFieldData, size_t& offsetUnitSize);
 
@@ -170,12 +170,12 @@ private:
     size_t _fixAttrSize;
     bool _enableImpact;
     bool _enablePlainFormat;
-    std::shared_ptr<indexlibv2::config::PackAttributeConfig> _packAttrConfig;
+    std::shared_ptr<indexlibv2::index::PackAttributeConfig> _packAttrConfig;
     AttrNameToIdx _attrName2Idx;
     AttrIdToIdx _attrId2Idx;
     std::vector<std::shared_ptr<AttributeReference>> _attrRefs;
-    std::vector<std::shared_ptr<config::AttributeConfig>> _fixLenAttributes;
-    std::vector<std::shared_ptr<config::AttributeConfig>> _varLenAttributes;
+    std::vector<std::shared_ptr<index::AttributeConfig>> _fixLenAttributes;
+    std::vector<std::shared_ptr<index::AttributeConfig>> _varLenAttributes;
 
     std::vector<std::shared_ptr<AttributeConvertor>> _fixLenAttrConvertors;
     std::vector<std::shared_ptr<AttributeConvertor>> _varLenAttributeConvertors;
@@ -190,7 +190,7 @@ private:
 template <typename T>
 inline std::shared_ptr<AttributeReference>
 PackAttributeFormatter::CreateAttributeReference(size_t offset,
-                                                 const std::shared_ptr<config::AttributeConfig>& attrConfig)
+                                                 const std::shared_ptr<index::AttributeConfig>& attrConfig)
 {
     const auto& attrName = attrConfig->GetAttrName();
     indexlib::config::CompressTypeOption compressType = attrConfig->GetCompressType();

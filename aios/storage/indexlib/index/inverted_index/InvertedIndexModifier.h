@@ -18,7 +18,7 @@
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "indexlib/base/Status.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/document/normal/ModifiedTokens.h"
 
 namespace indexlib::index {
@@ -26,12 +26,12 @@ namespace indexlib::index {
 class InvertedIndexModifier : public autil::NoCopyable
 {
 public:
-    InvertedIndexModifier(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema) : _schema(schema) {}
+    InvertedIndexModifier(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema) : _schema(schema) {}
     virtual ~InvertedIndexModifier() = default;
     virtual Status UpdateOneFieldTokens(docid_t docId, const document::ModifiedTokens& modifiedTokens,
                                         bool isForReplay) = 0;
 
 protected:
-    const std::shared_ptr<indexlibv2::config::TabletSchema> _schema;
+    const std::shared_ptr<indexlibv2::config::ITabletSchema> _schema;
 };
 } // namespace indexlib::index

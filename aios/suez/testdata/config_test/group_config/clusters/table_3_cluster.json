@@ -1,0 +1,9 @@
+{
+    "group_config" : {
+        "keep_consistency" : false,
+        "builder_thread_num" : 1,
+        "group_memory_use" : 60,
+        "group_realtime_memory_use": 30,
+        "share_build_thread" : true
+    }
+}

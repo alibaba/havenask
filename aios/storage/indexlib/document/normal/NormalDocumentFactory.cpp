@@ -15,7 +15,7 @@
  */
 #include "indexlib/document/normal/NormalDocumentFactory.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/document/IRawDocumentParser.h"
 #include "indexlib/document/normal/NormalDocumentFactory.h"
 #include "indexlib/document/normal/NormalDocumentParser.h"
@@ -35,7 +35,7 @@ std::unique_ptr<ExtendDocument> NormalDocumentFactory::CreateExtendDocument()
 }
 
 std::unique_ptr<IDocumentParser>
-NormalDocumentFactory::CreateDocumentParser(const std::shared_ptr<config::TabletSchema>& schema,
+NormalDocumentFactory::CreateDocumentParser(const std::shared_ptr<config::ITabletSchema>& schema,
                                             const std::shared_ptr<DocumentInitParam>& initParam)
 {
     auto parser = std::make_unique<NormalDocumentParser>(nullptr, false);

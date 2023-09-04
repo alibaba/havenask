@@ -23,6 +23,7 @@
 #include "indexlib/index/kv/config/ValueConfig.h"
 #include "indexlib/table/common/SearchUtil.h"
 #include "indexlib/table/kv_table/KVCacheReaderImpl.h"
+#include "indexlib/util/ProtoJsonizer.h"
 namespace indexlibv2::table {
 
 AUTIL_LOG_SETUP(indexlib.table, KVTabletReader);
@@ -51,70 +52,46 @@ Status KVTabletReader::Open(const std::shared_ptr<framework::TabletData>& tablet
 Status KVTabletReader::Search(const std::string& jsonQuery, std::string& result) const
 {
     std::string indexName;
-    std::vector<std::string> pkVec;
-    std::vector<uint64_t> hashVec;
-    std::vector<std::string> attrs;
     try {
         autil::legacy::Any a = autil::legacy::json::ParseJson(jsonQuery);
         autil::legacy::json::JsonMap am = autil::legacy::AnyCast<autil::legacy::json::JsonMap>(a);
-        auto iter = am.find("index_name");
+        auto iter = am.find("indexName");
         if (iter != am.end()) {
             indexName = autil::legacy::AnyCast<std::string>(iter->second);
         }
-        iter = am.find("pk_list");
-        if (iter != am.end()) {
-            autil::legacy::FromJson(pkVec, iter->second);
-        }
-        iter = am.find("pk_number_list");
-        if (iter != am.end()) {
-            autil::legacy::FromJson(hashVec, iter->second);
-        }
-        iter = am.find("attributes");
-        if (iter != am.end()) {
-            autil::legacy::FromJson(attrs, iter->second);
-        }
     } catch (const std::exception& e) {
-        return Status::InvalidArgs("invalid query [%s]", jsonQuery.c_str());
+        return Status::InvalidArgs("invalid query [%s], exception [%s]", jsonQuery.c_str(), e.what());
     }
-
     auto tabletSchema = GetSchema();
     if (!tabletSchema) {
         return Status::InternalError("get tablet schema fail.");
     }
-
     std::shared_ptr<config::IIndexConfig> indexConfig;
-    if (!indexName.empty()) {
+    if (indexName.empty()) {
+        auto indexConfigs = tabletSchema->GetIndexConfigs("kv");
+        if (indexConfigs.size() != 1) {
+            std::string errStr = "not support multi kv index yet";
+            return Status::InvalidArgs(errStr.c_str());
+        }
+        indexConfig = indexConfigs[0];
+    } else {
         indexConfig = tabletSchema->GetIndexConfig("kv", indexName);
         if (!indexConfig) {
             return Status::InvalidArgs("no indexer with index_name: [%s] exist in schema.", indexName.c_str());
         }
-    } else {
-        auto indexConfigs = tabletSchema->GetIndexConfigs("kv");
-        if (indexConfigs.size() != 1) {
-            std::string errStr = "\"index_name\" parameter is necessary for multiple-indexer schema.";
-            return Status::InvalidArgs(errStr.c_str());
-        }
-        indexConfig = indexConfigs[0];
     }
-
     assert(indexConfig);
-    base::PartitionQuery query;
-    if (!pkVec.empty()) {
-        query.mutable_pk()->CopyFrom({pkVec.begin(), pkVec.end()});
-    }
-    if (!hashVec.empty()) {
-        query.mutable_pknumber()->CopyFrom({hashVec.begin(), hashVec.end()});
-    }
-    if (!attrs.empty()) {
-        query.mutable_attrs()->CopyFrom({attrs.begin(), attrs.end()});
-    }
 
+    base::PartitionQuery query;
+    RETURN_STATUS_DIRECTLY_IF_ERROR(indexlib::util::ProtoJsonizer::FromJson(jsonQuery, &query));
     base::PartitionResponse partitionResponse;
-    auto ret = QueryIndex(indexConfig, query, partitionResponse);
-    if (ret.IsOK()) {
+    RETURN_STATUS_DIRECTLY_IF_ERROR(QueryIndex(indexConfig, query, partitionResponse));
+    if (indexName.empty()) {
+        RETURN_STATUS_DIRECTLY_IF_ERROR(indexlib::util::ProtoJsonizer::ToJson(partitionResponse, &result));
+    } else {
         SearchUtil::ConvertResponseToStringFormat(partitionResponse, result);
     }
-    return ret;
+    return Status::OK();
 }
 
 Status KVTabletReader::QueryIndex(const std::shared_ptr<config::IIndexConfig>& indexConfig,
@@ -122,7 +99,7 @@ Status KVTabletReader::QueryIndex(const std::shared_ptr<config::IIndexConfig>& i
 {
     auto kvConfig = std::dynamic_pointer_cast<indexlibv2::config::KVIndexConfig>(indexConfig);
     if (!kvConfig) {
-        return Status::InvalidArgs("failed to cast IIindexConfig to KVIndexConfig");
+        return Status::InvalidArgs("failed to cast IIndexConfig to KVIndexConfig");
     }
     auto valueConfig = kvConfig->GetValueConfig();
     assert(valueConfig);

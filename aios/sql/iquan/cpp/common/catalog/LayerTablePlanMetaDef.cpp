@@ -13,29 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <unordered_map>
-
 #include "iquan/common/catalog/LayerTablePlanMetaDef.h"
+
+#include <unordered_map>
 
 namespace iquan {
 
-const static std::unordered_map<std::string, CompareOp> STRING2OP{
+const static std::unordered_map<std::string, CompareOp> STRING2OP {
     {"GREATER_THAN", CompareOp::GREATER_THAN},
     {"GREATER_THAN_OR_EQUAL", CompareOp::GREATER_THAN_OR_EQUAL},
     {"LESS_THAN", CompareOp::LESS_THAN},
     {"LESS_THAN_OR_EQUAL", CompareOp::LESS_THAN_OR_EQUAL},
-    {"EQUALS", CompareOp::EQUALS}
-};
+    {"EQUALS", CompareOp::EQUALS}};
 
 LayerTablePlanMeta::LayerTablePlanMeta(const LayerTablePlanMetaDef &metaDef)
-    :layerTableName(metaDef.layerTableName),
-        fieldName(metaDef.fieldName),
-        dynamicParamsIndex(metaDef.dynamicParamsIndex),
-        isRev(metaDef.isRev),
-        value(metaDef.value)
-    {
-        const std::string &strOp = metaDef.op;
-        op = STRING2OP.at(strOp);
-    };
+    : layerTableName(metaDef.layerTableName)
+    , fieldName(metaDef.fieldName)
+    , dynamicParamsIndex(metaDef.dynamicParamsIndex)
+    , isRev(metaDef.isRev)
+    , value(metaDef.value) {
+    const std::string &strOp = metaDef.op;
+    op = STRING2OP.at(strOp);
+};
 
 } // namespace iquan

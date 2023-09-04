@@ -21,7 +21,7 @@
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, MultiValueAttributePatchFile);
 MultiValueAttributePatchFile::MultiValueAttributePatchFile(segmentid_t segmentId,
-                                                           const std::shared_ptr<config::AttributeConfig>& attrConfig)
+                                                           const std::shared_ptr<AttributeConfig>& attrConfig)
     : _fileLength(0)
     , _cursor(0)
     , _docId(INVALID_DOCID)

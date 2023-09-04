@@ -40,7 +40,8 @@ bool HttpPacketStreamer::getPacketInfo(DataBuffer *input, PacketHeader *header, 
     }
     char *data = input->getData();
     int cmplen = input->getDataLen();
-    if (cmplen > 4) cmplen = 4;
+    if (cmplen > 4)
+        cmplen = 4;
     if (memcmp(data, "GET ", cmplen)) {
         *broken = true;
         return false;
@@ -57,7 +58,4 @@ bool HttpPacketStreamer::getPacketInfo(DataBuffer *input, PacketHeader *header, 
     return true;
 }
 
-}
-
-
-
+} // namespace anet

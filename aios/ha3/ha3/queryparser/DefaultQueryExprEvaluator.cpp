@@ -19,6 +19,7 @@
 #include <memory>
 #include <vector>
 
+#include "autil/Log.h"
 #include "ha3/common/AndNotQuery.h"
 #include "ha3/common/AndQuery.h"
 #include "ha3/common/MultiTermQuery.h"
@@ -41,7 +42,6 @@
 #include "ha3/queryparser/QueryExpr.h"
 #include "ha3/queryparser/RankQueryExpr.h"
 #include "ha3/queryparser/WordsTermExpr.h"
-#include "autil/Log.h"
 
 using namespace std;
 
@@ -53,19 +53,19 @@ namespace queryparser {
 AUTIL_LOG_SETUP(ha3, DefaultQueryExprEvaluator);
 
 DefaultQueryExprEvaluator::DefaultQueryExprEvaluator()
-    :_query(NULL) {}
+    : _query(NULL) {}
 
 DefaultQueryExprEvaluator::~DefaultQueryExprEvaluator() {
     delete _query;
 }
 
-Query* DefaultQueryExprEvaluator::stealQuery() {
+Query *DefaultQueryExprEvaluator::stealQuery() {
     Query *query = _query;
     _query = NULL;
     return query;
 }
 
-const Query* DefaultQueryExprEvaluator::getQuery() {
+const Query *DefaultQueryExprEvaluator::getQuery() {
     return _query;
 }
 
@@ -76,9 +76,7 @@ void DefaultQueryExprEvaluator::setQuery(Query *query) {
     _query = query;
 }
 
-void DefaultQueryExprEvaluator::evaluateBinaryQueryExpr(Query *resultQuery,
-        BinaryQueryExpr* expr)
-{
+void DefaultQueryExprEvaluator::evaluateBinaryQueryExpr(Query *resultQuery, BinaryQueryExpr *expr) {
     QueryExpr *leftExpr = expr->getLeftExpr();
     QueryExpr *rightExpr = expr->getRightExpr();
 
@@ -117,13 +115,13 @@ void DefaultQueryExprEvaluator::evaluateRankExpr(RankQueryExpr *expr) {
 
 void DefaultQueryExprEvaluator::evaluateWordsExpr(WordsTermExpr *wordsExpr) {
     TermPtr searchTerm = wordsExpr->constructSearchTerm();
-    Query* query = new TermQuery(*searchTerm, wordsExpr->getLabel());
+    Query *query = new TermQuery(*searchTerm, wordsExpr->getLabel());
     setQuery(query);
 }
 
 void DefaultQueryExprEvaluator::evaluateNumberExpr(NumberTermExpr *numberExpr) {
     NumberTermPtr searchTerm = dynamic_pointer_cast<NumberTerm>(numberExpr->constructSearchTerm());
-    Query* query = new NumberQuery(*searchTerm, numberExpr->getLabel());
+    Query *query = new NumberQuery(*searchTerm, numberExpr->getLabel());
     setQuery(query);
 }
 
@@ -135,11 +133,12 @@ void DefaultQueryExprEvaluator::evaluatePhraseExpr(PhraseTermExpr *phraseExpr) {
 }
 
 void DefaultQueryExprEvaluator::evaluateMultiTermExpr(MultiTermQueryExpr *multiTermExpr) {
-    MultiTermQuery *query = new MultiTermQuery(multiTermExpr->getLabel(), multiTermExpr->getOpExpr());
-    const MultiTermQueryExpr::TermExprArray& termQueryExprs = multiTermExpr->getTermExprs();
+    MultiTermQuery *query
+        = new MultiTermQuery(multiTermExpr->getLabel(), multiTermExpr->getOpExpr());
+    const MultiTermQueryExpr::TermExprArray &termQueryExprs = multiTermExpr->getTermExprs();
     for (MultiTermQueryExpr::TermExprArray::const_iterator it = termQueryExprs.begin();
-         it != termQueryExprs.end(); it++)
-    {
+         it != termQueryExprs.end();
+         it++) {
         TermPtr searchTerm = (*it)->constructSearchTerm();
         query->addTerm(searchTerm);
     }

@@ -22,6 +22,10 @@
 #include "indexlib/index/kkv/Constant.h"
 #include "indexlib/index/kkv/common/KKVDocs.h"
 
+namespace autil {
+class CacheAllocator;
+} // namespace autil
+
 namespace indexlibv2::index {
 
 template <typename SKeyType>
@@ -73,6 +77,21 @@ struct KKVCacheItem {
         return true;
     }
 
+    KKVCacheItem<SKeyType>* Clone(framework::Locator* newLocator)
+    {
+        KKVCacheItem<SKeyType>* cacheItem = new KKVCacheItem<SKeyType>();
+        cacheItem->nextRtSegmentId = nextRtSegmentId;
+        cacheItem->timestamp = timestamp;
+        cacheItem->locator = *newLocator;
+        cacheItem->count = count;
+        size_t bufferLen = Size() - sizeof(KKVCacheItem<SKeyType>);
+        if (bufferLen > 0) {
+            cacheItem->base = new char[bufferLen];
+            memcpy(cacheItem->base, base, bufferLen);
+        }
+        return cacheItem;
+    }
+
     static KKVCacheItem<SKeyType>* Create(typename KKVDocs::iterator beginIter, typename KKVDocs::iterator endIter)
     {
         KKVCacheItem<SKeyType>* cacheItem = new KKVCacheItem<SKeyType>();
@@ -111,7 +130,8 @@ struct KKVCacheItem {
         return cacheItem;
     }
 
-    static void Deleter(const autil::StringView& key, void* value, const autil::CacheAllocatorPtr& allocator)
+    static void Deleter(const autil::StringView& key, void* value,
+                        const std::shared_ptr<autil::CacheAllocator>& allocator)
     {
         if (value) {
             KKVCacheItem<SKeyType>* cacheItem = (KKVCacheItem<SKeyType>*)value;

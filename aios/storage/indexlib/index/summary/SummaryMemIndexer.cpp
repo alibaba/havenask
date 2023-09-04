@@ -15,6 +15,7 @@
  */
 #include "indexlib/index/summary/SummaryMemIndexer.h"
 
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocument.h"
 #include "indexlib/document/extractor/IDocumentInfoExtractor.h"
 #include "indexlib/document/extractor/IDocumentInfoExtractorFactory.h"
@@ -77,16 +78,15 @@ Status SummaryMemIndexer::Build(document::IDocumentBatch* docBatch)
         return Status::OK();
     }
 
-    for (size_t i = 0; i < docBatch->GetBatchSize(); ++i) {
-        if (!docBatch->IsDropped(i)) {
-            std::shared_ptr<document::IDocument> doc = (*docBatch)[i];
-            docid_t docId = doc->GetDocId();
-            if (doc->GetDocOperateType() != ADD_DOC) {
-                AUTIL_LOG(DEBUG, "doc[%d] isn't add_doc", docId);
-                continue;
-            }
-            RETURN_STATUS_DIRECTLY_IF_ERROR(AddDocument(doc.get()));
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(docBatch);
+    while (iter->HasNext()) {
+        std::shared_ptr<document::IDocument> doc = iter->Next();
+        docid_t docId = doc->GetDocId();
+        if (doc->GetDocOperateType() != ADD_DOC) {
+            AUTIL_LOG(DEBUG, "doc[%d] isn't add_doc", docId);
+            continue;
         }
+        RETURN_STATUS_DIRECTLY_IF_ERROR(AddDocument(doc.get()));
     }
     return Status::OK();
 }

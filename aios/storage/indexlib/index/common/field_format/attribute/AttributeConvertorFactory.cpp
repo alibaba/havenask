@@ -20,7 +20,6 @@
 #include "indexlib/config/CompressTypeOption.h"
 #include "indexlib/config/FieldConfig.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
-#include "indexlib/index/attribute/config/PackAttributeConfig.h"
 #include "indexlib/index/common/field_format/attribute/CompressFloatAttributeConvertor.h"
 #include "indexlib/index/common/field_format/attribute/CompressSingleFloatAttributeConvertor.h"
 #include "indexlib/index/common/field_format/attribute/DateAttributeConvertor.h"
@@ -33,6 +32,7 @@
 #include "indexlib/index/common/field_format/attribute/StringAttributeConvertor.h"
 #include "indexlib/index/common/field_format/attribute/TimeAttributeConvertor.h"
 #include "indexlib/index/common/field_format/attribute/TimestampAttributeConvertor.h"
+#include "indexlib/index/pack_attribute/PackAttributeConfig.h"
 
 // compatitable with legacy code, when FieldConfig/PackAttributeConfig has replaced in new dir, delete it
 using namespace indexlib::config;
@@ -40,14 +40,21 @@ using namespace indexlib::config;
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, AttributeConvertorFactory);
 
-AttributeConvertor* AttributeConvertorFactory::CreatePackAttrConvertor(
-    const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& packAttrConfig)
+AttributeConvertor*
+AttributeConvertorFactory::CreatePackAttrConvertor(const std::shared_ptr<PackAttributeConfig>& packAttrConfig)
 {
-    return CreateAttrConvertor(packAttrConfig->CreateAttributeConfig());
+    auto attrConfig = packAttrConfig->CreateAttributeConfig();
+    if (attrConfig == nullptr) {
+        AUTIL_LOG(ERROR, "create attr config failed for pack attr, index name [%s]",
+                  packAttrConfig->GetIndexName().c_str());
+        assert(false);
+        return nullptr;
+    }
+    return CreateAttrConvertor(attrConfig);
 }
 
 AttributeConvertor*
-AttributeConvertorFactory::CreateAttrConvertor(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+AttributeConvertorFactory::CreateAttrConvertor(const std::shared_ptr<index::AttributeConfig>& attrConfig)
 {
     if (attrConfig->IsMultiValue()) {
         return CreateMultiAttrConvertor(attrConfig);
@@ -57,7 +64,7 @@ AttributeConvertorFactory::CreateAttrConvertor(const std::shared_ptr<config::Att
 }
 
 AttributeConvertor*
-AttributeConvertorFactory::CreateAttrConvertor(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+AttributeConvertorFactory::CreateAttrConvertor(const std::shared_ptr<index::AttributeConfig>& attrConfig,
                                                bool encodeEmpty)
 {
     AttributeConvertor* convertor = CreateAttrConvertor(attrConfig);
@@ -70,7 +77,7 @@ AttributeConvertorFactory::CreateAttrConvertor(const std::shared_ptr<config::Att
 }
 
 AttributeConvertor*
-AttributeConvertorFactory::CreateSingleAttrConvertor(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+AttributeConvertorFactory::CreateSingleAttrConvertor(const std::shared_ptr<index::AttributeConfig>& attrConfig)
 {
     auto fieldConfigs = attrConfig->GetFieldConfigs();
     assert(fieldConfigs.size() == 1);
@@ -136,7 +143,7 @@ AttributeConvertorFactory::CreateSingleAttrConvertor(const std::shared_ptr<confi
 }
 
 AttributeConvertor*
-AttributeConvertorFactory::CreateMultiAttrConvertor(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+AttributeConvertorFactory::CreateMultiAttrConvertor(const std::shared_ptr<index::AttributeConfig>& attrConfig)
 {
     auto fieldConfigs = attrConfig->GetFieldConfigs();
     assert(fieldConfigs.size() == 1);

@@ -1,0 +1,9 @@
+{
+    "config": "//path/not-important",
+    "data_table": "simple",
+    "realtime_mode": "realtime_job_mode",
+    "src": "swift2",
+    "src_signature": "2",
+    "swift_client_share_mode": "share",
+    "type": "swift"    
+}

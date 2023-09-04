@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/metric/HeartbeatMetricReporter.h"
+
 #include <string>
 
 using namespace std;
@@ -21,37 +22,33 @@ using namespace kmonitor;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, HeartbeatMetricReporter);
 
-HeartbeatMetricReporter::HeartbeatMetricReporter(KMonitor *kMonitor)
-    : _kMonitor(kMonitor) {
+HeartbeatMetricReporter::HeartbeatMetricReporter(KMonitor *kMonitor) : _kMonitor(kMonitor) {
 
     std::map<std::string, std::string> tagkv;
     MetricsTagsPtr defaultTags = _kMonitor->GetMetricsTags(tagkv);
 
-    DEFINE_METRIC(kMonitor, HeartbeatCostTime, "heartbeat.heartbeatCostTime",
-                  GAUGE, NORMAL, defaultTags);
-    DEFINE_METRIC(kMonitor, HeartbeatRequestLength,
-                  "heartbeat.heartbeatRequestLength", GAUGE, NORMAL,
+    DEFINE_METRIC(kMonitor, HeartbeatCostTime, "heartbeat.heartbeatCostTime", GAUGE, NORMAL,
                   defaultTags);
-    DEFINE_METRIC(kMonitor, HeartbeatRequestCount,
-                  "heartbeat.heartbeatRequestCount", GAUGE, NORMAL,
+    DEFINE_METRIC(kMonitor, HeartbeatRequestLength, "heartbeat.heartbeatRequestLength", GAUGE,
+                  NORMAL, defaultTags);
+    DEFINE_METRIC(kMonitor, HeartbeatRequestCount, "heartbeat.heartbeatRequestCount", GAUGE, NORMAL,
                   defaultTags);
 
-    DEFINE_MUTABLE_METRIC(kMonitor, HeartbeatQps, "heartbeat.heartbeatQps", QPS,
-                          NORMAL);
-    DEFINE_MUTABLE_METRIC(kMonitor, HeartbeatResponseLength,
-                          "heartbeat.heartbeatResponseLength", GAUGE, NORMAL);
-    DEFINE_MUTABLE_METRIC(kMonitor, HeartbeatResponseLatency,
-                          "heartbeat.heartbeatResponseLatency", GAUGE, NORMAL);
+    DEFINE_MUTABLE_METRIC(kMonitor, HeartbeatQps, "heartbeat.heartbeatQps", QPS, NORMAL);
+    DEFINE_MUTABLE_METRIC(kMonitor, HeartbeatResponseLength, "heartbeat.heartbeatResponseLength",
+                          GAUGE, NORMAL);
+    DEFINE_MUTABLE_METRIC(kMonitor, HeartbeatResponseLatency, "heartbeat.heartbeatResponseLatency",
+                          GAUGE, NORMAL);
 }
 
-HeartbeatMetricReporter::~HeartbeatMetricReporter() {}
+HeartbeatMetricReporter::~HeartbeatMetricReporter() {
+}
 
-kmonitor::MetricsTagsPtr
-HeartbeatMetricReporter::getMetricsTags(const std::string &statusCode) {
+kmonitor::MetricsTagsPtr HeartbeatMetricReporter::getMetricsTags(const std::string &statusCode) {
     if (!_kMonitor) {
         return kmonitor::MetricsTagsPtr();
     }
-    std::map<std::string, std::string> tagkv = { { "statusCode", statusCode } };
+    std::map<std::string, std::string> tagkv = {{"statusCode", statusCode}};
     return _kMonitor->GetMetricsTags(tagkv);
 }
 

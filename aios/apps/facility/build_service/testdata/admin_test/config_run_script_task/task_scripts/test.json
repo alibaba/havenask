@@ -1,0 +1,11 @@
+{
+    "script_type" : "shell",
+    "script_file" : "run_shell.sh",
+    "resources" : [
+	{ "path" : "bin", "type" : "binary" },
+	{ "path" : "lib", "type" : "library" }
+    ],
+    "arguments" : "3 6",
+    "partition_count" : 2,
+    "parallel_num" : 3
+}

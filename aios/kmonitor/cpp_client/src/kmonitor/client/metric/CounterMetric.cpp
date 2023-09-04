@@ -5,28 +5,20 @@
  * Author Email: xsank.mz@alibaba-inc.com
  */
 
-#include <string>
 #include "kmonitor/client/metric/CounterMetric.h"
+
+#include <string>
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 using namespace std;
 
-CounterMetric::CounterMetric(const string &name)
-    : Metric(name),
-      value_(0) {
-}
+CounterMetric::CounterMetric(const string &name) : Metric(name), value_(0) {}
 
-CounterMetric::~CounterMetric() {
-}
+CounterMetric::~CounterMetric() {}
 
-void CounterMetric::doUpdate(double value) {
-    value_ += value;
-}
+void CounterMetric::doUpdate(double value) { value_ += value; }
 
-void CounterMetric::doSnapshot(MetricsRecord *record, int64_t period) {
-    record->AddValue(info_, value_);
-}
+void CounterMetric::doSnapshot(MetricsRecord *record, int64_t period) { record->AddValue(info_, value_); }
 
 END_KMONITOR_NAMESPACE(kmonitor);
-

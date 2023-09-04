@@ -22,7 +22,7 @@ class IPacketStreamer;
 class IServerAdapter;
 class Socket;
 
-  class UDPConnection : public Connection {
+class UDPConnection : public Connection {
     /*
      * 构造函数
      */
@@ -46,9 +46,8 @@ class Socket;
      * @return 读入数据
      */
     bool readData();
-
 };
 
-}
+} // namespace anet
 
 #endif /*UDPCONNECTION_H_*/

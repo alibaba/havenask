@@ -24,7 +24,7 @@
 #include "autil/NoCopyable.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/document/extractor/IDocumentInfoExtractor.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/index/common/IndexerOrganizerMeta.h"
@@ -47,7 +47,8 @@ public:
 public:
     Status Init(const indexlibv2::framework::TabletData& tabletData,
                 const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& outerIndexConfig,
-                const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& innerIndexConfig, size_t shardId);
+                const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& innerIndexConfig, size_t shardId,
+                bool isOnline);
 
 private:
     bool _shouldSkipUpdateIndex = false;
@@ -55,7 +56,6 @@ private:
     SingleInvertedIndexBuildInfoHolder _buildInfoHolder;
 
     std::unique_ptr<indexlibv2::document::extractor::IDocumentInfoExtractor> _docInfoExtractor;
-
     AUTIL_LOG_DECLARE();
 };
 

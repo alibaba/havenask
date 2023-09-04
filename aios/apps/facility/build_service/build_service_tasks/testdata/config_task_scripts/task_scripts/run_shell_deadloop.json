@@ -1,0 +1,9 @@
+{
+    "script_type" : "shell",
+    "script_file" : "run_shell_deadloop.sh",
+    "resources" : [
+	{ "path" : "bin", "type" : "binary" },
+	{ "path" : "lib", "type" : "library" }
+    ],
+    "arguments" : "3 6"
+}

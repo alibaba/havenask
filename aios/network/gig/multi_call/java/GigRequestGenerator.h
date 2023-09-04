@@ -16,35 +16,40 @@
 #ifndef ISEARCH_MULTI_CALL_GIG_REQUEST_GENERATOR_H
 #define ISEARCH_MULTI_CALL_GIG_REQUEST_GENERATOR_H
 
+#include <map>
+#include <string>
+
 #include "aios/network/gig/multi_call/interface/RequestGenerator.h"
 #include "aios/network/gig/multi_call/proto/GigCallProto.pb.h"
-#include <string>
-#include <map>
 
 namespace multi_call {
 
 /**
  * base class of TCP, HTTP, ARPC methods
  **/
-class GigRequestGenerator : public RequestGenerator {
+class GigRequestGenerator : public RequestGenerator
+{
 public:
-    GigRequestGenerator(const std::string &clusterName,
-                        const std::string &bizName,
+    GigRequestGenerator(const std::string &clusterName, const std::string &bizName,
                         const std::shared_ptr<google::protobuf::Arena> &arena =
-                        std::shared_ptr<google::protobuf::Arena>())
-        : RequestGenerator(clusterName, bizName, arena),
-          _isMulti(false) {}
-    ~GigRequestGenerator() {}
+                            std::shared_ptr<google::protobuf::Arena>())
+        : RequestGenerator(clusterName, bizName, arena)
+        , _isMulti(false) {
+    }
+    ~GigRequestGenerator() {
+    }
     void generate(PartIdTy partCnt, PartRequestMap &requestMap) override;
-    bool generatePartRequests(const char *packet, int len,
-                              const GigRequestPlan &requestPlan);
-    void setMulti(bool multi) { _isMulti = multi; }
-    bool isMulti() const { return _isMulti; }
+    bool generatePartRequests(const char *packet, int len, const GigRequestPlan &requestPlan);
+    void setMulti(bool multi) {
+        _isMulti = multi;
+    }
+    bool isMulti() const {
+        return _isMulti;
+    }
 
 protected:
-    virtual RequestPtr generateRequest(
-            const std::string &bodyStr,
-            const GigRequestPlan &requestPlan) {
+    virtual RequestPtr generateRequest(const std::string &bodyStr,
+                                       const GigRequestPlan &requestPlan) {
         return RequestPtr();
     };
 

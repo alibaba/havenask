@@ -1,0 +1,25 @@
+package(default_visibility=['//aios/apps/facility/swift:__subpackages__'])
+cc_library(
+    name='swift_authentication',
+    srcs=glob(['*.cpp']),
+    hdrs=glob(['*.h']),
+    include_prefix='swift/auth',
+    deps=[
+        '//aios/apps/facility/swift/config:swift_config',
+        '//aios/apps/facility/swift/protocol:swift_protocol',
+        '//aios/apps/facility/swift/util:swift_util', '//aios/autil:result'
+    ]
+)
+cc_test(
+    name='swift_authentication_test',
+    srcs=glob(['test/*Test.cpp']),
+    copts=['-fno-access-control'],
+    data=['//aios/apps/facility/swift:swift_testdata'],
+    shard_count=2,
+    deps=[
+        '//aios/apps/facility/swift:swift_test_h',
+        '//aios/apps/facility/swift/auth:swift_authentication',
+        '//aios/filesystem/fslib/fslib/fs/zookeeper:fslib_zookeeper_casehelper',
+        '//aios/unittest_framework'
+    ]
+)

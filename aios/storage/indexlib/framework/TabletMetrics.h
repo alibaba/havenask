@@ -130,6 +130,7 @@ private:
     INDEXLIB_FM_DECLARE_NORMAL_METRIC(int64_t, dumpingSegmentCount);
     INDEXLIB_FM_DECLARE_NORMAL_METRIC(int64_t, partitionReaderVersionCount);
     INDEXLIB_FM_DECLARE_NORMAL_METRIC(int64_t, incVersionFreshness);
+    INDEXLIB_FM_DECLARE_NORMAL_METRIC(int64_t, incVersionLatestTaskFreshness);
     INDEXLIB_FM_DECLARE_NORMAL_METRIC(int32_t, latestReaderVersionId);
     INDEXLIB_FM_DECLARE_NORMAL_METRIC(int32_t, oldestReaderVersionId);
 

@@ -1,9 +1,3 @@
-filegroup(
-    name='index_base_headers',
-    srcs=glob(['*.h', 'index_meta/*.h', 'patch/*.h', 'segment/*.h'],
-              exclude=[]),
-    visibility=['//aios/storage/indexlib:__subpackages__']
-)
 cc_library(
     name='index_base',
     srcs=glob(['*.cpp', 'index_meta/*.cpp', 'patch/*.cpp', 'segment/*.cpp'],

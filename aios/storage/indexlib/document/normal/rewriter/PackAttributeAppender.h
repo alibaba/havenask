@@ -26,7 +26,7 @@ class AttributeDocument;
 }
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2 { namespace document {
@@ -41,7 +41,7 @@ public:
     ~PackAttributeAppender() {}
 
 public:
-    std::pair<Status, bool> Init(const std::shared_ptr<config::TabletSchema>& schema);
+    std::pair<Status, bool> Init(const std::shared_ptr<config::ITabletSchema>& schema);
 
     bool AppendPackAttribute(const std::shared_ptr<indexlib::document::AttributeDocument>& attrDocument,
                              autil::mem_pool::Pool* pool);
@@ -58,12 +58,12 @@ public:
                                bool hasHashKeyInAttrFields, indexlib::util::MemBuffer& buffer, packattrid_t packId);
 
 private:
-    bool InitOnePackAttr(const std::shared_ptr<config::PackAttributeConfig>& packAttrConfig);
+    bool InitOnePackAttr(const std::shared_ptr<index::PackAttributeConfig>& packAttrConfig);
     bool CheckPackAttrFields(const std::shared_ptr<indexlib::document::AttributeDocument>& attrDocument);
 
 private:
     FormatterVector _packFormatters;
-    std::vector<fieldid_t> _inPackFields;
+    // std::vector<fieldid_t> _inPackFields;
     std::vector<fieldid_t> _clearFields;
 
 private:

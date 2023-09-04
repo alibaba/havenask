@@ -1,0 +1,31 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "simple"
+            ],
+            "document_processor_chain" : [
+            ],
+            "modules" : [
+            ],
+            "table_name" : "simple"
+        }
+    ],
+    "raw_data_swift_config" : {
+        "topic" : {
+            "partition_buffer_size" : 1,
+            "partition_resource" : 1
+        }
+    },
+    "processor_config" : {
+	"processor_queue_size" : 1000,
+	"processor_strategy" : "batch",
+	"processor_strategy_parameter" : "batch_size=3;max_enqueue_seconds=1;split_doc_batch=true;deduplicate_doc_by_field=id"
+    },
+    "reader_config" : {
+        "file" : {
+        },
+        "swift" : {
+        }
+    }
+}

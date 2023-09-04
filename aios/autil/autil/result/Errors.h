@@ -63,4 +63,4 @@ protected:
     std::error_code _ec;
 };
 
-}    // namespace autil::result
+} // namespace autil::result

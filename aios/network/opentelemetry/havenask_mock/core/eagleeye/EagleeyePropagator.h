@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <memory>
 #include <map>
+#include <memory>
 
 namespace opentelemetry {
 class SpanContext;
@@ -25,17 +25,17 @@ using SpanContextPtr = std::shared_ptr<SpanContext>;
 class EagleeyePropagator {
 
 public:
-    static SpanContextPtr extract(const std::string& eagleeyeTraceId,
-                                  const std::string& eagleeyeRpcId,
-                                  const std::string& eagleeyeUserData,
+    static SpanContextPtr extract(const std::string &eagleeyeTraceId,
+                                  const std::string &eagleeyeRpcId,
+                                  const std::string &eagleeyeUserData,
                                   std::string traceparent,
                                   std::string tracestate);
 
-    static void inject(const SpanContextPtr& context,
-                       std::string& eagleeyeTraceId,
-                       std::string& eagleeyeRpcId,
-                       std::map<std::string, std::string>& eagleeyeUserData,
-                       std::string& traceparent,
-                       std::string& tracestate);
+    static void inject(const SpanContextPtr &context,
+                       std::string &eagleeyeTraceId,
+                       std::string &eagleeyeRpcId,
+                       std::map<std::string, std::string> &eagleeyeUserData,
+                       std::string &traceparent,
+                       std::string &tracestate);
 };
-}
+} // namespace opentelemetry

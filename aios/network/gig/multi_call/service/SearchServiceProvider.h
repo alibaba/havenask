@@ -24,8 +24,8 @@
 #include "aios/network/gig/multi_call/service/CallBack.h"
 #include "aios/network/gig/multi_call/service/Connection.h"
 #include "aios/network/gig/multi_call/service/ConnectionManager.h"
-#include "aios/network/gig/multi_call/util/RandomGenerator.h"
 #include "aios/network/gig/multi_call/util/DiffCounter.h"
+#include "aios/network/gig/multi_call/util/RandomGenerator.h"
 #include "autil/Lock.h"
 
 namespace multi_call {
@@ -46,10 +46,10 @@ MULTI_CALL_TYPEDEF_PTR(TagInfoMap);
 
 class HostHeartbeatStats;
 
-class SearchServiceProvider {
+class SearchServiceProvider
+{
 public:
-    SearchServiceProvider(const ConnectionManagerPtr &connectionManager,
-                          const TopoNode &topoNode);
+    SearchServiceProvider(const ConnectionManagerPtr &connectionManager, const TopoNode &topoNode);
     virtual ~SearchServiceProvider();
 
 private:
@@ -66,8 +66,12 @@ public:
     // virtual for ut
     virtual void updateWeight(ControllerFeedBack &feedBack);
     void updateLoadBalance(ControllerFeedBack &feedBack, bool updateWeight);
-    ControllerChain *getControllerChain() { return &_controllerChain; }
-    const TopoNodeMeta &getTopoNodeMeta() const { return _nodeMeta; }
+    ControllerChain *getControllerChain() {
+        return &_controllerChain;
+    }
+    const TopoNodeMeta &getTopoNodeMeta() const {
+        return _nodeMeta;
+    }
     const NodeAttributeMap &getNodeAttributeMap() const {
         return _nodeMeta.attributes;
     }
@@ -75,15 +79,18 @@ public:
     bool isStarted() const;
     void updateTagsFromMap(const TagMap &tags);
     TagInfoMapPtr getTags() const;
+    void updateHeartbeatMetas(const MetaMapPtr &metas);
+    MetaMapPtr getHeartbeatMetas() const;
     void fillTagMaxVersion(MatchTagMap &matchTagMap);
     TagMatchLevel matchTags(const MatchTagMapPtr &matchTagMap) const;
     bool needProbe(WeightTy probePercent, RequestType &type);
     std::string getAnetSpec(ProtocolType type);
     std::string getSpecStr(ProtocolType type);
-    void toString(const ControllerChain *bestChain,
-                  std::string &debugStr) const;
+    void toString(const ControllerChain *bestChain, std::string &debugStr) const;
     void collectSpecs(std::set<std::string> &keepSpecs) const;
-    const std::string &getNodeId() const { return _nodeId; }
+    const std::string &getNodeId() const {
+        return _nodeId;
+    }
     int64_t getTotalQueryCounter() const {
         return _totalNormalCounter.current() + _totalRetryCounter.current() +
                _totalProbeCounter.current();
@@ -91,7 +98,9 @@ public:
     void setClusterName(const std::string &clusterName) {
         _clusterName = clusterName;
     }
-    VersionTy getProtocalVersion() const { return _protocalVersion; }
+    VersionTy getProtocalVersion() const {
+        return _protocalVersion;
+    }
     bool hasServerAgent() const {
         return _controllerChain.latencyController.hasServerAgent();
     }
@@ -110,8 +119,12 @@ public:
         return _controllerChain.latencyController.netLatency();
     }
     void updateValidState(bool isValid);
-    const Spec &getSpec() const { return _spec; }
-    uint64_t getAgentId() const { return _agentId; }
+    const Spec &getSpec() const {
+        return _spec;
+    }
+    uint64_t getAgentId() const {
+        return _agentId;
+    }
     float serverValueDelayMs() const {
         return _controllerChain.latencyController.serverValueDelayMs();
     }
@@ -122,7 +135,9 @@ public:
     void updateHeartbeatInfo(const HbMetaInfoPtr &hbMetaPtr);
     void updateHeartbeatTime(int64_t time);
     bool isHeartbeatHealth() const;
-    void setSubscribeType(SubscribeType ssType) { _ssType = ssType; }
+    void setSubscribeType(SubscribeType ssType) {
+        _ssType = ssType;
+    }
     MetaEnv getNodeMetaEnv() {
         autil::ScopedSpinLock scopeLock(_metaLock);
         return _targetMetaEnv;
@@ -136,9 +151,9 @@ public:
     void setHostStats(const std::shared_ptr<HostHeartbeatStats> &hostStats);
     void incStreamQueryCount();
     void incStreamResponseCount();
+
 public:
-    static bool isBetterThan(const ControllerChain *thisChain,
-                             const ControllerChain *bestChain,
+    static bool isBetterThan(const ControllerChain *thisChain, const ControllerChain *bestChain,
                              const MetricLimits &metricLimits);
     static void updateStaticParam(const MiscConfigPtr &miscConfig);
 
@@ -149,23 +164,28 @@ private:
     ConnectionPtr getConnection(ProtocolType type);
     void doUpdateWeight(float diff, float minWeight = MIN_WEIGHT_FLOAT);
     void updateWeightBonus(float diff);
-    void setCopy(bool isCopy) { _isCopy = isCopy; }
-    bool isCopy() const { return _isCopy; }
+    void setCopy(bool isCopy) {
+        _isCopy = isCopy;
+    }
+    bool isCopy() const {
+        return _isCopy;
+    }
     bool controllerValid() const;
     void updateTags(const TagInfoMapPtr &tags);
     std::shared_ptr<HostHeartbeatStats> getHostStats() const {
         autil::ScopedReadWriteLock lock(_heartbeatLock, 'r');
         return _hostStats;
     }
+
 private:
-    static bool isLegal(const ControllerChain *candidateChain,
-                        const ControllerChain *baseChain,
+    static bool isLegal(const ControllerChain *candidateChain, const ControllerChain *baseChain,
                         const MetricLimits &metricLimits);
-    static bool thisIsBest(const ControllerChain &thisChain,
-                           const ControllerChain &otherChain, bool errorFirst);
+    static bool thisIsBest(const ControllerChain &thisChain, const ControllerChain &otherChain,
+                           bool errorFirst);
     static std::string getCurrentTimeStrUs();
     static std::string getTimeStrUs(time_t second, int64_t usec);
     static std::string getTagVersionStr(int64_t version, int64_t currentTime);
+
 private:
     // for ut
     int64_t getQueryCounter() const {
@@ -219,8 +239,10 @@ private:
     MetaEnv _targetMetaEnv;
     mutable autil::ReadWriteLock _heartbeatLock;
     TagInfoMapPtr _tags;
+    MetaMapPtr _metas;
     std::string _subscribeTime;
     std::shared_ptr<HostHeartbeatStats> _hostStats;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -229,8 +251,7 @@ MULTI_CALL_TYPEDEF_PTR(SearchServiceProvider);
 
 typedef std::vector<SearchServiceProviderPtr> SearchServiceProviderVector;
 
-bool operator==(const SearchServiceProvider &lhs,
-                const SearchServiceProvider &rhs);
+bool operator==(const SearchServiceProvider &lhs, const SearchServiceProvider &rhs);
 
 } // namespace multi_call
 

@@ -16,35 +16,60 @@
 #ifndef ISEARCH_MULTI_CALL_GIGSUBSCRIBECLUSTERSCONF_H
 #define ISEARCH_MULTI_CALL_GIGSUBSCRIBECLUSTERSCONF_H
 
-#include "aios/network/gig/multi_call/common/common.h"
-#include "aios/network/gig/multi_call/config/MultiCallConfig.h"
-#include "autil/legacy/jsonizable.h"
 #include <string>
 #include <vector>
 
+#include "aios/network/gig/multi_call/common/common.h"
+#include "aios/network/gig/multi_call/config/MultiCallConfig.h"
+#include "autil/legacy/jsonizable.h"
+
 namespace multi_call {
 
-class VIPDomainConfig : public autil::legacy::Jsonizable {
+class VIPDomainConfig : public autil::legacy::Jsonizable
+{
 public:
     VIPDomainConfig(const std::string &domain = "")
-        : _vipDomain(domain), _vipPortType(MC_PROTOCOL_HTTP), _tcpPortDiff(0),
-          _arpcPortDiff(0), _httpPortDiff(0), _grpcPortDiff(0),
-          _grpcStreamPortDiff(0), _rdmaArpcPortDiff(0) {}
-    ~VIPDomainConfig() {}
+        : _vipDomain(domain)
+        , _vipPortType(MC_PROTOCOL_HTTP)
+        , _tcpPortDiff(0)
+        , _arpcPortDiff(0)
+        , _httpPortDiff(0)
+        , _grpcPortDiff(0)
+        , _grpcStreamPortDiff(0)
+        , _rdmaArpcPortDiff(0) {
+    }
+    ~VIPDomainConfig() {
+    }
 
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);
     bool operator==(const VIPDomainConfig &rhs) const;
 
 public:
-    const std::string &getVipDomain() const { return _vipDomain; }
-    ProtocolType getVipPortType() const { return _vipPortType; }
-    int32_t getTcpPortDiff() const { return _tcpPortDiff; }
-    int32_t getArpcPortDiff() const { return _arpcPortDiff; }
-    int32_t getHttpPortDiff() const { return _httpPortDiff; }
-    int32_t getGrpcPortDiff() const { return _grpcPortDiff; }
-    int32_t getGrpcStreamPortDiff() const { return _grpcStreamPortDiff; }
-    int32_t getRdmaArpcPortDiff() const { return _rdmaArpcPortDiff; }
+    const std::string &getVipDomain() const {
+        return _vipDomain;
+    }
+    ProtocolType getVipPortType() const {
+        return _vipPortType;
+    }
+    int32_t getTcpPortDiff() const {
+        return _tcpPortDiff;
+    }
+    int32_t getArpcPortDiff() const {
+        return _arpcPortDiff;
+    }
+    int32_t getHttpPortDiff() const {
+        return _httpPortDiff;
+    }
+    int32_t getGrpcPortDiff() const {
+        return _grpcPortDiff;
+    }
+    int32_t getGrpcStreamPortDiff() const {
+        return _grpcStreamPortDiff;
+    }
+    int32_t getRdmaArpcPortDiff() const {
+        return _rdmaArpcPortDiff;
+    }
 
 private:
     std::string _vipDomain;
@@ -57,10 +82,13 @@ private:
     int32_t _rdmaArpcPortDiff;
 };
 
-class SubscribeClustersConfig : public autil::legacy::Jsonizable {
+class SubscribeClustersConfig : public autil::legacy::Jsonizable
+{
 public:
-    SubscribeClustersConfig() {}
-    ~SubscribeClustersConfig() {}
+    SubscribeClustersConfig() {
+    }
+    ~SubscribeClustersConfig() {
+    }
 
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);

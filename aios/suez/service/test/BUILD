@@ -1,0 +1,117 @@
+package(default_visibility=['//aios/suez:__subpackages__'])
+cc_test(
+    name='query_index_table_test',
+    srcs=['TableServiceQueryIndexTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['//aios/suez:testdata'],
+    deps=[
+        '//aios/storage/indexlib/indexlib:indexlib_testlib',
+        '//aios/suez/service:builtin_service',
+        '//aios/suez/table/test:suez_mock_partition',
+        '//aios/unittest_framework'
+    ]
+)
+cc_test(
+    name='query_kv_table_test',
+    srcs=['TableServiceQueryKVTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['//aios/suez:testdata'],
+    deps=[
+        '//aios/storage/indexlib/indexlib:indexlib_testlib',
+        '//aios/suez/service:builtin_service',
+        '//aios/suez/table/test:suez_mock_partition',
+        '//aios/unittest_framework'
+    ]
+)
+cc_test(
+    name='query_kkv_table_test',
+    srcs=['TableServiceQueryKKVTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['//aios/suez:testdata'],
+    deps=[
+        '//aios/storage/indexlib/indexlib:indexlib_testlib',
+        '//aios/suez/service:builtin_service',
+        '//aios/suez/table/test:suez_mock_partition',
+        '//aios/unittest_framework'
+    ]
+)
+cc_test(
+    name='ddl_table_service_test',
+    srcs=['TableServiceDdlTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['//aios/suez:testdata'],
+    deps=[
+        '//aios/storage/indexlib/framework/mock:tablet',
+        '//aios/storage/indexlib/indexlib:indexlib_testlib',
+        '//aios/suez/common/test:table_meta_util',
+        '//aios/suez/service:builtin_service',
+        '//aios/suez/table/test:suez_mock_partition',
+        '//aios/unittest_framework'
+    ]
+)
+cc_test(
+    name='ddl_service_test',
+    srcs=['DdlServiceTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/filesystem/fslib/fslib/fs/zookeeper:fslib_zookeeper_casehelper',
+        '//aios/suez/service:builtin_service', '//aios/unittest_framework'
+    ]
+)
+cc_test(
+    name='kv_table_searcher_test',
+    srcs=['KVTableSearcherTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['//aios/suez:testdata'],
+    deps=[
+        '//aios/storage/indexlib/indexlib:indexlib_testlib',
+        '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper',
+        '//aios/suez/service:builtin_service',
+        '//aios/table/table/test:table_testlib', '//aios/unittest_framework'
+    ]
+)
+cc_test(
+    name='table_service_kv_batch_get_test',
+    srcs=['TableServiceKVBatchGetTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['//aios/suez:testdata'],
+    deps=[
+        '//aios/storage/indexlib/indexlib:indexlib_testlib',
+        '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper',
+        '//aios/suez/service:builtin_service',
+        '//aios/table/table/test:table_testlib', '//aios/unittest_framework'
+    ]
+)
+cc_test(
+    name='kv_batch_get_generator_test',
+    srcs=['KVBatchGetGeneratorTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['//aios/suez:testdata'],
+    deps=[
+        '//aios/suez/service:suez_kv_batch_get_generator',
+        '//aios/unittest_framework'
+    ]
+)
+cc_test(
+    name='table_service_test',
+    srcs=glob(['TableServiceTest.cpp', 'TestPortUtil.h']),
+    copts=['-fno-access-control'],
+    data=['//aios/suez:testdata'],
+    deps=[
+        '//aios/storage/indexlib/framework/mock:tablet',
+        '//aios/storage/indexlib/indexlib:indexlib_testlib',
+        '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper',
+        '//aios/suez/common/test:table_meta_util',
+        '//aios/suez/service:builtin_service',
+        '//aios/table/table/test:table_testlib', '//aios/unittest_framework'
+    ]
+)
+cc_test(
+    name='control_service_impl_test',
+    srcs=['ControlServiceImplTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/indexlib:indexlib_testlib',
+        '//aios/suez/service:builtin_service', '//aios/unittest_framework'
+    ]
+)

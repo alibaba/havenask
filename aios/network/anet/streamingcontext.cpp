@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/anet/streamingcontext.h"
+
 #include <stddef.h>
 
 #include "aios/network/anet/packet.h"
@@ -29,39 +30,23 @@ StreamingContext::StreamingContext() {
     _errorString = NULL;
 }
 
-StreamingContext::~StreamingContext() {
-    reset();
-}
+StreamingContext::~StreamingContext() { reset(); }
 
-bool StreamingContext::isCompleted() {
-    return _completed;
-}
+bool StreamingContext::isCompleted() { return _completed; }
 
-void StreamingContext::setCompleted(bool completed) {
-    _completed = completed;
-}
+void StreamingContext::setCompleted(bool completed) { _completed = completed; }
 
-bool StreamingContext::isBroken() {
-    return _broken;
-}
+bool StreamingContext::isBroken() { return _broken; }
 
-void StreamingContext::setBroken(bool broken) {
-    _broken = broken;
-}
+void StreamingContext::setBroken(bool broken) { _broken = broken; }
 
-bool StreamingContext::isEndOfFile() {
-    return _eof;
-}
+bool StreamingContext::isEndOfFile() { return _eof; }
 
-void StreamingContext::setEndOfFile(bool eof) {
-    _eof = eof;
-}
+void StreamingContext::setEndOfFile(bool eof) { _eof = eof; }
 
-Packet* StreamingContext::getPacket() {
-    return _packet;
-}
+Packet *StreamingContext::getPacket() { return _packet; }
 
-Packet* StreamingContext::stealPacket() {
+Packet *StreamingContext::stealPacket() {
     Packet *tmpPacket = _packet;
     _packet = NULL;
     return tmpPacket;
@@ -76,21 +61,13 @@ void StreamingContext::setPacket(Packet *packet) {
     }
 }
 
-void StreamingContext::setErrorNo(int errorNo) {
-    _errorNo = errorNo;
-}
+void StreamingContext::setErrorNo(int errorNo) { _errorNo = errorNo; }
 
-int StreamingContext::getErrorNo() {
-    return _errorNo;
-}
+int StreamingContext::getErrorNo() { return _errorNo; }
 
-void StreamingContext::setErrorString(const char *errorString) {
-    _errorString = errorString;
-}
+void StreamingContext::setErrorString(const char *errorString) { _errorString = errorString; }
 
-const char* StreamingContext::getErrorString() {
-    return _errorString;
-}
+const char *StreamingContext::getErrorString() { return _errorString; }
 
 void StreamingContext::reset() {
     setPacket(NULL);
@@ -101,4 +78,4 @@ void StreamingContext::reset() {
     _errorString = NULL;
 }
 
-}/*end namespace anet*/
+} /*end namespace anet*/

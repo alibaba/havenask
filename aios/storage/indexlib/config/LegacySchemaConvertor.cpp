@@ -20,6 +20,7 @@
 #include "autil/Log.h"
 #include "indexlib/config/UnresolvedSchema.h"
 #include "indexlib/config/field_schema.h"
+#include "indexlib/config/impl/field_schema_impl.h"
 #include "indexlib/config/index_partition_schema.h"
 
 AUTIL_DECLARE_AND_SETUP_LOGGER(indexlib.config, LegacySchemaConvertor);
@@ -44,13 +45,12 @@ Status LegacySchemaConvertor::FromJson(autil::legacy::Jsonizable::JsonWrapper& j
     schemaImpl->_tableType = indexlib::config::IndexPartitionSchema::TableType2Str(legacySchema->GetTableType());
     schemaImpl->_tableName = legacySchema->GetSchemaName();
     schemaImpl->_schemaId = legacySchema->GetSchemaVersionId();
-
-    const auto& userDefineParam = legacySchema->GetUserDefinedParam();
-    for (const auto& [key, jsonValue] : userDefineParam) {
-        if (schemaImpl->_settings.count(key) == 0) {
-            schemaImpl->_settings[key] = jsonValue;
-        }
-    }
+    schemaImpl->_userDefinedParam = legacySchema->GetUserDefinedParam();
+    // for (const auto& [key, jsonValue] : userDefineParam) {
+    //     if (schemaImpl->_settings.count(key) == 0) {
+    //         schemaImpl->_settings[key] = jsonValue;
+    //     }
+    // }
 
     auto fieldSchema = legacySchema->GetFieldSchema();
     if (fieldSchema) {
@@ -74,11 +74,17 @@ autil::legacy::json::JsonMap LegacySchemaConvertor::ToJson(UnresolvedSchema* sch
 void LegacySchemaConvertor::ConvertFieldConfigs(const indexlib::config::FieldSchema& fieldSchema,
                                                 UnresolvedSchema* schemaImpl)
 {
+    //此处不能通过迭代老的schema再add的方式添加，会出现field id不一致的问题
+    //具体问题可以看 UnresolvedSchemaTest.TestDeserializeLegacySchema测试里的schema
     schemaImpl->_fields.clear();
     schemaImpl->_fieldNameToIdMap.clear();
-    for (auto iter = fieldSchema.Begin(); iter != fieldSchema.End(); ++iter) {
-        [[maybe_unused]] auto status = schemaImpl->AddFieldConfig(*iter);
-        assert(status.IsOK());
+    auto legacyFieldSchemaImpl = fieldSchema.mImpl;
+    for (const auto& fieldConfig : legacyFieldSchemaImpl->mFields) {
+        schemaImpl->_fields.push_back(fieldConfig);
+    }
+    auto& legacyNameMap = legacyFieldSchemaImpl->mNameToIdMap;
+    for (auto& [fieldName, fieldId] : legacyNameMap) {
+        schemaImpl->_fieldNameToIdMap[fieldName] = fieldId;
     }
 }
 

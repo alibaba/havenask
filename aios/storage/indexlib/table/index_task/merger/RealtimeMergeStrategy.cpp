@@ -38,7 +38,8 @@ AUTIL_LOG_SETUP(indexlib.table, RealtimeMergeStrategy);
 std::pair<Status, std::shared_ptr<MergePlan>>
 RealtimeMergeStrategy::CreateMergePlan(const framework::IndexTaskContext* context)
 {
-    auto [status, mergePlan] = DoCreateMergePlan(context);
+    auto mergeConfig = context->GetMergeConfig();
+    auto [status, mergePlan] = DoCreateMergePlan(context, mergeConfig.GetMergeStrategyParameter());
     RETURN2_IF_STATUS_ERROR(status, nullptr, "Create merge plan failed");
     RETURN2_IF_STATUS_ERROR(MergeStrategy::FillMergePlanTargetInfo(context, mergePlan), mergePlan,
                             "fill merge plan target info failed");
@@ -46,7 +47,8 @@ RealtimeMergeStrategy::CreateMergePlan(const framework::IndexTaskContext* contex
 }
 
 std::pair<Status, std::shared_ptr<MergePlan>>
-RealtimeMergeStrategy::DoCreateMergePlan(const framework::IndexTaskContext* context)
+RealtimeMergeStrategy::DoCreateMergePlan(const framework::IndexTaskContext* context,
+                                         const config::MergeStrategyParameter& param)
 {
     auto mergePlan = std::make_shared<MergePlan>(MERGE_PLAN, MERGE_PLAN);
     const auto& version = context->GetTabletData()->GetOnDiskVersion();
@@ -62,8 +64,7 @@ RealtimeMergeStrategy::DoCreateMergePlan(const framework::IndexTaskContext* cont
         return {status, nullptr};
     }
 
-    auto mergeConfig = context->GetTabletOptions()->GetOfflineConfig().GetMergeConfig();
-    auto [status, params] = ExtractParams(mergeConfig.GetMergeStrategyParameter());
+    auto [status, params] = ExtractParams(param);
     if (!status.IsOK()) {
         return {status, nullptr};
     }

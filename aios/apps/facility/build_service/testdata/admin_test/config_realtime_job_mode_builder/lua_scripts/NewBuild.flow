@@ -1,0 +1,67 @@
+#import(Log)
+
+function stepRunFlow()
+   local fullBuilder = Flow.createTask("fullBuilder", "builder", Flow.parameter)
+   local fullMerger = Flow.createTask("fullMerger", "merger", Flow.parameter)
+   local flowState = Flow.getProperty("_flow_status_")
+
+   if (flowState == "")
+   then
+      local buildParam = {}
+      buildParam["data_description"] = Flow.parameter["realtimeDataDescription"]
+      Flow.startTask(fullBuilder, buildParam)
+      Log.log("", "start full builder-------")
+      Flow.setProperty("_flow_status_", "fullBuilding")
+      return false
+   end
+   
+   --local builderState = fullBuilder:getProperty("_task_status_")
+   if (flowState == "fullBuilding")
+   then   
+      if (fullBuilder:isTaskRunning())
+      then
+	 return false
+      end
+
+      if (fullBuilder:isTaskFinish())
+      then
+	 local mergeConfig
+	 local hasMergingTask
+	 local mergeCrontabFlowId = Flow.parameter['mergeCrontabFlowId']
+	 local mergeCrontab = Flow.getTaskInFlow("mergeCrontab", mergeCrontabFlowId);
+	 if (mergeCrontab:isValid())
+	 then
+	    mergeConfig = mergeCrontab:getProperty("merging_task_name")
+	    hasMergingTask = mergeCrontab:getProperty("has_merging_task")
+	 end
+	 if (hasMergingTask ~= "true")
+	 then
+	    return false
+	 end
+	 local mergeParam = {}
+	 mergeParam["mergeConfigName"] = mergeConfig
+	 Flow.startTask(fullMerger, mergeParam)
+	 Flow.setProperty("_flow_status_", "fullMerging")
+	 return false
+      end
+   end
+   
+   
+   if (flowState == "fullMerging")
+   then
+      if (fullMerger:isTaskFinish())
+      then
+	 mergeCrontab:setProperty("current_merging_task_finished", "true")
+	 Flow.setProperty("_flow_status_", "fullDone")
+	 return true
+      end
+      return false
+   end
+
+   if (flowState == "fullDone")
+   then
+      return true
+   end
+   return true
+end
+

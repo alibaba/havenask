@@ -138,6 +138,18 @@ int64_t IndexTaskHistory::GetOldestTaskLogTimestamp() const
     return oldTimestamp != std::numeric_limits<int64_t>::max() ? oldTimestamp : 0;
 }
 
+int64_t IndexTaskHistory::GetLatestTaskLogTimestamp() const
+{
+    int64_t latestTimestamp = 0;
+    for (auto& item : _taskLogMap) {
+        auto& logVec = item.second;
+        if (!logVec.empty()) {
+            latestTimestamp = std::max(latestTimestamp, (*logVec.begin())->GetTriggerTimestampInSecond());
+        }
+    }
+    return latestTimestamp;
+}
+
 std::vector<std::string> IndexTaskHistory::GetAllTaskTypes() const
 {
     std::vector<std::string> ret;

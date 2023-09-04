@@ -16,16 +16,16 @@
 #include "indexlib/document/normal/rewriter/AddToUpdateDocumentRewriter.h"
 
 #include "autil/Scope.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/normal/AttributeDocumentFieldExtractor.h"
 #include "indexlib/document/normal/NormalDocument.h"
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
-#include "indexlib/index/attribute/config/PackAttributeConfig.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
 #include "indexlib/index/inverted_index/config/TruncateIndexConfig.h"
+#include "indexlib/index/pack_attribute/PackAttributeConfig.h"
 #include "indexlib/index/summary/Common.h"
 #include "indexlib/index/summary/config/SummaryIndexConfig.h"
 #include "indexlib/util/ErrorLogCollector.h"
@@ -40,7 +40,7 @@ AddToUpdateDocumentRewriter::AddToUpdateDocumentRewriter() {}
 AddToUpdateDocumentRewriter::~AddToUpdateDocumentRewriter() {}
 
 Status AddToUpdateDocumentRewriter::Init(
-    const std::shared_ptr<config::TabletSchema>& schema,
+    const std::shared_ptr<config::ITabletSchema>& schema,
     const std::vector<std::shared_ptr<config::TruncateOptionConfig>>& truncateOptionConfigs,
     const std::vector<config::SortDescriptions>& sortDescVec)
 
@@ -148,16 +148,16 @@ void AddToUpdateDocumentRewriter::SetField(fieldid_t fieldId, bool inAttribute, 
 std::pair<bool, bool>
 AddToUpdateDocumentRewriter::CheckAttribute(const std::shared_ptr<config::IIndexConfig>& indexConfig) const
 {
-    const auto& attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+    const auto& attrConfig = std::dynamic_pointer_cast<index::AttributeConfig>(indexConfig);
     if (attrConfig) {
         if (attrConfig->IsDeleted()) {
             return {false, false};
         }
         return {true, attrConfig->IsAttributeUpdatable()};
     }
-    const auto& packAttrConfig = std::dynamic_pointer_cast<config::PackAttributeConfig>(indexConfig);
+    const auto& packAttrConfig = std::dynamic_pointer_cast<index::PackAttributeConfig>(indexConfig);
     if (packAttrConfig) {
-        return {true, packAttrConfig->IsUpdatable()};
+        return {true, packAttrConfig->IsPackAttributeUpdatable()};
     }
     assert(false);
     return {true, false};

@@ -26,11 +26,13 @@ class DataDescription;
 
 namespace util {
 
-class DataSourceHelper {
+class DataSourceHelper
+{
 public:
-    static bool isRealtime(const build_service::proto::DataDescription &ds);
+    static bool isRealtime(const build_service::proto::DataDescription& ds);
 };
 
-}}
+} // namespace util
+} // namespace build_service
 
 #endif // ISEARCH_BS_DATASOURCEHELPER_H

@@ -19,14 +19,13 @@
 
 namespace autil {
 
-class URLUtil
-{
+class URLUtil {
 public:
     URLUtil();
     ~URLUtil();
+
 public:
     static std::string decode(const std::string &str);
 };
 
-}
-
+} // namespace autil

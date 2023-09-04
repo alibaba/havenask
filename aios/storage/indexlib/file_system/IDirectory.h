@@ -88,7 +88,6 @@ public:
                                    std::vector<std::string>& fileList) const noexcept = 0;
     virtual FSResult<void> ListPhysicalFile(const std::string& path, const ListOption& listOption,
                                             std::vector<FileInfo>& fileInfos) noexcept = 0;
-
     virtual FSResult<size_t> GetFileLength(const std::string& filePath) const noexcept = 0;
     virtual FSResult<size_t> GetDirectorySize(const std::string& path) noexcept = 0;
 

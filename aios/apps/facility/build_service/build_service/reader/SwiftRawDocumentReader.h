@@ -23,6 +23,7 @@
 #include "build_service/reader/SwiftReaderWrapper.h"
 #include "build_service/util/Log.h"
 #include "build_service/util/SwiftClientCreator.h"
+#include "build_service/util/SwiftMessageFilter.h"
 
 namespace indexlib { namespace util {
 class Metric;
@@ -61,10 +62,9 @@ public:
     virtual int64_t getFreshness();
 
 public:
-    bool getMaxTimestampAfterStartTimestamp(int64_t& timestamp) override;
+    bool getMaxTimestampAfterStartTimestamp(int64_t& timestamp);
     bool getLastMsgTimestamp() const { return _lastMsgTimestamp; }
     bool getLastMsgId() const { return _lastMsgId; }
-    bool isStreamReader() override { return true; }
 
 protected:
     bool initMetrics(const ReaderInitParam& params);
@@ -77,10 +77,10 @@ protected:
 
     virtual void reportTimestampFieldValue(int64_t value) override;
     virtual void doFillDocTags(document::RawDocument& rawDoc) override;
-
-private:
     bool doSeek(int64_t timestamp, const std::vector<indexlibv2::base::Progress>& progress,
                 const std::string& topicName);
+
+private:
     bool initSwiftReader(SwiftReaderWrapper* swiftReader, const KeyValueMap& kvMap);
     bool setLimitTime(SwiftReaderWrapper* swiftReader, const KeyValueMap& kvMap, const std::string& limitTimeType);
 
@@ -90,6 +90,7 @@ private:
     void encodeSchemaDocString(const swift::protocol::Message& msg, std::string& docStr);
 
 protected:
+    util::SwiftMessageFilter _messageFilter;
     SwiftReaderWrapper* _swiftReader;
     swift::client::SwiftClient* _swiftClient;
     volatile int64_t _lastDocTimestamp;

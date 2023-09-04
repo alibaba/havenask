@@ -68,15 +68,3 @@ cc_library(
     ],
     alwayslink=True
 )
-filegroup(
-    name='common_headers',
-    srcs=glob([
-        '*.h', 'hash_table/*.h', 'block_array/*.h', 'chunk/*.h',
-        'field_format/attribute/*.h', 'field_format/date/*.h',
-        'field_format/range/*.h', 'field_format/pack_attribute/*.h',
-        'field_format/section_attribute/*.h', 'field_format/spatial/*.h',
-        'field_format/spatial/geo_hash/*.h', 'field_format/spatial/shape/*.h',
-        'field_format/customized_index/*.h'
-    ]),
-    visibility=['//aios/storage/indexlib:__subpackages__']
-)

@@ -1,0 +1,48 @@
+{
+    "table_name": "embedding_table",
+    "fields": [
+        {
+            "field_name": "item_id",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "embedding",
+            "field_type": "RAW"
+        }
+    ],
+    "indexs": [
+        {
+            "index_name": "primary_key_index",
+            "index_type": "PRIMARYKEY64",
+            "index_fields": "item_id",
+            "has_primary_key_attribute": true
+        },
+        {
+            "index_name": "embedding",
+            "index_type": "CUSTOMIZED",
+            "index_fields": [
+                {
+                    "field_name": "item_id",
+                    "boost": 1
+                },
+                {
+                    "field_name": "embedding",
+                    "boost": 1
+                }
+            ],
+            "indexer": "aitheta2_indexer",
+            "parameters": {
+                "distance_type": "InnerProduct",
+                "builder_name": "QcBuilder",
+                "searcher_name": "QcSearcher",
+                "min_scan_doc_cnt": "10000",
+                "dimension" : "8",
+                "linear_build_threshold": "10000",
+                "embedding_delimiter": "_"
+            }
+        }
+    ],
+    "attributes": [
+        "item_id"
+    ]
+}

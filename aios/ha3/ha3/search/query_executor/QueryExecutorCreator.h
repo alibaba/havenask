@@ -110,26 +110,30 @@ private:
     QueryExecutor *mergeQueryExecutor(const std::vector<QueryExecutor *> &childQueryExecutors,
                                       QueryOperator op);
     void visitColumnTerm(const common::ColumnTerm &term, std::vector<QueryExecutor *> &results);
-    void visitNumberColumnTerm(const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReader,
-                               bool isSubIndex,
-                               const common::ColumnTerm &term,
-                               std::vector<QueryExecutor *> &results);
-    void visitPk64ColumnTerm(const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReader,
-                             bool isSubIndex,
-                             const common::ColumnTerm &term,
-                             std::vector<QueryExecutor *> &results);
-    void visitNormalColumnTerm(const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReader,
-                               bool isSubIndex,
-                               const common::ColumnTerm &term,
-                               std::vector<QueryExecutor *> &results);
+    void
+    visitNumberColumnTerm(const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReader,
+                          bool isSubIndex,
+                          const common::ColumnTerm &term,
+                          std::vector<QueryExecutor *> &results);
+    void
+    visitPk64ColumnTerm(const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReader,
+                        bool isSubIndex,
+                        const common::ColumnTerm &term,
+                        std::vector<QueryExecutor *> &results);
+    void
+    visitNormalColumnTerm(const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReader,
+                          bool isSubIndex,
+                          const common::ColumnTerm &term,
+                          std::vector<QueryExecutor *> &results);
     template <class T, class Traits>
-    LookupResult lookupNormalIndexWithoutCache(Traits traits,
-                                               const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReader,
-                                               bool isSubIndex,
-                                               LiteTerm &term,
-                                               PostingType pt1,
-                                               PostingType pt2,
-                                               const T &value);
+    LookupResult lookupNormalIndexWithoutCache(
+        Traits traits,
+        const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReader,
+        bool isSubIndex,
+        LiteTerm &term,
+        PostingType pt1,
+        PostingType pt2,
+        const T &value);
     template <class T, class Traits>
     void lookupNormalIndex(Traits traits,
                            const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReader,

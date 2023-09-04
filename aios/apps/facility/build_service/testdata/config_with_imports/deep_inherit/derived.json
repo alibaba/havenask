@@ -1,0 +1,24 @@
+{
+    "inherit_from" : "deep_inherit/cluster_common_config.json",
+    "cluster_config" : {
+        "inherit_from" : "deep_inherit/section.json",
+	"table_name" : "mainse_searcher",
+    	"cluster_type" : "original",
+	"searcher_rule" : {
+	    "inherit_from" : "deep_inherit/subsection.json"
+	}
+    },
+    "summary_profile_config" : {
+	"modules" : [
+	],
+	"summary_profiles" : [
+            {
+                "inherit_from" : "deep_inherit/skip_level.json",
+		"extractor":
+		{
+                    "extractor_name": "DefaultExtractor"
+		}
+            }
+	]
+    }
+}

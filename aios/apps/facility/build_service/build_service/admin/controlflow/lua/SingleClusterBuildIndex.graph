@@ -1,0 +1,83 @@
+#import(Tool)
+#import(Log)
+--todo support add prepare data source task
+function graphDef()
+   local clusterName = Graph.parameter["clusterName"]
+   local incParam = Tool.copyMap(Graph.parameter)
+   local fullParam = Tool.copyMap(Graph.parameter)
+   
+   -- Try get clone-index-flow if exist
+   -- which only exist in case of migrate index from origin to target
+   local cloneIndexFlow = nil
+   cloneIndexFlowId = Graph.parameter["cloneIndexFlowId"]
+   
+   if (cloneIndexFlowId ~= nil)
+   then
+      cloneIndexFlow = Graph.getFlow(cloneIndexFlowId)
+      Log.log("INFO", "Success get clone index flow. Id:"..cloneIndexFlowId)
+   end
+
+   --prepare inc processor
+   incParam["buildStep"] = "incremental"
+   incParam["cloneIdexFlowId"] = cloneIndexFlowId
+   local incProcessor = Graph.loadFlow("IncProcessor.flow", incParam)
+   -- local incProcessor = Graph.loadSimpleFlow("processor", "incProcessor", incParam)
+   incProcessor:addTag("BSIncProcess")
+   incProcessor:addTag(clusterName..":BSIncProcessor")
+   incParam["processorFlowId"] = incProcessor:getFlowId()
+
+   if (cloneIndexFlowId ~= nil)
+   then
+      Graph.setUpstream(incProcessor, cloneIndexFlow)
+      Graph.declareFriend(cloneIndexFlow, incProcessor)      
+   end
+   
+   
+   local hasFullBuild = (Graph.parameter["buildStep"] == "full") and (cloneIndexFlowId == nil)
+   if (hasFullBuild)
+   then
+      -- prepare full processor
+      fullProcessor = Graph.loadSimpleFlow(
+                    "processor", "fullProcessor", fullParam)
+      fullProcessor:addTag("BSFullProcess")
+      -- prepare data source
+      local prepareDataSourceId = Graph.parameter["prepareDataSourceFlowId"]
+      if (prepareDataSourceId == nil)
+      then
+         Log.log("ERROR", "lack of prepareDataSourceFlowId")
+         return false
+      end
+      prepareDataSourceFlow = Graph.getFlow(prepareDataSourceId)
+      Graph.setUpstream(fullProcessor, prepareDataSourceFlow)
+      Graph.setUpstream(incProcessor, fullProcessor)
+   end
+   
+   --prepare merge crontab
+   local mergeCrontab = Graph.loadSimpleFlow(
+            "mergeCrontab", "mergeCrontab", Graph.parameter)
+   local mergeCrontabTag = clusterName..":MergeCrontab"
+   mergeCrontab:addTag(mergeCrontabTag)
+
+   --prepare inc build
+   incParam["mergeCrontabFlowId"] = mergeCrontab:getFlowId()
+   local incBuild = Graph.loadFlow("IncBuild.flow", incParam)
+   local incBuildTag = clusterName..":IncBuild"
+   incBuild:addTag(incBuildTag)
+   Graph.declareFriend(mergeCrontab, incBuild)
+   Graph.declareFriend(incProcessor, incBuild)
+   if (hasFullBuild)
+   then
+         --prepare full build
+         fullParam["fullProcessorFlowId"] = fullProcessor:getFlowId()
+         fullParam["mergeCrontabFlowId"] = mergeCrontab:getFlowId()
+         local fullBuild = Graph.loadFlow("FullBuild.flow", fullParam)
+         fullBuild:addTag(clusterName..":FullBuild")
+         fullBuild:addTag("BSFullBuild")
+         Graph.setUpstream(incBuild, fullBuild)
+         Graph.setUpstream(mergeCrontab, fullProcessor)
+         Graph.declareFriend(fullProcessor, fullBuild)
+         Graph.declareFriend(mergeCrontab, fullBuild)
+   end
+   return true
+end
+

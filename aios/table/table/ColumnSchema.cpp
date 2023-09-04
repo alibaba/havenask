@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 #include "table/ColumnSchema.h"
+
 #include "table/TableUtil.h"
 
 using namespace std;
 
 namespace table {
 
-ColumnSchema::ColumnSchema(std::string name, ValueType type)
-    : _name(name)
-    , _type(type)
-{
-}
+ColumnSchema::ColumnSchema(std::string name, ValueType type) : _name(std::move(name)), _type(type) {}
 
-ColumnSchema::~ColumnSchema() {
-}
+ColumnSchema::~ColumnSchema() {}
 
-std::string ColumnSchema::toString() const {
-    return "name:" + _name + ",type:" + TableUtil::valueTypeToString(_type);
-}
+std::string ColumnSchema::toString() const { return "name:" + _name + ",type:" + TableUtil::valueTypeToString(_type); }
 
-}
+} // namespace table

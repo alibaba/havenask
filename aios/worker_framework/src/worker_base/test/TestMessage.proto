@@ -1,0 +1,39 @@
+syntax = "proto2";
+import "arpc/proto/rpc_extensions.proto";
+
+option cc_generic_services = true;
+
+package worker_framework;
+
+//used for request
+message Query {
+	required string name = 1;
+}
+//used for response
+message PersonInfo {
+	required string name = 1;
+	required uint32 age = 2;
+	optional string des = 3;
+	optional string addr = 4;
+}
+
+service EchoTest {
+	option (arpc.global_service_id) = 65534;
+	rpc Echo(Query) returns(Query) {
+	option (arpc.local_method_id) = 32765;
+	}
+}
+
+service Test {
+	option (arpc.global_service_id) = 100;
+	rpc QueryPerson(Query) returns(PersonInfo) {
+	option (arpc.local_method_id) = 101;
+	}
+}
+
+service Test1 {
+	option (arpc.global_service_id) = 200;
+	rpc SearchPerson(PersonInfo) returns(PersonInfo) {
+	option (arpc.local_method_id) = 202;
+	}
+}

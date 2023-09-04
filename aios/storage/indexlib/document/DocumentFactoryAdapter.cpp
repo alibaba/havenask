@@ -32,7 +32,7 @@ DocumentFactoryAdapter::DocumentFactoryAdapter()
 DocumentFactoryAdapter::~DocumentFactoryAdapter() {}
 
 std::unique_ptr<RawDocument>
-DocumentFactoryAdapter::CreateRawDocument(const std::shared_ptr<config::TabletSchema>& schema)
+DocumentFactoryAdapter::CreateRawDocument(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     return std::make_unique<DefaultRawDocument>(_hashKeyMapManager);
 }
@@ -43,7 +43,7 @@ std::unique_ptr<ExtendDocument> DocumentFactoryAdapter::CreateExtendDocument()
 }
 
 std::unique_ptr<IRawDocumentParser>
-DocumentFactoryAdapter::CreateRawDocumentParser(const std::shared_ptr<config::TabletSchema>& schema,
+DocumentFactoryAdapter::CreateRawDocumentParser(const std::shared_ptr<config::ITabletSchema>& schema,
                                                 const std::shared_ptr<DocumentInitParam>& initParam)
 {
     return nullptr;

@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="agg_grouping_sets_grouping_func">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT brand,size,SUM(price) AS sp, GROUPING(brand,size),GROUPING(brand) as g1 FROM phone GROUP BY GROUPING SETS ((brand),(size),()) LIMIT 20
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"brand", "size", "sp", "GROUPING(brand,size)", "g1"</Resource>
+        <Resource name="column_types">multi_char, double, double, int32, int32</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="sql_params">iquan.optimizer.cte.enable:true</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+"", 0.0, 32936, 3, 1
+"", 1.4, 169, 2, 1
+"", 4.7, 7897, 2, 1
+"", 5.0, 899, 2, 1
+"", 5.5, 14684, 2, 1
+"", 5.6, 5688, 2, 1
+"", 5.9, 3599, 2, 1
+"Huawei", 0, 7987, 1, 0
+"Meizu", 0, 1299, 1, 0
+"Nokia", 0, 169, 1, 0
+"Xiaomi", 0, 899, 1, 0
+"OPPO", 0, 2999, 1, 0
+"Samsung", 0, 5688, 1, 0
+"Apple", 0, 13895, 1, 0
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#10(type=api)
+    ExchangeOp#9(distribution={type:SINGLETON})
+        LimitOp#8(limit=20)
+            UnionOp#7(all=true,block=false)
+                CalcOp#2(output_field_exprs={$GROUPING(brand,size):1,$g1:0,$size:CAST(null)},output_fields=[$brand,$size,$sp,$GROUPING(brand,size),$g1])
+                    AggregateOp#1(agg_funcs=[{approximate:false,distinct:false,filter_arg:-1,input:[$price],name:SUM,output:[$sp],type:NORMAL}],group_fields=[$brand],scope=NORMAL)
+                        TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$brand,$size,$price],push_down_ops=[{attrs:{output_fields:[$brand,$size,$price]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+                CalcOp#4(output_field_exprs={$GROUPING(brand,size):2,$brand:CAST(null),$g1:1},output_fields=[$brand,$size,$sp,$GROUPING(brand,size),$g1])
+                    AggregateOp#3(agg_funcs=[{approximate:false,distinct:false,filter_arg:-1,input:[$price],name:SUM,output:[$sp],type:NORMAL}],group_fields=[$size],scope=NORMAL)
+                        TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$brand,$size,$price],push_down_ops=[{attrs:{output_fields:[$brand,$size,$price]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+                CalcOp#6(output_field_exprs={$GROUPING(brand,size):3,$brand:CAST(null),$g1:1,$size:CAST(null)},output_fields=[$brand,$size,$sp,$GROUPING(brand,size),$g1])
+                    AggregateOp#5(agg_funcs=[{approximate:false,distinct:false,filter_arg:-1,input:[$price],name:SUM,output:[$sp],type:NORMAL}],scope=NORMAL)
+                        TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$brand,$size,$price],push_down_ops=[{attrs:{output_fields:[$brand,$size,$price]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

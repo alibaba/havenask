@@ -1,0 +1,56 @@
+{
+    "fields": [
+        {
+            "field_name": "user_name",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "user_id",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "body",
+            "field_type": "STRING"
+        }
+    ],
+    "indexes": {
+        "attribute": [
+            {
+                "compress_type": "uniq",
+                "field_name": "user_name"
+            },
+            {
+                "field_name": "body",
+                "file_compressor": "compress1"
+            }
+        ],
+        "primarykey": [
+            {
+                "has_primary_key_attribute": true,
+                "index_fields": "user_id",
+                "index_name": "product_id",
+                "index_type": "PRIMARYKEY64",
+                "pk_hash_optimize": true
+            }
+        ]
+    },
+    "settings": {
+        "file_compressors": [
+            {
+                "name": "compress1",
+                "parameters": {
+                    "level": "10"
+                },
+                "type": "zstd"
+            },
+            {
+                "name": "compress1",
+                "parameters": {
+                    "level": "10"
+                },
+                "type": "zstd"
+            }
+        ]
+    },
+    "table_name": "auction"
+}

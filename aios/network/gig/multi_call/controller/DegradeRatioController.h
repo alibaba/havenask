@@ -20,7 +20,8 @@
 
 namespace multi_call {
 
-class DegradeRatioController : public RatioControllerBase {
+class DegradeRatioController : public RatioControllerBase
+{
 public:
     DegradeRatioController();
 
@@ -32,18 +33,15 @@ public:
     float updateLoadBalance(ControllerFeedBack &feedBack);
     float controllerOutput() const override;
     float controllerLoadBalanceOutput() const;
-    bool isLegal(const ControllerChain *bestChain,
-                 const MetricLimits &metricLimits) const override;
+    bool isLegal(const ControllerChain *bestChain, const MetricLimits &metricLimits) const override;
     float getLegalLimit() const;
 
 protected:
     void updateLocalRatio(const QueryResultStatistic &stat) override;
-    const ServerRatioFilter &
-    getServerRatioFilter(const GigResponseInfo &agentInfo) const override;
+    const ServerRatioFilter &getServerRatioFilter(const GigResponseInfo &agentInfo) const override;
     const ServerRatioFilter &
     getMirrorServerRatioFilter(const PropagationStatDef &stat) const override;
-    bool getBestRatio(const ControllerFeedBack &feedBack,
-                      float &bestRatio) const;
+    bool getBestRatio(const ControllerFeedBack &feedBack, float &bestRatio) const;
 
 private:
     static float calculateWeightPercent(float thisRatio, float bestRatio);

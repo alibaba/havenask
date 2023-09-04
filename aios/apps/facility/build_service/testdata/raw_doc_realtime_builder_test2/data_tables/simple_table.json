@@ -1,0 +1,57 @@
+{
+    "data_descriptions": [
+        {
+            "swift_root": "http://test1.com",
+            "swift_start_timestamp": "1603152000000000",
+            "topic_name": "test",
+            "need_field_filter": "true",
+            "source_default": "dump1",
+            "source_field": "end2end_message_source",
+            "src": "swift",
+            "type": "swift"
+        },
+        {
+            "swift_root": "http://test2.com",
+            "swift_start_timestamp": "1603152000000000",
+            "topic_name": "test",
+            "need_field_filter": "true",
+            "source_default": "dump2",
+            "source_field": "end2end_message_source",
+            "src": "swift",
+            "type": "swift"
+        }
+    ],
+    "control_config": {
+        "is_inc_processor_exist": false
+    },
+    "reader_config": {
+        "swift": {
+            "topic_name": "",
+            "swift_root": "zfs://root",
+            "reader_config": "reader_config"
+        },
+        "plugin": {
+        },
+        "file": {
+        }
+    },
+    "raw_data_swift_config": {
+        "topic": {
+            "reserved_file_count": 10,
+            "partition_resource": 100,
+            "partition_file_buf_size": 1000,
+            "partition_count": 10,
+            "partition_buffer": 1000,
+            "obsolete_file_interval": 3600
+        }
+    },
+    "processor_chain_config": [
+        {
+            "modules": [],
+            "document_processor_chain": [],
+            "clusters": [
+                "mainse_searcher"
+            ]
+        }
+    ]
+}

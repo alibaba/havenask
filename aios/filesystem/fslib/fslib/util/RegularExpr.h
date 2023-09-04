@@ -16,19 +16,19 @@
 #ifndef FSLIB_REGULAREXPR_H
 #define FSLIB_REGULAREXPR_H
 
+#include <regex.h>
+#include <sys/types.h>
+
 #include "autil/Log.h"
 #include "fslib/common/common_define.h"
-#include <sys/types.h>
-#include <regex.h>
 
 FSLIB_BEGIN_NAMESPACE(util);
 
-class RegularExpr
-{
+class RegularExpr {
 public:
     RegularExpr();
     ~RegularExpr();
-    
+
 public:
     bool init(const std::string &pattern);
     bool match(const std::string &string) const;
@@ -43,4 +43,4 @@ typedef std::vector<RegularExprPtr> RegularExprVector;
 
 FSLIB_END_NAMESPACE(util);
 
-#endif //FSLIB_REGULAREXPR_H
+#endif // FSLIB_REGULAREXPR_H

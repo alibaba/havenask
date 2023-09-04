@@ -19,7 +19,7 @@
 #include "autil/NoCopyable.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/util/KeyValueMap.h"
 
 namespace indexlibv2::framework {
@@ -52,7 +52,7 @@ public:
 public:
     virtual Status Init(const std::vector<std::shared_ptr<framework::Segment>>& segments,
                         const std::map<std::string, std::string>& params,
-                        const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+                        const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                         const std::shared_ptr<index::AdapterIgnoreFieldCalculator>& ignoreFieldCalculator,
                         int64_t currentTs) = 0;
     virtual Status Next(ShardRecord* record, std::string* checkpoint) = 0;

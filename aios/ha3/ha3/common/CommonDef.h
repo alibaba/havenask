@@ -47,12 +47,12 @@ constexpr char OP_DEBUG_KEY[] = "op_debug";
 
 constexpr char SPECIAL_CATALOG_LIST[] = "specialCatalogList";
 
-constexpr char HA_RESERVED_METHOD[] =  "ha_reserved_method";
-constexpr char HA_RESERVED_PID[] =  "ha_reserved_pid";
-constexpr char HA_RESERVED_APPNAME[] =  "ha3:";
-constexpr char HA_RESERVED_BENCHMARK_KEY[] =  "t";
-constexpr char HA_RESERVED_BENCHMARK_VALUE_1[] =  "1";
-constexpr char HA_RESERVED_BENCHMARK_VALUE_2[] =  "2";
+constexpr char HA_RESERVED_METHOD[] = "ha_reserved_method";
+constexpr char HA_RESERVED_PID[] = "ha_reserved_pid";
+constexpr char HA_RESERVED_APPNAME[] = "ha3:";
+constexpr char HA_RESERVED_BENCHMARK_KEY[] = "t";
+constexpr char HA_RESERVED_BENCHMARK_VALUE_1[] = "1";
+constexpr char HA_RESERVED_BENCHMARK_VALUE_2[] = "2";
 
 constexpr char QINFO_KEY_FG_USER[] = "fg_user";
 constexpr char QINFO_KEY_RN[] = "rn";

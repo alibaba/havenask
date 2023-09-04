@@ -23,15 +23,15 @@
 #include "ha3/common/CommonDef.h"
 #include "ha3/isearch.h"
 #include "ha3/search/FullMatchDataFetcher.h"
+#include "ha3/search/MatchData.h"
 #include "ha3/search/MatchDataFetcher.h"
+#include "ha3/search/MatchValues.h"
 #include "ha3/search/MatchValuesFetcher.h"
+#include "ha3/search/MetaInfo.h"
+#include "ha3/search/SimpleMatchData.h"
 #include "ha3/search/SimpleMatchDataFetcher.h"
 #include "ha3/search/SubSimpleMatchDataFetcher.h"
 #include "ha3/search/TermMetaInfo.h"
-#include "ha3/search/MatchData.h"
-#include "ha3/search/MatchValues.h"
-#include "ha3/search/MetaInfo.h"
-#include "ha3/search/SimpleMatchData.h"
 #include "matchdoc/MatchDoc.h"
 #include "matchdoc/Reference.h"
 
@@ -60,12 +60,18 @@ MatchDataManager::~MatchDataManager() {
     reset();
 }
 
-void MatchDataManager::reset() {
+void MatchDataManager::resetMatchData() {
     POOL_DELETE_CLASS(_fetcher);
-    POOL_DELETE_CLASS(_simpleFetcher);
     POOL_DELETE_CLASS(_subFetcher);
-    POOL_DELETE_CLASS(_matchValuesFetcher);
     _fetcher = NULL;
+    _matchDataCollectorCenter.reset();
+    _needMatchData = false;
+}
+
+void MatchDataManager::reset() {
+    resetMatchData();
+    POOL_DELETE_CLASS(_simpleFetcher);
+    POOL_DELETE_CLASS(_matchValuesFetcher);
     _simpleFetcher = NULL;
     _subFetcher = NULL;
     _matchValuesFetcher = NULL;
@@ -75,7 +81,6 @@ void MatchDataManager::reset() {
     _scope = 0;
     _queryExecutors.clear();
     _matchDataCollectorCenter.reset();
-    _needMatchData = false;
     for (size_t i = 0; i < _seekQueryExecutors.size(); ++i) {
         for (size_t j = 0; j < _seekQueryExecutors[i].size(); ++j) {
             POOL_DELETE_CLASS(_seekQueryExecutors[i][j]);
@@ -88,8 +93,8 @@ indexlib::index::ErrorCode MatchDataManager::fillMatchData(matchdoc::MatchDoc ma
     docid_t docId = matchDoc.getDocId();
     SingleLayerSeekExecutors &curSeekExecutors = _seekQueryExecutors[_curSearchLayer];
     for (SingleLayerSeekExecutors::iterator it = curSeekExecutors.begin();
-         it != curSeekExecutors.end(); ++it)
-    {
+         it != curSeekExecutors.end();
+         ++it) {
         docid_t tempid = INVALID_DOCID;
         auto ec = (*it)->seek(docId, tempid);
         IE_RETURN_CODE_IF_ERROR(ec);
@@ -109,8 +114,8 @@ indexlib::index::ErrorCode MatchDataManager::fillMatchValues(matchdoc::MatchDoc 
     docid_t docId = matchDoc.getDocId();
     SingleLayerSeekExecutors &curSeekExecutors = _seekQueryExecutors[_curSearchLayer];
     for (SingleLayerSeekExecutors::iterator it = curSeekExecutors.begin();
-         it != curSeekExecutors.end(); ++it)
-    {
+         it != curSeekExecutors.end();
+         ++it) {
         docid_t tempid = INVALID_DOCID;
         auto ec = (*it)->seek(docId, tempid);
         IE_RETURN_CODE_IF_ERROR(ec);
@@ -120,15 +125,14 @@ indexlib::index::ErrorCode MatchDataManager::fillMatchValues(matchdoc::MatchDoc 
 }
 
 indexlib::index::ErrorCode MatchDataManager::fillSubMatchData(matchdoc::MatchDoc matchDoc,
-                                        matchdoc::MatchDoc subDoc,
-                                        docid_t startSubDocid,
-                                        docid_t endSubDocId)
-{
+                                                              matchdoc::MatchDoc subDoc,
+                                                              docid_t startSubDocid,
+                                                              docid_t endSubDocId) {
     docid_t docId = matchDoc.getDocId();
     SingleLayerSeekExecutors &curSeekExecutors = _seekQueryExecutors[_curSearchLayer];
     for (SingleLayerSeekExecutors::iterator it = curSeekExecutors.begin();
-         it != curSeekExecutors.end(); ++it)
-    {
+         it != curSeekExecutors.end();
+         ++it) {
         docid_t curDocId = INVALID_DOCID;
         auto ec = (*it)->seek(docId, curDocId);
         IE_RETURN_CODE_IF_ERROR(ec);
@@ -155,33 +159,34 @@ void MatchDataManager::addRankQueryExecutor(QueryExecutor *queryExecutor) {
 void MatchDataManager::getQueryTermMetaInfo(rank::MetaInfo *metaInfo) const {
     for (uint32_t i = 0; i < _queryCount && i < _queryExecutors.size(); ++i) {
         const SingleLayerExecutors &queryExecutors = _queryExecutors[i];
-        for (const auto &queryExecutor: queryExecutors) {
+        for (const auto &queryExecutor : queryExecutors) {
             queryExecutor->getMetaInfo(metaInfo);
         }
     }
 }
 
-#define DO_REQUIRE_MATCHDATA(fetcher, FetcherType)              \
-    if (fetcher) {                                              \
-        AUTIL_LOG(WARN, "SimpleMatchData and MatchData"         \
-                " cannot be required in one query");            \
-        return NULL;                                            \
-    }                                                           \
-    fetcher = POOL_NEW_CLASS(pool, FetcherType);                \
-    uint32_t termCount = 0;                                     \
-    for (uint32_t i = 0;                                        \
-         i < _queryCount && i < _queryExecutors.size(); ++i)    \
-    {                                                           \
-        termCount += _queryExecutors[i].size();                 \
-    }                                                           \
+#define DO_REQUIRE_MATCHDATA(fetcher, FetcherType)                                                 \
+    if (fetcher) {                                                                                 \
+        AUTIL_LOG(WARN,                                                                            \
+                  "SimpleMatchData and MatchData"                                                  \
+                  " cannot be required in one query");                                             \
+        return NULL;                                                                               \
+    }                                                                                              \
+    fetcher = POOL_NEW_CLASS(pool, FetcherType);                                                   \
+    uint32_t termCount = 0;                                                                        \
+    for (uint32_t i = 0; i < _queryCount && i < _queryExecutors.size(); ++i) {                     \
+        termCount += _queryExecutors[i].size();                                                    \
+    }                                                                                              \
     auto ret = fetcher->require(allocator, refName, termCount);
 
-matchdoc::Reference<SimpleMatchData> *MatchDataManager::requireSimpleMatchData(
-        matchdoc::MatchDocAllocator *allocator,
-        const std::string &refName,
-        SubDocDisplayType subDocDisplayType,
-        Pool *pool)
-{
+matchdoc::Reference<SimpleMatchData> *
+MatchDataManager::requireSimpleMatchData(matchdoc::MatchDocAllocator *allocator,
+                                         const std::string &refName,
+                                         SubDocDisplayType subDocDisplayType,
+                                         Pool *pool) {
+    if (!_needMatchData) {
+        return nullptr;
+    }
     if (subDocDisplayType == SUB_DOC_DISPLAY_FLAT) {
         AUTIL_LOG(WARN, "require simpleMatchData do not support match data in sub doc flat mode");
         return NULL;
@@ -190,12 +195,14 @@ matchdoc::Reference<SimpleMatchData> *MatchDataManager::requireSimpleMatchData(
     return dynamic_cast<matchdoc::Reference<SimpleMatchData> *>(ret);
 }
 
-matchdoc::Reference<MatchData> *MatchDataManager::requireMatchData(
-        matchdoc::MatchDocAllocator *allocator,
-        const std::string &refName,
-        SubDocDisplayType subDocDisplayType,
-        Pool *pool)
-{
+matchdoc::Reference<MatchData> *
+MatchDataManager::requireMatchData(matchdoc::MatchDocAllocator *allocator,
+                                   const std::string &refName,
+                                   SubDocDisplayType subDocDisplayType,
+                                   Pool *pool) {
+    if (!_needMatchData) {
+        return nullptr;
+    }
     if (subDocDisplayType == SUB_DOC_DISPLAY_FLAT) {
         AUTIL_LOG(WARN, "require matchData do not support match data in sub doc flat mode");
         return NULL;
@@ -204,12 +211,14 @@ matchdoc::Reference<MatchData> *MatchDataManager::requireMatchData(
     return dynamic_cast<matchdoc::Reference<MatchData> *>(ret);
 }
 
-matchdoc::Reference<SimpleMatchData> *MatchDataManager::requireSubSimpleMatchData(
-        matchdoc::MatchDocAllocator *allocator,
-        const std::string &refName,
-        SubDocDisplayType subDocDisplayType,
-        Pool *pool)
-{
+matchdoc::Reference<SimpleMatchData> *
+MatchDataManager::requireSubSimpleMatchData(matchdoc::MatchDocAllocator *allocator,
+                                            const std::string &refName,
+                                            SubDocDisplayType subDocDisplayType,
+                                            Pool *pool) {
+    if (!_needMatchData) {
+        return nullptr;
+    }
     if (subDocDisplayType != SUB_DOC_DISPLAY_GROUP) {
         AUTIL_LOG(WARN, "require subSimpleMatchData only support match data in sub doc group mode");
         return NULL;
@@ -218,12 +227,14 @@ matchdoc::Reference<SimpleMatchData> *MatchDataManager::requireSubSimpleMatchDat
     return dynamic_cast<matchdoc::Reference<SimpleMatchData> *>(ret);
 }
 
-matchdoc::Reference<isearch::rank::MatchValues> *MatchDataManager::requireMatchValues(
-        matchdoc::MatchDocAllocator *allocator,
-        const std::string &refName,
-        SubDocDisplayType subDocDisplayType,
-        Pool *pool)
-{
+matchdoc::Reference<isearch::rank::MatchValues> *
+MatchDataManager::requireMatchValues(matchdoc::MatchDocAllocator *allocator,
+                                     const std::string &refName,
+                                     SubDocDisplayType subDocDisplayType,
+                                     Pool *pool) {
+    if (!_needMatchData) {
+        return nullptr;
+    }
     if (subDocDisplayType == SUB_DOC_DISPLAY_FLAT) {
         AUTIL_LOG(WARN, "require matchValue do not support match value in sub doc flat mode");
         return NULL;

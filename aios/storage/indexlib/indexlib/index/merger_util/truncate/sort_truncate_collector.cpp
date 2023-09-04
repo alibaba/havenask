@@ -213,7 +213,7 @@ void SortTruncateCollector::SortTemplate(std::vector<Doc>::iterator begin, std::
         }
     }
     DocComp<T> comp(sortParams[sortDim].IsDesc(), isSortByDocPayload);
-    nth_element(begin, begin + minDocCountToReserve, end, comp);
+    nth_element(begin, begin + minDocCountToReserve - 1, end, comp);
 
     std::vector<Doc>::iterator left = begin + minDocCountToReserve - 1;
     std::vector<Doc>::iterator right = begin + minDocCountToReserve;

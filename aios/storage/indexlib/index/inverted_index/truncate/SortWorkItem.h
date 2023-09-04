@@ -17,7 +17,7 @@
 #include <memory>
 
 #include "autil/WorkItem.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/index/DocMapper.h"
 #include "indexlib/index/inverted_index/config/TruncateOptionConfig.h"
 #include "indexlib/index/inverted_index/config/TruncateProfile.h"
@@ -31,7 +31,7 @@ class SortWorkItem : public autil::WorkItem
 public:
     SortWorkItem(const indexlibv2::config::TruncateProfile& truncProfile, uint32_t newDocCount,
                  TruncateAttributeReaderCreator* truncateAttrCreator, const std::shared_ptr<BucketMap>& bucketMap,
-                 const std::shared_ptr<indexlibv2::config::TabletSchema>& tabletSchema);
+                 const std::shared_ptr<indexlibv2::config::ITabletSchema>& tabletSchema);
     ~SortWorkItem() = default;
 
 public:
@@ -105,7 +105,7 @@ private:
     TruncateAttributeReaderCreator* _truncateAttrCreator;
     std::shared_ptr<BucketMap> _bucketMap;
     std::unique_ptr<Doc[]> _docInfos;
-    std::shared_ptr<indexlibv2::config::TabletSchema> _tabletSchema;
+    std::shared_ptr<indexlibv2::config::ITabletSchema> _tabletSchema;
 
 private:
     AUTIL_LOG_DECLARE();

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 #include "aios/network/anet/httpstreamingcontext.h"
-#include "aios/network/anet/aneterror.h"
 
+#include "aios/network/anet/aneterror.h"
 #include "aios/network/anet/streamingcontext.h"
 
 namespace anet {
@@ -27,8 +27,7 @@ HTTPStreamingContext::HTTPStreamingContext() {
     _chunkState = CHUNK_SIZE;
 }
 
-HTTPStreamingContext:: ~HTTPStreamingContext() {
-}
+HTTPStreamingContext::~HTTPStreamingContext() {}
 
 void HTTPStreamingContext::reset() {
     _step = HSS_START_LINE;
@@ -61,4 +60,4 @@ void HTTPStreamingContext::setErrorNo(int errorNo) {
     }
 }
 
-}/*end namespace anet*/
+} /*end namespace anet*/

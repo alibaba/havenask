@@ -20,6 +20,7 @@
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/util/Monitor.h"
 #include "indexlib/document/DocumentBatch.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/ExtendDocument.h"
 #include "indexlib/document/IDocumentFactory.h"
 #include "indexlib/document/IDocumentParser.h"
@@ -201,8 +202,9 @@ ProcessedDocumentPtr DocumentProcessorChain::handleExtendDocument(const ExtendDo
         if (!status.IsOK()) {
             BS_INTERVAL_LOG(300, ERROR, "document parser v2 parse failed!");
         } else if (batch) {
-            for (auto i = 0; i < batch->GetBatchSize(); ++i) {
-                auto doc = (*batch)[i];
+            auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(batch.get());
+            while (iter->HasNext()) {
+                auto doc = iter->Next();
                 doc->SetTrace(extendDocument->getRawDocument()->NeedTrace());
                 IE_DOC_TRACE(doc, "parse indexDoc done");
             }
@@ -226,9 +228,9 @@ ProcessedDocumentPtr DocumentProcessorChain::handleExtendDocument(const ExtendDo
         IE_RAW_DOC_TRACE(rawDoc, "parse rawDoc failed.");
         return ProcessedDocumentPtr();
     }
-
-    for (auto i = 0; i < docBatch->GetBatchSize(); ++i) {
-        auto doc = (*docBatch)[i];
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(docBatch.get());
+    while (iter->HasNext()) {
+        auto doc = iter->Next();
         handleBuildInProcessorWarnings(extendDocument, doc);
         doc->SetDocInfo(rawDoc->GetDocInfo());
     }
@@ -286,7 +288,7 @@ bool DocumentProcessorChain::init(const DocumentFactoryWrapperPtr& wrapper, cons
 bool DocumentProcessorChain::initV2(std::unique_ptr<indexlibv2::document::IDocumentFactory> documentFactory,
                                     const DocumentInitParamPtr& initParam,
                                     const SourceSchemaParserFactoryGroupPtr& parserFactoryGroup,
-                                    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema)
+                                    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema)
 {
     _parserFactoryGroup = parserFactoryGroup;
     _srcSchemaParserGroup = parserFactoryGroup->CreateParserGroup();

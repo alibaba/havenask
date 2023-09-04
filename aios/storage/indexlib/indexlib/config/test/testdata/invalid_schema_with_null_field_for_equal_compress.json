@@ -1,0 +1,141 @@
+{
+    /* This config file is just for index engine library, and it will be stored in corresponding index partition for the convenience of index partition transfer. we just need one table when building a index partition. */
+    /* fields are order-sensitive; attributes, and summary must have the same order with fields; */
+
+    "table_name": "auction",
+    "versionid": 2,
+    "user_defined_param" : {
+        "file_name" : "cc",
+        "field_separator" : "bb",
+        "array" : [1,2,3]
+    },
+    "dictionaries":
+    [
+	{"dictionary_name":"top10",	"content":"of;a;an"},
+	{"dictionary_name":"top100",	"content":"0;1;2;a;an"},
+	{"dictionary_name":"topNum",	"content":"0;1;2;9;11"}
+    ],
+
+    "fields": 
+    [
+        {"field_name":"title",        "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
+	{"field_name":"user_name",    "field_type":"STRING", "uniq_encode":true, "user_defined_param":{"key":"hello world"} },
+	{"field_name":"user_id",      "field_type":"INTEGER"},
+	{"field_name":"price",        "field_type":"INTEGER"  },
+	{"field_name":"category",     "field_type":"INTEGER",  "multi_value":true, "uniq_encode":true, "compress_type":"equal"},
+	{"field_name":"auction_type", "field_type":"ENUM",     "valid_values":["sale", "buy"] },
+	{"field_name":"product_id",   "field_type":"LONG" },
+	{"field_name":"body",         "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
+	{"field_name":"b2b_body",     "field_type":"TEXT",    "analyzer":"b2b_analyzer"},
+	{"field_name":"taobao_body1",  "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
+	{"field_name":"taobao_body2",  "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
+	{"field_name":"price2",        "field_type":"INTEGER", "compress_type":"equal|patch_compress"},
+	{"field_name":"price3",        "field_type":"INTEGER", "compress_type":"patch_compress"},
+	{"field_name":"price4",        "field_type":"INTEGER"  },
+	{"field_name":"price5",        "field_type":"INTEGER", "enable_null":true, "default_null_string" : "default_null"  },
+	{"field_name":"categoryp",     "field_type":"INTEGER"  },
+	{"field_name":"catmap",        "field_type":"INTEGER", "enable_null":true, "compress_type":"equal"}
+    ],
+
+    "indexs": 
+    [
+     	{
+	    "index_name": "phrase",
+            "index_type" : "PACK",
+	    "term_payload_flag" : 1,
+	    "doc_payload_flag" : 1,
+	    "position_payload_flag" : 1,
+	    "position_list_flag" : 1,
+	    "term_frequency_bitmap": 0,
+	    "high_frequency_dictionary" : "top10",
+	    "high_frequency_term_posting_type" : "both",
+            "index_analyzer" : "taobao_analyzer",
+	    "index_fields": 
+	    [
+		{"field_name":"title", "boost":1000}, 
+		{"field_name":"body", "boost":10}
+	    ]
+	},
+
+	{
+	    "index_name": "title",
+            "index_type": "TEXT",
+	    "term_payload_flag" :  1 ,
+	    "doc_payload_flag" :  1 ,
+	    "position_payload_flag" : 1,
+	    "position_list_flag" : 1,
+	    "term_frequency_bitmap": 0,
+	    "high_frequency_dictionary" : "top10",
+	    "index_analyzer" : "taobao_analyzer",
+	    "high_frequency_term_posting_type" : "both",
+            "index_fields": "title"
+        },
+
+	{
+	    "index_name": "user_name",
+            "index_type": "STRING",
+            "index_fields": "user_name",
+	    "term_payload_flag" :  1 ,
+	    "doc_payload_flag" :  1 
+        },
+
+	{
+	    "index_name": "product_id",
+            "index_type" : "PRIMARYKEY64",
+	    "index_fields": "product_id",
+	    "has_primary_key_attribute": true,
+	    "use_number_pk_hash" : true
+	},
+
+	{
+            "index_name": "phrase2",
+            "index_type" : "EXPACK",
+	    "term_payload_flag" : 1,
+            "doc_payload_flag" : 1,
+            "position_payload_flag" : 1,
+            "position_list_flag" : 1,
+	    "term_frequency_bitmap": 0,
+	    "has_section_attribute": false,
+            "index_analyzer" : "taobao_analyzer",
+            "index_fields":
+            [
+                {"field_name":"title", "boost":1000},
+                {"field_name":"body", "boost":10}
+            ]
+        },
+
+	{
+	    "index_name": "categoryp",
+            "index_type" : "NUMBER",
+	    "index_fields": "categoryp",
+	    "term_payload_flag" :  1,
+	    "doc_payload_flag" :  1,
+	    "high_frequency_dictionary" : "topNum",
+	    "high_frequency_term_posting_type" : "both"
+	},
+	{
+	    "index_name": "catmap",
+            "index_type" : "NUMBER",
+	    "index_fields": "catmap",
+	    "term_payload_flag" :  1 ,
+	    "doc_payload_flag" :  1 ,
+            "term_frequency_bitmap" : 1,
+	    "high_frequency_dictionary" : "topNum",
+	    "high_frequency_term_posting_type" : "bitmap"
+	}
+
+    ],
+
+    "attributes": ["user_id", "product_id", "user_name", "category", "price2", "price3", "price4", "price5"],
+
+    "summarys":{ 
+        "summary_fields": ["title",  "user_name", "user_id", "price", "auction_type"],
+        "compress_block_size": 5
+    },
+
+    "truncate_profiles" : [
+        {"truncate_profile_name": "desc_product_id", "sort_descriptions" : "-product_id;+user_id" },
+        {"truncate_profile_name": "desc_user_name", "sort_descriptions" : "-user_name;+user_id" }
+    ],
+    "auto_update_preference" : false
+}

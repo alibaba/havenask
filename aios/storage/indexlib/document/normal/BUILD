@@ -1,20 +1,20 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='convertor',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=[':TokenizeDocumentConvertor']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='extend_document',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=[':NormalExtendDocument']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalDocumentParser',
     deps=[
         ':NormalExtendDocument', ':SingleDocumentParser',
@@ -23,7 +23,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/document/document_rewriter:IDocumentRewriter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TokenizeDocumentConvertor',
     deps=[
         '//aios/autil:NoCopyable', '//aios/autil:log',
@@ -33,17 +33,19 @@ indexlib_cc_library(
         '//aios/storage/indexlib/config:TabletSchema',
         '//aios/storage/indexlib/document:DocumentBatch',
         '//aios/storage/indexlib/document:RawDocument',
-        '//aios/storage/indexlib/document/normal/tokenize'
+        '//aios/storage/indexlib/document/normal/tokenize',
+        '//aios/storage/indexlib/index/ann:constants',
+        '//aios/storage/indexlib/index/inverted_index:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='Field',
     deps=[
         '//aios/autil:data_buffer', '//aios/storage/indexlib/base:constants',
         '//aios/storage/indexlib/util:Exception'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexDocument',
     deps=[
         ':IndexRawField', ':IndexTokenizeField', ':ModifiedTokens',
@@ -55,19 +57,19 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:HashMap'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexRawField', deps=[':Field', '//aios/autil:string_type']
 )
-indexlib_cc_library(name='IndexTokenizeField', deps=[':Field', ':Section'])
-indexlib_cc_library(
+strict_cc_library(name='IndexTokenizeField', deps=[':Field', ':Section'])
+strict_cc_library(
     name='ModifiedTokens',
     deps=[
         ':Token', '//aios/autil:data_buffer', '//aios/autil:string_helper',
         '//aios/storage/indexlib/base:constants'
     ]
 )
-indexlib_cc_library(name='NullField', deps=[':Field'])
-indexlib_cc_library(
+strict_cc_library(name='NullField', deps=[':Field'])
+strict_cc_library(
     name='Section',
     deps=[
         ':Token', '//aios/autil:dynamic_buf',
@@ -76,14 +78,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:PoolUtil'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SummaryDocument',
     deps=[
         '//aios/autil:data_buffer', '//aios/autil:string_type',
         '//aios/storage/indexlib/base:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='Token',
     deps=[
         '//aios/autil:data_buffer', '//aios/autil:hash_base',
@@ -91,7 +93,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index:Types'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeDocument',
     srcs=[],
     deps=[
@@ -99,22 +101,22 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SerializedSummaryDocument',
     deps=['//aios/autil:data_buffer', '//aios/storage/indexlib/base:constants']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SerializedSourceDocument',
     deps=[
         '//aios/autil:data_buffer', '//aios/storage/indexlib/base:constants',
         '//aios/storage/indexlib/index/source:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SearchSummaryDocument',
     deps=['//aios/autil:mem_pool_base', '//aios/autil:string_type']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='GroupFieldFormatter',
     deps=[
         ':GroupFieldIter', '//aios/autil:mem_pool_base',
@@ -122,17 +124,17 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util/buffer_compressor'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='GroupFieldIter', srcs=[], deps=['//aios/autil:string_type']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SummaryGroupFieldIter',
     deps=[
         ':GroupFieldIter', ':SummaryDocument',
         '//aios/storage/indexlib/index/summary:config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SummaryGroupFormatter',
     deps=[
         ':GroupFieldFormatter', ':SearchSummaryDocument',
@@ -140,14 +142,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/summary:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SummaryFormatter',
     deps=[
         ':SerializedSummaryDocument', ':SummaryDocument',
         ':SummaryGroupFormatter', '//aios/storage/indexlib/index/summary:config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalDocument',
     deps=[
         ':AttributeDocument', ':IndexDocument', ':SerializedSourceDocument',
@@ -155,7 +157,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/document:interface'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeDocumentFieldExtractor',
     deps=[
         ':AttributeDocument', ':SerializedSummaryDocument', '//aios/autil:log',
@@ -168,7 +170,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:ErrorLogCollector'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ClassifiedDocument',
     deps=[
         ':AttributeDocument', ':IndexDocument', ':SerializedSummaryDocument',
@@ -177,7 +179,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/document:RawDocument'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalExtendDocument',
     srcs=[],
     deps=[
@@ -186,14 +188,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/document/normal/tokenize:TokenizeDocument'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NullFieldAppender',
     deps=[
         '//aios/storage/indexlib/config:FieldConfig',
         '//aios/storage/indexlib/document:RawDocument'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ExtendDocFieldsConvertor',
     deps=[
         ':NormalExtendDocument', '//aios/storage/indexlib/config:TabletSchema',
@@ -205,7 +207,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:DocTracer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleDocumentParser',
     deps=[
         ':ExtendDocFieldsConvertor', ':NormalDocument', ':NormalExtendDocument',
@@ -214,14 +216,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/document/normal/rewriter:SectionAttributeAppender'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalDocumentFactory',
     deps=[
         ':NormalDocumentParser',
         '//aios/storage/indexlib/document:DocumentFactoryAdapter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SourceDocument',
     deps=[
         ':GroupFieldIter', '//aios/autil:log', '//aios/autil:mem_pool_base',

@@ -30,13 +30,21 @@ public:
     Status(const Status &s);
     void operator=(const Status &s);
 
-    static Status OK() { return Status(); }
+    static Status OK() {
+        return Status();
+    }
 
-    bool ok() const { return _state == nullptr || _state->code == IQUAN_OK; }
+    bool ok() const {
+        return _state == nullptr || _state->code == IQUAN_OK;
+    }
 
-    int code() const { return _state == nullptr ? IQUAN_OK : _state->code; }
+    int code() const {
+        return _state == nullptr ? IQUAN_OK : _state->code;
+    }
 
-    const std::string &errorMessage() const { return ok() ? emptyString() : _state->msg; }
+    const std::string &errorMessage() const {
+        return ok() ? emptyString() : _state->msg;
+    }
 
     bool operator==(const Status &s) const;
     bool operator!=(const Status &s) const;
@@ -50,7 +58,8 @@ private:
     std::unique_ptr<State> _state;
 };
 
-inline Status::Status(const Status &s) : _state((s._state == nullptr) ? nullptr : new State(*s._state)) {}
+inline Status::Status(const Status &s)
+    : _state((s._state == nullptr) ? nullptr : new State(*s._state)) {}
 
 inline void Status::operator=(const Status &s) {
     if (_state != s._state) {
@@ -66,7 +75,9 @@ inline bool Status::operator==(const Status &s) const {
     return (_state == s._state || (code() == s.code() && errorMessage() == s.errorMessage()));
 }
 
-inline bool Status::operator!=(const Status &s) const { return !(*this == s); }
+inline bool Status::operator!=(const Status &s) const {
+    return !(*this == s);
+}
 
 class StatusJsonWrapper : public autil::legacy::Jsonizable {
 public:

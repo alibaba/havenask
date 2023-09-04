@@ -25,6 +25,7 @@ inline const std::string CMD_DELETE = "delete";
 inline const std::string CMD_DELETE_SUB = "delete_sub";
 inline const std::string CMD_UPDATE_FIELD = "update_field";
 inline const std::string CMD_ALTER = "alter";
+inline const std::string CMD_BULKLOAD = "bulkload";
 inline const std::string CMD_SKIP = "skip";
 inline const std::string CMD_CHECKPOINT = "checkpoint";
 inline const std::string CMD_UNKNOWN = "unknown";

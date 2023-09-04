@@ -16,21 +16,23 @@
 #ifndef ISEARCH_MULTI_CALL_BIZSTAT_H
 #define ISEARCH_MULTI_CALL_BIZSTAT_H
 
+#include <limits>
+#include <unordered_map>
+
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
 #include "aios/network/gig/multi_call/util/Filter.h"
 #include "aios/network/gig/multi_call/util/RandomGenerator.h"
 #include "autil/Lock.h"
 #include "autil/TimeUtility.h"
-#include <limits>
-#include <unordered_map>
 
 namespace multi_call {
 
 class WarmUpStrategy;
 
 union InProcessingQueryCount {
-    InProcessingQueryCount() : value(0) {}
+    InProcessingQueryCount() : value(0) {
+    }
     struct {
         int32_t degradeCount;
         int32_t normalCount;
@@ -39,8 +41,8 @@ union InProcessingQueryCount {
 };
 
 struct Metric {
-    Metric()
-        : value(INVALID_FILTER_VALUE), loadBalanceValue(INVALID_FILTER_VALUE) {}
+    Metric() : value(INVALID_FILTER_VALUE), loadBalanceValue(INVALID_FILTER_VALUE) {
+    }
     void setMetric(float value_, float loadBalanceValue_) {
         if (value_ != INVALID_FILTER_VALUE) {
             value = value_;
@@ -55,7 +57,9 @@ struct Metric {
 
 struct MetricFilter {
     MetricFilter(uint32_t windowSize, uint32_t loadBalanceWindowSize)
-        : value(windowSize), loadBalanceValue(loadBalanceWindowSize) {}
+        : value(windowSize)
+        , loadBalanceValue(loadBalanceWindowSize) {
+    }
 
 public:
     void reset() {
@@ -72,7 +76,10 @@ public:
 
 struct PropagationStat {
     PropagationStat(uint64_t agentId_)
-        : agentId(agentId_), version(-1), avgWeight(INVALID_FILTER_VALUE) {}
+        : agentId(agentId_)
+        , version(-1)
+        , avgWeight(INVALID_FILTER_VALUE) {
+    }
     bool update(const PropagationStatDef &stat, int64_t &delay);
     uint64_t agentId;
     volatile int64_t version;
@@ -82,18 +89,21 @@ struct PropagationStat {
     Metric latencyMetric;
 };
 
-class BizStat {
+class BizStat
+{
 public:
     BizStat(uint32_t windowSize, uint32_t loadBalanceWindowSize)
-        : started(true), beginTimeStamp(-1),
-          lastQueryTimestamp(std::numeric_limits<int64_t>::min()),
-          errorMetricFilter(windowSize, loadBalanceWindowSize),
-          degradeMetricFilter(windowSize, loadBalanceWindowSize),
-          latencyMetricFilter(windowSize, loadBalanceWindowSize),
-          normalLatencyFilter(loadBalanceWindowSize),
-          degradeLatencyFilter(loadBalanceWindowSize),
-          weightFilter(loadBalanceWindowSize / 2),
-          randomGenerator(autil::TimeUtility::currentTime()) {}
+        : started(true)
+        , beginTimeStamp(-1)
+        , lastQueryTimestamp(std::numeric_limits<int64_t>::min())
+        , errorMetricFilter(windowSize, loadBalanceWindowSize)
+        , degradeMetricFilter(windowSize, loadBalanceWindowSize)
+        , latencyMetricFilter(windowSize, loadBalanceWindowSize)
+        , normalLatencyFilter(loadBalanceWindowSize)
+        , degradeLatencyFilter(loadBalanceWindowSize)
+        , weightFilter(loadBalanceWindowSize / 2)
+        , randomGenerator(autil::TimeUtility::currentTime()) {
+    }
     ~BizStat();
 
 public:
@@ -113,11 +123,13 @@ public:
     void fillAvgLatency(AverageLatency &avgLatency) const;
     float getAdjustLbDegradeRatio() const;
     float getAdjustedLoadBalanceLatency() const;
+
 private:
     PropagationStat *getPropagationStat(uint64_t agentId);
+
 private:
-    static float doAdjustLatency(float alpha, float metric,
-                                 const Filter &filter, int32_t count);
+    static float doAdjustLatency(float alpha, float metric, const Filter &filter, int32_t count);
+
 public:
     std::string bizName;
     volatile bool started;

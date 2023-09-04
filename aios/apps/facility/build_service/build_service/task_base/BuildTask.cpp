@@ -113,6 +113,7 @@ bool BuildTask::startBuildFlow(const PartitionId& partitionId, FlowFactory* brok
     }
 
     builder::BuilderV2* builderV2 = buildFlow->getBuilderV2();
+
     if (_jobConfig.getBuildMode() == BUILD_MODE_INCREMENTAL && builderV2) {
         if (!builderV2->merge()) {
             BS_LOG(ERROR, "tablet merge failed.");
@@ -126,7 +127,7 @@ bool BuildTask::startBuildFlow(const PartitionId& partitionId, FlowFactory* brok
 BuildFlow* BuildTask::createBuildFlow(bool isTablet) const
 {
     if (isTablet) {
-        std::shared_ptr<indexlibv2::config::TabletSchema> tabletSchema;
+        std::shared_ptr<indexlibv2::config::ITabletSchema> tabletSchema;
         return new BuildFlow(nullptr, tabletSchema, workflow::BuildFlowThreadResource());
     }
     return new BuildFlow();

@@ -1,0 +1,31 @@
+{
+    "truncate_strategy" : [
+        {
+            "strategy_name" : "distinct_sort",
+            "threshold" : 100000,
+            "limit" : 50000,
+            "diversity_constrain": {
+                "distinct_field" : "user_id",
+                "distinct_count" : 20000,
+                "distinct_expand_limit" : 150000
+            },
+	    "truncate_profiles" :
+	    [
+		"desc_biz30day"
+	    ]
+        },
+        {
+            "strategy_name" : "filter_by_meta",
+            "strategy_type" : "truncate_meta",
+            "limit" : 10000,
+            "diversity_constrain": {
+                "filter_by_meta" : true
+            },
+	    "truncate_profiles" :
+	    [
+		"desc_uvsum"
+	    ]
+        }
+    ]
+}
+

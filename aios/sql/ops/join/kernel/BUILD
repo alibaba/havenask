@@ -1,0 +1,33 @@
+package(default_visibility=['//aios/sql:__subpackages__'])
+cc_library(
+    name='sql_ops_join',
+    srcs=glob(['*.cpp']),
+    hdrs=glob(['*.h']),
+    data=['//aios/sql:testdata'],
+    include_prefix='sql/ops/join',
+    deps=[
+        '//aios/navi',
+        '//aios/sql/ops/externalTable/ha3sql:sql_ops_external_scan',
+        '//aios/sql/ops/join:sql_ops_join_base',
+        '//aios/sql/ops/remoteScan:sql_ops_remote_scan',
+        '//aios/sql/ops/scan:sql_ops_normal_scan',
+        '//aios/sql/ops/scan:sql_ops_scan_base',
+        '//aios/sql/ops/scan/kernel:sql_ops_scan',
+        '//aios/sql/ops/scan/scan_visitor:sql_ops_scan_visitor'
+    ],
+    alwayslink=True
+)
+cc_test(
+    name='test',
+    srcs=glob(['test/*Test.cpp']),
+    copts=['-fno-access-control'],
+    data=[],
+    linkopts=['-Wl,--as-needed'],
+    shard_count=3,
+    deps=[
+        ':sql_ops_join', '//aios/sql/ops/test:ops_testlib',
+        '//aios/sql/resource/testlib:mock_tablet_manager_r',
+        '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper',
+        '//aios/unittest_framework'
+    ]
+)

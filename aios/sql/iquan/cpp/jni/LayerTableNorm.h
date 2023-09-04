@@ -18,7 +18,6 @@
 #include <unordered_map>
 
 #include "autil/Log.h"
-
 #include "iquan/common/catalog/LayerTablePlanMetaDef.h"
 #include "iquan/jni/LayerTableMeta.h"
 
@@ -31,11 +30,13 @@ public:
     bool normalize(const std::unordered_map<std::string, LayerTableMetaPtr> &layerTableMetaMap,
                    const std::vector<autil::legacy::Any> &params,
                    std::string &result) const;
+
 private:
     bool doNorm(const std::unordered_map<std::string, LayerTableMetaPtr> &layerTableMetaMap,
                 const LayerTablePlanMeta &planMeta,
                 const std::vector<autil::legacy::Any> &params,
                 std::string &res) const;
+
 private:
     const std::vector<LayerTablePlanMeta> &planMetas;
 

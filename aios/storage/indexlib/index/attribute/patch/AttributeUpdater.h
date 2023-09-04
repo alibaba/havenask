@@ -97,7 +97,7 @@ protected:
 
 protected:
     segmentid_t _segmentId;
-    std::shared_ptr<config::AttributeConfig> _attrConfig;
+    std::shared_ptr<AttributeConfig> _attrConfig;
     std::string _patchDirectory;
     std::string _patchFileName;
     indexlib::util::SimplePool _simplePool;

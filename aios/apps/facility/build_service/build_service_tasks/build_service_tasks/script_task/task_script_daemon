@@ -1,0 +1,71 @@
+#/bin/sh
+
+if [ $# -lt 2 ]; then
+   echo "usage: $0 [parentPid] [shellPid]"
+   exit -2
+fi
+
+check_process_exist() {
+   pwdx $1
+   return $?
+}
+
+print_child_process() {
+   targetPid=$1
+   echo `date`"# alive pid: $targetPid"
+   childPids=`ps --ppid $targetPid | awk '{if($1~/[0-9]+/) print $1}'`
+   for id in $childPids; do
+       print_child_process $id
+   done
+}
+
+kill_child_process() {
+   targetPid=$1
+   if [ $targetPid -eq $$ ]; then
+      echo "... ignore daemon pid [$targetPid] ..."
+      return 1
+   fi
+
+   echo `date`"# current pid: $targetPid"
+   childPids=`ps --ppid $targetPid | awk '{if($1~/[0-9]+/) print $1}'`
+   for id in $childPids; do
+       kill_child_process $id
+   done
+   echo `date`"# kill pid : $1"
+   kill -9 $1
+   return 0
+}
+
+interval=1
+max_interval=5
+
+# binary pid
+parentPid=$1
+
+# run_script_task shell pid
+shellPid=$2
+
+while :
+do
+   check_process_exist $shellPid
+   if [ $? -ne 0 ]; then
+       echo "shell process [$shellPid] not exist"
+       echo "shell process [$shellPid] exit, daemon exit now."
+       exit 0
+   fi
+
+   #print_child_process $shellPid
+   check_process_exist $parentPid
+   if [ $? -ne 0 ]; then
+       echo "parent process [$parentPid] exit, daemon will exit after killing all child processes."
+       kill_child_process $shellPid
+       echo "daemon exit now."
+       exit 1
+   fi
+
+   echo "####### "`date`"####### task_script_deamon checker alive ..."
+   sleep $interval
+   if [ $interval -lt $max_interval ]; then
+      ((interval++))
+   fi
+done

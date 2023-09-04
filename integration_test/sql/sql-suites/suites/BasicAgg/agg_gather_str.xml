@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="agg_gather_str">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT brand, GATHER(gather_cn_str) FROM phone GROUP BY (brand)
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"brand", "GATHER(gather_cn_str)"</Resource>
+        <Resource name="column_types">multi_char, multi_multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+"Huawei", ["","color蓝"]
+"Meizu", ["color银白"]
+"Samsung", ["color雾屿蓝"]
+"Nokia", ["color蓝"]
+"Apple", ["color银白","color亮黑","color黑"]
+"Xiaomi", ["color黑"]
+"OPPO", ["color红"]
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#4(type=api)
+    ExchangeOp#3(distribution={type:SINGLETON})
+        LimitOp#2(limit=100)
+            AggregateOp#1(agg_funcs=[{approximate:false,distinct:false,filter_arg:-1,input:[$gather_cn_str],name:GATHER,output:[$GATHER(gather_cn_str)],type:NORMAL}],group_fields=[$brand],scope=NORMAL)
+                TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$brand,$gather_cn_str],push_down_ops=[{attrs:{output_fields:[$brand,$gather_cn_str]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

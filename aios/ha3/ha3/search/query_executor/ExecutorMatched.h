@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "ha3/search/ExecutorVisitor.h"
 
@@ -24,15 +24,16 @@ namespace isearch {
 namespace search {
 
 struct ExecutorOutput {
-    bool isTermExecutor{false};
-    std::vector<const QueryExecutor*> matchedQueryExecutor;
-    size_t leafId{0};
+    bool isTermExecutor {false};
+    std::vector<const QueryExecutor *> matchedQueryExecutor;
+    size_t leafId {0};
 };
 
-class ExecutorMatched: public ExecutorVisitor {
+class ExecutorMatched : public ExecutorVisitor {
 public:
-    const ExecutorOutput& getMatchedExecutor();
+    const ExecutorOutput &getMatchedExecutor();
     void reset();
+
 public:
     void visitAndExecutor(const AndQueryExecutor *executor) override;
     void visitOrExecutor(const OrQueryExecutor *executor) override;
@@ -40,6 +41,7 @@ public:
     void visitTermExecutor(const TermQueryExecutor *executor) override;
     void visitAndNotExecutor(const AndNotQueryExecutor *executor) override;
     void visitBitmapAndExecutor(const BitmapAndQueryExecutor *executor) override;
+
 private:
     ExecutorOutput _matchedInfo;
 };

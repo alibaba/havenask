@@ -48,7 +48,7 @@ bool PackFieldPatchWorkItem::Init(const index::DeletionMapReaderPtr& deletionMap
     }
     mDeletionMapReader = deletionMapReader;
     const auto& packAttrConfig = mIter->GetPackAttributeConfig();
-    assert(!packAttrConfig->IsDisable());
+    assert(!packAttrConfig->IsDisabled());
     mPackAttrReader = attrModifier->GetPackAttributeReader(packAttrConfig->GetPackAttrId());
     if (!mPackAttrReader) {
         IE_LOG(ERROR, "get PackAttributeReader failed for PackAttrId[%u]", packAttrConfig->GetPackAttrId());

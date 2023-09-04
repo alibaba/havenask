@@ -16,6 +16,7 @@
 #include "indexlib/table/normal_table/NormalDocumentRewriteChainCreator.h"
 
 #include "indexlib/base/Types.h"
+#include "indexlib/config/MutableJson.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/document/document_rewriter/DocumentInfoToAttributeRewriter.h"
 #include "indexlib/document/document_rewriter/DocumentRewriteChain.h"
@@ -31,7 +32,7 @@ namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, NormalDocumentRewriteChainCreator);
 
 std::pair<Status, std::shared_ptr<document::DocumentRewriteChain>>
-NormalDocumentRewriteChainCreator::Create(const std::shared_ptr<config::TabletSchema>& schema)
+NormalDocumentRewriteChainCreator::Create(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     auto rewriteChain = std::make_shared<document::DocumentRewriteChain>();
     RETURN2_IF_STATUS_ERROR(AppendDocInfoRewriterIfNeed(schema, rewriteChain.get()), nullptr,
@@ -41,43 +42,54 @@ NormalDocumentRewriteChainCreator::Create(const std::shared_ptr<config::TabletSc
 }
 
 Status
-NormalDocumentRewriteChainCreator::AppendDocInfoRewriterIfNeed(const std::shared_ptr<config::TabletSchema>& schema,
+NormalDocumentRewriteChainCreator::AppendDocInfoRewriterIfNeed(const std::shared_ptr<config::ITabletSchema>& schema,
                                                                document::DocumentRewriteChain* rewriteChain)
 {
     if (indexlib::table::TABLE_TYPE_NORMAL == schema->GetTableType()) {
         auto virtualTimestampAttrConfig = std::dynamic_pointer_cast<VirtualAttributeConfig>(schema->GetIndexConfig(
             VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR, document::DocumentInfoToAttributeRewriter::VIRTUAL_TIMESTAMP_FIELD_NAME));
         assert(virtualTimestampAttrConfig);
-        auto timestampLegacyConf = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(
+        auto timestampLegacyConf = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(
             virtualTimestampAttrConfig->GetAttributeConfig());
         assert(timestampLegacyConf);
+
         auto virtualHashIdAttrConfig = std::dynamic_pointer_cast<VirtualAttributeConfig>(schema->GetIndexConfig(
             VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR, document::DocumentInfoToAttributeRewriter::VIRTUAL_HASH_ID_FIELD_NAME));
         assert(virtualHashIdAttrConfig);
-        auto hashIdLegacyConf = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(
+        auto hashIdLegacyConf = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(
             virtualHashIdAttrConfig->GetAttributeConfig());
-        auto docInfoRewriter =
-            std::make_shared<document::DocumentInfoToAttributeRewriter>(timestampLegacyConf, hashIdLegacyConf);
+        assert(hashIdLegacyConf);
+
+        auto virtualConcurrentIdxAttrConfig = std::dynamic_pointer_cast<VirtualAttributeConfig>(
+            schema->GetIndexConfig(VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR,
+                                   document::DocumentInfoToAttributeRewriter::VIRTUAL_CONCURRENT_IDX_FIELD_NAME));
+        assert(virtualConcurrentIdxAttrConfig);
+        auto concurrentIdxLegacyConf = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(
+            virtualConcurrentIdxAttrConfig->GetAttributeConfig());
+        assert(concurrentIdxLegacyConf);
+
+        auto docInfoRewriter = std::make_shared<document::DocumentInfoToAttributeRewriter>(
+            timestampLegacyConf, hashIdLegacyConf, concurrentIdxLegacyConf);
         rewriteChain->AppendRewriter(docInfoRewriter);
     }
     return Status::OK();
 }
 
-Status NormalDocumentRewriteChainCreator::AppendTTLSetterIfNeed(const std::shared_ptr<config::TabletSchema>& schema,
+Status NormalDocumentRewriteChainCreator::AppendTTLSetterIfNeed(const std::shared_ptr<config::ITabletSchema>& schema,
                                                                 document::DocumentRewriteChain* rewriteChain)
 {
     if (indexlib::table::TABLE_TYPE_NORMAL == schema->GetTableType()) {
-        auto [status, enableTTL] = schema->GetSetting<bool>("enable_ttl");
+        auto [status, enableTTL] = schema->GetRuntimeSettings().GetValue<bool>("enable_ttl");
         if (status.IsOK()) {
             if (!enableTTL) {
                 return Status::OK();
             }
-            auto [statusTTLField, ttlFieldName] = schema->GetSetting<std::string>("ttl_field_name");
-            auto [statusDefaultTTL, defaultTTL] = schema->GetSetting<int64_t>("default_ttl");
+            auto [statusTTLField, ttlFieldName] = schema->GetRuntimeSettings().GetValue<std::string>("ttl_field_name");
+            auto [statusDefaultTTL, defaultTTL] = schema->GetRuntimeSettings().GetValue<int64_t>("default_ttl");
             RETURN_IF_STATUS_ERROR(statusTTLField, "get ttl_filed_name failed");
             RETURN_IF_STATUS_ERROR(statusDefaultTTL, "get default_ttl failed");
             assert(!ttlFieldName.empty());
-            auto attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(
+            auto attrConfig = std::dynamic_pointer_cast<index::AttributeConfig>(
                 schema->GetIndexConfig(index::ATTRIBUTE_INDEX_TYPE_STR, ttlFieldName));
             uint32_t defaultTTL32 = std::min(defaultTTL, (int64_t)std::numeric_limits<uint32_t>::max());
             if (attrConfig) {

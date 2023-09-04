@@ -15,26 +15,25 @@
  */
 #include "matchdoc/MatchDocAllocator.h"
 
-#include "autil/DataBuffer.h"
-#include "autil/Hyperloglog.h"
-#include "autil/Lock.h"
-#include "autil/LongHashValue.h"
-#include "autil/MultiValueType.h"
-#include "autil/MurmurHash.h"
-#include "autil/StringUtil.h"
 #include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <ostream>
 #include <type_traits>
+
+#include "autil/DataBuffer.h"
+#include "autil/Lock.h"
+#include "autil/MurmurHash.h"
+#include "autil/StringUtil.h"
+#include "matchdoc/FieldGroupSerdes.h"
 #include "matchdoc/SubDocAccessor.h"
-#include "matchdoc/VectorDocStorage.h"
+#include "matchdoc/VectorStorage.h"
 
 namespace autil {
 namespace mem_pool {
 class Pool;
-}  // namespace mem_pool
-}  // namespace autil
+} // namespace mem_pool
+} // namespace autil
 
 using namespace std;
 using namespace autil;
@@ -50,95 +49,11 @@ const std::string DEFAULT_GROUP = "default";
 
 AUTIL_LOG_SETUP(matchdoc, MatchDocAllocator);
 
-static std::unordered_set<std::string> createStaticMountableTypes() {
-    unordered_set<string> mountTypes;
-    mountTypes.insert(typeid(uint8_t).name());
-    mountTypes.insert(typeid(uint16_t).name());
-    mountTypes.insert(typeid(uint32_t).name());
-    mountTypes.insert(typeid(uint64_t).name());
-    mountTypes.insert(typeid(int8_t).name());
-    mountTypes.insert(typeid(int16_t).name());
-    mountTypes.insert(typeid(int32_t).name());
-    mountTypes.insert(typeid(int64_t).name());
-    mountTypes.insert(typeid(double).name());
-    mountTypes.insert(typeid(float).name());
-
-    mountTypes.insert(typeid(MultiInt8).name());
-    mountTypes.insert(typeid(MultiUInt8).name());
-    mountTypes.insert(typeid(MultiInt16).name());
-    mountTypes.insert(typeid(MultiUInt16).name());
-    mountTypes.insert(typeid(MultiInt32).name());
-    mountTypes.insert(typeid(MultiUInt32).name());
-    mountTypes.insert(typeid(MultiInt64).name());
-    mountTypes.insert(typeid(MultiUInt64).name());
-    mountTypes.insert(typeid(MultiFloat).name());
-    mountTypes.insert(typeid(MultiDouble).name());
-    mountTypes.insert(typeid(MultiChar).name());
-    mountTypes.insert(typeid(MultiString).name());
-    return mountTypes;
-}
-
-static ReferenceTypes createStaticReferenceTypes() {
-    ReferenceTypes refTypes;
-    Reference<uint8_t>::registerInnerType(&refTypes);
-
-    Reference<uint8_t>::registerInnerType(&refTypes);
-    Reference<uint16_t>::registerInnerType(&refTypes);
-    Reference<uint32_t>::registerInnerType(&refTypes);
-    Reference<uint64_t>::registerInnerType(&refTypes);
-    Reference<autil::uint128_t>::registerInnerType(&refTypes);
-    Reference<int8_t>::registerInnerType(&refTypes);
-    Reference<int16_t>::registerInnerType(&refTypes);
-    Reference<int32_t>::registerInnerType(&refTypes);
-    Reference<int64_t>::registerInnerType(&refTypes);
-    Reference<double>::registerInnerType(&refTypes);
-    Reference<float>::registerInnerType(&refTypes);
-    Reference<bool>::registerInnerType(&refTypes);
-    Reference<std::string>::registerInnerType(&refTypes);
-    Reference<MatchDoc>::registerInnerType(&refTypes);
-    Reference<autil::HllCtx>::registerInnerType(&refTypes);
-
-    Reference<MultiInt8>::registerInnerType(&refTypes);
-    Reference<MultiUInt8>::registerInnerType(&refTypes);
-    Reference<MultiInt16>::registerInnerType(&refTypes);
-    Reference<MultiUInt16>::registerInnerType(&refTypes);
-    Reference<MultiInt32>::registerInnerType(&refTypes);
-    Reference<MultiUInt32>::registerInnerType(&refTypes);
-    Reference<MultiInt64>::registerInnerType(&refTypes);
-    Reference<MultiUInt64>::registerInnerType(&refTypes);
-    Reference<MultiFloat>::registerInnerType(&refTypes);
-    Reference<MultiDouble>::registerInnerType(&refTypes);
-    Reference<MultiChar>::registerInnerType(&refTypes);
-    Reference<MultiString>::registerInnerType(&refTypes);
-
-    Reference<std::vector<int8_t>>::registerInnerType(&refTypes);
-    Reference<std::vector<int16_t>>::registerInnerType(&refTypes);
-    Reference<std::vector<int32_t>>::registerInnerType(&refTypes);
-    Reference<std::vector<int64_t>>::registerInnerType(&refTypes);
-    Reference<std::vector<uint8_t>>::registerInnerType(&refTypes);
-    Reference<std::vector<uint16_t>>::registerInnerType(&refTypes);
-    Reference<std::vector<uint32_t>>::registerInnerType(&refTypes);
-    Reference<std::vector<uint64_t>>::registerInnerType(&refTypes);
-    Reference<std::vector<autil::uint128_t>>::registerInnerType(&refTypes);
-    Reference<std::vector<float>>::registerInnerType(&refTypes);
-    Reference<std::vector<double>>::registerInnerType(&refTypes);
-    Reference<std::vector<bool>>::registerInnerType(&refTypes);
-    Reference<std::vector<std::string>>::registerInnerType(&refTypes);
-
-    return refTypes;
-}
-std::unordered_set<std::string> MatchDocAllocator::staticMountableTypes =
-    createStaticMountableTypes();
-ReferenceTypes MatchDocAllocator::staticReferenceTypes = createStaticReferenceTypes();
-
-
-MatchDocAllocator::MatchDocAllocator(
-        Pool *pool, bool useSub,
-        const MountInfoPtr& mountInfo)
-    : _size(0)
+MatchDocAllocator::MatchDocAllocator(const std::shared_ptr<Pool> &poolPtr, bool useSub, const MountInfoPtr &mountInfo)
+    : _poolPtr(poolPtr)
+    , _size(0)
     , _capacity(0)
     , _metaSignature(0)
-    , _sessionPool(pool)
     , _mountInfo(mountInfo)
     , _subAllocator(nullptr)
     , _firstSub(nullptr)
@@ -148,39 +63,14 @@ MatchDocAllocator::MatchDocAllocator(
     , _defaultGroupNameCounter(0)
     , _merged(false)
     , _mountInfoIsPrivate(false)
-    , _sortRefFlag(true)
-{
-    _mountableTypesWrapper = new MountableTypesWrapper(&staticMountableTypes);
-    _referenceTypesWrapper = new ReferenceTypesWrapper(&staticReferenceTypes);
+    , _sortRefFlag(true) {
     if (useSub) {
         initSub();
     }
 }
 
-MatchDocAllocator::MatchDocAllocator(
-        const std::shared_ptr<autil::mem_pool::Pool> &poolPtr,
-        bool useSub,
-        const MountInfoPtr& mountInfo)
-    : MatchDocAllocator(poolPtr.get(), false, mountInfo)
-{
-    _poolPtr = poolPtr;
-    if (useSub) {
-        initSub();
-    }
-}
-
-MatchDocAllocator::MatchDocAllocator(
-        const std::shared_ptr<autil::mem_pool::Pool> &poolPtr,
-        Pool *pool,
-        bool useSub,
-        const MountInfoPtr& mountInfo)
-    : MatchDocAllocator(pool, false, mountInfo)
-{
-    _poolPtr = poolPtr;
-    if (useSub) {
-        initSub();
-    }
-}
+MatchDocAllocator::MatchDocAllocator(autil::mem_pool::Pool *pool, bool useSub, const MountInfoPtr &mountInfo)
+    : MatchDocAllocator(autil::mem_pool::Pool::maybeShared(pool), useSub, mountInfo) {}
 
 MatchDocAllocator::~MatchDocAllocator() {
     if (!_merged) {
@@ -190,8 +80,6 @@ MatchDocAllocator::~MatchDocAllocator() {
 
     DELETE_AND_SET_NULL(_subAllocator);
     DELETE_AND_SET_NULL(_subAccessor);
-    DELETE_AND_SET_NULL(_mountableTypesWrapper);
-    DELETE_AND_SET_NULL(_referenceTypesWrapper);
 }
 
 bool MatchDocAllocator::mergeMountInfo(const MountInfoPtr &mountInfo) {
@@ -224,8 +112,11 @@ bool MatchDocAllocator::mergeMountInfo(const MountInfoPtr &mountInfo) {
             if (existedMeta->mountOffset == meta.mountOffset) {
                 continue;
             } else {
-                AUTIL_LOG(WARN, "insert mount field [%s] failed. mount offset [%lu] vs [%lu]",
-                        fieldName.c_str(), meta.mountOffset, existedMeta->mountOffset);
+                AUTIL_LOG(WARN,
+                          "insert mount field [%s] failed. mount offset [%lu] vs [%lu]",
+                          fieldName.c_str(),
+                          meta.mountOffset,
+                          existedMeta->mountOffset);
                 return false;
             }
         } else {
@@ -237,9 +128,7 @@ bool MatchDocAllocator::mergeMountInfo(const MountInfoPtr &mountInfo) {
     return true;
 }
 
-bool MatchDocAllocator::mergeMountInfo(const MountInfoPtr &mountInfo,
-                                       const std::set<std::string> &mergeFields)
-{
+bool MatchDocAllocator::mergeMountInfo(const MountInfoPtr &mountInfo, const std::set<std::string> &mergeFields) {
     if (mountInfo == nullptr) {
         return true;
     }
@@ -269,9 +158,7 @@ bool MatchDocAllocator::mergeMountInfo(const MatchDocAllocator *allocator) {
     return mergeMountInfo(allocator->getMountInfo());
 }
 
-bool MatchDocAllocator::mergeMountInfo(const MatchDocAllocator *allocator,
-                                       const std::set<std::string> &mergeFields)
-{
+bool MatchDocAllocator::mergeMountInfo(const MatchDocAllocator *allocator, const std::set<std::string> &mergeFields) {
     if (unlikely(allocator == nullptr)) {
         return true;
     }
@@ -279,19 +166,12 @@ bool MatchDocAllocator::mergeMountInfo(const MatchDocAllocator *allocator,
 }
 
 void MatchDocAllocator::clearFieldGroups() {
-    FieldGroups::iterator it = _fieldGroups.begin();
-    FieldGroups::iterator itEnd = _fieldGroups.end();
-    for (; it != itEnd; ++it) {
-        delete it->second;
+    _referenceMap.clear();
+    for (auto &it : _fieldGroups) {
+        delete it.second;
     }
     _fieldGroups.clear();
-    it = _toExtendfieldGroups.begin();
-    itEnd = _toExtendfieldGroups.end();
-    for (; it != itEnd; ++it) {
-        delete it->second;
-    }
-    _toExtendfieldGroups.clear();
-    _fastReferenceMap.clear();
+    _fieldGroupBuilders.clear();
 }
 
 uint32_t MatchDocAllocator::getAllocatedCount() const {
@@ -314,43 +194,38 @@ MatchDoc MatchDocAllocator::getOne() {
     return doc;
 }
 
-void MatchDocAllocator::clean(const unordered_set<string>& keepFieldGroups) {
+void MatchDocAllocator::clean(const unordered_set<string> &keepFieldGroups) {
     deallocateAllMatchDocs();
     extend();
     FieldGroups::iterator it = _fieldGroups.begin();
     for (; it != _fieldGroups.end();) {
-        if (keepFieldGroups.find(it->first) == keepFieldGroups.end())
-        {
+        if (keepFieldGroups.find(it->first) == keepFieldGroups.end()) {
             const auto &refMap = it->second->getReferenceMap();
             for (const auto &ref : refMap) {
-                auto it2 = _fastReferenceMap.find(ref.first);
-                if (_fastReferenceMap.end() != it2) {
-                    _fastReferenceMap.erase(it2);
+                auto it2 = _referenceMap.find(ref.first);
+                if (_referenceMap.end() != it2) {
+                    _referenceMap.erase(it2);
                 }
             }
             delete it->second;
             _fieldGroups.erase(it++);
-        }
-        else
-        {
+        } else {
             it->second->clearContent();
             it->second->resetSerializeLevelAndAlias();
             it++;
         }
     }
-    if (_subAllocator)
-    {
+    if (_subAllocator) {
         _subAllocator->clean(keepFieldGroups);
         _firstSub = declare<MatchDoc>(FIRST_SUB_REF, DEFAULT_GROUP);
         _currentSub = declare<MatchDoc>(CURRENT_SUB_REF, DEFAULT_GROUP);
-        for (const auto& entry : _subAllocator->getFastReferenceMap()) {
+        for (const auto &entry : _subAllocator->getFastReferenceMap()) {
             entry.second->setCurrentRef(_currentSub);
         }
         _nextSub = _subAllocator->declare<MatchDoc>(NEXT_SUB_REF, DEFAULT_GROUP);
         _nextSub->setCurrentRef(nullptr);
         DELETE_AND_SET_NULL(_subAccessor);
-        _subAccessor = new SubDocAccessor(_subAllocator,
-                _firstSub, _currentSub, _nextSub);
+        _subAccessor = new SubDocAccessor(_subAllocator, _firstSub, _currentSub, _nextSub);
     }
     _deletedIds.clear();
     _size = 0;
@@ -360,9 +235,7 @@ void MatchDocAllocator::clean(const unordered_set<string>& keepFieldGroups) {
     _defaultGroupNameCounter = 0;
 }
 
-void MatchDocAllocator::truncateSubDoc(MatchDoc parent,
-                                       MatchDoc subdoc) const
-{
+void MatchDocAllocator::truncateSubDoc(MatchDoc parent, MatchDoc subdoc) const {
     auto &current = _currentSub->getReference(parent);
     current = subdoc;
     if (matchdoc::INVALID_MATCHDOC == subdoc) {
@@ -378,39 +251,27 @@ void MatchDocAllocator::deallocateSubDoc(MatchDoc subdoc) const {
     _subAllocator->deallocate(subdoc);
 }
 
-void MatchDocAllocator::cowMountedGroup() {
-    FieldGroups::iterator it = _mountedGroups.begin();
-    FieldGroups::iterator itEnd = _mountedGroups.end();
-    for (; it != itEnd; ++it) {
-        it->second->doCoW();
-    }
-    _mountedGroups.clear();
-}
-
 MatchDoc MatchDocAllocator::allocate(int32_t docid) {
-    if (!_toExtendfieldGroups.empty()) {
+    if (!_fieldGroupBuilders.empty()) {
         extend();
     }
-    cowMountedGroup();
     MatchDoc doc = getOne();
-    FieldGroups::iterator it = _fieldGroups.begin();
-    FieldGroups::iterator itEnd = _fieldGroups.end();
-    for (; it != itEnd; ++it) {
-        it->second->constructDoc(doc);
+    for (auto &it : _fieldGroups) {
+        it.second->constructDoc(doc);
     }
     doc.setDocId(docid);
     return doc;
 }
 
 class ConstDocIdGenerator {
- public:
+public:
     ConstDocIdGenerator(size_t count, int32_t id) : _count(count), _id(id) {}
     ~ConstDocIdGenerator() {}
 
     size_t size() const { return _count; }
     int32_t element(size_t i) { return _id; }
 
- private:
+private:
     size_t _count;
     int32_t _id;
 };
@@ -421,47 +282,50 @@ std::vector<matchdoc::MatchDoc> MatchDocAllocator::batchAllocate(size_t count, i
     return retVec;
 }
 
-void MatchDocAllocator::batchAllocate(std::vector<matchdoc::MatchDoc>& matchDocs,
-                                      size_t count, int32_t docid, bool adviseNotConstruct) {
+void MatchDocAllocator::batchAllocate(std::vector<matchdoc::MatchDoc> &matchDocs,
+                                      size_t count,
+                                      int32_t docid,
+                                      bool adviseNotConstruct) {
     ConstDocIdGenerator generator(count, docid);
     return innerBatchAllocate<ConstDocIdGenerator>(generator, matchDocs, adviseNotConstruct);
 }
 
-void MatchDocAllocator::batchAllocate(size_t count, int32_t docid,
-                                      std::vector<matchdoc::MatchDoc> &retVec, bool adviseNotConstruct) {
+void MatchDocAllocator::batchAllocate(size_t count,
+                                      int32_t docid,
+                                      std::vector<matchdoc::MatchDoc> &retVec,
+                                      bool adviseNotConstruct) {
     ConstDocIdGenerator generator(count, docid);
     return innerBatchAllocate<ConstDocIdGenerator>(generator, retVec, adviseNotConstruct);
 }
 
 class VectorDocIdGenerator {
- public:
+public:
     VectorDocIdGenerator(const std::vector<int32_t> &docIds) : _docIds(docIds) {}
     ~VectorDocIdGenerator() {}
 
     size_t size() const { return _docIds.size(); }
     int32_t element(size_t i) { return _docIds[i]; }
 
- private:
+private:
     const std::vector<int32_t> &_docIds;
 };
 
-std::vector<matchdoc::MatchDoc> MatchDocAllocator::batchAllocate(const std::vector<int32_t> &docIds, bool adviseNotConstruct) {
+std::vector<matchdoc::MatchDoc> MatchDocAllocator::batchAllocate(const std::vector<int32_t> &docIds,
+                                                                 bool adviseNotConstruct) {
     std::vector<matchdoc::MatchDoc> retVec;
     batchAllocate(docIds, retVec, adviseNotConstruct);
     return retVec;
 }
 
-void MatchDocAllocator::batchAllocate(const std::vector<int32_t>& docIds,
-                                      std::vector<matchdoc::MatchDoc> &retVec, bool adviseNotConstruct)
-{
+void MatchDocAllocator::batchAllocate(const std::vector<int32_t> &docIds,
+                                      std::vector<matchdoc::MatchDoc> &retVec,
+                                      bool adviseNotConstruct) {
     VectorDocIdGenerator generator(docIds);
     return innerBatchAllocate<VectorDocIdGenerator>(generator, retVec, adviseNotConstruct);
 }
 
-
-matchdoc::MatchDoc MatchDocAllocator::batchAllocateSubdoc(size_t count,
-        std::vector<matchdoc::MatchDoc> &subdocVec, int32_t docid)
-{
+matchdoc::MatchDoc
+MatchDocAllocator::batchAllocateSubdoc(size_t count, std::vector<matchdoc::MatchDoc> &subdocVec, int32_t docid) {
     MatchDoc doc = allocate(docid);
     vector<int32_t> docIds(count, -1);
     if (_subAllocator) {
@@ -471,15 +335,12 @@ matchdoc::MatchDoc MatchDocAllocator::batchAllocateSubdoc(size_t count,
 }
 
 MatchDoc MatchDocAllocator::allocateAndClone(const MatchDoc &cloneDoc) {
-    if (!_toExtendfieldGroups.empty()) {
+    if (!_fieldGroupBuilders.empty()) {
         extend();
     }
-    cowMountedGroup();
     MatchDoc newDoc = getOne();
-    FieldGroups::iterator it = _fieldGroups.begin();
-    FieldGroups::iterator itEnd = _fieldGroups.end();
-    for (; it != itEnd; ++it) {
-        it->second->cloneDoc(newDoc, cloneDoc);
+    for (auto &it : _fieldGroups) {
+        it.second->cloneDoc(newDoc, cloneDoc);
     }
     newDoc.setDocId(cloneDoc.getDocId());
     return newDoc;
@@ -488,24 +349,20 @@ MatchDoc MatchDocAllocator::allocateAndClone(const MatchDoc &cloneDoc) {
 MatchDoc MatchDocAllocator::allocateAndCloneWithSub(const MatchDoc &cloneDoc) {
     MatchDoc newDoc = allocateAndClone(cloneDoc);
     if (hasSubDocAllocator()) {
-	_firstSub->set(newDoc, INVALID_MATCHDOC);
-    	_currentSub->set(newDoc, INVALID_MATCHDOC);
-	SubCloner subCloner(_currentSub, this, _subAllocator, newDoc);
-	_subAccessor->foreach(cloneDoc, subCloner);
+        _firstSub->set(newDoc, INVALID_MATCHDOC);
+        _currentSub->set(newDoc, INVALID_MATCHDOC);
+        SubCloner subCloner(_currentSub, this, _subAllocator, newDoc);
+        _subAccessor->foreach (cloneDoc, subCloner);
         auto firstNewSubDoc = _firstSub->get(newDoc);
         _currentSub->set(newDoc, firstNewSubDoc);
     }
     return newDoc;
 }
 
-MatchDoc MatchDocAllocator::allocateAndClone(
-        MatchDocAllocator *other,
-        const MatchDoc &matchDoc)
-{
-    if (!_toExtendfieldGroups.empty()) {
+MatchDoc MatchDocAllocator::allocateAndClone(MatchDocAllocator *other, const MatchDoc &matchDoc) {
+    if (!_fieldGroupBuilders.empty()) {
         extend();
     }
-    cowMountedGroup();
     MatchDoc retDoc = getOne();
     for (auto it = _fieldGroups.begin(); it != _fieldGroups.end(); it++) {
         FieldGroup *srcGroup = (other->_fieldGroups)[it->first];
@@ -542,27 +399,27 @@ MatchDoc &MatchDocAllocator::addSub(const MatchDoc &parent, const MatchDoc &doc)
 }
 
 void MatchDocAllocator::dropField(const std::string &name, bool dropMountMetaIfExist) {
-    const std::string& refName = getReferenceName(name);
+    const std::string &refName = getReferenceName(name);
     autil::ScopedSpinLock lock(_lock);
     auto ref = findMainReference(refName);
     if (ref) {
-        _fastReferenceMap.erase(refName);
+        _referenceMap.erase(refName);
         deallocateAllMatchDocs(ref);
         const auto &groupName = ref->getGroupName();
-        auto extendIter = _toExtendfieldGroups.find(groupName);
-        if (extendIter != _toExtendfieldGroups.end()) {
-            auto fieldGroup = extendIter->second;
-            if (fieldGroup->dropField(refName)) {
-                delete fieldGroup;
-                _toExtendfieldGroups.erase(extendIter);
+        auto bit = _fieldGroupBuilders.find(groupName);
+        if (bit != _fieldGroupBuilders.end()) {
+            auto &builder = bit->second;
+            if (builder->dropField(name)) {
+                _fieldGroupBuilders.erase(bit);
             }
-        }
-        auto iter = _fieldGroups.find(groupName);
-        if (iter != _fieldGroups.end()) {
-            auto fieldGroup = iter->second;
-            if (fieldGroup->dropField(refName)) {
-                delete fieldGroup;
-                _fieldGroups.erase(iter);
+        } else {
+            auto iter = _fieldGroups.find(groupName);
+            if (iter != _fieldGroups.end()) {
+                auto fieldGroup = iter->second;
+                if (fieldGroup->dropField(refName)) {
+                    delete fieldGroup;
+                    _fieldGroups.erase(iter);
+                }
             }
         }
     } else {
@@ -606,13 +463,15 @@ bool MatchDocAllocator::renameField(const std::string &name, const std::string &
         return false;
     }
     if (dstName == name) {
-        AUTIL_LOG(WARN, "skip renaming reference [%s] to [%s].",
-                            name.c_str(), dstName.c_str());
+        AUTIL_LOG(WARN, "skip renaming reference [%s] to [%s].", name.c_str(), dstName.c_str());
         return true;
     }
     if (findReferenceByName(getReferenceName(dstName)) != nullptr) {
-        AUTIL_LOG(WARN, "skip renaming reference [%s] to [%s], since [%s] already exists.",
-                            name.c_str(), dstName.c_str(), dstName.c_str());
+        AUTIL_LOG(WARN,
+                  "skip renaming reference [%s] to [%s], since [%s] already exists.",
+                  name.c_str(),
+                  dstName.c_str(),
+                  dstName.c_str());
         return false;
     }
     renameFieldImpl(name, dstName);
@@ -620,21 +479,21 @@ bool MatchDocAllocator::renameField(const std::string &name, const std::string &
 }
 
 bool MatchDocAllocator::renameFieldImpl(const std::string &name, const std::string &dstName) {
-    const std::string& refName = getReferenceName(name);
+    const std::string &refName = getReferenceName(name);
     auto ref = findMainReference(refName);
     if (ref) {
-        _fastReferenceMap.erase(refName);
-        _fastReferenceMap.emplace(dstName, ref);
+        _referenceMap.erase(refName);
+        _referenceMap.emplace(dstName, ref);
         const auto &groupName = ref->getGroupName();
-        auto extendIter = _toExtendfieldGroups.find(groupName);
-        if (extendIter != _toExtendfieldGroups.end()) {
-            auto fieldGroup = extendIter->second;
-            fieldGroup->renameField(refName, dstName);
-        }
-        auto iter = _fieldGroups.find(groupName);
-        if (iter != _fieldGroups.end()) {
-            auto fieldGroup = iter->second;
-            fieldGroup->renameField(refName, dstName);
+        auto bit = _fieldGroupBuilders.find(groupName);
+        if (bit != _fieldGroupBuilders.end()) {
+            bit->second->renameField(refName, dstName);
+        } else {
+            auto iter = _fieldGroups.find(groupName);
+            if (iter != _fieldGroups.end()) {
+                auto fieldGroup = iter->second;
+                fieldGroup->renameField(refName, dstName);
+            }
         }
     } else {
         assert(_subAllocator != nullptr);
@@ -646,7 +505,7 @@ bool MatchDocAllocator::renameFieldImpl(const std::string &name, const std::stri
             _mountInfoIsPrivate = true;
         }
         {
-            const MountMeta* mountMeta = _mountInfo->get(refName);
+            const MountMeta *mountMeta = _mountInfo->get(refName);
             assert(mountMeta != nullptr);
             _mountInfo->insert(dstName, mountMeta->mountId, mountMeta->mountOffset);
         }
@@ -659,7 +518,7 @@ void MatchDocAllocator::deallocateAllMatchDocs(ReferenceBase *ref) {
     if (ref && !ref->needDestructMatchDoc()) {
         return;
     }
-    if(_deletedIds.size() == _size) {
+    if (_deletedIds.size() == _size) {
         return;
     }
     sort(_deletedIds.begin(), _deletedIds.end());
@@ -682,7 +541,7 @@ void MatchDocAllocator::deallocateAllMatchDocs(ReferenceBase *ref) {
 void MatchDocAllocator::_deallocate(const MatchDoc &doc) {
     if (_subAllocator) {
         SubDeleter deleter(_currentSub, _subAllocator);
-        _subAccessor->foreach(doc, deleter);
+        _subAccessor->foreach (doc, deleter);
     }
     FieldGroups::iterator it = _fieldGroups.begin();
     FieldGroups::iterator itEnd = _fieldGroups.end();
@@ -695,7 +554,7 @@ void MatchDocAllocator::_deallocate(const MatchDoc *docs, uint32_t count) {
     if (_subAllocator) {
         SubDeleter deleter(_currentSub, _subAllocator);
         for (uint32_t i = 0; i < count; i++) {
-            _subAccessor->foreach(docs[i], deleter);
+            _subAccessor->foreach (docs[i], deleter);
         }
     }
     FieldGroups::iterator it = _fieldGroups.begin();
@@ -718,7 +577,7 @@ void MatchDocAllocator::deallocate(const MatchDoc *docs, uint32_t count) {
 }
 
 void MatchDocAllocator::grow() {
-    _capacity += VectorDocStorage::CHUNKSIZE;
+    _capacity += VectorStorage::CHUNKSIZE;
     for (const auto &pair : _fieldGroups) {
         pair.second->growToSize(_capacity);
     }
@@ -740,17 +599,15 @@ void MatchDocAllocator::extendGroup(FieldGroup *fieldGroup, bool needConstruct) 
 
 void MatchDocAllocator::extend() {
     autil::ScopedSpinLock lock(_lock);
-    if (_toExtendfieldGroups.empty()) {
+    if (_fieldGroupBuilders.empty()) {
         return;
     }
-    FieldGroups::iterator it = _toExtendfieldGroups.begin();
-    FieldGroups::iterator itEnd = _toExtendfieldGroups.end();
-    for (; it != itEnd; ++it) {
-        extendGroup(it->second);
+    for (auto &it : _fieldGroupBuilders) {
+        auto &builder = it.second;
+        auto group = builder->finalize();
+        addGroupLocked(std::move(group), false, true);
     }
-    _fieldGroups.insert(_toExtendfieldGroups.begin(),
-                        _toExtendfieldGroups.end());
-    _toExtendfieldGroups.clear();
+    _fieldGroupBuilders.clear();
 }
 
 void MatchDocAllocator::extendSub() {
@@ -759,38 +616,37 @@ void MatchDocAllocator::extendSub() {
     }
 }
 
-void MatchDocAllocator::extendGroup(const std::string &group) {
+void MatchDocAllocator::extendGroup(const std::string &groupName) {
     autil::ScopedSpinLock lock(_lock);
-    auto it = _toExtendfieldGroups.find(group);
-    if (it == _toExtendfieldGroups.end()) {
+    auto it = _fieldGroupBuilders.find(groupName);
+    if (it == _fieldGroupBuilders.end()) {
         return;
     }
-    extendGroup(it->second);
-    _fieldGroups[it->first] = it->second;
-    _toExtendfieldGroups.erase(it->first);
+    auto group = it->second->finalize();
+    extendGroup(group.get());
+    _fieldGroups[it->first] = group.release();
+    _fieldGroupBuilders.erase(it->first);
 }
 
-void MatchDocAllocator::extendSubGroup(const std::string &group) {
-    _subAllocator->extendGroup(group);
-}
+void MatchDocAllocator::extendSubGroup(const std::string &group) { _subAllocator->extendGroup(group); }
 
-ReferenceBase* MatchDocAllocator::findMainReference(const std::string &name) const {
-    auto it = _fastReferenceMap.find(name);
-    if (_fastReferenceMap.end() == it) {
+ReferenceBase *MatchDocAllocator::findMainReference(const std::string &name) const {
+    auto it = _referenceMap.find(name);
+    if (_referenceMap.end() == it) {
         return nullptr;
     }
     return it->second;
 }
 
-ReferenceBase* MatchDocAllocator::findSubReference(const std::string &name) const {
+ReferenceBase *MatchDocAllocator::findSubReference(const std::string &name) const {
     if (_subAllocator) {
         return _subAllocator->findReferenceWithoutType(name);
     }
     return NULL;
 }
 
-ReferenceBase* MatchDocAllocator::findReferenceByName(const std::string &name) const {
-    ReferenceBase* mainRef = findMainReference(name);
+ReferenceBase *MatchDocAllocator::findReferenceByName(const std::string &name) const {
+    ReferenceBase *mainRef = findMainReference(name);
     if (mainRef) {
         return mainRef;
     }
@@ -800,39 +656,29 @@ ReferenceBase* MatchDocAllocator::findReferenceByName(const std::string &name) c
     return mainRef;
 }
 
-void MatchDocAllocator::serializeMeta(
-        DataBuffer &dataBuffer, uint8_t serializeLevel,
-        bool ignoreUselessGroupMeta)
-{
+void MatchDocAllocator::serializeMeta(DataBuffer &dataBuffer, uint8_t serializeLevel, bool ignoreUselessGroupMeta) {
     extend(); // extend group for zero matchdoc
     // make sure FieldGroup is ordered, serialize use this to cal signature
     // 1. serialize main
-    FieldGroups *tmpFieldGroups = &_fieldGroups;
+    size_t groupCount = _fieldGroups.size();
     if (ignoreUselessGroupMeta) {
-        tmpFieldGroups = new FieldGroups;
-        for (auto item : _fieldGroups) {
-            if (item.second->needSerialize(serializeLevel)) {
-                (*tmpFieldGroups).emplace(item.first, item.second);
+        std::for_each(_fieldGroups.begin(), _fieldGroups.end(), [&](const auto &it) {
+            if (!it.second->needSerialize(serializeLevel)) {
+                --groupCount;
             }
-        }
+        });
     }
-    dataBuffer.write((*tmpFieldGroups).size());
-    for (const auto &fieldGroup : (*tmpFieldGroups)) {
-        bool grpNeedSerialize = false;
-        if (ignoreUselessGroupMeta) {
-            grpNeedSerialize = true;
-        } else {
-            grpNeedSerialize = fieldGroup.second->needSerialize(serializeLevel);
+    dataBuffer.write(groupCount);
+    std::for_each(_fieldGroups.begin(), _fieldGroups.end(), [&](auto &it) mutable {
+        bool needSerialize = it.second->needSerialize(serializeLevel);
+        if (ignoreUselessGroupMeta && !needSerialize) {
+            return;
         }
-        dataBuffer.write(grpNeedSerialize);
-        if (grpNeedSerialize) {
-            dataBuffer.write(fieldGroup.first);
-            if (_sortRefFlag) {
-                fieldGroup.second->sortReference();
-            }
-            fieldGroup.second->serializeMeta(dataBuffer, serializeLevel);
+        dataBuffer.write(needSerialize);
+        if (needSerialize) {
+            FieldGroupSerdes::serializeMeta(it.second, dataBuffer, serializeLevel, _sortRefFlag);
         }
-    }
+    });
 
     // 2. serialize sub
     if (_subAllocator) {
@@ -841,33 +687,27 @@ void MatchDocAllocator::serializeMeta(
     } else {
         dataBuffer.write(false);
     }
-
-    if (ignoreUselessGroupMeta) {
-        DELETE_AND_SET_NULL(tmpFieldGroups);
-    }
 }
 
 void MatchDocAllocator::serializeMatchDoc(DataBuffer &dataBuffer,
-        const MatchDoc &matchdoc, int32_t docid, uint8_t serializeLevel)
-{
+                                          const MatchDoc &matchdoc,
+                                          int32_t docid,
+                                          uint8_t serializeLevel) {
     // 1. serialize main
     dataBuffer.write(docid); // store docid
-    FieldGroups::iterator itEnd = _fieldGroups.end();
-    FieldGroups::iterator it = _fieldGroups.begin();
-    for (; it != itEnd; ++it) {
-        it->second->serialize(dataBuffer, matchdoc, serializeLevel);
-    }
+    std::for_each(_fieldGroups.begin(), _fieldGroups.end(), [&](const auto &it) {
+        FieldGroupSerdes::serializeData(it.second, dataBuffer, matchdoc, serializeLevel);
+    });
 
     // 2. deserialize sub
     if (_subAllocator) {
         SubCounter counter;
-        _subAccessor->foreach(matchdoc, counter);
+        _subAccessor->foreach (matchdoc, counter);
         dataBuffer.write(uint32_t(counter.get()));
 
         assert(_currentSub);
         MatchDoc &current = _currentSub->getReference(matchdoc);
-        Reference<MatchDoc> *nextSubRef =
-            _subAllocator->findReference<MatchDoc>(NEXT_SUB_REF);
+        Reference<MatchDoc> *nextSubRef = _subAllocator->findReference<MatchDoc>(NEXT_SUB_REF);
         assert(nextSubRef);
 
         MatchDoc originCurrent = current;
@@ -875,30 +715,27 @@ void MatchDocAllocator::serializeMatchDoc(DataBuffer &dataBuffer,
         while (next != INVALID_MATCHDOC) {
             current = next;
             next = nextSubRef->get(current);
-            _subAllocator->serializeMatchDoc(dataBuffer, matchdoc,
-                    current.getDocId(), serializeLevel);
+            _subAllocator->serializeMatchDoc(dataBuffer, matchdoc, current.getDocId(), serializeLevel);
         }
         current = originCurrent;
     }
 }
 
-void MatchDocAllocator::serialize(
-        DataBuffer &dataBuffer, const vector<MatchDoc> &matchdocs,
-        uint8_t serializeLevel, bool ignoreUselessGroupMeta)
-{
+void MatchDocAllocator::serialize(DataBuffer &dataBuffer,
+                                  const vector<MatchDoc> &matchdocs,
+                                  uint8_t serializeLevel,
+                                  bool ignoreUselessGroupMeta) {
     serializeImpl(dataBuffer, matchdocs, serializeLevel, ignoreUselessGroupMeta);
 }
 
-void MatchDocAllocator::serialize(
-        DataBuffer &dataBuffer, const autil::mem_pool::PoolVector<MatchDoc> &matchdocs,
-        uint8_t serializeLevel, bool ignoreUselessGroupMeta)
-{
+void MatchDocAllocator::serialize(DataBuffer &dataBuffer,
+                                  const autil::mem_pool::PoolVector<MatchDoc> &matchdocs,
+                                  uint8_t serializeLevel,
+                                  bool ignoreUselessGroupMeta) {
     serializeImpl(dataBuffer, matchdocs, serializeLevel, ignoreUselessGroupMeta);
 }
 
-void MatchDocAllocator::deserializeMeta(DataBuffer &dataBuffer,
-                                        Reference<MatchDoc> *currentSub)
-{
+void MatchDocAllocator::deserializeMeta(DataBuffer &dataBuffer, Reference<MatchDoc> *currentSub) {
     // 1. serialize main
     size_t fieldGroupSize = 0;
     dataBuffer.read(fieldGroupSize);
@@ -910,16 +747,13 @@ void MatchDocAllocator::deserializeMeta(DataBuffer &dataBuffer,
             continue;
         }
 
-        string name;
-        dataBuffer.read(name);
-        FieldGroup *fieldGroup = new FieldGroup(_sessionPool, _referenceTypesWrapper, name);
-        fieldGroup->setPoolPtr(_poolPtr);
-        fieldGroup->deserializeMeta(dataBuffer);
-        fieldGroup->setCurrentRef(currentSub);
-        _fieldGroups[name] = fieldGroup;
-        for (const auto &ref : fieldGroup->getReferenceMap()) {
-            _fastReferenceMap[ref.first] = ref.second;
+        auto fieldGroup = FieldGroupSerdes::deserializeMeta(getSessionPool(), dataBuffer);
+        assert(fieldGroup);
+        if (currentSub != nullptr) {
+            const auto &refSet = fieldGroup->getReferenceSet();
+            refSet.for_each([&](auto ref) { ref->setCurrentRef(currentSub); });
         }
+        addGroupLocked(std::move(fieldGroup), true, true);
     }
 
     // 2. deserialize sub
@@ -928,8 +762,7 @@ void MatchDocAllocator::deserializeMeta(DataBuffer &dataBuffer,
     if (useSub) {
         DELETE_AND_SET_NULL(_subAccessor);
         DELETE_AND_SET_NULL(_subAllocator);
-        _subAllocator = new MatchDocAllocator(_poolPtr, _sessionPool);
-        _subAllocator->registerTypes(getExtraType());
+        _subAllocator = new MatchDocAllocator(_poolPtr);
         _firstSub = declare<MatchDoc>(FIRST_SUB_REF, BUILD_IN_REF_GROUP);
         _currentSub = declare<MatchDoc>(CURRENT_SUB_REF, BUILD_IN_REF_GROUP);
 
@@ -937,24 +770,17 @@ void MatchDocAllocator::deserializeMeta(DataBuffer &dataBuffer,
         _nextSub = _subAllocator->declare<MatchDoc>(NEXT_SUB_REF, BUILD_IN_REF_GROUP);
         _nextSub->setCurrentRef(NULL);
 
-        _subAccessor = new SubDocAccessor(_subAllocator,
-                _firstSub, _currentSub, _nextSub);
+        _subAccessor = new SubDocAccessor(_subAllocator, _firstSub, _currentSub, _nextSub);
     }
 }
 
-void MatchDocAllocator::deserializeOneMatchDoc(
-        DataBuffer &dataBuffer, const MatchDoc &doc)
-{
-    FieldGroups::iterator itEnd = _fieldGroups.end();
-    FieldGroups::iterator it = _fieldGroups.begin();
-    it = _fieldGroups.begin();
-    for (; it != itEnd; ++it) {
-        it->second->deserialize(dataBuffer, doc);
-    }
+void MatchDocAllocator::deserializeOneMatchDoc(DataBuffer &dataBuffer, const MatchDoc &doc) {
+    std::for_each(_fieldGroups.begin(), _fieldGroups.end(), [&](auto &it) mutable {
+        FieldGroupSerdes::deserializeData(it.second, dataBuffer, doc);
+    });
 }
 
-MatchDoc MatchDocAllocator::deserializeMatchDoc(DataBuffer &dataBuffer)
-{
+MatchDoc MatchDocAllocator::deserializeMatchDoc(DataBuffer &dataBuffer) {
     // 1. deserialize main
     int32_t docid = -1;
     dataBuffer.read(docid);
@@ -979,28 +805,19 @@ MatchDoc MatchDocAllocator::deserializeMatchDoc(DataBuffer &dataBuffer)
     return doc;
 }
 
-void MatchDocAllocator::deserialize(DataBuffer &dataBuffer,
-                                    vector<MatchDoc> &matchdocs)
-{
+void MatchDocAllocator::deserialize(DataBuffer &dataBuffer, vector<MatchDoc> &matchdocs) {
     deserializeImpl(dataBuffer, matchdocs);
 }
 
-void MatchDocAllocator::deserialize(DataBuffer &dataBuffer,
-                                    autil::mem_pool::PoolVector<MatchDoc> &matchdocs)
-{
+void MatchDocAllocator::deserialize(DataBuffer &dataBuffer, autil::mem_pool::PoolVector<MatchDoc> &matchdocs) {
     deserializeImpl(dataBuffer, matchdocs);
 }
 
-bool MatchDocAllocator::deserializeAndAppend(
-        DataBuffer &dataBuffer,
-        vector<MatchDoc> &matchdocs)
-{
+bool MatchDocAllocator::deserializeAndAppend(DataBuffer &dataBuffer, vector<MatchDoc> &matchdocs) {
     return deserializeAndAppendImpl(dataBuffer, matchdocs);
 }
 
-bool MatchDocAllocator::deserializeAndAppend(DataBuffer &dataBuffer,
-        autil::mem_pool::PoolVector<MatchDoc> &matchdocs)
-{
+bool MatchDocAllocator::deserializeAndAppend(DataBuffer &dataBuffer, autil::mem_pool::PoolVector<MatchDoc> &matchdocs) {
     return deserializeAndAppendImpl(dataBuffer, matchdocs);
 }
 
@@ -1008,16 +825,14 @@ bool MatchDocAllocator::deserializeAndAppend(DataBuffer &dataBuffer,
 // belonging to it has to be in matchDocs
 bool MatchDocAllocator::mergeAllocator(MatchDocAllocator *other,
                                        const std::vector<MatchDoc> &matchDocs,
-                                       std::vector<MatchDoc> &newMatchDocs)
-{
+                                       std::vector<MatchDoc> &newMatchDocs) {
     if (other->_merged) {
         return false;
     }
     extend();
     other->extend();
     if (other == this || matchDocs.empty()) {
-        newMatchDocs.insert(newMatchDocs.end(), matchDocs.begin(),
-                            matchDocs.end());
+        newMatchDocs.insert(newMatchDocs.end(), matchDocs.begin(), matchDocs.end());
         return true;
     }
     if (!canMerge(other)) {
@@ -1033,8 +848,7 @@ bool MatchDocAllocator::mergeAllocator(MatchDocAllocator *other,
     mergeDocs(other, matchDocs, newMatchDocs);
     if (_subAllocator) {
         std::vector<MatchDoc> subNewMatchDocs;
-        _subAllocator->mergeAllocator(other->_subAllocator,
-                subMatchDocs, subNewMatchDocs);
+        _subAllocator->mergeAllocator(other->_subAllocator, subMatchDocs, subNewMatchDocs);
         size_t beginPos = 0;
         for (auto i = beginIndex; i < newMatchDocs.size(); i++) {
             _subAccessor->setSubDocs(newMatchDocs[i], subNewMatchDocs, beginPos);
@@ -1045,17 +859,15 @@ bool MatchDocAllocator::mergeAllocator(MatchDocAllocator *other,
 }
 
 bool MatchDocAllocator::mergeAllocatorOnlySame(MatchDocAllocator *other,
-                                       const std::vector<MatchDoc> &matchDocs,
-                                       std::vector<MatchDoc> &newMatchDocs)
-{
+                                               const std::vector<MatchDoc> &matchDocs,
+                                               std::vector<MatchDoc> &newMatchDocs) {
     if (other->_merged) {
         return false;
     }
     extend();
     other->extend();
     if (other == this || matchDocs.empty()) {
-        newMatchDocs.insert(newMatchDocs.end(), matchDocs.begin(),
-                            matchDocs.end());
+        newMatchDocs.insert(newMatchDocs.end(), matchDocs.begin(), matchDocs.end());
         return true;
     }
     if (!isSame(*other)) {
@@ -1071,8 +883,7 @@ bool MatchDocAllocator::mergeAllocatorOnlySame(MatchDocAllocator *other,
     appendDocs(other, matchDocs, newMatchDocs);
     if (_subAllocator) {
         std::vector<MatchDoc> subNewMatchDocs;
-        _subAllocator->mergeAllocatorOnlySame(other->_subAllocator,
-                subMatchDocs, subNewMatchDocs);
+        _subAllocator->mergeAllocatorOnlySame(other->_subAllocator, subMatchDocs, subNewMatchDocs);
         size_t beginPos = 0;
         for (auto i = beginIndex; i < newMatchDocs.size(); i++) {
             _subAccessor->setSubDocs(newMatchDocs[i], subNewMatchDocs, beginPos);
@@ -1082,7 +893,6 @@ bool MatchDocAllocator::mergeAllocatorOnlySame(MatchDocAllocator *other,
     return true;
 }
 
-
 bool MatchDocAllocator::canMerge(MatchDocAllocator *other) const {
     if (!other) {
         return false;
@@ -1090,7 +900,7 @@ bool MatchDocAllocator::canMerge(MatchDocAllocator *other) const {
     if (_subAllocator && !_subAllocator->canMerge(other->_subAllocator)) {
         return false;
     }
-    for (const auto &refPair : _fastReferenceMap) {
+    for (const auto &refPair : _referenceMap) {
         const auto &refName = refPair.first;
         auto ref = refPair.second;
         if (!ref->supportClone()) {
@@ -1099,11 +909,12 @@ bool MatchDocAllocator::canMerge(MatchDocAllocator *other) const {
         auto otherRef = other->findMainReference(refName);
         if (!otherRef || ref->getReferenceMeta() != otherRef->getReferenceMeta()) {
             if (otherRef) {
-                AUTIL_LOG(DEBUG, "ref not equal: [%s] -> [%s]", ref->toDebugString().c_str(),
-                        otherRef->toDebugString().c_str());
+                AUTIL_LOG(DEBUG,
+                          "ref not equal: [%s] -> [%s]",
+                          ref->toDebugString().c_str(),
+                          otherRef->toDebugString().c_str());
             } else {
-                AUTIL_LOG(DEBUG, "ref not equal: name[%s] -> [%s]", refName.c_str(),
-                        ref->toDebugString().c_str());
+                AUTIL_LOG(DEBUG, "ref not equal: name[%s] -> [%s]", refName.c_str(), ref->toDebugString().c_str());
             }
             return false;
         }
@@ -1113,8 +924,7 @@ bool MatchDocAllocator::canMerge(MatchDocAllocator *other) const {
 
 void MatchDocAllocator::mergeDocs(MatchDocAllocator *other,
                                   const std::vector<MatchDoc> &matchDocs,
-                                  std::vector<MatchDoc> &newMatchDocs)
-{
+                                  std::vector<MatchDoc> &newMatchDocs) {
     std::vector<std::pair<FieldGroup *, FieldGroup *>> appendGroups;
     std::vector<FieldGroup *> copyGroups;
     auto otherFieldGroups = other->_fieldGroups;
@@ -1161,12 +971,11 @@ void MatchDocAllocator::mergeDocs(MatchDocAllocator *other,
 
 void MatchDocAllocator::appendDocs(MatchDocAllocator *other,
                                    const std::vector<MatchDoc> &matchDocs,
-                                   std::vector<MatchDoc> &newMatchDocs)
-{
+                                   std::vector<MatchDoc> &newMatchDocs) {
     std::vector<std::pair<FieldGroup *, FieldGroup *>> appendGroups;
     auto &otherFieldGroups = other->_fieldGroups;
     for (const auto &groupPair : _fieldGroups) {
-        const string& groupName = groupPair.first;
+        const string &groupName = groupPair.first;
         auto group = groupPair.second;
         auto otherGroup = otherFieldGroups[groupName];
         assert(otherGroup);
@@ -1192,12 +1001,11 @@ void MatchDocAllocator::appendDocs(MatchDocAllocator *other,
     _capacity = newCapacity;
 }
 
-bool MatchDocAllocator::copyGroupDocFields(
-        const vector<MatchDoc> &matchDocs,
-        vector<MatchDoc> &newMatchDocs,
-        const vector<FieldGroup *> &copyGroups,
-        MatchDocAllocator *other, bool genNewDoc)
-{
+bool MatchDocAllocator::copyGroupDocFields(const vector<MatchDoc> &matchDocs,
+                                           vector<MatchDoc> &newMatchDocs,
+                                           const vector<FieldGroup *> &copyGroups,
+                                           MatchDocAllocator *other,
+                                           bool genNewDoc) {
     for (auto doc : matchDocs) {
         MatchDoc newDoc;
         if (genNewDoc) {
@@ -1218,9 +1026,7 @@ bool MatchDocAllocator::copyGroupDocFields(
     return true;
 }
 
-FieldGroup *MatchDocAllocator::getReferenceGroup(MatchDocAllocator *allocator,
-        const std::string &refName)
-{
+FieldGroup *MatchDocAllocator::getReferenceGroup(MatchDocAllocator *allocator, const std::string &refName) {
     auto newRef = allocator->findMainReference(refName);
     assert(newRef);
     const auto &newGroupName = newRef->getGroupName();
@@ -1248,9 +1054,7 @@ uint32_t MatchDocAllocator::getSubDocSize() const {
     return 0;
 }
 
-uint32_t MatchDocAllocator::getReferenceCount() const {
-    return _fastReferenceMap.size();
-}
+uint32_t MatchDocAllocator::getReferenceCount() const { return _referenceMap.size(); }
 
 uint32_t MatchDocAllocator::getSubReferenceCount() const {
     if (_subAllocator) {
@@ -1260,99 +1064,48 @@ uint32_t MatchDocAllocator::getSubReferenceCount() const {
 }
 
 void MatchDocAllocator::initSub() {
-    _subAllocator = new MatchDocAllocator(_poolPtr, _sessionPool, false, _mountInfo);
+    _subAllocator = new MatchDocAllocator(_poolPtr, false, _mountInfo);
     _firstSub = declare<MatchDoc>(FIRST_SUB_REF, DEFAULT_GROUP);
     _currentSub = declare<MatchDoc>(CURRENT_SUB_REF, DEFAULT_GROUP);
     _nextSub = _subAllocator->declare<MatchDoc>(NEXT_SUB_REF, DEFAULT_GROUP);
-    _subAccessor = new SubDocAccessor(_subAllocator,
-                                  _firstSub, _currentSub, _nextSub);
+    _subAccessor = new SubDocAccessor(_subAllocator, _firstSub, _currentSub, _nextSub);
 }
 
-FieldGroup* MatchDocAllocator::createFieldGroup(const string& groupName) {
-    FieldGroup *fieldGroup = new FieldGroup(_sessionPool, _referenceTypesWrapper, groupName);
-    fieldGroup->setPoolPtr(_poolPtr);
-    _toExtendfieldGroups[groupName] = fieldGroup;
-    return fieldGroup;
-}
+const MatchDocAllocator::FieldGroups &MatchDocAllocator::getFieldGroups() const { return _fieldGroups; }
 
-FieldGroup *MatchDocAllocator::createFieldGroupUnattached() {
-    auto groupName = getUniqueGroupName();
-    FieldGroup *fieldGroup = new FieldGroup(_sessionPool, _referenceTypesWrapper, groupName);
-    fieldGroup->setPoolPtr(_poolPtr);
-    return fieldGroup;
-}
-
-bool MatchDocAllocator::attachAndExtendFieldGroup(FieldGroup *fieldGroup, uint8_t serializeLevel, bool needConstruct) {
-    auto groupName = fieldGroup->getGroupName();
-    autil::ScopedSpinLock lock{_lock};
-    if (_fieldGroups.find(groupName) != _fieldGroups.end() ||
-        _toExtendfieldGroups.find(groupName) != _toExtendfieldGroups.end()) {
-        return false;
-    }
-    for (auto &ref : fieldGroup->getReferenceVec()) {
-        if (findReferenceByName(ref->getName())) {
-            return false;
-        }
-    }
-    for (auto &ref : fieldGroup->getReferenceVec()) {
-        ref->setSerializeLevel(serializeLevel);
-        _fastReferenceMap[ref->getName()] = ref;
-    }
-    extendGroup(fieldGroup, needConstruct);
-    _fieldGroups[groupName] = fieldGroup;
-    return true;
-}
-
-FieldGroup* MatchDocAllocator::getOrCreateToExtendFieldGroup(const std::string &fieldGroupName) {
-    const auto it = _toExtendfieldGroups.find(fieldGroupName);
-    if (_toExtendfieldGroups.end() == it) {
-        return createFieldGroup(fieldGroupName);
-    } else {
-        return it->second;
-    }
-}
-
-const MatchDocAllocator::FieldGroups& MatchDocAllocator::getFieldGroups() const
-{
-    return _fieldGroups;
-}
-
-ReferenceBase* MatchDocAllocator::cloneReference(const ReferenceBase *reference,
-        const std::string &name, const std::string &groupName, const bool cloneWithMount)
-{
+ReferenceBase *MatchDocAllocator::cloneReference(const ReferenceBase *reference,
+                                                 const std::string &name,
+                                                 const std::string &groupName,
+                                                 const bool cloneWithMount) {
     // already declared
     ReferenceBase *ref = findReferenceWithoutType(name);
     if (ref) {
         AUTIL_LOG(ERROR, "duplicate reference name: %s", name.c_str());
-        return NULL;
+        return nullptr;
     }
     if (reference->isSubDocReference() && _subAllocator != nullptr) {
         ReferenceBase *cloneRef = _subAllocator->cloneReference(reference, name, groupName, cloneWithMount);
         cloneRef->setCurrentRef(_currentSub);
-        _fastReferenceMap[name] = cloneRef;
+        _referenceMap[name] = cloneRef;
         return cloneRef;
     }
     // declare in allocated FieldGroup
-    FieldGroups::const_iterator it = _fieldGroups.find(groupName);
-    if (_fieldGroups.end() != it) {
+    if (_fieldGroups.count(groupName) > 0) {
         AUTIL_LOG(ERROR, "clone in allocated FieldGroup: %s", groupName.c_str());
-        return NULL;
+        return nullptr;
     }
 
-    FieldGroup *fieldGroup = getOrCreateToExtendFieldGroup(groupName);
+    const MountMeta *mountMeta = nullptr;
     if (cloneWithMount && reference->isMount()) {
-        const auto mountMeta = _mountInfo->get(reference->getName());
-        if (mountMeta) {
-            ref = fieldGroup->cloneMountedReference(reference, name, mountMeta->mountId);
-            _fastReferenceMap[name] = ref;
-            return ref;
-        } else {
-            AUTIL_LOG(WARN, "clone mounted reference [%s] but found no mount meta!", name.c_str());
-        }
+        mountMeta = _mountInfo->get(reference->getName());
     }
-
-    ref = fieldGroup->cloneReference(reference, name);
-    _fastReferenceMap[name] = ref;
+    FieldGroupBuilder *builder = findOrCreate(groupName);
+    if (mountMeta == nullptr) {
+        ref = builder->declare(name, reference->getReferenceMeta());
+    } else {
+        ref = builder->declareMount(name, reference->getReferenceMeta(), mountMeta->mountId, mountMeta->mountOffset);
+    }
+    _referenceMap[name] = ref;
     return ref;
 }
 
@@ -1365,61 +1118,17 @@ std::string MatchDocAllocator::getDefaultGroupNameInner() {
     if (!_defaultGroupName.empty()) {
         return _defaultGroupName;
     }
-    if (_toExtendfieldGroups.empty()) {
-        for (;; ++_defaultGroupNameCounter) {
-            string groupName = "_default_" + autil::StringUtil::toString(_defaultGroupNameCounter) + "_";
-            if (_fieldGroups.find(groupName) == _fieldGroups.end()) {
-                return groupName;
-            }
-        }
-    } else {
-        return _toExtendfieldGroups.begin()->first;
+    if (!_fieldGroupBuilders.empty()) {
+        return _fieldGroupBuilders.begin()->first;
     }
-}
-
-std::string MatchDocAllocator::getUniqueGroupName() {
-    autil::ScopedSpinLock lock(_lock);
-    while (1) {
-        string groupName = "_uniq_" + autil::StringUtil::toString(_defaultGroupNameCounter++) + "_";
-        if (_fieldGroups.find(groupName) == _fieldGroups.end() &&
-            _toExtendfieldGroups.find(groupName) == _toExtendfieldGroups.end()) {
+    while (true) {
+        string groupName = "_default_" + autil::StringUtil::toString(_defaultGroupNameCounter) + "_";
+        if (_fieldGroups.find(groupName) == _fieldGroups.end()) {
             return groupName;
         }
+        ++_defaultGroupNameCounter;
     }
-}
-
-void MatchDocAllocator::registerType(const ReferenceBase *refType) {
-    _referenceTypesWrapper->registerType(refType);
-}
-
-void MatchDocAllocator::registerTypes(MatchDocAllocator *other) {
-    registerTypes(other->getExtraType());
-    if (other->_subAllocator) {
-        registerTypes(other->_subAllocator->getExtraType());
-    }
-}
-
-void MatchDocAllocator::registerTypes(const ReferenceTypes *refTypes) {
-    if (likely(refTypes == nullptr)) {
-        return;
-    }
-    for (ReferenceTypes::const_iterator it = refTypes->begin();
-         it != refTypes->end(); ++it)
-    {
-        registerType(it->second.first);
-    }
-}
-
-void MatchDocAllocator::check() const {
-    FieldGroups::const_iterator it = _fieldGroups.begin();
-    FieldGroups::const_iterator itEnd = _fieldGroups.end();
-    for (; it != itEnd; ++it) {
-        it->second->check();
-    }
-
-    if (_subAllocator) {
-        _subAllocator->check();
-    }
+    return "";
 }
 
 bool MatchDocAllocator::isSame(const MatchDocAllocator &other) const {
@@ -1430,13 +1139,22 @@ bool MatchDocAllocator::isSame(const MatchDocAllocator &other) const {
         AUTIL_LOG(WARN, "fieldGroups not same");
         return false;
     }
-    if (!isSame(_toExtendfieldGroups, other._toExtendfieldGroups)) {
-        AUTIL_LOG(WARN, "toExtendFieldGroups not same");
+    // compare builders
+    if (_fieldGroupBuilders.size() != other._fieldGroupBuilders.size()) {
         return false;
     }
-    if ((_subAllocator == NULL && other._subAllocator != NULL)
-        || (_subAllocator != NULL && other._subAllocator == NULL))
-    {
+    for (auto it1 = _fieldGroupBuilders.begin(), it2 = other._fieldGroupBuilders.begin();
+         it1 != _fieldGroupBuilders.end() && it2 != other._fieldGroupBuilders.end();
+         ++it1, ++it2) {
+        if (it1->first != it2->first) {
+            return false;
+        }
+        if (!it1->second->equals(*(it2->second))) {
+            return false;
+        }
+    }
+    if ((_subAllocator == NULL && other._subAllocator != NULL) ||
+        (_subAllocator != NULL && other._subAllocator == NULL)) {
         AUTIL_LOG(WARN, "sub allocate not same");
         return false;
     }
@@ -1445,17 +1163,12 @@ bool MatchDocAllocator::isSame(const MatchDocAllocator &other) const {
 
 bool MatchDocAllocator::isSame(const FieldGroups &src, const FieldGroups &dst) const {
     if (src.size() != dst.size()) {
-        AUTIL_LOG(WARN, "field group count not same, src[%lu], dst[%lu]",
-                  src.size(), dst.size());
+        AUTIL_LOG(WARN, "field group count not same, src[%lu], dst[%lu]", src.size(), dst.size());
         return false;
     }
-    for (auto it1 = src.begin(), it2 = dst.begin();
-         it1 != src.end() && it2 != dst.end();
-         it1++, it2++)
-    {
+    for (auto it1 = src.begin(), it2 = dst.begin(); it1 != src.end() && it2 != dst.end(); it1++, it2++) {
         if (it1->first != it2->first) {
-            AUTIL_LOG(WARN, "group name not equal, src[%s], dst[%s]",
-                      it1->first.c_str(), it2->first.c_str());
+            AUTIL_LOG(WARN, "group name not equal, src[%s], dst[%s]", it1->first.c_str(), it2->first.c_str());
             return false;
         }
         FieldGroup *g1 = it1->second;
@@ -1474,14 +1187,16 @@ bool MatchDocAllocator::isSame(const FieldGroups &src, const FieldGroups &dst) c
 ReferenceNameSet MatchDocAllocator::getAllReferenceNames() const {
     autil::ScopedSpinLock lock(_lock);
     unordered_set<string> names;
-    for (auto it = _fieldGroups.begin(); it != _fieldGroups.end(); it++) {
-        it->second->getAllReferenceNames(names);
-    }
-    for (auto it = _toExtendfieldGroups.begin(); it != _toExtendfieldGroups.end(); it++) {
-        it->second->getAllReferenceNames(names);
-    }
+    std::for_each(_fieldGroups.begin(), _fieldGroups.end(), [&](const auto &it) {
+        const auto &refSet = it.second->getReferenceSet();
+        refSet.for_each([&](auto ref) { names.insert(ref->getName()); });
+    });
+    std::for_each(_fieldGroupBuilders.begin(), _fieldGroupBuilders.end(), [&](const auto &it) {
+        const auto &refSet = it.second->getReferenceSet();
+        refSet.for_each([&](auto ref) { names.insert(ref->getName()); });
+    });
     if (_subAllocator) {
-        const auto &subNames = _subAllocator->getAllReferenceNames();
+        auto subNames = _subAllocator->getAllReferenceNames();
         names.insert(subNames.begin(), subNames.end());
     }
     return names;
@@ -1489,33 +1204,27 @@ ReferenceNameSet MatchDocAllocator::getAllReferenceNames() const {
 
 ReferenceVector MatchDocAllocator::getAllNeedSerializeReferences(uint8_t serializeLevel) const {
     ReferenceVector refVec;
-    for (auto it = _fieldGroups.begin(); it != _fieldGroups.end(); it++) {
-        ReferenceVector groupRefVec;
-        it->second->getAllSerializeElements(groupRefVec, serializeLevel);
-        refVec.insert(refVec.end(), groupRefVec.begin(), groupRefVec.end());
-    }
-    for (auto it = _toExtendfieldGroups.begin(); it != _toExtendfieldGroups.end(); it++) {
-        ReferenceVector groupRefVec;
-        it->second->getAllSerializeElements(groupRefVec, serializeLevel);
-        refVec.insert(refVec.end(), groupRefVec.begin(), groupRefVec.end());
-    }
+    std::for_each(_fieldGroups.begin(), _fieldGroups.end(), [&](const auto &it) {
+        const auto &refSet = it.second->getReferenceSet();
+        refSet.for_each([&](auto ref) {
+            if (ref->getSerializeLevel() >= serializeLevel) {
+                refVec.push_back(ref);
+            }
+        });
+    });
+    std::for_each(_fieldGroupBuilders.begin(), _fieldGroupBuilders.end(), [&](const auto &it) {
+        const auto &refSet = it.second->getReferenceSet();
+        refSet.for_each([&](auto ref) {
+            if (ref->getSerializeLevel() >= serializeLevel) {
+                refVec.push_back(ref);
+            }
+        });
+    });
     return refVec;
 }
 
-pair<FieldGroup*, bool> MatchDocAllocator::findGroup(const string &groupName) {
-    auto it = _fieldGroups.find(groupName);
-    if (it != _fieldGroups.end()) {
-        return make_pair(it->second, true);
-    }
-    it = _toExtendfieldGroups.find(groupName);
-    if (it != _toExtendfieldGroups.end()) {
-        return make_pair(it->second, false);
-    }
-    return make_pair(nullptr, false);
-}
-
 ReferenceVector MatchDocAllocator::getAllSubNeedSerializeReferences(uint8_t serializeLevel) const {
-    if(!_subAllocator) {
+    if (!_subAllocator) {
         return ReferenceVector();
     }
     return _subAllocator->getAllNeedSerializeReferences(serializeLevel);
@@ -1523,59 +1232,31 @@ ReferenceVector MatchDocAllocator::getAllSubNeedSerializeReferences(uint8_t seri
 
 ReferenceVector MatchDocAllocator::getRefBySerializeLevel(uint8_t serializeLevel) const {
     ReferenceVector refVec;
-    for (auto it = _fieldGroups.begin(); it != _fieldGroups.end(); it++) {
-        ReferenceVector groupRefVec;
-        it->second->getRefBySerializeLevel(groupRefVec, serializeLevel);
-        refVec.insert(refVec.end(), groupRefVec.begin(), groupRefVec.end());
-    }
-    for (auto it = _toExtendfieldGroups.begin(); it != _toExtendfieldGroups.end(); it++) {
-        ReferenceVector groupRefVec;
-        it->second->getRefBySerializeLevel(groupRefVec, serializeLevel);
-        refVec.insert(refVec.end(), groupRefVec.begin(), groupRefVec.end());
-    }
+    auto fn = [&](ReferenceBase *ref) {
+        if (ref->getSerializeLevel() == serializeLevel) {
+            refVec.push_back(ref);
+        }
+    };
+    std::for_each(_fieldGroups.begin(), _fieldGroups.end(), [&](const auto &it) {
+        const auto &refSet = it.second->getReferenceSet();
+        refSet.for_each(fn);
+    });
+    std::for_each(_fieldGroupBuilders.begin(), _fieldGroupBuilders.end(), [&](const auto &it) {
+        const auto &refSet = it.second->getReferenceSet();
+        refSet.for_each(fn);
+    });
     return refVec;
 }
 
-FieldGroup *MatchDocAllocator::getFieldGroup(
-    const std::string &groupName, const MountMeta *mountMeta) {
-    // declare in allocated FieldGroup
-    FieldGroups::const_iterator it = _fieldGroups.find(groupName);
-    if (_fieldGroups.end() != it) {
-        if (mountMeta && it->second->isMounted(mountMeta)) {
-            return it->second;
-        }
-        AUTIL_LOG(WARN, "can't declare in allocated group [%s]", groupName.c_str());
-        return nullptr;
-    }
-    it = _toExtendfieldGroups.find(groupName);
-    FieldGroup *fieldGroup = nullptr;
-    if (_toExtendfieldGroups.end() == it) {
-        fieldGroup = createFieldGroup(groupName);
+FieldGroupBuilder *MatchDocAllocator::findOrCreate(const std::string &name) {
+    auto it = _fieldGroupBuilders.find(name);
+    if (it != _fieldGroupBuilders.end()) {
+        return it->second.get();
     } else {
-        fieldGroup = it->second;
-    }
-    return fieldGroup;
-}
-
-FieldGroup *MatchDocAllocator::createIfNotExist(
-        const std::string &groupName,
-        const MountMeta* mountMeta)
-{
-    auto findResult = findGroup(groupName);
-    if (findResult.first != nullptr) {
-        if (findResult.second) {
-            // in an allocated group
-            if (mountMeta && findResult.first->isMounted(mountMeta)) {
-                return findResult.first;
-            } else {
-                AUTIL_LOG(WARN, "can't declare in allocated group [%s]", groupName.c_str());
-                return nullptr;
-            }
-        } else {
-            return findResult.first;
-        }
-    } else {
-        return createFieldGroup(groupName);
+        auto builderPtr = std::make_unique<FieldGroupBuilder>(name, _poolPtr);
+        FieldGroupBuilder *builder = builderPtr.get();
+        _fieldGroupBuilders.emplace(name, std::move(builderPtr));
+        return builder;
     }
 }
 
@@ -1590,9 +1271,8 @@ std::string MatchDocAllocator::toDebugString() const {
     return ss.str();
 }
 
-std::string MatchDocAllocator::toDebugString(uint8_t serializeLevel,
-        const std::vector<MatchDoc> &matchDocs, bool onlySize) const
-{
+std::string
+MatchDocAllocator::toDebugString(uint8_t serializeLevel, const std::vector<MatchDoc> &matchDocs, bool onlySize) const {
     stringstream ss;
     auto refs = getAllNeedSerializeReferences(serializeLevel);
     if (onlySize) {
@@ -1617,11 +1297,10 @@ std::string MatchDocAllocator::toDebugString(uint8_t serializeLevel,
 }
 
 MatchDocAllocator *MatchDocAllocator::cloneAllocatorWithoutData() {
-    DataBuffer dataBuffer(DataBuffer::DEFAUTL_DATA_BUFFER_SIZE, _sessionPool);
+    DataBuffer dataBuffer(DataBuffer::DEFAUTL_DATA_BUFFER_SIZE, getSessionPool());
     setSortRefFlag(false);
     this->serializeMeta(dataBuffer, 0);
-    auto allocator = new MatchDocAllocator(_poolPtr, _sessionPool);
-    allocator->registerTypes(this);
+    auto allocator = new MatchDocAllocator(_poolPtr);
     allocator->deserializeMeta(dataBuffer, NULL);
     return allocator;
 }
@@ -1637,8 +1316,7 @@ bool MatchDocAllocator::swapDocStorage(MatchDocAllocator &other,
     }
 }
 
-bool MatchDocAllocator::swapDocStorage(MatchDocAllocator &other)
-{
+bool MatchDocAllocator::swapDocStorage(MatchDocAllocator &other) {
     if (_mountInfo) {
         return false;
     }
@@ -1651,13 +1329,11 @@ bool MatchDocAllocator::swapDocStorage(MatchDocAllocator &other)
     }
     for (auto it1 = _fieldGroups.begin(), it2 = other._fieldGroups.begin();
          it1 != _fieldGroups.end() && it2 != other._fieldGroups.end();
-         it1++, it2++)
-    {
+         it1++, it2++) {
         it1->second->swapDocStorage(*it2->second);
     }
     swap(_size, other._size);
     swap(_capacity, other._capacity);
-    swap(_sessionPool, other._sessionPool);
     swap(_poolPtr, other._poolPtr);
     _deletedIds.swap(other._deletedIds);
     if (_subAllocator) {
@@ -1666,21 +1342,47 @@ bool MatchDocAllocator::swapDocStorage(MatchDocAllocator &other)
     return true;
 }
 
+bool MatchDocAllocator::addGroup(std::unique_ptr<FieldGroup> group, bool genRefIndex, bool construct) {
+    autil::ScopedSpinLock lock(_lock);
+    return addGroupLocked(std::move(group), genRefIndex, construct);
+}
+
+bool MatchDocAllocator::addGroupLocked(std::unique_ptr<FieldGroup> group, bool genRefIndex, bool construct) {
+    const auto &groupName = group->getGroupName();
+    if (_fieldGroups.count(groupName) > 0) {
+        AUTIL_LOG(ERROR, "group %s already exists", groupName.c_str());
+        return false;
+    }
+    if (genRefIndex) {
+        const auto &refSet = group->getReferenceSet();
+        bool hasDuplicatedRef = false;
+        refSet.for_each([&](auto ref) {
+            auto ret = _referenceMap.emplace(ref->getName(), ref);
+            if (!ret.second) {
+                AUTIL_LOG(WARN, "duplicate reference %s", ref->getName().c_str());
+                hasDuplicatedRef = true;
+            }
+        });
+        if (hasDuplicatedRef) {
+            return false;
+        }
+    }
+    extendGroup(group.get(), construct);
+    _fieldGroups.emplace(groupName, group.release());
+    return true;
+}
+
 class MatchDocSeeker {
 public:
-    MatchDocSeeker(std::vector<MatchDoc> &docs)
-        : _docs(docs)
-        , _current(0)
-    {
-        _newSize = VectorDocStorage::getAlignSize(_docs.size());
+    MatchDocSeeker(std::vector<MatchDoc> &docs) : _docs(docs), _current(0) {
+        _newSize = VectorStorage::getAlignSize(_docs.size());
         _docIndex.reserve(_docs.size());
         for (uint32_t i = 0; i < _docs.size(); i++) {
             _docIndex.push_back(i);
         }
-        sort(_docIndex.begin(), _docIndex.end(),
-             [this](uint32_t a, uint32_t b) {
-                 return _docs[a].getIndex() < _docs[b].getIndex();
-             });
+        sort(_docIndex.begin(), _docIndex.end(), [this](uint32_t a, uint32_t b) {
+            return _docs[a].getIndex() < _docs[b].getIndex();
+        });
         _docIter = _docIndex.begin();
     }
     inline uint32_t seek(uint32_t &last) {
@@ -1697,9 +1399,7 @@ public:
         }
         return _current;
     }
-    uint32_t getNewSize() const {
-        return _newSize;
-    }
+    uint32_t getNewSize() const { return _newSize; }
     void getMoveBegin(uint32_t &begin, uint32_t &lastDelete) {
         begin = _docs.size();
         lastDelete = 0;
@@ -1713,13 +1413,11 @@ public:
             }
         }
     }
-    MatchDoc &getDoc(uint32_t moveIndex) {
-        return _docs[_docIndex[moveIndex]];
-    }
+    MatchDoc &getDoc(uint32_t moveIndex) { return _docs[_docIndex[moveIndex]]; }
+
 private:
-    uint32_t getDocIndex(const std::vector<MatchDoc> &docs, size_t offset) {
-        return docs[offset].getIndex();
-    }
+    uint32_t getDocIndex(const std::vector<MatchDoc> &docs, size_t offset) { return docs[offset].getIndex(); }
+
 private:
     uint32_t _newSize;
     std::vector<uint32_t> _docIndex;
@@ -1730,10 +1428,7 @@ private:
 
 class DeleteMapSeeker {
 public:
-    DeleteMapSeeker(std::vector<uint32_t> &deletedIds)
-        : _deletedIds(deletedIds)
-        , _current(0)
-    {
+    DeleteMapSeeker(std::vector<uint32_t> &deletedIds) : _deletedIds(deletedIds), _current(0) {
         std::sort(_deletedIds.begin(), _deletedIds.end());
         _deleteIter = _deletedIds.begin();
     }
@@ -1751,6 +1446,7 @@ public:
         }
         return _current;
     }
+
 private:
     std::vector<uint32_t>::const_iterator _deleteIter;
     std::vector<uint32_t> &_deletedIds;
@@ -1821,8 +1517,7 @@ void MatchDocAllocator::compact(std::vector<MatchDoc> &docs) {
 
     if (_subAllocator) {
         std::vector<MatchDoc> subMatchDocs;
-        subMatchDocs.reserve(_subAllocator->_size -
-                             _subAllocator->_deletedIds.size());
+        subMatchDocs.reserve(_subAllocator->_size - _subAllocator->_deletedIds.size());
         for (auto doc : docs) {
             _subAccessor->getSubDocs(doc, subMatchDocs);
         }
@@ -1834,27 +1529,159 @@ void MatchDocAllocator::compact(std::vector<MatchDoc> &docs) {
     }
 }
 
-bool MatchDocAllocator::validate() {
-    if (_size > _capacity) {
+ReferenceMap MatchDocAllocator::getAllNeedSerializeReferenceMap(uint8_t serializeLevel) const {
+    autil::ScopedSpinLock lock(_lock);
+    ReferenceMap refmap;
+    std::for_each(_fieldGroups.begin(), _fieldGroups.end(), [&](const auto &it) {
+        const auto &refSet = it.second->getReferenceSet();
+        refSet.for_each([&](auto ref) {
+            if (ref->getSerializeLevel() >= serializeLevel) {
+                refmap.emplace(ref->getName(), ref);
+            }
+        });
+    });
+    return refmap;
+}
+
+template <typename T>
+bool MatchDocAllocator::deserializeAndAppendImpl(autil::DataBuffer &dataBuffer, T &matchDocs) {
+    int64_t thisSignature = 0;
+    dataBuffer.read(thisSignature);
+
+    // skip meta
+    uint32_t metaLen = 0;
+    dataBuffer.read(metaLen);
+    auto metaData = dataBuffer.readNoCopy(metaLen);
+
+    if (thisSignature != _metaSignature) {
+        AUTIL_LOG(WARN,
+                  "signature not same, can not append, this signature: %ld"
+                  ", target signature: %ld",
+                  thisSignature,
+                  _metaSignature);
+
+        // deserialize meta and print debug infos
+        MatchDocAllocator debugAllocator(_poolPtr, _subAllocator);
+        autil::DataBuffer metaBuffer((void *)metaData, metaLen, dataBuffer.getPool());
+        debugAllocator.deserializeMeta(metaBuffer, NULL);
+
+        AUTIL_LOG(WARN, "target allocator : [%s]", toDebugString().c_str());
+        AUTIL_LOG(WARN, "deserialize allocator : [%s]", debugAllocator.toDebugString().c_str());
         return false;
     }
-    for (const auto &pair : _fieldGroups) {
-        if (_capacity != pair.second->getColomnSize()) {
-            return false;
-        }
+
+    uint32_t count = 0;
+    dataBuffer.read(count);
+    extend();
+
+    if (_subAllocator) {
+        uint32_t subCount = 0;
+        dataBuffer.read(subCount);
+        _subAllocator->extend();
+    }
+
+    matchDocs.reserve(count + matchDocs.size());
+    for (uint32_t i = 0; i < count; i++) {
+        MatchDoc doc = deserializeMatchDoc(dataBuffer);
+        matchDocs.push_back(doc);
     }
     return true;
 }
 
-ReferenceMap MatchDocAllocator::getAllNeedSerializeReferenceMap(uint8_t serializeLevel) const {
-    ReferenceMap refmap;
-    for (auto it = _fieldGroups.begin(); it != _fieldGroups.end(); it++) {
-        it->second->getAllSerializeElements(refmap, serializeLevel);
+template <typename T>
+void MatchDocAllocator::serializeImpl(autil::DataBuffer &dataBuffer,
+                                      const T &matchdocs,
+                                      uint8_t serializeLevel,
+                                      bool ignoreUselessGroupMeta) {
+    autil::DataBuffer metaBuffer(autil::DataBuffer::DEFAUTL_DATA_BUFFER_SIZE, dataBuffer.getPool());
+    // 1. serialize meta
+    serializeMeta(metaBuffer, serializeLevel, ignoreUselessGroupMeta);
+
+    int64_t metaSignature = autil::MurmurHash::MurmurHash64A(metaBuffer.getData(), metaBuffer.getDataLen(), 0);
+    dataBuffer.write(metaSignature);
+    uint32_t dataLen = metaBuffer.getDataLen();
+    dataBuffer.write(dataLen);
+    dataBuffer.writeBytes(metaBuffer.getData(), metaBuffer.getDataLen());
+
+    // 2. serialize matchdocs
+    dataBuffer.write(uint32_t(matchdocs.size()));
+    // for reserve
+    if (_subAllocator) {
+        dataBuffer.write(uint32_t(_subAllocator->_size));
     }
-    for (auto it = _toExtendfieldGroups.begin(); it != _toExtendfieldGroups.end(); it++) {
-        it->second->getAllSerializeElements(refmap, serializeLevel);
+    for (size_t i = 0; i < matchdocs.size(); i++) {
+        serializeMatchDoc(dataBuffer, matchdocs[i], matchdocs[i].getDocId(), serializeLevel);
     }
-    return refmap;
 }
 
+template <typename T>
+void MatchDocAllocator::deserializeImpl(autil::DataBuffer &dataBuffer, T &matchdocs) {
+    dataBuffer.read(_metaSignature);
+    uint32_t metaLen = 0;
+    dataBuffer.read(metaLen);
+    const void *metaData = dataBuffer.readNoCopy(metaLen);
+
+    autil::DataBuffer metaBuffer((void *)metaData, metaLen, dataBuffer.getPool());
+
+    // 1. deserialize meta
+    deserializeMeta(metaBuffer, NULL);
+
+    // 2. deserialize matchdocs
+    uint32_t count = 0;
+    dataBuffer.read(count);
+    extend();
+
+    if (_subAllocator) {
+        uint32_t subcount = 0;
+        dataBuffer.read(subcount);
+        _subAllocator->extend();
+    }
+
+    for (uint32_t i = 0; i < count; i++) {
+        MatchDoc doc = deserializeMatchDoc(dataBuffer);
+        matchdocs.push_back(doc);
+    }
 }
+
+template <typename DocIdGenerator>
+void MatchDocAllocator::innerBatchAllocate(DocIdGenerator &docIdGenerator,
+                                           std::vector<matchdoc::MatchDoc> &retVec,
+                                           bool adviseNotConstruct) {
+    if (!_fieldGroupBuilders.empty()) {
+        extend();
+    }
+    size_t count = docIdGenerator.size();
+    size_t delCount = _deletedIds.size();
+    retVec.reserve(count);
+    if (delCount < count) {
+        for (size_t i = 0; i < delCount; i++) {
+            retVec.emplace_back(_deletedIds[i], docIdGenerator.element(i));
+        }
+        _deletedIds.clear();
+        size_t leftCount = count - delCount;
+        while (_capacity <= _size + leftCount) {
+            grow();
+        }
+        for (size_t i = delCount; i < count; i++) {
+            retVec.emplace_back(_size++, docIdGenerator.element(i));
+        }
+    } else {
+        size_t offset = delCount - count;
+        for (size_t i = 0; i < count; i++) {
+            retVec.emplace_back(_deletedIds[i + offset], docIdGenerator.element(i));
+        }
+        _deletedIds.resize(offset);
+    }
+
+    FieldGroups::iterator it = _fieldGroups.begin();
+    FieldGroups::iterator itEnd = _fieldGroups.end();
+    for (; it != itEnd; ++it) {
+        if (it->second->needDestruct() || !adviseNotConstruct) {
+            it->second->constructDocs(retVec);
+        }
+    }
+
+    return;
+}
+
+} // namespace matchdoc

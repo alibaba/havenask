@@ -19,6 +19,7 @@
 #include "build_service/proto/ProtoUtil.h"
 #include "build_service/util/Monitor.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/framework/ITablet.h"
 #include "indexlib/indexlib.h"
@@ -49,7 +50,7 @@ bool AsyncBuilderV2::init(const config::BuilderConfig& builderConfig, indexlib::
     if (!_impl->init(builderConfig, metricProvider)) {
         return false;
     }
-    assert(builderConfig.asyncBuild);
+    // assert(builderConfig.asyncBuild);
     _docQueue.reset(new DocQueue(builderConfig.asyncQueueSize, builderConfig.asyncQueueMem * 1024 * 1024));
     _batchBuildSize = builderConfig.batchBuildSize;
 
@@ -110,8 +111,10 @@ void AsyncBuilderV2::buildThread()
         }
         auto batch = docBatches[0];
         for (size_t idx = 1; idx < docBatches.size(); idx++) {
-            for (size_t j = 0; j < docBatches[idx]->GetBatchSize(); j++) {
-                batch->AddDocument((*docBatches[idx])[j]);
+            auto iter =
+                indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(docBatches[idx].get());
+            while (iter->HasNext()) {
+                batch->AddDocument(iter->Next());
             }
         }
         bool consumed = false;
@@ -167,6 +170,8 @@ bool AsyncBuilderV2::build(const std::shared_ptr<indexlibv2::document::IDocument
     REPORT_METRIC(_releaseQueueSizeMetric, _releaseDocQueue->size());
     return true;
 }
+
+bool AsyncBuilderV2::merge() { return _impl->merge(); };
 
 void AsyncBuilderV2::stop(std::optional<int64_t> stopTimestamp, bool needSeal, bool immediately)
 {

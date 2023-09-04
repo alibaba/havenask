@@ -28,7 +28,7 @@ namespace indexlibv2 {
 class MemoryQuotaController;
 
 namespace config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace framework {
@@ -42,7 +42,7 @@ public:
     virtual ~ITabletLoader() = default;
 
     virtual void Init(const std::shared_ptr<MemoryQuotaController>& memoryQuotaController,
-                      const std::shared_ptr<config::TabletSchema>& schema,
+                      const std::shared_ptr<config::ITabletSchema>& schema,
                       const std::shared_ptr<indexlib::util::MemoryReserver>& memReserver, bool isOnline) = 0;
     // bool in onDiskSegmentPairs means need open
     virtual Status PreLoad(const TabletData& lastTabletData,

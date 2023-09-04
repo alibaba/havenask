@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/TcpConnectionPool.h"
+
 #include "aios/network/gig/multi_call/service/ConnectionFactory.h"
 #include "aios/network/gig/multi_call/service/TcpConnection.h"
 
@@ -23,16 +24,17 @@ using namespace autil;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, TcpConnectionPool);
 
-TcpConnectionPool::TcpConnectionPool() {}
+TcpConnectionPool::TcpConnectionPool() {
+}
 
-TcpConnectionPool::~TcpConnectionPool() {}
+TcpConnectionPool::~TcpConnectionPool() {
+}
 
 bool TcpConnectionPool::init(const ProtocolConfig &config) {
     if (!ConnectionPool::init(config)) {
         return false;
     }
-    _connectionFactory.reset(
-        new AnetConnectionFactory<TcpConnection>(_transport, _queueSize));
+    _connectionFactory.reset(new AnetConnectionFactory<TcpConnection>(_transport, _queueSize));
     return true;
 }
 

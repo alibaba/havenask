@@ -27,17 +27,17 @@
 namespace isearch {
 namespace search {
 
-class DocIdTermQueryExecutor : public TermQueryExecutor
-{
+class DocIdTermQueryExecutor : public TermQueryExecutor {
 public:
     DocIdTermQueryExecutor(docid_t docId)
         : TermQueryExecutor(nullptr, {})
-        , _docId(docId)
-    {}
+        , _docId(docId) {}
     virtual ~DocIdTermQueryExecutor() {}
+
 private:
     DocIdTermQueryExecutor(const DocIdTermQueryExecutor &);
-    DocIdTermQueryExecutor& operator=(const DocIdTermQueryExecutor &);
+    DocIdTermQueryExecutor &operator=(const DocIdTermQueryExecutor &);
+
 public:
     const std::string getName() const override {
         return "DocIdTermQueryExecutor";
@@ -46,10 +46,11 @@ public:
     void reset() override {}
 
 protected:
-    indexlib::index::ErrorCode doSeek(docid_t id, docid_t& result) override {
+    indexlib::index::ErrorCode doSeek(docid_t id, docid_t &result) override {
         result = _docId >= id ? _docId : END_DOCID;
         return indexlib::index::ErrorCode::OK;
     }
+
 private:
     docid_t _docId;
     AUTIL_LOG_DECLARE();

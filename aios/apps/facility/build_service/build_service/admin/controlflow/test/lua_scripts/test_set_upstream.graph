@@ -1,0 +1,29 @@
+--[[
+Graph.parameter : graph related kv parameters 
+Graph.loadSimpleFlow(flowId, taskType, taskIdentifier, taskKVParam = nil) : return flowObject
+Graph.loadFlow(flowFileName, flowId, flowKVParam = nil) : return flowObject
+Graph.loadSubGraph(graphId, graphFileName, graphKVParam = nil) : return true : false
+Graph.getFlow(flowId) : return flowObject
+Graph.setUpstream(flow, upstreamFlow, waitStatus = "finish"|"stop"|"xxx") 
+--]]
+
+--#import(Tool)
+
+function graphDef()
+   local lastTask
+   for k,v in pairs(Graph.parameter)
+   do
+      print("######"..k)
+      local task = Graph.loadSimpleFlow("", k, {v="value"})
+      task:addTag(k)
+      -- dynamic set default param in target flow
+      task:setGlobalTaskParam("config_path", v)
+
+      if (lastTask ~= nil)
+      then
+	 Graph.setUpstream(task, lastTask, "finish")
+      end
+      lastTask = task
+   end
+   return true
+end

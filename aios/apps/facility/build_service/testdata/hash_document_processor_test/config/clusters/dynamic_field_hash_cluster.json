@@ -1,0 +1,12 @@
+{
+    "cluster_config" : {
+	"hash_mode" : {
+            "hash_function" : "ROUTING_HASH",
+            "hash_fields" : ["id", "sid", "ratio"],
+            "hash_params" : {
+                "routing_ratio":"0.2",
+                "can_empty_fields":"ratio"
+            }
+	}
+    }
+}

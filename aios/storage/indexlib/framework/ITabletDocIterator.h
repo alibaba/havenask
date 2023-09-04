@@ -24,7 +24,7 @@ class RawDocument;
 }
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::framework {
@@ -38,12 +38,13 @@ public:
 
 public:
     using CreateDocIteratorFunc = std::function<std::shared_ptr<framework::ITabletDocIterator>(
-        const std::shared_ptr<indexlibv2::config::TabletSchema>&)>;
+        const std::shared_ptr<indexlibv2::config::ITabletSchema>&)>;
 
 public:
     virtual Status Init(const std::shared_ptr<TabletData>& tabletData,
                         std::pair<uint32_t /*0-99*/, uint32_t /*0-99*/> rangeInRatio,
                         const std::shared_ptr<MetricsManager>& metricsManager,
+                        const std::vector<std::string>& requiredFields,
                         const std::map<std::string, std::string>& params) = 0;
     virtual Status Next(indexlibv2::document::RawDocument* rawDocument, std::string* checkpoint,
                         document::IDocument::DocInfo* docInfo) = 0;

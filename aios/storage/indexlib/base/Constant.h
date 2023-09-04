@@ -48,6 +48,7 @@ constexpr int64_t MAX_BRANCH_COUNT = 100;
 constexpr uint32_t INVALID_DOC_VERSION = -1;
 constexpr char MULTI_VALUE_SEPARATOR = '\x1D'; // equal with autil::MULTI_VALUE_DELIMITER;
 
+static constexpr int64_t DEFAULT_DONE_TASK_TTL_IN_SECONDS = 24 * 3600 * 2;
 static constexpr int64_t INVALID_TTL = -1;
 // default time to live in seconds, make sure not overflow when converted to microsecond
 static constexpr int64_t DEFAULT_TIME_TO_LIVE = std::numeric_limits<int64_t>::max() >> 20;

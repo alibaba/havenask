@@ -15,9 +15,9 @@
  */
 #include "autil/LoopThread.h"
 
+#include "autil/DailyRunMode.h"
 #include "autil/Log.h"
 #include "autil/TimeUtility.h"
-#include "autil/DailyRunMode.h"
 
 namespace autil {
 AUTIL_DECLARE_AND_SETUP_LOGGER(autil, LoopThread);
@@ -30,23 +30,24 @@ LoopThread::LoopThread(bool strictMode) {
     _strictMode = strictMode;
 }
 
-LoopThread::~LoopThread() {
-    stop();
-}
+LoopThread::~LoopThread() { stop(); }
 
-LoopThreadPtr LoopThread::createLoopThread(const std::function<void ()> &loopFunction, int64_t loopInterval, bool strictMode) {
+LoopThreadPtr
+LoopThread::createLoopThread(const std::function<void()> &loopFunction, int64_t loopInterval, bool strictMode) {
     return createLoopThread(loopFunction, loopInterval, std::string(), strictMode);
 }
 
-LoopThreadPtr LoopThread::createLoopThread(const std::function<void ()> &loopFunction, int64_t loopInterval /*us*/,
-                                           const char* name, bool strictMode) 
-{
+LoopThreadPtr LoopThread::createLoopThread(const std::function<void()> &loopFunction,
+                                           int64_t loopInterval /*us*/,
+                                           const char *name,
+                                           bool strictMode) {
     return createLoopThread(loopFunction, loopInterval, std::string(name), strictMode);
 }
 
-LoopThreadPtr LoopThread::createLoopThread(const std::function<void ()> &loopFunction, int64_t loopInterval /*us*/,
-                                           const std::string &name, bool strictMode)
-{
+LoopThreadPtr LoopThread::createLoopThread(const std::function<void()> &loopFunction,
+                                           int64_t loopInterval /*us*/,
+                                           const std::string &name,
+                                           bool strictMode) {
     if (DailyRunMode::enable()) {
         loopInterval = 300 * 1000;
     }
@@ -82,12 +83,10 @@ void LoopThread::stop() {
     _threadPtr.reset();
 }
 
-void LoopThread::runOnce()
-{
+void LoopThread::runOnce() {
     ScopedLock lock(_cond);
     _nextTime = -1;
     _cond.signal();
-
 }
 
 void LoopThread::loop() {
@@ -116,8 +115,7 @@ void LoopThread::loop() {
                 continue;
             }
         }
-        if (!_disableLoopFun)
-        {
+        if (!_disableLoopFun) {
             _loopFunction();
         }
         {
@@ -133,4 +131,4 @@ void LoopThread::loop() {
     }
 }
 
-}
+} // namespace autil

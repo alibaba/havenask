@@ -46,6 +46,10 @@ public:
 
     FSResult<void> Close() noexcept override;
 
+public:
+    static size_t EstimateCompressBufferSize(const std::string& compressorName, size_t bufferSize,
+                                             const util::KeyValueMap& compressorParam) noexcept;
+
 private:
     void FlushCompressorData() noexcept(false) override;
     void TrainAndCompressData() noexcept(false);

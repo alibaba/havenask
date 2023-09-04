@@ -43,11 +43,15 @@ public:
     KKVMerger() = default;
     ~KKVMerger() = default;
 
+public:
+    void SetStoreTs(bool storeTs) { _storeTs = storeTs; }
+
 protected:
     static void FillSegmentMetrics(indexlib::framework::SegmentMetrics* segmentMetrics, const std::string& groupName,
                                    size_t pkeyCount, size_t skeyCount, size_t maxValueLen, size_t maxSkeyCount);
 
 protected:
+    bool _storeTs = false;
     indexlib::file_system::IOConfig _iOConfig;
     indexlib::util::ProgressMetricsPtr _mergeItemMetrics;
 };
@@ -75,13 +79,13 @@ private:
     Status CreateRecordFilter(const std::string& currentTime);
     Status PrepareMerge(const SegmentMergeInfos& segMergeInfos);
     Status DoMerge(const SegmentMergeInfos& segMergeInfos);
-    std::shared_ptr<indexlib::file_system::IDirectory>
+    StatusOr<std::shared_ptr<indexlib::file_system::IDirectory>>
     PrepareTargetSegmentDirectory(const std::shared_ptr<indexlib::file_system::IDirectory>& root);
     Status LoadSegmentStatistics(const SegmentMergeInfos& segMergeInfos,
                                  std::vector<KKVSegmentStatistics>& statVec) const;
 
 private:
-    void CollectSinglePrefixKey(OnDiskSinglePKeyIteratorTyped* dataIter, bool isBottomLevel);
+    Status CollectSinglePrefixKey(OnDiskSinglePKeyIteratorTyped* dataIter, bool isBottomLevel);
     void MoveToFirstValidSKeyPosition(OnDiskSinglePKeyIteratorTyped* dataIter, bool isBottomLevel);
     void MoveToNextValidSKeyPosition(OnDiskSinglePKeyIteratorTyped* dataIter, bool isBottomLevel);
 
@@ -99,9 +103,6 @@ private:
     std::shared_ptr<KKVDataDumperBase> _dataDumper;
 
     schemaid_t _schemaId = DEFAULT_SCHEMAID;
-
-    // TODO(xinfei.sxf) set value.
-    bool _storeTs = false;
 
 private:
     AUTIL_LOG_DECLARE();

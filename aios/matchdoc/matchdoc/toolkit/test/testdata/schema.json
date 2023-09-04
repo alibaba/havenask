@@ -1,0 +1,58 @@
+{
+    "name": "schema0",
+    "fields": [
+        {
+            "field_name": "int",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "m_int",
+            "field_type": "INT32",
+            "multi_value": true,
+            "user_defined_param": {
+                "seperator": ":"
+            }
+        },
+        {
+            "field_name": "int64",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "m_int64",
+            "field_type": "INT64",
+            "multi_value": true,
+            "user_defined_param": {
+                "seperator": ":"
+            }
+        },
+        {
+            "field_name": "dou",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "m_dou",
+            "field_type": "DOUBLE",
+            "multi_value": true,
+            "user_defined_param": {
+                "seperator": ":"
+            }
+        },
+        {
+            "field_name": "str",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "m_str",
+            "field_type": "STRING",
+            "multi_value": true,
+            "user_defined_param": {
+                "seperator": ":"
+            }
+        }
+    ],
+    "field_seperator": ",",
+    "docs": [
+        "1, 1:1, 1, 1:1, 1.1, 1.1:1.1, s1, s1:s1 ",
+        "2,2:2,2,2:2,2.2,2.2:2.2,s2,s2:s2"
+    ]
+}

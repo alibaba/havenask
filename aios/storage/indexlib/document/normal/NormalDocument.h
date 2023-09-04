@@ -63,6 +63,7 @@ public:
 
         return INVALID_DOCID;
     }
+    docid_t GetDeleteDocId() const { return _deletedDocId; }
     size_t EstimateMemory() const override;
     DocOperateType GetDocOperateType() const override { return _opType; }
     void SetDocOperateType(DocOperateType op) override
@@ -154,6 +155,7 @@ public:
         if (_attributeDocument)
             _attributeDocument->SetDocId(docId);
     }
+    void SetDeleteDocId(docid_t docId) { _deletedDocId = docId; }
 
     const std::string& GetPrimaryKey() const;
 
@@ -300,7 +302,7 @@ private:
     std::shared_ptr<indexlib::document::SerializedSummaryDocument> _summaryDocument;
     std::shared_ptr<indexlib::document::SerializedSourceDocument> _sourceDocument;
     FieldIdVector _modifiedFields;
-
+    docid_t _deletedDocId;
     bool _trace = false; // used for doc trace
 
 private:

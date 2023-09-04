@@ -47,5 +47,5 @@ private:
     size_t _payloadReadOffset = 0UL;
 };
 
-}  // namespace anet
-#endif  // ANET_DIRECTSTREAMINGCONTEXT_H_
+} // namespace anet
+#endif // ANET_DIRECTSTREAMINGCONTEXT_H_

@@ -1,0 +1,184 @@
+syntax = "proto2";
+
+import "hippo/proto/Common.proto";
+
+package carbon.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+
+enum SlotType {
+    ST_PKG_FAILED = 0;
+    ST_UNKNOWN = 1;
+    ST_DEAD = 2;
+    ST_PROC_FAILED = 3;
+    ST_PROC_RESTARTING = 4;
+    ST_PROC_RUNNING = 5;
+    ST_PROC_TERMINATED = 6;
+};
+
+enum HealthType {
+    HT_UNKNOWN = 0;
+    HT_LOST = 1;
+    HT_ALIVE = 2;
+    HT_DEAD = 3;
+};
+
+enum WorkerType {
+    WT_UNKNOWN = 0;
+    WT_NOT_READY = 1;
+    WT_READY = 2;
+};
+
+enum ServiceType {
+    SVT_UNKNOWN = 0;
+    SVT_UNAVAILABLE = 1;
+    SVT_PART_AVAILABLE = 2;
+    SVT_AVAILABLE = 3;
+};
+
+enum SlotAllocStatus {
+    SAS_UNASSIGNED = 0;
+    SAS_ASSIGNED = 1;
+    SAS_LOST = 2;
+    SAS_OFFLINING = 3;
+    SAS_RELEASING = 4;
+    SAS_RELEASED = 5;
+};
+
+message HealthInfo {
+    optional HealthType healthStatus = 1 [default = HT_UNKNOWN];
+    optional WorkerType workerStatus = 2 [default = WT_UNKNOWN];
+    map<string, string> metas = 3;
+    optional string version = 4;    
+};
+
+message ServiceStatus {
+    optional ServiceType status = 1 [default = SVT_UNKNOWN];
+    map<string, string> metas = 2;
+    optional int64 score = 3 [default = 0];
+};
+
+message SlotStatus {
+    optional SlotType status = 1 [default = ST_UNKNOWN];
+    optional hippo.proto.SlotId slotId = 2;
+};
+
+message SlotInfo {
+    optional string role = 1;
+    optional hippo.proto.SlotId slotId = 2;
+    optional bool reclaiming = 3;
+    optional SlotResource slotResource = 4;
+    repeated hippo.proto.ProcessStatus processStatus = 5;
+    optional hippo.proto.SlaveStatus slaveStatus = 6;
+    optional int64 launchSignature = 8;
+    optional string packageChecksum = 9;    
+    optional hippo.proto.PackageStatus packageStatus = 10;
+    optional bool noLongerMatchQueue = 13 [default = false];
+    optional bool noLongerMatchResourceRequirement = 14 [default = false];
+    optional string preDeployPackageChecksum = 18;
+    optional hippo.proto.PackageStatus preDeployPackageStatus = 19;
+    optional string requirementId = 23;
+    optional hippo.proto.Priority priority = 24;
+};
+
+message WorkerNodeStatus {
+    optional string replicaNodeId = 1;
+    optional string workerNodeId = 2;
+    optional string curVersion = 3;
+    optional string nextVersion = 4;
+    optional string finalVersion = 5;
+    optional bool offline = 6 [default = false];
+    optional bool releasing = 7 [default = false];
+    optional bool reclaiming = 8 [default = false];
+    optional bool readyForCurVersion = 9 [default = false];
+    optional bool isBackup = 10 [default = false];
+    optional int64 lastNotMatchTime = 11 [default = 0];
+    optional int64 lastNotReadyTime = 12 [default = 0];
+    optional SlotAllocStatus slotAllocStatus = 13 [default = SAS_UNASSIGNED];
+    optional SlotInfo slotInfo = 14;
+    optional HealthInfo healthInfo = 15;
+    optional ServiceStatus serviceInfo = 16;
+    optional SlotStatus slotStatus = 17;
+    optional string ip = 18;
+    optional string userDefVersion = 19;
+    optional string targetSignature = 20;
+    optional string targetCustomInfo = 21;
+    optional string workerMode = 22;
+    map<string,string> labels = 23;
+    repeated Condition conditions = 24;
+};
+
+enum ConditionStatus {
+    CS_UNKNOWN = 0;
+    CS_TRUE = 1;
+    CS_FALSE = 2;
+};
+
+message Condition {
+    optional string type = 1;
+    optional ConditionStatus status = 2;
+    optional int64 lastUpdateTime = 3;
+    optional int64 lastTransitionTime = 4;
+    optional string reason = 5;
+    optional string message = 6;
+};
+
+message ReplicaNodeStatus {
+    optional string replicaNodeId = 1;
+    optional WorkerNodeStatus curWorkerNodeStatus = 2;
+    optional WorkerNodeStatus backupWorkerNodeStatus = 3;
+    optional int64 timeStamp = 4 [default = 0];
+    optional string userDefVersion = 5;
+    optional bool readyForCurVersion = 6 [default = false];
+};
+
+message GlobalPlan {
+    optional int32 count = 1;
+    optional int32 latestVersionRatio = 2 [default = 100];
+};
+
+message RoleStatusValue {
+    optional string roleId = 1;
+    optional GlobalPlan globalPlan = 2;
+    map<string, VersionedPlan> versionedPlans = 3;
+    optional string latestVersion = 4;
+    repeated ReplicaNodeStatus nodes = 5;
+    optional string userDefVersion = 6;
+    optional bool readyForCurVersion = 7 [default = false];
+    optional int32 minHealthCapacity = 8;
+    optional int32 adjustedCount = 9;
+    optional int32 adjustedMinHealthCapacity = 10;
+};
+
+message GroupStatus {
+    optional string groupId = 1;
+    map<string, RoleStatusValue> roles = 3;
+};
+
+message Response {
+    optional int32 code = 1 [default = 0];
+    optional int32 subCode = 2 [default = 0];
+    optional string msg = 3;
+    repeated GroupStatus data = 4;
+};
+
+message CarbonPriority {
+    optional int32 major_priority = 1 [default = 32];
+	optional int32 minor_priority = 2;
+};
+
+message SlotResource {
+	repeated hippo.proto.Resource slotResources = 1;
+}
+
+message ResourcePlan {
+	repeated SlotResource resources = 1;
+	optional string group = 2;
+    optional CarbonPriority priority = 3;
+}
+
+message VersionedPlan {
+    optional ResourcePlan resourcePlan = 1;
+};     

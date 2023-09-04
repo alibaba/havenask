@@ -29,17 +29,17 @@ class MultiShardMemSegment : public framework::MemSegment
 {
 public:
     typedef std::function<std::shared_ptr<PlainMemSegment>(
-        const config::TabletOptions*, const std::shared_ptr<config::TabletSchema>&, const framework::SegmentMeta&)>
+        const config::TabletOptions*, const std::shared_ptr<config::ITabletSchema>&, const framework::SegmentMeta&)>
         PlainMemSegmentCreator;
 
     static std::shared_ptr<PlainMemSegment> CreatePlainMemSegment(const config::TabletOptions* options,
-                                                                  const std::shared_ptr<config::TabletSchema>& schema,
+                                                                  const std::shared_ptr<config::ITabletSchema>& schema,
                                                                   const framework::SegmentMeta& segmentMeta);
 
 public:
     MultiShardMemSegment(const std::shared_ptr<index::ShardPartitioner>& shardPartitioner, uint32_t levelNum,
                          const config::TabletOptions* options,
-                         const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+                         const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                          const framework::SegmentMeta& segmentMeta,
                          const PlainMemSegmentCreator& memSegmentCreator = MultiShardMemSegment::CreatePlainMemSegment)
         : MemSegment(segmentMeta)
@@ -49,6 +49,7 @@ public:
         , _tabletSchema(schema)
         , _memSegmentCreator(memSegmentCreator)
     {
+        assert(_options);
     }
     ~MultiShardMemSegment() {}
 
@@ -100,7 +101,7 @@ private:
     uint32_t _levelNum = 1;
     const config::TabletOptions* _options = nullptr;
     std::vector<std::shared_ptr<PlainMemSegment>> _shardSegments;
-    std::shared_ptr<indexlibv2::config::TabletSchema> _tabletSchema;
+    std::shared_ptr<indexlibv2::config::ITabletSchema> _tabletSchema;
     std::shared_ptr<indexlib::util::BuildResourceMetrics> _buildResourceMetrics;
     indexlib::util::BuildResourceMetricsNode* _metricsNode = nullptr;
     PlainMemSegmentCreator _memSegmentCreator;

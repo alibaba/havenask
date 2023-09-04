@@ -1,0 +1,47 @@
+{
+    "build_option_config" : {
+        "sort_build" : false
+    },
+    "cluster_config" : {
+        "builder_rule_config" : {
+            "partition_count" : 1
+        },
+        "hash_mode" : {
+            "hash_field" : "id",
+            "hash_function" : "HASH"
+        },
+        "table_name" : "sample"
+    },
+    "offline_index_config" : {
+        "build_config" : {
+            "keep_version_count" : 100,
+            "build_total_memory" : 100
+        },
+        "customized_merge_config" : {
+            "full" : {
+                "merge_config" : {
+                    "merge_strategy" : "optimize"
+                }
+            },
+            "inc0" : {
+                "merge_config" : {
+                    "merge_strategy" : "optimize"
+                }
+            }
+        },
+        "merge_config" : {
+            "merge_strategy" : "balance_tree",
+            "merge_strategy_param" : "conflict-segment-number=100;base-doc-count=10240;max-doc-count=102400"
+        }
+    },
+    "swift_config" : {
+        "topic" : {
+            "obsolete_file_interval" : 3600,
+            "partition_buffer_size" : 1000,
+            "partition_count" : 1,
+            "partition_file_buf_size" : 1000,
+            "partition_resource" : 1,
+            "reserved_file_count" : 10
+        }
+    }
+}

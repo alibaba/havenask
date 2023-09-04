@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/stream/GigClientStream.h"
+
 #include "aios/network/gig/multi_call/stream/GigClientStreamImpl.h"
 #include "aios/network/gig/multi_call/stream/GigStreamRequest.h"
 
@@ -23,19 +24,22 @@ namespace multi_call {
 
 AUTIL_DECLARE_AND_SETUP_LOGGER(multi_call, GigServerStream);
 
-GigClientStream::GigClientStream(const std::string& bizName, const std::string& methodName)
+GigClientStream::GigClientStream(const std::string &bizName, const std::string &methodName)
     : RequestGenerator(bizName, INVALID_SOURCE_ID, INVALID_VERSION_ID)
     , _impl(new GigClientStreamImpl(this))
     , _methodName(methodName)
     , _timeout(DEFAULT_TIMEOUT)
     , _hasError(false)
-    , _forceStop(false)
-{
+    , _forceStop(false) {
 }
 
-GigClientStream::~GigClientStream() { delete _impl; }
+GigClientStream::~GigClientStream() {
+    delete _impl;
+}
 
-GigClientStreamImpl *GigClientStream::getImpl() { return _impl; }
+GigClientStreamImpl *GigClientStream::getImpl() {
+    return _impl;
+}
 
 void GigClientStream::enablePartId(PartIdTy partId) {
     _partIds.insert(partId);
@@ -66,9 +70,8 @@ void GigClientStream::generate(PartIdTy partCnt, PartRequestMap &requestMap) {
     } else {
         for (auto partId : partIds) {
             if (partId >= partCnt) {
-                AUTIL_LOG(ERROR,
-                          "generate failed, invalid partId: %d, partCount: %d",
-                          partId, partCnt);
+                AUTIL_LOG(ERROR, "generate failed, invalid partId: %d, partCount: %d", partId,
+                          partCnt);
                 _hasError = true;
                 requestMap.clear();
                 return;
@@ -87,13 +90,11 @@ void GigClientStream::createRequest(PartIdTy partId, PartRequestMap &requestMap)
     requestMap.emplace(partId, RequestPtr(request));
 }
 
-bool GigClientStream::send(PartIdTy partId, bool eof,
-                           google::protobuf::Message *message) {
+bool GigClientStream::send(PartIdTy partId, bool eof, google::protobuf::Message *message) {
     return _impl->send(partId, eof, message);
 }
 
-void GigClientStream::sendCancel(PartIdTy partId,
-                                 google::protobuf::Message *message) {
+void GigClientStream::sendCancel(PartIdTy partId, google::protobuf::Message *message) {
     _impl->sendCancel(partId, message);
 }
 

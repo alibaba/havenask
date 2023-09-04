@@ -19,10 +19,7 @@ using namespace std;
 FSLIB_BEGIN_NAMESPACE(util);
 AUTIL_DECLARE_AND_SETUP_LOGGER(util, RegularExpr);
 
-RegularExpr::RegularExpr()
-    : _init(false)
-{ 
-}
+RegularExpr::RegularExpr() : _init(false) {}
 
 RegularExpr::~RegularExpr() {
     if (_init) {
@@ -30,12 +27,11 @@ RegularExpr::~RegularExpr() {
     }
 }
 
-bool RegularExpr::init(const string &pattern)
-{
+bool RegularExpr::init(const string &pattern) {
     if (_init) {
         return false;
     }
-    
+
     if (regcomp(&_regex, pattern.c_str(), REG_EXTENDED | REG_NOSUB) == 0) {
         _init = true;
         return true;
@@ -45,14 +41,11 @@ bool RegularExpr::init(const string &pattern)
     return false;
 }
 
-bool RegularExpr::match(const string &string) const
-{
+bool RegularExpr::match(const string &string) const {
     if (!_init) {
         return false;
     }
     return regexec(&_regex, string.c_str(), 0, NULL, 0) == 0;
 }
 
-
 FSLIB_END_NAMESPACE(util);
-

@@ -15,9 +15,9 @@
  */
 #include "autil/Regex.h"
 
+#include <algorithm>
 #include <regex.h>
 #include <stdint.h>
-#include <algorithm>
 
 #include "autil/Log.h"
 
@@ -27,17 +27,13 @@ namespace autil {
 
 AUTIL_DECLARE_AND_SETUP_LOGGER(autil, Regex);
 
-Regex::Regex() {
-}
+Regex::Regex() {}
 
-Regex::~Regex() {
-}
+Regex::~Regex() {}
 
-bool Regex::match(const std::string& str, const std::string& pattern) {
-    return match(str, pattern, REG_EXTENDED);
-};
+bool Regex::match(const std::string &str, const std::string &pattern) { return match(str, pattern, REG_EXTENDED); };
 
-bool Regex::match(const std::string& str, const std::string& pattern, int regex_mode) {
+bool Regex::match(const std::string &str, const std::string &pattern, int regex_mode) {
     regex_t reg;
     int rtn;
 
@@ -48,21 +44,18 @@ bool Regex::match(const std::string& str, const std::string& pattern, int regex_
     }
     rtn = regexec(&reg, str.c_str(), 0, 0, 0);
     regfree(&reg);
-    switch(rtn) {
+    switch (rtn) {
     case 0:
         return true;
     case REG_NOMATCH:
         return false;
     default:
-        AUTIL_LOG(ERROR, "Error when matching regex: %s with: %s",
-                  str.c_str(), pattern.c_str());
+        AUTIL_LOG(ERROR, "Error when matching regex: %s with: %s", str.c_str(), pattern.c_str());
         return false;
     }
 };
 
-bool Regex::groupMatch(const std::string &str, const std::string& pattern,
-                       std::vector<std::string>& matched_items)
-{
+bool Regex::groupMatch(const std::string &str, const std::string &pattern, std::vector<std::string> &matched_items) {
     bool IsFind;
     // size_t len;
     regex_t regex;
@@ -78,8 +71,7 @@ bool Regex::groupMatch(const std::string &str, const std::string& pattern,
         err = regexec(&regex, str.c_str(), (size_t)SUBSLEN, subs, 0);
     }
 
-    switch (err)
-    {
+    switch (err) {
     case 0:
         IsFind = true;
         break;
@@ -88,8 +80,7 @@ bool Regex::groupMatch(const std::string &str, const std::string& pattern,
         break;
     default:
         regfree(&regex);
-        AUTIL_LOG(ERROR, "Error when matching regex: %s with: %s",
-                  str.c_str(), pattern.c_str());
+        AUTIL_LOG(ERROR, "Error when matching regex: %s with: %s", str.c_str(), pattern.c_str());
         return false;
     }
     if (IsFind == false) {
@@ -110,4 +101,4 @@ bool Regex::groupMatch(const std::string &str, const std::string& pattern,
     return IsFind;
 }
 
-}
+} // namespace autil

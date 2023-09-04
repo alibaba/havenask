@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/agent/QueryInfoForMock.h"
+
 #include "aios/network/gig/multi_call/agent/GigStatistic.h"
 #include "aios/network/gig/multi_call/metric/MetricReporterManager.h"
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
@@ -26,15 +27,16 @@ AUTIL_LOG_SETUP(multi_call, QueryInfoForMock);
 static GigStatistic statistic;
 
 QueryInfoForMock::QueryInfoForMock()
-    : QueryInfo("", "", &statistic,
-                MetricReporterManagerPtr(new MetricReporterManager())) {}
+    : QueryInfo("", "", &statistic, MetricReporterManagerPtr(new MetricReporterManager())) {
+}
 
-QueryInfoForMock::~QueryInfoForMock() {}
+QueryInfoForMock::~QueryInfoForMock() {
+}
 
-std::string QueryInfoForMock::createResponseInfo(
-    float latencyMs, multi_call::MultiCallErrorCode ec, float errorRatio,
-    float degradeRatio, float avgLatency, WeightTy targetWeight,
-    bool warmupFinished) {
+std::string QueryInfoForMock::createResponseInfo(float latencyMs, multi_call::MultiCallErrorCode ec,
+                                                 float errorRatio, float degradeRatio,
+                                                 float avgLatency, WeightTy targetWeight,
+                                                 bool warmupFinished) {
     GigResponseInfo responseInfo;
     responseInfo.set_gig_response_checksum(GIG_RESPONSE_CHECKSUM);
     responseInfo.set_latency_ms(latencyMs);

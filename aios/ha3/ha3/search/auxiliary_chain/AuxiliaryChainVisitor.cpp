@@ -16,16 +16,15 @@
 #include "ha3/search/AuxiliaryChainVisitor.h"
 
 #include <assert.h>
-#include <stdint.h>
 #include <cstddef>
 #include <limits>
 #include <map>
 #include <memory>
+#include <stdint.h>
 #include <utility>
 #include <vector>
 
-#include "indexlib/indexlib.h"
-
+#include "autil/Log.h"
 #include "ha3/common/AndNotQuery.h"
 #include "ha3/common/AndQuery.h"
 #include "ha3/common/MultiTermQuery.h"
@@ -40,7 +39,7 @@
 #include "ha3/isearch.h"
 #include "ha3/search/AuxiliaryChainDefine.h"
 #include "ha3/search/TermDFVisitor.h"
-#include "autil/Log.h"
+#include "indexlib/indexlib.h"
 
 using namespace std;
 
@@ -50,18 +49,14 @@ namespace isearch {
 namespace search {
 AUTIL_LOG_SETUP(ha3, AuxiliaryChainVisitor);
 
-AuxiliaryChainVisitor::AuxiliaryChainVisitor(
-        const std::string &auxChainName,
-        const TermDFMap &termDFMap,
-        SelectAuxChainType type)
+AuxiliaryChainVisitor::AuxiliaryChainVisitor(const std::string &auxChainName,
+                                             const TermDFMap &termDFMap,
+                                             SelectAuxChainType type)
     : _auxChainName(auxChainName)
     , _termDFMap(termDFMap)
-    , _type(type)
-{
-}
+    , _type(type) {}
 
-AuxiliaryChainVisitor::~AuxiliaryChainVisitor() { 
-}
+AuxiliaryChainVisitor::~AuxiliaryChainVisitor() {}
 
 void AuxiliaryChainVisitor::visitTermQuery(TermQuery *query) {
     common::Term &term = query->getTerm();
@@ -69,16 +64,16 @@ void AuxiliaryChainVisitor::visitTermQuery(TermQuery *query) {
 }
 
 void AuxiliaryChainVisitor::visitPhraseQuery(PhraseQuery *query) {
-    PhraseQuery::TermArray& terms = query->getTermArray();
+    PhraseQuery::TermArray &terms = query->getTermArray();
     for (size_t i = 0; i < terms.size(); ++i) {
         terms[i]->setTruncateName(_auxChainName);
     }
 }
 
 void AuxiliaryChainVisitor::visitMultiTermQuery(MultiTermQuery *query) {
-    MultiTermQuery::TermArray& terms = query->getTermArray();
-    QueryOperator op =  query->getOpExpr();
-    if(op == OP_AND && _type != SAC_ALL) {
+    MultiTermQuery::TermArray &terms = query->getTermArray();
+    QueryOperator op = query->getOpExpr();
+    if (op == OP_AND && _type != SAC_ALL) {
         int32_t maxIdx = -1;
         int32_t minIdx = -1;
         df_t maxDF = 0;
@@ -100,7 +95,7 @@ void AuxiliaryChainVisitor::visitMultiTermQuery(MultiTermQuery *query) {
         } else if (minIdx >= 0 && _type == SAC_DF_SMALLER) {
             terms[minIdx]->setTruncateName(_auxChainName);
         }
-    } else { //OP_OR, OP_WEAKAND
+    } else { // OP_OR, OP_WEAKAND
         for (size_t i = 0; i < terms.size(); ++i) {
             terms[i]->setTruncateName(_auxChainName);
         }
@@ -108,7 +103,7 @@ void AuxiliaryChainVisitor::visitMultiTermQuery(MultiTermQuery *query) {
 }
 
 void AuxiliaryChainVisitor::visitAndQuery(AndQuery *query) {
-    vector<QueryPtr>* childQuerys = query->getChildQuery();
+    vector<QueryPtr> *childQuerys = query->getChildQuery();
     if (_type == SAC_ALL) {
         for (int32_t i = 0; i < (int32_t)childQuerys->size(); ++i) {
             (*childQuerys)[i]->accept(this);
@@ -140,20 +135,20 @@ void AuxiliaryChainVisitor::visitAndQuery(AndQuery *query) {
 }
 
 void AuxiliaryChainVisitor::visitOrQuery(OrQuery *query) {
-    vector<QueryPtr>* childQuerys = query->getChildQuery();
+    vector<QueryPtr> *childQuerys = query->getChildQuery();
     for (size_t i = 0; i < childQuerys->size(); ++i) {
         (*childQuerys)[i]->accept(this);
     }
 }
 
 void AuxiliaryChainVisitor::visitAndNotQuery(AndNotQuery *query) {
-    vector<QueryPtr>* childQuerys = query->getChildQuery();
+    vector<QueryPtr> *childQuerys = query->getChildQuery();
     assert((*childQuerys)[0]);
     (*childQuerys)[0]->accept(this);
 }
 
 void AuxiliaryChainVisitor::visitRankQuery(RankQuery *query) {
-    vector<QueryPtr>* childQuerys = query->getChildQuery();
+    vector<QueryPtr> *childQuerys = query->getChildQuery();
     assert((*childQuerys)[0]);
     (*childQuerys)[0]->accept(this);
 }
@@ -165,4 +160,3 @@ void AuxiliaryChainVisitor::visitNumberQuery(NumberQuery *query) {
 
 } // namespace search
 } // namespace isearch
-

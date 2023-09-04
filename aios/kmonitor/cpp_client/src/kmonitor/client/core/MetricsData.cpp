@@ -5,19 +5,19 @@
  * Author Email: xsank.mz@alibaba-inc.com
  * */
 
+#include "kmonitor/client/core/MetricsData.h"
+
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include "autil/Log.h"
-#include "kmonitor/client/core/MetricsFactory.h"
-#include "kmonitor/client/metric/Metric.h"
-#include "kmonitor/client/core/MetricsTags.h"
-#include "kmonitor/client/core/MetricsCollector.h"
-#include "kmonitor/client/core/MetricsData.h"
-#include "kmonitor/client/core/MetricsTagsManager.h"
-#include "kmonitor/client/core/MetricsCache.h"
-#include "autil/Log.h"
 
+#include "autil/Log.h"
+#include "kmonitor/client/core/MetricsCache.h"
+#include "kmonitor/client/core/MetricsCollector.h"
+#include "kmonitor/client/core/MetricsFactory.h"
+#include "kmonitor/client/core/MetricsTags.h"
+#include "kmonitor/client/core/MetricsTagsManager.h"
+#include "kmonitor/client/metric/Metric.h"
 
 //因为会复用，所以MAX_METRIC_POOL_SIZE这个可以较小
 #define MAX_METRIC_POOL_SIZE 20
@@ -25,29 +25,30 @@
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 AUTIL_LOG_SETUP(kmonitor, MetricsData);
 
-using std::string;
-using std::vector;
 using std::map;
 using std::pair;
+using std::string;
+using std::vector;
 using namespace autil;
 
-MetricsData::MetricsData(const string &name, MetricType type, MetricLevel level,
-                         MetricsTagsManager *tags_manager, MetricsCache* metricsCache)
+MetricsData::MetricsData(const string &name,
+                         MetricType type,
+                         MetricLevel level,
+                         MetricsTagsManager *tags_manager,
+                         MetricsCache *metricsCache)
     : metric_name_(name)
     , type_(type)
     , level_(level)
     , registered_(true)
     , tags_manager_(tags_manager)
-    , metricsCache_(metricsCache)
-{
-}
+    , metricsCache_(metricsCache) {}
 
 MetricsData::~MetricsData() {
     Metric *metric = NULL;
     auto it = metric_map_.begin();
     while (it != metric_map_.end()) {
-        pair<MetricsTagsPtr, Metric*> & pair_metric = it->second;
-        MetricsTagsPtr& tags = pair_metric.first;
+        pair<MetricsTagsPtr, Metric *> &pair_metric = it->second;
+        MetricsTagsPtr &tags = pair_metric.first;
         metric = pair_metric.second;
 
         tags.reset();
@@ -67,10 +68,9 @@ int MetricsData::Size() {
     return metric_map_.size();
 }
 
-Metric* MetricsData::GetMetric(const MetricsTags *tags) {
+Metric *MetricsData::GetMetric(const MetricsTags *tags) {
     if (!registered_) {
-        AUTIL_LOG(ERROR, "can't get metric with unregistered, metric name:%s",
-                     metric_name_.c_str());
+        AUTIL_LOG(ERROR, "can't get metric with unregistered, metric name:%s", metric_name_.c_str());
         return nullptr;
     }
     uint64_t tagsHash = (tags == NULL) ? 0 : tags->Hashcode();
@@ -119,8 +119,7 @@ Metric* MetricsData::GetMetric(const MetricsTags *tags) {
     } else {
         metric = MetricsFactory::CreateMetric(metric_name_, type_);
         if (metric == NULL) {
-            AUTIL_LOG(ERROR, "can't create metric for %s type[%u]",
-                         metric_name_.c_str(), type_);
+            AUTIL_LOG(ERROR, "can't create metric for %s type[%u]", metric_name_.c_str(), type_);
             return nullptr;
         }
     }
@@ -129,10 +128,12 @@ Metric* MetricsData::GetMetric(const MetricsTags *tags) {
     return metric;
 }
 
-Metric* MetricsData::GetMetric(const MetricsTagsPtr& tags) {
+Metric *MetricsData::GetMetric(const MetricsTagsPtr &tags) {
     if (!registered_ || !tags) {
-        AUTIL_LOG(ERROR, "can't get metric with unregistered or empty tags[%p], metric name:%s",
-                     tags.get(), metric_name_.c_str());
+        AUTIL_LOG(ERROR,
+                  "can't get metric with unregistered or empty tags[%p], metric name:%s",
+                  tags.get(),
+                  metric_name_.c_str());
         return nullptr;
     }
     {
@@ -158,8 +159,7 @@ Metric* MetricsData::GetMetric(const MetricsTagsPtr& tags) {
     } else {
         metric = MetricsFactory::CreateMetric(metric_name_, type_);
         if (metric == NULL) {
-            AUTIL_LOG(ERROR, "can't create metric for %s type[%u]",
-                         metric_name_.c_str(), type_);
+            AUTIL_LOG(ERROR, "can't create metric for %s type[%u]", metric_name_.c_str(), type_);
             return metric;
         }
     }
@@ -168,13 +168,9 @@ Metric* MetricsData::GetMetric(const MetricsTagsPtr& tags) {
     return metric;
 }
 
-void MetricsData::Unregister() {
-    registered_ = false;
-}
+void MetricsData::Unregister() { registered_ = false; }
 
-MetricType MetricsData::GetMetricType() {
-    return type_;
-}
+MetricType MetricsData::GetMetricType() { return type_; }
 
 void MetricsData::Snapshot(MetricsCollector *collector, int64_t curTime) {
     vector<int64_t> toRemoveVec;
@@ -182,24 +178,21 @@ void MetricsData::Snapshot(MetricsCollector *collector, int64_t curTime) {
         ScopedReadLock lock(metric_rwlock_);
         auto it = metric_map_.begin();
         while (it != metric_map_.end()) {
-            pair<MetricsTagsPtr, Metric*> & pair_metric = it->second;
-            MetricsTagsPtr& tags = pair_metric.first;
+            pair<MetricsTagsPtr, Metric *> &pair_metric = it->second;
+            MetricsTagsPtr &tags = pair_metric.first;
             Metric *metric = pair_metric.second;
             if (tags == NULL || metric == NULL) {
-                AUTIL_LOG(ERROR, "error tags[%p] or metric[%p] for hashcode[%ld]",
-                        tags.get(), metric, it->first);
+                AUTIL_LOG(ERROR, "error tags[%p] or metric[%p] for hashcode[%ld]", tags.get(), metric, it->first);
                 ++it;
                 continue;
             }
 
             MetricsRecord *record = collector->AddRecord(metric_name_, tags, curTime);
 
-            metric->Snapshot(record, 1000*(int64_t)MetricLevelManager::GetLevelPeriod(level_));
-            AUTIL_LOG(DEBUG, "metrics[%s] tags[%s] is snapshot",
-                         metric_name_.c_str(), tags->ToString().c_str());
+            metric->Snapshot(record, 1000 * (int64_t)MetricLevelManager::GetLevelPeriod(level_));
+            AUTIL_LOG(DEBUG, "metrics[%s] tags[%s] is snapshot", metric_name_.c_str(), tags->ToString().c_str());
             if (metric->canRecycle()) {
-                AUTIL_LOG(DEBUG, "metrics[%s] tags[%s] is be recycled",
-                        metric_name_.c_str(), tags->ToString().c_str());
+                AUTIL_LOG(DEBUG, "metrics[%s] tags[%s] is be recycled", metric_name_.c_str(), tags->ToString().c_str());
                 if (metricsCache_ != NULL) {
                     uint64_t tags_hash = (tags == NULL) ? 0 : tags->Hashcode();
                     metricsCache_->ClearCache(metric_name_, tags_hash, metric);
@@ -216,7 +209,7 @@ void MetricsData::Snapshot(MetricsCollector *collector, int64_t curTime) {
             if (it == metric_map_.end()) {
                 continue;
             }
-            pair<MetricsTagsPtr, Metric*> & pair_metric = it->second;
+            pair<MetricsTagsPtr, Metric *> &pair_metric = it->second;
             Metric *metric = pair_metric.second;
             size_t pool_size = metric_pool_.size();
             if (pool_size < MAX_METRIC_POOL_SIZE) {

@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "iquan/common/catalog/LayerTablePlanMetaDef.h"
 
@@ -30,6 +30,7 @@ public:
     const std::vector<LayerTablePlanMeta> &getLayerTableMetas() const {
         return layerTableMetas;
     }
+
 private:
     std::vector<LayerTablePlanMeta> layerTableMetas;
 };

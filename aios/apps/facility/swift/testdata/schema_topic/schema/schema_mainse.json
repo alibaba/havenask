@@ -1,0 +1,6562 @@
+{
+    "topic": "mainse",
+    "version": 1,
+    "fields": [
+        {
+            "name": "CMD",
+            "type": "string"
+        },
+        {
+            "name": "ha_reserved_timestamp",
+            "type": "string"
+        },
+        {
+            "name": "small_image",
+            "type": "string"
+        },
+        {
+            "name": "kxuan_base_commission_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_lev_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_store_deal_control_b2c",
+            "type": "string"
+        },
+        {
+            "name": "auction_brand_collect_b2c",
+            "type": "string"
+        },
+        {
+            "name": "dna_id_4tmall_b2c",
+            "type": "string"
+        },
+        {
+            "name": "item_fc_random_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "property_alias",
+            "type": "string"
+        },
+        {
+            "name": "jk_rx_prov_id_list",
+            "type": "string"
+        },
+        {
+            "name": "multi_term_norm_pay14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pidvid_tmall",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_group_tmall",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_power_pv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "user_prov_name_c2c",
+            "type": "string"
+        },
+        {
+            "name": "spu_biz30day",
+            "type": "string"
+        },
+        {
+            "name": "nid_pv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_user_score2_inshop",
+            "type": "string"
+        },
+        {
+            "name": "user_supplier_id",
+            "type": "string"
+        },
+        {
+            "name": "pdb_ck_stay_time_30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_id",
+            "type": "string"
+        },
+        {
+            "name": "s_seller_payuv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_customprotection_30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "en_title",
+            "type": "string"
+        },
+        {
+            "name": "pidvid_sku_search",
+            "type": "string"
+        },
+        {
+            "name": "iidvid_b2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_or_num",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_nid_userlayer_ipv1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "has_1212coupon",
+            "type": "string"
+        },
+        {
+            "name": "gmvrank_inshop",
+            "type": "string"
+        },
+        {
+            "name": "poi_newoffer",
+            "type": "string"
+        },
+        {
+            "name": "s_seller_payuv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "newitem_publish_days_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_sku_zk_time_tmall",
+            "type": "string"
+        },
+        {
+            "name": "mainse_video_covers_c2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_star_id_c2c",
+            "type": "string"
+        },
+        {
+            "name": "coupon_region",
+            "type": "string"
+        },
+        {
+            "name": "shop_main_categories",
+            "type": "string"
+        },
+        {
+            "name": "alg_pscore3_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_payuv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_level5_c2c",
+            "type": "string"
+        },
+        {
+            "name": "jhs_feature_dynamic2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_siteid",
+            "type": "string"
+        },
+        {
+            "name": "auc_roughsort_shop_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_spu_disable",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_queryseg_norm_pv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_age_payuv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "barcodes",
+            "type": "string"
+        },
+        {
+            "name": "ls_pay_time_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_lowest_price_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tw_score",
+            "type": "string"
+        },
+        {
+            "name": "multi_usersex_cvr14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "wireless_shop_category_list",
+            "type": "string"
+        },
+        {
+            "name": "sku_tagprice_max_wap",
+            "type": "string"
+        },
+        {
+            "name": "inshop_cat_id_path",
+            "type": "string"
+        },
+        {
+            "name": "oldbiz30day",
+            "type": "string"
+        },
+        {
+            "name": "lg_auction_with_city",
+            "type": "string"
+        },
+        {
+            "name": "ct_bts_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "recall_toy_product_item_result_ds_c2c",
+            "type": "string"
+        },
+        {
+            "name": "title_weighting_c2c",
+            "type": "string"
+        },
+        {
+            "name": "qt_r_seller_payuv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "category_level1_ipv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_query_7day_ipv_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_pidvid",
+            "type": "string"
+        },
+        {
+            "name": "tmall_auction_brand_value1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "coupon_expand_multiple",
+            "type": "string"
+        },
+        {
+            "name": "auc_money_score_b2c",
+            "type": "string"
+        },
+        {
+            "name": "static_trans_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "options_bits",
+            "type": "string"
+        },
+        {
+            "name": "new_dsr",
+            "type": "string"
+        },
+        {
+            "name": "support_cod",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_nid_gmv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "flow_control_type_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_seller_userlayer_pv1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "global_area_id",
+            "type": "string"
+        },
+        {
+            "name": "cart_cvr_gul_rt_today_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_detail_score_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_payuv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "item_ensemble_cvr_b2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_seller_userlayer_cart14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_nid_userlayer_ipv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "gul_seller_staytime_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "nid_widetrans_score_bts_c2c",
+            "type": "string"
+        },
+        {
+            "name": "recommend_labels_bts_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_term_norm_pv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "original_tag_price_wap",
+            "type": "string"
+        },
+        {
+            "name": "title_term_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cvr_c2c",
+            "type": "string"
+        },
+        {
+            "name": "jhs_starttime",
+            "type": "string"
+        },
+        {
+            "name": "tmall_seller_sort_bts1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "jurc_ord_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auction_ext",
+            "type": "string"
+        },
+        {
+            "name": "prop_index_mlr_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_size_info",
+            "type": "string"
+        },
+        {
+            "name": "pid_c2c",
+            "type": "string"
+        },
+        {
+            "name": "rings2_tag",
+            "type": "string"
+        },
+        {
+            "name": "cart_pay_rate_data_b2c",
+            "type": "string"
+        },
+        {
+            "name": "lptime",
+            "type": "string"
+        },
+        {
+            "name": "qtscore_c2c",
+            "type": "string"
+        },
+        {
+            "name": "default_top_skuid",
+            "type": "string"
+        },
+        {
+            "name": "g9_type_c2c",
+            "type": "string"
+        },
+        {
+            "name": "haixuan_item_stat_vec_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_video_5s_cover_duration_tmtab_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pidvid_detail_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_seller_sort_bts3_b2c",
+            "type": "string"
+        },
+        {
+            "name": "kxuan_swyt_item",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_nid_pv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_time_wap_skulist",
+            "type": "string"
+        },
+        {
+            "name": "smooth_ctr_cat_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auction_type",
+            "type": "string"
+        },
+        {
+            "name": "leafcat_pricerank_robust_c2c",
+            "type": "string"
+        },
+        {
+            "name": "c2cmerge_filter",
+            "type": "string"
+        },
+        {
+            "name": "ali_nfc_tc_hidep_seller_c2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_level_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_starts",
+            "type": "string"
+        },
+        {
+            "name": "his_price",
+            "type": "string"
+        },
+        {
+            "name": "seller_level3_c2c",
+            "type": "string"
+        },
+        {
+            "name": "people_num",
+            "type": "string"
+        },
+        {
+            "name": "qt_s_seller_payuv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_price_level_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_promotion_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_term_norm_ipv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auction_flag",
+            "type": "string"
+        },
+        {
+            "name": "item_query_score4_c2c",
+            "type": "string"
+        },
+        {
+            "name": "mainse_item_hdfs_predict_postprocess_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_title_pile_term_id_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_zk_type",
+            "type": "string"
+        },
+        {
+            "name": "new_retail_nid",
+            "type": "string"
+        },
+        {
+            "name": "coll_auction_num_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sis_seller_update_score",
+            "type": "string"
+        },
+        {
+            "name": "support_xcard",
+            "type": "string"
+        },
+        {
+            "name": "nid_ipv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "voucher_price",
+            "type": "string"
+        },
+        {
+            "name": "lp_start",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_pv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pid",
+            "type": "string"
+        },
+        {
+            "name": "region_tag_skulist",
+            "type": "string"
+        },
+        {
+            "name": "w_normalize_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_recommend_count_c2c",
+            "type": "string"
+        },
+        {
+            "name": "mainbts_rand_buy_c2c",
+            "type": "string"
+        },
+        {
+            "name": "category_pv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_auction_brand_tags_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_tqdj_test_score_b2c",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_price_field_tmall_wap",
+            "type": "string"
+        },
+        {
+            "name": "ct_realtime_tags_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cspuid_skulist",
+            "type": "string"
+        },
+        {
+            "name": "item_user_score_inshop",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_usersex_pay_cnt7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_queryseg_norm_ipv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "gul_item_discount_c2c",
+            "type": "string"
+        },
+        {
+            "name": "show_image_feature_bts_list_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_power_ipv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_nid_userlayer_fav1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_power_pay_cnt14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "dnn_item_vector_b2c",
+            "type": "string"
+        },
+        {
+            "name": "h2h_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "prom_discount",
+            "type": "string"
+        },
+        {
+            "name": "isnew",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_payuv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sex_haixuan_c2c",
+            "type": "string"
+        },
+        {
+            "name": "s_seller_payuv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_tag_skulist",
+            "type": "string"
+        },
+        {
+            "name": "isnewest",
+            "type": "string"
+        },
+        {
+            "name": "jhs_realtime_saima_pre_c2c",
+            "type": "string"
+        },
+        {
+            "name": "offline_tj_xuanpin_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "bid2_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_seller_payuv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "disp_flag",
+            "type": "string"
+        },
+        {
+            "name": "region_sku_final_price_skulist",
+            "type": "string"
+        },
+        {
+            "name": "relation_u2i_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_zm_w2vi2i_bts1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_multi_term_norm_ipv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "item_brand_layer_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_query_7day_collect_c2c",
+            "type": "string"
+        },
+        {
+            "name": "rt_dpv_day_n_c2c",
+            "type": "string"
+        },
+        {
+            "name": "comment_count",
+            "type": "string"
+        },
+        {
+            "name": "size_props",
+            "type": "string"
+        },
+        {
+            "name": "usertag9",
+            "type": "string"
+        },
+        {
+            "name": "shop_zhuanji_tag",
+            "type": "string"
+        },
+        {
+            "name": "cvr_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_bigpic_7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_term_weight_c2c",
+            "type": "string"
+        },
+        {
+            "name": "recommend_brand_nova_c2c",
+            "type": "string"
+        },
+        {
+            "name": "bonus_amount_1212",
+            "type": "string"
+        },
+        {
+            "name": "item_tag_weight_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_npx_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "mlr_algo_bts1_yundu_b2c",
+            "type": "string"
+        },
+        {
+            "name": "xiaogu_mutivalue_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_roughsort_utag_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_seller_ipv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_seller_ipv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "basis_items_informations",
+            "type": "string"
+        },
+        {
+            "name": "region_id",
+            "type": "string"
+        },
+        {
+            "name": "selection_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "qt_s_nid_ipv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_seller_payuv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_tag_tmall",
+            "type": "string"
+        },
+        {
+            "name": "show_prop_score_list_c2c",
+            "type": "string"
+        },
+        {
+            "name": "category_pv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "regioncode_skulist",
+            "type": "string"
+        },
+        {
+            "name": "take_rate_c2c",
+            "type": "string"
+        },
+        {
+            "name": "apv_confidence_bts_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_original_zk_restrict",
+            "type": "string"
+        },
+        {
+            "name": "nid_term_weight_c2c",
+            "type": "string"
+        },
+        {
+            "name": "gul_pricerank_c2c",
+            "type": "string"
+        },
+        {
+            "name": "coupon_business_id",
+            "type": "string"
+        },
+        {
+            "name": "aio_tag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_pscore_c2c",
+            "type": "string"
+        },
+        {
+            "name": "long_selling_piont_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_recommend_count_b2c",
+            "type": "string"
+        },
+        {
+            "name": "promote",
+            "type": "string"
+        },
+        {
+            "name": "mj_zk_fee",
+            "type": "string"
+        },
+        {
+            "name": "brand_field_c2c",
+            "type": "string"
+        },
+        {
+            "name": "mainbts_good_buy",
+            "type": "string"
+        },
+        {
+            "name": "cspu_disable_skulist",
+            "type": "string"
+        },
+        {
+            "name": "tmall_algo_single_bts3_b2c",
+            "type": "string"
+        },
+        {
+            "name": "kg_tidvid_c2c",
+            "type": "string"
+        },
+        {
+            "name": "rq_properties",
+            "type": "string"
+        },
+        {
+            "name": "pdb_questionall_7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "platform_coupon_expend",
+            "type": "string"
+        },
+        {
+            "name": "new_query_14day_collect_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tuning_price_b_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cart_out_tag_data_c2c",
+            "type": "string"
+        },
+        {
+            "name": "qx_nid_query_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "i2i_vec_rank_c2c",
+            "type": "string"
+        },
+        {
+            "name": "b2b_all_seed_item_info_c2c",
+            "type": "string"
+        },
+        {
+            "name": "store_ids",
+            "type": "string"
+        },
+        {
+            "name": "store_city_name",
+            "type": "string"
+        },
+        {
+            "name": "sale_risk_level_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_product_score",
+            "type": "string"
+        },
+        {
+            "name": "division_brand_diaoxing_b2c",
+            "type": "string"
+        },
+        {
+            "name": "lg_auction_with_city_b2c",
+            "type": "string"
+        },
+        {
+            "name": "buyer_age_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_shop_prom_type",
+            "type": "string"
+        },
+        {
+            "name": "prom_options_bit",
+            "type": "string"
+        },
+        {
+            "name": "sy_inc_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_products_flag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "support_bonus",
+            "type": "string"
+        },
+        {
+            "name": "starts",
+            "type": "string"
+        },
+        {
+            "name": "gul_dpvr_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ipv_4_c2c",
+            "type": "string"
+        },
+        {
+            "name": "zk_time",
+            "type": "string"
+        },
+        {
+            "name": "recommend_tags_c2c",
+            "type": "string"
+        },
+        {
+            "name": "coupon_value",
+            "type": "string"
+        },
+        {
+            "name": "region_tag",
+            "type": "string"
+        },
+        {
+            "name": "smooth_cvr_cat_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_sku_price_field_tmall",
+            "type": "string"
+        },
+        {
+            "name": "seller_matrix_personal_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_price_inshop",
+            "type": "string"
+        },
+        {
+            "name": "name_newoffer",
+            "type": "string"
+        },
+        {
+            "name": "concept_id",
+            "type": "string"
+        },
+        {
+            "name": "new_query_7day_cart_c2c",
+            "type": "string"
+        },
+        {
+            "name": "inshop_filter",
+            "type": "string"
+        },
+        {
+            "name": "auc_quality2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "jurc_eh_all_preheating_ipv_uv_c2c",
+            "type": "string"
+        },
+        {
+            "name": "oversea_experience_region",
+            "type": "string"
+        },
+        {
+            "name": "ends",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_nid_ipv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "brand_type_c2c",
+            "type": "string"
+        },
+        {
+            "name": "short_title_new_bts_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_feature_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cspu_pict_skulist",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_seller_userlayer_ipv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "isfirstzk",
+            "type": "string"
+        },
+        {
+            "name": "shop_prom_time",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_queryseg_norm_ipv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "g9_show_text_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_item_hgnn_emb_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_usersex_ipv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "bid3",
+            "type": "string"
+        },
+        {
+            "name": "bid1",
+            "type": "string"
+        },
+        {
+            "name": "seller_sort_multi_bts1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "bid2",
+            "type": "string"
+        },
+        {
+            "name": "pricemodel_lowprice",
+            "type": "string"
+        },
+        {
+            "name": "h1_val",
+            "type": "string"
+        },
+        {
+            "name": "sku_zk_group_tmall_wap",
+            "type": "string"
+        },
+        {
+            "name": "kd_i2i_v1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_popu_new_product",
+            "type": "string"
+        },
+        {
+            "name": "grade_avg",
+            "type": "string"
+        },
+        {
+            "name": "bc_type_b2c",
+            "type": "string"
+        },
+        {
+            "name": "validprice_c2c",
+            "type": "string"
+        },
+        {
+            "name": "smart_summary_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_nid_userlayer_pay1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "nid_pv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_cvr_c2c",
+            "type": "string"
+        },
+        {
+            "name": "video_ratio_talent",
+            "type": "string"
+        },
+        {
+            "name": "oe_zhaohui_for_merge_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_money_score_exp_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_zk_group_skulist",
+            "type": "string"
+        },
+        {
+            "name": "alg_tag",
+            "type": "string"
+        },
+        {
+            "name": "options",
+            "type": "string"
+        },
+        {
+            "name": "item_video_5s_cover_duration_c2c",
+            "type": "string"
+        },
+        {
+            "name": "niupixian_new_c2c",
+            "type": "string"
+        },
+        {
+            "name": "un_hot_properties",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_term_norm_ipv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_nid_ipv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_usersex_pay_cnt14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "high_risk_level_c2c",
+            "type": "string"
+        },
+        {
+            "name": "detail_short_name",
+            "type": "string"
+        },
+        {
+            "name": "image_url",
+            "type": "string"
+        },
+        {
+            "name": "gyl_new_item_feat_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_original_sku_zk_time_skulist",
+            "type": "string"
+        },
+        {
+            "name": "pdb_questionall_30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "region_original_zk_restrict_skulist",
+            "type": "string"
+        },
+        {
+            "name": "tmall_algo_single_bts1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_nid_ipv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "all_ovs_score",
+            "type": "string"
+        },
+        {
+            "name": "pop_score_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_b_seller_sort_bts2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pv_gul_rt_today_c2c",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_gmv14_inshop",
+            "type": "string"
+        },
+        {
+            "name": "pdb_promotion_30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "realtime_cvr_score2_1111",
+            "type": "string"
+        },
+        {
+            "name": "assure",
+            "type": "string"
+        },
+        {
+            "name": "biz30day",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_ipv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_payuv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "kxuan_swyt_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_seller_payuv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "mlr_item_satisfaction_score_inshop",
+            "type": "string"
+        },
+        {
+            "name": "video_covervideo_url_talent",
+            "type": "string"
+        },
+        {
+            "name": "personal_brand_id_c2c",
+            "type": "string"
+        },
+        {
+            "name": "mall_chaoshi_business_meddle_b2c",
+            "type": "string"
+        },
+        {
+            "name": "mainse_video_ppt_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_wordbag_vector_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_item_query_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "virtual_id",
+            "type": "string"
+        },
+        {
+            "name": "sub_spuid",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_pv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "mainse_video_duration_c2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_id_pv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "summary_filter",
+            "type": "string"
+        },
+        {
+            "name": "credit_rate",
+            "type": "string"
+        },
+        {
+            "name": "act_ugc_content_flag_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_comments_30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "en_sub_title",
+            "type": "string"
+        },
+        {
+            "name": "qx_nid_acttype_c2c",
+            "type": "string"
+        },
+        {
+            "name": "user_pred_gender_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ave_23_c2c",
+            "type": "string"
+        },
+        {
+            "name": "price_level_c2c",
+            "type": "string"
+        },
+        {
+            "name": "intent_id_c2c",
+            "type": "string"
+        },
+        {
+            "name": "spu_id",
+            "type": "string"
+        },
+        {
+            "name": "item_query_score",
+            "type": "string"
+        },
+        {
+            "name": "alg_pscore9_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tk_url",
+            "type": "string"
+        },
+        {
+            "name": "tmall_algo_item_embedding_b2c",
+            "type": "string"
+        },
+        {
+            "name": "kxuan_ydn_st_c2c",
+            "type": "string"
+        },
+        {
+            "name": "zk_final_min_wap",
+            "type": "string"
+        },
+        {
+            "name": "pidvid",
+            "type": "string"
+        },
+        {
+            "name": "sku_tagprice_min_wap",
+            "type": "string"
+        },
+        {
+            "name": "subname_newoffer",
+            "type": "string"
+        },
+        {
+            "name": "promotion_ids",
+            "type": "string"
+        },
+        {
+            "name": "kxuan_ydn_et_c2c",
+            "type": "string"
+        },
+        {
+            "name": "i2i_vec_no_position_c2c",
+            "type": "string"
+        },
+        {
+            "name": "static_trans_score_inshop",
+            "type": "string"
+        },
+        {
+            "name": "ha_reserved_modify_fields",
+            "type": "string"
+        },
+        {
+            "name": "item_vec_b2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_seller_userlayer_ipv1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_popu_new_product_b2c",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_group_skulist",
+            "type": "string"
+        },
+        {
+            "name": "tk_group_ids",
+            "type": "string"
+        },
+        {
+            "name": "aa_spustatus",
+            "type": "string"
+        },
+        {
+            "name": "region_shop_prom_code",
+            "type": "string"
+        },
+        {
+            "name": "show_image_vector_info_list_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ali_new_item_five_ad_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_final_price_skulist",
+            "type": "string"
+        },
+        {
+            "name": "original_zk_final_price_wap",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_tag_wap_skulist",
+            "type": "string"
+        },
+        {
+            "name": "d2s_tmall_auction_sell_point_info_cp1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "store_list",
+            "type": "string"
+        },
+        {
+            "name": "b2c_shop_type_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auction_oid_c2c",
+            "type": "string"
+        },
+        {
+            "name": "back_05_inshop",
+            "type": "string"
+        },
+        {
+            "name": "sku_price_field",
+            "type": "string"
+        },
+        {
+            "name": "apv_title_tag",
+            "type": "string"
+        },
+        {
+            "name": "doc_more",
+            "type": "string"
+        },
+        {
+            "name": "item_all_payuv_b2c",
+            "type": "string"
+        },
+        {
+            "name": "spam_auction_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_target_feat_b2c",
+            "type": "string"
+        },
+        {
+            "name": "lsrp_them_act_c2c",
+            "type": "string"
+        },
+        {
+            "name": "rewq_kg_for_mlrdata_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_color_alg",
+            "type": "string"
+        },
+        {
+            "name": "cm_input_props",
+            "type": "string"
+        },
+        {
+            "name": "best_sell_item_score_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_direct_delivery_area",
+            "type": "string"
+        },
+        {
+            "name": "user_tag2",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_age_pv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_dynamic_rule_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "android_quality_rank_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_algo_resort_multi_bts2_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_ck_stay_time_7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "iidvid_c2c",
+            "type": "string"
+        },
+        {
+            "name": "jhs_feature_realinfo2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_filter",
+            "type": "string"
+        },
+        {
+            "name": "u_purchase_total_ipv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ant_instalment_time",
+            "type": "string"
+        },
+        {
+            "name": "index_generated_feature_online_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pid_b2c",
+            "type": "string"
+        },
+        {
+            "name": "category_ipv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "mallist_biz30day_group_merge_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_seller_pv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "auctonkeyprop",
+            "type": "string"
+        },
+        {
+            "name": "volume30day",
+            "type": "string"
+        },
+        {
+            "name": "jyj_tc_maxPrice",
+            "type": "string"
+        },
+        {
+            "name": "tag_price",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_final_price_wap_skulist",
+            "type": "string"
+        },
+        {
+            "name": "last_modified",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_seller_payuv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_c_level_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_price_field_tmall_wap",
+            "type": "string"
+        },
+        {
+            "name": "limitpromotion",
+            "type": "string"
+        },
+        {
+            "name": "show_sku_inshop",
+            "type": "string"
+        },
+        {
+            "name": "title_expand_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sis_seller_update_score_b2c",
+            "type": "string"
+        },
+        {
+            "name": "jhs_algo_score_2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pict_tagging_feature_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sex_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_multi_queryseg_norm_pay7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "site_id",
+            "type": "string"
+        },
+        {
+            "name": "base_renqi_score",
+            "type": "string"
+        },
+        {
+            "name": "store_poi_list",
+            "type": "string"
+        },
+        {
+            "name": "division_pidvid_b2c",
+            "type": "string"
+        },
+        {
+            "name": "user_pay_time_gap_c2c",
+            "type": "string"
+        },
+        {
+            "name": "scene_pic_c2c",
+            "type": "string"
+        },
+        {
+            "name": "overseauser_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_seller_ipv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_algo_resort_multi_bts3_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_barwangwang_7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "item_fc_random_score_b2c",
+            "type": "string"
+        },
+        {
+            "name": "gmt_modified",
+            "type": "string"
+        },
+        {
+            "name": "item_satisfaction_score",
+            "type": "string"
+        },
+        {
+            "name": "mlr_algo_bts2_yundu_b2c",
+            "type": "string"
+        },
+        {
+            "name": "price_level_haixuan_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cuxiao_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_multi_queryseg_norm_ipv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "has_bonus_1212",
+            "type": "string"
+        },
+        {
+            "name": "ali_new_item_five_ad_cost_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmc_tags",
+            "type": "string"
+        },
+        {
+            "name": "pict_url_wap",
+            "type": "string"
+        },
+        {
+            "name": "apass_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "deep_semantic_vec_bts_c2c",
+            "type": "string"
+        },
+        {
+            "name": "road_five_v2_ni_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_tag_se_skulist",
+            "type": "string"
+        },
+        {
+            "name": "gul_dpvipv_c2c",
+            "type": "string"
+        },
+        {
+            "name": "deep_semantic_vec_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_zk_time_tmall_wap",
+            "type": "string"
+        },
+        {
+            "name": "pdb_customprotection_30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "features_market_time",
+            "type": "string"
+        },
+        {
+            "name": "road_five_v2_pay_cnt_c2c",
+            "type": "string"
+        },
+        {
+            "name": "show_image_url_list_c2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_type",
+            "type": "string"
+        },
+        {
+            "name": "se_coupon_disrate_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_sell_point_info_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_pricerank_b2c",
+            "type": "string"
+        },
+        {
+            "name": "short_title_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_ld_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "backup_02_inshop",
+            "type": "string"
+        },
+        {
+            "name": "tm_foottag_multi64_b2c",
+            "type": "string"
+        },
+        {
+            "name": "inshop_pidvid",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_seller_pv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "user_tq_level_c2c",
+            "type": "string"
+        },
+        {
+            "name": "wuliu_reach_days_b2c",
+            "type": "string"
+        },
+        {
+            "name": "region_zk_time",
+            "type": "string"
+        },
+        {
+            "name": "new_auction_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_supermarket_brandtext_c2c",
+            "type": "string"
+        },
+        {
+            "name": "min_escape_info_c2c",
+            "type": "string"
+        },
+        {
+            "name": "contract_time",
+            "type": "string"
+        },
+        {
+            "name": "lucency_pic_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_pidvid_for_merge_c2c",
+            "type": "string"
+        },
+        {
+            "name": "recommend_reason_h5_c2c",
+            "type": "string"
+        },
+        {
+            "name": "soldout_score2_1111",
+            "type": "string"
+        },
+        {
+            "name": "tejia_realinfo2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "flow_control_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_share_7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_usersex_payuv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_time_tmall",
+            "type": "string"
+        },
+        {
+            "name": "cart_value_data_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_seller_userlayer_cart14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_bts4_b2c",
+            "type": "string"
+        },
+        {
+            "name": "domain_credit",
+            "type": "string"
+        },
+        {
+            "name": "tmall_app_field5_b2c",
+            "type": "string"
+        },
+        {
+            "name": "coupon_zk_fee",
+            "type": "string"
+        },
+        {
+            "name": "detail_tags_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_algo_rs_multi_bts1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "nid_cspuscore_SkuII_skulist",
+            "type": "string"
+        },
+        {
+            "name": "auc_quality_wireless2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_age_payuv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "title",
+            "type": "string"
+        },
+        {
+            "name": "region_reserve_price",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_seller_ipv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "cspu_ids",
+            "type": "string"
+        },
+        {
+            "name": "auc_money_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_user_age_ipv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "dna_name_for_merge_c2c",
+            "type": "string"
+        },
+        {
+            "name": "title_sim_item_c2c",
+            "type": "string"
+        },
+        {
+            "name": "static_trans_score_for_merge_c2c",
+            "type": "string"
+        },
+        {
+            "name": "show_prop_list_c2c",
+            "type": "string"
+        },
+        {
+            "name": "history_mean_price",
+            "type": "string"
+        },
+        {
+            "name": "mainse_item_hdfs_predict_postprocess_pro_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_vec_4_primary_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_zk_restrict_skulist",
+            "type": "string"
+        },
+        {
+            "name": "show_image_feature_list_c2c",
+            "type": "string"
+        },
+        {
+            "name": "white_pic_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_query_3d_ipv_c2c",
+            "type": "string"
+        },
+        {
+            "name": "qt_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tag_offline",
+            "type": "string"
+        },
+        {
+            "name": "gul_dpv_c2c",
+            "type": "string"
+        },
+        {
+            "name": "category_level1_pv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_queryseg_norm_pv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ss_auction_tag",
+            "type": "string"
+        },
+        {
+            "name": "auction_dssm_c2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_close_days",
+            "type": "string"
+        },
+        {
+            "name": "sku_image_skulist",
+            "type": "string"
+        },
+        {
+            "name": "pay_gul_rt_today_c2c",
+            "type": "string"
+        },
+        {
+            "name": "video_id_seller",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_group_tmall_wap",
+            "type": "string"
+        },
+        {
+            "name": "tag_feedback_b2c",
+            "type": "string"
+        },
+        {
+            "name": "brand_id_pv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "yushou_order_1day",
+            "type": "string"
+        },
+        {
+            "name": "category_level1_ipv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "areascore",
+            "type": "string"
+        },
+        {
+            "name": "cspus",
+            "type": "string"
+        },
+        {
+            "name": "apv_tag_patch",
+            "type": "string"
+        },
+        {
+            "name": "video_effect_score_seller",
+            "type": "string"
+        },
+        {
+            "name": "list_alg_features_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cc_score1",
+            "type": "string"
+        },
+        {
+            "name": "u_purchase_total_ipv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "offline_region_code_list",
+            "type": "string"
+        },
+        {
+            "name": "shop_pict",
+            "type": "string"
+        },
+        {
+            "name": "dna_name_4tmall_b2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_nid_userlayer_cart1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_nid_ipv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_id_c2c",
+            "type": "string"
+        },
+        {
+            "name": "jurc_ipv_uv_c2c",
+            "type": "string"
+        },
+        {
+            "name": "negative_realtime_regulate_sale_level_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_original_sku_zk_tag_tmall",
+            "type": "string"
+        },
+        {
+            "name": "tk_special_campaign_rates",
+            "type": "string"
+        },
+        {
+            "name": "qlist_ids",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_tag_se_tmall",
+            "type": "string"
+        },
+        {
+            "name": "item_rtsearch_payuv_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_term_norm_pay1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "provcity",
+            "type": "string"
+        },
+        {
+            "name": "mlr_yundu_bts1_single_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ss_pic_url_inshop",
+            "type": "string"
+        },
+        {
+            "name": "topscid_name_inshop",
+            "type": "string"
+        },
+        {
+            "name": "activity_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ctutag",
+            "type": "string"
+        },
+        {
+            "name": "t_for_online_feature_c2c",
+            "type": "string"
+        },
+        {
+            "name": "old_starts",
+            "type": "string"
+        },
+        {
+            "name": "fa_item_pv_value_emb_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_original_tag",
+            "type": "string"
+        },
+        {
+            "name": "g9_sale_rank_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_query_7day_pay_c2c",
+            "type": "string"
+        },
+        {
+            "name": "s_seller_ipv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_item1_single_c2c",
+            "type": "string"
+        },
+        {
+            "name": "collect_uv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tejia_realinfo4_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_app_field3_b2c",
+            "type": "string"
+        },
+        {
+            "name": "spu_pict",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_nid_userlayer_ipv1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_store_ids",
+            "type": "string"
+        },
+        {
+            "name": "relation_u2i_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_usersex_ipv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "mainbts_rand_buy",
+            "type": "string"
+        },
+        {
+            "name": "item_sku_expand_inshop",
+            "type": "string"
+        },
+        {
+            "name": "pidvid_taobao",
+            "type": "string"
+        },
+        {
+            "name": "all_nid_cvr14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "style_element_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_nid_payuv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "h1_cvr",
+            "type": "string"
+        },
+        {
+            "name": "soldrank_inshop",
+            "type": "string"
+        },
+        {
+            "name": "tk_group_rates",
+            "type": "string"
+        },
+        {
+            "name": "tejia_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ctr_gul_rt_today_c2c",
+            "type": "string"
+        },
+        {
+            "name": "commended",
+            "type": "string"
+        },
+        {
+            "name": "price_global_rank_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_customprotection_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "xietong_tese_tag_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_queryseg_norm_pv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "prom_gift",
+            "type": "string"
+        },
+        {
+            "name": "auction_image_taobao",
+            "type": "string"
+        },
+        {
+            "name": "ju_dingtou_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "quality_industry_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "mainbts_rand_buy_b2c",
+            "type": "string"
+        },
+        {
+            "name": "region_original_sku_zk_group_skulist",
+            "type": "string"
+        },
+        {
+            "name": "festival_tag_1111",
+            "type": "string"
+        },
+        {
+            "name": "qt_r_nid_pv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_queryseg_norm_pv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_discount_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_bts6_b2c",
+            "type": "string"
+        },
+        {
+            "name": "h1_ctr",
+            "type": "string"
+        },
+        {
+            "name": "region_original_sku_final_price_skulist",
+            "type": "string"
+        },
+        {
+            "name": "properties",
+            "type": "string"
+        },
+        {
+            "name": "kg_pvid_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_seller_userlayer_fav14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_rtsearch_ipvuv_b2c",
+            "type": "string"
+        },
+        {
+            "name": "promotion_price_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_feature2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cart_value_single_data_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_shop_prom_value",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_term_norm_pay7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "item_query_score2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_nid_userlayer_fav14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "recall_fullcate_item_recall_emb_excellent_c2c",
+            "type": "string"
+        },
+        {
+            "name": "real_multi_ctr_score_b2c",
+            "type": "string"
+        },
+        {
+            "name": "qt_s_seller_ipv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_prom_type",
+            "type": "string"
+        },
+        {
+            "name": "pdb_questionall_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "jurc_eh_ipv_uv_c2c",
+            "type": "string"
+        },
+        {
+            "name": "recall_fullcate_item_embed_ds_c2c",
+            "type": "string"
+        },
+        {
+            "name": "fqmx_flag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "road_five_v2_pv_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cart_out_tag_data_b2c",
+            "type": "string"
+        },
+        {
+            "name": "kd_hx_mlrdata_ivec_v2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tuning_price_b_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pic_switch_b2c",
+            "type": "string"
+        },
+        {
+            "name": "spuid_tmall",
+            "type": "string"
+        },
+        {
+            "name": "multi_user_power_pay_cnt7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_clk_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_level2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "recommend_cards_title_c2c",
+            "type": "string"
+        },
+        {
+            "name": "short_selling_point_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_nid_payuv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_cspu_ids",
+            "type": "string"
+        },
+        {
+            "name": "reference_price",
+            "type": "string"
+        },
+        {
+            "name": "i2i_vec_new_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_usersex_pay_cnt1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "huabei_flag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_video_5s_cover_id_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_comments_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "jhs_recall_4_c2c",
+            "type": "string"
+        },
+        {
+            "name": "realtime_personality_b2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_bts_feature3_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pricemodel_lowprice_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_item_add_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_selected_auction_act_b2c",
+            "type": "string"
+        },
+        {
+            "name": "road_five_v2_ni_flag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cuntao_intervene",
+            "type": "string"
+        },
+        {
+            "name": "tmall_normal_shop",
+            "type": "string"
+        },
+        {
+            "name": "realtime_tag_info_c2c",
+            "type": "string"
+        },
+        {
+            "name": "user_stay_time_len_1m_c2c",
+            "type": "string"
+        },
+        {
+            "name": "s_seller_ipv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "vip_prom",
+            "type": "string"
+        },
+        {
+            "name": "recommend_labels_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_query_14day_ipv_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sspuid",
+            "type": "string"
+        },
+        {
+            "name": "top_skuid_b2c",
+            "type": "string"
+        },
+        {
+            "name": "promoted_type",
+            "type": "string"
+        },
+        {
+            "name": "tmall_app_field1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_fetchcoupon_30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "logistics_base_score_single_c2c",
+            "type": "string"
+        },
+        {
+            "name": "i2i_vec_c2c",
+            "type": "string"
+        },
+        {
+            "name": "u_pred_age_level_pv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "product_code_skulist",
+            "type": "string"
+        },
+        {
+            "name": "age_level_haixuan_c2c",
+            "type": "string"
+        },
+        {
+            "name": "show_wb_image_url_c2c",
+            "type": "string"
+        },
+        {
+            "name": "uvsum",
+            "type": "string"
+        },
+        {
+            "name": "qx_lsrp_nid_act_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_user_age_pay_cnt14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "search_ctg_i2i_bts_v1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sub_title_extract_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cvr_gul_rt_today_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_money_score_bts_c2c",
+            "type": "string"
+        },
+        {
+            "name": "index_layer_test_c2c",
+            "type": "string"
+        },
+        {
+            "name": "act_ugc_content_b2c",
+            "type": "string"
+        },
+        {
+            "name": "global_seller_staytime_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "reserve_price",
+            "type": "string"
+        },
+        {
+            "name": "ctg_i2i_3_c2c",
+            "type": "string"
+        },
+        {
+            "name": "w_recommend_ratio_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_feature_tag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_seller_userlayer_cart1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "discount_c2c",
+            "type": "string"
+        },
+        {
+            "name": "taobao_sort_score",
+            "type": "string"
+        },
+        {
+            "name": "jurc_all_ali_uv_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_seller_ipv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "original_zk_type",
+            "type": "string"
+        },
+        {
+            "name": "tmall_supermarket_xuanpin_c2c",
+            "type": "string"
+        },
+        {
+            "name": "qt_s_seller_pv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "h1_pvr",
+            "type": "string"
+        },
+        {
+            "name": "npx_tag_wl_c2c",
+            "type": "string"
+        },
+        {
+            "name": "commend",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_seller_payuv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_questionall_30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_ipv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "region_original_tag_skulist",
+            "type": "string"
+        },
+        {
+            "name": "logistics_dsr_score_multi_c2c",
+            "type": "string"
+        },
+        {
+            "name": "shuang12_score2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_zk_time",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_age_pay_cnt7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "uvsum_presale",
+            "type": "string"
+        },
+        {
+            "name": "region_code_list",
+            "type": "string"
+        },
+        {
+            "name": "i2i_nidpair_lr_weight_inshop",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_nid_userlayer_ipv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ba_newoffer",
+            "type": "string"
+        },
+        {
+            "name": "sku_zk_time_skulist",
+            "type": "string"
+        },
+        {
+            "name": "pv_gul_rt_today_n_c2c",
+            "type": "string"
+        },
+        {
+            "name": "area_newoffer",
+            "type": "string"
+        },
+        {
+            "name": "tmall_service_district",
+            "type": "string"
+        },
+        {
+            "name": "usertag13",
+            "type": "string"
+        },
+        {
+            "name": "zk_rate2_wap",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_gmv7_inshop",
+            "type": "string"
+        },
+        {
+            "name": "usertag10",
+            "type": "string"
+        },
+        {
+            "name": "reserve_price_c2c",
+            "type": "string"
+        },
+        {
+            "name": "user_type",
+            "type": "string"
+        },
+        {
+            "name": "price",
+            "type": "string"
+        },
+        {
+            "name": "multi_user_age_pv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_sku_price_skulist",
+            "type": "string"
+        },
+        {
+            "name": "title_sim_item_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_usersex_ipv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "user_tq_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "qx_mainpic_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_sku_30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "region_shop_prom_time",
+            "type": "string"
+        },
+        {
+            "name": "qt_r_seller_pv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auctonkeyprop_b2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_seller_userlayer_ipv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "s_quantity_1111",
+            "type": "string"
+        },
+        {
+            "name": "region_original_zk_tag",
+            "type": "string"
+        },
+        {
+            "name": "cart_pay_rate_data_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_age_pay_cnt14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_pv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "region_zk_bbqid",
+            "type": "string"
+        },
+        {
+            "name": "user_model_rule_b2c",
+            "type": "string"
+        },
+        {
+            "name": "recall_queryid_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_power_pay_cnt1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_ska_item_b2c",
+            "type": "string"
+        },
+        {
+            "name": "nick",
+            "type": "string"
+        },
+        {
+            "name": "division_price_b2c",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_ipv7_inshop",
+            "type": "string"
+        },
+        {
+            "name": "service_range_id",
+            "type": "string"
+        },
+        {
+            "name": "original_zk_tag_se_wap",
+            "type": "string"
+        },
+        {
+            "name": "scid",
+            "type": "string"
+        },
+        {
+            "name": "coupon_zk_time",
+            "type": "string"
+        },
+        {
+            "name": "sku_zk_rate_skulist",
+            "type": "string"
+        },
+        {
+            "name": "dna_id_4tmall",
+            "type": "string"
+        },
+        {
+            "name": "yzt_json_c2c",
+            "type": "string"
+        },
+        {
+            "name": "spu_fst",
+            "type": "string"
+        },
+        {
+            "name": "topscid_inshop",
+            "type": "string"
+        },
+        {
+            "name": "oeids",
+            "type": "string"
+        },
+        {
+            "name": "feed_cluster_c2c",
+            "type": "string"
+        },
+        {
+            "name": "show_content_score_list_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_foottag_multi_b2c",
+            "type": "string"
+        },
+        {
+            "name": "video_id_talent",
+            "type": "string"
+        },
+        {
+            "name": "nc_apass_seller_score_bts_c2c",
+            "type": "string"
+        },
+        {
+            "name": "real_post_fee",
+            "type": "string"
+        },
+        {
+            "name": "item_dnn_vector_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_pid_info_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ant_instalment",
+            "type": "string"
+        },
+        {
+            "name": "pdb_share_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "yzt_ids_c2c",
+            "type": "string"
+        },
+        {
+            "name": "backup_06_inshop",
+            "type": "string"
+        },
+        {
+            "name": "tmall_brand_tag_data_b2c",
+            "type": "string"
+        },
+        {
+            "name": "item_ensemble_cvr_robust_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_promotion_30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "bundle_i2i_c2c",
+            "type": "string"
+        },
+        {
+            "name": "user_city_level_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tax_rate",
+            "type": "string"
+        },
+        {
+            "name": "mlr_yundu_bts2_single_b2c",
+            "type": "string"
+        },
+        {
+            "name": "fa_new_level_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_seller_ipv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ant_instalment_warmup_time",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_ipv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_usersex_pv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "d2s_tmall_auction_sell_point_info_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_share_30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "s_lg_auction_with_cities_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_nid_userlayer_cart14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_tag_tmall_wap",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_usersex_pv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "uchar",
+            "type": "string"
+        },
+        {
+            "name": "show_image_type_list_c2c",
+            "type": "string"
+        },
+        {
+            "name": "coll_auction_num_15_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "static_trans_score3_b2c",
+            "type": "string"
+        },
+        {
+            "name": "store_city_code",
+            "type": "string"
+        },
+        {
+            "name": "quantity",
+            "type": "string"
+        },
+        {
+            "name": "recommend_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_material_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_zk_time_tmall",
+            "type": "string"
+        },
+        {
+            "name": "dna_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "jhs_feature_realinfo_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_nid_gmv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "jhs_realtime_gmv_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "has_seller_video",
+            "type": "string"
+        },
+        {
+            "name": "has_coupon",
+            "type": "string"
+        },
+        {
+            "name": "category_level1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "collect_num_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_gmv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "realtime_cvr_score2_inshop_1111",
+            "type": "string"
+        },
+        {
+            "name": "item_feature_56_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_nid_userlayer_pay14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "u_os_ipv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_nid_pv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "i2i_vector_neighbor_c2c",
+            "type": "string"
+        },
+        {
+            "name": "static_trans_score2",
+            "type": "string"
+        },
+        {
+            "name": "hk_score",
+            "type": "string"
+        },
+        {
+            "name": "static_trans_score3",
+            "type": "string"
+        },
+        {
+            "name": "kxuan_uplus_item",
+            "type": "string"
+        },
+        {
+            "name": "coupon_sub_scope_id",
+            "type": "string"
+        },
+        {
+            "name": "alg_pscore3_for_merge_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_query_3d_pay_c2c",
+            "type": "string"
+        },
+        {
+            "name": "all_seller_payuv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "list_alg_features",
+            "type": "string"
+        },
+        {
+            "name": "vip",
+            "type": "string"
+        },
+        {
+            "name": "item_ensemble_cvr_up_c2c",
+            "type": "string"
+        },
+        {
+            "name": "division_price",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_nid_userlayer_pay1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "group_name",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_group_wap_skulist",
+            "type": "string"
+        },
+        {
+            "name": "original_zk_tag_wap",
+            "type": "string"
+        },
+        {
+            "name": "ct_dynamic_rule_score_2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "c2mtag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "fake_skuid",
+            "type": "string"
+        },
+        {
+            "name": "video_archor_info_seller",
+            "type": "string"
+        },
+        {
+            "name": "pdb_productparams_7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "paycnt_4_c2c",
+            "type": "string"
+        },
+        {
+            "name": "kxuan_content_item_c2c",
+            "type": "string"
+        },
+        {
+            "name": "brand_location",
+            "type": "string"
+        },
+        {
+            "name": "has_bid",
+            "type": "string"
+        },
+        {
+            "name": "wireless_ctr_predict_c2c",
+            "type": "string"
+        },
+        {
+            "name": "mlr_yundu_bts3_single_b2c",
+            "type": "string"
+        },
+        {
+            "name": "platform_coupon_fee_time",
+            "type": "string"
+        },
+        {
+            "name": "tb_mainse_video_static_play_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "u_pred_age_level_ipv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "all_seller_payuv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_age_ipv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_loc",
+            "type": "string"
+        },
+        {
+            "name": "all_seller_ipv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "brand_id_pv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "correct_props",
+            "type": "string"
+        },
+        {
+            "name": "video_archor_info_talent",
+            "type": "string"
+        },
+        {
+            "name": "topic_inshop",
+            "type": "string"
+        },
+        {
+            "name": "index_layer_test_v3_c2c",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_price_field",
+            "type": "string"
+        },
+        {
+            "name": "original_zk_group_wap",
+            "type": "string"
+        },
+        {
+            "name": "leaf_cate_rank_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ipv_gul_rt_today_c2c",
+            "type": "string"
+        },
+        {
+            "name": "realtime_personality",
+            "type": "string"
+        },
+        {
+            "name": "auction_sspuid_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "store_start_day_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "se_coupon_id_c2c",
+            "type": "string"
+        },
+        {
+            "name": "real_sales_c2c",
+            "type": "string"
+        },
+        {
+            "name": "coupon_filter",
+            "type": "string"
+        },
+        {
+            "name": "isprepay",
+            "type": "string"
+        },
+        {
+            "name": "real_province_fee",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_nid_payuv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "item_personal_sales_c2c",
+            "type": "string"
+        },
+        {
+            "name": "w_avg_category_price_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_seller_sort_bts2_b2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_behavior_tag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "i2i_vector_nsg_id_c2c",
+            "type": "string"
+        },
+        {
+            "name": "inshop_se_cvr_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pc_i2i_index_c2c",
+            "type": "string"
+        },
+        {
+            "name": "assist_image",
+            "type": "string"
+        },
+        {
+            "name": "region_sku_zk_time_skulist",
+            "type": "string"
+        },
+        {
+            "name": "auc_tag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "coupon_expand_time",
+            "type": "string"
+        },
+        {
+            "name": "en_city",
+            "type": "string"
+        },
+        {
+            "name": "ordercost",
+            "type": "string"
+        },
+        {
+            "name": "short_title_wf_bts_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_seller_userlayer_pay14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "address_newoffer",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_payuv30_inshop",
+            "type": "string"
+        },
+        {
+            "name": "talent_choice_mlrdata_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_scid",
+            "type": "string"
+        },
+        {
+            "name": "region_original_zk_time",
+            "type": "string"
+        },
+        {
+            "name": "user_user_index_c2c",
+            "type": "string"
+        },
+        {
+            "name": "swarm_auc_index_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_short_title_inshop",
+            "type": "string"
+        },
+        {
+            "name": "short_title_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_bigpic_30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_pscore2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_tagprice_max",
+            "type": "string"
+        },
+        {
+            "name": "oversea_pay_c2c",
+            "type": "string"
+        },
+        {
+            "name": "wrong_props",
+            "type": "string"
+        },
+        {
+            "name": "week_sales",
+            "type": "string"
+        },
+        {
+            "name": "global_cat_staytime_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "after_tomorrow_areas",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_power_payuv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_ipv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "_ctutag",
+            "type": "string"
+        },
+        {
+            "name": "zk_final_price_wap",
+            "type": "string"
+        },
+        {
+            "name": "juhuasuan_info_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auction_brand_slogan_b2c",
+            "type": "string"
+        },
+        {
+            "name": "se_coupon_value_c2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_level6_c2c",
+            "type": "string"
+        },
+        {
+            "name": "smooth_ctr_seller_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_auction_brand_value2_b2c",
+            "type": "string"
+        },
+        {
+            "name": "cart_value_data_b2c",
+            "type": "string"
+        },
+        {
+            "name": "gross_renqi_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_tag_se_wap_skulist",
+            "type": "string"
+        },
+        {
+            "name": "original_zk_tag_se",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_pv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "graph_wireless_feature_c2c",
+            "type": "string"
+        },
+        {
+            "name": "daren_content_id_b2c",
+            "type": "string"
+        },
+        {
+            "name": "istk",
+            "type": "string"
+        },
+        {
+            "name": "cart_cvr_gul_rt_today_n_c2c",
+            "type": "string"
+        },
+        {
+            "name": "activity_id",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_pv30_inshop",
+            "type": "string"
+        },
+        {
+            "name": "vidname",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_term_norm_pv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "user_id_age_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pricerank_c2c",
+            "type": "string"
+        },
+        {
+            "name": "u_pred_gender_pv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "s_seller_pv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_age_pv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "nid_skuscore_SkuII_skulist",
+            "type": "string"
+        },
+        {
+            "name": "user_seqlen_c2c",
+            "type": "string"
+        },
+        {
+            "name": "user_id",
+            "type": "string"
+        },
+        {
+            "name": "region_original_sku_zk_group_tmall",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_payuv14_inshop",
+            "type": "string"
+        },
+        {
+            "name": "global_cat1_staytime_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_sort_score_b2c",
+            "type": "string"
+        },
+        {
+            "name": "zk_final_max",
+            "type": "string"
+        },
+        {
+            "name": "auc_personal_recall_b2c",
+            "type": "string"
+        },
+        {
+            "name": "selling_p_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_pv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "desc_path",
+            "type": "string"
+        },
+        {
+            "name": "bundel_realtime_i2i_info",
+            "type": "string"
+        },
+        {
+            "name": "pdb_fetchcoupon_30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_id_ipv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "collect_uv_7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_ipv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "smart_decision_output_summary_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_algo_info_b2c",
+            "type": "string"
+        },
+        {
+            "name": "brand_type_dump",
+            "type": "string"
+        },
+        {
+            "name": "auc_quality",
+            "type": "string"
+        },
+        {
+            "name": "tmall_supermarket_text_c2c",
+            "type": "string"
+        },
+        {
+            "name": "gj_seller_point_c2c",
+            "type": "string"
+        },
+        {
+            "name": "zk_type_wap",
+            "type": "string"
+        },
+        {
+            "name": "seller_credit_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_zk_group_wap_skulist",
+            "type": "string"
+        },
+        {
+            "name": "WirlessAucScore_b2c",
+            "type": "string"
+        },
+        {
+            "name": "auction_brand_revist_b2c",
+            "type": "string"
+        },
+        {
+            "name": "all_nid_ipv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_pict_vgg_feature_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_nid_userlayer_pv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_zk_bbqid_skulist",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_queryseg_norm_ipv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_usersex_pv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "item_w2v_vector_inshop",
+            "type": "string"
+        },
+        {
+            "name": "quality_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_multi_queryseg_norm_pv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "age_level_c2c",
+            "type": "string"
+        },
+        {
+            "name": "division_brand_diaoxing",
+            "type": "string"
+        },
+        {
+            "name": "open_data_tag",
+            "type": "string"
+        },
+        {
+            "name": "all_nid_payuv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_pv14_inshop",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_power_payuv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_price_field_tmall",
+            "type": "string"
+        },
+        {
+            "name": "pdb_barwangwang_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "price_cate_level1_rank_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pinpai_c2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_goodrat",
+            "type": "string"
+        },
+        {
+            "name": "u_os_pv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_age_pay_cnt1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "qt_r_seller_ipv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "spu_selling_point",
+            "type": "string"
+        },
+        {
+            "name": "item_dnn_vector_ori_c2c",
+            "type": "string"
+        },
+        {
+            "name": "real_single_ctr_score_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_customprotection_7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ctr_gul_rt_today_n_c2c",
+            "type": "string"
+        },
+        {
+            "name": "nsg_vec_c2c",
+            "type": "string"
+        },
+        {
+            "name": "entity_power",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_usersex_payuv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "new_query_3d_collect_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_haojia_prices",
+            "type": "string"
+        },
+        {
+            "name": "color_property_alias",
+            "type": "string"
+        },
+        {
+            "name": "unit",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_seller_payuv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "total_sold_quantity",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_nid_userlayer_fav1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_item_hrms_ad_index_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_video_5s_cover_url_tmtab_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_ctr1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_seller_userlayer_fav14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_new_score",
+            "type": "string"
+        },
+        {
+            "name": "user_city_name_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_quality_layer_c2c",
+            "type": "string"
+        },
+        {
+            "name": "b_real_ctr_score_1111",
+            "type": "string"
+        },
+        {
+            "name": "ct_out_black_tag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "all_nid_payuv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_seller_pv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "coupon_rule_type",
+            "type": "string"
+        },
+        {
+            "name": "ai4b_id_vec_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_know_tag_skulist",
+            "type": "string"
+        },
+        {
+            "name": "tmall_algo_single_bts4_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_power_ipv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_tagprice_min",
+            "type": "string"
+        },
+        {
+            "name": "region_original_zk_group",
+            "type": "string"
+        },
+        {
+            "name": "u_purchase_total_pv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_level4_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_pscore4_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auction_brand_country_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmcs_fc_item_b2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_info",
+            "type": "string"
+        },
+        {
+            "name": "consign_date",
+            "type": "string"
+        },
+        {
+            "name": "xcat1_id_c2c",
+            "type": "string"
+        },
+        {
+            "name": "mainse_filter",
+            "type": "string"
+        },
+        {
+            "name": "real_city_fee",
+            "type": "string"
+        },
+        {
+            "name": "all_nid_ipv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "mainse_video_gif_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cart_uv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_fetchcoupon_7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "use_merge_order",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_term_norm_ipv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "auction_pop_personalized_c2c",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_gmv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_pscore6_c2c",
+            "type": "string"
+        },
+        {
+            "name": "u_pred_gender_ipv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "logistics_dsr_score_single_c2c",
+            "type": "string"
+        },
+        {
+            "name": "nid",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_gmv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_video_5s_cover_url_c2c",
+            "type": "string"
+        },
+        {
+            "name": "original_zk_type_wap",
+            "type": "string"
+        },
+        {
+            "name": "mainse_video_webp_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_queryseg_norm_pay14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "prom_options",
+            "type": "string"
+        },
+        {
+            "name": "nid_brand_price_segment_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_item2_single_c2c",
+            "type": "string"
+        },
+        {
+            "name": "promise_time_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_payuv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "hprop",
+            "type": "string"
+        },
+        {
+            "name": "multi_term_norm_pv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "gs_nid_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "search_benefit_award_infos",
+            "type": "string"
+        },
+        {
+            "name": "shop_id_ipv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_seller_userlayer_pv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_seller_pv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "item_pvcvr_inshop",
+            "type": "string"
+        },
+        {
+            "name": "auto_post",
+            "type": "string"
+        },
+        {
+            "name": "pricemodel_lowprice_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tk_total_sales",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_power_pay_cnt7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_nid_payuv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "all_seller_ipv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_seller_ipv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "item_title_word_ids_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_seller_ipv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "psbit",
+            "type": "string"
+        },
+        {
+            "name": "all_seller_ipv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "index_generated_feature_c2c",
+            "type": "string"
+        },
+        {
+            "name": "bid1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_sort_score",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_power_payuv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "show_content_list_c2c",
+            "type": "string"
+        },
+        {
+            "name": "brand_id_ipv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_age_ipv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tomorrow_areas",
+            "type": "string"
+        },
+        {
+            "name": "spuid",
+            "type": "string"
+        },
+        {
+            "name": "attribute",
+            "type": "string"
+        },
+        {
+            "name": "new_query_14day_cart_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_productparams_30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "all_nid_ipv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "platform_coupon_fee",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_gmv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_avg_pv_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_quality1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "age_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_event_filed1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_sort_multi_bts2_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pricerank_inshop",
+            "type": "string"
+        },
+        {
+            "name": "spuprice",
+            "type": "string"
+        },
+        {
+            "name": "zk_group",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_seller_ipv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ads_acc_cluster_c2c",
+            "type": "string"
+        },
+        {
+            "name": "user_id_birthyear_c2c",
+            "type": "string"
+        },
+        {
+            "name": "kd_i2i_v0_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_seller_userlayer_fav1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_seller_pv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_time_tmall_wap",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_usersex_pv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_algo_info_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ju_discount_spam",
+            "type": "string"
+        },
+        {
+            "name": "pdb_comments_7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "qt_r_nid_payuv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_ipv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "original_zk_final_price",
+            "type": "string"
+        },
+        {
+            "name": "distinct_new_c2c",
+            "type": "string"
+        },
+        {
+            "name": "coupon_tag_id",
+            "type": "string"
+        },
+        {
+            "name": "ali_negative_flow_control_c2c",
+            "type": "string"
+        },
+        {
+            "name": "w_user_gmv_haixuan_c2c",
+            "type": "string"
+        },
+        {
+            "name": "original_zk_tag",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_seller_userlayer_cart1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_multi_queryseg_norm_pv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "original_tag_price",
+            "type": "string"
+        },
+        {
+            "name": "user_type_initial",
+            "type": "string"
+        },
+        {
+            "name": "alg_item4_single_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sputitle",
+            "type": "string"
+        },
+        {
+            "name": "satisfaction_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_algo_rs_multi_bts2_b2c",
+            "type": "string"
+        },
+        {
+            "name": "mlr_algo_bts5_yundu_b2c",
+            "type": "string"
+        },
+        {
+            "name": "u_pred_age_level_pv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_final_price_wap_skulist",
+            "type": "string"
+        },
+        {
+            "name": "brand_id_ipv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_algo_single_bts2_b2c",
+            "type": "string"
+        },
+        {
+            "name": "region_shop_prom_threshold",
+            "type": "string"
+        },
+        {
+            "name": "auction_tag2",
+            "type": "string"
+        },
+        {
+            "name": "luban2_mainsearch_images_info_c2c",
+            "type": "string"
+        },
+        {
+            "name": "user_pv_1m_c2c",
+            "type": "string"
+        },
+        {
+            "name": "personal_fake_search_item_c2c",
+            "type": "string"
+        },
+        {
+            "name": "has_video",
+            "type": "string"
+        },
+        {
+            "name": "user_predict_income_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_seller_userlayer_pay14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cart_value_single_data_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_tag_result_qinqinggou_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_original_zk_tag_skulist",
+            "type": "string"
+        },
+        {
+            "name": "tmall_history_price_new_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pricerank_b2c",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_tag_se_tmall_wap",
+            "type": "string"
+        },
+        {
+            "name": "auction_seller_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_gmv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "show_text_inshop",
+            "type": "string"
+        },
+        {
+            "name": "history_mean_price_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_usersex_payuv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_size_info_skulist",
+            "type": "string"
+        },
+        {
+            "name": "cart_uv_30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "last_purchase_1111",
+            "type": "string"
+        },
+        {
+            "name": "pic_switch_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ocg_area_limit",
+            "type": "string"
+        },
+        {
+            "name": "region_code",
+            "type": "string"
+        },
+        {
+            "name": "multi_term_norm_pay7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_recommend_count_v2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "collect_uv_30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_new_user_bd_item_b2c",
+            "type": "string"
+        },
+        {
+            "name": "region_original_zk_bbqid_skulist",
+            "type": "string"
+        },
+        {
+            "name": "region_original_zk_final_price",
+            "type": "string"
+        },
+        {
+            "name": "user_tm_level_c2c",
+            "type": "string"
+        },
+        {
+            "name": "jhs_algo_score_4_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_zk_fields",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_queryseg_norm_pay1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_pscore8_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auction_image",
+            "type": "string"
+        },
+        {
+            "name": "rewq_trend_for_mlrdata_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_barwangwang_30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "kxuan_is_orient_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_prices",
+            "type": "string"
+        },
+        {
+            "name": "tejia_realinfo1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "video_tags_talent",
+            "type": "string"
+        },
+        {
+            "name": "region_zk_restrict",
+            "type": "string"
+        },
+        {
+            "name": "ocg_area_invisible",
+            "type": "string"
+        },
+        {
+            "name": "item_video_5s_cover_id_tmtab_b2c",
+            "type": "string"
+        },
+        {
+            "name": "cat_id_path",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_nid_ipv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "qx_nid_query_score_1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_sku_zk_group_skulist",
+            "type": "string"
+        },
+        {
+            "name": "tk_total_pubnum",
+            "type": "string"
+        },
+        {
+            "name": "available_store_code",
+            "type": "string"
+        },
+        {
+            "name": "ctg_i2i_c2c",
+            "type": "string"
+        },
+        {
+            "name": "gyl_target_b2c",
+            "type": "string"
+        },
+        {
+            "name": "color_alias_skulist",
+            "type": "string"
+        },
+        {
+            "name": "title_b2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_rank_score2",
+            "type": "string"
+        },
+        {
+            "name": "u_pred_gender_ipv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_ctr_inshop",
+            "type": "string"
+        },
+        {
+            "name": "pdb_sku_30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "itemprice_c2c",
+            "type": "string"
+        },
+        {
+            "name": "original_zk_time",
+            "type": "string"
+        },
+        {
+            "name": "new_query_14day_pay_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_share_30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_sign_ls_time_score_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_sku_7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_algo_resort_multi_bts1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "dna_id_for_merge_c2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_id_pv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "s_seller_ipv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ctr_12_c2c",
+            "type": "string"
+        },
+        {
+            "name": "video_url_seller",
+            "type": "string"
+        },
+        {
+            "name": "u_purchase_total_pv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sign_ls_time_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ic_features",
+            "type": "string"
+        },
+        {
+            "name": "mlr_algo_bts4_yundu_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ss_topic_inshop",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_pv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "region_shop_prom_tag",
+            "type": "string"
+        },
+        {
+            "name": "h1_gmv",
+            "type": "string"
+        },
+        {
+            "name": "pricesort_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "gul_cat_staytime_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "SupportedCurrency",
+            "type": "string"
+        },
+        {
+            "name": "tm_item_price_info_b2c",
+            "type": "string"
+        },
+        {
+            "name": "i2i_inshop",
+            "type": "string"
+        },
+        {
+            "name": "tmall_selected_auction_regular_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_nid_payuv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_b_seller_sort_bts1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pict_url",
+            "type": "string"
+        },
+        {
+            "name": "tmall_supermarket_text2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "brand_id_b2c",
+            "type": "string"
+        },
+        {
+            "name": "session_wise_topN_i2i_list_c2c",
+            "type": "string"
+        },
+        {
+            "name": "store_district_list",
+            "type": "string"
+        },
+        {
+            "name": "tk_total_commi",
+            "type": "string"
+        },
+        {
+            "name": "zk_extend",
+            "type": "string"
+        },
+        {
+            "name": "brand_pv",
+            "type": "string"
+        },
+        {
+            "name": "tmall_alimama_pintu_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tag_feature_b2c",
+            "type": "string"
+        },
+        {
+            "name": "group_code",
+            "type": "string"
+        },
+        {
+            "name": "division_pidvid",
+            "type": "string"
+        },
+        {
+            "name": "smartdecision_nid_cate_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ocg_area_white",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_price_field_tmall",
+            "type": "string"
+        },
+        {
+            "name": "jhs_feature_dynamic_c2c",
+            "type": "string"
+        },
+        {
+            "name": "grant_brand",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_term_norm_ipv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_multi_term_norm_pay7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_recall_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_store_relation_type",
+            "type": "string"
+        },
+        {
+            "name": "gul_staytime_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_maxprice",
+            "type": "string"
+        },
+        {
+            "name": "tag_space_name_c2c",
+            "type": "string"
+        },
+        {
+            "name": "activity_id_base64",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_nid_payuv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_max",
+            "type": "string"
+        },
+        {
+            "name": "tmall_detail_app_cvs_b2c",
+            "type": "string"
+        },
+        {
+            "name": "mlr_algo_bts3_yundu_b2c",
+            "type": "string"
+        },
+        {
+            "name": "apv_confidence_for_merge_c2c",
+            "type": "string"
+        },
+        {
+            "name": "road_five_v2_publish_days_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tk_special_campaign_ids_wap",
+            "type": "string"
+        },
+        {
+            "name": "seller_rank_score3_c2c",
+            "type": "string"
+        },
+        {
+            "name": "yizhangou_xuanping_c2c",
+            "type": "string"
+        },
+        {
+            "name": "u_os_ipv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_zk_time_skulist",
+            "type": "string"
+        },
+        {
+            "name": "bangdan_id_list_c2c",
+            "type": "string"
+        },
+        {
+            "name": "zk_cat",
+            "type": "string"
+        },
+        {
+            "name": "region_sku_zk_group_tmall",
+            "type": "string"
+        },
+        {
+            "name": "user",
+            "type": "string"
+        },
+        {
+            "name": "jhs_realtime_saima_count_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_term_norm_pay14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "category_level1_pv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cuntao_ctr_43908_c2c",
+            "type": "string"
+        },
+        {
+            "name": "spam_filter",
+            "type": "string"
+        },
+        {
+            "name": "sspu_property_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_productparams_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tejia_realinfo3_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_power_pv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "title_tag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_nid_userlayer_pay14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "coin_limit",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_seller_pv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ad_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_ipvr_inshop",
+            "type": "string"
+        },
+        {
+            "name": "user_ipv_1m_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_personal_shopscore_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_item_quality_score_b2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_prom_threshold",
+            "type": "string"
+        },
+        {
+            "name": "tm_age_level_b2c",
+            "type": "string"
+        },
+        {
+            "name": "gyl_cainiao_sku_id_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_pv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_seller_payuv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "qt_s_nid_payuv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "user_uid_c2c",
+            "type": "string"
+        },
+        {
+            "name": "platform_coupon_expend_time",
+            "type": "string"
+        },
+        {
+            "name": "sku_ids",
+            "type": "string"
+        },
+        {
+            "name": "nsg_vec_int_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_app_field4_b2c",
+            "type": "string"
+        },
+        {
+            "name": "auction_term_recall_c2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_ka_item_b2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_term_norm_pv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_seller_ipv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "cm_main_props_group",
+            "type": "string"
+        },
+        {
+            "name": "coupon_time",
+            "type": "string"
+        },
+        {
+            "name": "is_taojinbi",
+            "type": "string"
+        },
+        {
+            "name": "spu_pidvid",
+            "type": "string"
+        },
+        {
+            "name": "jhs_realtime_saima_gmv_c2c",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_ipv14_inshop",
+            "type": "string"
+        },
+        {
+            "name": "ctr_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_ck_stay_time_30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_payuv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "short_title_wf_bts_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ali_seller_same_pid_item_c2c",
+            "type": "string"
+        },
+        {
+            "name": "rt_dpv_dpvr_day_n_c2c",
+            "type": "string"
+        },
+        {
+            "name": "rt_dpv_day_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_age_pv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ipvuv_1hour_1111",
+            "type": "string"
+        },
+        {
+            "name": "liezhi_tmall_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tag_offline_b2c",
+            "type": "string"
+        },
+        {
+            "name": "rt_dpv_dpvr_day_c2c",
+            "type": "string"
+        },
+        {
+            "name": "xt_aux_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_ensemble_cvr_c2c",
+            "type": "string"
+        },
+        {
+            "name": "v2v_wl_seed_item_info_c2c",
+            "type": "string"
+        },
+        {
+            "name": "video_base_score_talent",
+            "type": "string"
+        },
+        {
+            "name": "apv_tag",
+            "type": "string"
+        },
+        {
+            "name": "realtime_cvr_score1_inshop_1111",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_age_payuv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "dna_name_4tmall",
+            "type": "string"
+        },
+        {
+            "name": "alipay_mini_filter",
+            "type": "string"
+        },
+        {
+            "name": "original_zk_time_wap",
+            "type": "string"
+        },
+        {
+            "name": "target_dist_score_b2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_min",
+            "type": "string"
+        },
+        {
+            "name": "zk_rate",
+            "type": "string"
+        },
+        {
+            "name": "shipping",
+            "type": "string"
+        },
+        {
+            "name": "biz_order_status",
+            "type": "string"
+        },
+        {
+            "name": "new_retail_filter",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_seller_userlayer_pay1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "jhs_algo_score_3_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_auction_brand_value1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_bts3_b2c",
+            "type": "string"
+        },
+        {
+            "name": "region_zk_group",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_seller_payuv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "zk_group_wap",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_seller_payuv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "inshop_topic_id",
+            "type": "string"
+        },
+        {
+            "name": "bc_type_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_search_tag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "se_coupon_threshold_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_seller_payuv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_queryseg_norm_ipv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_store_id_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ctg_i2i_2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_score",
+            "type": "string"
+        },
+        {
+            "name": "region_zk_final_price",
+            "type": "string"
+        },
+        {
+            "name": "soldout_score1_1111",
+            "type": "string"
+        },
+        {
+            "name": "sea_score",
+            "type": "string"
+        },
+        {
+            "name": "item2term_b2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_queryseg_norm_pv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_gmv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pay_gul_rt_today_n_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_brand_type_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_usersex_payuv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "u_pred_gender_pv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "original_zk_group",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_seller_userlayer_ipv1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "original_sku_final_price_skulist",
+            "type": "string"
+        },
+        {
+            "name": "w_gmv_haixuan_c2c",
+            "type": "string"
+        },
+        {
+            "name": "jhs_recall_1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "new_pid_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auction_tag_tmall",
+            "type": "string"
+        },
+        {
+            "name": "algfield_c2c",
+            "type": "string"
+        },
+        {
+            "name": "recommend_reason_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_brand_name_b2c",
+            "type": "string"
+        },
+        {
+            "name": "lp_end",
+            "type": "string"
+        },
+        {
+            "name": "user_tag",
+            "type": "string"
+        },
+        {
+            "name": "pdb_bigpic_30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_supermarket_loc_c2c",
+            "type": "string"
+        },
+        {
+            "name": "video_cover_url_talent",
+            "type": "string"
+        },
+        {
+            "name": "kxuan_uplus_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tejia_realinfo5_c2c",
+            "type": "string"
+        },
+        {
+            "name": "realtime_keyword_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_price_skulist",
+            "type": "string"
+        },
+        {
+            "name": "tmall_app_field2_b2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_promotion_7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "video_ratio_seller",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_cvr1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "barcode_tag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "launch_time_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_original_zk_type",
+            "type": "string"
+        },
+        {
+            "name": "tmall_selected_auction_algo_b2c",
+            "type": "string"
+        },
+        {
+            "name": "min_escape_info",
+            "type": "string"
+        },
+        {
+            "name": "w_lambdamart_price_c2c",
+            "type": "string"
+        },
+        {
+            "name": "xcat2_id_c2c",
+            "type": "string"
+        },
+        {
+            "name": "video_effect_score_talent",
+            "type": "string"
+        },
+        {
+            "name": "global_staytime_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "entity_id",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_ipv30_inshop",
+            "type": "string"
+        },
+        {
+            "name": "inter_tag_id",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_seller_ipv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_item_recommend_count_c2c",
+            "type": "string"
+        },
+        {
+            "name": "jrzdm_item_content_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_fetchcoupon_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cvr_gul_rt_today_n_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_quality2",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_nid_pv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "auction_tag",
+            "type": "string"
+        },
+        {
+            "name": "marketmatchedcat_b2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_quality_wireless1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_bts5_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_xuanpin_tag",
+            "type": "string"
+        },
+        {
+            "name": "item_cirida_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tongkuan_auction_pid_info_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_gmv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "trans_1day_1111",
+            "type": "string"
+        },
+        {
+            "name": "multi_all_seller_userlayer_fav1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "qt_s_nid_pv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "flash_tag",
+            "type": "string"
+        },
+        {
+            "name": "tk_rate_etao",
+            "type": "string"
+        },
+        {
+            "name": "cate_level12_id_c2c",
+            "type": "string"
+        },
+        {
+            "name": "kxuan_orient_commission_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_power_pv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_bad_seller_auction_b2c",
+            "type": "string"
+        },
+        {
+            "name": "smooth_cvr_seller_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tk_special_campaign_ids",
+            "type": "string"
+        },
+        {
+            "name": "kd_hx_mlrdata_ivec_v1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_usersex_ipv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "u_os_pv_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_i2i_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_user_power_pay_cnt14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_images",
+            "type": "string"
+        },
+        {
+            "name": "item_spam_punish_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "video_covervideo_url_seller",
+            "type": "string"
+        },
+        {
+            "name": "tm_bianse_cluster_id_b2c",
+            "type": "string"
+        },
+        {
+            "name": "item_jinrida_c2c",
+            "type": "string"
+        },
+        {
+            "name": "u_pred_age_level_ipv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_prom_value",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_nid_gmv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_market_item_area_b2c",
+            "type": "string"
+        },
+        {
+            "name": "s_seller_pv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cart_uv_7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "fake_auction_punish_c2c",
+            "type": "string"
+        },
+        {
+            "name": "level_one_cat",
+            "type": "string"
+        },
+        {
+            "name": "jhs_algo_score_1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_nid_userlayer_fav14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "quality_hangye_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_bigpic_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_nid_userlayer_cart14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "realtime_cvr_score1_1111",
+            "type": "string"
+        },
+        {
+            "name": "newuser_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "fake_model_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_auction_brand_tags_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_nid_payuv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_seller_userlayer_pay1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_tag_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_nid_ipv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "unit_price",
+            "type": "string"
+        },
+        {
+            "name": "mainse_video_cover_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ss_liyidian_inshop",
+            "type": "string"
+        },
+        {
+            "name": "tk_rate",
+            "type": "string"
+        },
+        {
+            "name": "tmall_search_10s_video_id_b2c",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_payuv7_inshop",
+            "type": "string"
+        },
+        {
+            "name": "gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_service_ids",
+            "type": "string"
+        },
+        {
+            "name": "tk_special_campaign_rates_wap",
+            "type": "string"
+        },
+        {
+            "name": "recommend_picture_c2c",
+            "type": "string"
+        },
+        {
+            "name": "personal_seller_search_c2c",
+            "type": "string"
+        },
+        {
+            "name": "mainbts_good_buy_c2c",
+            "type": "string"
+        },
+        {
+            "name": "counts",
+            "type": "string"
+        },
+        {
+            "name": "coupon_count",
+            "type": "string"
+        },
+        {
+            "name": "shuang12_score1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_rate_c2c",
+            "type": "string"
+        },
+        {
+            "name": "zk_rate_wap",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_multi_term_norm_pv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_or",
+            "type": "string"
+        },
+        {
+            "name": "jurc_all_alipay_c2c",
+            "type": "string"
+        },
+        {
+            "name": "user_user_regdate_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_queryseg_norm_pay14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "brand",
+            "type": "string"
+        },
+        {
+            "name": "jhs_recall_i2i_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_productparams_30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_quality2_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_pid_c2c",
+            "type": "string"
+        },
+        {
+            "name": "taobao_item_impression_tbtj_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ss_pic_url_flag_inshop",
+            "type": "string"
+        },
+        {
+            "name": "green_seer_rank_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_seller_pv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "rt_dpv_dipvr_day_c2c",
+            "type": "string"
+        },
+        {
+            "name": "WirlessQueryNidScore_b2c",
+            "type": "string"
+        },
+        {
+            "name": "all_seller_payuv7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_barcodes",
+            "type": "string"
+        },
+        {
+            "name": "item_tags_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_pay_cnt1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "assist_image_ic",
+            "type": "string"
+        },
+        {
+            "name": "pdb_ck_stay_time_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "gid_weight",
+            "type": "string"
+        },
+        {
+            "name": "credit_card_flag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "post_fee",
+            "type": "string"
+        },
+        {
+            "name": "tmall_title",
+            "type": "string"
+        },
+        {
+            "name": "skuid_skulist",
+            "type": "string"
+        },
+        {
+            "name": "new_query_3d_cart_c2c",
+            "type": "string"
+        },
+        {
+            "name": "kxuan_coupon_c2c",
+            "type": "string"
+        },
+        {
+            "name": "zk_type",
+            "type": "string"
+        },
+        {
+            "name": "jyj_tc_minPrice",
+            "type": "string"
+        },
+        {
+            "name": "inshop_auction_tag",
+            "type": "string"
+        },
+        {
+            "name": "cspu_sold_skulist",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_multi_queryseg_norm_pay14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ctg_i2i_4_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_power_ipv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "main_product_id",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_multi_term_norm_ipv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "iidtags_for_user_growth_c2c",
+            "type": "string"
+        },
+        {
+            "name": "spu_min",
+            "type": "string"
+        },
+        {
+            "name": "show_image_weight_info_list_c2c",
+            "type": "string"
+        },
+        {
+            "name": "shenmao_techan_pinlei_name_c2c",
+            "type": "string"
+        },
+        {
+            "name": "categoryp",
+            "type": "string"
+        },
+        {
+            "name": "nid_brand_price_segment_b2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_properties_skulist",
+            "type": "string"
+        },
+        {
+            "name": "haiwaitao_itemscore_c2c",
+            "type": "string"
+        },
+        {
+            "name": "negative_realtime_regulate_mix_level_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_original_sku_zk_time_tmall",
+            "type": "string"
+        },
+        {
+            "name": "item_layer_info_c2c",
+            "type": "string"
+        },
+        {
+            "name": "apv_iid_for_merge_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_user_age_ipv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "zk_time_wap",
+            "type": "string"
+        },
+        {
+            "name": "dsr_rate",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_usersex_pay_cnt14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "spam_level",
+            "type": "string"
+        },
+        {
+            "name": "item_satisfaction_score_buyer_c2c",
+            "type": "string"
+        },
+        {
+            "name": "qt_r_nid_ipv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ctg_i2i_b2c",
+            "type": "string"
+        },
+        {
+            "name": "auc_personal_recall_for_merge_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_s_seller_payuv30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "max_shop_gift",
+            "type": "string"
+        },
+        {
+            "name": "has_pos",
+            "type": "string"
+        },
+        {
+            "name": "new_product_score_b2c",
+            "type": "string"
+        },
+        {
+            "name": "item_rtsearch_pv_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_multi_queryseg_norm_ipv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_level1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "recomm_flag",
+            "type": "string"
+        },
+        {
+            "name": "promoted_service",
+            "type": "string"
+        },
+        {
+            "name": "cart_uv_30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "gravitywv_tag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_sex_b2c",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_ipv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "mainsku_soldout_time_1111",
+            "type": "string"
+        },
+        {
+            "name": "tmall_history_price_mean_c2c",
+            "type": "string"
+        },
+        {
+            "name": "nid_skuid_skulist",
+            "type": "string"
+        },
+        {
+            "name": "auc_new_score_b2c",
+            "type": "string"
+        },
+        {
+            "name": "region",
+            "type": "string"
+        },
+        {
+            "name": "road_five_v2_ipv_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_ld_score_v2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "nid_ipv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_queryseg_norm_pay7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_multi_term_norm_pv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "zk_final_price",
+            "type": "string"
+        },
+        {
+            "name": "sis_auc_score_inshop",
+            "type": "string"
+        },
+        {
+            "name": "kg_pvid_name_c2c",
+            "type": "string"
+        },
+        {
+            "name": "en_prov",
+            "type": "string"
+        },
+        {
+            "name": "jhs_endtime",
+            "type": "string"
+        },
+        {
+            "name": "zk_final_min",
+            "type": "string"
+        },
+        {
+            "name": "tag_price_wap",
+            "type": "string"
+        },
+        {
+            "name": "sku_zk_prices",
+            "type": "string"
+        },
+        {
+            "name": "sku_color_alg_pv",
+            "type": "string"
+        },
+        {
+            "name": "uvsum_suc",
+            "type": "string"
+        },
+        {
+            "name": "zk_rate2",
+            "type": "string"
+        },
+        {
+            "name": "zk_rate3",
+            "type": "string"
+        },
+        {
+            "name": "multi_usersex_ctr14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_queryseg_norm_pay7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_color_system",
+            "type": "string"
+        },
+        {
+            "name": "sub_title",
+            "type": "string"
+        },
+        {
+            "name": "tm_all_nid_ipv14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_zk_rate_wap_skulist",
+            "type": "string"
+        },
+        {
+            "name": "feed_show",
+            "type": "string"
+        },
+        {
+            "name": "oneyuan",
+            "type": "string"
+        },
+        {
+            "name": "additional_tag_b2c",
+            "type": "string"
+        },
+        {
+            "name": "tmall_search_10s_video_b2c",
+            "type": "string"
+        },
+        {
+            "name": "i2i_nid_lr_weight_inshop",
+            "type": "string"
+        },
+        {
+            "name": "video_tags_seller",
+            "type": "string"
+        },
+        {
+            "name": "index_layer_new_c2c",
+            "type": "string"
+        },
+        {
+            "name": "gyl_target_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tm_s_nid_payuv7_b2c",
+            "type": "string"
+        },
+        {
+            "name": "auction_tag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "choice_gift",
+            "type": "string"
+        },
+        {
+            "name": "jyj_tc_unit",
+            "type": "string"
+        },
+        {
+            "name": "lp_rate",
+            "type": "string"
+        },
+        {
+            "name": "sku_and",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_nid_userlayer_cart1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "child_age_c2c",
+            "type": "string"
+        },
+        {
+            "name": "shop_title",
+            "type": "string"
+        },
+        {
+            "name": "ItemSatisfactionScoreBuyerValueWL_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_color",
+            "type": "string"
+        },
+        {
+            "name": "tmall_supermarket_brand_c2c",
+            "type": "string"
+        },
+        {
+            "name": "title_c2c",
+            "type": "string"
+        },
+        {
+            "name": "kxuan_is_coupon_c2c",
+            "type": "string"
+        },
+        {
+            "name": "video_cover_url_seller",
+            "type": "string"
+        },
+        {
+            "name": "new_retail_store_id",
+            "type": "string"
+        },
+        {
+            "name": "tongkuan_auction_pid_info_bts_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_target_feat_c2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_avg_clk_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "s_seller_pv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "tk_rate_wap",
+            "type": "string"
+        },
+        {
+            "name": "realtime_soldout_score1_inshop_1111",
+            "type": "string"
+        },
+        {
+            "name": "prom_start_fee",
+            "type": "string"
+        },
+        {
+            "name": "biz30day_gul_c2c",
+            "type": "string"
+        },
+        {
+            "name": "multi_s_nid_userlayer_pv1_c2c",
+            "type": "string"
+        },
+        {
+            "name": "qm_id_c2c",
+            "type": "string"
+        },
+        {
+            "name": "daren_content_b2c",
+            "type": "string"
+        },
+        {
+            "name": "static_trans_score",
+            "type": "string"
+        },
+        {
+            "name": "service_types",
+            "type": "string"
+        },
+        {
+            "name": "auction_point",
+            "type": "string"
+        },
+        {
+            "name": "collect_uv_30_b2c",
+            "type": "string"
+        },
+        {
+            "name": "target_dist_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cm_props_group",
+            "type": "string"
+        },
+        {
+            "name": "new_maochao_sku_code",
+            "type": "string"
+        },
+        {
+            "name": "chuxin_sell_point_info_c2c",
+            "type": "string"
+        },
+        {
+            "name": "ali_item_same_pid_c2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_rank_score2_b2c",
+            "type": "string"
+        },
+        {
+            "name": "zoo_prop",
+            "type": "string"
+        },
+        {
+            "name": "mall_tab_auc_brand_nova_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ipv_gul_rt_today_n_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_zk_time_wap_skulist",
+            "type": "string"
+        },
+        {
+            "name": "niupixian_new_b2c",
+            "type": "string"
+        },
+        {
+            "name": "nid_widetrans_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pdb_barwangwang_30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_original_sku_price_field_tmall",
+            "type": "string"
+        },
+        {
+            "name": "multi_queryseg_norm_ipv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "contact_newoffer",
+            "type": "string"
+        },
+        {
+            "name": "video_url_talent",
+            "type": "string"
+        },
+        {
+            "name": "apv_iid_bts_c2c",
+            "type": "string"
+        },
+        {
+            "name": "balance_time_b2c",
+            "type": "string"
+        },
+        {
+            "name": "hot_properties",
+            "type": "string"
+        },
+        {
+            "name": "spu_max",
+            "type": "string"
+        },
+        {
+            "name": "tmtab_multi_term_norm_pay14_b2c",
+            "type": "string"
+        },
+        {
+            "name": "cuntao_filter",
+            "type": "string"
+        },
+        {
+            "name": "brand_info",
+            "type": "string"
+        },
+        {
+            "name": "dnn_item_vec_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sea_item_floor_ids",
+            "type": "string"
+        },
+        {
+            "name": "backup_01_inshop",
+            "type": "string"
+        },
+        {
+            "name": "mj_zk_time",
+            "type": "string"
+        },
+        {
+            "name": "video_base_score_seller",
+            "type": "string"
+        },
+        {
+            "name": "v2b_all_seed_item_info_c2c",
+            "type": "string"
+        },
+        {
+            "name": "item_flow_control_base_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_bts1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_rank_score",
+            "type": "string"
+        },
+        {
+            "name": "aio_content_ids_c2c",
+            "type": "string"
+        },
+        {
+            "name": "sku_zk_group_tmall",
+            "type": "string"
+        },
+        {
+            "name": "category_ipv_14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "real_sales2_c2c",
+            "type": "string"
+        },
+        {
+            "name": "buhuo_sort_c2c",
+            "type": "string"
+        },
+        {
+            "name": "personal_brand_id_b2c",
+            "type": "string"
+        },
+        {
+            "name": "r_dm_tmall_sis_auc_score2rank_inshop",
+            "type": "string"
+        },
+        {
+            "name": "pdb_sku_7_c2c",
+            "type": "string"
+        },
+        {
+            "name": "all_nid_payuv30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "vertical_market",
+            "type": "string"
+        },
+        {
+            "name": "alg_bts_feature3",
+            "type": "string"
+        },
+        {
+            "name": "rt_dpv_dipvr_day_n_c2c",
+            "type": "string"
+        },
+        {
+            "name": "xt_aux_b2c",
+            "type": "string"
+        },
+        {
+            "name": "ct_sum_q_c2c",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_gmv30_inshop",
+            "type": "string"
+        },
+        {
+            "name": "inshop_spuid",
+            "type": "string"
+        },
+        {
+            "name": "tm_multi_term_norm_pv1_b2c",
+            "type": "string"
+        },
+        {
+            "name": "s_nid_pv7_inshop",
+            "type": "string"
+        },
+        {
+            "name": "ali_nfc_tc_small_cat_c2c",
+            "type": "string"
+        },
+        {
+            "name": "auclus_auction_pid_2_bts_c2c",
+            "type": "string"
+        },
+        {
+            "name": "alg_item3_single_c2c",
+            "type": "string"
+        },
+        {
+            "name": "is_cp_rules_c2c",
+            "type": "string"
+        },
+        {
+            "name": "baobei_type",
+            "type": "string"
+        },
+        {
+            "name": "pdb_comments_30_c2c",
+            "type": "string"
+        },
+        {
+            "name": "region_original_zk_bbqid",
+            "type": "string"
+        },
+        {
+            "name": "buhuo_flag_c2c",
+            "type": "string"
+        },
+        {
+            "name": "pid_info",
+            "type": "string"
+        },
+        {
+            "name": "nid_network_score_c2c",
+            "type": "string"
+        },
+        {
+            "name": "zk_money",
+            "type": "string"
+        },
+        {
+            "name": "multi_term_norm_ipv14_c2c",
+            "type": "string"
+        },
+        {
+            "name": "cat_id_path_tmall",
+            "type": "string"
+        },
+        {
+            "name": "tm_zk_time",
+            "type": "string"
+        },
+        {
+            "name": "master_user_id",
+            "type": "string"
+        },
+        {
+            "name": "new_maochao_store_id",
+            "type": "string"
+        },
+        {
+            "name": "ratesum",
+            "type": "string"
+        },
+        {
+            "name": "seller_coupon_item_c2c",
+            "type": "string"
+        },
+        {
+            "name": "category",
+            "type": "string"
+        },
+        {
+            "name": "brand_id_c2c",
+            "type": "string"
+        },
+        {
+            "name": "seller_gska_item_b2c",
+            "type": "string"
+        }
+    ]
+}

@@ -1,0 +1,34 @@
+{
+    "module_infos":[
+        {
+            "module_name":"build_service_task",
+            "module_path":"libbuild_service_tasks.so.1.0"
+        }
+    ],
+    "task_module_name": "build_service_task",
+    "partition_count":1,
+    "parallel_num":1,
+    "inputs": {
+        "default" : {
+            "type" : "INDEXLIB_INDEX",
+            "params" : {
+                "input_index_root": "index_path"                
+            }
+        }
+    },
+    "task_params" : {
+        "auto_exit_when_fatal_error" : "false"
+    },
+    "outputs": {
+        "default": {
+            "type" : "DB_MYSQL",
+            "params" : {
+                "hostname" : "anno.coronadb.alibaba.net",
+                "port" : "3306",
+                "user_name": "BUILD_SERVICE_TABLE_META_DB_APP",
+                "password": "123456",
+                "db_name": "BUILD_SERVICE_TABLE_META_DB_APP"
+            }
+        }
+    }
+}

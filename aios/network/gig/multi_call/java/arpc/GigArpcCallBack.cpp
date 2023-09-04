@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/java/arpc/GigArpcCallBack.h"
+
 #include "autil/StringUtil.h"
 
 using namespace std;
@@ -22,13 +23,14 @@ using namespace autil;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GigArpcCallBack);
 
-GigArpcCallBack::GigArpcCallBack(
-    const std::string &requestStr, const CallBackPtr &callBack,
-    autil::LockFreeThreadPool *callBackThreadPool)
-    : ArpcCallBack(NULL, NULL, callBack, callBackThreadPool),
-      _requestStr(requestStr) {}
+GigArpcCallBack::GigArpcCallBack(const std::string &requestStr, const CallBackPtr &callBack,
+                                 autil::LockFreeThreadPool *callBackThreadPool)
+    : ArpcCallBack(NULL, NULL, callBack, callBackThreadPool)
+    , _requestStr(requestStr) {
+}
 
-GigArpcCallBack::~GigArpcCallBack() {}
+GigArpcCallBack::~GigArpcCallBack() {
+}
 
 void GigArpcCallBack::callBack() {
     if (!_callBack->isCopyRequest()) {
@@ -49,8 +51,7 @@ void GigArpcCallBack::callBack() {
         }
         std::string responseInfo;
         ec = getCompatibleInfo(ec, responseInfo);
-        _callBack->run(&_responseStr, ec, _controller.ErrorText(),
-                       responseInfo);
+        _callBack->run(&_responseStr, ec, _controller.ErrorText(), responseInfo);
     }
 }
 

@@ -22,13 +22,12 @@
 namespace indexlibv2::document {
 AUTIL_LOG_SETUP(indexlib.document, KVDocument);
 
-KVDocument::KVDocument(autil::mem_pool::Pool* pool) : _pool(pool), _docInfo(0, INVALID_TIMESTAMP) {}
+KVDocument::KVDocument(autil::mem_pool::Pool* pool) : _pool(pool), _docInfo(0, INVALID_TIMESTAMP, 0) {}
 
 KVDocument::~KVDocument() {}
 
 const framework::Locator& KVDocument::GetLocatorV2() const { return _locator; }
 void KVDocument::SetLocator(const framework::Locator& locator) { _locator = locator; }
-
 docid_t KVDocument::GetDocId() const
 {
     assert(false);
@@ -43,6 +42,7 @@ KVDocument::KVDocument(KVDocument&& other)
     , _userTimestamp(other._userTimestamp)
     , _ttl(other._ttl)
     , _indexNameHash(other._indexNameHash)
+    , _schemaId(other._schemaId)
     , _pool(other._pool)
     , _pkFieldName(other._pkFieldName)
     , _pkFieldValue(other._pkFieldValue)
@@ -67,6 +67,7 @@ KVDocument& KVDocument::operator=(KVDocument&& other)
         _pkFieldName = other._pkFieldName;
         _pkFieldValue = other._pkFieldValue;
         _indexNameHash = other._indexNameHash;
+        _schemaId = other._schemaId;
         _locator = other._locator;
         _docInfo = other._docInfo;
         _trace = other._trace;
@@ -128,6 +129,7 @@ std::unique_ptr<KVDocument> KVDocument::Clone(autil::mem_pool::Pool* pool) const
     ret->_userTimestamp = _userTimestamp;
     ret->_ttl = _ttl;
     ret->_indexNameHash = _indexNameHash;
+    ret->_schemaId = _schemaId;
     ret->_locator = _locator;
     ret->_docInfo = _docInfo;
     ret->_trace = _trace;
@@ -155,5 +157,10 @@ void KVDocument::SetPkField(const autil::StringView& name, const autil::StringVi
 }
 
 void KVDocument::SetValue(autil::StringView value) noexcept { _value = autil::MakeCString(value, _pool); }
+
+schemaid_t KVDocument::GetSchemaId() const { return _schemaId; }
+void KVDocument::SetSchemaId(schemaid_t schemaId) { _schemaId = schemaId; }
+void KVDocument::SerializeSchemaId(autil::DataBuffer& dataBuffer) const { dataBuffer.write(_schemaId); }
+void KVDocument::DeserializeSchemaId(autil::DataBuffer& dataBuffer) { dataBuffer.read(_schemaId); }
 
 } // namespace indexlibv2::document

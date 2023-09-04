@@ -9,26 +9,27 @@
 #define KMONITOR_CLIENT_METRIC_STATUS_H_
 
 #include <string>
+
 #include "kmonitor/client/common/Common.h"
 #include "kmonitor/client/metric/Metric.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 class StatusMetric : public Metric {
- public:
+public:
     virtual ~StatusMetric();
     explicit StatusMetric(const std::string &name);
     virtual void doUpdate(double value) override;
     virtual void doSnapshot(MetricsRecord *record, int64_t period) override;
 
- private:
+private:
     StatusMetric(const StatusMetric &);
     StatusMetric &operator=(const StatusMetric &);
 
- private:
+private:
     double value_;
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_METRIC_STATUS_H_
+#endif // KMONITOR_CLIENT_METRIC_STATUS_H_

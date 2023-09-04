@@ -26,5 +26,6 @@ inline const std::string TABLE_TYPE_LINEDATA = "line_data";
 inline const std::string TABLE_TYPE_RAWFILE = "raw_file";
 inline const std::string TABLE_TYPE_DEMO = "demo";
 inline const std::string TABLE_TYPE_AGGREGATION = "aggregation";
+inline const std::string TABLE_TYPE_CUSTOMIZED = "customized";
 
 } // namespace indexlib::table

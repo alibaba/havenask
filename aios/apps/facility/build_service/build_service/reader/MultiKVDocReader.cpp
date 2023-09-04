@@ -23,9 +23,11 @@
 #include "build_service/reader/IdleDocumentParser.h"
 #include "build_service/util/Monitor.h"
 #include "build_service/util/RangeUtil.h"
+#include "indexlib/config/MutableJson.h"
 #include "indexlib/file_system/FileSystemCreator.h"
 #include "indexlib/file_system/FileSystemOptions.h"
 #include "indexlib/file_system/IFileSystem.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/kkv/kkv_doc_reader.h"
 #include "indexlib/index/kv/kv_doc_reader.h"
@@ -107,7 +109,7 @@ bool MultiKVDocReader::init(const ReaderInitParam& params)
     }
 
     string tableName;
-    std::shared_ptr<indexlibv2::config::TabletSchema> targetSchema;
+    std::shared_ptr<indexlibv2::config::ITabletSchema> targetSchema;
     auto it = params.kvMap.find(RAW_DOCUMENT_SCHEMA_NAME);
     if (it != params.kvMap.end()) {
         tableName = it->second;
@@ -120,13 +122,13 @@ bool MultiKVDocReader::init(const ReaderInitParam& params)
     }
     if (targetSchema) {
         BS_LOG(INFO, "init using schema name [%s]", tableName.c_str());
-        auto [status, ttlFromDoc] = targetSchema->GetSetting<bool>("ttl_from_doc");
+        auto [status, ttlFromDoc] = targetSchema->GetRuntimeSettings().GetValue<bool>("ttl_from_doc");
         if (!status.IsOK() && !status.IsNotFound()) {
             BS_LOG(ERROR, "get ttl_from_doc failed, [%s]", status.ToString().c_str());
             return false;
         }
         if (ttlFromDoc) {
-            auto [status, ttlFieldName] = targetSchema->GetSetting<std::string>("ttl_field_name");
+            auto [status, ttlFieldName] = targetSchema->GetRuntimeSettings().GetValue<std::string>("ttl_field_name");
             if (status.IsNotFound()) {
                 ttlFieldName = DOC_TIME_TO_LIVE_IN_SECONDS;
             } else if (!status.IsOK()) {
@@ -234,7 +236,7 @@ RawDocumentReader::ErrorCode MultiKVDocReader::getNextRawDoc(document::RawDocume
         if (!_docReader->IsEof() && _docReader->Read(&rawDoc, timestampInSecond)) {
             rawDoc.setDocOperateType(ADD_DOC);
             reportRawDocSize(rawDoc);
-            docInfo.docTimestamp = SecondToMicrosecond(timestampInSecond);
+            docInfo.timestamp = SecondToMicrosecond(timestampInSecond);
             if (_autoCommit) {
                 updateCommitedCheckpoint(checkpoint);
             }

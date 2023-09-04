@@ -1,0 +1,43 @@
+{
+    "cluster_config": {
+        "table_name": "simple_table",
+        "hash_mode": {
+            "hash_function": "KINGSO_HASH#720",
+            "hash_field": "id"
+        }
+    },
+    "offline_index_config": {
+        "customized_merge_config": {
+            "full": {
+                "merge_config": {
+                    "truncate_strategy": [
+                        {
+                            "limit": 1,
+                            "strategy_name": "payload_strategy_desc",
+                            "truncate_profiles": [
+                                "desc_payload_1",
+                                "desc_payload_2",
+                                "desc_payload_3"
+                            ],
+                            "re_truncate_by_meta": {
+                                "limit": 1,
+                                "diversity_constrain": {
+                                    "filter_field": "DOC_PAYLOAD",
+                                    "filter_by_meta": true
+                                }
+                            }
+                        },
+                        {
+                            "limit": 1,
+                            "strategy_name": "price_strategy",
+                            "truncate_profiles": [
+                                "desc_price"
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        "merge_config": {}
+    }
+}

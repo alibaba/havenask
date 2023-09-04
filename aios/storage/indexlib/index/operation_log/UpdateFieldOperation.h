@@ -33,7 +33,7 @@ template <typename T>
 class UpdateFieldOperation : public OperationBase
 {
 public:
-    UpdateFieldOperation(int64_t timestamp, uint16_t hashId);
+    UpdateFieldOperation(const indexlibv2::document::IDocument::DocInfo& docInfo);
     ~UpdateFieldOperation() = default;
 
 public:
@@ -66,8 +66,8 @@ private:
 AUTIL_LOG_SETUP_TEMPLATE(indexlib.index, UpdateFieldOperation, T);
 
 template <typename T>
-UpdateFieldOperation<T>::UpdateFieldOperation(int64_t timestamp, uint16_t hashId)
-    : OperationBase(timestamp, hashId)
+UpdateFieldOperation<T>::UpdateFieldOperation(const indexlibv2::document::IDocument::DocInfo& docInfo)
+    : OperationBase(docInfo)
     , _pkHash(T())
     , _items(nullptr)
     , _itemSize(0)
@@ -214,8 +214,7 @@ OperationBase* UpdateFieldOperation<T>::Clone(autil::mem_pool::Pool* pool)
         clonedItems[i].second = copyDataValue;
     }
 
-    UpdateFieldOperation* clonedOperation =
-        IE_POOL_COMPATIBLE_NEW_CLASS(pool, UpdateFieldOperation, GetTimestamp(), _hashId);
+    UpdateFieldOperation* clonedOperation = IE_POOL_COMPATIBLE_NEW_CLASS(pool, UpdateFieldOperation, _docInfo);
     clonedOperation->Init(GetPkHash(), clonedItems, _itemSize, GetSegmentId());
     if (!clonedOperation) {
         AUTIL_LOG(ERROR, "allocate memory fail!");

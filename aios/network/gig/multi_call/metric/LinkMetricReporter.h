@@ -22,7 +22,8 @@
 
 namespace multi_call {
 
-class LinkMetricReporter {
+class LinkMetricReporter
+{
 public:
     LinkMetricReporter(kmonitor::KMonitor *kMonitor, MetaEnv &metaEnv);
     ~LinkMetricReporter();
@@ -39,21 +40,22 @@ private:
 public:
     void reportMetric(const MetaEnv &targetMetaEnv, const std::string &biz,
                       const std::string &targetBiz, const std::string &src,
-                      const std::string &srcAb, const std::string &stressTest,
-                      int64_t latency, bool timeout, bool error);
+                      const std::string &srcAb, const std::string &stressTest, int64_t latency,
+                      bool timeout, bool error);
     void setReportSampling(int32_t interval);
 
 private:
     void doReportMetric(const MetaEnv &targetMetaEnv, const std::string &biz,
                         const std::string &targetBiz, const std::string &src,
-                        const std::string &srcAb, const std::string &stressTest,
-                        int64_t latency, bool timeout, bool error);
+                        const std::string &srcAb, const std::string &stressTest, int64_t latency,
+                        bool timeout, bool error);
 
 private:
-    kmonitor::MetricsTagsPtr
-    getLinkMetricsTags(const MetaEnv &targetMetaEnv, const std::string &biz,
-                       const std::string &targetBiz, const std::string &src,
-                       const std::string &srcAb, const std::string &stressTest);
+    kmonitor::MetricsTagsPtr getLinkMetricsTags(const MetaEnv &targetMetaEnv,
+                                                const std::string &biz,
+                                                const std::string &targetBiz,
+                                                const std::string &src, const std::string &srcAb,
+                                                const std::string &stressTest);
 
 private:
     kmonitor::KMonitor *_kMonitor;

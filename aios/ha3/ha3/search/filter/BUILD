@@ -5,7 +5,7 @@ cc_library(
     include_prefix='ha3/search',
     deps=[
         '//aios/autil:log', '//aios/matchdoc',
-        '@suez_turing.turbojet.turing_ops_util//:suez_turing'
+        '//aios/suez_turing/suez/turing/expression:turing_expression'
     ]
 )
 cc_library(
@@ -13,6 +13,6 @@ cc_library(
     srcs=glob(['*.cpp']),
     deps=[
         ':ha3_filter_headers', '//aios/matchdoc',
-        '@suez_turing.turbojet.turing_ops_util//:suez_turing'
+        '//aios/suez_turing/suez/turing/expression:turing_expression'
     ]
 )

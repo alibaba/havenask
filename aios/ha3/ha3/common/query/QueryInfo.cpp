@@ -17,10 +17,9 @@
 
 #include <iosfwd>
 
-#include "autil/legacy/jsonizable.h"
-
-#include "ha3/isearch.h"
 #include "autil/Log.h"
+#include "autil/legacy/jsonizable.h"
+#include "ha3/isearch.h"
 
 using namespace std;
 namespace isearch {
@@ -33,18 +32,14 @@ QueryInfo::QueryInfo() {
     _useMultiTermOptimize = false;
 }
 
-QueryInfo::QueryInfo(const string &defaultIndexName, QueryOperator defaultOP,
-                     bool flag)
+QueryInfo::QueryInfo(const string &defaultIndexName, QueryOperator defaultOP, bool flag)
     : _defaultIndexName(defaultIndexName)
     , _defaultOP(defaultOP)
-    , _useMultiTermOptimize(flag)
-{
-}
+    , _useMultiTermOptimize(flag) {}
 
-QueryInfo::~QueryInfo() {
-}
+QueryInfo::~QueryInfo() {}
 
-void QueryInfo::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) {
+void QueryInfo::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
     string opString;
     if (TO_JSON == json.GetMode()) {
         if (_defaultOP == OP_AND) {

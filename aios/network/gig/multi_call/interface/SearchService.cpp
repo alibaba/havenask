@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/interface/SearchService.h"
+
 #include "aios/network/gig/multi_call/agent/QueryInfo.h"
 #include "aios/network/gig/multi_call/interface/SyncClosure.h"
 #include "aios/network/gig/multi_call/metric/MetricReporterManager.h"
@@ -25,6 +26,7 @@
 #include "aios/network/gig/multi_call/service/RetryLimitChecker.h"
 #include "aios/network/gig/multi_call/service/SearchServiceManager.h"
 #include "aios/network/gig/multi_call/stream/GigClientStreamImpl.h"
+#include "autil/EnvUtil.h"
 #include "autil/LoopThread.h"
 #include "autil/legacy/any.h"
 
@@ -44,13 +46,15 @@ SearchService::SearchService() {
     _retryLimitChecker.reset(new RetryLimitChecker());
     _latencyTimeSnapshot.reset(new LatencyTimeSnapshot());
     _serviceManager->setLatencyTimeSnapshot(_latencyTimeSnapshot);
-    _versionSelectorFactory.reset(new VersionSelectorFactory(
-        _serviceManager->getSubscribeServiceManager()));
+    _versionSelectorFactory.reset(
+        new VersionSelectorFactory(_serviceManager->getSubscribeServiceManager()));
     _providerSelectorFactory.reset(new ProviderSelectorFactory());
     _tracerProvider.reset(new opentelemetry::TracerProvider());
 }
 
-SearchService::~SearchService() { stop(); }
+SearchService::~SearchService() {
+    stop();
+}
 
 void SearchService::stop() {
     if (_serviceManager) {
@@ -82,18 +86,19 @@ bool SearchService::init(const JsonMap &mcConfig) {
 bool SearchService::init(const MultiCallConfig &mcConfig) {
     // set env GRPC_CLIENT_CHANNEL_BACKUP_POLL_INTERVAL_MS to fix grpc channel
     // connecting state not ready for 5s
-    string grpcChannelInterval =
-        StringUtil::toString(mcConfig.miscConf.grpcChannelPollIntervalMs);
-    setenv("GRPC_CLIENT_CHANNEL_BACKUP_POLL_INTERVAL_MS",
-           grpcChannelInterval.c_str(), 0);
-
-    if (!_metricReporterManager->init(false,
-                                      mcConfig.miscConf.disableMetricReport,
+    static string GRPC_CLIENT_CHANNEL_BACKUP_POLL_INTERVAL_MS =
+        "GRPC_CLIENT_CHANNEL_BACKUP_POLL_INTERVAL_MS";
+    if (!autil::EnvUtil::hasEnv(GRPC_CLIENT_CHANNEL_BACKUP_POLL_INTERVAL_MS)) {
+        string grpcChannelInterval =
+            StringUtil::toString(mcConfig.miscConf.grpcChannelPollIntervalMs);
+        autil::EnvUtil::setEnv("GRPC_CLIENT_CHANNEL_BACKUP_POLL_INTERVAL_MS", grpcChannelInterval,
+                               false);
+    }
+    if (!_metricReporterManager->init(false, mcConfig.miscConf.disableMetricReport,
                                       mcConfig.miscConf.simplifyMetricReport)) {
         return false;
     }
-    _metricReporterManager->setReportSampling(
-        mcConfig.miscConf.metricReportSamplingRate);
+    _metricReporterManager->setReportSampling(mcConfig.miscConf.metricReportSamplingRate);
     _serviceManager->setMetricReporterManager(_metricReporterManager);
     if (!_serviceManager->init(mcConfig)) {
         AUTIL_LOG(ERROR, "ServiceManager init failed");
@@ -139,8 +144,7 @@ void SearchService::waitCreateSnapshotLoop() {
     _serviceManager->waitCreateSnapshotLoop();
 }
 
-bool SearchService::updateFlowConfig(const string &flowConfigStrategy,
-                                     const JsonMap *flowConf) {
+bool SearchService::updateFlowConfig(const string &flowConfigStrategy, const JsonMap *flowConf) {
     FlowControlConfigPtr flowControlConfig;
     if (flowConf) {
         try {
@@ -149,17 +153,15 @@ bool SearchService::updateFlowConfig(const string &flowConfigStrategy,
         } catch (const ExceptionBase &e) {
             string jsonStr;
             ToString(*flowConf, jsonStr, true);
-            AUTIL_LOG(WARN, "init flow config failed [%s], error [%s]",
-                      jsonStr.c_str(), e.what());
+            AUTIL_LOG(WARN, "init flow config failed [%s], error [%s]", jsonStr.c_str(), e.what());
             return false;
         }
     }
     return updateFlowConfig(flowConfigStrategy, flowControlConfig);
 }
 
-bool SearchService::updateFlowConfig(
-    const std::string &flowConfigStrategy,
-    const FlowControlConfigPtr &flowControlConfig) {
+bool SearchService::updateFlowConfig(const std::string &flowConfigStrategy,
+                                     const FlowControlConfigPtr &flowControlConfig) {
     FlowConfigSnapshotPtr newSnapshot = getFlowConfigSnapshot()->clone();
     newSnapshot->updateFlowConfig(flowConfigStrategy, flowControlConfig);
     setFlowConfigSnapshot(newSnapshot);
@@ -175,8 +177,7 @@ void SearchService::updateFlowConfig(
     setFlowConfigSnapshot(newSnapshot);
 }
 
-bool SearchService::updateDefaultFlowConfig(
-    const FlowControlConfigPtr &flowControlConfig) {
+bool SearchService::updateDefaultFlowConfig(const FlowControlConfigPtr &flowControlConfig) {
     FlowConfigSnapshotPtr newSnapshot = getFlowConfigSnapshot()->clone();
     newSnapshot->updateDefaultFlowConfig(flowControlConfig);
     setFlowConfigSnapshot(newSnapshot);
@@ -196,16 +197,13 @@ FlowControlConfigMap SearchService::getFlowConfigMap() {
     return {};
 }
 
-void SearchService::setFlowConfigSnapshot(
-    const FlowConfigSnapshotPtr &flowConfigSnapshot) {
-    AUTIL_LOG(INFO, "update FlowConfigSnapshot: %s",
-              flowConfigSnapshot->toString().c_str());
+void SearchService::setFlowConfigSnapshot(const FlowConfigSnapshotPtr &flowConfigSnapshot) {
+    AUTIL_LOG(INFO, "update FlowConfigSnapshot: %s", flowConfigSnapshot->toString().c_str());
     ScopedReadWriteLock lock(_snapshotLock, 'w');
     _flowConfigSnapshot = flowConfigSnapshot;
 }
 
-FlowControlConfigPtr
-SearchService::getFlowConfig(const std::string &flowConfigStrategy) {
+FlowControlConfigPtr SearchService::getFlowConfig(const std::string &flowConfigStrategy) {
     return getFlowConfigSnapshot()->getFlowControlConfig(flowConfigStrategy);
 }
 
@@ -219,9 +217,8 @@ void SearchService::search(const SearchParam &param, ReplyPtr &reply,
     reply.reset(new Reply());
     auto searchSnapshot = _serviceManager->getSearchServiceSnapshot();
     auto flowSnapshot = getFlowConfigSnapshot();
-    ChildNodeCaller childNodeCaller(searchSnapshot, flowSnapshot, _callThread,
-                                    param.generatorVec, _retryLimitChecker,
-                                    _latencyTimeSnapshot, querySession);
+    ChildNodeCaller childNodeCaller(searchSnapshot, flowSnapshot, _callThread, param.generatorVec,
+                                    _retryLimitChecker, _latencyTimeSnapshot, querySession);
     auto childNodeReply = childNodeCaller.call();
     childNodeReply->setMetricReportManager(_metricReporterManager);
     reply->setChildNodeReply(childNodeReply);
@@ -272,20 +269,17 @@ bool SearchService::bind(const GigClientStreamPtr &stream, const QuerySessionPtr
 }
 
 bool SearchService::bind(const GigClientStreamPtr &stream,
-                         const SearchServiceSnapshotPtr &searchSnapshot)
-{
+                         const SearchServiceSnapshotPtr &searchSnapshot) {
     QuerySessionPtr session(new QuerySession(nullptr));
     return bind(stream, session, searchSnapshot);
 }
 
 bool SearchService::bind(const GigClientStreamPtr &stream, const QuerySessionPtr &session,
-                         const SearchServiceSnapshotPtr &searchSnapshot)
-{
+                         const SearchServiceSnapshotPtr &searchSnapshot) {
     auto generator = dynamic_pointer_cast<RequestGenerator>(stream);
     auto flowSnapshot = getFlowConfigSnapshot();
-    ChildNodeCaller childNodeCaller(
-        searchSnapshot, flowSnapshot, _callThread, { generator },
-        _retryLimitChecker, _latencyTimeSnapshot, session);
+    ChildNodeCaller childNodeCaller(searchSnapshot, flowSnapshot, _callThread, {generator},
+                                    _retryLimitChecker, _latencyTimeSnapshot, session);
     SearchServiceResourceVector resourceVec;
     auto childNodeReply = childNodeCaller.call(resourceVec);
     childNodeReply->setMetricReportManager(_metricReporterManager);
@@ -294,6 +288,14 @@ bool SearchService::bind(const GigClientStreamPtr &stream, const QuerySessionPtr
     auto streamImpl = stream->getImpl();
     return streamImpl->init(childNodeReply, resourceVec, childNodeCaller.getCaller(), disableRetry,
                             forceStop);
+}
+
+bool SearchService::setSnapshotChangeCallback(SnapshotChangeCallback *callback) {
+    return _serviceManager->setSnapshotChangeCallback(callback);
+}
+
+void SearchService::stealSnapshotChangeCallback() {
+    _serviceManager->stealSnapshotChangeCallback();
 }
 
 bool SearchService::hasCluster(const std::string &clusterName) const {
@@ -312,8 +314,7 @@ bool SearchService::hasBiz(const string &bizName) const {
     return searchSnapshot->hasBiz(bizName);
 }
 
-bool SearchService::hasBiz(const string &clusterName,
-                           const string &bizName) const {
+bool SearchService::hasBiz(const string &clusterName, const string &bizName) const {
     auto name = MiscUtil::createBizName(clusterName, bizName);
     return hasBiz(name);
 }
@@ -323,9 +324,8 @@ bool SearchService::hasVersion(const std::string &bizName, VersionTy version,
     return hasVersion(EMPTY_STRING, bizName, version, info);
 }
 
-bool SearchService::hasVersion(const std::string &clusterName,
-                               const std::string &bizName, VersionTy version,
-                               VersionInfo &info) const {
+bool SearchService::hasVersion(const std::string &clusterName, const std::string &bizName,
+                               VersionTy version, VersionInfo &info) const {
     auto searchSnapshot = _serviceManager->getSearchServiceSnapshot();
     if (!searchSnapshot) {
         info.clear();
@@ -343,8 +343,7 @@ bool SearchService::hasVersion(const std::string &clusterName,
     return bizSnapshot->hasVersion(version, info);
 }
 
-std::vector<VersionTy>
-SearchService::getBizVersion(const std::string &bizName) const {
+std::vector<VersionTy> SearchService::getBizVersion(const std::string &bizName) const {
     auto searchSnapshot = _serviceManager->getSearchServiceSnapshot();
     if (!searchSnapshot) {
         return vector<VersionTy>();
@@ -352,8 +351,7 @@ SearchService::getBizVersion(const std::string &bizName) const {
     return searchSnapshot->getBizVersion(bizName);
 }
 
-std::set<VersionTy>
-SearchService::getBizProtocalVersion(const std::string &bizName) const {
+std::set<VersionTy> SearchService::getBizProtocalVersion(const std::string &bizName) const {
     auto searchSnapshot = _serviceManager->getSearchServiceSnapshot();
     if (!searchSnapshot) {
         return std::set<VersionTy>();
@@ -361,8 +359,7 @@ SearchService::getBizProtocalVersion(const std::string &bizName) const {
     return searchSnapshot->getBizProtocalVersion(bizName);
 }
 
-bool SearchService::getBizInfos(const std::string &bizName,
-                                std::vector<BizInfo> &bizInfos) const {
+bool SearchService::getBizInfos(const std::string &bizName, std::vector<BizInfo> &bizInfos) const {
     bizInfos.clear();
     auto searchSnapshot = _serviceManager->getSearchServiceSnapshot();
     if (!searchSnapshot) {
@@ -387,16 +384,25 @@ bool SearchService::getBizInfos(const std::string &bizName,
     return true;
 }
 
-std::shared_ptr<SearchServiceSnapshot>
-SearchService::getSearchServiceSnapshot() {
+bool SearchService::getBizMetaInfos(std::vector<BizMetaInfo> &bizMetaInfos) const {
+    bizMetaInfos.clear();
+    auto searchSnapshot = _serviceManager->getSearchServiceSnapshot();
+    if (!searchSnapshot) {
+        return false;
+    }
+    searchSnapshot->getBizMetaInfos(bizMetaInfos);
+    return true;
+}
+
+std::shared_ptr<SearchServiceSnapshot> SearchService::getSearchServiceSnapshot() {
     return _serviceManager->getSearchServiceSnapshot();
 }
 
 bool SearchService::restartCallThread(int64_t processInterval, uint64_t queueSize) {
     _callThread.reset();
-    _callThread.reset(new CallDelegationThread(
-        _serviceManager, _metricReporterManager->getWorkerMetricReporter(),
-        processInterval, queueSize));
+    _callThread.reset(new CallDelegationThread(_serviceManager,
+                                               _metricReporterManager->getWorkerMetricReporter(),
+                                               processInterval, queueSize));
     if (!_callThread->start()) {
         AUTIL_LOG(WARN, "restart call delegation thread failed");
         _callThread.reset();

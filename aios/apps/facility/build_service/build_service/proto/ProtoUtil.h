@@ -94,7 +94,9 @@ public:
 
     static std::string toStepString(const PartitionId& pid);
     static std::string toStepString(const proto::BuildStep& buildStep);
-
+    static std::string getGeneralTaskAppName(const std::string& appName, const std::string& clusterName,
+                                             uint16_t rangeFrom, int16_t rangeTo);
+    static std::string getOriginalAppName(const std::string& generalAppName);
     static std::vector<std::string> getClusterNames(const proto::PartitionId& partitionId);
 
     template <typename MessageType>

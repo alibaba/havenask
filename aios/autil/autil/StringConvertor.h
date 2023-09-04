@@ -27,12 +27,11 @@ public:
 
 private:
     StringConvertor(const StringConvertor &);
-    StringConvertor& operator=(const StringConvertor &);
+    StringConvertor &operator=(const StringConvertor &);
 
 public:
-    template<typename T>
-    inline __attribute__((always_inline))
-    static T atoi(const char *p, int32_t size) {
+    template <typename T>
+    inline __attribute__((always_inline)) static T atoi(const char *p, int32_t size) {
         T x = 0;
         bool neg = false;
         const char *end = p + size;
@@ -56,17 +55,21 @@ public:
     ~StringAppender();
 
 public:
-    StringAppender& appendString(const std::string &data);
-    StringAppender& appendChar(const char ch);
-    StringAppender& appendBool(bool bVal);
-    StringAppender& appendInt64(int64_t number);
+    StringAppender &appendString(const std::string &data);
+    StringAppender &appendChar(const char ch);
+    StringAppender &appendBool(bool bVal);
+    StringAppender &appendInt64(int64_t number);
     std::string toString();
     void copyToString(std::string &data);
-    const char* buf() { return buf_; }
+    const char *buf() { return buf_; }
     int32_t idx() { return idx_; }
     int32_t size() { return size_; }
     void clear() { idx_ = 0; }
-    void decIdx() { if (idx_ > 0) { idx_--; }}
+    void decIdx() {
+        if (idx_ > 0) {
+            idx_--;
+        }
+    }
 
 private:
     int32_t normalizeSize(int32_t size);
@@ -78,5 +81,4 @@ private:
     int32_t size_;
 };
 
-}
-
+} // namespace autil

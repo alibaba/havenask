@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/ConnectionManager.h"
+
 #include "aios/network/gig/multi_call/service/ConnectionPoolFactory.h"
 #include "autil/ThreadPool.h"
 
@@ -22,9 +23,12 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, ConnectionManager);
 
-ConnectionManager::ConnectionManager() : _callBackThreadPool(nullptr) {}
+ConnectionManager::ConnectionManager() : _callBackThreadPool(nullptr) {
+}
 
-ConnectionManager::~ConnectionManager() { stop(); }
+ConnectionManager::~ConnectionManager() {
+    stop();
+}
 
 void ConnectionManager::stop() {
     for (size_t i = 0; i < MC_PROTOCOL_UNKNOWN; i++) {
@@ -39,8 +43,7 @@ void ConnectionManager::stop() {
     }
 }
 
-bool ConnectionManager::init(const ConnectionConfig &config,
-                             const MiscConfig &miscConf) {
+bool ConnectionManager::init(const ConnectionConfig &config, const MiscConfig &miscConf) {
     if (config.empty()) {
         AUTIL_LOG(WARN, "no connection type configured");
         return true;
@@ -48,8 +51,7 @@ bool ConnectionManager::init(const ConnectionConfig &config,
     auto callbackThreadNum = miscConf.callbackThreadNum;
     if (callbackThreadNum > 0) {
         _callBackThreadPool = new autil::LockFreeThreadPool(
-            miscConf.callbackThreadNum, 1000, autil::WorkItemQueueFactoryPtr(),
-            "GigConnMgrCB");
+            miscConf.callbackThreadNum, 1000, autil::WorkItemQueueFactoryPtr(), "GigConnMgrCB");
         if (!_callBackThreadPool->start()) {
             AUTIL_LOG(ERROR, "start callback thread pool failed");
             return false;
@@ -78,14 +80,12 @@ bool ConnectionManager::init(const ConnectionConfig &config,
     return true;
 }
 
-ConnectionPoolPtr
-ConnectionManager::createConnectionPool(ProtocolType type,
-                                        const std::string &typeStr) {
+ConnectionPoolPtr ConnectionManager::createConnectionPool(ProtocolType type,
+                                                          const std::string &typeStr) {
     return ConnectionPoolFactory::createConnectionPool(type, typeStr);
 }
 
-ConnectionPtr ConnectionManager::getConnection(const std::string &spec,
-                                               ProtocolType type) {
+ConnectionPtr ConnectionManager::getConnection(const std::string &spec, ProtocolType type) {
     const auto &connectionPool = getConnectionPool(type);
     if (!connectionPool) {
         return ConnectionPtr();

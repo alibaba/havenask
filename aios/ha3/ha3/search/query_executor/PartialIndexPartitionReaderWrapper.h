@@ -65,12 +65,13 @@ protected:
     void getTermKeyStr(const common::Term &term,
                        const LayerMeta *layerMeta,
                        std::string &keyStr) override;
-    PostingIterator *doLookupByRanges(const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReaderPtr,
-                                      const indexlib::index::Term *indexTerm,
-                                      PostingType pt1,
-                                      PostingType pt2,
-                                      const LayerMeta *layerMeta,
-                                      bool isSubIndex) override;
+    PostingIterator *
+    doLookupByRanges(const std::shared_ptr<indexlib::index::InvertedIndexReader> &indexReaderPtr,
+                     const indexlib::index::Term *indexTerm,
+                     PostingType pt1,
+                     PostingType pt2,
+                     const LayerMeta *layerMeta,
+                     bool isSubIndex) override;
 
 private:
     friend class PartialIndexPartitionReaderWrapperTest;

@@ -18,6 +18,7 @@
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
 #include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/MutableJson.h"
 #include "indexlib/config/legacy_schema_adapter.h"
 
 using namespace std;
@@ -48,7 +49,11 @@ bool DocTTLProcessor::init(const DocProcessorInitParam& param)
     if (legacySchemaAdapter) {
         _ttlFieldName = legacySchemaAdapter->GetLegacySchema()->GetTTLFieldName();
     } else {
-        [[maybe_unused]] auto r = param.schema->GetValueFromUserDefinedParam("ttl_field_name", _ttlFieldName);
+        if (auto s = param.schema->GetRuntimeSettings().GetValue<std::string>("ttl_field_name"); s.first.IsOK()) {
+            _ttlFieldName = s.second;
+        } else if (!s.first.IsNotFound()) {
+            BS_LOG(ERROR, "get ttl_field_name from settings faild, status[%s]", s.first.ToString().c_str());
+        }
     }
     BS_LOG(INFO, "ttl field name set as[%s]", _ttlFieldName.c_str());
     return true;

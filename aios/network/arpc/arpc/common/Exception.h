@@ -16,38 +16,26 @@
 #ifndef ARPC_COMMON_EXCEPTION_H
 #define ARPC_COMMON_EXCEPTION_H
 
-#include <stddef.h>
 #include <exception>
-#include <string>
-#include <memory>
 #include <iostream>
+#include <memory>
+#include <stddef.h>
+#include <string>
 
-#define ARPC_DEFINE_EXCEPTION(ExClass, Base)          \
-    class ExClass : public Base                         \
-    {                                                   \
-    public:                                             \
-        ExClass(const std::string& message="") throw()  \
-            : Base(message)                             \
-        {}                                              \
-        \
-        ExClass(const std::string& message,             \
-                const Exception& cause) throw()     \
-            : Base(message, cause)                      \
-        {}                                              \
-        \
-        ~ExClass() throw() {}                           \
-        \
-        /* override */ const char* GetClassName() const \
-        {                                               \
-            return #ExClass;                            \
-        }                                               \
-        \
-        /* override */ ExceptionPtr Clone() const       \
-        {                                               \
-            return ExceptionPtr(new ExClass(*this));    \
-        }                                               \
-    };                                                  \
-     
+#define ARPC_DEFINE_EXCEPTION(ExClass, Base)                                                                           \
+    class ExClass : public Base {                                                                                      \
+    public:                                                                                                            \
+        ExClass(const std::string &message = "") throw() : Base(message) {}                                            \
+                                                                                                                       \
+        ExClass(const std::string &message, const Exception &cause) throw() : Base(message, cause) {}                  \
+                                                                                                                       \
+        ~ExClass() throw() {}                                                                                          \
+                                                                                                                       \
+        /* override */ const char *GetClassName() const { return #ExClass; }                                           \
+                                                                                                                       \
+        /* override */ ExceptionPtr Clone() const { return ExceptionPtr(new ExClass(*this)); }                         \
+    };
+
 namespace arpc {
 namespace common {
 
@@ -55,8 +43,7 @@ class Exception;
 
 typedef std::shared_ptr<Exception> ExceptionPtr;
 
-class Exception : public std::exception
-{
+class Exception : public std::exception {
 public:
     Exception(const std::string &message = "") throw();
     Exception(const std::string &message, const Exception &cause) throw();
@@ -111,6 +98,6 @@ ARPC_DEFINE_EXCEPTION(RPCRequestTooLargeException, Exception);
 ARPC_DEFINE_EXCEPTION(RPCResponseTooLargeException, Exception);
 ARPC_DEFINE_EXCEPTION(RPCResponseBadPacketException, Exception);
 
-}
-}
-#endif//ARPC_COMMON_EXCEPTION_H
+} // namespace common
+} // namespace arpc
+#endif // ARPC_COMMON_EXCEPTION_H

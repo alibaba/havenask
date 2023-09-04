@@ -59,13 +59,8 @@ const string& KVIndexConfig::GetIndexName() const { return _impl->indexName; }
 
 void KVIndexConfig::SetIndexName(const std::string& indexName) { _impl->indexName = indexName; }
 
-std::vector<string> KVIndexConfig::GetIndexPath() const
-{
-    std::vector<std::string> paths;
-    std::string basePath = indexlibv2::index::KV_INDEX_PATH;
-    paths.push_back(basePath + "/" + GetIndexName());
-    return paths;
-}
+const string& KVIndexConfig::GetIndexCommonPath() const { return indexlibv2::index::KV_INDEX_PATH; }
+std::vector<string> KVIndexConfig::GetIndexPath() const { return {GetIndexCommonPath() + "/" + GetIndexName()}; }
 void KVIndexConfig::Check() const
 {
     assert(_impl->keyFieldConfig);
@@ -114,14 +109,18 @@ void KVIndexConfig::Deserialize(const autil::legacy::Any& any, size_t idxInJsonA
     auto valueConfig = std::make_shared<indexlibv2::config::ValueConfig>();
     json.Jsonize(VALUE_FIELDS, valueFields);
     attrid_t attrId = 0;
-    std::vector<shared_ptr<indexlibv2::config::AttributeConfig>> attrConfigVec;
+    std::vector<shared_ptr<indexlibv2::index::AttributeConfig>> attrConfigVec;
     for (const auto& fieldName : valueFields) {
         const auto& fieldConfig = resource.GetFieldConfig(fieldName);
         if (!fieldConfig) {
             INDEXLIB_FATAL_ERROR(Schema, "value field [%s] does not exist", fieldName.c_str());
         }
-        auto attrConfig = std::make_shared<indexlibv2::config::AttributeConfig>();
-        attrConfig->Init(fieldConfig);
+        auto attrConfig = std::make_shared<indexlibv2::index::AttributeConfig>();
+        auto status = attrConfig->Init(fieldConfig);
+        if (!status.IsOK()) {
+            INDEXLIB_FATAL_ERROR(Schema, "KVIndexConfig attrConfig init failed, indexName: %s",
+                                 _impl->indexName.c_str());
+        }
         attrConfig->SetAttrId(attrId++);
         attrConfigVec.emplace_back(attrConfig);
     }
@@ -304,5 +303,7 @@ Status KVIndexConfig::CheckCompatible(const IIndexConfig* other) const
                        "max swap mmap file size not equal");
     return Status::OK();
 }
+
+bool KVIndexConfig::IsDisabled() const { return false; }
 
 } // namespace indexlibv2::config

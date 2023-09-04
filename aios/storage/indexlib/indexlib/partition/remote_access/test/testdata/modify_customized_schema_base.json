@@ -1,0 +1,20 @@
+{
+    "table_name": "auction",
+    "fields": 
+    [
+        {"field_name":"pk", "field_type":"string"}
+    ],
+    "indexs": 
+    [
+	{
+	    "index_name": "pk",
+            "index_type": "PRIMARYKEY64",
+            "index_fields": "pk",
+            "has_primary_key_attribute": false
+        }
+    ],
+    "attributes": [],
+    "summarys":{ 
+        "summary_fields": []
+    }
+}
