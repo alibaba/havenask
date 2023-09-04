@@ -28,11 +28,36 @@ BS_NAMESPACE_USE(proto);
 namespace build_service { namespace common {
 BS_LOG_SETUP(common, CounterSynchronizer);
 
+bool CounterSynchronizer::needSyncCounter()
+{
+    string param = autil::EnvUtil::getEnv(BS_ENV_FILL_COUNTER_INFO.c_str());
+    if (param == "false") {
+        return false;
+    }
+    return true;
+}
+
 string CounterSynchronizer::getCounterZkRoot(const string& appZkRoot, const proto::BuildId& buildId)
 {
     string zkRoot = appZkRoot;
     string generationZkRoot = PathDefine::getGenerationZkRoot(zkRoot, buildId);
     return fslib::util::FileUtil::joinFilePath(generationZkRoot, COUNTER_DIR_NAME);
+}
+
+void CounterSynchronizer::removeRoleZkCounter(const std::string& generationZkRoot, const proto::PartitionId& pid,
+                                              bool ignoreBackupId)
+{
+    if (needSyncCounter()) {
+        return;
+    }
+    string counterFileName;
+    if (!ProtoUtil::partitionIdToCounterFileName(pid, counterFileName, ignoreBackupId)) {
+        BS_LOG(WARN, "pid [%s] to counter file failed, will not clean zk counter", pid.DebugString().c_str());
+        return;
+    }
+    string fullPath = fslib::util::FileUtil::joinFilePath(
+        fslib::util::FileUtil::joinFilePath(generationZkRoot, COUNTER_DIR_NAME), counterFileName);
+    fslib::util::FileUtil::remove(fullPath);
 }
 
 bool CounterSynchronizer::getCounterZkFilePath(const string& appZkRoot, const proto::PartitionId& pid,

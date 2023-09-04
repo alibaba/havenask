@@ -36,7 +36,6 @@ def modify_bundle_impl(ctx):
     final_dbg_map = {}
     for e in ctx.attr.deps:
         keep_symbols_set.extend(e[KeepSymbolInfo].target)
-    print('To keep symbols:', keep_symbols_set)
     for e in ctx.attr.deps:
         dest_src_map = e[BundleFilesInfo].dest_src_map
         for key in dest_src_map:
@@ -426,3 +425,19 @@ def cc_binary_with_gdb_index(name, **kwargs):
     origin_name = name + ".origin"
     native.cc_binary(name=origin_name, **kwargs)
     return gdb_add_index(origin_name, name)
+
+
+def strip_debug_info(name):
+    stripped_name = name + ".strip"
+    return native.genrule(
+        name = stripped_name,
+        outs = [stripped_name],
+        srcs = [name],
+        cmd = "set -x; strip $(SRCS) -o $(OUTS); chmod a-w $(OUTS)",
+        visibility = ["//visibility:public"],
+        tags = ["manual"],
+    )
+
+def cc_binary_with_stripped(name, **kwargs):
+    native.cc_binary(name = name, **kwargs)
+    return strip_debug_info(name)

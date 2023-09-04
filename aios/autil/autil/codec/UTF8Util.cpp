@@ -26,8 +26,7 @@ AUTIL_LOG_SETUP(autil::codec, UTF8Util);
 static const unsigned char gU8Mask[6] = {0x80, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE};
 static const unsigned char gU8Mark[6] = {0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC};
 
-
-std::string UTF8Util::getNextCharUTF8(const std::string& str, size_t start) {
+std::string UTF8Util::getNextCharUTF8(const std::string &str, size_t start) {
     if (start < str.length()) {
         unsigned char value = str[start];
         unsigned int i;
@@ -73,5 +72,5 @@ bool UTF8Util::getNextCharUTF8(const char *str, size_t start, size_t end, size_t
     return false;
 }
 
-}
-}
+} // namespace codec
+} // namespace autil

@@ -16,8 +16,8 @@
 #ifndef FSLIB_PLUGIN_HTTPFILESYSTEM_H
 #define FSLIB_PLUGIN_HTTPFILESYSTEM_H
 
-#include <fslib/common.h>
 #include <curl/curl.h>
+#include <fslib/common.h>
 
 #include "fslib/fs/AbstractFileSystem.h"
 
@@ -25,66 +25,48 @@ FSLIB_PLUGIN_BEGIN_NAMESPACE(http);
 using namespace fslib;
 using namespace fslib::fs;
 
-class HttpFileSystem : public AbstractFileSystem
-{
+class HttpFileSystem : public AbstractFileSystem {
 public:
-    HttpFileSystem() {
-        curl_global_init(CURL_GLOBAL_DEFAULT);
-    }
-    ~HttpFileSystem() {
-        curl_global_cleanup();
-    }
+    HttpFileSystem() { curl_global_init(CURL_GLOBAL_DEFAULT); }
+    ~HttpFileSystem() { curl_global_cleanup(); }
 
 public:
-    /*override*/ File* openFile(const std::string& fileName, Flag flag);
+    /*override*/ File *openFile(const std::string &fileName, Flag flag);
 
-    /*override*/ MMapFile* mmapFile(const std::string& fileName, Flag openMode,
-                                    char* start, size_t length, int prot,
-                                    int mapFlag, off_t offset);
+    /*override*/ MMapFile *mmapFile(
+        const std::string &fileName, Flag openMode, char *start, size_t length, int prot, int mapFlag, off_t offset);
 
-    /*override*/ ErrorCode rename(const std::string& oldPath, 
-                                  const std::string& newPath);
-    
-    /*override*/ ErrorCode getFileMeta(const std::string& fileName,
-				       FileMeta& fileMeta);
+    /*override*/ ErrorCode rename(const std::string &oldPath, const std::string &newPath);
 
-    /*override*/ ErrorCode isFile(const std::string& path);
+    /*override*/ ErrorCode link(const std::string &oldPath, const std::string &newPath);
 
-    /*override*/ FileChecksum getFileChecksum(const std::string& fileName);
+    /*override*/ ErrorCode getFileMeta(const std::string &fileName, FileMeta &fileMeta);
 
-    /*override*/ ErrorCode mkDir(const std::string& dirName, 
-                                 bool recursive = false);
+    /*override*/ ErrorCode isFile(const std::string &path);
 
-    /*override*/ ErrorCode listDir(const std::string& dirName,
-                                   FileList& fileList);
+    /*override*/ FileChecksum getFileChecksum(const std::string &fileName);
 
-    /*ovverride*/ ErrorCode isDirectory(const std::string& path);
+    /*override*/ ErrorCode mkDir(const std::string &dirName, bool recursive = false);
 
-    /*override*/ ErrorCode remove(const std::string& pathName);
-    
-    /*override*/ ErrorCode isExist(const std::string& pathName);
+    /*override*/ ErrorCode listDir(const std::string &dirName, FileList &fileList);
 
-    /*override*/ ErrorCode listDir(const std::string& dirName, 
-                                   EntryList& entryList);
+    /*ovverride*/ ErrorCode isDirectory(const std::string &path);
 
-    /*override*/ FileReadWriteLock* createFileReadWriteLock(
-            const std::string& fileName)
-    {
-        return NULL;
-    }
+    /*override*/ ErrorCode remove(const std::string &pathName);
 
-    /*override*/ FileLock* createFileLock(const std::string& fileName) {
-        return NULL;
-    }
+    /*override*/ ErrorCode isExist(const std::string &pathName);
 
-    /*override*/ FileSystemCapability getCapability() const {
-        return FSC_ALL_CAPABILITY;
-    }
+    /*override*/ ErrorCode listDir(const std::string &dirName, EntryList &entryList);
 
+    /*override*/ FileReadWriteLock *createFileReadWriteLock(const std::string &fileName) { return NULL; }
+
+    /*override*/ FileLock *createFileLock(const std::string &fileName) { return NULL; }
+
+    /*override*/ FileSystemCapability getCapability() const { return FSC_ALL_CAPABILITY; }
 };
 
 typedef std::shared_ptr<HttpFileSystem> HttpFileSystemPtr;
 
 FSLIB_PLUGIN_END_NAMESPACE(http);
 
-#endif //FSLIB_PLUGIN_HTTPFILESYSTEM_H
+#endif // FSLIB_PLUGIN_HTTPFILESYSTEM_H

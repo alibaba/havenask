@@ -109,6 +109,14 @@ SearchServiceProviderPtr SearchServiceSnapshotInVersion::getBackupProvider(
     return replica->getBackupProvider(provider, sourceId, matchTagMap, flowControlConfig);
 }
 
+void SearchServiceSnapshotInVersion::fillMeta(VersionInfo &info) const {
+    if (unlikely(_replicaMap.empty())) {
+        return;
+    }
+    const auto &replica = _replicaMap.begin()->second;
+    info.metas = replica->getOneMeta();
+}
+
 void SearchServiceSnapshotInVersion::getWeightInfo(int64_t currentTime, WeightTy &weight,
                                                    VersionInfo &info) {
     {

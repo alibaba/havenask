@@ -61,7 +61,7 @@ public:
 public:
     Status Init(const std::vector<std::shared_ptr<indexlibv2::framework::Segment>>& segments,
                 const std::map<std::string, std::string>& params,
-                const std::shared_ptr<indexlibv2::config::TabletSchema>& tabletSchema,
+                const std::shared_ptr<indexlibv2::config::ITabletSchema>& tabletSchema,
                 const std::shared_ptr<AdapterIgnoreFieldCalculator>& ignoreFieldCalculator, int64_t currentTs) override;
     Status Next(index::IShardRecordIterator::ShardRecord* shardRecord, std::string* checkpoint) override;
     bool HasNext() override;
@@ -71,9 +71,9 @@ public:
     const std::shared_ptr<config::KVIndexConfig>& TEST_GetPKValueIndexConfig() const { return _pkValueIndexConfig; }
 
 private:
-    void GetKKVIndexConfig(const std::shared_ptr<indexlibv2::config::TabletSchema>& tabletSchema);
+    void GetKKVIndexConfig(const std::shared_ptr<indexlibv2::config::ITabletSchema>& tabletSchema);
     std::unique_ptr<KKVRecordFilter> CreateRecordFilter(uint64_t currentTsInSecond) const;
-    std::shared_ptr<OnDiskKKVIterator<SKeyType>>
+    std::pair<Status, std::shared_ptr<OnDiskKKVIterator<SKeyType>>>
     CreateKKVIterator(const std::vector<std::shared_ptr<indexlibv2::framework::Segment>>& segments) const;
     Status CreatePKValueReaders(const std::vector<std::shared_ptr<indexlibv2::framework::Segment>>& segments);
     void SetCheckpoint(offset_t pkeyOffset, offset_t skeyOffset, std::string* checkpoint);
@@ -115,7 +115,7 @@ private:
     std::string _ttlFieldName;
     static const size_t MAX_POOL_MEMORY_THRESHOLD = 10 * 1024 * 1024;
     autil::mem_pool::Pool _pool;
-    std::shared_ptr<config::TabletSchema> _schema;
+    std::shared_ptr<config::ITabletSchema> _schema;
     std::shared_ptr<config::KKVIndexConfig> _kkvIndexConfig;
     std::shared_ptr<config::KVIndexConfig> _pkValueIndexConfig;
     std::unique_ptr<KKVRecordFilter> _recordFilter;

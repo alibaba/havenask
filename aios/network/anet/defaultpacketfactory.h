@@ -18,9 +18,9 @@
  * Author: zhangli
  * Create time: 2008-12-25 11:38:19
  * $Id$
- * 
+ *
  * Description: ***add description here***
- * 
+ *
  */
 
 #ifndef ANET_DEFAULTPACKETFACTORY_H_
@@ -29,11 +29,10 @@
 
 namespace anet {
 class Packet;
-class DefaultPacketFactory : public IPacketFactory
-{
+class DefaultPacketFactory : public IPacketFactory {
 public:
     Packet *createPacket(int pcode);
 };
 
-}/*end namespace anet*/
+} /*end namespace anet*/
 #endif /*ANET_DEFAULTPACKETFACTORY_H_*/

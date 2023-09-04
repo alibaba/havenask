@@ -1,0 +1,64 @@
+{
+    "fields": [
+        {
+            "field_name": "pk",
+            "field_type": "INTEGER"
+        },
+        {
+            "analyzer": "internet_analyzer",
+            "field_name": "title",
+            "field_type": "TEXT"
+        },
+        {
+            "field_name": "multi_value",
+            "field_type": "INTEGER",
+            "multi_value": true
+        }
+    ],
+    "indexes": {
+        "attribute": [
+            {
+                "field_name": "pk"
+            }
+        ],
+        "inverted_index": [
+            {
+                "doc_payload_flag": 1,
+                "file_compressor": "compress1",
+                "index_fields": "title",
+                "index_name": "title_index",
+                "index_type": "TEXT",
+                "position_payload_flag": 1,
+                "term_payload_flag": 1
+            }
+        ],
+        "primarykey": [
+            {
+                "has_primary_key_attribute": true,
+                "index_fields": "pk",
+                "index_name": "main_pk_index",
+                "index_type": "PRIMARYKEY64"
+            }
+        ],
+        "summary": [
+            {
+                "summary_fields": [
+                    "pk",
+                    "multi_value"
+                ]
+            }
+        ]
+    },
+    "settings": {
+        "file_compressors": [
+            {
+                "name": "compress1",
+                "parameters": {
+                    "level": "10"
+                },
+                "type": "zstd"
+            }
+        ]
+    },
+    "table_name": "simple_table"
+}

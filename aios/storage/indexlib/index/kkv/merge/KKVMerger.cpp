@@ -16,7 +16,7 @@
 #include "indexlib/index/kkv/merge/KKVMerger.h"
 
 #include "autil/TimeUtility.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/index/kkv/common/KKVIndexFormat.h"
 #include "indexlib/index/kkv/dump/KKVDataDumperFactory.h"
 #include "indexlib/index/kkv/dump/KKVFileWriterOptionHelper.h"
@@ -83,64 +83,65 @@ template <typename SKeyType>
 Status KKVMergerTyped<SKeyType>::Merge(const SegmentMergeInfos& segMergeInfos,
                                        const std::shared_ptr<framework::IndexTaskResourceManager>& taskResourceManager)
 {
-    auto s = PrepareMerge(segMergeInfos);
-    if (!s.IsOK()) {
-        return s;
+    if (segMergeInfos.targetSegments.empty()) {
+        return Status::OK();
     }
+    RETURN_STATUS_DIRECTLY_IF_ERROR(PrepareMerge(segMergeInfos));
     return DoMerge(segMergeInfos);
 }
 
 template <typename SKeyType>
-std::shared_ptr<indexlib::file_system::IDirectory>
+StatusOr<std::shared_ptr<indexlib::file_system::IDirectory>>
 KKVMergerTyped<SKeyType>::PrepareTargetSegmentDirectory(const std::shared_ptr<indexlib::file_system::IDirectory>& root)
 {
     indexlib::file_system::DirectoryOption dirOption;
     auto result = root->MakeDirectory(KKV_INDEX_PATH, dirOption);
-    if (!result.OK()) {
-        AUTIL_LOG(ERROR, "make %s failed, error: %s", KKV_INDEX_PATH, result.Status().ToString().c_str());
-        return nullptr;
+    auto status = result.Status();
+    if (!status.IsOK()) {
+        AUTIL_LOG(ERROR, "make %s failed, error: %s", KKV_INDEX_PATH, status.ToString().c_str());
+        return {status.steal_error()};
     }
     auto indexDir = result.Value();
+
     indexlib::file_system::RemoveOption removeOption;
     removeOption.mayNonExist = true;
-    auto s = indexDir->RemoveDirectory(_indexConfig->GetIndexName(), removeOption).Status();
-    if (!s.IsOK()) {
-        AUTIL_LOG(ERROR, "remove %s failed, error: %s", _indexConfig->GetIndexName().c_str(), s.ToString().c_str());
-        return nullptr;
+    status = indexDir->RemoveDirectory(_indexConfig->GetIndexName(), removeOption).Status();
+    if (!status.IsOK()) {
+        AUTIL_LOG(ERROR, "remove %s failed, error: %s", _indexConfig->GetIndexName().c_str(),
+                  status.ToString().c_str());
+        return {status.steal_error()};
     }
 
     result = indexDir->MakeDirectory(_indexConfig->GetIndexName(), dirOption);
-    if (!result.OK()) {
-        AUTIL_LOG(ERROR, "make %s failed, error: %s", _indexConfig->GetIndexName().c_str(),
-                  result.Status().ToString().c_str());
-        return nullptr;
+    status = result.Status();
+    if (!status.IsOK()) {
+        AUTIL_LOG(ERROR, "make %s failed, error: %s", _indexConfig->GetIndexName().c_str(), status.ToString().c_str());
+        return {status.steal_error()};
     }
 
     _indexDir = indexDir;
-    return result.Value();
+    return {result.Value()};
 }
 
 template <typename SKeyType>
 Status KKVMergerTyped<SKeyType>::PrepareMerge(const SegmentMergeInfos& segMergeInfos)
 {
-    if (segMergeInfos.targetSegments.empty()) {
-        return Status::OK();
-    }
     if (segMergeInfos.targetSegments.size() > 1) {
         return Status::Unimplement("do not support merge source segments to multiple segments");
     }
     const auto& targetSegment = segMergeInfos.targetSegments[0];
-    _targetDir = PrepareTargetSegmentDirectory(targetSegment->segmentDir->GetIDirectory());
-    if (!_targetDir) {
-        return Status::IOError("prepare index directory for %s failed, segment id: %d",
-                               _indexConfig->GetIndexName().c_str(), targetSegment->segmentId);
+    auto r = PrepareTargetSegmentDirectory(targetSegment->segmentDir->GetIDirectory());
+    if (!r.IsOK()) {
+        AUTIL_LOG(ERROR, "prepare index directory for %s failed, segment id: %d", _indexConfig->GetIndexName().c_str(),
+                  targetSegment->segmentId);
+        return r.steal_error();
     }
+    _targetDir = r.steal_value();
 
     assert(targetSegment->schema != nullptr);
     _schemaId = targetSegment->schema->GetSchemaId();
     std::vector<KKVSegmentStatistics> statVec;
-    auto s = LoadSegmentStatistics(segMergeInfos, statVec);
-    RETURN_IF_STATUS_ERROR(s, "load segment statistics failed");
+    RETURN_STATUS_DIRECTLY_IF_ERROR(LoadSegmentStatistics(segMergeInfos, statVec));
 
     return Status::OK();
 }
@@ -171,25 +172,25 @@ Status KKVMergerTyped<SKeyType>::DoMerge(const SegmentMergeInfos& segMergeInfos)
     int64_t beginTime = autil::TimeUtility::currentTime();
 
     _iterator.reset(new OnDiskKKVIteratorTyped(_indexConfig, this->_iOConfig));
-    _iterator->Init(segMergeInfos.srcSegments);
+    RETURN_STATUS_DIRECTLY_IF_ERROR(_iterator->Init(segMergeInfos.srcSegments));
 
     auto phrase = _dropDeleteKey ? KKVDumpPhrase::MERGE_BOTTOMLEVEL : KKVDumpPhrase::MERGE;
     _dataDumper = KKVDataDumperFactory::Create<SKeyType>(_indexConfig, _storeTs, phrase);
     assert(_dataDumper != nullptr);
 
-    uint64_t maxKeyCount = _iterator->EstimatePkeyCount();
+    uint64_t maxKeyCount = _iterator->GetEstimatePkeyCount();
     AUTIL_LOG(INFO, "estimate max pkey count [%lu]", maxKeyCount);
 
     auto skeyOption = KKVFileWriterOptionHelper::Create(_indexConfig->GetIndexPreference().GetSkeyParam(),
-                                                          _iOConfig.writeBufferSize, _iOConfig.enableAsyncWrite);
+                                                        _iOConfig.writeBufferSize, _iOConfig.enableAsyncWrite);
     auto valueOption = KKVFileWriterOptionHelper::Create(_indexConfig->GetIndexPreference().GetValueParam(),
-                                                           _iOConfig.writeBufferSize, _iOConfig.enableAsyncWrite);
+                                                         _iOConfig.writeBufferSize, _iOConfig.enableAsyncWrite);
     RETURN_STATUS_DIRECTLY_IF_ERROR(_dataDumper->Init(_targetDir, skeyOption, valueOption, maxKeyCount));
 
     uint64_t count = 0;
     while (_iterator->IsValid()) {
         OnDiskSinglePKeyIteratorTyped* dataIter = _iterator->GetCurrentIterator();
-        CollectSinglePrefixKey(dataIter, _dropDeleteKey);
+        RETURN_STATUS_DIRECTLY_IF_ERROR(CollectSinglePrefixKey(dataIter, _dropDeleteKey));
         _iterator->MoveToNext();
         ++count;
         if (count % 100000 == 0) {
@@ -245,7 +246,7 @@ inline void KKVMergerTyped<SKeyType>::MoveToNextValidSKeyPosition(OnDiskSinglePK
 }
 
 template <typename SKeyType>
-void KKVMergerTyped<SKeyType>::CollectSinglePrefixKey(OnDiskSinglePKeyIteratorTyped* dataIter, bool isBottomLevel)
+Status KKVMergerTyped<SKeyType>::CollectSinglePrefixKey(OnDiskSinglePKeyIteratorTyped* dataIter, bool isBottomLevel)
 {
     assert(dataIter);
     assert(_dataDumper);
@@ -259,9 +260,7 @@ void KKVMergerTyped<SKeyType>::CollectSinglePrefixKey(OnDiskSinglePKeyIteratorTy
             doc.timestamp = deletePKeyTs;
             auto status = _dataDumper->Dump(pkeyHash, /*isDeletedPkey*/ true,
                                             /*isLastNode*/ !dataIter->IsValid(), doc);
-            if (!status.IsOK()) {
-                INDEXLIB_THROW(indexlib::util::RuntimeException, "failed to dump deleted pkey:[%lu]", pkeyHash);
-            }
+            RETURN_IF_STATUS_ERROR(status, "failed to dump deleted pkey:[%lu]", pkeyHash);
         }
     }
 
@@ -279,10 +278,9 @@ void KKVMergerTyped<SKeyType>::CollectSinglePrefixKey(OnDiskSinglePKeyIteratorTy
         MoveToNextValidSKeyPosition(dataIter, isBottomLevel);
         auto status = _dataDumper->Dump(pkeyHash, /*isDeletedPkey*/ false,
                                         /*isLastNode*/ !dataIter->IsValid(), doc);
-        if (!status.IsOK()) {
-            INDEXLIB_THROW(indexlib::util::RuntimeException, "failed to dump pkey:[%lu]", pkeyHash);
-        }
+        RETURN_IF_STATUS_ERROR(status, "failed to dump pkey:[%lu]", pkeyHash);
     }
+    return Status::OK();
 }
 
 EXPLICIT_DECLARE_ALL_SKEY_TYPE_TEMPLATE_CALSS(KKVMergerTyped);

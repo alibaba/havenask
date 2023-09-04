@@ -16,26 +16,25 @@
 #ifndef FSLIB_PLUGIN_HTTPFILE_H
 #define FSLIB_PLUGIN_HTTPFILE_H
 
-#include <vector>
 #include <curl/curl.h>
 #include <fslib/common.h>
+#include <vector>
 
 FSLIB_PLUGIN_BEGIN_NAMESPACE(http);
 
-class HttpFile : public File
-{
+class HttpFile : public File {
 public:
-    HttpFile(const std::string& fileName, ErrorCode ec = EC_OK);
+    HttpFile(const std::string &fileName, ErrorCode ec = EC_OK);
     ~HttpFile();
 
 public:
-    /*override*/ ssize_t read(void* buffer, size_t length);
+    /*override*/ ssize_t read(void *buffer, size_t length);
 
-    /*override*/ ssize_t write(const void* buffer, size_t length);
+    /*override*/ ssize_t write(const void *buffer, size_t length);
 
-    /*override*/ ssize_t pread(void* buffer, size_t length, off_t offset);
+    /*override*/ ssize_t pread(void *buffer, size_t length, off_t offset);
 
-    /*override*/ ssize_t pwrite(const void* buffer, size_t length, off_t offset);
+    /*override*/ ssize_t pwrite(const void *buffer, size_t length, off_t offset);
 
     /*override*/ ErrorCode flush();
 
@@ -51,12 +50,10 @@ public:
 
     bool initFileInfo();
 
-    fslib::FileMeta getFileMeta() const {
-        return _fileMeta;
-    }
+    fslib::FileMeta getFileMeta() const { return _fileMeta; }
 
 private:
-    ssize_t preadWithLock(void* buffer, size_t length, off_t offset);
+    ssize_t preadWithLock(void *buffer, size_t length, off_t offset);
 
     ErrorCode seekWithLock(int64_t offset, SeekFlag flag);
 
@@ -64,16 +61,14 @@ private:
 
     bool checkRangeSupport();
 
-    ssize_t preadByRange(void* buffer, size_t length, off_t offset);
+    ssize_t preadByRange(void *buffer, size_t length, off_t offset);
 
-    ssize_t preadByCache(void* buffer, size_t length, off_t offset);
+    ssize_t preadByCache(void *buffer, size_t length, off_t offset);
 
 public:
     /* public for test */
-    bool getSupportRange() {
-        return _supportRange;
-    }
-    
+    bool getSupportRange() { return _supportRange; }
+
 private:
     CURL *_curl;
     bool _isEof;
@@ -89,7 +84,6 @@ private:
 
 typedef std::shared_ptr<HttpFile> HttpFilePtr;
 
-
 FSLIB_PLUGIN_END_NAMESPACE(http);
 
-#endif //FSLIB_PLUGIN_HTTPFILE_H
+#endif // FSLIB_PLUGIN_HTTPFILE_H

@@ -1,0 +1,90 @@
+#import(Tool)
+#import(Log)
+
+#import(Tool)
+#import(Log)
+
+function createTopicResource(swiftConfigName, infix, clusterName)
+   resourceName = "topic_"..swiftConfigName.."_"..infix.."_"..clusterName
+   createTopicParam = {
+      ["configName"] = swiftConfigName,
+      ["infix"] = infix,
+      ["clusterName"] = clusterName,
+      ["name"] = resourceName
+   }
+   openApi("add", "/resource/swift", createTopicParam)
+   topicInfo = {["resourceName"] = resourceName}
+
+   return topicInfo
+
+function initProcessorParam(swiftConfigName, stage)
+   clusterName = Flow.parameter["clusterName"]
+   topicInfo1 = createTopicResource(swiftConfigName, "full_update2add", clusterName)
+   depends = {}
+   if (stage == "1")
+   then
+      inputParam["type"] = "dataDescription"
+      inputParam["param"] = Flow.parameter["dataDescriptions"]
+      outputParam["type"] = "dependResource"
+      outputParam["param"] = topicInfo1
+      table.insert(depends, topicInfo1["resourceName"]
+   elseif (stage == "2")
+   then
+      topicInfo2 = createTopicResource(swiftConfigName, "full", clusterName)
+      inputParam["type"] = "dependResource"
+      inputParam["param"] = topicInfo1
+      outputParam["type"] = "dependResource"
+      outputParam["param"] = topicInfo2
+      table.insert(depends, topicInfo1["resourceName"]
+   else
+      Log.log("ERROR", "Processor stage is out fo range[1,2]. UNEXPECTED!")
+      return false
+   end
+
+   processorParam = Tool.copyMap(Flow.parameter)
+   processorParam["input"] = listToJson(inputParam)
+   processorParam1["output"] = listToJson(outputParam)
+   processorParam1["stage"] = stage
+   processorParam1["configName"] = "processor_"..stage
+   processorParam["depends"] = listToJson(depends)
+   return processorParam   
+
+function stepRunFlow()
+   local flowState = Flow.getProperty("_flow_status_")
+   if (flowState == "")
+   then
+      processorParam1 = initProcessorParam("full", "1")
+      local fullProcessor1 = Flow.createTask("fullProcessor1", "processor", processorParam1)
+      
+      processorParam2 = initProcessorParam("full", "2")
+      local fullProcessor2 = Flow.createTask("fullProcessor2", "processor", processorParam2)
+
+      if (Flow.startTask(fullProcessor1, {}) and Flow.startTask(fullProcessor2, {}))
+      then
+         Flow.setProperty("_flow_status_", "running")
+      end
+      return false
+   end
+   local fullProcessor1 = Flow.getTask("fullProcessor1")
+   local fullProcessor2 = Flow.getTask("fullProcessor2")
+   if (flowState == "running")
+   then
+      if (fullProcessor1:isTaskFinish())
+      then
+         if (Flow.finishTask(fullProcessor2, {}))
+         then
+            Flow.setProperty("_flow_status_", "finishing")
+         end
+      end
+      return false
+   end
+   if (flowState == "finishing")
+   then
+      if (fullProcessor2:isTaskFinish())
+      then
+         Flow.setProperty("_flow_status_", "finished")
+         return true
+      end
+   end
+   return false
+end

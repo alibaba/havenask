@@ -5,80 +5,82 @@
  * Author Email: xsank.mz@alibaba-inc.com
  * */
 
-#include <string>
-#include <vector>
+#include "kmonitor/client/core/MetricsTags.h"
+
 #include <map>
 #include <sstream>
+#include <string.h>
+#include <string>
+#include <vector>
+
 #include "autil/HashAlgorithm.h"
-#include "kmonitor/client/core/MetricsTags.h"
+#include "autil/StackBuf.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
-using std::string;
-using std::vector;
 using std::map;
+using std::string;
 using std::stringstream;
+using std::vector;
 
-MetricsTags::MetricsTags() {
-    ComputeCache();
-}
+MetricsTags::MetricsTags() { ComputeCache(); }
 
 MetricsTags::MetricsTags(const string &k, const string &v) {
     tags_map_.emplace(k, v);
     ComputeCache();
 }
 
-MetricsTags::MetricsTags(const std::map<std::string, std::string> &tags_map)
-{
+MetricsTags::MetricsTags(const std::map<std::string, std::string> &tags_map) {
     tags_map_ = tags_map;
     ComputeCache();
 }
 
-MetricsTags::~MetricsTags() {
-}
+MetricsTags::~MetricsTags() {}
 
 void MetricsTags::ComputeCache() {
     const std::size_t prime = 19937;
     uint64_t result = 0;
+    size_t maxBufSize = 0;
     auto iter = tags_map_.begin();
     for (; iter != tags_map_.end(); ++iter) {
         result ^= prime * autil::HashAlgorithm::hashString64(iter->first.c_str()) +
-                autil::HashAlgorithm::hashString64(iter->second.c_str());
+                  autil::HashAlgorithm::hashString64(iter->second.c_str());
+        maxBufSize += iter->first.size();
+        maxBufSize += iter->second.size();
+        maxBufSize += 2; // for "=" & " "
     }
     cached_hash_ = result;
 
-    std::stringstream ss;
+    autil::StackBuf<char> stackBuf(maxBufSize);
+    char *buffer = stackBuf.getBuf();
+    size_t cursor = 0;
     iter = tags_map_.begin();
     for (; iter != tags_map_.end(); ++iter) {
-        ss << iter->first << "=" << iter->second << " ";
+        memcpy(buffer + cursor, iter->first.c_str(), iter->first.size());
+        cursor += iter->first.size();
+        buffer[cursor++] = '=';
+        memcpy(buffer + cursor, iter->second.c_str(), iter->second.size());
+        cursor += iter->second.size();
+        buffer[cursor++] = ' ';
     }
-    string temp = ss.str();
-    if (!temp.empty()) {
-        temp.erase(temp.size()-1);
+    if (cursor > 0) {
+        cursor--;
     }
-    cached_string_ = temp;
+    cached_string_ = string(buffer, cursor);
 }
 
-size_t MetricsTags::Size() const {
-    return tags_map_.size();
-}
+size_t MetricsTags::Size() const { return tags_map_.size(); }
 
-uint64_t MetricsTags::Hashcode() const {
-    return cached_hash_;
-}
+uint64_t MetricsTags::Hashcode() const { return cached_hash_; }
 
-string MetricsTags::ToString() const {
-    return cached_string_;
-}
+string MetricsTags::ToString() const { return cached_string_; }
 
 void MetricsTags::AddTag(const string &k, const string &v) {
     AddTagNoComputeCache(k, v);
     ComputeCache();
 }
 
-void MetricsTags::AddTagNoComputeCache(const string &k, const string &v) {
-    tags_map_.emplace(k, v);
-}
+void MetricsTags::AddTagNoComputeCache(const string &k, const string &v) { tags_map_.emplace(k, v); }
 
 string MetricsTags::FindTag(const string &k) const {
     auto iter = tags_map_.find(k);
@@ -89,7 +91,7 @@ string MetricsTags::FindTag(const string &k) const {
     }
 }
 
-void MetricsTags::DelTag(const std::string& k) {
+void MetricsTags::DelTag(const std::string &k) {
     auto iter = tags_map_.find(k);
     if (iter != tags_map_.end()) {
         tags_map_.erase(k);
@@ -97,7 +99,7 @@ void MetricsTags::DelTag(const std::string& k) {
     }
 }
 
-void MetricsTags::MergeTags(MetricsTags* target_tags) const {
+void MetricsTags::MergeTags(MetricsTags *target_tags) const {
     auto iter = tags_map_.begin();
     for (; iter != tags_map_.end(); ++iter) {
         target_tags->AddTagNoComputeCache(iter->first, iter->second);

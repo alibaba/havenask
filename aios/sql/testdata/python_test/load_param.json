@@ -1,0 +1,73 @@
+{
+    "service_info": {
+        "part_count": 1,
+        "role_name": "",
+        "cm2_config": {
+            "local": [
+                {
+                    "part_count": 1,
+                    "biz_name": "simple.default",
+                    "tcp_port": 39159,
+                    "version": 1330419427,
+                    "part_id": 0,
+                    "ip": "11.160.225.20"
+                },
+                {
+                    "part_count": 1,
+                    "biz_name": "simple.para_search_4",
+                    "tcp_port": 39159,
+                    "version": 1330419427,
+                    "part_id": 0,
+                    "ip": "11.160.225.20"
+                },
+                {
+                    "part_count": 1,
+                    "biz_name": "simple.default_agg",
+                    "tcp_port": 39159,
+                    "version": 1330419427,
+                    "part_id": 0,
+                    "ip": "11.160.225.20"
+                },
+                {
+                    "part_count": 1,
+                    "biz_name": "simple.para_search_2",
+                    "tcp_port": 39159,
+                    "version": 1330419427,
+                    "part_id": 0,
+                    "ip": "11.160.225.20"
+                },
+                {
+                    "part_count": 1,
+                    "biz_name": "simple.default_sql",
+                    "tcp_port": 39159,
+                    "version": 1330419427,
+                    "part_id": 0,
+                    "ip": "11.160.225.20"
+                }
+            ]
+        },
+        "part_id": 0,
+        "zone_name": "qrs",
+        "sub_cm2_configs": []
+    },
+    "biz_local_config_paths": {
+    },
+    "biz_metas": {
+    },
+    "app_meta": {
+        "keep_count": 20,
+        "config_path": ""
+    },
+    "scheduler_info": {
+        "cm2_topo_info": "uninitialized"
+    },
+    "custom_app_info": {},
+    "table_part_info": {
+        "simple": {
+            "part_count": 1,
+            "part_ids": [
+                0
+            ]
+        }
+    }
+}

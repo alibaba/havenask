@@ -145,18 +145,12 @@ bool BatchProcessor::parseParam(const string& paramStr, uint32_t& batchSize, int
 
 void BatchProcessor::processDoc(const document::RawDocumentPtr& rawDoc)
 {
-    if (_batchSize <= 1) {
-        return Processor::processDoc(rawDoc);
-    }
-
     if (unlikely(isSealed())) {
         return;
     }
-
     if (!rawDoc) {
         return;
     }
-
     ScopedLock lock(_queueMutex);
     if (!_docQueue) {
         resetDocQueue();

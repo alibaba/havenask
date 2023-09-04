@@ -48,7 +48,7 @@ using FSEC = indexlib::file_system::ErrorCode;
 namespace indexlib { namespace index_base {
 IE_LOG_SETUP(index_base, Version);
 
-const uint32_t Version::CURRENT_FORMAT_VERSION = 2; //old version format, do not change
+const uint32_t Version::CURRENT_FORMAT_VERSION = 2; // old version format, do not change
 
 const uint32_t Version::INVALID_VERSION_FORMAT_NUM = std::numeric_limits<uint32_t>::max();
 static uint32_t DEFAULT_VERSION_FORMAT_NUM_FOR_TEST = Version::INVALID_VERSION_FORMAT_NUM;
@@ -483,7 +483,7 @@ void Version::AddSegment(segmentid_t segmentId, const SegmentTopologyInfo& topoI
         assert(topoInfo.columnIdx < levelMeta.segments.size());
         levelMeta.segments[topoInfo.columnIdx] = segmentId;
         break;
-    case indexlibv2::framework::topo_hash_range:
+    case indexlibv2::framework::topo_key_range:
     case indexlibv2::framework::topo_default:
         assert(false);
         return;

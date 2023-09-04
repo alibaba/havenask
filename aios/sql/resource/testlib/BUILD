@@ -1,0 +1,13 @@
+package(default_visibility=['//aios/sql:__subpackages__'])
+cc_library(
+    name='mock_tablet_manager_r',
+    testonly=True,
+    srcs=[],
+    hdrs=['MockTabletManagerR.h'],
+    include_prefix='sql/resource/testlib',
+    deps=[
+        '//aios/sql/resource:sql_resource',
+        '//aios/unittest_framework:unittest_lib'
+    ],
+    alwayslink=True
+)

@@ -1,8 +1,8 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(
     default_visibility=['//aios/storage/indexlib/file_system:__subpackages__']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='interface',
     srcs=[],
     hdrs=[
@@ -11,7 +11,7 @@ indexlib_cc_library(
     ],
     visibility=['//visibility:public']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='fslib',
     srcs=[
         'DataFlushController.cpp', 'ExceptionTrigger.cpp',
@@ -28,8 +28,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system:ErrorCode',
         '//aios/storage/indexlib/file_system:FSResult',
         '//aios/storage/indexlib/file_system:FileSystemDefine',
+        '//aios/storage/indexlib/util:Singleton',
         '//aios/storage/indexlib/util:epochid_util',
-        '//aios/storage/indexlib/util:path_util',
-        '//aios/storage/indexlib/util:Singleton'
+        '//aios/storage/indexlib/util:path_util'
     ]
 )

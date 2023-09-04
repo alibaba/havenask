@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexPatchWriter',
     srcs=[
         'IInvertedIndexSegmentUpdater.cpp', 'InvertedIndexPatchWriter.cpp',
@@ -30,17 +30,17 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:simple_pool'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexPatchFileFinder',
     srcs=[],
     deps=['//aios/storage/indexlib/index/common/patch:SrcDestPatchFileFinder']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexUpdateTermIterator',
     srcs=[],
     deps=['//aios/storage/indexlib/index/inverted_index/format:ComplexDocid']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexPatchFileReader',
     deps=[
         '//aios/storage/indexlib/document/normal:ModifiedTokens',
@@ -50,26 +50,26 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format:PatchFormat'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleTermIndexSegmentPatchIterator',
     deps=[
         ':IndexPatchFileReader', ':IndexUpdateTermIterator',
         '//aios/storage/indexlib/index/inverted_index/config:InvertedIndexConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleFieldIndexSegmentPatchIterator',
     deps=[
         ':IndexPatchFileReader', ':IndexUpdateTermIterator',
         ':SingleTermIndexSegmentPatchIterator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IInvertedIndexPatchIterator',
     srcs=[],
     deps=['//aios/autil:NoCopyable']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleFieldInvertedIndexPatchIterator',
     deps=[
         ':IInvertedIndexPatchIterator', ':InvertedIndexPatchFileFinder',
@@ -81,14 +81,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiFieldInvertedIndexPatchIterator',
     deps=[
         ':SingleFieldInvertedIndexPatchIterator', '//aios/autil:log',
         '//aios/storage/indexlib/config:interface'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexPatchIteratorCreator',
     deps=[
         ':MultiFieldInvertedIndexPatchIterator',
@@ -98,7 +98,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexPatchMerger',
     deps=[
         ':SingleFieldIndexSegmentPatchIterator', '//aios/autil:log',
@@ -108,7 +108,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:Algorithm'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexDedupPatchFileMerger',
     deps=[
         ':InvertedIndexPatchFileFinder', ':InvertedIndexPatchMerger',

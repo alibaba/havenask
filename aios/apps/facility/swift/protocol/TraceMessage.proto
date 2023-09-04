@@ -1,0 +1,43 @@
+import "SwiftMessage.proto";
+package swift.protocol;
+option java_package="com.alibaba.search.swift.protocol";
+
+message TraceMessage {
+    optional int64 msgId = 1;
+    optional uint64 requestUuid = 2 [default = 0];
+    optional uint32 timestampInSecond = 3;
+    optional uint32 uint16Payload = 4 [default = 0];
+    optional uint32 uint8MaskPayload = 5 [default = 0];
+    optional uint32 dataLen = 6 [default = 0];
+}
+
+message ReaderInfo {
+    optional bytes topicName = 1;
+    optional bytes clientId = 2;
+    optional bytes readerId = 3;
+    optional bytes ip = 4;
+    optional uint32 pid = 5;
+    optional Filter filter = 6;
+    optional int32 partitionId= 7 [default = -1];
+}
+
+message WriteTraceMessage {
+    optional ReaderInfo readerInfo = 1;
+    repeated TraceMessage traceMessages = 2;
+}
+
+message WriteErrorResponse {
+    optional ReaderInfo readerInfo = 1;
+    optional int32 type = 2;
+    optional bytes content = 3;
+}
+
+message WriteTraceMessageOld {
+    optional bytes topicName = 1;
+    optional bytes clientId = 2;
+    optional bytes readerId = 3;
+    optional bytes ip = 4;
+    optional uint32 pid = 5;
+    optional Filter filter = 6;
+    repeated TraceMessage traceMessages = 7;
+}

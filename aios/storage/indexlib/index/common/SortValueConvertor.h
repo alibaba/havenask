@@ -18,8 +18,8 @@
 #include "autil/Log.h"
 #include "indexlib/base/BinaryStringUtil.h"
 #include "indexlib/base/FieldType.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/SortDescription.h"
-#include "indexlib/config/TabletSchema.h"
 
 namespace indexlibv2::index {
 
@@ -46,7 +46,7 @@ public:
     }
 
     static std::vector<std::pair<ConvertFunc, size_t>>
-    GenerateConvertors(const config::SortDescriptions& sortDesc, const std::shared_ptr<config::TabletSchema>& schema);
+    GenerateConvertors(const config::SortDescriptions& sortDesc, const std::shared_ptr<config::ITabletSchema>& schema);
 
     static ConvertFunc GenerateConvertor(config::SortPattern sp, FieldType type);
 

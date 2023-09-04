@@ -1,0 +1,20 @@
+[
+    {
+      "catalog_name" : "default",
+      "databases" : [
+        {
+          "database_name" : "mainsch",
+          "tables" : [
+            "catalogs/default/mainsch/tables/commodity",
+            "catalogs/default/mainsch/tables/goods",
+            "catalogs/default/mainsch/tables/store"
+          ],
+          "functions" : [
+            "catalogs/default/mainsch/functions/tvf.json",
+            "catalogs/default/mainsch/functions/udaf.json",
+            "catalogs/default/mainsch/functions/udf.json"
+          ]
+        }
+      ]
+    }
+]

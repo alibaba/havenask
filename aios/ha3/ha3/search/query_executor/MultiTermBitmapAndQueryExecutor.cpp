@@ -21,9 +21,7 @@ namespace isearch {
 namespace search {
 AUTIL_LOG_SETUP(ha3, MultiTermBitmapAndQueryExecutor);
 
-MultiTermBitmapAndQueryExecutor::~MultiTermBitmapAndQueryExecutor() {
-}
+MultiTermBitmapAndQueryExecutor::~MultiTermBitmapAndQueryExecutor() {}
 
 } // namespace search
 } // namespace isearch
-

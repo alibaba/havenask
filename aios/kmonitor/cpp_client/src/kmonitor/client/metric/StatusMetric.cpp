@@ -5,24 +5,19 @@
  * Author Email: xsank.mz@alibaba-inc.com
  */
 
-#include <string>
 #include "kmonitor/client/metric/StatusMetric.h"
+
+#include <string>
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 using namespace std;
 
-StatusMetric::StatusMetric(const string &name)
-    : Metric(name),
-      value_(0) {
-}
+StatusMetric::StatusMetric(const string &name) : Metric(name), value_(0) {}
 
-StatusMetric::~StatusMetric() {
-}
+StatusMetric::~StatusMetric() {}
 
-void StatusMetric::doUpdate(double value) {
-    value_ = value;
-}
+void StatusMetric::doUpdate(double value) { value_ = value; }
 
 void StatusMetric::doSnapshot(MetricsRecord *record, int64_t period) {
     Touch();
@@ -30,4 +25,3 @@ void StatusMetric::doSnapshot(MetricsRecord *record, int64_t period) {
 }
 
 END_KMONITOR_NAMESPACE(kmonitor);
-

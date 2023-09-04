@@ -11,17 +11,18 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#include <stdio.h>
-#include <string>
+#include "autil/cache/sharded_cache.h"
+
 #include <atomic>
 #include <cstdint>
+#include <stdio.h>
+#include <string>
 
-#include "autil/cache/sharded_cache.h"
-#include "cache_hash.h"
 #include "autil/Lock.h"
+#include "autil/Span.h"
 #include "autil/cache/cache.h"
 #include "autil/cache/cache_allocator.h"
-#include "autil/Span.h"
+#include "cache_hash.h"
 
 namespace autil {
 
@@ -29,12 +30,9 @@ ShardedCache::ShardedCache(size_t capacity, int num_shard_bits, bool strict_capa
     : num_shard_bits_(num_shard_bits)
     , capacity_(capacity)
     , strict_capacity_limit_(strict_capacity_limit)
-    , last_id_(1)
-{
-}
+    , last_id_(1) {}
 
-void ShardedCache::SetCapacity(size_t capacity)
-{
+void ShardedCache::SetCapacity(size_t capacity) {
     int num_shards = 1 << num_shard_bits_;
     const size_t per_shard = (capacity + (num_shards - 1)) / num_shards;
     ScopedLock l(capacity_mutex_);
@@ -44,8 +42,7 @@ void ShardedCache::SetCapacity(size_t capacity)
     capacity_ = capacity;
 }
 
-void ShardedCache::SetStrictCapacityLimit(bool strict_capacity_limit)
-{
+void ShardedCache::SetStrictCapacityLimit(bool strict_capacity_limit) {
     int num_shards = 1 << num_shard_bits_;
     ScopedLock l(capacity_mutex_);
     for (int s = 0; s < num_shards; s++) {
@@ -54,58 +51,51 @@ void ShardedCache::SetStrictCapacityLimit(bool strict_capacity_limit)
     strict_capacity_limit_ = strict_capacity_limit;
 }
 
-static uint32_t HashSlice(const autil::StringView& s) {
-    return CacheHash::Hash(s.data(), s.size(), 0);
-}
+static uint32_t HashSlice(const autil::StringView &s) { return CacheHash::Hash(s.data(), s.size(), 0); }
 
-bool ShardedCache::Insert(const StringView& key, void* value, size_t charge,
-                            void (*deleter)(const StringView& key, void* value, const CacheAllocatorPtr& allocator),
-                            Handle** handle, Priority priority)
-{
+bool ShardedCache::Insert(const StringView &key,
+                          void *value,
+                          size_t charge,
+                          void (*deleter)(const StringView &key, void *value, const CacheAllocatorPtr &allocator),
+                          Handle **handle,
+                          Priority priority) {
     uint32_t hash = HashSlice(key);
     return GetShard(Shard(hash))->Insert(key, hash, value, charge, deleter, handle, priority);
 }
 
-CacheBase::Handle* ShardedCache::Lookup(const StringView& key)
-{
+CacheBase::Handle *ShardedCache::Lookup(const StringView &key) {
     uint32_t hash = HashSlice(key);
     return GetShard(Shard(hash))->Lookup(key, hash);
 }
 
-bool ShardedCache::Ref(Handle* handle)
-{
+bool ShardedCache::Ref(Handle *handle) {
     uint32_t hash = GetHash(handle);
     return GetShard(Shard(hash))->Ref(handle);
 }
 
-void ShardedCache::Release(Handle* handle)
-{
+void ShardedCache::Release(Handle *handle) {
     uint32_t hash = GetHash(handle);
     GetShard(Shard(hash))->Release(handle);
 }
 
-void ShardedCache::Erase(const StringView& key)
-{
+void ShardedCache::Erase(const StringView &key) {
     uint32_t hash = HashSlice(key);
     GetShard(Shard(hash))->Erase(key, hash);
 }
 
 uint64_t ShardedCache::NewId() { return last_id_.fetch_add(1, std::memory_order_relaxed); }
 
-size_t ShardedCache::GetCapacity() const
-{
+size_t ShardedCache::GetCapacity() const {
     ScopedLock l(capacity_mutex_);
     return capacity_;
 }
 
-bool ShardedCache::HasStrictCapacityLimit() const
-{
+bool ShardedCache::HasStrictCapacityLimit() const {
     ScopedLock l(capacity_mutex_);
     return strict_capacity_limit_;
 }
 
-size_t ShardedCache::GetUsage() const
-{
+size_t ShardedCache::GetUsage() const {
     // We will not lock the cache when getting the usage from shards.
     int num_shards = 1 << num_shard_bits_;
     size_t usage = 0;
@@ -115,10 +105,9 @@ size_t ShardedCache::GetUsage() const
     return usage;
 }
 
-size_t ShardedCache::GetUsage(Handle* handle) const { return GetCharge(handle); }
+size_t ShardedCache::GetUsage(Handle *handle) const { return GetCharge(handle); }
 
-size_t ShardedCache::GetPinnedUsage() const
-{
+size_t ShardedCache::GetPinnedUsage() const {
     // We will not lock the cache when getting the usage from shards.
     int num_shards = 1 << num_shard_bits_;
     size_t usage = 0;
@@ -128,24 +117,21 @@ size_t ShardedCache::GetPinnedUsage() const
     return usage;
 }
 
-void ShardedCache::ApplyToAllCacheEntries(void (*callback)(void*, size_t), bool thread_safe)
-{
+void ShardedCache::ApplyToAllCacheEntries(void (*callback)(void *, size_t), bool thread_safe) {
     int num_shards = 1 << num_shard_bits_;
     for (int s = 0; s < num_shards; s++) {
         GetShard(s)->ApplyToAllCacheEntries(callback, thread_safe);
     }
 }
 
-void ShardedCache::EraseUnRefEntries()
-{
+void ShardedCache::EraseUnRefEntries() {
     int num_shards = 1 << num_shard_bits_;
     for (int s = 0; s < num_shards; s++) {
         GetShard(s)->EraseUnRefEntries();
     }
 }
 
-std::string ShardedCache::GetPrintableOptions() const
-{
+std::string ShardedCache::GetPrintableOptions() const {
     std::string ret;
     ret.reserve(20000);
     const int kBufferSize = 200;
@@ -163,4 +149,4 @@ std::string ShardedCache::GetPrintableOptions() const
     return ret;
 }
 
-}
+} // namespace autil

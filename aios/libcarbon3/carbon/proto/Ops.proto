@@ -1,0 +1,14 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+
+package carbon.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+
+service CarbonOpsService
+{
+    option (arpc.global_service_id) = 2000;
+}

@@ -16,6 +16,7 @@
 #include "indexlib/index/operation_log/OperationLogMemIndexer.h"
 
 #include "autil/Lock.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/normal/NormalDocument.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/framework/SegmentDumpItem.h"
@@ -37,7 +38,7 @@ using indexlibv2::config::IIndexConfig;
 
 AUTIL_LOG_SETUP(indexlib.index, OperationLogMemIndexer);
 
-OperationLogMemIndexer::OperationLogMemIndexer(segmentid_t segmentid) : _segmentid(segmentid)
+OperationLogMemIndexer::OperationLogMemIndexer(segmentid_t segmentid) : _currentMemoryUse(0), _segmentid(segmentid)
 {
     _opBlocks.reset(new OperationBlockVec);
 }
@@ -71,12 +72,9 @@ Status OperationLogMemIndexer::Build(indexlibv2::document::IDocumentBatch* docBa
 {
     assert(docBatch);
     assert(_opConfig->GetPrimaryKeyIndexConfig());
-    for (size_t i = 0; i < docBatch->GetBatchSize(); ++i) {
-        // doc is dropped.
-        if (docBatch->IsDropped(i)) {
-            continue;
-        }
-        std::shared_ptr<indexlibv2::document::IDocument> doc = (*docBatch)[i];
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(docBatch);
+    while (iter->HasNext()) {
+        std::shared_ptr<indexlibv2::document::IDocument> doc = iter->Next();
         RETURN_STATUS_DIRECTLY_IF_ERROR(ProcessDocument(doc.get()));
     }
     return Status::OK();
@@ -109,8 +107,7 @@ Status OperationLogMemIndexer::DoAddOperation(OperationBase* operation)
         return Status::OK();
     }
 
-    size_t opDumpSize = OperationDumper::GetDumpSize(operation);
-    _operationMeta.Update(opDumpSize);
+    _operationMeta.Update(operation);
 
     assert(_blockInfo._curBlock);
     assert(_blockInfo._curBlock->Size() < _maxBlockSize);
@@ -121,6 +118,7 @@ Status OperationLogMemIndexer::DoAddOperation(OperationBase* operation)
         assert(!_opBlocks->empty());
         RETURN_IF_STATUS_ERROR(CreateNewBlock(_maxBlockSize), "create new block failed");
     }
+    _currentMemoryUse = _blockInfo.GetTotalMemoryUse();
     return Status::OK();
 }
 
@@ -224,7 +222,8 @@ void OperationLogMemIndexer::UpdateMemUse(indexlibv2::index::BuildingIndexMemory
     memUpdater->UpdateCurrentMemUse(GetCurrentMemoryUse());
     memUpdater->EstimateDumpTmpMemUse(_operationMeta.GetMaxOperationSerializeSize());
     memUpdater->EstimateDumpExpandMemUse(0);
-    memUpdater->EstimateDumpedFileSize(_operationMeta.GetTotalDumpSize() + _operationMeta.GetLastBlockSerializeSize());
+    memUpdater->EstimateDumpedFileSize(_operationMeta.GetTotalDumpSize() +
+                                       _operationMeta.GetBuildingBlockSerializeSize());
 }
 segmentid_t OperationLogMemIndexer::GetSegmentId() const { return _segmentid; }
 
@@ -232,7 +231,7 @@ bool OperationLogMemIndexer::IsSealed() const { return _isSealed; }
 
 void OperationLogMemIndexer::Seal() { _isSealed = true; }
 
-size_t OperationLogMemIndexer::GetCurrentMemoryUse() const { return _blockInfo.GetTotalMemoryUse(); }
+size_t OperationLogMemIndexer::GetCurrentMemoryUse() const { return _currentMemoryUse.load(); }
 
 size_t OperationLogMemIndexer::GetTotalOperationCount() const { return _operationMeta.GetOperationCount(); }
 

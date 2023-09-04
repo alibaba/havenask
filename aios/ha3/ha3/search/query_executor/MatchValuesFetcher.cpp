@@ -15,10 +15,10 @@
  */
 #include "ha3/search/MatchValuesFetcher.h"
 
-#include <stddef.h>
 #include <algorithm>
+#include <stddef.h>
 
-#include "autil/Log.h" // IWYU pragma: keep
+#include "autil/Log.h"            // IWYU pragma: keep
 #include "ha3/common/CommonDef.h" // IWYU pragma: keep
 #include "ha3/common/Term.h"
 #include "ha3/search/MatchValues.h"
@@ -41,36 +41,27 @@ using namespace matchdoc;
 MatchValuesFetcher::MatchValuesFetcher()
     : _ref(NULL)
     , _termCount(0)
-    , _accTermCount(0)
-{
-}
+    , _accTermCount(0) {}
 
-MatchValuesFetcher::~MatchValuesFetcher() {
-}
+MatchValuesFetcher::~MatchValuesFetcher() {}
 
-ReferenceBase *MatchValuesFetcher::require(
-        MatchDocAllocator *allocator,
-        const std::string &refName, uint32_t termCount)
-{
-    _ref = createReference(
-            allocator, refName, termCount);
+ReferenceBase *MatchValuesFetcher::require(MatchDocAllocator *allocator,
+                                           const std::string &refName,
+                                           uint32_t termCount) {
+    _ref = createReference(allocator, refName, termCount);
     _termCount = termCount;
     return _ref;
 }
 
 matchdoc::Reference<Ha3MatchValues> *MatchValuesFetcher::createReference(
-            matchdoc::MatchDocAllocator *allocator,
-            const std::string &refName, uint32_t termCount)
-{
+    matchdoc::MatchDocAllocator *allocator, const std::string &refName, uint32_t termCount) {
     return allocator->declare<Ha3MatchValues>(
-            refName, isearch::common::HA3_MATCHVALUE_GROUP, SL_NONE,
-            Ha3MatchValues::sizeOf(termCount));
+        refName, isearch::common::HA3_MATCHVALUE_GROUP, SL_NONE, Ha3MatchValues::sizeOf(termCount));
 }
 
-indexlib::index::ErrorCode MatchValuesFetcher::fillMatchValues(
-        const SingleLayerExecutors &singleLayerExecutors,
-        MatchDoc matchDoc)
-{
+indexlib::index::ErrorCode
+MatchValuesFetcher::fillMatchValues(const SingleLayerExecutors &singleLayerExecutors,
+                                    MatchDoc matchDoc) {
     docid_t docId = matchDoc.getDocId();
     Ha3MatchValues &mValues = _ref->getReference(matchDoc);
     mValues.setMaxNumTerms(_termCount);
@@ -78,11 +69,8 @@ indexlib::index::ErrorCode MatchValuesFetcher::fillMatchValues(
         matchvalue_t &mvt = mValues.nextFreeMatchValue();
         mvt = matchvalue_t();
         int32_t idx = (int32_t)i - (int32_t)_accTermCount;
-        if (idx >= 0
-            && (uint32_t)idx < singleLayerExecutors.size()
-            && singleLayerExecutors[idx]
-            && singleLayerExecutors[idx]->getDocId() == docId)
-        {
+        if (idx >= 0 && (uint32_t)idx < singleLayerExecutors.size() && singleLayerExecutors[idx]
+            && singleLayerExecutors[idx]->getDocId() == docId) {
             mvt = singleLayerExecutors[idx]->getMatchValue();
         }
     }

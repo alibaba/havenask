@@ -36,10 +36,13 @@ namespace indexlibv2::index {
 class AttributeDiskIndexer;
 class AttributeMemIndexer;
 } // namespace indexlibv2::index
-
-namespace indexlibv2::config {
-class TabletSchema;
+namespace indexlib::index::ann {
+class SingleAithetaBuilder;
 }
+namespace indexlibv2::config {
+class TabletOptions;
+class ITabletSchema;
+} // namespace indexlibv2::config
 namespace indexlibv2::document {
 class IDocumentBatch;
 }
@@ -68,35 +71,40 @@ public:
 
 public:
     Status Init(const std::shared_ptr<indexlibv2::table::NormalMemSegment>& normalBuildingSegment,
+                const indexlibv2::config::TabletOptions* tabletOptions,
                 const std::shared_ptr<autil::ThreadPool>& consistentModeBuildThreadPool,
                 const std::shared_ptr<autil::ThreadPool>& inconsistentModeBuildThreadPool);
     Status SwitchBuildMode(indexlibv2::framework::OpenOptions::BuildMode buildMode);
     indexlibv2::framework::OpenOptions::BuildMode GetBuildMode() const;
     Status Build(const std::shared_ptr<indexlibv2::document::IDocumentBatch>& batch);
 
-    Status PrepareForWrite(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    Status PrepareForWrite(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                            const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData);
 
     void WaitFinish();
 
 private:
     template <typename SingleBuilderType>
-    Status InitSingleBuilders(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    Status InitSingleBuilders(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                               const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData,
                               const std::string& indexTypeStr,
                               std::vector<std::unique_ptr<SingleBuilderType>>* builders);
-    Status InitSingleInvertedIndexBuilders(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    Status InitSingleInvertedIndexBuilders(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                            const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData);
-    Status InitSingleAttributeBuilders(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    Status InitSingleAttributeBuilders(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                        const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData);
-    Status InitSingleVirtualAttributeBuilders(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    Status InitSingleVirtualAttributeBuilders(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                               const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData);
-    Status InitSinglePrimaryKeyBuilders(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    Status InitSinglePrimaryKeyBuilders(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                         const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData);
+    Status
+    InitSingleDeletionMapBuilders(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
+                                  const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData,
+                                  std::vector<std::unique_ptr<indexlib::index::SingleDeletionMapBuilder>>* builders);
     template <typename BuilderType, typename BuildWorkItemType>
     void CreateBuildWorkItems(const std::vector<std::unique_ptr<BuilderType>>& builders,
                               const std::shared_ptr<indexlibv2::document::IDocumentBatch>& batch);
-    Status ValidateConfigs(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema);
+    Status ValidateConfigs(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema);
 
 public:
     indexlib::util::GroupedThreadPool* TEST_GetGroupedThreadPool() { return _buildThreadPool.get(); }
@@ -106,6 +114,7 @@ private:
     std::unique_ptr<indexlib::util::GroupedThreadPool> _buildThreadPool;
     std::unique_ptr<indexlib::util::WaitMemoryQuotaController> _docBatchMemController;
 
+    bool _isOnline;
     indexlibv2::framework::OpenOptions::BuildMode _buildMode = indexlibv2::framework::OpenOptions::STREAM;
     std::shared_ptr<autil::ThreadPool> _consistentModeBuildThreadPool;
     std::shared_ptr<autil::ThreadPool> _inconsistentModeBuildThreadPool;
@@ -118,6 +127,7 @@ private:
     std::vector<std::unique_ptr<SingleVirtualAttributeBuilder>> _singleVirtualAttributeBuilders;
     std::vector<std::unique_ptr<indexlib::index::SingleInvertedIndexBuilder>> _singleInvertedIndexBuilders;
     std::vector<std::unique_ptr<indexlib::index::SingleSummaryBuilder>> _singleSummaryBuilders;
+    std::vector<std::unique_ptr<indexlib::index::ann::SingleAithetaBuilder>> _singleAnnBuilders;
     std::vector<std::unique_ptr<indexlib::index::SingleOperationLogBuilder>> _singleOpLogBuilders;
     std::vector<std::unique_ptr<indexlib::index::ISinglePrimaryKeyBuilder>> _singlePrimaryKeyBuilders;
     std::vector<std::unique_ptr<indexlib::index::SingleDeletionMapBuilder>> _singleDeletionMapBuilders;

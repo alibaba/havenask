@@ -1,0 +1,73 @@
+{
+    "table_name": "simple_table",
+    "fields": [
+        {
+            "field_name": "id",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "title",
+            "field_type": "TEXT",
+            "analyzer": "multi_level_analyzer"
+        },
+        {
+            "field_name": "detail",
+            "field_type": "TEXT",
+            "analyzer": "multi_level_analyzer"
+        },
+        {
+            "field_name": "price",
+            "field_type": "DOUBLE"
+        }
+    ],
+    "indexs": [
+        {
+            "index_name": "title_1",
+            "index_fields": "title",
+            "index_type": "TEXT",
+            "doc_payload_flag": 1,
+            "has_truncate": true,
+            "use_truncate_profiles": "desc_payload_1;desc_payload_3",
+            "need_sharding": true,
+            "sharding_count": 2
+        },
+        {
+            "index_name": "title_2",
+            "index_fields": "title",
+            "index_type": "TEXT",
+            "doc_payload_flag": 1,
+            "has_truncate": true,
+            "use_truncate_profiles": "desc_payload_2;desc_price"
+        },
+        {
+            "index_name": "pk",
+            "index_type": "PRIMARYKEY64",
+            "index_fields": "id"
+        }
+    ],
+    "attributes": [
+        "id",
+        "price"
+    ],
+    "truncate_profiles": [
+        {
+            "truncate_profile_name": "desc_payload_1",
+            "sort_descriptions": "-DOC_PAYLOAD",
+            "payload_name": "payload_name1"
+        },
+        {
+            "truncate_profile_name": "desc_payload_2",
+            "sort_descriptions": "-DOC_PAYLOAD",
+            "payload_name": "payload_name2"
+        },
+        {
+            "truncate_profile_name": "desc_payload_3",
+            "sort_descriptions": "+DOC_PAYLOAD",
+            "payload_name": "payload_name1"
+        },
+        {
+            "truncate_profile_name": "desc_price",
+            "sort_descriptions": "-price"
+        }
+    ]
+}

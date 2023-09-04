@@ -26,7 +26,7 @@ AttributeCompressInfo::AttributeCompressInfo() {}
 
 AttributeCompressInfo::~AttributeCompressInfo() {}
 
-bool AttributeCompressInfo::NeedCompressData(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+bool AttributeCompressInfo::NeedCompressData(const std::shared_ptr<index::AttributeConfig>& attrConfig)
 {
     if (!attrConfig) {
         return false;
@@ -37,7 +37,7 @@ bool AttributeCompressInfo::NeedCompressData(const std::shared_ptr<config::Attri
            attrConfig->GetFieldType() != ft_string;
 }
 
-bool AttributeCompressInfo::NeedCompressOffset(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+bool AttributeCompressInfo::NeedCompressOffset(const std::shared_ptr<index::AttributeConfig>& attrConfig)
 {
     if (!attrConfig) {
         return false;
@@ -48,7 +48,7 @@ bool AttributeCompressInfo::NeedCompressOffset(const std::shared_ptr<config::Att
            (attrConfig->GetFieldType() == ft_string || attrConfig->IsMultiValue());
 }
 
-bool AttributeCompressInfo::NeedEnableAdaptiveOffset(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+bool AttributeCompressInfo::NeedEnableAdaptiveOffset(const std::shared_ptr<index::AttributeConfig>& attrConfig)
 {
     if (!attrConfig) {
         return false;

@@ -1,0 +1,41 @@
+{
+    "cluster_config" : {
+        "table_name" : "simple_table",
+	    "hash_mode" : {
+            "hash_function" : "KINGSO_HASH#720",
+            "hash_field" : "id"
+	    },
+        "builder_rule_config" : {
+            "partition_count" : 2
+        }
+    },
+    "offline_index_config":
+    {
+        "build_config": {
+            "build_total_memory": 16384,
+            "keep_version_count": 80,
+            "enable_package_file": true
+        },
+        "customized_merge_config": {
+            "full": {
+                "merge_config": {
+                    "merge_strategy": "optimize",
+                    "merge_strategy_param": "after-merge-max-segment-count=20",
+                    "merge_thread_count": 4
+                }
+            },
+            "large_segment_reclaim": {
+                "merge_config": {
+                    "merge_strategy": "priority_queue",
+                    "merge_strategy_params": {
+                        "input_limits": "max-segment-size=20480",
+                        "output_limits": "max-merged-segment-size=13312;max-total-merged-size=15360",
+                        "strategy_conditions": "priority-feature=delete-doc-count#desc;conflict-segment-count=2;conflict-delete-percent=8"
+                    },
+                    "merge_thread_count": 4
+                },
+                "period": "period=31400"
+            }
+        }
+    }
+}

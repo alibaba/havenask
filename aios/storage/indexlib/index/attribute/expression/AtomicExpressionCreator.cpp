@@ -18,7 +18,7 @@
 #include "autil/mem_pool/Pool.h"
 #include "expression/framework/AttributeExpressionPool.h"
 #include "indexlib/base/FieldTypeUtil.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
 #include "indexlib/index/attribute/expression/AtomicAttributeExpression.h"
@@ -30,7 +30,7 @@ using expression::AttributeExpression;
 using expression::AttributeExpressionPool;
 
 AtomicExpressionCreator::AtomicExpressionCreator(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                                                 const std::shared_ptr<config::TabletSchema>& schema,
+                                                 const std::shared_ptr<config::ITabletSchema>& schema,
                                                  expression::AttributeExpressionPool* exprPool,
                                                  autil::mem_pool::Pool* pool)
     : _segments(segments)
@@ -52,8 +52,8 @@ AttributeExpression* AtomicExpressionCreator::createAtomicExpr(const std::string
     AtomicAttributeExpressionBase* atomicExprBase = nullptr;
     auto expr = _exprPool->tryGetAttributeExpression(name);
     if (!expr) {
-        auto attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(
-            _schema->GetIndexConfig(index::ATTRIBUTE_INDEX_TYPE_STR, name));
+        auto attrConfig =
+            std::dynamic_pointer_cast<AttributeConfig>(_schema->GetIndexConfig(index::ATTRIBUTE_INDEX_TYPE_STR, name));
         if (!attrConfig) {
             AUTIL_LOG(ERROR, "attribute[%s] is not exist", name.c_str());
             return nullptr;

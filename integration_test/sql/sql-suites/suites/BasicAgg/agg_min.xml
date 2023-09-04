@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="agg_min">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT MIN(price) FROM phone
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"MIN(price)"</Resource>
+        <Resource name="column_types">double</Resource>
+        <Resource name="seq_required">true</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+169
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#4(type=api)
+    ExchangeOp#3(distribution={type:SINGLETON})
+        LimitOp#2(limit=100)
+            AggregateOp#1(agg_funcs=[{approximate:false,distinct:false,filter_arg:-1,input:[$price],name:MIN,output:[$MIN(price)],type:NORMAL}],scope=NORMAL)
+                TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$price],push_down_ops=[{attrs:{output_fields:[$price]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

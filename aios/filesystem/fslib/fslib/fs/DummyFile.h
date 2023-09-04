@@ -23,20 +23,19 @@
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class DummyFile : public File
-{
+class DummyFile : public File {
 public:
     DummyFile(ErrorCode ec = EC_PARSEFAIL);
     ~DummyFile();
 
 public:
-    /*override*/ ssize_t read(void* buffer, size_t length);
+    /*override*/ ssize_t read(void *buffer, size_t length);
 
-    /*override*/ ssize_t write(const void* buffer, size_t length);
+    /*override*/ ssize_t write(const void *buffer, size_t length);
 
-    /*override*/ ssize_t pread(void* buffer, size_t length, off_t offset);
+    /*override*/ ssize_t pread(void *buffer, size_t length, off_t offset);
 
-    /*override*/ ssize_t pwrite(const void* buffer, size_t length, off_t offset);
+    /*override*/ ssize_t pwrite(const void *buffer, size_t length, off_t offset);
 
     /*override*/ ErrorCode flush();
 
@@ -58,4 +57,4 @@ FSLIB_TYPEDEF_AUTO_PTR(DummyFile);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_DUMMYFILE_H
+#endif // FSLIB_DUMMYFILE_H

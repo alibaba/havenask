@@ -16,55 +16,47 @@
 #ifndef HTTP_ARPC_HTTPRPCSERVERADAPTER_H
 #define HTTP_ARPC_HTTPRPCSERVERADAPTER_H
 
+#include "HTTPRPCServerClosure.h"
+#include "ProtoJsonizer.h"
 #include "aios/network/anet/anet.h"
 #include "aios/network/arpc/arpc/RPCServer.h"
-#include "ProtoJsonizer.h"
-#include "HTTPRPCServerClosure.h"
 #include "autil/Lock.h"
 
 namespace http_arpc {
 
 class HTTPRPCServer;
 
-class HTTPRPCServerAdapter : public anet::IServerAdapter
-{
+class HTTPRPCServerAdapter : public anet::IServerAdapter {
 public:
     HTTPRPCServerAdapter(HTTPRPCServer *server);
     ~HTTPRPCServerAdapter();
+
 public:
-    /* override */ anet::IPacketHandler::HPRetCode
-    handlePacket(anet::Connection *connection, anet::Packet *packet);
-    void setProtoJsonizer(const ProtoJsonizerPtr& protoJsonizer);
-    ProtoJsonizerPtr& getProtoJsonizer();
+    /* override */ anet::IPacketHandler::HPRetCode handlePacket(anet::Connection *connection, anet::Packet *packet);
+    void setProtoJsonizer(const ProtoJsonizerPtr &protoJsonizer);
+    ProtoJsonizerPtr &getProtoJsonizer();
+    bool setProtoJsonizer(RPCService *service, const std::string &method, const ProtoJsonizerPtr &protoJsonizer);
+    ProtoJsonizerPtr getProtoJsonizer(RPCService *service, RPCMethodDescriptor *method);
+
 private:
-    anet::IPacketHandler::HPRetCode handleCmdPacket(
-            anet::Connection *connection,
-            anet::Packet *packet);
-    anet::IPacketHandler::HPRetCode handleRegularPacket(
-            anet::Connection *connection,
-            anet::Packet *packet);
-    void fillInfoFromUri(const std::string& uri,
+    anet::IPacketHandler::HPRetCode handleCmdPacket(anet::Connection *connection, anet::Packet *packet);
+    anet::IPacketHandler::HPRetCode handleRegularPacket(anet::Connection *connection, anet::Packet *packet);
+    void fillInfoFromUri(const std::string &uri,
                          std::string &serviceAndMethod,
-                         std::string &request, bool haCompatible = false);
-    anet::HTTPPacket *buildErrorPacket(bool isKeepAlive,
-            int statusCode,
-            std::string reason);
-    void handleError(anet::Connection *connection,
-                     anet::HTTPPacket *httpPacket,
-                     int statusCode,
-                     std::string reason);
-    void sendError(anet::Connection *connection,
-                   anet::HTTPPacket *packet);
-    bool processHaCompatible(const std::string& uri,
-                             std::string &serviceAndMethod,
-                             std::string &request);
+                         std::string &request,
+                         bool haCompatible = false);
+    anet::HTTPPacket *buildErrorPacket(bool isKeepAlive, int statusCode, std::string reason);
+    void handleError(anet::Connection *connection, anet::HTTPPacket *httpPacket, int statusCode, std::string reason);
+    void sendError(anet::Connection *connection, anet::HTTPPacket *packet);
+    bool processHaCompatible(const std::string &uri, std::string &serviceAndMethod, std::string &request);
     static EagleInfo getEagleInfo(anet::HTTPPacket *httpPacket);
 
 private:
     HTTPRPCServer *_server;
     ProtoJsonizerPtr _protoJsonizer;
+    std::unordered_map<std::string, std::unordered_map<std::string, ProtoJsonizerPtr>> _serviceProtoJsonizerMap;
     autil::ReadWriteLock _mutex;
 };
 
-}
-#endif //HTTP_ARPC_HTTPRPCSERVERADAPTER_H
+} // namespace http_arpc
+#endif // HTTP_ARPC_HTTPRPCSERVERADAPTER_H

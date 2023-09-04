@@ -20,6 +20,7 @@
 #include <unordered_map>
 
 #include "autil/ConstString.h"
+#include "indexlib/misc/common.h"
 
 DECLARE_REFERENCE_CLASS(partition, IndexPartitionReader);
 DECLARE_REFERENCE_CLASS(index, AttributeReader);
@@ -31,7 +32,8 @@ class TabletInfos;
 } // namespace indexlibv2::framework
 namespace indexlibv2::index {
 class AttributeReader;
-}
+class PackAttributeReader;
+} // namespace indexlibv2::index
 
 namespace indexlib { namespace partition {
 
@@ -72,6 +74,12 @@ struct AttributeReaderInfoV2 {
 struct PackAttributeReaderInfo {
     index::PackAttributeReaderPtr packAttrReader;
     IndexPartitionReaderPtr indexPartReader;
+    IndexPartitionReaderType indexPartReaderType;
+};
+
+struct PackAttributeReaderInfoV2 {
+    std::shared_ptr<indexlibv2::index::PackAttributeReader> packAttrReader;
+    std::shared_ptr<indexlibv2::framework::ITabletReader> tabletReader;
     IndexPartitionReaderType indexPartReaderType;
 };
 

@@ -19,6 +19,7 @@
 #include "indexlib/index/attribute/config/AttributeConfig.h"
 #include "indexlib/index/inverted_index/config/PackageIndexConfig.h"
 #include "indexlib/index/inverted_index/config/SectionAttributeConfig.h"
+#include "indexlib/index/inverted_index/section_attribute/SectionAttributeIndexFactory.h"
 
 namespace indexlib::index {
 namespace {
@@ -42,10 +43,14 @@ Status PackIndexMerger::Init(const std::shared_ptr<IIndexConfig>& indexConfig,
         const auto& sectionAttrConfig = packIndexConfig->GetSectionAttributeConfig();
         assert(sectionAttrConfig);
         auto attrConfig = sectionAttrConfig->CreateAttributeConfig(packIndexConfig->GetIndexName());
-
-        auto indexFactoryCreator = indexlibv2::index::IndexFactoryCreator::GetInstance();
-        auto [status, indexFactory] = indexFactoryCreator->Create(attrConfig->GetIndexType());
-        RETURN_IF_STATUS_ERROR(status, "get index factory for index [%s] failed", attrConfig->GetIndexName().c_str());
+        if (attrConfig == nullptr) {
+            auto status = Status::InternalError("create attr config failed, index name [%s]",
+                                                indexConfig->GetIndexName().c_str());
+            AUTIL_LOG(ERROR, "%s", status.ToString().c_str());
+            assert(false);
+            return status;
+        }
+        auto indexFactory = std::make_unique<SectionAttributeIndexFactory>();
         _sectionMerger = indexFactory->CreateIndexMerger(attrConfig);
         assert(_sectionMerger);
         status = _sectionMerger->Init(attrConfig, params);

@@ -24,7 +24,7 @@ namespace indexlibv2::table {
 class KVMemSegment : public plain::PlainMemSegment
 {
 public:
-    KVMemSegment(const config::TabletOptions* options, const std::shared_ptr<config::TabletSchema>& schema,
+    KVMemSegment(const config::TabletOptions* options, const std::shared_ptr<config::ITabletSchema>& schema,
                  const framework::SegmentMeta& segmentMeta, bool enableMemoryReclaim);
     ~KVMemSegment() {}
 

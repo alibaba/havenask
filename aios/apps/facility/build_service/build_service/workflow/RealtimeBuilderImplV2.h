@@ -77,6 +77,7 @@ public:
 
 protected:
     virtual bool doStart(const proto::PartitionId& partitionId, KeyValueMap& kvMap) = 0;
+    virtual void handleRecoverTimeout() {}
 
 protected:
     bool prepareIntervalTask(const config::ResourceReaderPtr& resourceReader, const proto::PartitionId& partitionId,
@@ -90,7 +91,7 @@ protected:
     virtual bool getLastTimestampInProducer(int64_t& timestamp) = 0;
     virtual bool getLastReadTimestampInProducer(int64_t& timestamp) = 0;
     virtual bool producerSeek(const common::Locator& locator) = 0;
-    virtual bool seekProducerToLatest(std::pair<int64_t, int64_t>& forceSeekInfo) { return false; }
+    virtual bool seekProducerToLatest() { return false; }
     std::pair<indexlibv2::framework::Locator, /*fromInc*/ bool> getLatestLocator() const;
     void checkForceSeek();
 

@@ -47,15 +47,16 @@ public:
                                  OperationBase** operation);
 
     std::pair<Status, OperationBase*> DeserializeOperation(const char* buffer, autil::mem_pool::Pool* pool,
-                                                           size_t& opSize) const;
+                                                           size_t& opSize, bool hasConcurrentIdx) const;
 
 private:
     std::shared_ptr<OperationCreator>
     CreateRemoveOperationCreator(const std::shared_ptr<OperationLogConfig>& schemconfig);
     std::shared_ptr<OperationCreator>
     CreateUpdateOperationCreator(const std::shared_ptr<OperationLogConfig>& schemconfig);
-    OperationBase* CreateUnInitializedOperation(OperationBase::SerializedOperationType opType, int64_t timestamp,
-                                                uint16_t hashId, autil::mem_pool::Pool* pool) const;
+    OperationBase* CreateUnInitializedOperation(OperationBase::SerializedOperationType opType,
+                                                const indexlibv2::document::IDocument::DocInfo& docInfo,
+                                                autil::mem_pool::Pool* pool) const;
 
 private:
     InvertedIndexType _mainPkType;

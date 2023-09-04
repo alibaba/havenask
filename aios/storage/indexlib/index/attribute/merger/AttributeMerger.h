@@ -30,7 +30,6 @@
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
 #include "indexlib/index/common/patch/PatchFileInfos.h"
-#include "indexlib/index/inverted_index/Common.h"
 
 namespace indexlibv2::framework {
 class IndexTaskResourceManager;
@@ -64,7 +63,7 @@ public:
 public:
     virtual std::string GetIdentifier() const = 0;
     virtual Status DoMerge(const SegmentMergeInfos& segMergeInfos, std::shared_ptr<DocMapper>& docMapper) = 0;
-    std::shared_ptr<config::AttributeConfig> GetAttributeConfig() const { return _attributeConfig; }
+    std::shared_ptr<AttributeConfig> GetAttributeConfig() const { return _attributeConfig; }
 
 protected:
     std::string GetAttributePath(const std::string& dir) const;
@@ -76,14 +75,7 @@ protected:
         assert(segDir != nullptr);
         auto segmentDir = segDir->GetIDirectory();
         assert(segmentDir != nullptr);
-        config::AttributeConfig::ConfigType configType = _attributeConfig->GetConfigType();
-        indexlib::file_system::FSResult<std::shared_ptr<indexlib::file_system::IDirectory>> fsResult;
-        if (configType == config::AttributeConfig::ct_section) {
-            fsResult = segmentDir->GetDirectory(indexlib::index::INVERTED_INDEX_PATH);
-        } else {
-            fsResult = segmentDir->GetDirectory(index::ATTRIBUTE_INDEX_TYPE_STR);
-        }
-
+        auto fsResult = segmentDir->GetDirectory(_attributeConfig->GetIndexCommonPath());
         if (!fsResult.OK()) {
             AUTIL_LOG(ERROR, "get attribute directory failed, segId[%d], attr [%s]", segment->GetSegmentId(),
                       _attributeConfig->GetIndexName().c_str());
@@ -104,7 +96,7 @@ protected:
         }
     }
 
-    template <typename MergerType, typename ConfigType = std::shared_ptr<config::AttributeConfig>>
+    template <typename MergerType, typename ConfigType = std::shared_ptr<AttributeConfig>>
     Status DoMergePatches(const IIndexMerger::SegmentMergeInfos& segMergeInfos, const ConfigType& config)
     {
         if (!_needMergePatch) {
@@ -142,7 +134,7 @@ protected:
     typedef std::priority_queue<SortMergeItem, std::vector<SortMergeItem>, SortMergeItemCompare> SortMergeItemHeap;
 
 protected:
-    std::shared_ptr<config::AttributeConfig> _attributeConfig;
+    std::shared_ptr<AttributeConfig> _attributeConfig;
     bool _needMergePatch = false;
     bool _supportNull = false;
     PatchInfos _allPatchInfos;

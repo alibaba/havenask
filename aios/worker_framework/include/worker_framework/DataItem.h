@@ -20,8 +20,7 @@
 
 namespace worker_framework {
 
-enum DataStatus
-{
+enum DataStatus {
     DS_UNKNOWN,
     DS_DEPLOYING,
     DS_FINISHED,

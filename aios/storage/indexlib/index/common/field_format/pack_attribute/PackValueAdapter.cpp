@@ -15,14 +15,14 @@
  */
 #include "indexlib/index/common/field_format/pack_attribute/PackValueAdapter.h"
 
-#include "indexlib/index/attribute/config/PackAttributeConfig.h"
 #include "indexlib/index/common/field_format/attribute/AttributeConvertor.h"
 #include "indexlib/index/common/field_format/attribute/AttributeConvertorFactory.h"
+#include "indexlib/index/pack_attribute/PackAttributeConfig.h"
 
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, PackValueAdapter);
 
-bool PackValueAdapter::ValueState::Init(const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& packConfig)
+bool PackValueAdapter::ValueState::Init(const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& packConfig)
 {
     assert(packConfig);
     if (packConfig->HasEnableImpact()) {
@@ -124,8 +124,8 @@ PackValueAdapter::PackValueAdapter() : _needConvert(false) {}
 
 PackValueAdapter::~PackValueAdapter() {}
 
-bool PackValueAdapter::Init(const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& current,
-                            const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& target,
+bool PackValueAdapter::Init(const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& current,
+                            const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& target,
                             const std::vector<std::string>& ignoreFieldsInCurrent)
 {
     if (!current || !target) {
@@ -188,8 +188,8 @@ autil::StringView PackValueAdapter::ConvertIndexPackValue(const autil::StringVie
     return _targetState.FormatValues(targetValues, pool);
 }
 
-bool PackValueAdapter::CheckPackAttributeEqual(const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& current,
-                                               const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& target,
+bool PackValueAdapter::CheckPackAttributeEqual(const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& current,
+                                               const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& target,
                                                const std::vector<std::string>& ignoreFieldsInCurrent)
 {
     auto currentAttributes = current->GetAttributeConfigVec();
@@ -234,8 +234,8 @@ bool PackValueAdapter::CheckPackAttributeEqual(const std::shared_ptr<indexlibv2:
     return current->HasEnablePlainFormat() == target->HasEnablePlainFormat();
 }
 
-bool PackValueAdapter::IsAttrEqual(const std::shared_ptr<indexlibv2::config::AttributeConfig>& current,
-                                   const std::shared_ptr<indexlibv2::config::AttributeConfig>& target) const
+bool PackValueAdapter::IsAttrEqual(const std::shared_ptr<indexlibv2::index::AttributeConfig>& current,
+                                   const std::shared_ptr<indexlibv2::index::AttributeConfig>& target) const
 {
     assert(current && target);
     return current->GetAttrName() == target->GetAttrName() && current->GetFieldType() == target->GetFieldType() &&

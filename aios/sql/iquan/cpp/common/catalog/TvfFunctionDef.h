@@ -15,9 +15,12 @@
  */
 #pragma once
 
+#include <map>
+#include <stdint.h>
 #include <string>
 #include <vector>
 
+#include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
 #include "iquan/common/catalog/FunctionCommonDef.h"
 
@@ -27,7 +30,8 @@ class TvfFieldDef : public autil::legacy::Jsonizable {
 public:
     TvfFieldDef() = default;
     TvfFieldDef(const std::string &fieldName, const ParamTypeDef &fieldType)
-        : fieldName(fieldName), fieldType(fieldType) {}
+        : fieldName(fieldName)
+        , fieldType(fieldType) {}
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("field_name", fieldName, fieldName);
@@ -41,7 +45,8 @@ public:
 
 class TvfInputTableDef : public autil::legacy::Jsonizable {
 public:
-    TvfInputTableDef() : autoInfer(false) {}
+    TvfInputTableDef()
+        : autoInfer(false) {}
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("auto_infer", autoInfer, autoInfer);
@@ -69,7 +74,8 @@ public:
 
 class TvfOutputTableDef : public autil::legacy::Jsonizable {
 public:
-    TvfOutputTableDef() : autoInfer(false) {}
+    TvfOutputTableDef()
+        : autoInfer(false) {}
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("auto_infer", autoInfer, autoInfer);
@@ -107,7 +113,8 @@ public:
 
 class TvfDistributionDef : public autil::legacy::Jsonizable {
 public:
-    TvfDistributionDef() : partitionCnt(0) {}
+    TvfDistributionDef()
+        : partitionCnt(0) {}
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("partition_cnt", partitionCnt, partitionCnt);

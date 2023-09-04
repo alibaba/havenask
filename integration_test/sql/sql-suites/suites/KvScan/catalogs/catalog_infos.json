@@ -1,0 +1,33 @@
+[
+  {
+    "catalog_name": "default", 
+    "databases": [
+      {
+        "database_name": "kkv1", 
+        "functions": [
+          "catalogs/default/kkv1/functions/buildtin_udaf.json", 
+          "catalogs/default/kkv1/functions/builtin_udf.json", 
+          "catalogs/default/kkv1/functions/udaf.json", 
+          "catalogs/default/kkv1/functions/udf.json", 
+          "catalogs/default/kkv1/functions/udtf.json"
+        ], 
+        "tables": [
+          "catalogs/default/kkv1/tables/kkv1.json"
+        ]
+      }, 
+      {
+        "database_name": "kv2", 
+        "functions": [
+          "catalogs/default/kv2/functions/buildtin_udaf.json", 
+          "catalogs/default/kv2/functions/builtin_udf.json", 
+          "catalogs/default/kv2/functions/udaf.json", 
+          "catalogs/default/kv2/functions/udf.json", 
+          "catalogs/default/kv2/functions/udtf.json"
+        ], 
+        "tables": [
+          "catalogs/default/kv2/tables/kv2.json"
+        ]
+      }
+    ]
+  }
+]

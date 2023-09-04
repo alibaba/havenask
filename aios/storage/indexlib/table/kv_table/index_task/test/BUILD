@@ -1,0 +1,119 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+strict_cc_fast_test(
+    name='KeyValueOptimizeMergeStrategyTest',
+    srcs=['KeyValueOptimizeMergeStrategyTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/table/index_task/merger/test:MergeTestHelper',
+        '//aios/storage/indexlib/table/kv_table/index_task:KeyValueOptimizeMergeStrategy',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVTableMergerVarLenTest',
+    srcs=['KVTableMergerVarLenTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/index/kv:factory',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVTableMergerFixedLenTest',
+    srcs=['KVTableMergerFixedLenTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/index/kv:factory',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVTableAlterTableTest',
+    srcs=['KVTableAlterTableTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVTableMergeInteTest',
+    srcs=['KVTableMergeInteTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    shard_count=30,
+    deps=[
+        '//aios/filesystem/fslib:fslib-framework',
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/config:BuildConfig',
+        '//aios/storage/indexlib/config:OnlineConfig',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/document:DocumentBatch',
+        '//aios/storage/indexlib/framework:DiskSegment',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/framework:MemSegment',
+        '//aios/storage/indexlib/framework:ReadResource',
+        '//aios/storage/indexlib/framework:Tablet',
+        '//aios/storage/indexlib/framework:Version',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContextCreator',
+        '//aios/storage/indexlib/framework/index_task:LocalExecuteEngine',
+        '//aios/storage/indexlib/index/kv:factory',
+        '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/storage/indexlib/table/kv_table/index_task:KVTableMergePlanCreator',
+        '//aios/storage/indexlib/table/kv_table/index_task:KVTableResourceCreator',
+        '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVTableMergeDescriptionCreatorTest',
+    srcs=['KVTableMergeDescriptionCreatorTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(),
+    deps=[
+        '//aios/filesystem/fslib:fslib-framework',
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/framework:Tablet',
+        '//aios/storage/indexlib/framework:Version',
+        '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
+        '//aios/storage/indexlib/table/kv_table/index_task:KVTableMergeDescriptionCreator',
+        '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVTableMergePlanCreatorTest',
+    srcs=['KVTableMergePlanCreatorTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(),
+    deps=[
+        '//aios/filesystem/fslib:fslib-framework',
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/config:BuildConfig',
+        '//aios/storage/indexlib/config:OnlineConfig',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/document:DocumentBatch',
+        '//aios/storage/indexlib/framework:DiskSegment',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/framework:MemSegment',
+        '//aios/storage/indexlib/framework:ReadResource',
+        '//aios/storage/indexlib/framework:Tablet',
+        '//aios/storage/indexlib/framework:Version',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContextCreator',
+        '//aios/storage/indexlib/framework/index_task:LocalExecuteEngine',
+        '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/storage/indexlib/table/kv_table/index_task:KVTableMergePlanCreator',
+        '//aios/storage/indexlib/table/kv_table/index_task:KVTableResourceCreator',
+        '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper',
+        '//aios/unittest_framework'
+    ]
+)

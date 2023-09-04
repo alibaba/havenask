@@ -1,0 +1,308 @@
+{
+	"zone1.0": {
+		"forceUpdate": false,
+		"groupId": "zone1.0",
+		"roles": {
+			"zone1_role_partition_0": {
+				"count": 10,
+				"customInfo": "{\"biz_info\":{\"biz1\":{\"config\":\"config_path\"},\"biz2\":{}},\"disk_size\":2147483647,\"service_info\":{\"part_count\":2,\"part_id\":0,\"role_name\":\"zone1_role_partition_0\",\"zone_name\":\"zone1\"},\"switch_mode\":\"column\",\"table_info\":{\"table1\":{\"g1\":{\"config_path\":\"config_path\",\"distribute_mode\":\"replica\",\"index_path\":\"\\\/path\\\/to\\\/table1\\\/1\",\"partitions\":{\"0_65535\":{\"inc_version\":10,\"load_state\":\"LOADED\"}},\"rt_status\":\"\",\"total_partition_count\":1},\"g2\":{\"config_path\":\"config_path\",\"distribute_mode\":\"normal\",\"index_path\":\"\\\/path\\\/to\\\/table1\\\/2\",\"partitions\":{\"0_65535\":{\"inc_version\":12,\"load_state\":\"LOADED\"}},\"rt_status\":\"\",\"total_partition_count\":1}},\"table2\":{\"g1\":{\"config_path\":\"config_path\",\"index_path\":\"\\\/path\\\/to\\\/table2\\\/1\",\"partitions\":{\"0_32767\":{\"inc_version\":10,\"load_state\":\"LOADED\"}},\"rt_status\":\"\",\"total_partition_count\":2}},\"table3\":{\"g1\":{\"config_path\":\"config_path\",\"index_path\":\"\\\/path\\\/to\\\/table1\\\/1\",\"partitions\":{\"0_65535\":{\"inc_version\":10,\"load_state\":\"LOADED\"}},\"rt_status\":\"\",\"total_partition_count\":1}}},\"target_version\":12345}",
+				"healthCheckerConfig": {
+					"args": [
+						{
+							"key": "PORT",
+							"value": "30113"
+						},
+						{
+							"key": "CHECK_PATH",
+							"value": "/HeartbeatService/heartbeat"
+						}
+					],
+					"name": "adv_lv7"
+				},
+				"packageInfos": [
+					{
+						"packageURI": "http:\/\/xxx"
+					}
+				],
+				"processInfos": [
+					{
+						"envs": [
+							{
+								"key": "RS_ALLOW_RELOAD_BY_CONFIG",
+								"value": "true"
+							}
+						],
+						"args": [
+							{
+								"key": "--env",
+								"value": "roleName=zone1_role_partition_0"
+							},
+							{
+								"key": "--env",
+								"value": "zoneName=zone1"
+							},
+							{
+								"key": "--env",
+								"value": "partId=0"
+							}
+						],
+						"processName": "abc"
+					}
+				],
+				"resources": [
+					{
+						"resources": [
+							{
+								"amount": 2,
+								"name": "cpu"
+							}
+						]
+					}
+				],
+				"roleName": "zone1_role_partition_0",
+				"signature": "table1.g1.0_65535.10 table1.g2.0_65535.12 table2.g1.0_32767.10 table3.g1.0_65535.10 biz1.{\n\"config\":\n  \"config_path\"\n} biz2.{\n} table1.g1.\"config_path\" table1.g2.\"config_path\" table2.g1.\"config_path\" table3.g1.\"config_path\"",
+				"userDefVersion": "12345"
+			}
+		},
+		"schedulerConfig": "oldFirst",
+		"schedulerName": "rollingUpdate",
+		"services": {
+			"zone1_role_partition_0": {
+				"roleName": "zone1_role_partition_0",
+				"serviceConfigs": [
+					{
+						"configStr": "{\n\"domain\":\n  \"com.taobao.vip_test\",\n\"jmenvDom\":\n  \"172.21.95.147:8080\",\n\"port\":\n  9001,\n\"token\":\n  \"123456\"\n}",
+						"name": "vip",
+						"statusPath": "..\/suez_worker\/SearchService\/vip_status",
+						"type": "ST_VIP"
+					},
+					{
+						"configStr": "{\n\"cm2_server_cluster_name\":\n  \"sp_wireless_http2\",\n\"cm2_server_leader_path\":\n  \"\\\/cm_server_test\",\n\"cm2_server_zookeeper_host\":\n  \"10.101.83.215:2181,10.101.83.226:2181,10.101.83.227:2181\",\n\"httpPort\":\n  20009,\n\"idc_type\":\n  1,\n\"signature\":\n  \"sig2\",\n\"tcpPort\":\n  21009,\n\"weight\":\n  100\n}",
+						"name": "cm2",
+						"statusPath": "..\/suez_worker\/SearchService\/cm2_status",
+						"type": "ST_CM2"
+					}
+				]
+			}
+		},
+		"stepPercent": 1
+	},
+	"zone1.1": {
+		"forceUpdate": false,
+		"groupId": "zone1.1",
+		"roles": {
+			"zone1_role_partition_1": {
+				"count": 10,
+				"customInfo": "{\"biz_info\":{\"biz1\":{\"config\":\"config_path\"},\"biz2\":{}},\"disk_size\":2147483647,\"service_info\":{\"part_count\":2,\"part_id\":1,\"role_name\":\"zone1_role_partition_1\",\"zone_name\":\"zone1\"},\"switch_mode\":\"column\",\"table_info\":{\"table1\":{\"g1\":{\"config_path\":\"config_path\",\"distribute_mode\":\"replica\",\"index_path\":\"\\\/path\\\/to\\\/table1\\\/1\",\"partitions\":{\"0_65535\":{\"inc_version\":10,\"load_state\":\"LOADED\"}},\"rt_status\":\"\",\"total_partition_count\":1}},\"table2\":{\"g1\":{\"config_path\":\"config_path\",\"index_path\":\"\\\/path\\\/to\\\/table2\\\/1\",\"partitions\":{\"32768_65535\":{\"inc_version\":10,\"load_state\":\"LOADED\"}},\"rt_status\":\"\",\"total_partition_count\":2}},\"table3\":{\"g1\":{\"config_path\":\"config_path\",\"index_path\":\"\\\/path\\\/to\\\/table1\\\/1\",\"partitions\":{\"0_65535\":{\"inc_version\":10,\"load_state\":\"LOADED\"}},\"rt_status\":\"\",\"total_partition_count\":1}}},\"target_version\":12345}",
+				"healthCheckerConfig": {
+					"args": [
+						{
+							"key": "PORT",
+							"value": "30113"
+						},
+						{
+							"key": "CHECK_PATH",
+							"value": "/HeartbeatService/heartbeat"
+						}
+					],
+					"name": "adv_lv7"
+				},
+				"packageInfos": [
+					{
+						"packageURI": "http:\/\/xxx"
+					}
+				],
+				"processInfos": [
+					{
+						"envs": [
+							{
+								"key": "RS_ALLOW_RELOAD_BY_CONFIG",
+								"value": "true"
+							}
+						],
+						"args": [
+							{
+								"key": "--env",
+								"value": "roleName=zone1_role_partition_1"
+							},
+							{
+								"key": "--env",
+								"value": "zoneName=zone1"
+							},
+							{
+								"key": "--env",
+								"value": "partId=1"
+							}
+						],
+						"processName": "abc"
+					}
+				],
+				"resources": [
+					{
+						"resources": [
+							{
+								"amount": 3,
+								"name": "cpu"
+							}
+						]
+					}
+				],
+				"roleName": "zone1_role_partition_1",
+				"signature": "table1.g1.0_65535.10 table2.g1.32768_65535.10 table3.g1.0_65535.10 biz1.{\n\"config\":\n  \"config_path\"\n} biz2.{\n} table1.g1.\"config_path\" table2.g1.\"config_path\" table3.g1.\"config_path\"",
+				"userDefVersion": "12345"
+			}
+		},
+		"schedulerConfig": "oldFirst",
+		"schedulerName": "rollingUpdate",
+		"services": {
+			"zone1_role_partition_1": {
+				"roleName": "zone1_role_partition_1",
+				"serviceConfigs": [
+					{
+						"configStr": "{\n\"domain\":\n  \"com.taobao.vip_test\",\n\"jmenvDom\":\n  \"172.21.95.147:8080\",\n\"port\":\n  9001,\n\"token\":\n  \"123456\"\n}",
+						"name": "vip",
+						"statusPath": "..\/suez_worker\/SearchService\/vip_status",
+						"type": "ST_VIP"
+					},
+					{
+						"configStr": "{\n\"cm2_server_cluster_name\":\n  \"sp_wireless_http2\",\n\"cm2_server_leader_path\":\n  \"\\\/cm_server_test\",\n\"cm2_server_zookeeper_host\":\n  \"10.101.83.215:2181,10.101.83.226:2181,10.101.83.227:2181\",\n\"httpPort\":\n  20009,\n\"idc_type\":\n  1,\n\"signature\":\n  \"sig2\",\n\"tcpPort\":\n  21009,\n\"weight\":\n  100\n}",
+						"name": "cm2",
+						"statusPath": "..\/suez_worker\/SearchService\/cm2_status",
+						"type": "ST_CM2"
+					}
+				]
+			}
+		},
+		"stepPercent": 1
+	},
+	"zone2": {
+		"forceUpdate": false,
+		"groupId": "zone2",
+		"roles": {
+			"zone2_role_partition_0": {
+				"count": 10,
+				"customInfo": "{\"biz_info\":{\"biz1\":{\"config_path\":\"config_pathXXX\"},\"biz2\":{\"config_path\":\"config_pathXXX\"}},\"disk_size\":2147483647,\"service_info\":{\"cm2\":{\"role_name_1\":\"service_conf\"},\"hash_function\":\"HASH\",\"part_count\":2,\"part_id\":0,\"role_name\":\"zone2_role_partition_0\",\"zone_name\":\"zone2\"},\"table_info\":{\"table1\":{\"g1\":{\"config_path\":\"config_path\",\"index_path\":\"\\\/path\\\/to\\\/table1\\\/1\",\"partitions\":{\"0_65535\":{\"inc_version\":10,\"load_state\":\"LOADED\"}},\"rt_status\":\"\",\"total_partition_count\":1},\"g2\":{\"config_path\":\"config_path\",\"index_path\":\"\\\/path\\\/to\\\/table1\\\/2\",\"partitions\":{\"0_65535\":{\"inc_version\":12,\"load_state\":\"LOADED\"}},\"rt_status\":\"\",\"total_partition_count\":1}},\"table2\":{\"g1\":{\"config_path\":\"config_path\",\"index_path\":\"\\\/path\\\/to\\\/table2\\\/1\",\"partitions\":{\"0_36000\":{\"inc_version\":10,\"load_state\":\"LOADED\"}},\"rt_status\":\"\",\"total_partition_count\":3}}}}",
+				"healthCheckerConfig": {
+					"args": [
+						{
+							"key": "PORT",
+							"value": "30113"
+						},
+						{
+							"key": "CHECK_PATH",
+							"value": "/HeartbeatService/heartbeat"
+						}
+					],
+					"name": "adv_lv7"
+				},
+				"packageInfos": [
+					{
+						"packageURI": "http:\/\/xxx"
+					}
+				],
+				"processInfos": [
+					{
+						"envs": [
+							{
+								"key": "RS_ALLOW_RELOAD_BY_CONFIG",
+								"value": "true"
+							}
+						],
+						"args": [
+							{
+								"key": "--env",
+								"value": "roleName=zone2_role_partition_0"
+							},
+							{
+								"key": "--env",
+								"value": "zoneName=zone2"
+							},
+							{
+								"key": "--env",
+								"value": "partId=0"
+							}
+						],
+						"processName": "abc"
+					}
+				],
+				"resources": [
+					{
+						"resources": [
+							{
+								"amount": 4,
+								"name": "cpu"
+							}
+						]
+					}
+				],
+				"roleName": "zone2_role_partition_0",
+				"signature": "table1.g1.0_65535.10 table1.g2.0_65535.12 table2.g1.0_36000.10 biz1.\"config_pathXXX\" biz2.\"config_pathXXX\" table1.g1.\"config_path\" table1.g2.\"config_path\" table2.g1.\"config_path\"",
+				"userDefVersion": "-1"
+			},
+			"zone2_role_partition_1": {
+				"count": 10,
+				"customInfo": "{\"biz_info\":{\"biz1\":{\"config_path\":\"config_pathXXX\"},\"biz2\":{\"config_path\":\"config_pathXXX\"}},\"disk_size\":2147483647,\"service_info\":{\"cm2\":{\"role_name_1\":\"service_conf\"},\"hash_function\":\"HASH\",\"part_count\":2,\"part_id\":1,\"role_name\":\"zone2_role_partition_1\",\"zone_name\":\"zone2\"},\"table_info\":{\"table1\":{\"g1\":{\"config_path\":\"config_path\",\"index_path\":\"\\\/path\\\/to\\\/table1\\\/1\",\"partitions\":{\"0_65535\":{\"inc_version\":10,\"load_state\":\"LOADED\"}},\"rt_status\":\"\",\"total_partition_count\":1},\"g2\":{\"config_path\":\"config_path\",\"index_path\":\"\\\/path\\\/to\\\/table1\\\/2\",\"partitions\":{\"0_65535\":{\"inc_version\":12,\"load_state\":\"LOADED\"}},\"rt_status\":\"\",\"total_partition_count\":1}},\"table2\":{\"g1\":{\"config_path\":\"config_path\",\"index_path\":\"\\\/path\\\/to\\\/table2\\\/1\",\"partitions\":{\"36001_40000\":{\"inc_version\":10,\"load_state\":\"LOADED\"}},\"rt_status\":\"\",\"total_partition_count\":3}}}}",
+				"healthCheckerConfig": {
+					"args": [
+						{
+							"key": "PORT",
+							"value": "30113"
+						},
+						{
+							"key": "CHECK_PATH",
+							"value": "/HeartbeatService/heartbeat"
+						}
+					],
+					"name": "adv_lv7"
+				},
+				"packageInfos": [
+					{
+						"packageURI": "http:\/\/xxx"
+					}
+				],
+				"processInfos": [
+					{
+						"envs": [
+							{
+								"key": "RS_ALLOW_RELOAD_BY_CONFIG",
+								"value": "true"
+							}
+						],
+						"args": [
+							{
+								"key": "--env",
+								"value": "roleName=zone2_role_partition_1"
+							},
+							{
+								"key": "--env",
+								"value": "zoneName=zone2"
+							},
+							{
+								"key": "--env",
+								"value": "partId=1"
+							}
+						],
+						"processName": "abc"
+					}
+				],
+				"resources": [
+					{
+						"resources": [
+							{
+								"amount": 4,
+								"name": "cpu"
+							}
+						]
+					}
+				],
+				"roleName": "zone2_role_partition_1",
+				"signature": "table1.g1.0_65535.10 table1.g2.0_65535.12 table2.g1.36001_40000.10 biz1.\"config_pathXXX\" biz2.\"config_pathXXX\" table1.g1.\"config_path\" table1.g2.\"config_path\" table2.g1.\"config_path\"",
+				"userDefVersion": "-1"
+			}
+		},
+		"schedulerConfig": "oldFirst",
+		"schedulerName": "rollingUpdate",
+		"services": {},
+		"stepPercent": 1
+	}
+}

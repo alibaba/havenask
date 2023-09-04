@@ -31,8 +31,19 @@ DECLARE_REFERENCE_CLASS(common, AttributeValueInitializerCreator);
 
 namespace indexlib { namespace config {
 
-class AttributeConfig final : public autil::legacy::Jsonizable, public indexlibv2::config::AttributeConfig
+class AttributeConfig final : public autil::legacy::Jsonizable, public indexlibv2::index::AttributeConfig
 {
+public:
+    enum ConfigType {
+        ct_normal,
+        ct_virtual,
+        ct_section,
+        ct_pk,
+        ct_unknown,
+        ct_index_accompany,
+        ct_summary_accompany,
+    };
+
 public:
     AttributeConfig(ConfigType type = ct_normal);
     virtual ~AttributeConfig();
@@ -58,6 +69,8 @@ public:
     schema_opid_t GetOwnerModifyOperationId() const;
 
     void SetUpdatableMultiValue(bool updatable);
+    ConfigType GetConfigType() const;
+    void SetConfigType(ConfigType type);
 
 public:
     Status SetCompressType(const std::string& compressStr) override;

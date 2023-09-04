@@ -19,20 +19,16 @@
 #include <google/protobuf/stubs/port.h>
 #include <stdint.h>
 
-#include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/arpc/arpc/ANetRPCController.h"
+#include "aios/network/arpc/arpc/CommonMacros.h"
+#include "aios/network/arpc/arpc/MessageCodec.h"
 #include "aios/network/arpc/arpc/proto/rpc_extensions.pb.h"
 #include "google/protobuf/descriptor.h"
-#include "aios/network/arpc/arpc/MessageCodec.h"
 
 ARPC_BEGIN_NAMESPACE(arpc)
 
 struct RpcReqArg {
-    RpcReqArg(ANetRPCController *controller,
-              RPCMessage *response,
-              RPCClosure *closure,
-              CodecContext *context)
-    {
+    RpcReqArg(ANetRPCController *controller, RPCMessage *response, RPCClosure *closure, CodecContext *context) {
         sController = controller;
         sResponse = response;
         sClosure = closure;
@@ -40,10 +36,7 @@ struct RpcReqArg {
         sVersion = ARPC_VERSION_CURRENT;
     }
 
-    ~RpcReqArg()
-    {
-        delete sContext;
-    }
+    ~RpcReqArg() { delete sContext; }
     ANetRPCController *sController;
     RPCMessage *sResponse;
     RPCClosure *sClosure;
@@ -51,11 +44,9 @@ struct RpcReqArg {
     version_t sVersion;
 };
 
-class PacketCodeBuilder
-{
+class PacketCodeBuilder {
 public:
-    uint32_t operator () (const RPCMethodDescriptor *method)
-    {
+    uint32_t operator()(const RPCMethodDescriptor *method) {
         const RPCServiceDescriptor *pSerDes = method->service();
 
         uint32_t serviceId = (uint32_t)(pSerDes->options().GetExtension(global_service_id));
@@ -67,11 +58,9 @@ public:
     }
 };
 
-class PacketCodeParser
-{
+class PacketCodeParser {
 public:
-    void operator () (uint32_t pCode, uint16_t &serviceId, uint16_t &methodId)
-    {
+    void operator()(uint32_t pCode, uint16_t &serviceId, uint16_t &methodId) {
         serviceId = 0;
         methodId = 0;
         serviceId = pCode >> 16;
@@ -81,4 +70,4 @@ public:
 };
 
 ARPC_END_NAMESPACE(arpc)
-#endif //ARPC_PACKETARG_H
+#endif // ARPC_PACKETARG_H

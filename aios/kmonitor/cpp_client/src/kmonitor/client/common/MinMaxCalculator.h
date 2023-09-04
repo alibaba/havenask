@@ -9,41 +9,34 @@
 #define KMONITOR_CLIENT_COMMON_MINMAXCALCULATOR_H_
 
 #include <limits>
+
 #include "kmonitor/client/common/Common.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 class MinMaxCalculator {
- public:
+public:
     MinMaxCalculator();
     ~MinMaxCalculator();
 
- public:
+public:
     void Add(double value);
     void Reset();
     std::string ToString() const;
 
-    double Min() const {
-        return min_;
-    }
+    double Min() const { return min_; }
 
-    double Max() const {
-        return max_;
-    }
+    double Max() const { return max_; }
 
-    double Sum() const {
-        return sum_;
-    }
+    double Sum() const { return sum_; }
 
-    int Count() const {
-        return count_;
-    }
+    int Count() const { return count_; }
 
- private:
+private:
     MinMaxCalculator(const MinMaxCalculator &);
-    MinMaxCalculator& operator=(const MinMaxCalculator &);
+    MinMaxCalculator &operator=(const MinMaxCalculator &);
 
- private:
+private:
     int count_;
     double min_;
     double max_;
@@ -52,4 +45,4 @@ class MinMaxCalculator {
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_COMMON_MINMAXCALCULATOR_H_
+#endif // KMONITOR_CLIENT_COMMON_MINMAXCALCULATOR_H_

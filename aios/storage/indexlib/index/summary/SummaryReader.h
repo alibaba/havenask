@@ -36,6 +36,7 @@ class IIndexConfig;
 
 namespace indexlibv2::index {
 class AttributeReader;
+class PackAttributeReader;
 class SummaryMemReaderContainer;
 
 class SummaryReader : public IIndexReader
@@ -50,6 +51,8 @@ public:
     using SearchSummaryDocVec = SummaryDiskIndexer::SearchSummaryDocVec;
     using AttributeReaderInfo = std::vector<std::pair<fieldid_t, AttributeReader*>>;
     using GroupAttributeReaderInfo = std::map<summarygroupid_t, AttributeReaderInfo>;
+    using PackAttributeReaderInfo = std::vector<std::tuple<fieldid_t, std::string, PackAttributeReader*>>;
+    using GroupPackAttributeReaderInfo = std::map<summarygroupid_t, PackAttributeReaderInfo>;
 
 public:
     Status Open(const std::shared_ptr<config::IIndexConfig>& indexConfig,
@@ -80,10 +83,9 @@ public:
     std::string GetIdentifier() const { return Identifier(); }
 
     void AddAttrReader(fieldid_t fieldId, AttributeReader* attrReader);
+    void AddPackAttrReader(fieldid_t fieldId, PackAttributeReader* packAttrReader);
     void ClearAttrReaders();
     void SetPrimaryKeyReader(indexlib::index::PrimaryKeyIndexReader* pkIndexReader) { _pkIndexReader = pkIndexReader; }
-    // virtual void AddPackAttrReader(fieldid_t fieldId, const std::shared_ptr<PackAttributeReader>& attrReader) {
-    // assert(false); }
 
 public:
     std::pair<Status, bool> GetDocumentByPkStr(const std::string& pkStr,
@@ -100,6 +102,8 @@ private:
                                    indexlib::document::SearchSummaryDocument* summaryDoc) const;
     bool GetDocumentFromAttributes(docid_t docId, const AttributeReaderInfo& attrReaders,
                                    indexlib::document::SearchSummaryDocument* summaryDoc) const;
+    bool GetDocumentFromPackAttributes(docid_t docId, const PackAttributeReaderInfo& packAttrReaders,
+                                       indexlib::document::SearchSummaryDocument* summaryDoc) const;
     bool SetSummaryDocField(indexlib::document::SearchSummaryDocument* summaryDoc, fieldid_t fieldId,
                             const std::string& value) const;
 
@@ -138,6 +142,7 @@ private:
     std::vector<segmentid_t> _segmentIds;
     std::vector<std::shared_ptr<SummaryDiskIndexer>> _diskIndexers;
     GroupAttributeReaderInfo _groupAttributeReaders;
+    GroupPackAttributeReaderInfo _groupPackAttributeReaders;
     SummaryGroupIdVec _allGroupIds;
     future_lite::Executor* _executor;
 

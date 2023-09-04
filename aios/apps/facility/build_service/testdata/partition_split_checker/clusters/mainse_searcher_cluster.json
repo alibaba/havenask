@@ -1,0 +1,139 @@
+{
+    "cluster_config" : {
+        "cluster_name" : "mainse_searcher",
+        "table_name" : "mainse_searcher",
+        "hash_mode" : {
+            "hash_function" : "KINGSO_HASH#720",
+            "hash_field": "nid"
+        }
+    },
+    "online_index_config" : 
+    {
+    },
+    "offline_index_config" :
+    {
+        "merge_config" :
+        {
+            "truncate_strategy" : [
+                {
+                    "strategy_name" : "static_trans_score_filter_by_meta",
+                    "strategy_type" : "truncate_meta",
+                    "limit" : 20000,
+                    "diversity_constrain": {
+                        "filter_field" : "static_trans_score",
+                        "filter_by_meta" : true
+                    },
+                    "truncate_profiles" : [
+                        "desc_static_trans_score"
+                    ]
+                },
+                {
+                    "strategy_name" : "tk_trans_score_filter_by_meta",
+                    "strategy_type" : "truncate_meta",
+                    "limit" : 20000,
+                    "diversity_constrain": {
+                        "filter_field" : "tk_trans_score",
+                        "filter_by_meta" : true
+                    },
+                    "truncate_profiles" : [
+                        "desc_tk_trans_score"
+                    ]
+
+                },
+                {
+                    "strategy_name" : "biz30day_filter_by_meta",
+                    "strategy_type" : "truncate_meta",
+                    "limit" : 20000,
+                    "diversity_constrain": {
+                        "filter_field" : "biz30day",
+                        "filter_by_meta" : true
+                    },
+                    "truncate_profiles" : [
+                        "desc_biz30day"
+                    ]
+                },
+                {
+                    "strategy_name" : "tk_total_sales_filter_by_meta",
+                    "strategy_type" : "truncate_meta",
+                    "limit" : 20000,
+                    "diversity_constrain": {
+                        "filter_field" : "tk_total_sales",
+                        "filter_by_meta" : true
+                    },
+                    "truncate_profiles" : [
+                        "desc_tk_total_sales"
+                    ]
+                },
+                {
+                    "strategy_name" : "uvsum_filter_by_meta",
+                    "strategy_type" : "truncate_meta",
+                    "limit" : 20000,
+                    "diversity_constrain": {
+                        "filter_field" : "uvsum",
+                        "filter_by_meta" : true
+                    },
+                    "truncate_profiles" : [
+                        "desc_uvsum"
+                    ]
+                },
+                {
+                    "strategy_name" : "uvsum_suc_filter_by_meta",
+                    "strategy_type" : "truncate_meta",
+                    "limit" : 20000,
+                    "diversity_constrain": {
+                        "filter_field" : "uvsum_suc",
+                        "filter_by_meta" : true
+                    },
+                    "truncate_profiles" : [
+                        "desc_uvsum_suc"
+                    ]
+                },
+                {
+                    "strategy_name" : "ends_filter_by_timestamp",
+                    "strategy_type" : "truncate_meta",
+                    "diversity_constrain": {
+                        "filter_type" : "FilterByTimeStamp",
+                        "filter_parameter" : "fieldName=ends_1;beginTime=now;adviseEndTime=23:59:59;minInterval=24"
+                    },
+                    "truncate_profiles" : [
+                        "asc_ends"
+                    ]
+                }
+            ]
+        }
+    },
+    "build_option_config" :
+    {
+        "RawDocumentFormat" : "isearch",
+        "NeedIconv" : false,    
+        "NeedSort" : false,
+        "NeedPartition" : true,
+        "MapBufferSize" : 256,
+        "MapReduceRatio" : 8,
+        "DocumentProcessThreadNum" : 1,
+        "DocumentProcessQueueSize" : 250,
+        "IndexDocumentQueueSize" : 250,        
+        "EnableSyncBuild" : true,
+        "BuildQps" : 2000000,  
+        "NeedSkip": false,      
+        "IndexKeepTime" : 36000,
+        "IndexDumpInterval" : 60,
+        "MaxRecoverTime" : 180,
+        "HashFieldAllowEmpty" : false,
+        "SortParams":
+        [
+            {
+                "SortFieldName": "category",
+                "SortFieldType": "INT32",
+                "SortPattern": "DESC"
+            },
+            {
+                "SortFieldName": "ends",
+                "SortFieldType": "INT64",
+                "SortPattern": "ASC"
+            }
+        ],
+        "NeedParseEnds" : true,
+        "RealtimeBuildDelayTime" : 90
+    }
+}

@@ -41,12 +41,13 @@ struct DimensionDescription;
 namespace indexlibv2::index {
 class DeletionMapIndexReader;
 class AttributeReader;
+class PackAttributeReader;
 class SummaryReader;
 struct IndexerParameter;
 } // namespace indexlibv2::index
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 class InvertedIndexConfig;
 } // namespace indexlibv2::config
 
@@ -61,7 +62,7 @@ class NormalTabletMetrics;
 class NormalTabletReader : public framework::TabletReader
 {
 public:
-    NormalTabletReader(const std::shared_ptr<config::TabletSchema>& schema,
+    NormalTabletReader(const std::shared_ptr<config::ITabletSchema>& schema,
                        const std::shared_ptr<NormalTabletMetrics>& normalTabletMetrics);
     ~NormalTabletReader() = default;
 
@@ -81,6 +82,7 @@ public:
     const std::shared_ptr<indexlib::index::PrimaryKeyIndexReader>& GetPrimaryKeyReader() const;
     std::shared_ptr<index::SummaryReader> GetSummaryReader() const;
     std::shared_ptr<index::AttributeReader> GetAttributeReader(const std::string& attrName) const;
+    std::shared_ptr<index::PackAttributeReader> GetPackAttributeReader(const std::string& packName) const;
 
     bool GetSortedDocIdRanges(const std::vector<std::shared_ptr<indexlib::table::DimensionDescription>>& dimensions,
                               const DocIdRange& rangeLimits, DocIdRangeVector& resultRanges) const;

@@ -1,0 +1,74 @@
+--[[
+   Graph.parameter : graph related kv parameters
+   Graph.loadSimpleFlow(taskType, taskIdentifier, taskKVParam = nil) : return flowObject
+   Graph.loadFlow(flowFileName, flowKVParam = nil) : return flowObject
+   Graph.loadSubGraph(graphId, graphFileName, graphKVParam = nil) : return true : false
+   Graph.setUpstream(flow, upstreamFlow, waitStatus = "finish"|"stop"|"xxx")
+   Graph.declareFriend(flow, friendFlow)
+   Graph.getFlowIdByTag(tag) : return flowId list
+   Graph.getFlow(flowId) : return flowObject
+--]]
+
+#import(Tool)
+#import(Log)
+
+function graphDef()
+   local clusterNames = Tool.jsonToList(Graph.parameter["clusterNames"])
+   local schemaIdMap = Tool.jsonToMap(Graph.parameter["schemaIdMap"])
+   local builderInputs = Tool.jsonToList(Graph.parameter["builderInputs"])
+   
+   if (#clusterNames ~= 1)
+   then
+      Log.log("ERROR", "NPC-mode does not support multiple clusters")
+      return false      
+   end
+   if (#builderInputs ~= 2)
+   then
+      Log.log("ERROR", "NPC-mode: expects builderInputs.size equals to 2")
+      return false
+   end
+
+   local hasFullBuild = (Graph.parameter["buildStep"] == "full")
+   local importedVersionId = Graph.parameter["importedVersionId"]
+   
+   if (importedVersionId ~= nil and hasFullBuild)
+   then
+      Log.log("ERROR", "NPC-mode: does not support import in fullBuild")
+      return false
+   end
+
+   local clusterName = clusterNames[1]
+   local builderInputsFull = builderInputs[1]
+   local builderInputsInc = builderInputs[2]
+   
+   local clusterParam = {}
+   clusterParam["clusterName"] = clusterName
+   clusterParam["schemaId"] = schemaIdMap[clusterName]
+   clusterParam["buildId"] = Graph.parameter["buildId"]
+   clusterParam["buildStep"] = Graph.parameter["buildStep"]
+   clusterParam["isTablet"] = "true"
+   if (importedVersionId ~= nil)
+   then
+      clusterParam["importedVersionId"] = importedVersionId
+   end
+
+   local incParam = Tool.copyMap(clusterParam)
+   incParam["buildStep"] = "incremental"
+   incParam["data_description"] = builderInputsInc
+   local incBuild = Graph.loadSimpleFlow("builderV2", "incBuilder", incParam)
+   incBuild:addTag(clusterName..":IncBuild")
+   incBuild:addTag("BSBuildV2")
+   
+   if (hasFullBuild)
+   then
+      local fullParam = Tool.copyMap(clusterParam)
+      fullParam["data_description"] = builderInputsFull
+      local fullBuild = Graph.loadSimpleFlow("builderV2", "fullBuilder", fullParam)
+      fullBuild:addTag(clusterName..":FullBuild")
+      fullBuild:addTag("BSFullBuild")
+      fullBuild:addTag("BSBuildV2")
+      Graph.setUpstream(incBuild, fullBuild)
+   end
+
+   return true
+end

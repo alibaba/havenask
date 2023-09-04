@@ -14,67 +14,67 @@
  * limitations under the License.
  */
 #include "autil/cipher/MemoryDataPipeline.h"
+
 #include <string.h>
 
-namespace autil { namespace cipher {
+namespace autil {
+namespace cipher {
 AUTIL_LOG_SETUP(autil, MemoryDataPipeline);
 
-MemoryDataPipeline::MemoryDataPipeline(
-        size_t blockUnitSize, size_t maxCapacity, size_t readTimeoutInMs, size_t maxFreeListNodeCnt)
+MemoryDataPipeline::MemoryDataPipeline(size_t blockUnitSize,
+                                       size_t maxCapacity,
+                                       size_t readTimeoutInMs,
+                                       size_t maxFreeListNodeCnt)
     : _blockUnitSize(blockUnitSize)
     , _maxFreeListNodeCnt(maxFreeListNodeCnt)
     , _maxCapacity(maxCapacity)
-    , _readTimeoutInMs(readTimeoutInMs)
-{
-    MemBufferNode* node = newBufferNode(_blockUnitSize);
+    , _readTimeoutInMs(readTimeoutInMs) {
+    MemBufferNode *node = newBufferNode(_blockUnitSize);
     _datalistHeader = node;
     _datalistTail = node;
     _sealed = false;
 }
 
-MemoryDataPipeline::~MemoryDataPipeline() 
-{
-    MemBufferNode* node = _datalistHeader;
+MemoryDataPipeline::~MemoryDataPipeline() {
+    MemBufferNode *node = _datalistHeader;
     while (node != nullptr) {
-        auto* next = node->next;
+        auto *next = node->next;
         delete node;
         node = next;
     }
     node = _freelist;
     while (node != nullptr) {
-        auto* next = node->next;
+        auto *next = node->next;
         delete node;
         node = next;
     }
 }
 
-char* MemoryDataPipeline::getMemoryBuffer(size_t length)
-{
+char *MemoryDataPipeline::getMemoryBuffer(size_t length) {
     if (_sealed) {
         return nullptr;
     }
-    MemBufferNode* node = _datalistTail;
+    MemBufferNode *node = _datalistTail;
     assert(node != nullptr);
-    char* writeBuffer = node->buffer.getBuffer() + node->writeCursor;
+    char *writeBuffer = node->buffer.getBuffer() + node->writeCursor;
     size_t writeBufferLen = node->buffer.size() - node->writeCursor;
     if (length <= writeBufferLen) {
-        return (char*)writeBuffer;
+        return (char *)writeBuffer;
     }
 
     waitCapacity();
-    MemBufferNode* newNode = newBufferNode(std::max(length, _blockUnitSize));
+    MemBufferNode *newNode = newBufferNode(std::max(length, _blockUnitSize));
     node->next = newNode;
     _datalistTail = newNode;
     node = newNode;
     return node->buffer.getBuffer();
 }
 
-bool MemoryDataPipeline::increaseDataLength(size_t length)
-{
+bool MemoryDataPipeline::increaseDataLength(size_t length) {
     if (_sealed) {
         return false;
     }
-    MemBufferNode* node = _datalistTail;
+    MemBufferNode *node = _datalistTail;
     assert(node != nullptr);
     size_t writeBufferLen = node->buffer.size() - node->writeCursor;
     if (length > writeBufferLen) {
@@ -86,18 +86,17 @@ bool MemoryDataPipeline::increaseDataLength(size_t length)
     return true;
 }
 
-bool MemoryDataPipeline::write(const char* data, size_t size)
-{
+bool MemoryDataPipeline::write(const char *data, size_t size) {
     if (_sealed) {
         return false;
     }
     waitCapacity();
-    MemBufferNode* node = _datalistTail;
+    MemBufferNode *node = _datalistTail;
     assert(node != nullptr);
-    char* writeBuffer = node->buffer.getBuffer() + node->writeCursor;
+    char *writeBuffer = node->buffer.getBuffer() + node->writeCursor;
     size_t writeBufferLen = node->buffer.size() - node->writeCursor;
 
-    const char* dataCursor = data;
+    const char *dataCursor = data;
     size_t leftLen = size;
     while (leftLen > 0) {
         size_t tmpWriteSize = std::min(leftLen, writeBufferLen);
@@ -108,23 +107,22 @@ bool MemoryDataPipeline::write(const char* data, size_t size)
             dataCursor += tmpWriteSize;
             leftLen -= tmpWriteSize;
         } else {
-            MemBufferNode* newNode = newBufferNode(_blockUnitSize);
+            MemBufferNode *newNode = newBufferNode(_blockUnitSize);
             node->next = newNode;
             _datalistTail = newNode;
             node = newNode;
         }
         writeBuffer = node->buffer.getBuffer() + node->writeCursor;
-        writeBufferLen = node->buffer.size() - node->writeCursor;            
+        writeBufferLen = node->buffer.size() - node->writeCursor;
     }
     _validDataSize.fetch_add(size, std::memory_order_release);
     makeDataReady();
     return true;
 }
 
-size_t MemoryDataPipeline::read(char* buffer, size_t bufLen)
-{
+size_t MemoryDataPipeline::read(char *buffer, size_t bufLen) {
     waitDataReady();
-    MemBufferNode* node = _datalistHeader;
+    MemBufferNode *node = _datalistHeader;
     size_t readLen = 0;
     while (node != nullptr) {
         if (node->readCursor < node->writeCursor) {
@@ -149,13 +147,12 @@ size_t MemoryDataPipeline::read(char* buffer, size_t bufLen)
         }
     }
     if (readLen > 0) {
-        _validDataSize.fetch_sub(readLen, std::memory_order_release);        
+        _validDataSize.fetch_sub(readLen, std::memory_order_release);
     }
     return readLen;
 }
 
-void MemoryDataPipeline::freeNode(MemBufferNode* node)
-{
+void MemoryDataPipeline::freeNode(MemBufferNode *node) {
     assert(node);
     _totalDataNodeCapacity.fetch_sub(node->buffer.size(), std::memory_order_relaxed);
     autil::ScopedLock lock(_capacityLock);
@@ -165,8 +162,7 @@ void MemoryDataPipeline::freeNode(MemBufferNode* node)
     }
 }
 
-bool MemoryDataPipeline::addNodeToFreelist(MemBufferNode* node)
-{
+bool MemoryDataPipeline::addNodeToFreelist(MemBufferNode *node) {
     if (node->buffer.size() != _blockUnitSize) {
         return false;
     }
@@ -182,10 +178,9 @@ bool MemoryDataPipeline::addNodeToFreelist(MemBufferNode* node)
     return true;
 }
 
-MemoryDataPipeline::MemBufferNode* MemoryDataPipeline::newBufferNode(size_t unitSize)
-{
+MemoryDataPipeline::MemBufferNode *MemoryDataPipeline::newBufferNode(size_t unitSize) {
     _totalDataNodeCapacity.fetch_add(unitSize, std::memory_order_relaxed);
-    MemBufferNode* node = getNodeFromFreelist(unitSize);
+    MemBufferNode *node = getNodeFromFreelist(unitSize);
     if (node != nullptr) {
         return node;
     }
@@ -193,8 +188,7 @@ MemoryDataPipeline::MemBufferNode* MemoryDataPipeline::newBufferNode(size_t unit
     return node;
 }
 
-MemoryDataPipeline::MemBufferNode* MemoryDataPipeline::getNodeFromFreelist(size_t unitSize)
-{
+MemoryDataPipeline::MemBufferNode *MemoryDataPipeline::getNodeFromFreelist(size_t unitSize) {
     if (unitSize != _blockUnitSize) {
         return nullptr;
     }
@@ -202,7 +196,7 @@ MemoryDataPipeline::MemBufferNode* MemoryDataPipeline::getNodeFromFreelist(size_
     if (_freelist == nullptr) {
         return nullptr;
     }
-    MemBufferNode* node = _freelist;
+    MemBufferNode *node = _freelist;
     _freelist = node->next;
     node->next = nullptr;
     assert(_totalFreeNodeCnt > 0);
@@ -210,8 +204,7 @@ MemoryDataPipeline::MemBufferNode* MemoryDataPipeline::getNodeFromFreelist(size_
     return node;
 }
 
-size_t MemoryDataPipeline::getCurrentMemoryUse() const
-{
+size_t MemoryDataPipeline::getCurrentMemoryUse() const {
     size_t sum = 0;
     auto node = _datalistHeader;
     while (node != nullptr) {
@@ -223,13 +216,9 @@ size_t MemoryDataPipeline::getCurrentMemoryUse() const
     return dataNodeMemUse + _totalFreeNodeCnt * _blockUnitSize;
 }
 
-size_t MemoryDataPipeline::getInpipeDataSize() const
-{
-    return _validDataSize.load(std::memory_order_acquire);
-}
+size_t MemoryDataPipeline::getInpipeDataSize() const { return _validDataSize.load(std::memory_order_acquire); }
 
-void MemoryDataPipeline::waitDataReady() const
-{
+void MemoryDataPipeline::waitDataReady() const {
     if (_readTimeoutInMs == 0) {
         return;
     }
@@ -247,8 +236,7 @@ void MemoryDataPipeline::waitDataReady() const
     }
 }
 
-void MemoryDataPipeline::makeDataReady()
-{
+void MemoryDataPipeline::makeDataReady() {
     if (_readTimeoutInMs == 0) {
         return;
     }
@@ -256,11 +244,9 @@ void MemoryDataPipeline::makeDataReady()
     _dataLock.signal();
 }
 
-void MemoryDataPipeline::waitCapacity()
-{
+void MemoryDataPipeline::waitCapacity() {
     if (_maxCapacity == std::numeric_limits<size_t>::max() ||
-        _totalDataNodeCapacity.load(std::memory_order_relaxed) <= _maxCapacity)
-    {
+        _totalDataNodeCapacity.load(std::memory_order_relaxed) <= _maxCapacity) {
         return;
     }
     autil::ScopedLock lock(_capacityLock);
@@ -269,8 +255,7 @@ void MemoryDataPipeline::waitCapacity()
     }
 }
 
-void MemoryDataPipeline::seal()
-{
+void MemoryDataPipeline::seal() {
     _sealed = true;
     if (_readTimeoutInMs != 0) {
         _readTimeoutInMs = 0;
@@ -279,13 +264,12 @@ void MemoryDataPipeline::seal()
     }
 }
 
-bool MemoryDataPipeline::isEof() const
-{
+bool MemoryDataPipeline::isEof() const {
     if (!_sealed) {
         return false;
     }
     return getInpipeDataSize() == 0;
 }
 
-}}
-
+} // namespace cipher
+} // namespace autil

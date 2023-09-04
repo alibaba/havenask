@@ -13,40 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "autil/StringUtil.h"
 #include "fslib/fs/hdfs/PanguMonitor.h"
+
+#include "autil/StringUtil.h"
 
 using namespace std;
 
 FSLIB_PLUGIN_BEGIN_NAMESPACE(hdfs);
 
-PanguMonitor::PanguMonitor(kmonitor_adapter::Monitor* monitor)
-    : _monitor(monitor)
-{
-    init(_monitor);
-}
+PanguMonitor::PanguMonitor(kmonitor_adapter::Monitor *monitor) : _monitor(monitor) { init(_monitor); }
 
-void PanguMonitor::init(kmonitor_adapter::Monitor* monitor)
-{
+void PanguMonitor::init(kmonitor_adapter::Monitor *monitor) {
     if (unlikely(!monitor)) {
         return;
     }
 
     kmonitor_adapter::Monitor::KVVec tags;
     // FileMoitor
-    _writeLatencyMetric = monitor->registerLatencyMetric(
-            "pangu.write_latency", kmonitor::FATAL, tags);
-    _writeSpeedMetric = monitor->registerQPSMetric(
-            "pangu.write_speed", kmonitor::FATAL, tags);
-    _writeSizeMetric = monitor->registerGaugeMetric(
-            "pangu.write_size", kmonitor::NORMAL, tags);
+    _writeLatencyMetric = monitor->registerLatencyMetric("pangu.write_latency", kmonitor::FATAL, tags);
+    _writeSpeedMetric = monitor->registerQPSMetric("pangu.write_speed", kmonitor::FATAL, tags);
+    _writeSizeMetric = monitor->registerGaugeMetric("pangu.write_size", kmonitor::NORMAL, tags);
 
-    _readLatencyMetric = monitor->registerLatencyMetric(
-            "pangu.read_latency", kmonitor::FATAL, tags);
-    _readSpeedMetric = monitor->registerQPSMetric(
-            "pangu.read_speed", kmonitor::FATAL, tags);
-    _readSizeMetric = monitor->registerGaugeMetric(
-            "pangu.read_size", kmonitor::NORMAL, tags);
+    _readLatencyMetric = monitor->registerLatencyMetric("pangu.read_latency", kmonitor::FATAL, tags);
+    _readSpeedMetric = monitor->registerQPSMetric("pangu.read_speed", kmonitor::FATAL, tags);
+    _readSizeMetric = monitor->registerGaugeMetric("pangu.read_size", kmonitor::NORMAL, tags);
 }
 
 FSLIB_PLUGIN_END_NAMESPACE(hdfs);

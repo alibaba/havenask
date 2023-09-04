@@ -17,21 +17,23 @@
 
 #include <string>
 
-#include "matchdoc/MatchDoc.h"
-
 #include "autil/Log.h" // IWYU pragma: keep
+#include "matchdoc/MatchDoc.h"
 
 namespace isearch {
 namespace rank {
 
-class Comparator
-{
+class Comparator {
 public:
     Comparator();
     virtual ~Comparator();
+
 public:
-    virtual bool compare(matchdoc::MatchDoc a, matchdoc::MatchDoc b) const  = 0;
-    virtual std::string getType() const  { return "base"; }
+    virtual bool compare(matchdoc::MatchDoc a, matchdoc::MatchDoc b) const = 0;
+    virtual std::string getType() const {
+        return "base";
+    }
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -41,14 +43,15 @@ public:
     MatchDocComp(const Comparator *comp) {
         _comp = comp;
     }
+
 public:
-    bool operator() (matchdoc::MatchDoc lft, matchdoc::MatchDoc rht) {
+    bool operator()(matchdoc::MatchDoc lft, matchdoc::MatchDoc rht) {
         return _comp->compare(rht, lft);
     }
+
 private:
     const Comparator *_comp;
 };
 
 } // namespace rank
 } // namespace isearch
-

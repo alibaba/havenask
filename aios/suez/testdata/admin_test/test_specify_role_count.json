@@ -1,0 +1,188 @@
+{
+    "config" : "",
+    "zones" : {
+        "zone1" : {
+            "role_count" : 3,
+            "config" : "config_path",
+            "hippo_config" : {
+		"step_percent":1,
+		"force_update":false,
+		"role_desc": {
+		    "count": 10,
+		    "packageInfos":
+		    [
+			{
+			    "packageURI":"http://xxx"
+			}
+		    ],
+		    "processInfos":
+		    [
+			{
+			    "processName": "abc"
+			}
+		    ],
+		    "resources":
+		    [
+			{
+			    "resources":
+			    [
+				{
+				    "amount": 1,
+				    "name": "cpu"
+				}
+			    ]
+			}
+		    ],
+		    "roleName": "role"
+		},
+		"service_desc": {
+		    "proxy" : {
+			"name": "vip",
+			"type": "ST_VIP",
+			"statusPath": "../role_proc/vip.status",
+			"configStr": {
+			    "domain": "com.taobao.vip_test",
+			    "jmenvDom": "172.21.95.147:8080",
+			    "token": "123456",
+			    "port": 9001
+			}
+		    },
+		    "searcher" : {
+			"name": "cm2",
+			"type": "ST_CM2",
+			"statusPath": "../role_proc/cm2.status",
+			"configStr": {
+			    "cm2_server_zookeeper_host": "10.101.83.215:2181,10.101.83.226:2181,10.101.83.227:2181",
+			    "cm2_server_leader_path": "/cm_server_test",
+			    "cm2_server_cluster_name": "sp_wireless_http2",
+			    "signature": "sig2",
+			    "tcpPort": 21009,
+			    "httpPort": 20009,
+			    "idc_type": 1,
+			    "weight": 100
+			}
+		    }
+		}
+            },
+            "table_info" : {
+                "table3" :{
+		    "g1": {
+			"index_path" : "/path/to/table1/1",
+			"rt_status" : "",
+			"config_path" : "config_path",
+			"partitions": {
+                            "0_65535" : {
+                                "inc_version" : 10,
+                                "load_state" : "LOADED"
+                            }
+			}
+		    }
+                },
+		"unknown":{}
+            },
+            "biz_info" : {
+                "biz1": {
+                    "config" : "config_path"
+                },
+                "biz2": {
+                }
+            }
+        },
+        "zone2" : {
+            "config" : "config_path",
+            "hippo_config" : {
+		"step_percent":1,
+		"force_update":false,
+		"role_desc":{
+		    "count": 10,
+		    "packageInfos":
+		    [
+			{
+			    "packageURI":"http://xxx"
+			}
+		    ],
+		    "processInfos":
+		    [
+			{
+			    "processName": "abc"
+			}
+		    ],
+		    "resources":
+		    [
+			{
+			    "resources":
+			    [
+				{
+				    "amount": 1,
+				    "name": "cpu"
+				}
+			    ]
+			}
+		    ],
+		    "roleName": "role"
+		}
+            },
+            "table_info" : {
+                "table1" : {
+		    "g1": {
+			"index_path" : "/path/to/table1/1",
+			"rt_status" : "",
+			"config_path" : "config_path",
+			"partitions": {
+                            "0_65535" : {
+                                "inc_version" : 10,
+                                "load_state" : "LOADED"
+                            }
+			}
+		    }, 
+		    "g2":{
+		    	"index_path" : "/path/to/table1/2",
+			"rt_status" : "",
+			"config_path" : "config_path",
+			"partitions": {
+                            "0_65535" : {
+                                "inc_version" : 12,
+                                "load_state" : "LOADED"
+                            }
+			}
+		    }
+                },
+		"table2": {
+		    "g1": {
+			"index_path" : "/path/to/table2/1",
+			"rt_status" : "",
+			"config_path" : "config_path",
+			"partitions": {
+                            "0_36000" : {
+                                "inc_version" : 10,
+                                "load_state" : "LOADED"
+                            },
+                            "36001_40000" : {
+                                "inc_version" : 10,
+                                "load_state" : "LOADED"
+                            }
+			}
+		    } 
+		},
+		"unknown":{}
+            },
+            "biz_info" : {
+                "biz1": {
+                    "config_path" : "config_pathXXX"
+                },
+                "biz2": {
+		    "config_path" : "config_pathXXX"
+                }
+            },
+	    "service_info" : {
+		"hash_function" : "HASH",
+		"part_count": 2,
+		"role_name": "xxxxx",
+		"cm2":{
+		    "role_name_1" : "service_conf"
+		}
+	    }
+        }
+    }
+}
+

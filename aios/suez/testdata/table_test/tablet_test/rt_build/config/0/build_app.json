@@ -1,0 +1,8 @@
+{
+    "service_name":"rtp_data_space",
+    "user_name":"mainse_sample",
+    "index_root":"",
+    "swift_root":"",
+    "hippo_root":"",
+    "zookeeper_root":""
+}

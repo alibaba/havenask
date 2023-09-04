@@ -1,0 +1,13 @@
+{
+    "inherit_from" : "section_configs/common/cluster_common_config.json",
+    "cluster_config" : {
+	"inherit_from" : "clusters/bad_cluster_config.json",
+	"table_name" : "mainse_searcher",
+	"searcher_rule" : {
+             "specified_machine_type": "searcher_bad_a5"
+	},
+	"dispatch_config": {
+            "high_capability_worker_priority" : false
+	}
+    }
+}

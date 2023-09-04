@@ -1,0 +1,14 @@
+{
+    "task_controller_config":{
+        "type":"BUILDIN",
+        "target_configs":[
+        ]
+    },
+    "task_params":{
+        "extract_rule_path": "extract_rule.json",
+        "load_config_path" : "extract_load_config.json",
+        "block_cache_param": "cache_size=4096;block_size=204800"
+    },
+    "partition_count":3,
+    "parallel_num":2
+}

@@ -29,11 +29,6 @@ namespace indexlib::file_system {
 class FileReader;
 }
 
-namespace indexlibv2::index {
-template <typename T>
-class MultiValueAttributeDiskIndexer;
-}
-
 namespace indexlibv2::config {
 class InvertedIndexConfig;
 }
@@ -70,8 +65,6 @@ public:
 
     std::shared_ptr<IDiskIndexer> GetSectionAttributeDiskIndexer() const override;
 
-    std::shared_ptr<IDiskIndexer> GetMultiSliceAttributeDiskIndexer() const { return _multiSliceAttrDiskIndexer; }
-
 private:
     Status OpenSectionAttrDiskIndexer(const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& config,
                                       const std::shared_ptr<file_system::IDirectory>& indexDir,
@@ -94,8 +87,7 @@ private:
     std::shared_ptr<BitmapDiskIndexer> _bitmapDiskIndexer;
     std::shared_ptr<file_system::ResourceFile> _dynamicPostingResource;
     std::shared_ptr<indexlibv2::config::InvertedIndexConfig> _indexConfig;
-    std::shared_ptr<indexlibv2::index::MultiValueAttributeDiskIndexer<char>> _sectionAttrDiskIndexer;
-    std::shared_ptr<IDiskIndexer> _multiSliceAttrDiskIndexer;
+    std::shared_ptr<IDiskIndexer> _sectionAttrDiskIndexer;
 
     AUTIL_LOG_DECLARE();
 };

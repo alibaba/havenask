@@ -1,0 +1,251 @@
+syntax = "proto3";
+package sql;
+
+option cc_enable_arenas = true;
+
+message RunSqlTimeInfo {
+    int64 sqlPlanStartTime = 1;
+    int64 sqlPlanTime = 2;
+    int64 sqlPlan2GraphTime = 3;
+    int64 sqlRunGraphTime = 4;
+    int64 sqlRunForkGraphBeginTime = 5;
+    int64 sqlRunForkGraphEndTime = 6;
+    int64 sqlRunForkGraphTime = 7;
+    int64 sqlExecQueueUs = 8;
+    int64 sqlExecComputeUs = 9;
+    bool sqlPlanCacheHit = 10;
+}
+
+message NaviPerfInfo {
+    int32 version = 1;
+    string roleName = 2;
+    bytes graphDef = 3;
+    bytes graphVis = 4;
+}
+
+message InnerScanInfo
+{
+    uint32 totalSeekDocCount = 1;
+    bool useTruncate = 2;
+}
+
+message ScanInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    string tableName = 3;
+    uint32 hashKey = 4;
+    uint32 parallelId = 5;
+    uint32 parallelNum = 6;
+    uint64 totalOutputCount = 7;
+    uint64 totalScanCount = 8;
+    uint64 totalUseTime = 9;
+    uint64 totalSeekTime = 10;
+    uint64 totalEvaluateTime = 11;
+    uint64 totalOutputTime = 12;
+    uint32 totalComputeTimes = 13;
+    uint64 totalInitTime = 14;
+    uint64 totalSeekCount = 15;
+    uint32 mergeCount = 16;
+    uint64 durationTime = 17;
+    uint64 queryPoolSize = 18;
+    bool isLeader = 19;
+    int64 buildWatermark = 20;
+    int64 waitWatermarkTime = 21;
+    uint64 degradedDocsCount = 22;
+    uint64 totalScanTime = 23;
+    string extraInfo = 24;
+}
+
+message BlockAccessInfo
+{
+    int64 blockCacheHitCount = 1;
+    int64 blockCacheMissCount = 2;
+    int64 blockCacheReadLatency = 3;
+    int64 blockCacheIOCount = 4;
+    int64 blockCacheIODataSize = 5;
+}
+
+message InvertedIndexSearchInfo
+{
+    BlockAccessInfo dictionaryInfo = 1;
+    BlockAccessInfo postingInfo = 2;
+    uint32 searchedSegmentCount = 3;
+    uint32 searchedInMemSegmentCount = 4;
+    uint32 totalDictLookupCount = 5;
+    uint32 totalDictHitCount = 6;
+    bool bitmapTerm = 7;
+    bool truncateTerm = 8;
+    string indexType = 9;
+    uint32 hashKey = 10;
+    uint32 mergeCount = 11;
+}
+
+message JoinInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    uint32 hashKey = 3;
+    uint32 totalComputeTimes = 4;
+    uint64 hashMapSize = 5;
+    uint64 totalLeftHashCount = 6;
+    uint64 totalRightHashCount = 7;
+    uint64 totalJoinCount = 8;
+    uint64 totalUseTime = 9;
+    uint64 totalhashtime = 10;
+    uint64 totalcreatetime = 11;
+    uint64 totalJoinTime = 12;
+    uint64 totalInittableTime = 13;
+    uint64 totalEvaluateTime = 14;
+    uint32 mergeCount = 15;
+    uint64 rightScanTime = 16;
+    uint64 rightUpdateQueryTime = 17;
+    uint64 totalLeftInputCount = 18;
+    uint64 totalRightInputCount = 19;
+}
+
+message AggInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    uint32 hashKey = 3;
+    uint64 totalUseTime = 4;
+    uint32 totalOutputCount = 5;
+    uint32 totalComputeTimes = 6;
+    uint64 collectTime = 7;
+    uint64 outputAccTime = 8;
+    uint64 mergeTime = 9;
+    uint64 outputResultTime = 10;
+    uint64 aggPoolSize = 11;
+    uint32 mergeCount = 12;
+    uint64 queryPoolSize = 13;
+    uint64 totalInputCount = 14;
+}
+
+message CalcInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    uint32 hashKey = 3;
+    uint64 totalUseTime = 4;
+    uint32 totalOutputCount = 5;
+    uint32 totalComputeTimes = 6;
+    uint32 mergeCount = 7;
+    uint64 totalInputCount = 8;
+}
+
+message TvfInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    uint32 hashKey = 3;
+    uint64 totalUseTime = 4;
+    uint32 totalOutputCount = 5;
+    uint32 totalComputeTimes = 6;
+    uint32 mergeCount = 7;
+    uint64 totalInputCount = 8;
+}
+
+message ExchangeInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    uint32 hashKey = 3;
+    uint64 totalAccessCount = 4;
+    uint32 lackCount = 5;
+    int64 searcherUseTime = 6;
+    int64 fillResultUseTime = 7;
+    int64 rowCount = 8;
+    int64 poolSize = 9;
+    int64 tablePoolSize = 10;
+    uint32 mergeCount = 11;
+}
+
+message SortInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    uint32 hashKey = 3;
+    uint32 outputCount = 5;
+    uint64 totalUseTime = 6;
+    uint64 totalMergeTime = 7;
+    uint64 totalTopKTime = 8;
+    uint64 totalCompactTime = 9;
+    uint64 totalOutputTime = 10;
+    uint32 totalComputeTimes = 11;
+    uint32 mergeCount = 12;
+    uint64 totalInputCount = 13;
+}
+message TableModifyInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    string tableName = 3;
+    uint32 hashKey = 4;
+    uint32 totalOutputCount = 5;
+    uint64 totalUseTime = 6;
+    uint64 writeMessageTime = 7;
+    uint64 totalOutputTime = 8;
+    uint32 totalComputeTimes = 9;
+    uint32 writeMsgLength = 10;
+    uint32 mergeCount = 11;
+    int64 maxCheckpoint = 12;
+    int64 maxBuildGap = 13;
+    string firstResponseInfo = 14;
+}
+message IdentityInfo
+{
+    uint32 totalOutputCount = 1;
+    uint64 durationTime = 2;
+    uint32 hashKey = 3;
+    uint32 mergeCount = 4;
+}
+
+message KhronosDataScanInfo
+{
+    string metricName = 1;
+    string fieldName = 2;
+    uint32 hashKey = 3;
+    int64 callNextCount = 4;
+    int64 pointScanCount = 5;
+    int64 seriesOutputCount = 6;
+    int64 lookupTime = 7;
+    int64 queryPoolSize = 8;
+    int64 sessionPoolSize = 9;
+    int64 asyncIteratorCount = 10;
+    uint32 mergeCount = 11;
+    int64 ioCount = 12;
+    int64 ioSize = 13;
+    int64 ioTokenCount = 14;
+    int64 ioSegmentCount = 15;
+    int64 ioBlockCacheHitCount = 16;
+    int64 ioBlockCacheMissCount = 17;
+    int64 prepareIteratorsTime = 18;
+    int64 outputIteratorsTime = 19;
+}
+
+message DelayDpInfo
+{
+    string kernelName = 1;
+    string nodeName = 2;
+    repeated int32 partIds = 3;
+}
+
+message SqlSearchInfo
+{
+    RunSqlTimeInfo runSqlTimeInfo = 1;
+    repeated ExchangeInfo exchangeInfos = 2;
+    repeated ScanInfo scanInfos = 3;
+    repeated JoinInfo joinInfos = 4;
+    repeated AggInfo aggInfos = 5;
+    repeated CalcInfo calcInfos = 6;
+    repeated SortInfo sortInfos = 7;
+    repeated TvfInfo tvfInfos = 8;
+    // DELETED: rpcInfos = 9
+    repeated KhronosDataScanInfo khronosDataScanInfos = 10;
+    repeated NaviPerfInfo naviPerfInfos = 11;
+    repeated TableModifyInfo tableModifyInfos = 12;
+    repeated IdentityInfo identityInfos = 13;
+    repeated InvertedIndexSearchInfo invertedInfos = 14;
+    repeated DelayDpInfo delayDpInfos = 15;
+}

@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 #include <string>
 
 namespace autil {
@@ -31,10 +31,8 @@ struct DiskStat {
     double writesSects;
     double current;
     uint64_t updateTime;
-    
-    DiskStat() {
-        reset();
-    }
+
+    DiskStat() { reset(); }
     void reset() {
         reads = 0.0;
         readsMgd = 0.0;
@@ -47,16 +45,18 @@ struct DiskStat {
     }
 };
 
-class Disk
-{
+class Disk {
 public:
     Disk();
     ~Disk();
+
 private:
     static const std::string DISK_PROC_STAT;
+
 private:
     Disk(const Disk &);
-    Disk& operator = (const Disk &);
+    Disk &operator=(const Disk &);
+
 public:
     void update();
     inline double getReads() const;
@@ -66,18 +66,18 @@ public:
     inline double getWritesMgd() const;
     inline double getWritesKb() const;
     inline double getCurrentIO() const;
+
 private:
     void adjust();
     void setDiskStatsFile(const std::string &file);
     void parseDiskStat(const char *str, DiskStat &diskStat);
-    const char* skipAndFilter(const char *str, const char *pattern,
-                              int32_t filterReverseIdx,
-                              char filterLeftRange,
-                              char filterRightRange);
-    
+    const char *skipAndFilter(
+        const char *str, const char *pattern, int32_t filterReverseIdx, char filterLeftRange, char filterRightRange);
+
     // for test
     void setTimeDiff(double diff) { _timeDiff = diff; }
     friend class DiskTest;
+
 private:
     DiskStat _prevStat;
     DiskStat _curStat;
@@ -85,29 +85,15 @@ private:
     std::string _statsFile;
 };
 
-inline double Disk::getReads() const {
-    return (_curStat.reads - _prevStat.reads) / _timeDiff;
-}
-inline double Disk::getReadsMgd() const {
-    return (_curStat.readsMgd - _prevStat.readsMgd) / _timeDiff;
-}
-inline double Disk::getReadsKb() const {
-    return (_curStat.readsSects - _prevStat.readsSects) * 0.5 / _timeDiff;
-}
-inline double Disk::getWrites() const {
-    return (_curStat.writes - _prevStat.writes) / _timeDiff;
-}
-inline double Disk::getWritesMgd() const {
-    return (_curStat.writesMgd - _prevStat.writesMgd) / _timeDiff;
-}
-inline double Disk::getWritesKb() const {
-    return (_curStat.writesSects - _prevStat.writesSects) * 0.5 / _timeDiff;
-}
-inline double Disk::getCurrentIO() const {
-    return _curStat.current;
-}
+inline double Disk::getReads() const { return (_curStat.reads - _prevStat.reads) / _timeDiff; }
+inline double Disk::getReadsMgd() const { return (_curStat.readsMgd - _prevStat.readsMgd) / _timeDiff; }
+inline double Disk::getReadsKb() const { return (_curStat.readsSects - _prevStat.readsSects) * 0.5 / _timeDiff; }
+inline double Disk::getWrites() const { return (_curStat.writes - _prevStat.writes) / _timeDiff; }
+inline double Disk::getWritesMgd() const { return (_curStat.writesMgd - _prevStat.writesMgd) / _timeDiff; }
+inline double Disk::getWritesKb() const { return (_curStat.writesSects - _prevStat.writesSects) * 0.5 / _timeDiff; }
+inline double Disk::getCurrentIO() const { return _curStat.current; }
 
 typedef std::shared_ptr<Disk> DiskPtr;
 
-}
-}
+} // namespace metric
+} // namespace autil

@@ -1,0 +1,77 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+strict_cc_fast_test(
+    name='IndexFactoryCreatorTest',
+    srcs=glob(['IndexFactoryCreatorTest.cpp']),
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/config:IIndexConfig',
+        '//aios/storage/indexlib/index:IIndexMerger',
+        '//aios/storage/indexlib/index:IIndexReader',
+        '//aios/storage/indexlib/index:IndexFactoryCreator',
+        '//aios/storage/indexlib/util/testutil:unittest',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='IndexerDirectoriesTest',
+    srcs=['IndexerDirectoriesTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/config:IIndexConfig',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index:IndexerDirectories',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='FakeDocMapperTest',
+    testonly=True,
+    srcs=['FakeDocMapperTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/index/test:FakeDocMapper',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_library(
+    name='IndexTestUtil',
+    deps=[
+        '//aios/storage/indexlib/base:Types',
+        '//aios/storage/indexlib/file_system'
+    ]
+)
+strict_cc_library(
+    name='IndexTestHelper',
+    testonly=True,
+    export_name='index_test_helper',
+    export_visibility=['//aios/storage:__subpackages__'],
+    deps=[
+        '//aios/autil:string_helper', '//aios/storage/indexlib/base:PathUtil',
+        '//aios/storage/indexlib/config:IIndexConfig',
+        '//aios/storage/indexlib/config:MutableJson',
+        '//aios/storage/indexlib/config/mock:FakeTabletSchema',
+        '//aios/storage/indexlib/config/test:field_config_test_helper',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskResourceManager',
+        '//aios/storage/indexlib/framework/mock:FakeDiskSegment',
+        '//aios/storage/indexlib/framework/mock:FakeMemSegment',
+        '//aios/storage/indexlib/index:IIndexFactory', '@fmt'
+    ]
+)
+strict_cc_library(
+    name='ConfigAdapter',
+    deps=[
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/index/primary_key:constants',
+        '//aios/storage/indexlib/index/primary_key/config:PrimaryKeyIndexConfig'
+    ]
+)
+strict_cc_library(
+    name='FakeDocMapper',
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        '//aios/storage/indexlib/base:constants',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskResource',
+        '//aios/storage/indexlib/index:DocMapper',
+        '//aios/storage/indexlib/index:IIndexMerger'
+    ]
+)

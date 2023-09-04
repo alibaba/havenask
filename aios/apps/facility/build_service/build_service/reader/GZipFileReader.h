@@ -47,7 +47,7 @@ private:
     bool reloadBuffer();
     bool readGzipHeader();
     bool skipToOffset(int64_t offset);
-    
+
 protected:
     virtual FileReaderBase* createInnerFileReader();
 

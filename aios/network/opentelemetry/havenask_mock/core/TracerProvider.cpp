@@ -17,30 +17,18 @@
 
 namespace opentelemetry {
 
-bool TracerProvider::init(TraceConfig config) {
-    return true;
-}
+bool TracerProvider::init(TraceConfig config) { return true; }
 
-TracerPtr TracerProvider::getTracer() const {
-    return nullptr;
-}
+TracerPtr TracerProvider::getTracer() const { return nullptr; }
 
+void TracerProvider::setSamplerRate(uint32_t r) {}
 
-void TracerProvider::setSamplerRate(uint32_t r) {
-}
+void TracerProvider::setSamplerZoomOutRate(uint32_t r) {}
 
-void TracerProvider::setSamplerZoomOutRate(uint32_t r) {
-}
+bool TracerProvider::initDefault() { return false; }
 
-bool TracerProvider::initDefault() {
-    return false;
-}
+std::shared_ptr<TracerProvider> TracerProvider::get() { return nullptr; }
 
-std::shared_ptr<TracerProvider> TracerProvider::get() {
-    return nullptr;
-}
+void TracerProvider::destroyDefault() {}
 
-void TracerProvider::destroyDefault() {
-}
-
-}
+} // namespace opentelemetry

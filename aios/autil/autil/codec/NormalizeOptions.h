@@ -27,14 +27,9 @@ static const std::string TRADITIONAL_SENSITIVE = "traditional_sensitive";
 static const std::string WIDTH_SENSITIVE = "width_sensitive";
 static const std::string TRADITIONAL_TABLE_NAME = "traditional_table_name";
 
-struct NormalizeOptions : public autil::legacy::Jsonizable
-{
+struct NormalizeOptions : public autil::legacy::Jsonizable {
     NormalizeOptions(bool f1 = true, bool f2 = true, bool f3 = true)
-        : caseSensitive(f1)
-        , traditionalSensitive(f2)
-        , widthSensitive(f3)
-    {
-    }
+        : caseSensitive(f1), traditionalSensitive(f2), widthSensitive(f3) {}
 
     bool caseSensitive;
     bool traditionalSensitive;
@@ -42,13 +37,13 @@ struct NormalizeOptions : public autil::legacy::Jsonizable
     std::string tableName;
 
 public:
-    void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override {
+    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize(CASE_SENSITIVE, caseSensitive, true);
         json.Jsonize(TRADITIONAL_SENSITIVE, traditionalSensitive, true);
         json.Jsonize(WIDTH_SENSITIVE, widthSensitive, true);
-        json.Jsonize(TRADITIONAL_TABLE_NAME,tableName, tableName);
+        json.Jsonize(TRADITIONAL_TABLE_NAME, tableName, tableName);
     }
 };
 
-}}
-
+} // namespace codec
+} // namespace autil

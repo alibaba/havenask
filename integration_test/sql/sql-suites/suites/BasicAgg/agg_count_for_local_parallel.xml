@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="agg_count_for_local_parallel">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT brand, COUNT(*) FROM phone /*+ LOCAL_PARALLEL(tableName='phone', parallelNum='2') */ GROUP BY (brand)
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"brand", "COUNT(*)"</Resource>
+        <Resource name="column_types">multi_char, uint64</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+"Huawei", 2
+"Meizu", 1
+"Samsung",  1
+"Nokia", 1
+"Apple", 3
+"Xiaomi", 1
+"OPPO", 1
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#6(type=api)
+    ExchangeOp#5(distribution={type:SINGLETON})
+        LimitOp#4(limit=100)
+            AggregateOp#3(agg_funcs=[{approximate:false,distinct:false,filter_arg:-1,name:COUNT,output:[$COUNT(*)],type:NORMAL}],group_fields=[$brand],scope=NORMAL)
+                UnionOp#2(all=true,block=false)
+                    TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$brand],parallel_index=0,parallel_num=2,push_down_ops=[{attrs:{output_fields:[$brand]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+                    TableScanOp#1(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$brand],parallel_index=1,parallel_num=2,push_down_ops=[{attrs:{output_fields:[$brand]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

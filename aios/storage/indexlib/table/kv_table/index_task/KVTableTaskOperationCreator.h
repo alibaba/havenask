@@ -26,24 +26,21 @@ namespace indexlibv2::table {
 class KVTableTaskOperationCreator : public framework::IIndexOperationCreator
 {
 public:
-    KVTableTaskOperationCreator(const std::shared_ptr<config::TabletSchema>& schema);
+    KVTableTaskOperationCreator(const std::shared_ptr<config::ITabletSchema>& schema);
     ~KVTableTaskOperationCreator();
 
-public:
     std::unique_ptr<framework::IndexOperation>
     CreateOperation(const framework::IndexOperationDescription& opDesc) override;
 
 private:
     std::unique_ptr<framework::IndexOperation>
     CreateOperationForCommon(const framework::IndexOperationDescription& opDesc);
-
     std::unique_ptr<framework::IndexOperation>
     CreateOperationForMerge(const framework::IndexOperationDescription& opDesc);
 
 private:
-    std::shared_ptr<config::TabletSchema> _schema;
+    std::shared_ptr<config::ITabletSchema> _schema;
 
-private:
     AUTIL_LOG_DECLARE();
 };
 

@@ -208,7 +208,8 @@ Status InMemoryIndexCleaner::CleanUnusedVersions(const std::shared_ptr<indexlib:
         TABLET_LOG(INFO, "version [%s][%s] cleaned", dir->GetOutputPath().c_str(), fileList[i].c_str());
     }
     if (!fileList.empty()) {
-        TABLET_LOG(INFO, "end cleaned unused version size [%lu]", fileList.size());
+        TABLET_LOG(INFO, "end cleaned unused version, find version [%lu], using version [%lu]", fileList.size(),
+                   usingVersions.size());
     }
     return Status::OK();
 }

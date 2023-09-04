@@ -18,13 +18,11 @@
 
 #include <cstdlib>
 
-namespace anet
-{
+namespace anet {
 /* This class defines the interface of the Reactor/Proactor process
  * such as Transport in anet, io_service in asio and event_base in libevent.
  */
-class ITransport
-{
+class ITransport {
 public:
     /* This function will blocks the caller thread and checking forever if
      * any new event comes in the monitored handles.
@@ -56,11 +54,9 @@ public:
      */
     virtual void runInThread() = 0;
 
-    virtual ~ITransport()
-    {
-    }
+    virtual ~ITransport() {}
 };
 
-}
+} // namespace anet
 
 #endif

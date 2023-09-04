@@ -29,15 +29,13 @@ namespace search {
 AUTIL_LOG_SETUP(ha3, DocIdsQueryExecutor);
 
 DocIdsQueryExecutor::DocIdsQueryExecutor(const vector<docid_t> &docIds)
-    : _docIds(docIds)
-{
+    : _docIds(docIds) {
     sort(_docIds.begin(), _docIds.end());
     _curPos = 0;
     _hasSubDocExecutor = false;
 }
 
-DocIdsQueryExecutor::~DocIdsQueryExecutor() {
-}
+DocIdsQueryExecutor::~DocIdsQueryExecutor() {}
 
 const string DocIdsQueryExecutor::getName() const {
     return "DocIdsQueryExecutor";
@@ -68,12 +66,7 @@ string DocIdsQueryExecutor::toString() const {
 }
 
 indexlib::index::ErrorCode DocIdsQueryExecutor::seekSubDoc(
-    docid_t docId,
-    docid_t subDocId,
-    docid_t subDocEnd,
-    bool needSubMatchdata,
-    docid_t& result)
-{
+    docid_t docId, docid_t subDocId, docid_t subDocEnd, bool needSubMatchdata, docid_t &result) {
     if (getDocId() == docId && subDocId < subDocEnd) {
         result = subDocId;
     } else {
@@ -91,7 +84,7 @@ df_t DocIdsQueryExecutor::getDF(GetDFType type) const {
 }
 
 indexlib::index::ErrorCode DocIdsQueryExecutor::doSeek(docid_t id, docid_t &result) {
-    for (;_curPos < _docIds.size(); ++_curPos) {
+    for (; _curPos < _docIds.size(); ++_curPos) {
         if (_docIds[_curPos] >= id) {
             result = _docIds[_curPos];
             return indexlib::index::ErrorCode::OK;

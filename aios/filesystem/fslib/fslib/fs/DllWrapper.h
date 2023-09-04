@@ -16,22 +16,23 @@
 #ifndef FSLIB_DLLWRAPPER_H
 #define FSLIB_DLLWRAPPER_H
 
-#include "autil/Log.h"
-#include "fslib/common/common_define.h"
-#include "fslib/common/common_type.h"
 #include <dlfcn.h>
 #include <string>
 
+#include "autil/Log.h"
+#include "fslib/common/common_define.h"
+#include "fslib/common/common_type.h"
+
 FSLIB_BEGIN_NAMESPACE(fs);
-class DllWrapper
-{
+class DllWrapper {
 public:
     DllWrapper(const std::string &dllPath);
     ~DllWrapper();
+
 public:
     bool dlopen();
     bool dlclose();
-    void* dlsym(const std::string &symName);
+    void *dlsym(const std::string &symName);
     std::string dlerror();
     std::string getLocalLibPath();
     bool initLibFile();
@@ -43,5 +44,4 @@ private:
 };
 
 FSLIB_END_NAMESPACE(fs);
-#endif //FSLIB_DLLWRAPPER_H
-
+#endif // FSLIB_DLLWRAPPER_H

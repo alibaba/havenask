@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include "aios/network/gig/multi_call/stream/GigClientStream.h"
 #include "aios/network/gig/multi_call/new_heartbeat/ClientTopoInfoMap.h"
+#include "aios/network/gig/multi_call/stream/GigClientStream.h"
 
 namespace multi_call {
 
@@ -27,26 +27,30 @@ class HeartbeatClientStream : public GigClientStream
 {
 public:
     HeartbeatClientStream(const std::shared_ptr<HostHeartbeatStats> &hostStats,
-                          const ClientTopoInfoMapPtr &clientInfoMap,
-                          const std::string &clusterName,
+                          const ClientTopoInfoMapPtr &clientInfoMap, const std::string &clusterName,
                           bool enableClusterBizSearch);
     ~HeartbeatClientStream();
+
 private:
     HeartbeatClientStream(const HeartbeatClientStream &);
     HeartbeatClientStream &operator=(const HeartbeatClientStream &);
+
 public:
     google::protobuf::Message *newReceiveMessage(google::protobuf::Arena *arena) const override;
     bool receive(const GigStreamMessage &message) override;
     void receiveCancel(const GigStreamMessage &message, MultiCallErrorCode ec) override;
     void notifyIdle(PartIdTy partId) override;
+
 public:
     bool tick();
     ClientTopoInfoMapPtr getClientMap() const;
+
 private:
     void fillRequest(NewHeartbeatRequest &request);
     bool doReceive(const NewHeartbeatResponse &response, int64_t netLatencyUs);
     void setClientMap(const ClientTopoInfoMapPtr &newMap);
     ClientTopoInfoPtr getOldInfo(const ClientTopoInfoMapPtr &clientMap, SignatureTy topoSig) const;
+
 private:
     std::shared_ptr<HostHeartbeatStats> _hostStats;
     std::shared_ptr<HeartbeatClientManagerNotifier> _notifier;
@@ -54,10 +58,11 @@ private:
     ClientTopoInfoMapPtr _clientInfoMap;
     std::string _clusterName;
     bool _enableClusterBizSearch;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
 MULTI_CALL_TYPEDEF_PTR(HeartbeatClientStream);
 
-}
+} // namespace multi_call

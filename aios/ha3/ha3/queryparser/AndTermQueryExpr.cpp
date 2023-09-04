@@ -17,29 +17,25 @@
 
 #include <assert.h>
 
+#include "autil/Log.h"
 #include "ha3/queryparser/AndQueryExpr.h"
 #include "ha3/queryparser/AtomicQueryExpr.h"
 #include "ha3/queryparser/QueryExprEvaluator.h"
-#include "autil/Log.h"
 
 namespace isearch {
 namespace common {
 struct RequiredFields;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace queryparser {
 AUTIL_LOG_SETUP(ha3, AndTermQueryExpr);
 
-
 AndTermQueryExpr::AndTermQueryExpr(AtomicQueryExpr *a, AtomicQueryExpr *b)
-    :_and(a,b)
-{ 
-}
+    : _and(a, b) {}
 
-AndTermQueryExpr::~AndTermQueryExpr() { 
-}
+AndTermQueryExpr::~AndTermQueryExpr() {}
 
 void AndTermQueryExpr::setIndexName(const std::string &indexName) {
     AtomicQueryExpr *a = static_cast<AtomicQueryExpr *>(_and.getLeftExpr());
@@ -50,9 +46,7 @@ void AndTermQueryExpr::setIndexName(const std::string &indexName) {
     b->setIndexName(indexName);
 }
 
-void AndTermQueryExpr::setRequiredFields(
-        const common::RequiredFields &requiredFields)
-{
+void AndTermQueryExpr::setRequiredFields(const common::RequiredFields &requiredFields) {
     AtomicQueryExpr *a = static_cast<AtomicQueryExpr *>(_and.getLeftExpr());
     AtomicQueryExpr *b = static_cast<AtomicQueryExpr *>(_and.getRightExpr());
     assert(a);
@@ -65,7 +59,5 @@ void AndTermQueryExpr::evaluate(QueryExprEvaluator *qee) {
     qee->evaluateAndExpr(&_and);
 }
 
-
 } // namespace queryparser
 } // namespace isearch
-

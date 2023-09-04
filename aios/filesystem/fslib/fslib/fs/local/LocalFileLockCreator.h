@@ -23,16 +23,14 @@
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class LocalFileLockCreator : public FileLockCreator
-{
+class LocalFileLockCreator : public FileLockCreator {
 public:
-    /*override*/ FileReadWriteLock* createFileReadWriteLock(
-            const std::string& fileName);
-    /*override*/ FileLock* createFileLock(const std::string& fileName);
+    /*override*/ FileReadWriteLock *createFileReadWriteLock(const std::string &fileName);
+    /*override*/ FileLock *createFileLock(const std::string &fileName);
 };
 
 FSLIB_TYPEDEF_AUTO_PTR(LocalFileLockCreator);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_LOCALFILELOCKCREATOR_H
+#endif // FSLIB_LOCALFILELOCKCREATOR_H

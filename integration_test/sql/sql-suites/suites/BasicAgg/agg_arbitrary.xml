@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="agg_arbitrary">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT brand, ARBITRARY(desc) FROM phone GROUP BY (brand)
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"brand", "ARBITRARY(desc)"</Resource>
+        <Resource name="column_types">multi_char, multi_multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+"Huawei", ["str1", "str2", "str3"]
+"Meizu", ["str1", "str2", "str3"]
+"Samsung", ["str1", "str2", "str3"]
+"Nokia", ["str1", "str2", "str3"]
+"Apple", ["str1", "str2", "str3"]
+"Xiaomi", ["str1", "str2", "str3"]
+"OPPO", ["str1", "str2", "str3"]
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#4(type=api)
+    ExchangeOp#3(distribution={type:SINGLETON})
+        LimitOp#2(limit=100)
+            AggregateOp#1(agg_funcs=[{approximate:false,distinct:false,filter_arg:-1,input:[$desc],name:ARBITRARY,output:[$ARBITRARY(desc)],type:NORMAL}],group_fields=[$brand],scope=NORMAL)
+                TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$brand,$desc],push_down_ops=[{attrs:{output_fields:[$brand,$desc]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

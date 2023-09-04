@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "worker_framework/DataClient.h"
-
 #include "autil/Log.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
 #include "fslib/fs/FileSystem.h"
 #include "fslib/fslib.h"
+#include "worker_framework/DataClient.h"
 #include "worker_framework/PathUtil.h"
 
 using namespace std;
@@ -36,29 +35,17 @@ DataClient::DataClient(int32_t port) {}
 
 DataClient::~DataClient() {}
 
-bool DataClient::initPort() {
-    return true;
-}
+bool DataClient::initPort() { return true; }
 
-bool DataClient::startThread() {
-    return true;
-}
+bool DataClient::startThread() { return true; }
 
-bool DataClient::init() {
-    return true;
-}
+bool DataClient::init() { return true; }
 
-bool DataClient::init(const string &slaveSpec) {
-    return true;
-}
+bool DataClient::init(const string &slaveSpec) { return true; }
 
-void DataClient::watch() {
-}
+void DataClient::watch() {}
 
-DataItemPtr DataClient::getData(const std::string &srcBaseUri,
-                                const std::string &dstDir,
-                                const DataOption &option)
-{
+DataItemPtr DataClient::getData(const std::string &srcBaseUri, const std::string &dstDir, const DataOption &option) {
     vector<string> srcFilePathes{""};
     return getData(srcBaseUri, srcFilePathes, dstDir, option);
 }
@@ -66,8 +53,7 @@ DataItemPtr DataClient::getData(const std::string &srcBaseUri,
 DataItemPtr DataClient::getData(const std::string &srcBaseUri,
                                 const std::vector<std::string> &srcFilePathes,
                                 const std::string &dstDir,
-                                const DataOption &option)
-{
+                                const DataOption &option) {
     ScopedLock lock(_lock);
     DataItemPtr dataItemPtr(new DataItem(srcBaseUri, dstDir, option));
     dataItemPtr->setStatus(DS_DEPLOYING);
@@ -78,16 +64,14 @@ DataItemPtr DataClient::getData(const std::string &srcBaseUri,
         if (fslib::EC_TRUE == FileSystem::isExist(dstFile)) {
             if (fslib::EC_OK != FileSystem::remove(dstFile)) {
                 dataItemPtr->setStatus(DS_FAILED);
-                AUTIL_LOG(INFO, "file already exist, and failed to remove file: [%s]",
-                        dstFile.c_str());
+                AUTIL_LOG(INFO, "file already exist, and failed to remove file: [%s]", dstFile.c_str());
                 return dataItemPtr;
             }
         }
         auto ec = FileSystem::copy(srcFile, dstFile);
         if (ec != fslib::EC_OK) {
             dataItemPtr->setStatus(DS_FAILED);
-            AUTIL_LOG(INFO, "failed to copy file from [%s] to [%s]",
-                      srcFile.c_str(), dstFile.c_str());
+            AUTIL_LOG(INFO, "failed to copy file from [%s] to [%s]", srcFile.c_str(), dstFile.c_str());
             return dataItemPtr;
         }
     }
@@ -98,32 +82,23 @@ DataItemPtr DataClient::getData(const std::string &srcBaseUri,
 DataItemPtr DataClient::getData(const std::string &srcBaseUri,
                                 const std::vector<DataFileMeta> &srcFileMetas,
                                 const std::string &dstDir,
-                                const DataOption &option)
-{
+                                const DataOption &option) {
     vector<string> filePathes;
-    for(const auto &fileMeta : srcFileMetas) {
+    for (const auto &fileMeta : srcFileMetas) {
         filePathes.push_back(fileMeta.path);
     }
     return getData(srcBaseUri, filePathes, dstDir, option);
 }
 
-bool DataClient::queryDataTaskInfoWithDstDirPrefix(const string &dstDirPrefix,
-        vector<DataTaskInfo> &dataTaskInfos)
-{
+bool DataClient::queryDataTaskInfoWithDstDirPrefix(const string &dstDirPrefix, vector<DataTaskInfo> &dataTaskInfos) {
     return true;
 }
 
-bool DataClient::getEnv(const string &name, string *value) {
-    return true;
-}
+bool DataClient::getEnv(const string &name, string *value) { return true; }
 
-bool DataClient::runInHippoContainer() {
-    return false;
-}
+bool DataClient::runInHippoContainer() { return false; }
 
-bool DataClient::redressPath(string *path) {
-    return false;
-}
+bool DataClient::redressPath(string *path) { return false; }
 
 bool DataClient::removeData(const std::string &dataPath, bool immediately) {
     if (FileSystem::remove(dataPath) != EC_OK) {

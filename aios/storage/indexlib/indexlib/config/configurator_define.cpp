@@ -143,12 +143,12 @@ const std::string ATTRIBUTE_EXTEND = "extend";
 const std::string ATTRIBUTE_EXTEND_SORT = "sort";
 const std::string SORT_BY_WEIGHT_TAG = "sort";
 const std::string ATTRIBUTE_NAME = "attribute_name";
-const std::string PACK_ATTR_NAME_FIELD = "pack_name";
-const std::string PACK_ATTR_SUB_ATTR_FIELD = "sub_attributes";
+// const std::string PACK_ATTR_NAME_FIELD = "pack_name";
+// const std::string PACK_ATTR_SUB_ATTR_FIELD = "sub_attributes";
 // const std::string PACK_ATTR_COMPRESS_TYPE_FIELD = "compress_type";
-const std::string PACK_ATTR_VALUE_FORMAT = "value_format";
-const std::string PACK_ATTR_VALUE_FORMAT_IMPACT = "impact";
-const std::string PACK_ATTR_VALUE_FORMAT_PLAIN = "plain";
+// const std::string PACK_ATTR_VALUE_FORMAT = "value_format";
+// const std::string PACK_ATTR_VALUE_FORMAT_IMPACT = "impact";
+// const std::string PACK_ATTR_VALUE_FORMAT_PLAIN = "plain";
 
 const std::string SUMMARYS = "summarys";
 const std::string SUMMARY_FIELDS = "summary_fields";

@@ -1,11 +1,11 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 load('//bazel:defs.bzl', 'gen_cpp_code')
 package(
     default_visibility=[
         '//aios/storage/indexlib/index/attribute:__subpackages__'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DedupPatchFileMerger',
     deps=[
         ':AttributePatchFileFinder', ':AttributePatchMergerFactory',
@@ -14,24 +14,24 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/patch:PatchFileMerger'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributePatchFileFinder',
     srcs=[],
     deps=['//aios/storage/indexlib/index/common/patch:SrcDestPatchFileFinder']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributePatchReader',
     deps=[
         ':IAttributePatch', '//aios/storage/indexlib/config:IIndexConfig',
         '//aios/storage/indexlib/index/common/patch:PatchFileInfos'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IAttributePatch',
     srcs=[],
     deps=['//aios/storage/indexlib/base:Status']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DefaultValueAttributePatch',
     deps=[
         ':AttributePatchReader', ':IAttributePatch',
@@ -40,7 +40,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format/attribute:DefaultAttributeValueInitializer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleValueAttributePatchReader',
     deps=[
         ':AttributePatchReader',
@@ -52,7 +52,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/patch:PatchFileInfos'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiValueAttributePatchFile',
     deps=[
         '//aios/storage/indexlib/config:IIndexConfig',
@@ -61,7 +61,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/patch:PatchFileInfos'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiValueAttributePatchReader',
     srcs=[],
     deps=[
@@ -122,7 +122,7 @@ gen_cpp_code(
     template_header=template_header_updater,
     template_tail=template_tail
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeUpdater',
     srcs=(((([
         'AttributeUpdater.cpp', 'AttributeUpdaterFactory.cpp',
@@ -151,7 +151,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:simple_pool'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributePatchMerger',
     deps=[
         '//aios/storage/indexlib/index/attribute:SegmentUpdateBitmap',
@@ -159,7 +159,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/patch:PatchMerger'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleValueAttributePatchMerger',
     srcs=[],
     deps=[
@@ -172,7 +172,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/patch:PatchMerger'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiValueAttributePatchMerger',
     srcs=[],
     deps=[
@@ -185,7 +185,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:MemBuffer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributePatchMergerFactory',
     deps=[
         ':AttributePatchMerger', ':MultiValueAttributePatchMerger',
@@ -195,7 +195,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute:AttributeUpdateBitmap'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PatchIterator',
     srcs=[],
     deps=[
@@ -204,7 +204,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute:AttributeFieldValue'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributePatchIterator',
     srcs=[],
     deps=[
@@ -213,7 +213,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleFieldPatchIterator',
     deps=[
         ':AttributePatchFileFinder', ':AttributePatchIterator',
@@ -224,7 +224,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework:Segment'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiFieldPatchIterator',
     deps=[
         ':AttributePatchIterator', ':SingleFieldPatchIterator',
@@ -233,7 +233,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework:Segment'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PatchIteratorCreator',
     deps=[
         ':MultiFieldPatchIterator', ':PatchIterator', '//aios/autil:NoCopyable',
@@ -241,7 +241,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework:Segment'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributePatchReaderCreator',
     deps=[
         ':MultiValueAttributePatchReader', ':SingleValueAttributePatchReader',

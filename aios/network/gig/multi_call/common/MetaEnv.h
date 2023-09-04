@@ -16,8 +16,9 @@
 #ifndef ISEARCH_MULTI_CALL_METAENV_H
 #define ISEARCH_MULTI_CALL_METAENV_H
 
-#include "aios/network/gig/multi_call/common/common.h"
 #include <string>
+
+#include "aios/network/gig/multi_call/common/common.h"
 
 namespace multi_call {
 
@@ -27,7 +28,8 @@ class GigMetaEnv;
  * meta info from env
  * pass to client as MetaNode proto
  **/
-class MetaEnv {
+class MetaEnv
+{
 public:
     MetaEnv();
     ~MetaEnv();
@@ -38,17 +40,37 @@ public:
     std::map<std::string, std::string> getEnvTags() const;
     std::map<std::string, std::string> getTargetTags() const;
 
-    const std::string getPlatform() const { return _platform; }
-    const std::string getHippoCluster() const { return _hippoCluster; }
-    const std::string getHippoApp() const { return _hippoApp; }
-    const std::string getC2Role() const { return _c2role; }
-    const std::string getC2Group() const { return _c2group; }
+    const std::string getPlatform() const {
+        return _platform;
+    }
+    const std::string getHippoCluster() const {
+        return _hippoCluster;
+    }
+    const std::string getHippoApp() const {
+        return _hippoApp;
+    }
+    const std::string getC2Role() const {
+        return _c2role;
+    }
+    const std::string getC2Group() const {
+        return _c2group;
+    }
 
-    void setPlatform(const std::string &p) { _platform = p; }
-    void setHippoCluster(const std::string &c) { _hippoCluster = c; }
-    void setHippoApp(const std::string &a) { _hippoApp = a; }
-    void setC2Role(const std::string &r) { _c2role = r; }
-    void setC2Group(const std::string &g) { _c2group = g; }
+    void setPlatform(const std::string &p) {
+        _platform = p;
+    }
+    void setHippoCluster(const std::string &c) {
+        _hippoCluster = c;
+    }
+    void setHippoApp(const std::string &a) {
+        _hippoApp = a;
+    }
+    void setC2Role(const std::string &r) {
+        _c2role = r;
+    }
+    void setC2Group(const std::string &g) {
+        _c2group = g;
+    }
 
     bool valid() const;
     void setFromProto(const GigMetaEnv &gigMetaEnv);

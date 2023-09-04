@@ -20,11 +20,15 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/framework/Locator.h"
 
-namespace indexlibv2::document {
-class IDocument;
+namespace indexlibv2::framework {
+class BuildDocumentMetrics;
+}
+namespace build_service::builder {
+class BuilderV2Impl;
 }
 
 namespace indexlibv2::document {
+class IDocument;
 
 class IDocumentBatch : public autil::NoCopyable
 {
@@ -36,20 +40,27 @@ public:
     virtual ~IDocumentBatch() {}
 
     virtual std::unique_ptr<IDocumentBatch> Create() const = 0;
+
     virtual const framework::Locator& GetLastLocator() const = 0;
     virtual int64_t GetMaxTTL() const = 0;
     virtual void SetMaxTTL(int64_t maxTTL) = 0;
     virtual int64_t GetMaxTimestamp() const = 0;
 
+    virtual void AddDocument(DocumentPtr doc) = 0;
     virtual void DropDoc(int64_t docIdx) = 0;
     virtual void ReleaseDoc(int64_t docIdx) = 0;
-    virtual bool IsDropped(int64_t docIdx) const = 0;
+
     virtual size_t GetBatchSize() const = 0;
     virtual size_t GetValidDocCount() const = 0;
-    virtual void AddDocument(DocumentPtr doc) = 0;
-    virtual std::shared_ptr<IDocument> operator[](int64_t docIdx) const = 0;
     virtual size_t EstimateMemory() const = 0;
     virtual size_t GetAddedDocCount() const = 0;
+
+    virtual std::shared_ptr<IDocument> TEST_GetDocument(int64_t docIdx) const = 0;
+
+public:
+    // Try to avoid calling these methods, use IDocumentIterator instead.
+    virtual bool IsDropped(int64_t docIdx) const = 0;
+    virtual std::shared_ptr<IDocument> operator[](int64_t docIdx) const = 0;
 };
 
 } // namespace indexlibv2::document

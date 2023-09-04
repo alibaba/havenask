@@ -24,9 +24,8 @@ namespace build_service { namespace workflow {
 
 BS_LOG_SETUP(workflow, RawDocBuilderConsumer);
 
-RawDocBuilderConsumer::RawDocBuilderConsumer(builder::Builder* builder, processor::Processor* processor)
+RawDocBuilderConsumer::RawDocBuilderConsumer(builder::Builder* builder)
     : _builder(builder)
-    , _processor(processor)
     , _endTimestamp(INVALID_TIMESTAMP)
 {
 }
@@ -38,38 +37,10 @@ FlowError RawDocBuilderConsumer::consume(const document::RawDocumentPtr& item)
     if (unlikely(!item)) {
         return FE_OK;
     }
-    if (_processor) {
-        return processAndBuildDoc(item);
-    } else {
-        return buildDoc(item);
+    BS_LOG(DEBUG, "build locator is: %s", item->getLocator().DebugString().c_str());
+    if (_builder->hasFatalError()) {
+        return FE_FATAL;
     }
-
-    return FE_EXCEPTION;
-}
-
-FlowError RawDocBuilderConsumer::processAndBuildDoc(const document::RawDocumentPtr& item)
-{
-    assert(_processor);
-    _processor->processDoc(item);
-    auto processedDocVecPtr = _processor->getProcessedDoc();
-    if (processedDocVecPtr == nullptr || processedDocVecPtr->empty()) {
-        return FE_OK;
-    }
-    for (size_t i = 0; i < processedDocVecPtr->size(); ++i) {
-        const ProcessedDocumentPtr& processedDoc = (*processedDocVecPtr)[i];
-        const DocumentPtr& document = processedDoc->getLegacyDocument();
-        if (!document || document->GetDocOperateType() == SKIP_DOC || document->GetDocOperateType() == UNKNOWN_OP) {
-            continue;
-        }
-        if (!_builder->build(document) || _builder->hasFatalError()) {
-            return FE_FATAL;
-        }
-    }
-    return FE_OK;
-}
-
-FlowError RawDocBuilderConsumer::buildDoc(const document::RawDocumentPtr& item)
-{
     const auto& document = std::dynamic_pointer_cast<indexlib::document::Document>(item);
     if (!document) {
         BS_LOG(ERROR, "cast to document failed");
@@ -81,6 +52,7 @@ FlowError RawDocBuilderConsumer::buildDoc(const document::RawDocumentPtr& item)
     if (_builder->hasFatalError()) {
         return FE_FATAL;
     }
+
     return FE_EXCEPTION;
 }
 

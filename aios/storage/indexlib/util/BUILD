@@ -1,13 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
-package(default_visibility=['//aios/storage:__subpackages__'])
-indexlib_cc_library(
-    name='ip_convertor',
-    srcs=['IpConvertor.cpp'],
-    hdrs=['IpConvertor.h'],
-    visibility=['//visibility:public'],
-    deps=['//aios/autil:string_helper']
-)
-indexlib_cc_library(
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+strict_cc_library(
     name='all',
     srcs=[],
     hdrs=[],
@@ -17,14 +10,14 @@ indexlib_cc_library(
         ':ByteSimilarityHasher', ':ClassTypedFactory', ':Clock', ':ColumnUtil',
         ':Comparable', ':CoroutineConfig', ':DeVirtual', ':DebugingUtil',
         ':DocTracer', ':ErrorLogCollector', ':ExpandableBitmap',
-        ':FloatInt8Encoder', ':FloatUint64Encoder', ':Fp16Encoder', ':Half',
-        ':HashBucket', ':HashMap', ':HashString', ':HashUtil',
-        ':KeyHasherTyped', ':MathUtil', ':MemBuffer', ':PoolUtil',
-        ':PooledUniquePtr', ':Random', ':RegularExpression', ':ShardUtil',
-        ':Status', ':TimestampUtil', ':ValueWriter', ':crc32c', ':epochid_util',
-        ':future_executor', ':httplib', ':ip_convertor', ':mmap_pool',
-        ':mmap_vector', ':object_pool', ':path_util', ':prime_number_table',
-        ':retry_util', ':simple_pool', ':task', ':thread_pool',
+        ':FloatInt8Encoder', ':FloatUint64Encoder', ':Fp16Encoder',
+        ':GroupedThreadPool', ':Half', ':HashBucket', ':HashMap', ':HashString',
+        ':HashUtil', ':IpConvertor', ':KeyHasherTyped', ':MMapVector',
+        ':MathUtil', ':MemBuffer', ':MmapPool', ':ObjectPool', ':PathUtil',
+        ':PoolUtil', ':PooledUniquePtr', ':PrimeNumberTable', ':Random',
+        ':RegularExpression', ':RetryUtil', ':ShardUtil', ':SimplePool',
+        ':Status', ':TimestampUtil', ':ValueWriter', ':epochid_util',
+        ':future_executor', ':httplib', ':task',
         '//aios/storage/indexlib/util/buffer_compressor',
         '//aios/storage/indexlib/util/byte_slice_list',
         '//aios/storage/indexlib/util/cache',
@@ -35,7 +28,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util/slice_array'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='headers',
     srcs=glob([
         '*.h', 'counter/*.h', 'byte_slice_list/*.h', 'cache/*.h',
@@ -43,27 +36,28 @@ indexlib_cc_library(
     ]),
     hdrs=[]
 )
-indexlib_cc_library(name='Timer', srcs=[])
-indexlib_cc_library(name='numeric_util', srcs=[], hdrs=['NumericUtil.h'])
-indexlib_cc_library(
+strict_cc_library(name='Timer', srcs=[])
+strict_cc_library(name='NumericUtil', srcs=[], export_name='numeric_util')
+strict_cc_library(
     name='Bitmap',
     deps=[':PoolUtil', ':numeric_util', '//aios/autil:mem_pool_base']
 )
-indexlib_cc_library(
-    name='ExpandableBitmap', deps=[':Bitmap', '//aios/autil:log']
-)
-indexlib_cc_library(
-    name='key_value_map',
+strict_cc_library(name='ExpandableBitmap', deps=[':Bitmap', '//aios/autil:log'])
+strict_cc_library(
+    name='KeyValueMap',
     srcs=[],
-    hdrs=['KeyValueMap.h'],
+    export_name='key_value_map',
     deps=['//aios/autil:json', '//aios/autil:string_helper']
 )
-indexlib_cc_library(
-    name='prime_number_table',
-    srcs=['PrimeNumberTable.cpp'],
-    hdrs=['PrimeNumberTable.h']
+strict_cc_library(
+    name='JsonMap',
+    srcs=[],
+    export_name='json_map',
+    export_visibility=['//visibility:public'],
+    deps=['//aios/autil:json', '//aios/storage/indexlib/base:Status']
 )
-indexlib_cc_library(
+strict_cc_library(name='PrimeNumberTable', export_name='prime_number_table')
+strict_cc_library(
     name='task',
     srcs=['TaskGroup.cpp', 'TaskScheduler.cpp'],
     hdrs=['TaskGroup.h', 'TaskItem.h', 'TaskScheduler.h'],
@@ -72,57 +66,52 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:Status'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='Base62',
     copts=['-Wno-suggest-override'],
     deps=['//aios/storage/indexlib/base:Status', '@boost//:multiprecision']
 )
-indexlib_cc_library(
-    name='mmap_allocator',
-    srcs=['MMapAllocator.cpp'],
-    hdrs=['MMapAllocator.h'],
+strict_cc_library(
+    name='MMapAllocator',
+    export_name='mmap_allocator',
     deps=[
         '//aios/autil:env_util', '//aios/autil:log',
         '//aios/autil:mem_pool_base'
     ]
 )
-indexlib_cc_library(
-    name='mmap_pool',
-    srcs=['MmapPool.cpp'],
-    hdrs=['MmapPool.h'],
-    deps=[':mmap_allocator', '//aios/autil:mem_pool_base']
+strict_cc_library(
+    name='MmapPool',
+    export_name='mmap_pool',
+    deps=[':MMapAllocator', '//aios/autil:mem_pool_base']
 )
-indexlib_cc_library(
-    name='simple_pool',
-    srcs=['SimplePool.cpp'],
-    hdrs=['SimplePool.h'],
+strict_cc_library(
+    name='SimplePool',
+    export_name='simple_pool',
     deps=['//aios/autil:mem_pool_base']
 )
-indexlib_cc_library(
-    name='simple_heap',
+strict_cc_library(
+    name='SimpleHeap',
     srcs=[],
-    hdrs=['SimpleHeap.h'],
+    export_name='simple_heap',
     deps=['//aios/autil:mem_pool_base']
 )
-indexlib_cc_library(
-    name='object_pool', srcs=[], hdrs=['ObjectPool.h'], deps=[':Exception']
+strict_cc_library(
+    name='ObjectPool', srcs=[], export_name='object_pool', deps=[':Exception']
 )
-indexlib_cc_library(
-    name='thread_pool',
-    srcs=['GroupedThreadPool.cpp'],
-    hdrs=['GroupedThreadPool.h'],
+strict_cc_library(
+    name='GroupedThreadPool',
     deps=[
-        '//aios/autil:log', '//aios/autil:thread',
+        '//aios/autil:env_util', '//aios/autil:log', '//aios/autil:thread',
         '//aios/storage/indexlib/base:Status'
     ]
 )
-indexlib_cc_library(
-    name='mmap_vector',
+strict_cc_library(
+    name='MMapVector',
     srcs=[],
-    hdrs=['MMapVector.h'],
-    deps=[':mmap_allocator', '//aios/autil:log']
+    export_name='mmap_vector',
+    deps=[':MMapAllocator', '//aios/autil:log']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VectorTyped',
     srcs=[],
     deps=[
@@ -130,68 +119,58 @@ indexlib_cc_library(
         '//aios/autil:log'
     ]
 )
-indexlib_cc_library(
-    name='crc32c',
-    srcs=['CRC32C.cpp', 'Coding.cpp'],
-    hdrs=['CRC32C.h', 'Coding.h'],
-    deps=['//aios/autil:log']
-)
-indexlib_cc_library(
-    name='epochid_util',
-    srcs=['EpochIdUtil.cpp'],
-    hdrs=['EpochIdUtil.h'],
+strict_cc_library(
+    name='EpochIdUtil',
+    export_name='epochid_util',
     deps=[
         '//aios/autil:lock', '//aios/autil:log', '//aios/autil:string_helper'
     ]
 )
-indexlib_cc_library(
-    name='future_executor',
-    srcs=['FutureExecutor.cpp'],
-    hdrs=['FutureExecutor.h'],
+strict_cc_library(
+    name='FutureExecutor',
+    export_name='future_executor',
     deps=[
         '//aios/future_lite', '//aios/storage/indexlib/base:constants',
         '//aios/storage/indexlib/util/metrics:monitor'
     ]
 )
-indexlib_cc_library(
-    name='path_util',
-    srcs=['PathUtil.cpp'],
-    hdrs=['PathUtil.h'],
+strict_cc_library(
+    name='PathUtil',
+    export_name='path_util',
     deps=['//aios/autil:log', '//aios/filesystem/fslib:fslib-framework']
 )
-indexlib_cc_library(
-    name='retry_util',
-    srcs=['RetryUtil.cpp'],
-    hdrs=['RetryUtil.h'],
-    deps=['//aios/autil:log']
+strict_cc_library(
+    name='RetryUtil', export_name='retry_util', deps=['//aios/autil:log']
 )
-indexlib_cc_library(name='ColumnUtil', srcs=[])
-indexlib_cc_library(name='ShardUtil', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='ColumnUtil', srcs=[])
+strict_cc_library(name='ShardUtil', srcs=[])
+strict_cc_library(
     name='Singleton',
     srcs=[],
+    export_name='singleton',
+    export_visibility=['//aios/storage:indexlib_extensions'],
     deps=[
         '//aios/autil:lock', '//aios/autil:log',
         '//aios/storage/indexlib/base:Define'
     ]
 )
-indexlib_cc_library(
-    name='PoolUtil', srcs=[], deps=['//aios/autil:mem_pool_base']
-)
-indexlib_cc_library(
+strict_cc_library(name='PoolUtil', srcs=[], deps=['//aios/autil:mem_pool_base'])
+strict_cc_library(
     name='RegularExpression',
     deps=['//aios/autil:common_macros', '//aios/autil:string_type']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='Exception',
     srcs=[],
+    export_name='exception',
+    export_visibility=['//aios/storage:indexlib_extensions'],
     deps=[
         ':IoExceptionController', '//aios/autil:exception', '//aios/autil:log'
     ]
 )
-indexlib_cc_library(name='IoExceptionController')
-indexlib_cc_library(name='DeVirtual', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='IoExceptionController')
+strict_cc_library(name='DeVirtual', srcs=[])
+strict_cc_library(
     name='CoroutineConfig',
     srcs=[],
     hdrs=[':CoroutineConfigH'],
@@ -207,49 +186,76 @@ genrule(
         '//conditions:default': 'sed s/TO_BE_REPLACED/0/ $(SRCS) > $(OUTS)'
     })
 )
-indexlib_cc_library(name='Traits', srcs=[])
-indexlib_cc_library(name='Random', srcs=[])
-indexlib_cc_library(name='Status', srcs=[])
-indexlib_cc_library(name='FloatInt8Encoder', srcs=[])
-indexlib_cc_library(name='FloatUint64Encoder', srcs=[])
-indexlib_cc_library(name='Half', srcs=[])
-indexlib_cc_library(name='Fp16Encoder', srcs=[])
-indexlib_cc_library(name='HashString', srcs=[])
-indexlib_cc_library(name='MathUtil', deps=['//aios/autil:log'])
-indexlib_cc_library(name='MemBuffer', srcs=[], deps=[':simple_pool'])
-indexlib_cc_library(name='PooledUniquePtr', srcs=[])
-indexlib_cc_library(
-    name='ValueWriter', srcs=[], deps=['//aios/storage/indexlib/base:Define']
+strict_cc_library(
+    name='Traits',
+    srcs=[],
+    export_name='traits',
+    export_visibility=['//aios/storage:indexlib_extensions']
 )
-indexlib_cc_library(name='HashUtil', srcs=[], deps=['//aios/autil:hash_base'])
-indexlib_cc_library(
+strict_cc_library(name='Random', srcs=[])
+strict_cc_library(
+    name='Status',
+    srcs=[],
+    export_name='status',
+    export_visibility=['//aios/storage:indexlib_extensions']
+)
+strict_cc_library(name='FloatInt8Encoder', srcs=[])
+strict_cc_library(name='FloatUint64Encoder', srcs=[])
+strict_cc_library(name='Half', srcs=[])
+strict_cc_library(name='Fp16Encoder', srcs=[])
+strict_cc_library(name='HashString', srcs=[])
+strict_cc_library(name='MathUtil', deps=['//aios/autil:log'])
+strict_cc_library(
+    name='MemBuffer',
+    srcs=[],
+    export_name='mem_buffer',
+    export_visibility=['//aios/storage:indexlib_extensions'],
+    deps=[':SimplePool']
+)
+strict_cc_library(
+    name='PooledUniquePtr',
+    srcs=[],
+    export_name='pooled_unique_ptr',
+    export_visibility=['//aios/storage:indexlib_extensions']
+)
+strict_cc_library(
+    name='ValueWriter',
+    srcs=[],
+    export_name='value_writer',
+    export_visibility=['//aios/storage:indexlib_extensions'],
+    deps=['//aios/storage/indexlib/base:Define']
+)
+strict_cc_library(name='HashUtil', srcs=[], deps=['//aios/autil:hash_base'])
+strict_cc_library(
     name='HashBucket',
     srcs=[],
     deps=[':Bitmap', '//aios/storage/indexlib/base:Define']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='HashMap',
     srcs=[],
+    export_name='hash_map',
+    export_visibility=['//aios/storage:indexlib_extensions'],
     deps=[':HashBucket', ':HashUtil', '//aios/storage/indexlib/base:constants']
 )
-indexlib_cc_library(name='DebugingUtil')
-indexlib_cc_library(
+strict_cc_library(name='DebugingUtil')
+strict_cc_library(
     name='KeyHasherTyped',
     deps=[
-        ':key_value_map', '//aios/autil:murmur_hash',
+        ':KeyValueMap', '//aios/autil:murmur_hash',
         '//aios/autil:numbers_helper',
         '//aios/storage/indexlib/index/common:Types'
     ]
 )
-indexlib_cc_library(name='Comparable', srcs=[])
-indexlib_cc_library(name='Clock', srcs=[])
-indexlib_cc_library(name='Avl', srcs=[], deps=[':Comparable'])
-indexlib_cc_library(name='ByteSimilarityHasher', deps=[':Singleton'])
-indexlib_cc_library(
+strict_cc_library(name='Comparable', srcs=[])
+strict_cc_library(name='Clock', srcs=[])
+strict_cc_library(name='Avl', srcs=[], deps=[':Comparable'])
+strict_cc_library(name='ByteSimilarityHasher', deps=[':Singleton'])
+strict_cc_library(
     name='BlockFpEncoder',
     deps=['//aios/autil:mem_pool_base', '//aios/autil:string_helper']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TimestampUtil',
     srcs=['TimestampUtil.cpp'],
     hdrs=['TimestampUtil.h', 'TimestampUtilDefine.h'],
@@ -258,29 +264,56 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:constants'
     ]
 )
-indexlib_cc_library(name='ErrorLogCollector', deps=['//aios/autil:log'])
-indexlib_cc_library(
+strict_cc_library(
+    name='ErrorLogCollector',
+    deps=['//aios/autil:env_util', '//aios/autil:log']
+)
+strict_cc_library(
     name='EpochBasedReclaimManager',
     deps=['//aios/autil:log', '//aios/autil:thread']
 )
-indexlib_cc_library(
-    name='DocTracer', srcs=[], deps=['//aios/aios/common/beeper']
-)
-indexlib_cc_library(name='Algorithm', srcs=[], deps=['//aios/alog'])
-indexlib_cc_library(
+strict_cc_library(name='DocTracer', srcs=[], deps=['//aios/aios/common/beeper'])
+strict_cc_library(name='Algorithm', srcs=[], deps=['//aios/alog'])
+strict_cc_library(
     name='ClassTypedFactory',
     srcs=[],
     deps=[
         '//aios/autil:long_hash_value', '//aios/storage/indexlib/base:FieldType'
     ]
 )
-indexlib_cc_library(name='httplib', srcs=[])
-indexlib_cc_library(
-    name='status_to_exception',
+strict_cc_library(
+    name='httplib',
     srcs=[],
-    hdrs=['Status2Exception.h'],
+    export_name='http_lib',
+    export_visibility=['//visibility:public']
+)
+strict_cc_library(
+    name='Status2Exception',
+    srcs=[],
+    export_name='status_to_exception',
+    export_visibility=['//aios/storage:__subpackages__'],
     deps=[':Exception', '//aios/storage/indexlib/base:Status']
 )
-indexlib_cc_library(
-    name='PooledContainer', srcs=[], deps=['//aios/autil:mem_pool_base']
+strict_cc_library(
+    name='PooledContainer',
+    srcs=[],
+    export_name='pooled_container',
+    export_visibility=['//aios/storage:indexlib_extensions'],
+    deps=['//aios/autil:mem_pool_base']
+)
+strict_cc_library(
+    name='IpConvertor',
+    export_name='ip_convertor',
+    export_visibility=['//visibility:public'],
+    deps=['//aios/autil:string_helper']
+)
+strict_cc_library(
+    name='ProtoJsonizer',
+    export_name='proto_jsonizer',
+    export_visibility=['//visibility:public'],
+    visibility=['//aios/storage:__subpackages__'],
+    deps=[
+        '//aios/autil:log', '//aios/storage/indexlib/base:Status',
+        '@com_google_protobuf//:protobuf'
+    ]
 )

@@ -23,7 +23,7 @@
 #include "indexlib/table/normal_table/virtual_attribute/VirtualAttributeMemIndexer.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 class IIndexConfig;
 } // namespace indexlibv2::config
 namespace indexlibv2::document {
@@ -43,7 +43,7 @@ class SingleVirtualAttributeBuilder
                                            indexlibv2::table::VirtualAttributeMemIndexer>
 {
 public:
-    SingleVirtualAttributeBuilder(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema);
+    SingleVirtualAttributeBuilder(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema);
     ~SingleVirtualAttributeBuilder();
 
 private:

@@ -24,23 +24,26 @@
 namespace autil {
 namespace mem_pool {
 class Pool;
-}  // namespace mem_pool
-}  // namespace autil
+} // namespace mem_pool
+} // namespace autil
 
 namespace isearch {
 namespace search {
 
-class MultiTermBitmapAndQueryExecutor : public BitmapAndQueryExecutor
-{
+class MultiTermBitmapAndQueryExecutor : public BitmapAndQueryExecutor {
 public:
-    MultiTermBitmapAndQueryExecutor(autil::mem_pool::Pool *pool):BitmapAndQueryExecutor(pool) {}
+    MultiTermBitmapAndQueryExecutor(autil::mem_pool::Pool *pool)
+        : BitmapAndQueryExecutor(pool) {}
     ~MultiTermBitmapAndQueryExecutor();
 
 public:
-    const std::string getName() const {return "MultiTermBitmapAndQueryExecutor";}
+    const std::string getName() const {
+        return "MultiTermBitmapAndQueryExecutor";
+    }
     std::string toString() const {
         return "MultiTerm" + BitmapAndQueryExecutor::toString();
     }
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -49,4 +52,3 @@ typedef std::shared_ptr<MultiTermBitmapAndQueryExecutor> MultiTermBitmapAndQuery
 
 } // namespace search
 } // namespace isearch
-

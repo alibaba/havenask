@@ -214,15 +214,15 @@ void OfflinePartitionWriter::ReinitDocIdManager()
             break;
         case PartitionWriter::BUILD_MODE_CONSISTENT_BATCH:
             _buildThreadPool = std::make_unique<util::GroupedThreadPool>();
-            _buildThreadPool->Start("parallel-batch-build", mOptions.GetBuildConfig().GetBatchBuildMaxThreadCount(true),
-                                    65536, 128);
-            _buildThreadPool->GetThreadPool()->start();
+            _buildThreadPool->Legacy_Start("parallel-batch-build",
+                                           mOptions.GetBuildConfig().GetBatchBuildMaxThreadCount(true), 65536, 128);
+            _buildThreadPool->Legacy_GetThreadPool()->start();
             break;
         case PartitionWriter::BUILD_MODE_INCONSISTENT_BATCH:
             _buildThreadPool = std::make_unique<util::GroupedThreadPool>();
-            _buildThreadPool->Start("parallel-batch-build",
-                                    mOptions.GetBuildConfig().GetBatchBuildMaxThreadCount(false), 65536, 128);
-            _buildThreadPool->GetThreadPool()->start();
+            _buildThreadPool->Legacy_Start("parallel-batch-build",
+                                           mOptions.GetBuildConfig().GetBatchBuildMaxThreadCount(false), 65536, 128);
+            _buildThreadPool->Legacy_GetThreadPool()->start();
             break;
         default:
             assert(false);

@@ -48,7 +48,7 @@ public:
     ~SingleValueAttributeCompressReader() = default;
 
 public:
-    Status Open(const std::shared_ptr<config::AttributeConfig>& attributeConfig,
+    Status Open(const std::shared_ptr<AttributeConfig>& attributeConfig,
                 const std::shared_ptr<indexlib::file_system::IDirectory>& attrIDir, uint64_t docCount,
                 segmentid_t segmentId);
 
@@ -136,7 +136,7 @@ inline Status SingleValueAttributeCompressReader<T>::CreateExtendFile(
 }
 
 template <typename T>
-Status SingleValueAttributeCompressReader<T>::Open(const std::shared_ptr<config::AttributeConfig>& attributeConfig,
+Status SingleValueAttributeCompressReader<T>::Open(const std::shared_ptr<AttributeConfig>& attributeConfig,
                                                    const std::shared_ptr<indexlib::file_system::IDirectory>& attrIDir,
                                                    uint64_t docCount, segmentid_t segmentId)
 {

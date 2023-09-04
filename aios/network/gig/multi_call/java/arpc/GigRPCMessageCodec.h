@@ -22,7 +22,8 @@
 
 namespace multi_call {
 
-class GigRPCMessageCodec : public arpc::ANetRPCMessageCodec {
+class GigRPCMessageCodec : public arpc::ANetRPCMessageCodec
+{
 public:
     GigRPCMessageCodec(anet::IPacketFactory *packetFactory);
     ~GigRPCMessageCodec();
@@ -33,8 +34,7 @@ private:
 
 public:
     using arpc::ANetRPCMessageCodec::EncodeRequest;
-    anet::Packet *EncodeRequest(const GigCodecContext *context, uint32_t pcode,
-                                version_t version);
+    anet::Packet *EncodeRequest(const GigCodecContext *context, uint32_t pcode, version_t version);
 
 private:
     AUTIL_LOG_DECLARE();

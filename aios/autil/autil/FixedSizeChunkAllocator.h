@@ -22,20 +22,23 @@
 
 namespace autil {
 
-class FixedSizeChunkAllocator : public ChunkAllocator
-{
+class FixedSizeChunkAllocator : public ChunkAllocator {
 public:
     FixedSizeChunkAllocator();
     ~FixedSizeChunkAllocator();
+
 private:
     FixedSizeChunkAllocator(const FixedSizeChunkAllocator &);
-    FixedSizeChunkAllocator& operator = (const FixedSizeChunkAllocator &);
+    FixedSizeChunkAllocator &operator=(const FixedSizeChunkAllocator &);
+
 public:
     void init(uint32_t requestSize, uint32_t maxRequestChunk);
+
 public:
-    /* override */ void* allocate(uint32_t size);
-    /* override */ void free(void* const addr);
+    /* override */ void *allocate(uint32_t size);
+    /* override */ void free(void *const addr);
     /* override */ void release();
+
 private:
     size_t _fixedSize;
     char *_free;
@@ -46,5 +49,4 @@ private:
     char *_buffer;
 };
 
-}
-
+} // namespace autil

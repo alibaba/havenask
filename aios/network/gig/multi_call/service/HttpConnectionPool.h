@@ -21,7 +21,8 @@
 
 namespace multi_call {
 
-class HttpConnectionPool : public ConnectionPool {
+class HttpConnectionPool : public ConnectionPool
+{
 public:
     HttpConnectionPool();
     ~HttpConnectionPool();

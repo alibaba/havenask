@@ -1,0 +1,23 @@
+{
+    [
+        {
+            "query": {
+                "match": {
+                    "service_id": {
+                        "query":"123456"
+                    }
+                }
+            },
+            "count":"-1",
+            "required_fields":["__ALL_ATTRIBUTE__", "__ALL_SUMMARY__", "service_id"],
+            "output_config":{
+                "type":"DB_MYSQL",
+                "params":{
+                    "username":"test",
+                    "password":"123",
+                    "table_name":"testtable"
+                }
+            }
+        }
+    ]
+}

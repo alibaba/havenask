@@ -18,12 +18,11 @@
 
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common_define.h"
-#include "build_service/config/ConfigDefine.h"
 #include "build_service/util/Log.h"
 
-using namespace build_service::config;
-
 namespace build_service { namespace config {
+
+extern const std::string BS_TASK_CONFIG_FILE_PATH;
 
 class TaskTarget : public autil::legacy::Jsonizable
 {

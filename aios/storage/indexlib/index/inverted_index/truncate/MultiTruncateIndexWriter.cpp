@@ -27,10 +27,7 @@ AUTIL_LOG_SETUP(index, MultiTruncateIndexWriter);
 MultiTruncateIndexWriter::MultiTruncateIndexWriter()
 {
     uint32_t threadCount = DEFAULT_TRUNC_THREAD_COUNT;
-    auto threadCountEnv = getenv("TRUNCATE_THREAD_COUNT");
-    if (threadCountEnv) {
-        autil::StringUtil::fromString(threadCountEnv, threadCount);
-    }
+    threadCount = autil::EnvUtil::getEnv("TRUNCATE_THREAD_COUNT", threadCount);
     SetTruncateThreadCount(threadCount);
 }
 

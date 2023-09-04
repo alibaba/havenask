@@ -40,7 +40,7 @@ class thread_context;
 
 struct jmp_buf_link {
   fcontext_t fcontext;
-#ifdef SEASTAR_ASAN_ENABLED
+#ifdef FL_ASAN_ENABLED
   void* fake_stack = nullptr;
   const void* stack_bottom;
   size_t stack_size;

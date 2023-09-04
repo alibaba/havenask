@@ -24,13 +24,15 @@ namespace multi_call {
 
 enum HttpMethod { HM_GET = 0, HM_POST, HM_UNKNOWN };
 
-class HttpRequest : public Request {
+class HttpRequest : public Request
+{
 public:
-    HttpRequest(HttpMethod method = HM_GET,
-                const std::shared_ptr<google::protobuf::Arena> &arena =
-                std::shared_ptr<google::protobuf::Arena>())
-        : Request(MC_PROTOCOL_HTTP, arena),
-          _method(method), _keepAlive(true) {}
+    HttpRequest(HttpMethod method = HM_GET, const std::shared_ptr<google::protobuf::Arena> &arena =
+                                                std::shared_ptr<google::protobuf::Arena>())
+        : Request(MC_PROTOCOL_HTTP, arena)
+        , _method(method)
+        , _keepAlive(true) {
+    }
     ~HttpRequest();
 
 private:
@@ -42,17 +44,39 @@ public:
 
 public:
     bool serialize() override;
-    size_t size() const override { return _body.size(); }
-    void setBody(const std::string &body) { _body = body; }
-    const std::string &getBody() const { return _body; }
-    void setHttpMethod(HttpMethod method) { _method = method; }
-    HttpMethod getHttpMethod() const { return _method; }
-    void setHost(const std::string &host) { _host = host; }
-    const std::string &getHost() const { return _host; }
-    void setKeepAlive(bool keepAlive) { _keepAlive = keepAlive; }
-    bool isKeepAlive() const { return _keepAlive; }
-    void setRequestUri(const std::string &uri) { _uri = uri; }
-    const std::string &getRequestUri() const { return _uri; }
+    size_t size() const override {
+        return _body.size();
+    }
+    void setBody(const std::string &body) {
+        _body = body;
+    }
+    const std::string &getBody() const {
+        return _body;
+    }
+    void setHttpMethod(HttpMethod method) {
+        _method = method;
+    }
+    HttpMethod getHttpMethod() const {
+        return _method;
+    }
+    void setHost(const std::string &host) {
+        _host = host;
+    }
+    const std::string &getHost() const {
+        return _host;
+    }
+    void setKeepAlive(bool keepAlive) {
+        _keepAlive = keepAlive;
+    }
+    bool isKeepAlive() const {
+        return _keepAlive;
+    }
+    void setRequestUri(const std::string &uri) {
+        _uri = uri;
+    }
+    const std::string &getRequestUri() const {
+        return _uri;
+    }
     void setRequestHeader(const std::string &key, const std::string &value) {
         _headers[key] = value;
     }

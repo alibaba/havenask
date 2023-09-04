@@ -39,7 +39,6 @@
 #include "indexlib/index/primary_key/config/PrimaryKeyLoadStrategyParam.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/table/index_task/merger/MergePlan.h"
-#include "indexlib/table/index_task/merger/MergeUtil.h"
 #include "indexlib/table/normal_table/index_task/Common.h"
 #include "indexlib/table/normal_table/index_task/PatchedDeletionMapLoader.h"
 
@@ -226,8 +225,11 @@ Status OpLog2PatchOperation::Execute(const framework::IndexTaskContext& context)
     status = ret.Status();
     RETURN_IF_STATUS_ERROR(status, "make directory failed, dir[%s]", OPERATION_LOG_TO_PATCH_WORK_DIR);
     _workDir = ret.result;
-    if (context.GetTabletOptions()->GetOfflineConfig().GetMergeConfig().EnablePatchFileArchive()) {
+    if (context.GetMergeConfig().EnablePatchFileArchive()) {
         std::tie(status, _workDir) = _workDir->CreateArchiveDirectory(/*suffix*/ "").StatusWith();
+        if (status.IsOK()) {
+            AUTIL_LOG(INFO, "Create archive directory in [%s]", _workDir->DebugString().c_str());
+        }
         if (!status.IsOK() || _workDir == nullptr) {
             return Status::IOError("Create archive directory in [%s] failed", ret.result->DebugString().c_str());
         }
@@ -277,7 +279,7 @@ Status OpLog2PatchOperation::Execute(const framework::IndexTaskContext& context)
 
     RETURN_IF_STATUS_ERROR(deletionMapPatchWriter->Close(), "close deletion patch writer failed");
     RETURN_STATUS_DIRECTLY_IF_ERROR(deletionMapPatchWriter->GetPatchFileInfos(&patchFileInfos));
-    bool metaFileEnabled = context.GetTabletOptions()->GetOfflineConfig().GetMergeConfig().EnablePatchFileMeta();
+    bool metaFileEnabled = context.GetMergeConfig().EnablePatchFileMeta();
     if (metaFileEnabled) {
         RETURN_STATUS_DIRECTLY_IF_ERROR(_workDir
                                             ->Store(/*fileName=*/OPERATION_LOG_TO_PATCH_META_FILE_NAME,
@@ -328,7 +330,7 @@ Status OpLog2PatchOperation::CreatePatchWritersForSegment(
 
 bool OpLog2PatchOperation::CreatePatchWriterForAttribute(
     const std::shared_ptr<indexlib::file_system::IDirectory>& workDir, const segmentid_t segmentId,
-    const std::shared_ptr<config::TabletSchema>& schema, const std::shared_ptr<config::IIndexConfig>& indexConfig,
+    const std::shared_ptr<config::ITabletSchema>& schema, const std::shared_ptr<config::IIndexConfig>& indexConfig,
     std::map<fieldid_t, std::vector<index::PatchWriter*>>* fieldIdToPatchWriters,
     std::map<std::pair<std::string, std::string>, std::unique_ptr<index::PatchWriter>>* indexKeyToPatchWriters)
 {
@@ -338,7 +340,7 @@ bool OpLog2PatchOperation::CreatePatchWriterForAttribute(
     }
     std::string indexName = indexConfig->GetIndexName();
     std::pair<std::string, std::string> indexMapKey = GenerateIndexMapKey(indexType, indexName);
-    const auto& attributeConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(
+    const auto& attributeConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(
         schema->GetIndexConfig(index::ATTRIBUTE_INDEX_TYPE_STR, indexName));
     if (attributeConfig == nullptr) {
         AUTIL_LOG(INFO, "Invalid attribute config encountered [%s]", indexName.c_str());
@@ -354,7 +356,7 @@ bool OpLog2PatchOperation::CreatePatchWriterForAttribute(
 
 bool OpLog2PatchOperation::CreatePatchWriterForInvertedIndex(
     const std::shared_ptr<indexlib::file_system::IDirectory>& workDir, const segmentid_t segmentId,
-    const std::shared_ptr<config::TabletSchema>& schema, const std::shared_ptr<config::IIndexConfig>& indexConfig,
+    const std::shared_ptr<config::ITabletSchema>& schema, const std::shared_ptr<config::IIndexConfig>& indexConfig,
     std::map<fieldid_t, std::vector<index::PatchWriter*>>* fieldIdToPatchWriters,
     std::map<std::pair<std::string, std::string>, std::unique_ptr<index::PatchWriter>>* indexKeyToPatchWriters)
 {
@@ -402,7 +404,7 @@ void OpLog2PatchOperation::InsertPatchWriter(
 }
 
 std::pair<Status, std::shared_ptr<indexlib::index::BatchOpLogIterator>>
-OpLog2PatchOperation::CreateOpIterator(const config::TabletSchema* schema, const IIndexMerger::SourceSegment& segment)
+OpLog2PatchOperation::CreateOpIterator(const config::ITabletSchema* schema, const IIndexMerger::SourceSegment& segment)
 {
     auto opConfig = schema->GetIndexConfig(OPERATION_LOG_INDEX_TYPE_STR, OPERATION_LOG_INDEX_NAME);
     auto indexerPair = segment.segment->GetIndexer(opConfig->GetIndexType(), opConfig->GetIndexName());
@@ -540,6 +542,10 @@ Status OpLog2PatchOperation::ConvertOpLog2Patch(
 {
     ASSIGN_OR_RETURN(std::shared_ptr<indexlib::index::BatchOpLogIterator> opLogIterator,
                      CreateOpIterator(_schema.get(), currentSegment));
+    if (opLogIterator == nullptr) {
+        AUTIL_LOG(WARN, "op log iterator is null, skipping segment [%d]", currentSegment.segment->GetSegmentId());
+        return Status::OK();
+    }
     std::vector<std::vector<OperationBase*>> ops(THREAD_NUM);
     auto [status, allOperations] = opLogIterator->LoadOperations(THREAD_NUM);
     AUTIL_LOG(INFO, "begin convert operation for segment [%d] operation count [%lu]",
@@ -709,8 +715,8 @@ Status OpLog2PatchOperation::GetOpLog2PatchInfos(const framework::IndexTaskConte
     for (const auto& seg : slice) {
         segmentid_t segmentId = seg->GetSegmentId();
         AUTIL_LOG(INFO, "begin process segment [%d]", segmentId);
-
-        auto sourceSegment = MergeUtil::GetSourceSegment(segmentId, tabletData);
+        index::IIndexMerger::SourceSegment sourceSegment;
+        std::tie(sourceSegment.segment, sourceSegment.baseDocid) = tabletData->GetSegmentWithBaseDocid(segmentId);
         _segmentId2DocIdRange.push_back(std::make_pair(
             segmentId, std::make_pair(sourceSegment.baseDocid,
                                       sourceSegment.baseDocid + sourceSegment.segment->GetSegmentInfo()->docCount)));
@@ -741,8 +747,7 @@ std::map<segmentid_t, uint64_t> OpLog2PatchOperation::GetAllSegmentDocCount(cons
     for (auto iter = slice.begin(); iter != slice.end(); iter++) {
         std::shared_ptr<framework::Segment> segment = *iter;
         segmentid_t segmentId = segment->GetSegmentId();
-        auto sourceSegment = MergeUtil::GetSourceSegment(segmentId, context.GetTabletData());
-        segmentId2DocCount[segmentId] = sourceSegment.segment->GetSegmentInfo()->docCount;
+        segmentId2DocCount[segmentId] = segment->GetSegmentInfo()->docCount;
     }
     return segmentId2DocCount;
 }

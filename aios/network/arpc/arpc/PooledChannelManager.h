@@ -47,6 +47,7 @@ public:
 private:
     std::shared_ptr<ANetRPCChannel> createRpcChannel(const std::string &spec);
     void cleanBrokenChannelLoop();
+
 private:
     static std::string convertToSpec(const std::string &addr);
 

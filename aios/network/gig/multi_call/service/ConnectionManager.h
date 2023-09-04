@@ -16,14 +16,15 @@
 #ifndef ISEARCH_MULTI_CALL_CONNECTIONMANAGER_H
 #define ISEARCH_MULTI_CALL_CONNECTIONMANAGER_H
 
-#include "autil/LockFreeThreadPool.h"
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/config/MultiCallConfig.h"
 #include "aios/network/gig/multi_call/service/ConnectionPool.h"
+#include "autil/LockFreeThreadPool.h"
 
 namespace multi_call {
 
-class ConnectionManager {
+class ConnectionManager
+{
 public:
     ConnectionManager();
     virtual ~ConnectionManager();
@@ -45,8 +46,8 @@ public:
 
 private:
     // virtual for ut
-    virtual ConnectionPoolPtr
-    createConnectionPool(ProtocolType type, const std::string &typeStr = "");
+    virtual ConnectionPoolPtr createConnectionPool(ProtocolType type,
+                                                   const std::string &typeStr = "");
 
 private:
     ConnectionPoolPtr _poolVector[MC_PROTOCOL_UNKNOWN + 1];

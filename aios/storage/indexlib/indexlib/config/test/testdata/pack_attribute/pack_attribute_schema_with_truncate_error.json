@@ -1,0 +1,55 @@
+{   /* This config file is just for index engine library, and it will be stored in corresponding index partition for the convenience of index partition transfer. we just need one table when building a index partition. */
+    /* fields are order-sensitive; attributes, and summary must have the same order with fields; */
+
+    "table_name": "auction",
+
+    "fields": 
+    [
+        {"field_name":"title",        "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
+	{"field_name":"user_name",    "field_type":"STRING", "uniq_encode":true},
+	{"field_name":"user_id",      "field_type":"INTEGER"},
+	{"field_name":"price",        "field_type":"INTEGER"  },
+	{"field_name":"biz30day",        "field_type":"INTEGER"  },
+	{"field_name":"nid",        "field_type":"INTEGER"  },
+	{"field_name":"sales",        "field_type":"INTEGER"  },
+	{"field_name":"catid",        "field_type":"INTEGER"  },
+	{"field_name":"body",         "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
+	{"field_name":"category",     "field_type":"INTEGER",  "multi_value":true, "uniq_encode":true},
+	{"field_name":"nick_name",     "field_type":"INTEGER",  "multi_value":true, "uniq_encode":true}
+    ],
+    "indexs": 
+    [
+	{
+	    "index_name": "category",
+            "index_type" : "NUMBER",
+	    "index_fields": "category",
+	    "term_payload_flag" :  1 ,
+	    "doc_payload_flag" :  1 ,
+            "has_truncate" : true ,
+            "use_truncate_profiles" : "",
+	    "high_frequency_term_posting_type" : "both"
+	}
+    ],
+    "attributes":
+    [
+        "user_id",
+        "user_name",
+        "category",
+        "biz30day",
+        "nid",
+        {
+            "pack_name" : "pack_attr",
+            "sub_attributes" : ["price", "sales"]                                
+        }
+    ],
+
+    "summarys":{ 
+        "summary_fields": ["title",  "user_name", "user_id", "price"],
+        "compress_block_size": 5
+	},
+
+    "truncate_profiles" : [
+        {"truncate_profile_name" : "desc_price", "sort_descriptions" : "-price"}
+    ]
+}
+

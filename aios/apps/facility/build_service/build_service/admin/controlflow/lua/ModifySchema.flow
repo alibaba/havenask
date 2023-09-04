@@ -1,0 +1,55 @@
+#import(Log)
+
+function stepRunFlow()
+   local modifySchema = Flow.createTask("alterField", "alter_field", Flow.parameter)
+   local mergeCrontabFlowId = Flow.parameter['mergeCrontabFlowId']
+   local mergeCrontab = Flow.getTaskInFlow("mergeCrontab", mergeCrontabFlowId)
+   local flowState = Flow.getProperty("_flow_status_")
+   local lastIncFlowId = Flow.parameter['lastIncFlow']
+   local lastFlowFinished = Flow.getProperty("lastFlowFinished")
+   if (lastFlowFinished == '')
+   then
+      local lastIncFlowState = Flow.getFlowStatus(lastIncFlowId)
+      if (lastIncFlowState == "finish")
+      then
+	 Log.log("INFO", "alterfield: flow ["..lastIncFlowId.."] get stop checkpoint...")
+	 Flow.setProperty("lastFlowFinished", "true")
+      end
+   end
+
+   if (flowState == "")
+   then
+      if (Flow.startTask(modifySchema, Flow.parameter))
+      then
+          Flow.setProperty("_flow_status_", "modifying")
+      end
+      return false
+   end
+   
+   if (flowState == "modifying") 
+   then
+      if (lastFlowFinished == "true")
+      then
+	 Log.log("INFO", "lastIncFlow ["..lastIncFlowId.."] is finished, turn to finishing status")
+	 if (Flow.finishTask(modifySchema))
+         then
+             Flow.setProperty("_flow_status_", "finishing")
+         end
+      end
+      return false
+   end
+
+   if (flowState == "finishing") 
+   then
+      if (modifySchema:isTaskFinish())
+      then
+	 Log.log("INFO", "alter field["..Flow.parameter["targetOperationId"]..
+                 "] done, trigger syncVersion for cluster["..Flow.parameter["clusterName"].."]")
+	 mergeCrontab:executeCmd("syncVersion", "{\"mergeConfig\":\"align_version\"}")
+	 Flow.setProperty("_flow_status_", "finished")
+	 return true
+      end
+      return false
+   end
+   return true
+end

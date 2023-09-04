@@ -17,26 +17,29 @@
 #define FSLIB_PLUGIN_HDFS_FILE_H
 
 #include "fslib/common.h"
-#include "fslib/fs/hdfs/HdfsConnection.h"
 #include "fslib/fs/hdfs/FileMonitor.h"
+#include "fslib/fs/hdfs/HdfsConnection.h"
 
 FSLIB_PLUGIN_BEGIN_NAMESPACE(hdfs);
 
-class HdfsFile : public File
-{
+class HdfsFile : public File {
 public:
-    HdfsFile(const std::string& originalPath, const std::string& dstPath,
-             HdfsConnectionPtr& connection, 
-             hdfsFile file, PanguMonitor* panguMonitor = NULL,
-             int64_t curPos = 0, ErrorCode ec = EC_OK);
+    HdfsFile(const std::string &originalPath,
+             const std::string &dstPath,
+             HdfsConnectionPtr &connection,
+             hdfsFile file,
+             PanguMonitor *panguMonitor = NULL,
+             int64_t curPos = 0,
+             ErrorCode ec = EC_OK);
     ~HdfsFile();
 
     friend class HdfsFileTest;
+
 public:
-    ssize_t read(void* buffer, size_t length) override;
-    ssize_t write(const void* buffer, size_t length) override;
-    ssize_t pread(void* buffer, size_t length, off_t offset) override;
-    ssize_t pwrite(const void* buffer, size_t length, off_t offset) override;
+    ssize_t read(void *buffer, size_t length) override;
+    ssize_t write(const void *buffer, size_t length) override;
+    ssize_t pread(void *buffer, size_t length, off_t offset) override;
+    ssize_t pwrite(const void *buffer, size_t length, off_t offset) override;
     ErrorCode flush() override;
     ErrorCode sync() override;
     ErrorCode close() override;
@@ -44,7 +47,7 @@ public:
     int64_t tell() override;
     bool isOpened() const override;
     bool isEof() override;
-    
+
 private:
     int64_t getFileLen();
 
@@ -61,4 +64,4 @@ typedef std::unique_ptr<HdfsFile> HdfsFilePtr;
 
 FSLIB_PLUGIN_END_NAMESPACE(hdfs);
 
-#endif //FSLIB_PLUGIN_HDFS_FILE_H
+#endif // FSLIB_PLUGIN_HDFS_FILE_H

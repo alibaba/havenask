@@ -18,11 +18,10 @@
 #include <assert.h>
 #include <stddef.h>
 
-#include "autil/mem_pool/PoolBase.h"
-#include "matchdoc/MatchDoc.h"
-
-#include "ha3/rank/Comparator.h"
 #include "autil/Log.h"
+#include "autil/mem_pool/PoolBase.h"
+#include "ha3/rank/Comparator.h"
+#include "matchdoc/MatchDoc.h"
 
 namespace isearch {
 namespace rank {
@@ -35,9 +34,7 @@ ComboComparator::ComboComparator() {
 }
 
 ComboComparator::~ComboComparator() {
-    for (ComparatorVector::iterator it = _cmpVector.begin();
-         it != _cmpVector.end(); it++)
-    {
+    for (ComparatorVector::iterator it = _cmpVector.begin(); it != _cmpVector.end(); it++) {
         POOL_DELETE_CLASS(*it);
     }
     _cmpVector.clear();
@@ -53,9 +50,7 @@ void ComboComparator::addComparator(const Comparator *cmp) {
 }
 
 bool ComboComparator::compare(matchdoc::MatchDoc a, matchdoc::MatchDoc b) const {
-    for (ComparatorVector::const_iterator it = _cmpVector.begin();
-         it != _cmpVector.end(); it++)
-    {
+    for (ComparatorVector::const_iterator it = _cmpVector.begin(); it != _cmpVector.end(); it++) {
         const Comparator *cmp = *it;
         if (cmp->compare(a, b)) {
             return true;
@@ -92,7 +87,6 @@ bool ComboComparator::compareDocInfo(matchdoc::MatchDoc a, matchdoc::MatchDoc b)
         return _extrDocIdCmp->compare(b, a);
     }
     return false;
-
 }
 
 void ComboComparator::setExtrDocIdComparator(Comparator *cmp) {
@@ -113,7 +107,6 @@ void ComboComparator::setExtrClusterIdComparator(Comparator *cmp) {
     }
     _extrClusterIdCmp = cmp;
 }
-
 
 } // namespace rank
 } // namespace isearch

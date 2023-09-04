@@ -7,7 +7,8 @@ cc_library(
         'TopoInfoBuilder.h', 'WorkerNodeInfo.h'
     ],
     deps=[
-        '//aios/network/gig:heartbeat_proto_cc_proto_headers', '@cm2//:cm2',
+        '//aios/network/gig:heartbeat_proto_cc_proto_headers',
+        '//aios/apps/facility/cm2/cm_basic/basic_struct:proto_cc_proto',
         '//aios/autil:json', '//aios/autil:log', '//aios/autil:common_macros',
         '//aios/autil:time', '//aios/autil:lock', '//aios/autil:string_helper',
         '//aios/autil:base64', '//aios/autil:synchronized_queue',
@@ -27,7 +28,8 @@ cc_library(
         '//aios/autil:time', '//aios/autil:string_helper', '//aios/autil:log',
         '//aios/autil:common_macros', '//aios/autil:json',
         '//aios/network/gig:heartbeat_proto_cc_proto',
-        '//aios/network/gig:agent_proto_cc_proto', '@cm2//:cm2',
+        '//aios/network/gig:agent_proto_cc_proto',
+        '//aios/apps/facility/cm2/cm_basic/basic_struct:proto_cc_proto_headers',
         '@com_google_protobuf//:protobuf'
     ]
 )

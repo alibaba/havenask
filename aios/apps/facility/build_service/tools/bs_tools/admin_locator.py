@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-import include.json as json
+import include.json_wrapper as json
 from hippo_py_sdk import leader_locator
 
 HIPPOROOT_KEY = 'hippo_root'
@@ -45,5 +45,3 @@ def getBuildAppConfig(configPath, key, fsUtil):
         raise Exception('[%s] not exist in build_app.json of [%s]' % (key, configPath))
 
     return config[key]
-
-

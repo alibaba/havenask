@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/arpc/ArpcClosure.h"
+
 #include "aios/network/arpc/arpc/RPCServerClosure.h"
 #include "aios/network/gig/multi_call/agent/QueryInfo.h"
 
@@ -32,17 +33,17 @@ void ArpcClosure::Run() {
     auto tracer = _closure->GetTracer();
     assert(tracer);
     auto beginTime = tracer->GetBeginHandleRequest();
-    auto latency =
-        (autil::TimeUtility::currentTime() - beginTime) / FACTOR_US_TO_MS;
-    auto responseInfoStr = _queryInfo->finish(
-        latency, _controller.getErrorCode(), getTargetWeight());
+    auto latency = (autil::TimeUtility::currentTime() - beginTime) / FACTOR_US_TO_MS;
+    auto responseInfoStr =
+        _queryInfo->finish(latency, _controller.getErrorCode(), getTargetWeight());
     tracer->setUserPayload(responseInfoStr);
-    fillCompatibleInfo(_closure->GetResponseMsg(), _controller.getErrorCode(),
-                       responseInfoStr);
+    fillCompatibleInfo(_closure->GetResponseMsg(), _controller.getErrorCode(), responseInfoStr);
     _closure->Run();
     delete this;
 }
 
-ProtocolType ArpcClosure::getProtocolType() { return MC_PROTOCOL_ARPC; }
+ProtocolType ArpcClosure::getProtocolType() {
+    return MC_PROTOCOL_ARPC;
+}
 
 } // namespace multi_call

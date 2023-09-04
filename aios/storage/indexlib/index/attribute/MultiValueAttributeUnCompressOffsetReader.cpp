@@ -26,7 +26,7 @@ using namespace indexlib::util;
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, MultiValueAttributeUnCompressOffsetReader);
 Status
-MultiValueAttributeUnCompressOffsetReader::Init(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+MultiValueAttributeUnCompressOffsetReader::Init(const std::shared_ptr<AttributeConfig>& attrConfig,
                                                 const std::shared_ptr<indexlib::file_system::IDirectory>& attrDir,
                                                 bool disableUpdate, uint32_t docCount)
 {
@@ -167,7 +167,7 @@ Status MultiValueAttributeUnCompressOffsetReader::InitFileReader(
 }
 
 Status MultiValueAttributeUnCompressOffsetReader::InitSliceFileReader(
-    const std::shared_ptr<config::AttributeConfig>& attrConfig,
+    const std::shared_ptr<AttributeConfig>& attrConfig,
     const std::shared_ptr<indexlib::file_system::IDirectory>& attrDir)
 {
     size_t u64OffsetFileLen = sizeof(uint64_t) * (_docCount + 1);

@@ -65,9 +65,11 @@ PartitionGroupResourcePtr PartitionGroupResource::Create(int64_t totalQuota,
         return PartitionGroupResourcePtr();
     }
 
-    if (searchCacheParam) {
-        resource->mSearchCache.reset(util::SearchCacheCreator::Create(
-            searchCacheParam, resource->mMemoryQuotaController, resource->mTaskScheduler, resource->mMetricProvider));
+    std::string searchCacheParamStr = searchCacheParam ? searchCacheParam : "";
+    if (!searchCacheParamStr.empty()) {
+        resource->mSearchCache.reset(
+            util::SearchCacheCreator::Create(searchCacheParamStr, resource->mMemoryQuotaController,
+                                             resource->mTaskScheduler, resource->mMetricProvider));
     }
 
     std::string memoryStatParam = autil::EnvUtil::getEnv("PRINT_MALLOC_STATS", "");

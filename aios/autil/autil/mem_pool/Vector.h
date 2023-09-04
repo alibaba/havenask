@@ -15,130 +15,100 @@
  */
 #pragma once
 
-#include <vector>
-#include <autil/mem_pool/Pool.h>
 #include <autil/DataBuffer.h>
+#include <autil/mem_pool/Pool.h>
 #include <autil/mem_pool/pool_allocator.h>
+#include <vector>
 
-namespace autil { namespace mem_pool {
+namespace autil {
+namespace mem_pool {
 
-template<class T>
+template <class T>
 class Vector : public std::vector<T, autil::mem_pool::pool_allocator<T>> {
- public:
-    typedef std::size_t                         size_type;
-    typedef T                                   value_type;
-    typedef autil::mem_pool::Pool*              pool_pointer;
-    typedef autil::mem_pool::pool_allocator<T>  allocator_type;
-    typedef std::vector<T, allocator_type>      vector;
+public:
+    typedef std::size_t size_type;
+    typedef T value_type;
+    typedef autil::mem_pool::Pool *pool_pointer;
+    typedef autil::mem_pool::pool_allocator<T> allocator_type;
+    typedef std::vector<T, allocator_type> vector;
 
- public:
-    explicit Vector(pool_pointer pool)
-        : vector(allocator_type(pool)) {}
-    explicit Vector(size_type n, pool_pointer pool)
-        : vector(n, allocator_type(pool)) {}
-    explicit Vector(size_type n, const value_type& val, pool_pointer pool)
-        : vector(n, val, allocator_type(pool)) {}
+public:
+    explicit Vector(pool_pointer pool) : vector(allocator_type(pool)) {}
+    explicit Vector(size_type n, pool_pointer pool) : vector(n, allocator_type(pool)) {}
+    explicit Vector(size_type n, const value_type &val, pool_pointer pool) : vector(n, val, allocator_type(pool)) {}
 
- public:
-    Vector(const Vector& x) : vector(x) {}
-    Vector(const Vector& x, allocator_type& allocator)
-        : vector(x, allocator) {}
+public:
+    Vector(const Vector &x) : vector(x) {}
+    Vector(const Vector &x, allocator_type &allocator) : vector(x, allocator) {}
 
- public:
-    __attribute__((always_inline))
-    void serialize(autil::DataBuffer& dataBuffer) const {
-        serialize(dataBuffer, typename autil::SerializableTypeTraits<T>::Type());
-    }
-    __attribute__((always_inline))
-    void deserialize(autil::DataBuffer& dataBuffer) {
-        deserialize(dataBuffer, typename autil::SerializableTypeTraits<T>::Type());
-    }
-
- private:
-    __attribute__((always_inline))
-    void serialize(autil::DataBuffer& dataBuffer, autil::SimpleType) const {
+public:
+    __attribute__((always_inline)) void serialize(autil::DataBuffer &dataBuffer) const {
         uint32_t size = this->size();
         dataBuffer.write(size);
-        dataBuffer.writeBytes(&(*this)[0], size * sizeof(T));
-    }
-    __attribute__((always_inline))
-    void deserialize(autil::DataBuffer& dataBuffer, autil::SimpleType) {
-        uint32_t size = 0;
-        dataBuffer.read(size);
-        this->resize(size);
-        dataBuffer.readBytes(&(*this)[0], size * sizeof(T));
-    }
-    __attribute__((always_inline))
-    void serialize(autil::DataBuffer& dataBuffer, autil::SerializableType) const {
-        uint32_t size = this->size();
-        dataBuffer.write(size);
-        for (auto& it : *this) {
-            dataBuffer.write(it);
+        if constexpr (DataBuffer::is_simple_type<T> && !DataBuffer::is_bool<T>) {
+            dataBuffer.writeBytes(&(*this)[0], size * sizeof(T));
+        } else {
+            for (auto &it : *this) {
+                dataBuffer.write(it);
+            }
         }
     }
-    __attribute__((always_inline))
-    void deserialize(autil::DataBuffer& dataBuffer, autil::SerializableType) {
+    __attribute__((always_inline)) void deserialize(autil::DataBuffer &dataBuffer) {
         uint32_t size = 0;
         dataBuffer.read(size);
         this->resize(size);
-        for (size_t i = 0; i < size; ++i) {
-            dataBuffer.read((*this)[i]);
+        if constexpr (DataBuffer::is_simple_type<T> && !DataBuffer::is_bool<T>) {
+            dataBuffer.readBytes(&(*this)[0], size * sizeof(T));
+        } else {
+            for (size_t i = 0; i < size; ++i) {
+                dataBuffer.read((*this)[i]);
+            }
         }
     }
 };
 
-template<class T>
-class Vector<T*> : public std::vector<T*, autil::mem_pool::pool_allocator<T*>> {
- public:
-    typedef std::size_t                         size_type;
-    typedef T*                                  value_type;
-    typedef autil::mem_pool::Pool*              pool_pointer;
-    typedef autil::mem_pool::pool_allocator<T*> allocator_type;
-    typedef std::vector<T*, allocator_type>     vector;
+template <class T>
+class Vector<T *> : public std::vector<T *, autil::mem_pool::pool_allocator<T *>> {
+public:
+    typedef std::size_t size_type;
+    typedef T *value_type;
+    typedef autil::mem_pool::Pool *pool_pointer;
+    typedef autil::mem_pool::pool_allocator<T *> allocator_type;
+    typedef std::vector<T *, allocator_type> vector;
 
- public:
-    explicit Vector(pool_pointer pool)
-        : vector(allocator_type(pool)) , _pool(pool) {}
-    explicit Vector(size_type n, pool_pointer pool)
-        : vector(n, allocator_type(pool)) , _pool(pool) {}
-    explicit Vector(size_type n, const value_type& val, pool_pointer pool)
-        : vector(n, val, allocator_type(pool)) , _pool(pool) {}
+public:
+    explicit Vector(pool_pointer pool) : vector(allocator_type(pool)), _pool(pool) {}
+    explicit Vector(size_type n, pool_pointer pool) : vector(n, allocator_type(pool)), _pool(pool) {}
+    explicit Vector(size_type n, const value_type &val, pool_pointer pool)
+        : vector(n, val, allocator_type(pool)), _pool(pool) {}
     ~Vector() {}
 
- public:
-    Vector(const Vector& x) : vector(x) {
-        _pool = x.get_allocator().pool();
-    }
-    Vector(const Vector& x, allocator_type& allocator)
-        : vector(x, allocator) {
-        _pool = allocator.pool();
-    }
+public:
+    Vector(const Vector &x) : vector(x) { _pool = x.get_allocator().pool(); }
+    Vector(const Vector &x, allocator_type &allocator) : vector(x, allocator) { _pool = allocator.pool(); }
 
- public:
-    __attribute__((always_inline))
-    void serialize(autil::DataBuffer& dataBuffer) const {
+public:
+    __attribute__((always_inline)) void serialize(autil::DataBuffer &dataBuffer) const {
         uint32_t size = this->size();
         dataBuffer.write(size);
-        for (auto& it : *this) {
+        for (auto &it : *this) {
             dataBuffer.write(*it);
         }
     }
-    __attribute__((always_inline))
-    void deserialize(autil::DataBuffer& dataBuffer) {
+    __attribute__((always_inline)) void deserialize(autil::DataBuffer &dataBuffer) {
         uint32_t size = 0;
         dataBuffer.read(size);
         this->resize(size);
         for (size_t i = 0; i < size; ++i) {
-            T* element = POOL_NEW_CLASS(_pool, T);
+            T *element = POOL_NEW_CLASS(_pool, T);
             dataBuffer.read(*element);
             (*this)[i] = element;
         }
     }
 
- private:
+private:
     pool_pointer _pool;
 };
 
-}
-}
-
+} // namespace mem_pool
+} // namespace autil

@@ -22,7 +22,7 @@
 
 namespace indexlibv2::config {
 class TabletOptions;
-class TabletSchema;
+class ITabletSchema;
 class SchemaResolver;
 } // namespace indexlibv2::config
 namespace indexlib::framework {
@@ -47,6 +47,7 @@ class IIndexTaskResourceCreator;
 class IIndexOperationCreator;
 class IIndexTaskPlanCreator;
 class MetricsManager;
+class ITabletImporter;
 
 class ITabletFactory
 {
@@ -58,8 +59,8 @@ public:
     virtual std::unique_ptr<config::SchemaResolver> CreateSchemaResolver() const = 0;
 
     // basic components
-    virtual std::unique_ptr<TabletWriter> CreateTabletWriter(const std::shared_ptr<config::TabletSchema>& schema) = 0;
-    virtual std::unique_ptr<TabletReader> CreateTabletReader(const std::shared_ptr<config::TabletSchema>& schema) = 0;
+    virtual std::unique_ptr<TabletWriter> CreateTabletWriter(const std::shared_ptr<config::ITabletSchema>& schema) = 0;
+    virtual std::unique_ptr<TabletReader> CreateTabletReader(const std::shared_ptr<config::ITabletSchema>& schema) = 0;
     virtual std::shared_ptr<ITabletReader>
     CreateTabletSessionReader(const std::shared_ptr<ITabletReader>& tabletReader,
                               const std::shared_ptr<framework::IIndexMemoryReclaimer>& memReclaimer) = 0;
@@ -68,26 +69,27 @@ public:
                                                            const framework::BuildResource& buildResource) = 0;
     virtual std::unique_ptr<MemSegment> CreateMemSegment(const SegmentMeta& segmentMeta) = 0;
     virtual std::unique_ptr<document::IDocumentFactory>
-    CreateDocumentFactory(const std::shared_ptr<config::TabletSchema>& schema) = 0;
+    CreateDocumentFactory(const std::shared_ptr<config::ITabletSchema>& schema) = 0;
 
     // index task components
     virtual std::unique_ptr<IIndexTaskResourceCreator> CreateIndexTaskResourceCreator() = 0;
     virtual std::unique_ptr<IIndexOperationCreator>
-    CreateIndexOperationCreator(const std::shared_ptr<config::TabletSchema>& schema) = 0;
+    CreateIndexOperationCreator(const std::shared_ptr<config::ITabletSchema>& schema) = 0;
     virtual std::unique_ptr<IIndexTaskPlanCreator> CreateIndexTaskPlanCreator() = 0;
     virtual std::unique_ptr<indexlib::framework::ITabletExporter> CreateTabletExporter() = 0;
     virtual std::unique_ptr<indexlib::framework::ITabletValidator> CreateTabletValidator() = 0;
+    virtual std::unique_ptr<ITabletImporter> CreateTabletImporter(const std::string& type) = 0;
 };
 
 /*
    添加一种新的FACTORY，需要完成以下2个步骤:
-   1.在你的factory cpp内调用 REGISTER_FACTORY(table_type, ClassName); 的宏，
-       例如， REGISTER_FACTORY(normal, NormalTableFactory);
+   1.在你的factory cpp内调用 REGISTER_TABLET_FACTORY(table_type, ClassName); 的宏，
+       例如， REGISTER_TABLET_FACTORY(normal, NormalTableFactory);
    2.在该文件对应的目标BUILD目标上添加    alwayslink = True
        可参考 NormalTableFactory  和对应的BUILD文件
 */
 
-#define REGISTER_FACTORY(TABLE_TYPE, TABLET_FACTORY)                                                                   \
+#define REGISTER_TABLET_FACTORY(TABLE_TYPE, TABLET_FACTORY)                                                            \
     __attribute__((constructor)) void Register##TABLE_TYPE##Factory()                                                  \
     {                                                                                                                  \
         auto tabletFactoryCreator = indexlibv2::framework::TabletFactoryCreator::GetInstance();                        \

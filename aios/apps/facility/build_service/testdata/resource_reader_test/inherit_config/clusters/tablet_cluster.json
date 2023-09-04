@@ -1,0 +1,52 @@
+{
+    "offline_index_config": {
+        "index_task_configs": [
+            {
+                "task_type": "merge",
+                "task_name": "full_merge",
+                "trigger": "manual",
+                "settings": {
+                    "parallel_num": 16,
+                    "thread_num": 10,
+                    "inherit_from": "full_merge.json"
+                }
+            },
+            {
+                "trigger": "period=1800",
+                "task_name": "inc",
+                "task_type": "merge",
+                "settings": {
+                    "parallel_num": 8,
+                    "thread_num": 10,
+                    "inherit_from": "inc_merge.json"
+                }
+            },
+            {
+                "trigger": "daytime=12:00",
+                "task_name": "inc_2",
+                "task_type": "merge",
+                "settings": {
+                    "thread_num": 10,
+                    "inherit_from": "inc_2_merge.json"
+                }
+            },
+            {
+                "trigger": "period=7200",
+                "task_name": "inc_3",
+                "task_type": "merge",
+                "settings": {
+                    "thread_num": 10,
+                    "merge_strategy" : "priority_queue"
+                }
+            },
+            {
+                "trigger": "period=7200",
+                "task_name": "inc_3_legacy_reclaim",
+                "task_type": "reclaim",
+                "settings": {
+                    "inherit_from": "global_doc_reclaim.json"
+                }
+            }
+        ]
+    }
+}

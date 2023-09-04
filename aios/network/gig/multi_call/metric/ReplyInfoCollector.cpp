@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/metric/ReplyInfoCollector.h"
+
 #include "aios/network/gig/multi_call/common/ControllerParam.h"
 
 using namespace std;
@@ -27,10 +28,10 @@ ReplyInfoCollector::ReplyInfoCollector(const vector<string> &bizNameVec) {
     }
 }
 
-ReplyInfoCollector::~ReplyInfoCollector() {}
+ReplyInfoCollector::~ReplyInfoCollector() {
+}
 
-void ReplyInfoCollector::setEtInfo(const string &bizName,
-                                   const EtInfo &etInfo) {
+void ReplyInfoCollector::setEtInfo(const string &bizName, const EtInfo &etInfo) {
     ReplyBizInfoMap::iterator iter = _replyBizInfoMap.find(bizName);
     if (iter != _replyBizInfoMap.end()) {
         iter->second.etInfo = etInfo;
@@ -52,8 +53,7 @@ const ReplyBizInfoMap &ReplyInfoCollector::getReplyBizInfoMap() const {
     return _replyBizInfoMap;
 }
 
-void ReplyInfoCollector::setRetryInfo(const string &bizName,
-                                      const RetryInfo &retryInfo) {
+void ReplyInfoCollector::setRetryInfo(const string &bizName, const RetryInfo &retryInfo) {
     ReplyBizInfoMap::iterator iter = _replyBizInfoMap.find(bizName);
     if (iter != _replyBizInfoMap.end()) {
         iter->second.retryInfo = retryInfo;
@@ -62,8 +62,7 @@ void ReplyInfoCollector::setRetryInfo(const string &bizName,
     }
 }
 
-void ReplyInfoCollector::addRequestCount(const std::string &bizName,
-                                         uint32_t count) {
+void ReplyInfoCollector::addRequestCount(const std::string &bizName, uint32_t count) {
     ReplyBizInfoMap::iterator iter = _replyBizInfoMap.find(bizName);
     if (iter != _replyBizInfoMap.end()) {
         iter->second.requestCount += count;
@@ -72,8 +71,7 @@ void ReplyInfoCollector::addRequestCount(const std::string &bizName,
     }
 }
 
-void ReplyInfoCollector::addExpectProviderCount(const std::string &bizName,
-                                                uint32_t count) {
+void ReplyInfoCollector::addExpectProviderCount(const std::string &bizName, uint32_t count) {
     ReplyBizInfoMap::iterator iter = _replyBizInfoMap.find(bizName);
     if (iter != _replyBizInfoMap.end()) {
         iter->second.expectProviderCount += count;
@@ -82,8 +80,7 @@ void ReplyInfoCollector::addExpectProviderCount(const std::string &bizName,
     }
 }
 
-void ReplyInfoCollector::addProbeCallNum(const string &bizName,
-                                         uint32_t count) {
+void ReplyInfoCollector::addProbeCallNum(const string &bizName, uint32_t count) {
     ReplyBizInfoMap::iterator iter = _replyBizInfoMap.find(bizName);
     if (iter != _replyBizInfoMap.end()) {
         iter->second.probeCallNum += count;
@@ -92,8 +89,7 @@ void ReplyInfoCollector::addProbeCallNum(const string &bizName,
     }
 }
 
-void ReplyInfoCollector::addCopyCallNum(const std::string &bizName,
-                                        uint32_t count) {
+void ReplyInfoCollector::addCopyCallNum(const std::string &bizName, uint32_t count) {
     ReplyBizInfoMap::iterator iter = _replyBizInfoMap.find(bizName);
     if (iter != _replyBizInfoMap.end()) {
         iter->second.copyCallNum += count;
@@ -120,8 +116,8 @@ void ReplyInfoCollector::addRetrySuccessNum(const string &bizName) {
     }
 }
 
-void ReplyInfoCollector::setBizLatency(const string &bizName, int64_t latency,
-                                       int64_t rpcLatency, float netLatency) {
+void ReplyInfoCollector::setBizLatency(const string &bizName, int64_t latency, int64_t rpcLatency,
+                                       float netLatency) {
     ReplyBizInfoMap::iterator iter = _replyBizInfoMap.find(bizName);
     if (iter != _replyBizInfoMap.end()) {
         auto &bizInfo = iter->second;
@@ -132,8 +128,7 @@ void ReplyInfoCollector::setBizLatency(const string &bizName, int64_t latency,
         if (bizInfo.rpcLatency < rpcLatency) {
             bizInfo.rpcLatency = rpcLatency;
         }
-        if (netLatency != INVALID_FLOAT_OUTPUT_VALUE &&
-            bizInfo.netLatency < netLatency) {
+        if (netLatency != INVALID_FLOAT_OUTPUT_VALUE && bizInfo.netLatency < netLatency) {
             bizInfo.netLatency = netLatency;
         }
     } else {
@@ -141,8 +136,7 @@ void ReplyInfoCollector::setBizLatency(const string &bizName, int64_t latency,
     }
 }
 
-void ReplyInfoCollector::addFailRequestCount(const std::string &bizName,
-                                             uint32_t errorCount,
+void ReplyInfoCollector::addFailRequestCount(const std::string &bizName, uint32_t errorCount,
                                              uint32_t timeoutCount) {
     ReplyBizInfoMap::iterator iter = _replyBizInfoMap.find(bizName);
     if (iter != _replyBizInfoMap.end()) {
@@ -154,8 +148,7 @@ void ReplyInfoCollector::addFailRequestCount(const std::string &bizName,
     }
 }
 
-void ReplyInfoCollector::addErrorCode(const std::string &bizName,
-                                      MultiCallErrorCode ec) {
+void ReplyInfoCollector::addErrorCode(const std::string &bizName, MultiCallErrorCode ec) {
     ReplyBizInfoMap::iterator iter = _replyBizInfoMap.find(bizName);
     if (iter != _replyBizInfoMap.end()) {
         iter->second.errorCodes.insert(ec);
@@ -164,12 +157,10 @@ void ReplyInfoCollector::addErrorCode(const std::string &bizName,
     }
 }
 
-void ReplyInfoCollector::fillErrorCodes(
-    std::set<MultiCallErrorCode> &errorCodes) {
+void ReplyInfoCollector::fillErrorCodes(std::set<MultiCallErrorCode> &errorCodes) {
     ReplyBizInfoMap::iterator iter = _replyBizInfoMap.begin();
     for (; iter != _replyBizInfoMap.end(); iter++) {
-        errorCodes.insert(iter->second.errorCodes.begin(),
-                          iter->second.errorCodes.end());
+        errorCodes.insert(iter->second.errorCodes.begin(), iter->second.errorCodes.end());
     }
 }
 
@@ -221,8 +212,7 @@ const std::string &ReplyInfoCollector::getStressTest() const {
     return _stressTest;
 }
 
-void ReplyInfoCollector::addRequestSize(const std::string &bizName,
-                                        size_t size) {
+void ReplyInfoCollector::addRequestSize(const std::string &bizName, size_t size) {
     ReplyBizInfoMap::iterator iter = _replyBizInfoMap.find(bizName);
     if (iter != _replyBizInfoMap.end()) {
         BizSizeInfo &info = iter->second.requestSize;
@@ -233,8 +223,7 @@ void ReplyInfoCollector::addRequestSize(const std::string &bizName,
     }
 }
 
-void ReplyInfoCollector::addResponseSize(const std::string &bizName,
-                                         size_t size) {
+void ReplyInfoCollector::addResponseSize(const std::string &bizName, size_t size) {
     ReplyBizInfoMap::iterator iter = _replyBizInfoMap.find(bizName);
     if (iter != _replyBizInfoMap.end()) {
         BizSizeInfo &info = iter->second.responseSize;

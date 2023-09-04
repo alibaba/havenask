@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/common/MetaEnv.h"
+
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
 #include "aios/network/gig/multi_call/util/MetricUtil.h"
+#include "autil/EnvUtil.h"
 
 using namespace std;
 
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, MetaEnv);
 
-MetaEnv::MetaEnv() {}
+MetaEnv::MetaEnv() {
+}
 
-MetaEnv::~MetaEnv() {}
+MetaEnv::~MetaEnv() {
+}
 
 bool MetaEnv::init() {
     _platform = getFromEnv(ENV_META_PLATFORM);
@@ -37,8 +41,7 @@ bool MetaEnv::init() {
 
 bool MetaEnv::operator==(const MetaEnv &rhs) const {
     return _platform == rhs._platform && _hippoCluster == rhs._hippoCluster &&
-           _hippoApp == rhs._hippoApp && _c2role == rhs._c2role &&
-           _c2group == rhs._c2group;
+           _hippoApp == rhs._hippoApp && _c2role == rhs._c2role && _c2group == rhs._c2group;
 }
 
 std::map<std::string, std::string> MetaEnv::getEnvTags() const {
@@ -51,15 +54,11 @@ std::map<std::string, std::string> MetaEnv::getEnvTags() const {
 
 std::map<std::string, std::string> MetaEnv::getTargetTags() const {
     std::map<std::string, std::string> tagTarget;
-    tagTarget.emplace(GIG_TAG_TARGET_PLATFORM,
-                      MetricUtil::normalizeEmpty(_platform));
-    tagTarget.emplace(GIG_TAG_TARGET_CLUSTER,
-                      MetricUtil::normalizeEmpty(_hippoCluster));
-    tagTarget.emplace(GIG_TAG_TARGET_APP,
-                      MetricUtil::normalizeEmpty(_hippoApp));
+    tagTarget.emplace(GIG_TAG_TARGET_PLATFORM, MetricUtil::normalizeEmpty(_platform));
+    tagTarget.emplace(GIG_TAG_TARGET_CLUSTER, MetricUtil::normalizeEmpty(_hippoCluster));
+    tagTarget.emplace(GIG_TAG_TARGET_APP, MetricUtil::normalizeEmpty(_hippoApp));
     tagTarget.emplace(GIG_TAG_TARGET_ROLE, MetricUtil::normalizeEmpty(_c2role));
-    tagTarget.emplace(GIG_TAG_TARGET_GROUP,
-                      MetricUtil::normalizeEmpty(_c2group));
+    tagTarget.emplace(GIG_TAG_TARGET_GROUP, MetricUtil::normalizeEmpty(_c2group));
     return tagTarget;
 }
 
@@ -68,17 +67,11 @@ bool MetaEnv::isUnknown(const std::string &env) {
 }
 
 string MetaEnv::getFromEnv(const std::string &key) {
-    const char *value = getenv(key.c_str());
-    if (value) {
-        return string(value);
-    } else {
-        return EMPTY_STRING;
-    }
+    return autil::EnvUtil::getEnv(key);
 }
 
 bool MetaEnv::valid() const {
-    return !(MetaEnv::isUnknown(_platform) &&
-             MetaEnv::isUnknown(_hippoCluster) &&
+    return !(MetaEnv::isUnknown(_platform) && MetaEnv::isUnknown(_hippoCluster) &&
              MetaEnv::isUnknown(_hippoApp) && MetaEnv::isUnknown(_c2role) &&
              MetaEnv::isUnknown(_c2group));
 }

@@ -1,0 +1,66 @@
+{
+"merge_plan":
+  {
+  "merge_segment_id":
+    [
+      0
+    ]
+  },
+"segment_merge_infos":
+  [
+    {
+    "base_doc_id":
+      0,
+    "deleted_doc_count":
+      0,
+    "segment_id":
+      0,
+    "segment_info":
+      {
+      "DocCount":
+        22,
+      "IsMergedSegment":
+        false,
+      "Locator":
+        "6cd0b257000000008e03000000000000",
+      "MaxTTL":
+        0,
+      "Timestamp":
+        1471336557654305
+      },
+    "segment_size":
+      0
+    }
+  ],
+"sub_segment_merge_infos":
+  [
+  ],
+"sub_target_segment_info":
+  {
+  "DocCount":
+    0,
+  "IsMergedSegment":
+    false,
+  "Locator":
+    "",
+  "MaxTTL":
+    0,
+  "Timestamp":
+    -1
+  },
+"target_segment_id":
+  1,
+"target_segment_info":
+  {
+  "DocCount":
+    22,
+  "IsMergedSegment":
+    true,
+  "Locator":
+    "6cd0b257000000008e03000000000000",
+  "MaxTTL":
+    0,
+  "Timestamp":
+    1471336557654305
+  }
+}

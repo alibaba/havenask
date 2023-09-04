@@ -1,20 +1,7 @@
-load('//bazel:defs.bzl', 'cc_proto', 'if_clang')
-load('//bazel:bundle.bzl', 'bundle_files', 'bundle_tar')
-cc_proto(
-    name='index_server_proto',
-    srcs=glob(['index_server/*.proto']),
-    import_prefix='indexlib/legacy/tools/index_server',
-    strip_import_prefix='index_server',
-    visibility=['//visibility:public'],
-    deps=[
-        '//aios/network/arpc:proto',
-        '//aios/storage/indexlib/base/proto:querier_proto'
-    ]
-)
 cc_library(
     name='partition_querier_attr_helper',
-    srcs=glob(['partition_querier/executors/AttrHelper.cpp']),
-    hdrs=glob(['partition_querier/executors/AttrHelper.h']),
+    srcs=['partition_querier/executors/AttrHelper.cpp'],
+    hdrs=['partition_querier/executors/AttrHelper.h'],
     copts=['-Werror'],
     include_prefix='indexlib/legacy/tools',
     visibility=['//visibility:public'],
@@ -28,19 +15,12 @@ cc_library(
 )
 cc_library(
     name='index_partition_querier_lib',
-    srcs=glob([
-        'partition_querier/executors/*Executor.cpp',
-        'partition_querier/executors/*ExecutorV2.cpp'
-    ],
-              exclude=['partition_querier/executors/OrcTableExecutor.cpp']),
-    hdrs=glob([
-        'partition_querier/executors/*Executor.h',
-        'partition_querier/executors/*ExecutorV2.h'
-    ]),
+    srcs=glob(['partition_querier/executors/*Executor.cpp']),
+    hdrs=glob(['partition_querier/executors/*Executor.h']),
     copts=['-Werror'],
     include_prefix='indexlib/legacy/tools',
     visibility=['//visibility:public'],
-    deps=([
+    deps=[
         ':partition_querier_attr_helper',
         '//aios/storage/indexlib/index/attribute:attr_helper',
         '//aios/storage/indexlib/indexlib',
@@ -50,10 +30,5 @@ cc_library(
         '//aios/storage/indexlib/table/kkv_table:table',
         '//aios/storage/indexlib/table/kv_table:table',
         '//aios/storage/indexlib/table/normal_table:table'
-    ] + [])
-)
-filegroup(
-    name='codegen_tool_bin',
-    srcs=glob(['codegen_tool/codegen_tool']),
-    visibility=['//visibility:public']
+    ]
 )

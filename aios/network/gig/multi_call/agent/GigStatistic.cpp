@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/agent/GigStatistic.h"
+
+#include <functional>
+
 #include "aios/network/gig/multi_call/agent/BizStat.h"
 #include "aios/network/gig/multi_call/util/FileRecorder.h"
 #include "autil/Log.h"
 #include "autil/StringUtil.h"
-#include <functional>
 
 using namespace std;
 
@@ -27,7 +29,9 @@ namespace multi_call {
 AUTIL_DECLARE_AND_SETUP_LOGGER(multi_call, GigStatistic);
 
 GigStatistic::GigStatistic(const std::string &logPrefix)
-    : _logPrefix(logPrefix), _otherBizStarted(true) {}
+    : _logPrefix(logPrefix)
+    , _otherBizStarted(true) {
+}
 
 GigStatistic::~GigStatistic() {
     _logThreadPtr.reset();
@@ -42,6 +46,10 @@ GigStatistic::~GigStatistic() {
         }
         _warmUpStrategyMap.clear();
     }
+}
+
+const std::string &GigStatistic::getLogPrefix() const {
+    return _logPrefix;
 }
 
 BizStatPtr GigStatistic::newBizStat() {
@@ -95,8 +103,7 @@ std::vector<BizStatPtr> GigStatistic::getBizStatVec(const std::string &bizName) 
     return statVec;
 }
 
-WarmUpStrategy *
-GigStatistic::getWarmUpStrategy(const std::string &warmUpStrategy) {
+WarmUpStrategy *GigStatistic::getWarmUpStrategy(const std::string &warmUpStrategy) {
     autil::ScopedReadLock lock(_warmUpStrategyMapLock);
     auto it = _warmUpStrategyMap.find(warmUpStrategy);
     if (_warmUpStrategyMap.end() != it) {
@@ -106,8 +113,7 @@ GigStatistic::getWarmUpStrategy(const std::string &warmUpStrategy) {
     }
 }
 
-void GigStatistic::updateWarmUpStrategy(const std::string &warmUpStrategy,
-                                        int64_t timeoutInSecond,
+void GigStatistic::updateWarmUpStrategy(const std::string &warmUpStrategy, int64_t timeoutInSecond,
                                         int64_t queryCountLimit) {
     autil::ScopedWriteLock lock(_warmUpStrategyMapLock);
     auto it = _warmUpStrategyMap.find(warmUpStrategy);
@@ -115,23 +121,25 @@ void GigStatistic::updateWarmUpStrategy(const std::string &warmUpStrategy,
         assert(it->second);
         it->second->update(timeoutInSecond, queryCountLimit);
     } else {
-        _warmUpStrategyMap[warmUpStrategy] =
-            new WarmUpStrategy(timeoutInSecond, queryCountLimit);
+        _warmUpStrategyMap[warmUpStrategy] = new WarmUpStrategy(timeoutInSecond, queryCountLimit);
     }
 }
 
 void GigStatistic::init() {
-    _logThreadPtr = autil::LoopThread::createLoopThread(
-        std::bind(&GigStatistic::logThread, this), UPDATE_TIME_INTERVAL,
-        "GigStatLog");
+    _logThreadPtr = autil::LoopThread::createLoopThread(std::bind(&GigStatistic::logThread, this),
+                                                        UPDATE_TIME_INTERVAL, "GigStatLog");
     if (!_logThreadPtr) {
         AUTIL_LOG(WARN, "start agent log thread failed");
     }
 }
 
-void GigStatistic::start() { updateStartStatAll(true); }
+void GigStatistic::start() {
+    updateStartStatAll(true);
+}
 
-void GigStatistic::stop() { updateStartStatAll(false); }
+void GigStatistic::stop() {
+    updateStartStatAll(false);
+}
 
 bool GigStatistic::stopped() {
     autil::ScopedReadLock lock(_lock);
@@ -207,14 +215,11 @@ void GigStatistic::updateStartStat(const std::string &bizName, PartIdTy partId, 
     stat->resetFilters();
 }
 
-bool GigStatistic::longTimeNoQuery(const std::vector<BizStatPtr> &statVec,
-                                   int64_t second) {
-    int64_t limit = autil::TimeUtility::currentTimeInMicroSeconds() -
-                    second * FACTOR_S_TO_US;
+bool GigStatistic::longTimeNoQuery(const std::vector<BizStatPtr> &statVec, int64_t second) {
+    int64_t limit = autil::TimeUtility::currentTimeInMicroSeconds() - second * FACTOR_S_TO_US;
     for (const auto &stat : statVec) {
         if (stat->lastQueryTimestamp >= limit) {
-            AUTIL_INTERVAL_LOG(3, INFO,
-                               "biz[%s] still has query, time interval[%ld]",
+            AUTIL_INTERVAL_LOG(3, INFO, "biz[%s] still has query, time interval[%ld]",
                                stat->bizName.c_str(), second);
             return false;
         }
@@ -239,25 +244,20 @@ void GigStatistic::logThread() {
         const auto &bizName = pair.first;
         const auto &partMap = pair.second;
         for (const auto &partPair : partMap) {
-            newLogStr += "  " + bizName +
-                         ", partId " + autil::StringUtil::toString(partPair.first) + ": " +
+            newLogStr += "  " + bizName + ", partId " +
+                         autil::StringUtil::toString(partPair.first) + ": " +
                          partPair.second->toString();
         }
     }
     newLogStr += "WarmUpStrategys:\n";
     for (const auto &pair : warmUpStrategyMap) {
-        newLogStr +=
-            "  " + pair.first + ": " +
-            autil::StringUtil::toString(pair.second->_timeout /
-                                        FACTOR_S_TO_US) +
-            " T " + autil::StringUtil::toString(pair.second->_queryCountLimit) +
-            " C\n";
+        newLogStr += "  " + pair.first + ": " +
+                     autil::StringUtil::toString(pair.second->_timeout / FACTOR_S_TO_US) + " T " +
+                     autil::StringUtil::toString(pair.second->_queryCountLimit) + " C\n";
     }
-    newLogStr +=
-        "AgentStarted: " + autil::StringUtil::toString(_otherBizStarted) + "\n";
+    newLogStr += "AgentStarted: " + autil::StringUtil::toString(_otherBizStarted) + "\n";
     if (newLogStr != _logStr) {
-        FileRecorder::recordSnapshot(newLogStr, LOG_COUNT,
-                                     "gig_snapshot/agent/" + _logPrefix);
+        FileRecorder::recordSnapshot(newLogStr, LOG_COUNT, "gig_snapshot/agent/" + _logPrefix);
         _logStr = newLogStr;
     }
 }

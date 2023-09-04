@@ -1,0 +1,25 @@
+{
+"fence_name":
+  "rt_index_partition",
+"format_version":
+  3,
+"hostname":
+  "",
+"last_segmentid":
+  1073741825,
+"locator":
+  "00000000000000000100000000000000",
+"schema_version":
+  0,
+"sealed":
+  false,
+"segments":
+  [
+    1073741824,
+    1073741825
+  ],
+"timestamp":
+  2,
+"versionid":
+  1073741825
+}

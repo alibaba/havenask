@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/common/WorkerNodeInfo.h"
+
 #include "aios/network/gig/multi_call/common/ControllerParam.h"
 #include "autil/StringUtil.h"
 
@@ -24,9 +25,12 @@ using namespace autil::legacy;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, TopoNodeMeta);
 
-TopoNodeMeta::TopoNodeMeta() { clear(); }
+TopoNodeMeta::TopoNodeMeta() {
+    clear();
+}
 
-TopoNodeMeta::~TopoNodeMeta() {}
+TopoNodeMeta::~TopoNodeMeta() {
+}
 
 void TopoNodeMeta::clear() {
     targetWeight = MAX_WEIGHT;
@@ -56,7 +60,9 @@ bool TopoNodeMeta::operator==(const TopoNodeMeta &rhs) const {
            metaEnv == rhs.metaEnv;
 }
 
-void TopoNodeMeta::setMetaEnv(const MetaEnv &env) { metaEnv = env; }
+void TopoNodeMeta::setMetaEnv(const MetaEnv &env) {
+    metaEnv = env;
+}
 
 TopoNode::TopoNode()
     : partCnt(INVALID_PART_COUNT)
@@ -66,8 +72,7 @@ TopoNode::TopoNode()
     , supportHeartbeat(false)
     , isValid(true)
     , ssType(ST_UNKNOWN)
-    , clientInfo(nullptr)
-{
+    , clientInfo(nullptr) {
 }
 
 bool TopoNode::operator==(const TopoNode &rhs) const {
@@ -79,8 +84,7 @@ bool TopoNode::operator<(const TopoNode &rhs) const {
 }
 
 bool TopoNode::generateNodeId() {
-    int32_t maxLength =
-        spec.ip.size() + bizName.size() + ((4 + MC_PROTOCOL_UNKNOWN) * 64) + 12;
+    int32_t maxLength = spec.ip.size() + bizName.size() + ((4 + MC_PROTOCOL_UNKNOWN) * 64) + 12;
     StringAppender appender(maxLength);
     appender.appendString(spec.ip)
         .appendChar('_')
@@ -141,13 +145,13 @@ void TopoNode::fillNodeMeta(const cm_basic::NodeMetaInfo &metaInfo) {
     }
 
     if (weight < meta.targetWeight) {
-        meta.targetWeight =
-            weight; // used in SearchServiceProvider as min weight
+        meta.targetWeight = weight; // used in SearchServiceProvider as min weight
     }
 }
 
-std::ostream& operator<<(std::ostream& os, const TopoNode& node) {
-    os << node.spec << '_' << node.bizName << '_' << node.partCnt << '_' << node.partId << '_' << node.version;
+std::ostream &operator<<(std::ostream &os, const TopoNode &node) {
+    os << node.spec << '_' << node.bizName << '_' << node.partCnt << '_' << node.partId << '_'
+       << node.version;
     return os;
 }
 

@@ -82,7 +82,7 @@ private:
 private:
     ChunkReader _chunkReader;
     ChunkData _chunkData = ChunkData::Invalid();
-    uint32_t _chunkOffset = 0u;
+    uint64_t _chunkOffset = 0u;
     uint32_t _inChunkOffset = 0u;
 
 private:

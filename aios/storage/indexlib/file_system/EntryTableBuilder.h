@@ -24,7 +24,7 @@
 #include "indexlib/file_system/ErrorCode.h"
 #include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileSystemDefine.h"
-#include "indexlib/file_system/MountDirOption.h"
+#include "indexlib/file_system/MountOption.h"
 
 namespace indexlib { namespace file_system {
 
@@ -50,17 +50,17 @@ public:
     // [physicalRoot]/... ->  [logicalPath]/...
     // logicalPath is logicalPath
     ErrorCode MountVersion(const std::string& physicalRoot, versionid_t versionId, const std::string& logicalPath,
-                           MountDirOption mountOption);
+                           MountOption mountOption);
     // [physicalRoot + physicalPath]/... -->  [logicalPath]/...
     // smart processed segment file list, including truncate_meta, adaptive_bitmap_meta...
     ErrorCode MountSegment(const std::string& physicalRoot, const std::string& physicalPath,
                            const std::string& logicalPath, FSMountType mountType);
     // [physicalRoot + physicalPath]/... -->  [logicalPath]/...
     ErrorCode MountDirRecursive(const std::string& physicalRoot, const std::string& physicalPath,
-                                const std::string& logicalPath, MountDirOption mountOption);
+                                const std::string& logicalPath, MountOption mountOption);
     // MountDirLazy only mount one entry which is the dir itself
     ErrorCode MountDirLazy(const std::string& physicalRoot, const std::string& physicalPath,
-                           const std::string& logicalPath, MountDirOption mountOption);
+                           const std::string& logicalPath, MountOption mountOption);
     ErrorCode MountPackageDir(const std::string& physicalRoot, const std::string& physicalPath,
                               const std::string& logicalDirPath, FSMountType mountType);
     // [physicalRoot + physicalPath] -->  [logicalPath]

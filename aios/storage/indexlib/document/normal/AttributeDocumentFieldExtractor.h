@@ -30,11 +30,11 @@ class AttributeDocument;
 }
 namespace indexlibv2::config {
 class ITabletSchema;
-class AttributeConfig;
 } // namespace indexlibv2::config
 namespace indexlibv2::index {
 class PackAttributeFormatter;
-}
+class AttributeConfig;
+} // namespace indexlibv2::index
 
 namespace indexlibv2::document {
 
@@ -47,13 +47,13 @@ public:
 
 private:
     void AddPackAttributeFormatter(std::unique_ptr<index::PackAttributeFormatter> formatter, packattrid_t packId);
-    void AddAttributeConfig(const std::shared_ptr<config::AttributeConfig>& attrConfig);
-    const std::shared_ptr<config::AttributeConfig>& GetAttributeConfig(fieldid_t fieldId) const;
+    void AddAttributeConfig(const std::shared_ptr<index::AttributeConfig>& attrConfig);
+    const std::shared_ptr<index::AttributeConfig>& GetAttributeConfig(fieldid_t fieldId) const;
 
 private:
     std::vector<std::unique_ptr<index::PackAttributeFormatter>> _packFormatters; // index by packId
     std::shared_ptr<config::ITabletSchema> _schema;
-    std::vector<std::shared_ptr<config::AttributeConfig>> _attrConfigs; // index by fieldId
+    std::vector<std::shared_ptr<index::AttributeConfig>> _attrConfigs; // index by fieldId
 
 private:
     AUTIL_LOG_DECLARE();

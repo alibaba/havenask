@@ -1,0 +1,18 @@
+{
+    "cluster_config" : {
+	"cluster_name" : "simple",
+	"table_name" : "simple",
+	"hash_mode" : {
+	    "hash_field" : "key",
+	    "hash_function" : "HASH"
+	}
+    },
+    "build_option_config" : {
+	"sort_build" : false
+    },
+    "offline_index_config" : {
+	"build_config" : {
+	    "dump_thread_count" : 1
+	}
+    }
+}

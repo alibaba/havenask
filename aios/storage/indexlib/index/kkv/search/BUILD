@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=[':__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='search',
     srcs=[],
     hdrs=[
@@ -14,7 +14,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util/cache'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='kkv_index_reader',
     srcs=['KKVIndexReader.cpp'],
     hdrs=['KKVIndexReader.h'],
@@ -25,7 +25,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index:IIndexReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='search_iterator',
     srcs=['KKVIterator.cpp'],
     hdrs=['KKVIterator.h', 'KKVIteratorImplBase.h'],
@@ -43,13 +43,13 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BufferedKKVIteratorImpl',
     srcs=[],
     visibility=['//aios/storage/indexlib/index/kkv:__subpackages__'],
     deps=[':search_iterator']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SearchCacheContext',
     srcs=[],
     visibility=['//aios/storage/indexlib/index/kkv:__subpackages__'],
@@ -62,7 +62,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util/cache'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SearchContext',
     srcs=[],
     visibility=['//aios/storage/indexlib/index/kkv:__subpackages__'],
@@ -75,7 +75,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util/cache'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVMetricsRecorder',
     visibility=['//aios/storage/indexlib/index/kkv:__subpackages__'],
     deps=['//aios/kmonitor:kmonitor_cpp_adapter']

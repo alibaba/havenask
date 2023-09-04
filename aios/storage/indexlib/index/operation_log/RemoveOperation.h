@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include "indexlib/base/Progress.h"
 #include "indexlib/index/operation_log/OperationBase.h"
 #include "indexlib/index/operation_log/OperationLogProcessor.h"
 #include "indexlib/index/operation_log/OperationRedoHint.h"
@@ -27,7 +28,7 @@ template <typename T>
 class RemoveOperation : public OperationBase
 {
 public:
-    RemoveOperation(int64_t timestamp, uint16_t hashId) : OperationBase(timestamp, hashId) {}
+    RemoveOperation(const indexlibv2::document::IDocument::DocInfo& docInfo) : OperationBase(docInfo) {}
     ~RemoveOperation() {}
 
 public:
@@ -75,7 +76,7 @@ bool RemoveOperation<T>::Load(autil::mem_pool::Pool* pool, char*& cursor)
 template <typename T>
 OperationBase* RemoveOperation<T>::Clone(autil::mem_pool::Pool* pool)
 {
-    RemoveOperation* clonedOperation = IE_POOL_COMPATIBLE_NEW_CLASS(pool, RemoveOperation, _timestamp, _hashId);
+    RemoveOperation* clonedOperation = IE_POOL_COMPATIBLE_NEW_CLASS(pool, RemoveOperation, _docInfo);
     clonedOperation->Init(_pkHash, _segmentId);
     return clonedOperation;
 }

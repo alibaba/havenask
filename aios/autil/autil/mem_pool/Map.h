@@ -15,45 +15,43 @@
  */
 #pragma once
 
-#include <map>
-#include <autil/mem_pool/Pool.h>
 #include <autil/DataBuffer.h>
+#include <autil/mem_pool/Pool.h>
 #include <autil/mem_pool/pool_allocator.h>
+#include <map>
 
-namespace autil { namespace mem_pool {
+namespace autil {
+namespace mem_pool {
 
-template<class K, class T>
+template <class K, class T>
 class Map : public std::map<K, T, std::less<K>, autil::mem_pool::pool_allocator<std::pair<K const, T>>> {
- public:
-    typedef std::size_t                                     size_type;
-    typedef T                                               mapped_type;
-    typedef K                                               key_type;
-    typedef std::pair<K const, T>                           value_type;
-    typedef autil::mem_pool::Pool*                          pool_pointer;
-    typedef autil::mem_pool::pool_allocator<value_type>     allocator_type;
-    typedef std::map<K, T, std::less<K>, allocator_type>    map;
+public:
+    typedef std::size_t size_type;
+    typedef T mapped_type;
+    typedef K key_type;
+    typedef std::pair<K const, T> value_type;
+    typedef autil::mem_pool::Pool *pool_pointer;
+    typedef autil::mem_pool::pool_allocator<value_type> allocator_type;
+    typedef std::map<K, T, std::less<K>, allocator_type> map;
 
- public:
+public:
     explicit Map(pool_pointer pool) : map(allocator_type(pool)) {}
     ~Map() {}
 
- public:
-    Map(const Map& x) : map(x) {}
-    Map(const Map& x, const allocator_type& allocator)
-        : map(x, allocator) {}
+public:
+    Map(const Map &x) : map(x) {}
+    Map(const Map &x, const allocator_type &allocator) : map(x, allocator) {}
 
- public:
-    __attribute__((always_inline))
-    void serialize(autil::DataBuffer& dataBuffer) const {
+public:
+    __attribute__((always_inline)) void serialize(autil::DataBuffer &dataBuffer) const {
         uint32_t size = this->size();
         dataBuffer.write(size);
-        for (auto& it : *this) {
+        for (auto &it : *this) {
             dataBuffer.write(it.first);
             dataBuffer.write(it.second);
         }
     }
-    __attribute__((always_inline))
-    void deserialize(autil::DataBuffer& dataBuffer) {
+    __attribute__((always_inline)) void deserialize(autil::DataBuffer &dataBuffer) {
         uint32_t size = 0;
         dataBuffer.read(size);
         this->clear();
@@ -67,41 +65,34 @@ class Map : public std::map<K, T, std::less<K>, autil::mem_pool::pool_allocator<
     }
 };
 
-template<class K, class T>
-class Map<K, T*> : public std::map<K, T*, std::less<K>, autil::mem_pool::pool_allocator<std::pair<K const, T*>>> {
- public:
-    typedef std::size_t                                     size_type;
-    typedef T*                                              mapped_type;
-    typedef K                                               key_type;
-    typedef std::pair<K const, T*>                          value_type;
-    typedef autil::mem_pool::Pool*                          pool_pointer;
-    typedef autil::mem_pool::pool_allocator<value_type>     allocator_type;
-    typedef std::map<K, T*, std::less<K>, allocator_type>   map;
+template <class K, class T>
+class Map<K, T *> : public std::map<K, T *, std::less<K>, autil::mem_pool::pool_allocator<std::pair<K const, T *>>> {
+public:
+    typedef std::size_t size_type;
+    typedef T *mapped_type;
+    typedef K key_type;
+    typedef std::pair<K const, T *> value_type;
+    typedef autil::mem_pool::Pool *pool_pointer;
+    typedef autil::mem_pool::pool_allocator<value_type> allocator_type;
+    typedef std::map<K, T *, std::less<K>, allocator_type> map;
 
- public:
+public:
     explicit Map(pool_pointer pool) : map(allocator_type(pool)), _pool(pool) {}
 
- public:
-    Map(const Map& x) : map(x) {
-        _pool = x.get_allocator().pool();
-    }
-    Map(const Map& x, const allocator_type& allocator)
-        : map(x, allocator) {
-        _pool = allocator.pool();
-    }
+public:
+    Map(const Map &x) : map(x) { _pool = x.get_allocator().pool(); }
+    Map(const Map &x, const allocator_type &allocator) : map(x, allocator) { _pool = allocator.pool(); }
 
- public:
-    __attribute__((always_inline))
-    void serialize(autil::DataBuffer& dataBuffer) const {
+public:
+    __attribute__((always_inline)) void serialize(autil::DataBuffer &dataBuffer) const {
         uint32_t size = this->size();
         dataBuffer.write(size);
-        for (auto& it : *this) {
+        for (auto &it : *this) {
             dataBuffer.write(it.first);
             dataBuffer.write(*(it.second));
         }
     }
-    __attribute__((always_inline))
-    void deserialize(autil::DataBuffer& dataBuffer) {
+    __attribute__((always_inline)) void deserialize(autil::DataBuffer &dataBuffer) {
         uint32_t size = 0;
         dataBuffer.read(size);
         this->clear();
@@ -114,10 +105,9 @@ class Map<K, T*> : public std::map<K, T*, std::less<K>, autil::mem_pool::pool_al
         }
     }
 
- private:
+private:
     pool_pointer _pool;
 };
 
-}
-}
-
+} // namespace mem_pool
+} // namespace autil

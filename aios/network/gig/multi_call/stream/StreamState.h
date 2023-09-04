@@ -40,7 +40,8 @@ enum FinishStatus {
     FS_FINISHED,
 };
 
-class StreamState {
+class StreamState
+{
 public:
     StreamState();
     ~StreamState();

@@ -1,0 +1,32 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+strict_cc_fast_test(
+    name='DocumentRewriteChainTest',
+    srcs=['DocumentRewriteChainTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/document/document_rewriter:DocumentRewriteChain',
+        '//aios/storage/indexlib/document/document_rewriter:IDocumentRewriter',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='TTLSetterTest',
+    srcs=['TTLSetterTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/document:DocumentBatch',
+        '//aios/storage/indexlib/document/document_rewriter:TTLSetter',
+        '//aios/storage/indexlib/index/common/field_format/attribute:AttributeConvertorFactory',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='DocumentInfoToAttributeRewriterTest',
+    srcs=['DocumentInfoToAttributeRewriterTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/document:DocumentBatch',
+        '//aios/storage/indexlib/document/document_rewriter:DocumentInfoToAttributeRewriter',
+        '//aios/storage/indexlib/document/document_rewriter:IDocumentRewriter',
+        '//aios/unittest_framework'
+    ]
+)

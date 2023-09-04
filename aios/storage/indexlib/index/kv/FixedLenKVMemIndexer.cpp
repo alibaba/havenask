@@ -85,10 +85,7 @@ Status FixedLenKVMemIndexer::DoDump(autil::mem_pool::PoolBase* pool,
     return s;
 }
 
-void FixedLenKVMemIndexer::UpdateMemoryUsage(MemoryUsage& memoryUsage) const
-{
-    _keyWriter.UpdateMemoryUsage(memoryUsage);
-}
+void FixedLenKVMemIndexer::FillMemoryUsage(MemoryUsage& memoryUsage) const { _keyWriter.FillMemoryUsage(memoryUsage); }
 
 void FixedLenKVMemIndexer::DoFillStatistics(SegmentStatistics& stat) const
 {

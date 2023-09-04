@@ -77,6 +77,8 @@ void TabletMetrics::RegisterReOpenMetrics()
     REGISTER_TABLET_REOPEN_METRIC(preloadLatency);
     REGISTER_TABLET_REOPEN_METRIC(finalLoadLatency);
     REGISTER_TABLET_REOPEN_METRIC(incVersionFreshness);
+    REGISTER_TABLET_REOPEN_METRIC(incVersionLatestTaskFreshness);
+
 #undef REGISTER_TABLET_REOPEN_METRIC
 }
 
@@ -109,7 +111,11 @@ void TabletMetrics::ReportPartitionMetrics()
     INDEXLIB_FM_REPORT_METRIC(tabletFaultCount);
 }
 
-void TabletMetrics::ReportReOpenMetrics() { INDEXLIB_FM_REPORT_METRIC(incVersionFreshness); }
+void TabletMetrics::ReportReOpenMetrics()
+{
+    INDEXLIB_FM_REPORT_METRIC(incVersionFreshness);
+    INDEXLIB_FM_REPORT_METRIC(incVersionLatestTaskFreshness);
+}
 
 void TabletMetrics::ReportOnlineMetrics()
 {
@@ -147,8 +153,7 @@ void TabletMetrics::PrintMetrics(const std::string& tabletName, int64_t printMet
     if (currentTsInSeconds - _lastPrintMetricsTs > printMetricsInterval) {
         std::map<std::string, std::string> infoMap;
         FillMetricsInfo(infoMap);
-        TABLET_LOG(INFO, "Print TabletMetrics for table [%s], %s", tabletName.c_str(),
-                   autil::legacy::ToJsonString(infoMap, true).c_str());
+        TABLET_LOG(INFO, "TabletMetrics: %s", autil::legacy::ToJsonString(infoMap, true).c_str());
         _lastPrintMetricsTs = currentTsInSeconds;
     }
 }
@@ -159,6 +164,8 @@ void TabletMetrics::FillMetricsInfo(std::map<std::string, std::string>& infoMap)
     infoMap["partitionMemoryUse"] = autil::StringUtil::toString(_partitionMemoryUse);
     infoMap["incIndexMemoryUse"] = autil::StringUtil::toString(_incIndexMemoryUse);
     infoMap["rtIndexMemoryUse"] = autil::StringUtil::toString(_rtIndexMemoryUse);
+    infoMap["dumpingSegmentMemoryUse"] = autil::StringUtil::toString(_dumpingSegmentMemoryUse);
+    infoMap["dumpingSegmentCount"] = autil::StringUtil::toString(_dumpingSegmentCount);
     infoMap["builtRtIndexMemoryUse"] = autil::StringUtil::toString(_builtRtIndexMemoryUse);
     infoMap["buildingSegmentMemoryUse"] = autil::StringUtil::toString(_buildingSegmentMemoryUse);
     infoMap["partitionMemoryQuotaUse"] = autil::StringUtil::toString(_partitionMemoryQuotaUse);
@@ -166,6 +173,7 @@ void TabletMetrics::FillMetricsInfo(std::map<std::string, std::string>& infoMap)
     infoMap["latestReaderVersionId"] = autil::StringUtil::toString(_latestReaderVersionId);
     infoMap["oldestReaderVersionId"] = autil::StringUtil::toString(_oldestReaderVersionId);
     infoMap["incVersionFreshness"] = autil::StringUtil::toString(_incVersionFreshness);
+    infoMap["incVersionLatestTaskFreshness"] = autil::StringUtil::toString(_incVersionLatestTaskFreshness);
     if (_faultManager) {
         infoMap["tabletFaults"] = autil::legacy::ToJsonString(*_faultManager);
     }
@@ -211,23 +219,24 @@ void TabletMetrics::UpdateMetrics(const std::shared_ptr<TabletReaderContainer>& 
     SettabletFaultCountValue(tabletFaultCount);
 
     // ===> from calculator view
-    size_t dumppingSegmentMemsize = _tabletMemoryCalculator->GetDumpingSegmentMemsize();
-    size_t rtBuiltSegmentMemsize = _tabletMemoryCalculator->GetRtBuiltSegmentsMemsize();
-    size_t buildingSegmentMemsize = _tabletMemoryCalculator->GetBuildingSegmentMemsize();
-    size_t rtIndexMemoryUse = rtBuiltSegmentMemsize + buildingSegmentMemsize + dumppingSegmentMemsize;
+    size_t dumpingSegmentMemoryUse = _tabletMemoryCalculator->GetDumpingSegmentMemsize();
+    size_t builtRtIndexMemoryUse = _tabletMemoryCalculator->GetRtBuiltSegmentsMemsize();
+    size_t buildingSegmentMemoryUse = _tabletMemoryCalculator->GetBuildingSegmentMemsize();
+    size_t rtIndexMemoryUse = builtRtIndexMemoryUse + buildingSegmentMemoryUse + dumpingSegmentMemoryUse;
     SetdumpingSegmentCountValue((int64_t)_tabletDumper->GetDumpQueueSize());
-    SetbuildingSegmentMemoryUseValue(buildingSegmentMemsize);
-    SetdumpingSegmentMemoryUseValue(dumppingSegmentMemsize);
-    SetbuiltRtIndexMemoryUseValue(rtBuiltSegmentMemsize);
-    SetincIndexMemoryUseValue(_tabletMemoryCalculator->GetIncIndexMemsize());
+    SetbuildingSegmentMemoryUseValue(buildingSegmentMemoryUse);
+    SetdumpingSegmentMemoryUseValue(dumpingSegmentMemoryUse);
+    SetbuiltRtIndexMemoryUseValue(builtRtIndexMemoryUse);
+    size_t incIndexMemoryUse = _tabletMemoryCalculator->GetIncIndexMemsize();
+    SetincIndexMemoryUseValue(incIndexMemoryUse);
     // TODO(xinfei.sxf) refactor "index size" to "memory size"
     // built segment: incBuilt + rtBuilt
     const size_t incIndexSize = GetIncIndexSize(tabletData, fileSystem);
-    SetpartitionIndexSizeValue(incIndexSize + rtBuiltSegmentMemsize);
+    SetpartitionIndexSizeValue(incIndexSize + builtRtIndexMemoryUse);
     // rt index: rtBuilt + dumping + building
     SetrtIndexMemoryUseValue(rtIndexMemoryUse);
     // incBuilt + rtBuilt + dumping + building
-    SetpartitionMemoryUseValue(_tabletMemoryCalculator->GetIncIndexMemsize() + rtIndexMemoryUse);
+    SetpartitionMemoryUseValue(incIndexMemoryUse + rtIndexMemoryUse);
 
     // ====> from controller view
     double rtIndexMemoryRatio = (double)rtIndexMemoryUse / maxRtMemsize;
@@ -260,6 +269,10 @@ void TabletMetrics::UpdateMetrics(const std::shared_ptr<TabletReaderContainer>& 
     if (latestIncVersionTs != INVALID_TIMESTAMP && currentTs > latestIncVersionTs) {
         SetincVersionFreshnessValue((currentTs - latestIncVersionTs) / 1000);
     }
+    int64_t latestIncVersionTaskTs = tabletReaderContainer->GetLatestIncVersionTaskLogTimestamp();
+    if (latestIncVersionTaskTs != 0) {
+        SetincVersionLatestTaskFreshnessValue((currentTs - latestIncVersionTaskTs) / 1000);
+    }
 }
 
 size_t TabletMetrics::GetTabletMemoryUse() const
@@ -268,7 +281,7 @@ size_t TabletMetrics::GetTabletMemoryUse() const
     if (_tabletMemoryCalculator == nullptr) {
         return 0;
     }
-    return _tabletMemoryCalculator->GetIncIndexMemsize();
+    return _tabletMemoryCalculator->GetIncIndexMemsize() + _tabletMemoryCalculator->GetRtIndexMemsize();
 }
 
 size_t TabletMetrics::GetRtIndexMemsize() const

@@ -27,6 +27,7 @@
 #include "build_service/util/Log.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/framework/CommitOptions.h"
 #include "indexlib/framework/VersionCoord.h"
 #include "indexlib/framework/VersionMeta.h"
 
@@ -77,7 +78,8 @@ public:
     void switchToConsistentMode() override;
 
 public:
-    std::pair<indexlib::Status, indexlibv2::framework::VersionMeta> commit();
+    std::pair<indexlib::Status, indexlibv2::framework::VersionMeta>
+    commit(const indexlibv2::framework::CommitOptions& options);
     void resetNeedReconstruct() { _needReconstruct.store(false); }
 
 protected:
@@ -87,13 +89,12 @@ protected:
     void setSealed();
 
 private:
-    void ReportMetrics(const std::shared_ptr<indexlibv2::document::IDocumentBatch>& batch);
+    void ReportCounters(const std::shared_ptr<indexlibv2::document::IDocumentBatch>& batch);
     std::pair<indexlib::Status, indexlibv2::framework::Version> getLatestVersion() const;
 
 protected:
     std::mutex _buildMutex;
     std::shared_ptr<indexlibv2::framework::ITablet> _tablet;
-    BuilderMetrics _builderMetrics;
     std::shared_ptr<indexlib::util::AccumulativeCounter> _totalDocCountCounter;
     std::shared_ptr<indexlib::util::StateCounter> _builderDocCountCounter;
 

@@ -38,7 +38,6 @@
 #include "indexlib/index/common/patch/PatchFileInfos.h"
 #include "indexlib/index/deletionmap/DeletionMapDiskIndexer.h"
 #include "indexlib/index/deletionmap/DeletionMapPatchWriter.h"
-#include "indexlib/table/index_task/merger/MergeUtil.h"
 #include "indexlib/table/normal_table/NormalMemSegment.h"
 #include "indexlib/table/normal_table/index_task/Common.h"
 #include "indexlib/table/normal_table/index_task/PatchedDeletionMapLoader.h"
@@ -145,8 +144,8 @@ Status NormalTableReclaimOperation::DumpSegment(const framework::IndexTaskContex
     auto tabletOptions = context.GetTabletOptions();
     auto memSegment = std::make_unique<NormalMemSegment>(tabletOptions.get(), segmentMeta.schema, segmentMeta);
     framework::BuildResource resource;
-    resource.memController = std::make_shared<MemoryQuotaController>(
-        "merge", tabletOptions->GetOfflineConfig().GetMergeConfig().GetMaxMergeMemoryUse());
+    resource.memController =
+        std::make_shared<MemoryQuotaController>("merge", context.GetMergeConfig().GetMaxMergeMemoryUse());
 
     auto status = memSegment->Open(resource, nullptr);
     RETURN_IF_STATUS_ERROR(status, "mem segment [%s] failed", segmentMeta.segmentDir->DebugString().c_str());
@@ -197,7 +196,8 @@ Status NormalTableReclaimOperation::ReclaimByTTL(const framework::IndexTaskConte
 {
     int64_t reclaimDocCount = 0;
     auto currentTimeInSeconds = context.GetClock()->NowInSeconds();
-    auto [status, ttlFieldName] = context.GetTabletSchema()->GetSetting<std::string>("ttl_field_name");
+    auto [status, ttlFieldName] =
+        context.GetTabletSchema()->GetRuntimeSettings().GetValue<std::string>("ttl_field_name");
     RETURN_IF_STATUS_ERROR(status, "get ttl field failed");
     for (auto [segmentId, docCount] : segmentId2DocCount) {
         auto segment = context.GetTabletData()->GetSegment(segmentId);
@@ -286,7 +286,7 @@ Status NormalTableReclaimOperation::Execute(const framework::IndexTaskContext& c
     index::DeletionMapPatchWriter writer(nullptr, segmentId2DocCount);
 
     // ttl reclaim
-    auto [enableTTLStatus, enableTTL] = context.GetTabletSchema()->GetSetting<bool>("enable_ttl");
+    auto [enableTTLStatus, enableTTL] = context.GetTabletSchema()->GetRuntimeSettings().GetValue<bool>("enable_ttl");
     if (enableTTLStatus.IsOK() && enableTTL) {
         auto status = ReclaimByTTL(context, segmentId2DocCount, &writer);
         RETURN_STATUS_DIRECTLY_IF_ERROR(status);

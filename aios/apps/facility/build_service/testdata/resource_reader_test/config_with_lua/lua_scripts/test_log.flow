@@ -1,0 +1,26 @@
+--[[
+Flow.parameter : flow related kv parameters 
+Flow.createTask(taskId, taskType, taskKvParam = nil) 
+Flow.getTaskProperty(taskId, key, flowId = nil) 
+Flow.getTaskInFlow(taskId, flowId) 
+Flow.setError(msg) 
+Flow.setFatalError(msg) 
+Flow.setProperty(key, value) 
+Flow.getProperty(key) 
+Flow.startTask(taskObj, kvParam = nil) 
+Flow.stopTask(taskObj, kvParam = nil) 
+######################################################### 
+function stepRunFlow() will be called by single TaskFlow, return true means eof of flow 
+--]]
+
+#import(Tool)
+#import(Log)
+
+function stepRunFlow()
+    list = { "1", "2", "3" }
+    map = { k1="v1", k2="v2" }
+
+    local listJson = Tool.listToJson(list)
+    Log.log("INFO", "listJson:"..listJson)
+    return true
+end

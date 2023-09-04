@@ -15,74 +15,46 @@
  */
 #include "Exception.h"
 
-#include <execinfo.h>
-#include <stdlib.h>
 #include <cxxabi.h>
-#include <sstream>
+#include <execinfo.h>
 #include <iostream>
+#include <sstream>
+#include <stdlib.h>
 
 namespace arpc {
 namespace common {
 
 Exception::Exception(const std::string &message) throw()
-    : mMessage(message),
-      mFile("<unknown file>"),
-      mFunction("<unknown function>"),
-      mLine(-1),
-      mStackTraceSize(0)
-{
-}
+    : mMessage(message), mFile("<unknown file>"), mFunction("<unknown function>"), mLine(-1), mStackTraceSize(0) {}
 
-Exception::Exception(const std::string &message,
-                     const Exception &cause) throw()
-    : mNestedException(cause.Clone()),
-      mMessage(message),
-      mFile("<unknown file>"),
-      mFunction("<unknown function>"),
-      mLine(-1),
-      mStackTraceSize(0)
-{
-}
+Exception::Exception(const std::string &message, const Exception &cause) throw()
+    : mNestedException(cause.Clone())
+    , mMessage(message)
+    , mFile("<unknown file>")
+    , mFunction("<unknown function>")
+    , mLine(-1)
+    , mStackTraceSize(0) {}
 
-Exception::~Exception() throw()
-{
-}
+Exception::~Exception() throw() {}
 
-ExceptionPtr Exception::Clone() const
-{
-    return ExceptionPtr(new Exception(*this));
-}
+ExceptionPtr Exception::Clone() const { return ExceptionPtr(new Exception(*this)); }
 
-void Exception::Init(const char *file, const char *function, int line)
-{
+void Exception::Init(const char *file, const char *function, int line) {
     mFile = file;
     mFunction = function;
     mLine = line;
     mStackTraceSize = backtrace(mStackTrace, MAX_STACK_TRACE_SIZE);
 }
 
-ExceptionPtr Exception::GetCause() const
-{
-    return mNestedException;
-}
+ExceptionPtr Exception::GetCause() const { return mNestedException; }
 
-const char *Exception::GetClassName() const
-{
-    return "Exception";
-}
+const char *Exception::GetClassName() const { return "Exception"; }
 
-const std::string &Exception::GetMessage() const
-{
-    return mMessage;
-}
+const std::string &Exception::GetMessage() const { return mMessage; }
 
-const char *Exception::what() const throw()
-{
-    return ToString().c_str();
-}
+const char *Exception::what() const throw() { return ToString().c_str(); }
 
-const std::string &Exception::ToString() const
-{
+const std::string &Exception::ToString() const {
     if (mWhat.empty()) {
         std::stringstream result;
 
@@ -113,8 +85,7 @@ const std::string &Exception::ToString() const
     return mWhat;
 }
 
-std::string Exception::GetStackTrace() const
-{
+std::string Exception::GetStackTrace() const {
     if (mStackTraceSize == 0) {
         return "<No stack trace>\n";
     }
@@ -140,8 +111,7 @@ std::string Exception::GetStackTrace() const
 
         ++begin;
         int status;
-        char *s = abi::__cxa_demangle(mangledName.substr(begin, end - begin).c_str(),
-                                      NULL, 0, &status);
+        char *s = abi::__cxa_demangle(mangledName.substr(begin, end - begin).c_str(), NULL, 0, &status);
 
         if (status != 0) {
             result << mangledName;
@@ -157,8 +127,7 @@ std::string Exception::GetStackTrace() const
         //
         // Can't just ignore frame#0 because the compiler might
         // inline Exception::Init.
-        if (i == 0
-                && demangledName == "apsara::common2::Exception::Init(char const*, char const*, int)")
+        if (i == 0 && demangledName == "apsara::common2::Exception::Init(char const*, char const*, int)")
             continue;
 
         result << mangledName.substr(0, begin);
@@ -172,6 +141,5 @@ std::string Exception::GetStackTrace() const
     return result.str();
 }
 
-}
-}
-
+} // namespace common
+} // namespace arpc

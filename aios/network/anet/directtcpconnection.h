@@ -16,9 +16,10 @@
 #ifndef ANET_DIRECTTCPCONNECTION_H_
 #define ANET_DIRECTTCPCONNECTION_H_
 
-#include "aios/network/anet/tcpconnection.h"
-#include "aios/network/anet/directpacket.h"
 #include <stddef.h>
+
+#include "aios/network/anet/directpacket.h"
+#include "aios/network/anet/tcpconnection.h"
 
 namespace anet {
 
@@ -49,6 +50,6 @@ private:
     DirectPacket *_writingPacket = nullptr;
 };
 
-}  // namespace anet
+} // namespace anet
 
-#endif  // ANET_DIRECTTCPCONNECTION_H_
+#endif // ANET_DIRECTTCPCONNECTION_H_

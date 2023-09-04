@@ -36,7 +36,7 @@ bool LevelMeta::RemoveSegment(segmentid_t segmentId)
         if (*iter == segmentId) {
             switch (topology) {
             case topo_sequence:
-            case topo_hash_range:
+            case topo_key_range:
                 segments.erase(iter);
                 break;
             case topo_hash_mod:
@@ -55,7 +55,7 @@ void LevelMeta::Clear()
 {
     switch (topology) {
     case topo_sequence:
-    case topo_hash_range:
+    case topo_key_range:
         segments.clear();
         break;
     case topo_hash_mod: {
@@ -107,8 +107,8 @@ void LevelInfo::Init(LevelTopology topo, uint32_t levelNum, size_t shardCount)
             levelMetas[i].segments.resize(shardCount, INVALID_SEGMENTID);
             break;
         case topo_sequence:
+        case topo_key_range:
             break;
-        case topo_hash_range:
         case topo_default:
             assert(false);
             break;
@@ -127,6 +127,36 @@ void LevelInfo::AddLevel(LevelTopology levelTopo)
 void LevelInfo::AddSegment(segmentid_t segmentId)
 {
     levelMetas[0].segments.push_back(segmentId); // New segments push to Level 0, for build
+}
+
+bool LevelInfo::AddSegment(segmentid_t segmentId, uint32_t levelIdx)
+{
+    if (levelIdx == levelMetas.size()) {
+        if (levelIdx == 0) {
+            AddLevel(topo_sequence);
+        } else {
+            AddLevel(topo_key_range);
+        }
+    }
+    if (levelIdx < levelMetas.size()) {
+        auto& levelMeta = levelMetas[levelIdx];
+        if (levelIdx != 0 && levelMeta.topology != topo_key_range) {
+            AUTIL_LOG(ERROR, "not support add segment with assigned non-zero level idx "
+                             "with non topo_key_range topology");
+            return false;
+        }
+        for (const auto& id : levelMeta.segments) {
+            if (segmentId == id) {
+                AUTIL_LOG(ERROR, "segment id conflicts, segId[%d] already exists", id);
+                return false;
+            }
+        }
+        levelMeta.segments.push_back(segmentId);
+    } else {
+        AUTIL_LOG(ERROR, "invalid new level idx[%u], current max level idx [%lu]", levelIdx, levelMetas.size());
+        return false;
+    }
+    return true;
 }
 
 Status LevelInfo::Import(const std::vector<std::shared_ptr<LevelInfo>>& otherLevelInfos,
@@ -171,7 +201,7 @@ Status LevelInfo::Import(const std::vector<std::shared_ptr<LevelInfo>>& otherLev
                           LevelMeta::TopologyToStr(newMeta.topology).c_str());
                 return Status::InvalidArgs();
             }
-            if (baseMeta.topology == topo_sequence) {
+            if (baseMeta.topology == topo_sequence || baseMeta.topology == topo_key_range) {
                 auto status = ImportTopoSequenceLevel(newSegmentsHint, newMeta, baseMeta, segmentIds);
                 if (!status.IsOK()) {
                     return status;
@@ -305,7 +335,7 @@ vector<segmentid_t> LevelInfo::GetSegmentIds(size_t globalShardId) const
     vector<segmentid_t> ret;
     size_t globalShardCount = GetShardCount();
     for (auto& levelMeta : levelMetas) {
-        if (levelMeta.topology == topo_sequence || levelMeta.topology == topo_hash_range) {
+        if (levelMeta.topology == topo_sequence || levelMeta.topology == topo_key_range) {
             ret.insert(ret.end(), levelMeta.segments.rbegin(), levelMeta.segments.rend());
         } else if (levelMeta.topology == topo_hash_mod) {
             size_t currentShardCount = levelMeta.segments.size();
@@ -329,8 +359,8 @@ std::string LevelMeta::TopologyToStr(LevelTopology topology)
         return TOPOLOGY_SEQUENCE_STR;
     case topo_hash_mod:
         return TOPOLOGY_HASH_MODE_STR;
-    case topo_hash_range:
-        return TOPOLOGY_HASH_RANGE_STR;
+    case topo_key_range:
+        return TOPOLOGY_KEY_RANGE_STR;
     case topo_default:
         return TOPOLOGY_DEFAULT_STR;
     }
@@ -344,8 +374,8 @@ LevelTopology LevelMeta::StrToTopology(const std::string& str)
         return topo_sequence;
     } else if (str == TOPOLOGY_HASH_MODE_STR) {
         return topo_hash_mod;
-    } else if (str == TOPOLOGY_HASH_RANGE_STR) {
-        return topo_hash_range;
+    } else if (str == TOPOLOGY_KEY_RANGE_STR) {
+        return topo_key_range;
     } else if (str == TOPOLOGY_DEFAULT_STR) {
         return topo_default;
     }

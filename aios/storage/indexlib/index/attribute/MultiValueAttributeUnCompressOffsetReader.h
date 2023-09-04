@@ -50,7 +50,7 @@ public:
     ~MultiValueAttributeUnCompressOffsetReader() = default;
 
 public:
-    Status Init(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+    Status Init(const std::shared_ptr<AttributeConfig>& attrConfig,
                 const std::shared_ptr<indexlib::file_system::IDirectory>& attrDir, bool disableUpdate,
                 uint32_t docCount);
 
@@ -79,7 +79,7 @@ private:
 
     uint64_t GetOffsetCount(uint32_t docCount) { return _disableGuardOffset ? docCount : (docCount + 1); }
     Status InitFileReader(const std::shared_ptr<indexlib::file_system::IDirectory>& attrDir);
-    Status InitSliceFileReader(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+    Status InitSliceFileReader(const std::shared_ptr<AttributeConfig>& attrConfig,
                                const std::shared_ptr<indexlib::file_system::IDirectory>& attrDir);
 
 private:

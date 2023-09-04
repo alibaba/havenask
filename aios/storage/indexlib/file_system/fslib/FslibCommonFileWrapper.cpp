@@ -21,6 +21,8 @@
 #include <stdint.h>
 #include <sys/uio.h>
 #include <utility>
+#include <sys/statvfs.h>
+#include <linux/limits.h>
 
 #include "alog/Logger.h"
 #include "autil/CommonMacros.h"
@@ -52,6 +54,18 @@ using future_lite::Try;
 
 namespace indexlib { namespace file_system {
 AUTIL_LOG_SETUP(indexlib.file_system, FslibCommonFileWrapper);
+
+const size_t FslibCommonFileWrapper::MIN_ALIGNMENT = []() -> size_t {
+    struct statvfs stat;
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, PATH_MAX) == nullptr) {
+        return 512;
+    }
+    if (statvfs(cwd, &stat) < 0) {
+        return 512;
+    }
+    return stat.f_bsize;
+}();
 
 FslibCommonFileWrapper::FslibCommonFileWrapper(fslib::fs::File* file, bool useDirectIO, bool needClose)
     : FslibFileWrapper(file, needClose)

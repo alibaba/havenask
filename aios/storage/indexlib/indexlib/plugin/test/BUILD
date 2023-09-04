@@ -1,0 +1,84 @@
+load('//bazel:defs.bzl', 'cc_fast_test', 'test_cc_plugin_shared_library')
+cc_library(
+    name='indexlib_plugin_test_helper',
+    hdrs=glob(['*.h']),
+    copts=['-Werror'],
+    include_prefix='indexlib/plugin/test'
+)
+filegroup(
+    name='dummy_cpp',
+    srcs=['Dummy.cpp'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__']
+)
+filegroup(
+    name='dummy_h',
+    srcs=['DummyObj.h'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__']
+)
+filegroup(
+    name='named_factory_cpp',
+    srcs=['NamedFactoryModule.cpp'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__']
+)
+filegroup(
+    name='named_factory_h',
+    srcs=['NamedFactoryModule.h'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__']
+)
+filegroup(
+    name='nosym_cpp',
+    srcs=['NoSym.cpp'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__']
+)
+filegroup(
+    name='nosym_h',
+    srcs=['NoSym.h'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__']
+)
+test_cc_plugin_shared_library(
+    name='dummy',
+    srcs=[':dummy_cpp'],
+    hdrs=[':dummy_h'],
+    copy_dests=['testdata/plugins/'],
+    include_prefix='indexlib/plugin/test',
+    preloaded_deps=['//aios/storage/indexlib/indexlib:indexlib_plugin'],
+    static_deps=[]
+)
+test_cc_plugin_shared_library(
+    name='named_factory',
+    srcs=[':named_factory_cpp'],
+    hdrs=[':named_factory_h'],
+    copy_dests=['testdata/plugins/'],
+    include_prefix='indexlib/plugin/test',
+    preloaded_deps=['//aios/storage/indexlib/indexlib:indexlib_plugin'],
+    static_deps=[]
+)
+test_cc_plugin_shared_library(
+    name='nosym',
+    srcs=[':nosym_cpp'],
+    hdrs=[':nosym_h'],
+    copy_dests=['testdata/plugins/'],
+    include_prefix='indexlib/plugin/test',
+    preloaded_deps=['//aios/storage/indexlib/indexlib:indexlib_plugin'],
+    static_deps=[]
+)
+filegroup(
+    name='plugin_testdata',
+    testonly=True,
+    srcs=[':dummy_testdata', ':named_factory_testdata', ':nosym_testdata']
+)
+cc_fast_test(
+    name='indexlib_plugin_unittest',
+    srcs=glob([
+        'ModuleTest.cpp', 'plugin_manager_test.cpp', 'DllWrapperTest.cpp',
+        'index_plugin_loader_unittest.cpp'
+    ]),
+    copts=['-Werror', '-fno-access-control'],
+    data=([':plugin_testdata', '//aios/storage/indexlib:test_log_conf'] +
+          glob(['testdata/*'])),
+    deps=[
+        ':indexlib_plugin_test_helper',
+        '//aios/storage/indexlib/indexlib:indexlib_plugin',
+        '//aios/storage/indexlib/indexlib:indexlib_testbase'
+    ]
+)

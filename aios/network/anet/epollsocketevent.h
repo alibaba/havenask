@@ -75,9 +75,9 @@ public:
 
 private:
     int _iepfd;    // epoll的fd
-    int _pipes[2];  // pipe for wakeup
-//    ThreadMutex _mutex;  // 对fd操作加锁
+    int _pipes[2]; // pipe for wakeup
+    //    ThreadMutex _mutex;  // 对fd操作加锁
 };
-}
+} // namespace anet
 
 #endif /*EPOLLSOCKETEVENT_H_*/

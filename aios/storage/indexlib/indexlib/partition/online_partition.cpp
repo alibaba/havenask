@@ -27,6 +27,7 @@
 #include "indexlib/file_system/FileSystemMetricsReporter.h"
 #include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/LifecycleTable.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/common/numeric_compress/EncoderProvider.h"
 #include "indexlib/index/normal/inverted_index/customized_index/index_plugin_resource.h"
@@ -131,13 +132,12 @@ OnlinePartition::OnlinePartition(const IndexPartitionResource& partitionResource
     }
     mRealtimeQuotaController = partitionResource.realtimeQuotaController;
     mPartitionIdentifier = autil::HashAlgorithm::hashString64(mPartitionName.c_str(), mPartitionName.length());
-    char* envStr = getenv("ENABLE_TEMPERATUR_ACCESS_METRIC");
-    if (envStr && std::string(envStr) == "true") {
+    string envStr = autil::EnvUtil::getEnv("ENABLE_TEMPERATUR_ACCESS_METRIC");
+    if (envStr == "true") {
         mNeedReportTemperature = true;
     }
-    char* redoStr = getenv("INDEXLIB_MAX_REDO_TIME");
     int64_t redoTime = -1;
-    if (redoStr && autil::StringUtil::strToInt64(redoStr, redoTime)) {
+    if (autil::EnvUtil::getEnvWithoutDefault("INDEXLIB_MAX_REDO_TIME", redoTime)) {
         mMaxRedoTime = redoTime;
     }
 }
@@ -862,11 +862,11 @@ void OnlinePartition::AddOnDiskIndexCleaner()
     if (!mResourceCleaner) {
         return;
     }
-    char* envStr = getenv("INDEXLIB_ONLINE_CLEAN_ON_DISK_INDEX");
-    if (envStr && std::string(envStr) == "false") {
+    string envStr = autil::EnvUtil::getEnv("INDEXLIB_ONLINE_CLEAN_ON_DISK_INDEX");
+    if (envStr == "false") {
         return;
     }
-    if (!getenv("INDEXLIB_ONLINE_NOT_AUTO_DISABLE_CLEAN_INDEX")) {
+    if (!autil::EnvUtil::hasEnv("INDEXLIB_ONLINE_NOT_AUTO_DISABLE_CLEAN_INDEX")) {
         if (!mOptions.GetOnlineConfig().NeedDeployIndex()) {
             IE_PREFIX_LOG(INFO, "do not need clean on disk index when NeedDeployIndex=false");
             return;

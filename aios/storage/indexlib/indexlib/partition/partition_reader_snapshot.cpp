@@ -259,8 +259,8 @@ bool PartitionReaderSnapshot::GetTabletReaderInfo(const string& attrName, const 
     return true;
 }
 
-bool PartitionReaderSnapshot::GetAttributeReaderInfo(const string& attrName, const string& tableName,
-                                                     RawPointerAttributeReaderInfo& attrReaderInfo) const
+bool PartitionReaderSnapshot::GetAttributeReaderInfoV1(const string& attrName, const string& tableName,
+                                                       RawPointerAttributeReaderInfo& attrReaderInfo) const
 {
     const IndexPartitionReaderInfo* readerInfo = GetIndexPartitionReaderInfo(attrName, tableName);
     if (!readerInfo) {
@@ -278,8 +278,8 @@ bool PartitionReaderSnapshot::GetAttributeReaderInfo(const string& attrName, con
     return true;
 }
 
-bool PartitionReaderSnapshot::GetAttributeReaderInfo(const string& attrName, const string& tableName,
-                                                     AttributeReaderInfo& attrReaderInfo) const
+bool PartitionReaderSnapshot::GetAttributeReaderInfoV1(const string& attrName, const string& tableName,
+                                                       AttributeReaderInfo& attrReaderInfo) const
 {
     IndexPartitionReaderInfo readerInfo;
     if (!GetIndexPartitionReaderInfo(attrName, tableName, readerInfo)) {
@@ -295,8 +295,8 @@ bool PartitionReaderSnapshot::GetAttributeReaderInfo(const string& attrName, con
     return true;
 }
 
-bool PartitionReaderSnapshot::GetAttributeReaderInfo(const string& attrName, const string& tableName,
-                                                     AttributeReaderInfoV2& attrReaderInfo) const
+bool PartitionReaderSnapshot::GetAttributeReaderInfoV2(const string& attrName, const string& tableName,
+                                                       AttributeReaderInfoV2& attrReaderInfo) const
 {
     TabletReaderInfo readerInfo;
     if (!GetTabletReaderInfo(attrName, tableName, readerInfo)) {
@@ -344,6 +344,44 @@ bool PartitionReaderSnapshot::GetPackAttributeReaderInfo(const string& packAttrN
     return true;
 }
 
+bool PartitionReaderSnapshot::GetPackAttributeReaderInfo(const string& packAttrName, const string& tableName,
+                                                         PackAttributeReaderInfoV2& attrReaderInfo) const
+{
+    uint32_t readerId = 0;
+    if (tableName.empty()) {
+        if (!GetIdxByName(packAttrName, mPackAttributeName2Idx, readerId)) {
+            IE_LOG(ERROR, "can not find pack attribute reader [%s] in table [%s]", packAttrName.c_str(),
+                   tableName.c_str());
+            return false;
+        }
+    } else {
+        if (!mPackAttribute2IdMap->Find(tableName, packAttrName, readerId)) {
+            IE_LOG(ERROR, "can not find pack attribute reader [%s] in table [%s]", packAttrName.c_str(),
+                   tableName.c_str());
+            return false;
+        }
+    }
+    if (readerId < mIndexPartReaderInfos.size()) {
+        IE_LOG(ERROR, "invalid idx, packAttr [%s], table [%s], idx[%u], size[%lu]", packAttrName.c_str(),
+               tableName.c_str(), readerId, mIndexPartReaderInfos.size());
+        return false;
+    }
+    readerId = readerId - mIndexPartReaderInfos.size();
+    assert(readerId < _tabletReaderInfos.size());
+    TabletReaderInfo readerInfo = _tabletReaderInfos[readerId];
+    auto normalTabletReader =
+        std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(readerInfo.tabletReader);
+    assert(normalTabletReader != nullptr);
+    attrReaderInfo.packAttrReader = normalTabletReader->GetPackAttributeReader(packAttrName);
+    if (!attrReaderInfo.packAttrReader) {
+        IE_LOG(ERROR, "pack attribute reader [%s] in table [%s] is null", packAttrName.c_str(), tableName.c_str());
+        return false;
+    }
+    attrReaderInfo.tabletReader = readerInfo.tabletReader;
+    attrReaderInfo.indexPartReaderType = readerInfo.readerType;
+    return true;
+}
+
 std::string PartitionReaderSnapshot::GetTableNameByAttribute(const std::string& attrName,
                                                              const std::string& preferTableName)
 {
@@ -356,7 +394,7 @@ std::string PartitionReaderSnapshot::GetTableNameByAttribute(const std::string& 
     if (!GetIdxByName(attrName, mAttributeName2Idx, readerId)) {
         return "";
     } else {
-        if (readerId < mIndexPartReaderInfos.size()) { // for index partition
+        if (readerId < mIndexPartReaderInfos.size()) {
             auto indexPartReader = mIndexPartReaderInfos[readerId].indexPartReader;
             return indexPartReader->GetSchema()->GetSchemaName();
         }
@@ -382,9 +420,17 @@ std::string PartitionReaderSnapshot::GetTableNameByPackAttribute(const std::stri
     if (!GetIdxByName(packAttrName, mPackAttributeName2Idx, readerId)) {
         return "";
     } else {
-        assert(readerId < mIndexPartReaderInfos.size());
-        auto indexPartReader = mIndexPartReaderInfos[readerId].indexPartReader;
-        return indexPartReader->GetSchema()->GetSchemaName();
+        if (readerId < mIndexPartReaderInfos.size()) { // for index partition
+            auto indexPartReader = mIndexPartReaderInfos[readerId].indexPartReader;
+            return indexPartReader->GetSchema()->GetSchemaName();
+        }
+        // for tablet
+        readerId = readerId - mIndexPartReaderInfos.size();
+        assert(readerId < _tabletReaderInfos.size());
+        auto tabletReader = _tabletReaderInfos[readerId].tabletReader;
+        auto normalReader = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(tabletReader);
+        assert(normalReader != nullptr);
+        return normalReader->GetSchema()->GetTableName();
     }
 }
 
@@ -427,7 +473,7 @@ bool PartitionReaderSnapshot::InitAttributeJoinInfo(const string& mainTableName,
                                                     JoinInfo& joinInfo) const
 {
     AttributeReaderInfo attrReaderInfo;
-    if (!GetAttributeReaderInfo(joinKey, mainTableName, attrReaderInfo)) {
+    if (!GetAttributeReaderInfoV1(joinKey, mainTableName, attrReaderInfo)) {
         IE_LOG(ERROR, "join key: [%s] not exist in table [%s]", joinKey.c_str(), mainTableName.c_str());
         return false;
     }
@@ -544,16 +590,6 @@ bool PartitionReaderSnapshot::isLeader(const std::string& tableName) const
         return false;
     }
     return iter->second;
-}
-
-int64_t PartitionReaderSnapshot::getBuildOffset(const std::string& tableName) const
-{
-    auto iter = mTabletLocatorInfos.find(tableName);
-    if (iter == mTabletLocatorInfos.end()) {
-        return -1;
-    }
-    auto locator = iter->second->GetBuildLocator();
-    return locator.GetOffset();
 }
 
 }} // namespace indexlib::partition

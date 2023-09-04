@@ -108,8 +108,11 @@ InvertedIndexerOrganizerUtil::UpdateOneSegmentDiskIndex(SingleInvertedIndexBuild
         it->second->UpdateTokens(docId - baseId, modifiedTokens);
         return Status::OK();
     }
-    return Status::InternalError("Unable to find segment for docId[%d], dumpingBaseDocId [%d], buildingBaseDocId [%d]",
-                                 docId, indexerOrganizerMeta.dumpingBaseDocId, indexerOrganizerMeta.buildingBaseDocId);
+    AUTIL_INTERVAL_LOG2(
+        60, WARN,
+        "Unable to find disk segment in updating inverted index, this is OK in offline build, but fatal in "
+        "online build");
+    return Status::OK();
 }
 
 template <typename castedMultiShardType>
@@ -178,7 +181,7 @@ bool InvertedIndexerOrganizerUtil::ShouldSkipUpdateIndex(const indexlibv2::confi
     }
     assert(indexConfig->GetShardingType() !=
            indexlibv2::config::InvertedIndexConfig::IndexShardingType::IST_IS_SHARDING);
-    if (indexConfig->IsDisable() || indexConfig->IsDeleted()) {
+    if (indexConfig->IsDisabled() || indexConfig->IsDeleted()) {
         return true;
     }
     if (!indexConfig->IsIndexUpdatable()) {

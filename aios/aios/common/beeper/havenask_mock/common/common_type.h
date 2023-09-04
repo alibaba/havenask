@@ -20,7 +20,7 @@
 #include <sys/time.h>
 #include "autil/legacy/jsonizable.h"
 
-namespace beeper { 
+namespace beeper {
 
 enum EventLevel
 {
@@ -44,7 +44,7 @@ class EventTags
 public:
     typedef std::map<std::string, std::string> TagMap;
     typedef TagMap::const_iterator TagMapIter;
-    
+
 public:
     EventTags(const TagMap& _kvMap) {}
     EventTags() {}
@@ -56,9 +56,12 @@ public:
     void MergeTags(EventTags* tags) const
     {
     }
-    
-private:
-    TagMap mKVMap;
+    const std::string& FindTag(const std::string &k) const {
+        static std::string emptyStr;
+        return emptyStr;
+    }
+    void DelTag(const std::string& k) { }
+    size_t Size() const { return 0; }
 };
 typedef std::shared_ptr<EventTags> EventTagsPtr;
 

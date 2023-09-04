@@ -1,0 +1,47 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+strict_cc_library(
+    name='NormalTabletSchemaMaker',
+    testonly=True,
+    copts=['-fno-access-control'],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        '//aios/storage/indexlib/config:schema',
+        '//aios/storage/indexlib/config/test:field_config_test_helper',
+        '//aios/storage/indexlib/index/ann:config',
+        '//aios/storage/indexlib/index/attribute:config',
+        '//aios/storage/indexlib/index/inverted_index:config',
+        '//aios/storage/indexlib/index/summary:config',
+        '//aios/storage/indexlib/table/normal_table:NormalTableFactory'
+    ]
+)
+strict_cc_fast_test(
+    name='NormalDiskSegmentTest',
+    srcs=['NormalDiskSegmentTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/framework/mock:MockTabletSchema',
+        '//aios/storage/indexlib/index/mock:MockIndexConfig',
+        '//aios/storage/indexlib/index/mock:MockIndexFactory',
+        '//aios/storage/indexlib/table/normal_table:NormalDiskSegment',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='NormalTabletSchemaTest',
+    srcs=['NormalTabletSchemaTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        '//aios/filesystem/fslib:fslib-framework',
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
+        '//aios/storage/indexlib/index/ann:factory',
+        '//aios/storage/indexlib/index/attribute:factory',
+        '//aios/storage/indexlib/index/inverted_index:factory',
+        '//aios/storage/indexlib/index/primary_key:factory',
+        '//aios/storage/indexlib/index/summary:factory',
+        '//aios/storage/indexlib/table/normal_table:NormalTableFactory',
+        '//aios/unittest_framework'
+    ]
+)

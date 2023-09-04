@@ -23,17 +23,16 @@
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class LocalFileLock : public FileLock
-{
+class LocalFileLock : public FileLock {
 public:
-    LocalFileLock(const std::string& fileName);
+    LocalFileLock(const std::string &fileName);
 
 public:
     ~LocalFileLock();
 
 private:
-    LocalFileLock(const LocalFileLock&);
-    LocalFileLock& operator= (const LocalFileLock&);
+    LocalFileLock(const LocalFileLock &);
+    LocalFileLock &operator=(const LocalFileLock &);
 
 public:
     /*override*/ int lock(uint32_t timeout = 0);
@@ -51,4 +50,4 @@ FSLIB_TYPEDEF_AUTO_PTR(LocalFileLock);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_LOCALFILELOCK_H
+#endif // FSLIB_LOCALFILELOCK_H

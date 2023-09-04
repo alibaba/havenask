@@ -23,7 +23,6 @@
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/attribute/patch/AttributePatchReader.h"
 #include "indexlib/index/attribute/patch/DefaultValueAttributePatch.h"
-#include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/util/PathUtil.h"
 
 namespace indexlibv2::index {
@@ -42,7 +41,7 @@ void AttributeDiskIndexer::EnableGlobalReadContext()
 size_t AttributeDiskIndexer::EstimateMemUsed(const std::shared_ptr<config::IIndexConfig>& indexConfig,
                                              const std::shared_ptr<indexlib::file_system::IDirectory>& attrDirectory)
 {
-    auto attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+    auto attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
     assert(attrConfig != nullptr);
     if (!attrDirectory) {
         AUTIL_LOG(ERROR, "open without directory information.");
@@ -64,15 +63,12 @@ size_t AttributeDiskIndexer::EstimateMemUsed(const std::shared_ptr<config::IInde
            fieldDir->EstimateFileMemoryUse(ATTRIBUTE_OFFSET_FILE_NAME, indexlib::file_system::FSOT_LOAD_CONFIG);
 }
 
-std::string AttributeDiskIndexer::GetAttributePath(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+std::string AttributeDiskIndexer::GetAttributePath(const std::shared_ptr<AttributeConfig>& attrConfig)
 {
     assert(attrConfig);
     auto indexPaths = attrConfig->GetIndexPath();
     assert(indexPaths.size() == 1);
-    auto configType = attrConfig->GetConfigType();
-    std::string prefixPath = configType == config::AttributeConfig::ConfigType::ct_section
-                                 ? indexlib::index::INVERTED_INDEX_PATH
-                                 : indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR;
+    std::string prefixPath = attrConfig->GetIndexCommonPath();
     std::string attrPath;
     indexlib::util::PathUtil::GetRelativePath(prefixPath, indexPaths[0], attrPath);
     return attrPath;

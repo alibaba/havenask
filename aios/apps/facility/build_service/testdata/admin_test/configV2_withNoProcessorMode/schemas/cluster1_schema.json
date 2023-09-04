@@ -1,0 +1,16 @@
+{
+    "table_name" : "cluster1",
+    "table_type" : "khronos",
+    "indexes": {
+        "time_series" : [
+            {
+                "index_name": "series1",
+                "default_columns":  ["avg_value", "sum_value", "max_value", "min_value", "count_value"],
+                "extend_column_limit": 4096,
+                "granularity": 10,
+                "message_type": "khronos.fbs"
+            }
+        ]
+    },
+    "fields":[]
+}

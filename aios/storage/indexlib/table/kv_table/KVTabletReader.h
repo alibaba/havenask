@@ -35,7 +35,7 @@ namespace indexlibv2::table {
 class KVTabletReader : public framework::TabletReader
 {
 public:
-    KVTabletReader(const std::shared_ptr<config::TabletSchema>& schema) : TabletReader(schema) {}
+    KVTabletReader(const std::shared_ptr<config::ITabletSchema>& schema) : TabletReader(schema) {}
     ~KVTabletReader() = default;
 
 public:
@@ -43,11 +43,13 @@ public:
                 const framework::ReadResource& readResource) override;
 
 public:
-    /*jsonQuery format:
+    /* protobuf query.proto:PartitionQuery to json
+    jsonQuery format:
       {
-         "index_name" : "pk",
-         "pk_list" : [ "chaos", "hello_world" ],
-         "pk_number_list" : [ 123456, 623445 ]
+         "pk" : [ "chaos", "hello_world" ],
+         "pkNumber" : [ 123456, 623445 ],
+         "attrs" : ["attr1", "attr2", ...],
+         "indexName" : "kv1"
       }
      */
     Status Search(const std::string& jsonQuery, std::string& result) const override;

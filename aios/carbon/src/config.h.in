@@ -1,0 +1,11 @@
+#ifndef CARBON_CONFIG_H_
+#define CARBON_CONFIG_H_
+
+#include <string>
+#define CARBON_MASTER_VERSION "@CARBON_MASTER_VERSION@"
+#define CARBON_BUILD_VERSION "@CARBON_BUILD_VERSION@"
+
+const std::string carbon_master_version = std::string("carbon_master_version=") + CARBON_MASTER_VERSION;
+const std::string carbon_build_version = std::string("carbon_build_version=") + CARBON_BUILD_VERSION;
+
+#endif

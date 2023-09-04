@@ -26,7 +26,7 @@ class IIndexOperationCreator;
 }; // namespace indexlibv2::framework
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::table {
@@ -36,18 +36,26 @@ class SimpleIndexTaskPlanCreator;
 class ComplexIndexTaskPlanCreator : public framework::IIndexTaskPlanCreator
 {
 public:
-    using CreateSimpleFunc = std::function<SimpleIndexTaskPlanCreator*(const std::string&)>;
+    using CreateSimpleFunc =
+        std::function<SimpleIndexTaskPlanCreator*(const std::string&, const std::map<std::string, std::string>&)>;
 
     struct SimpleTaskItem {
-        std::pair<std::string, std::string> identifier; // first: taskType, second: taskName
+        explicit SimpleTaskItem(const std::string& taskType, const std::string& taskName = "",
+                                const std::map<std::string, std::string>& params = {})
+            : taskType(taskType)
+            , taskName(taskName)
+            , params(params)
+        {
+        }
+        std::string taskType;
+        std::string taskName;
+        std::map<std::string, std::string> params;
         int64_t priority = 0;
     };
 
-public:
-    ComplexIndexTaskPlanCreator();
-    ~ComplexIndexTaskPlanCreator();
+    ComplexIndexTaskPlanCreator() = default;
+    ~ComplexIndexTaskPlanCreator() = default;
 
-public:
     std::pair<Status, std::unique_ptr<framework::IndexTaskPlan>>
     CreateTaskPlan(const framework::IndexTaskContext* taskContext) override;
 
@@ -55,22 +63,19 @@ protected:
     template <typename T>
     void RegisterSimpleCreator()
     {
-        auto createFunc = [](const std::string& taskName) -> SimpleIndexTaskPlanCreator* {
-            SimpleIndexTaskPlanCreator* ret = new T(taskName);
+        auto createFunc = [](const std::string& taskName,
+                             const std::map<std::string, std::string>& params) -> SimpleIndexTaskPlanCreator* {
+            SimpleIndexTaskPlanCreator* ret = new T(taskName, params);
             return ret;
         };
         _simpleCreatorFuncMap[T::TASK_TYPE] = std::move(createFunc);
     }
 
     virtual std::shared_ptr<framework::IIndexOperationCreator>
-    CreateIndexOperationCreator(const std::shared_ptr<config::TabletSchema>& tabletSchema) = 0;
+    CreateIndexOperationCreator(const std::shared_ptr<config::ITabletSchema>& tabletSchema) = 0;
 
-    /* first : taskType, second : taskName */
-    virtual Status ScheduleSimpleTask(const framework::IndexTaskContext* taskContext,
-                                      std::vector<std::pair<std::string, std::string>>* tasks);
-
-    Status GetCandidateTasks(const framework::IndexTaskContext* taskContext,
-                             std::vector<ComplexIndexTaskPlanCreator::SimpleTaskItem>* taskItems);
+    Status ScheduleSimpleTask(const framework::IndexTaskContext* taskContext, std::vector<SimpleTaskItem>* tasks);
+    Status GetCandidateTasks(const framework::IndexTaskContext* taskContext, std::vector<SimpleTaskItem>* taskItems);
 
     virtual Status SelectTaskConfigs(const framework::IndexTaskContext* taskContext,
                                      std::vector<config::IndexTaskConfig>* configs);

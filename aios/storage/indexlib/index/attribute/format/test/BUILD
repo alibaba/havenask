@@ -1,0 +1,75 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+strict_cc_fast_test(
+    name='single_value_null_attribute_updatable_formatter_test',
+    srcs=['SingleValueNullAttributeUpdatableFormatterTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        '//aios/storage/indexlib/index:interface',
+        '//aios/storage/indexlib/index/attribute/format:SingleValueAttributeUpdatableFormatter',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='single_value_null_attribute_readonly_formatter_test',
+    srcs=['SingleValueNullAttributeReadOnlyFormatterTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        '//aios/storage/indexlib/index:interface',
+        '//aios/storage/indexlib/index/attribute/format:SingleValueAttributeReadOnlyFormatter',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='in_mem_single_value_attribute_formatter_test',
+    srcs=['SingleValueAttributeMemFormatterTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        '//aios/storage/indexlib/index:DocMapDumpParams',
+        '//aios/storage/indexlib/index:interface',
+        '//aios/storage/indexlib/index/attribute/format:SingleValueAttributeMemFormatter',
+        '//aios/storage/indexlib/index/common:data_structure',
+        '//aios/storage/indexlib/index/common/field_format:attribute_field_format',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='single_value_attribute_updatable_formatter_test',
+    srcs=['SingleValueAttributeUpdatableFormatterTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        '//aios/storage/indexlib/index:interface',
+        '//aios/storage/indexlib/index/attribute/format:SingleValueAttributeUpdatableFormatter',
+        '//aios/storage/indexlib/index/common:data_structure',
+        '//aios/storage/indexlib/index/common/field_format:attribute_field_format',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='single_value_attribute_readonly_formatter_test',
+    srcs=['SingleValueAttributeReadOnlyFormatterTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        '//aios/storage/indexlib/index:interface',
+        '//aios/storage/indexlib/index/attribute/format:SingleValueAttributeReadOnlyFormatter',
+        '//aios/storage/indexlib/index/common:data_structure',
+        '//aios/storage/indexlib/index/common/field_format:attribute_field_format',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='MultiValueAttributeFormatterTest',
+    srcs=['MultiValueAttributeDataFormatterTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/index:interface',
+        '//aios/storage/indexlib/index/attribute/format:MultiValueAttributeDataFormatter',
+        '//aios/storage/indexlib/index/common:data_structure',
+        '//aios/storage/indexlib/util/testutil:unittest',
+        '//aios/unittest_framework'
+    ]
+)

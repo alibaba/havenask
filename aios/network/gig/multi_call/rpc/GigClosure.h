@@ -16,9 +16,10 @@
 #ifndef ISEARCH_MULTI_CALL_GIGCLOSURE_H
 #define ISEARCH_MULTI_CALL_GIGCLOSURE_H
 
+#include <functional>
+
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/rpc/GigRpcController.h"
-#include <functional>
 
 namespace multi_call {
 
@@ -28,7 +29,8 @@ class QueryInfo;
 MULTI_CALL_TYPEDEF_PTR(QuerySession);
 MULTI_CALL_TYPEDEF_PTR(QueryInfo);
 
-class GigClosure : public google::protobuf::Closure {
+class GigClosure : public google::protobuf::Closure
+{
 public:
     GigClosure();
     ~GigClosure();
@@ -55,8 +57,7 @@ public:
 
 protected:
     void setCompatibleFieldInfo(const CompatibleFieldInfo *info);
-    void fillCompatibleInfo(google::protobuf::Message *message,
-                            MultiCallErrorCode ec,
+    void fillCompatibleInfo(google::protobuf::Message *message, MultiCallErrorCode ec,
                             const std::string &responseInfo) const;
     void setNeedFinishQueryInfo(bool needFinish);
 
@@ -75,8 +76,7 @@ protected:
 };
 
 typedef std::function<void(google::protobuf::RpcController *controller,
-                           google::protobuf::Message *request,
-                           google::protobuf::Message *response,
+                           google::protobuf::Message *request, google::protobuf::Message *response,
                            GigClosure *closure)>
     GigRpcMethod;
 

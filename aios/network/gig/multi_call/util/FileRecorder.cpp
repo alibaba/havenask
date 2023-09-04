@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/util/FileRecorder.h"
-#include "autil/Log.h"
-#include "autil/StringUtil.h"
-#include "autil/TimeUtility.h"
-#include "autil/legacy/jsonizable.h"
+
 #include <dirent.h>
 #include <fstream>
 #include <limits.h>
@@ -25,17 +22,23 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "autil/Log.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/jsonizable.h"
+
 using namespace std;
 
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, FileRecorder);
 
-FileRecorder::FileRecorder() {}
+FileRecorder::FileRecorder() {
+}
 
-FileRecorder::~FileRecorder() {}
+FileRecorder::~FileRecorder() {
+}
 
-void FileRecorder::recordSnapshot(const string &content, size_t logCount,
-                                  const string &prefix) {
+void FileRecorder::recordSnapshot(const string &content, size_t logCount, const string &prefix) {
     newRecord(content, logCount, prefix, "snapshot");
 }
 
@@ -48,21 +51,19 @@ bool FileRecorder::checkAndCreateDir(const string &dir) {
             return false;
         }
     } else if (errno != ENOENT) {
-        AUTIL_LOG(ERROR, "Failed to stat [%s], error [%s]", dir.c_str(),
-                  strerror(errno));
+        AUTIL_LOG(ERROR, "Failed to stat [%s], error [%s]", dir.c_str(), strerror(errno));
         return false;
     }
     AUTIL_LOG(DEBUG, "mkdir [%s]", dir.c_str());
     if (mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IRWXO)) {
-        AUTIL_LOG(ERROR, "Failed to mkdir [%s], error [%s]", dir.c_str(),
-                  strerror(errno));
+        AUTIL_LOG(ERROR, "Failed to mkdir [%s], error [%s]", dir.c_str(), strerror(errno));
         return false;
     }
     return true;
 }
 
-void FileRecorder::newRecord(const string &content, size_t logCount,
-                             const string &dirname, const string &suffix) {
+void FileRecorder::newRecord(const string &content, size_t logCount, const string &dirname,
+                             const string &suffix) {
     string cwd;
     if (!getCurrentPath(cwd)) {
         return;
@@ -94,9 +95,8 @@ void FileRecorder::newRecord(const string &content, size_t logCount,
         }
     }
     int64_t usec = autil::TimeUtility::currentTime() % 1000000;
-    string filename =
-        autil::TimeUtility::currentTimeString("%Y-%m-%d-%H-%M-%S") + "." +
-        autil::StringUtil::toString(usec) + "_" + suffix;
+    string filename = autil::TimeUtility::currentTimeString("%Y-%m-%d-%H-%M-%S") + "." +
+                      autil::StringUtil::toString(usec) + "_" + suffix;
     string path = join(dir, filename);
     writeFile(path, content);
 }
@@ -139,8 +139,7 @@ bool FileRecorder::listDir(const string &dirName, vector<string> &fileList) {
     struct dirent *ep;
     dp = opendir(dirName.c_str());
     if (dp == NULL) {
-        AUTIL_LOG(ERROR, "open dir %s fail, %s", dirName.c_str(),
-                  strerror(errno));
+        AUTIL_LOG(ERROR, "open dir %s fail, %s", dirName.c_str(), strerror(errno));
         return false;
     }
 
@@ -151,8 +150,7 @@ bool FileRecorder::listDir(const string &dirName, vector<string> &fileList) {
         fileList.push_back(ep->d_name);
     }
     if (closedir(dp) < 0) {
-        AUTIL_LOG(ERROR, "close dir %s fail, %s", dirName.c_str(),
-                  strerror(errno));
+        AUTIL_LOG(ERROR, "close dir %s fail, %s", dirName.c_str(), strerror(errno));
         return false;
     }
 
@@ -161,8 +159,7 @@ bool FileRecorder::listDir(const string &dirName, vector<string> &fileList) {
 
 bool FileRecorder::removeFile(const string &path) {
     if (remove(path.c_str()) != 0) {
-        AUTIL_LOG(ERROR, "remove file [%s] failed, error [%s]", path.c_str(),
-                  strerror(errno));
+        AUTIL_LOG(ERROR, "remove file [%s] failed, error [%s]", path.c_str(), strerror(errno));
         return false;
     }
     return true;
@@ -171,8 +168,7 @@ bool FileRecorder::removeFile(const string &path) {
 bool FileRecorder::writeFile(const string &srcFileName, const string &content) {
     ofstream ofile(srcFileName);
     if (!ofile.good()) {
-        AUTIL_LOG(ERROR, "write [%s] to file [%s] failed", content.c_str(),
-                  srcFileName.c_str());
+        AUTIL_LOG(ERROR, "write [%s] to file [%s] failed", content.c_str(), srcFileName.c_str());
         return false;
     }
     ofile << content;

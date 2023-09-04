@@ -33,6 +33,7 @@
 #include "indexlib/framework/mem_reclaimer/IIndexMemoryReclaimer.h"
 #include "indexlib/table/BuiltinDefine.h"
 #include "indexlib/table/common/CommonTabletValidator.h"
+#include "indexlib/table/common/CommonVersionImporter.h"
 #include "indexlib/table/normal_table/Common.h"
 #include "indexlib/table/normal_table/NormalDiskSegment.h"
 #include "indexlib/table/normal_table/NormalMemSegment.h"
@@ -76,13 +77,13 @@ std::unique_ptr<config::SchemaResolver> NormalTableFactory::CreateSchemaResolver
 }
 
 std::unique_ptr<framework::TabletWriter>
-NormalTableFactory::CreateTabletWriter(const std::shared_ptr<config::TabletSchema>& schema)
+NormalTableFactory::CreateTabletWriter(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     return std::make_unique<NormalTabletWriter>(schema, _options.get());
 }
 
 std::unique_ptr<framework::TabletReader>
-NormalTableFactory::CreateTabletReader(const std::shared_ptr<config::TabletSchema>& schema)
+NormalTableFactory::CreateTabletReader(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     if (_normalTabletMetrics->GetSchemaSignature() != schema.get()) {
         auto newNormalTabletMetrics = std::make_shared<NormalTabletMetrics>(*_normalTabletMetrics);
@@ -107,9 +108,13 @@ NormalTableFactory::CreateTabletSessionReader(const std::shared_ptr<framework::I
 std::unique_ptr<framework::ITabletLoader> NormalTableFactory::CreateTabletLoader(const std::string& branchName)
 {
     bool isExportLoader = false;
-    if (_options->GetFromRawJson("export_loader", &isExportLoader) && isExportLoader) {
+    if (auto status = _options->GetFromRawJson("export_loader", &isExportLoader); !status.IsOKOrNotFound()) {
+        AUTIL_LOG(ERROR, "get config from tablet options failed, status[%s]", status.ToString().c_str());
+        return nullptr;
+    }
+    if (isExportLoader) {
         std::string workPath;
-        if (_options->GetFromRawJson("export_loader_workpath", &workPath)) {
+        if (_options->GetFromRawJson("export_loader_workpath", &workPath).IsOK()) {
             return std::make_unique<indexlib::table::NormalTabletExportLoader>(branchName, workPath,
                                                                                std::nullopt /*targetSegmentIds*/);
         } else {
@@ -119,8 +124,9 @@ std::unique_ptr<framework::ITabletLoader> NormalTableFactory::CreateTabletLoader
     }
 
     bool loadIndexForCheck = false;
-    if (!_options->GetFromRawJson("load_index_for_check", &loadIndexForCheck)) {
-        loadIndexForCheck = false;
+    if (auto status = _options->GetFromRawJson("load_index_for_check", &loadIndexForCheck); !status.IsOKOrNotFound()) {
+        AUTIL_LOG(ERROR, "get config from tablet options failed, status[%s]", status.ToString().c_str());
+        return nullptr;
     }
     return std::make_unique<NormalTabletLoader>(
         std::move(branchName), _options->GetOnlineConfig().IsIncConsistentWithRealtime(), loadIndexForCheck);
@@ -144,7 +150,7 @@ std::unique_ptr<framework::IIndexTaskResourceCreator> NormalTableFactory::Create
 }
 
 std::unique_ptr<framework::IIndexOperationCreator>
-NormalTableFactory::CreateIndexOperationCreator(const std::shared_ptr<config::TabletSchema>& schema)
+NormalTableFactory::CreateIndexOperationCreator(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     return std::make_unique<NormalTableTaskOperationCreator>(schema);
 }
@@ -162,7 +168,7 @@ std::unique_ptr<indexlib::framework::ITabletExporter> NormalTableFactory::Create
 const config::TabletOptions* NormalTableFactory::GetTabletOptions() const { return _options.get(); }
 
 std::unique_ptr<document::IDocumentFactory>
-NormalTableFactory::CreateDocumentFactory(const std::shared_ptr<config::TabletSchema>& schema)
+NormalTableFactory::CreateDocumentFactory(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     return std::make_unique<document::NormalDocumentFactory>();
 }
@@ -176,6 +182,11 @@ std::unique_ptr<indexlib::framework::ITabletValidator> NormalTableFactory::Creat
     return std::make_unique<indexlib::table::CommonTabletValidator>();
 }
 
-REGISTER_FACTORY(normal, NormalTableFactory);
+std::unique_ptr<framework::ITabletImporter> NormalTableFactory::CreateTabletImporter(const std::string& type)
+{
+    return std::make_unique<table::CommonVersionImporter>();
+}
+
+REGISTER_TABLET_FACTORY(normal, NormalTableFactory);
 
 } // namespace indexlibv2::table

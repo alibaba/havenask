@@ -30,6 +30,7 @@
 #include "indexlib/config/region_schema.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/util/Exception.h"
+#include "indexlib/util/JsonMap.h"
 
 DECLARE_REFERENCE_CLASS(config, TruncateOptionConfig);
 DECLARE_REFERENCE_CLASS(config, IndexPartitionSchema);
@@ -65,9 +66,9 @@ public:
     static std::string TableType2Str(TableType tableType);
     static bool Str2TableType(const std::string& str, TableType& tableType);
 
-    const autil::legacy::json::JsonMap& GetUserDefinedParam() const { return mUserDefinedParam; }
-    autil::legacy::json::JsonMap& GetUserDefinedParam() { return mUserDefinedParam; }
-    void SetUserDefinedParam(const autil::legacy::json::JsonMap& jsonMap) { mUserDefinedParam = jsonMap; }
+    const indexlib::util::JsonMap& GetUserDefinedParam() const { return mUserDefinedParam; }
+    indexlib::util::JsonMap& GetUserDefinedParam() { return mUserDefinedParam; }
+    void SetUserDefinedParam(const autil::legacy::json::JsonMap& jsonMap) { mUserDefinedParam.GetMap() = jsonMap; }
     bool GetValueFromUserDefinedParam(const std::string& key, std::string& value) const;
     void SetUserDefinedParam(const std::string& key, const std::string& value);
 
@@ -289,7 +290,7 @@ private:
     bool mInsertOrIgnore;
     bool mThrowAssertCompatibleException;
     TableType mTableType;
-    autil::legacy::json::JsonMap mUserDefinedParam;
+    indexlib::util::JsonMap mUserDefinedParam;
     autil::legacy::json::JsonMap mGlobalRegionIndexPreference;
     regionid_t mDefaultRegionId;
     schemavid_t mSchemaId;

@@ -17,27 +17,27 @@
 
 #include <string>
 
+#include "autil/Log.h" // IWYU pragma: keep
 #include "ha3/queryparser/AndQueryExpr.h"
 #include "ha3/queryparser/AtomicQueryExpr.h"
-#include "autil/Log.h" // IWYU pragma: keep
 
 namespace isearch {
 namespace common {
 struct RequiredFields;
-}  // namespace common
+} // namespace common
 namespace queryparser {
 class QueryExprEvaluator;
-}  // namespace queryparser
-}  // namespace isearch
+} // namespace queryparser
+} // namespace isearch
 
 namespace isearch {
 namespace queryparser {
 
-class AndTermQueryExpr : public AtomicQueryExpr
-{
+class AndTermQueryExpr : public AtomicQueryExpr {
 public:
     AndTermQueryExpr(AtomicQueryExpr *a, AtomicQueryExpr *b);
     ~AndTermQueryExpr();
+
 public:
     void setIndexName(const std::string &indexName) override;
     void evaluate(QueryExprEvaluator *qee) override;
@@ -48,14 +48,15 @@ public:
     std::string getLabel() const override {
         return _and.getLabel();
     }
+
 private:
     AndQueryExpr _and;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
-//TYPEDEF_PTR(AndTermQueryExpr);
+// TYPEDEF_PTR(AndTermQueryExpr);
 
 } // namespace queryparser
 } // namespace isearch
-

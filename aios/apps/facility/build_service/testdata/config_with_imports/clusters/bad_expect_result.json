@@ -1,0 +1,62 @@
+{
+    "inherit_from" : "section_configs/common/cluster_common_config.json",
+    "aggregate_sampler_config" : {
+	"aggThreshold" : 2000,
+	"batchSampleMaxCount" : 1000,
+	"sampleStep" : 100000,
+	"maxSortCount" : 10001,
+	"aggBatchMode" : true
+    },
+    "searcher_cache_config" : {
+	"max_size" : 1024,
+	"max_item_num" : 200000,
+	"inc_doc_limit" : 1000,
+	"inc_deletion_percent" : 100,
+	"latency_limit" : 1
+    },
+    "summary_profile_config" : {
+	"modules" : [
+	],
+	"summary_profiles" : [
+            {
+		"summary_profile_name": "DefaultProfile",
+		"extractor":
+		{
+                    "extractor_name": "DefaultSummaryExtractor",
+                    "module_name": ""
+		}
+            }
+	]
+    },
+     "cluster_config" : {
+	 "inherit_from" : "clusters/bad_cluster_config.json",
+	 "cluster_type" : "inc_with_realtime",
+	 "hash_mode" : {
+             "hash_function" : "KINGSO_HASH#720",
+             "hash_field": "nid"
+	 },
+	 "proxy_rule" : {
+             "partition_count" : 0,
+             "replica_count" : 1,
+             "partition_resource" : 100
+	 },
+	 "searcher_rule": {
+             "replica_count" : 2,
+             "partition_resource" : 100,
+             "specified_machine_type": "searcher_bad_a5"
+	 },
+	 "query_config": {
+             "default_index" : "phrase",
+             "default_operator" : "AND"
+	 },
+	 "dispatch_config": {
+             "only_use_free_worker" : false,
+             "switch_by_replica" : false,
+             "min_searcher_replica" : 1,
+             "free_worker_use_count_hint" : 0,
+             "min_searcher_replica_for_inc_update" : 1,
+             "high_capability_worker_priority" : false
+	 },
+        "table_name" : "mainse_searcher"
+     }
+}

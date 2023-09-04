@@ -1,6 +1,6 @@
 package(default_visibility=[':__subpackages__'])
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
-indexlib_cc_library(
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+strict_cc_library(
     name='RangeFieldEncoder',
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[

@@ -26,6 +26,7 @@ class MergeStrategyDefine
 {
 public:
     static constexpr char COMBINED_MERGE_STRATEGY_NAME[] = "combined";
+    static constexpr char ADAPTIVE_MERGE_STRATEGY_NAME[] = "adaptive";
     static constexpr char PRIORITY_QUEUE_MERGE_STRATEGY_NAME[] = "priority_queue";
     static constexpr char SPLIT_STRATEGY_NAME[] = "split";
     static constexpr char REALTIME_MERGE_STRATEGY_NAME[] = "realtime";

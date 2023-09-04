@@ -1,0 +1,29 @@
+{
+    "load_config" : [
+	{
+            "file_patterns" : ["_INDEX_"],
+            "load_strategy" : "mmap",
+            "load_strategy_param" : {
+            }
+	},
+	{
+            "file_patterns" : ["_ATTRIBUTE_"],
+            "load_strategy" : "mmap",
+            "load_strategy_param" : {
+		"lock" : true,
+		"slice" : 4096,
+		"interval" : 2,
+		"advise_random" : true
+            }
+	},
+	{
+            "file_patterns" : ["_SUMMARY_"],
+            "load_strategy" : "cache",
+            "load_strategy_param" : {
+		"cache_size" : 2048
+            },
+	    "warmup_strategy" : "sequential"
+	}
+    ]
+}
+

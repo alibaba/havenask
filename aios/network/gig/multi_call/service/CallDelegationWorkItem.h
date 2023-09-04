@@ -23,7 +23,8 @@
 
 namespace multi_call {
 
-class CallDelegationWorkItem {
+class CallDelegationWorkItem
+{
 public:
     CallDelegationWorkItem(const CallerPtr &caller,
                            const LoadBalancerContextPtr &loadBalancerContext);
@@ -35,8 +36,7 @@ private:
 
 public:
     // return if this query is really terminated
-    virtual bool process(int64_t currentTime,
-                         const SearchServiceSnapshotPtr &snapshot);
+    virtual bool process(int64_t currentTime, const SearchServiceSnapshotPtr &snapshot);
 
 private:
     bool retry(const std::map<std::string, int32_t> &retryBizInfos,

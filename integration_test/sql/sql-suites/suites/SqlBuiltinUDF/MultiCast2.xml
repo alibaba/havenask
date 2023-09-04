@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="MultiCast2">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT MULTICAST(field_int32) FROM phone where nid > 8
+]]>
+</Element>
+        </Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="column_names">"MULTICAST(field_int32)"</Resource>
+        <Resource name="column_types">multi_int32</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+[100,200,300]
+[100,200,300]
+]]>
+</Resource>
+    <Resource name="plan">
+<![CDATA[
+SinkOp#2(type=api)
+    ExchangeOp#1(distribution={type:SINGLETON})
+        TableScanOp#0(catalog_name=default,db_name=phone,limit=100,output_fields=[$MULTICAST(field_int32)],push_down_ops=[{attrs:{condition:{op:>,params:[$nid,8],type:OTHER},output_field_exprs:{$MULTICAST(field_int32):{op:MULTICAST,params:[$field_int32],type:UDF}},output_fields:[$MULTICAST(field_int32)]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

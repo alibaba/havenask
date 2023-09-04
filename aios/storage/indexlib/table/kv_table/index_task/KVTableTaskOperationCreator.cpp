@@ -15,13 +15,15 @@
  */
 #include "indexlib/table/kv_table/index_task/KVTableTaskOperationCreator.h"
 
+#include <memory>
+
 #include "indexlib/table/index_task/merger/CommonTaskOperationCreator.h"
 #include "indexlib/table/kv_table/index_task/KVIndexMergeOperation.h"
 
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, KVTableTaskOperationCreator);
 
-KVTableTaskOperationCreator::KVTableTaskOperationCreator(const std::shared_ptr<config::TabletSchema>& schema)
+KVTableTaskOperationCreator::KVTableTaskOperationCreator(const std::shared_ptr<config::ITabletSchema>& schema)
     : _schema(schema)
 {
 }

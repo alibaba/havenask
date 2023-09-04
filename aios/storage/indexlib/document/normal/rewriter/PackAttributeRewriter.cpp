@@ -15,7 +15,7 @@
  */
 #include "indexlib/document/normal/rewriter/PackAttributeRewriter.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/normal/NormalDocument.h"
 #include "indexlib/document/normal/rewriter/PackAttributeAppender.h"
@@ -31,7 +31,7 @@ PackAttributeRewriter::PackAttributeRewriter() {}
 
 PackAttributeRewriter::~PackAttributeRewriter() {}
 
-pair<Status, bool> PackAttributeRewriter::Init(const shared_ptr<TabletSchema>& schema)
+pair<Status, bool> PackAttributeRewriter::Init(const shared_ptr<ITabletSchema>& schema)
 {
     auto mainAppender = make_shared<PackAttributeAppender>();
     auto [status, ret] = mainAppender->Init(schema);

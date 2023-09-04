@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "ProtoJsonizer.h"
+
 #include "Log.h"
 #include "google/protobuf/descriptor.h"
 
@@ -29,13 +30,9 @@ namespace http_arpc {
 const string ProtoJsonizer::ORIGINAL_STRING = "originalString";
 const string ProtoJsonizer::HTTP_STATUS_CODE = "httpStatusCode";
 
-ProtoJsonizer::ProtoJsonizer() {
+ProtoJsonizer::ProtoJsonizer() {}
 
-}
-
-ProtoJsonizer::~ProtoJsonizer() {
-
-}
+ProtoJsonizer::~ProtoJsonizer() {}
 
 bool ProtoJsonizer::fromJsonString(const string &jsonStr, Message *message) {
     JsonMap jsonMap;
@@ -61,10 +58,7 @@ string ProtoJsonizer::toJsonString(const Message &message, bool outputDefault) {
     return ToJsonString(jsonMap);
 }
 
-string ProtoJsonizer::toJsonString(const Message &message,
-                                   const string &responseField,
-                                   bool outputDefault)
-{
+string ProtoJsonizer::toJsonString(const Message &message, const string &responseField, bool outputDefault) {
     JsonMap jsonMap;
     toJsonMap(message, jsonMap, outputDefault);
 
@@ -77,15 +71,11 @@ string ProtoJsonizer::toJsonString(const Message &message,
     return ToJsonString(jsonMap);
 }
 
-bool ProtoJsonizer::fromJson(const string &jsonStr, Message *message) {
-    return fromJsonString(jsonStr, message);
-}
+bool ProtoJsonizer::fromJson(const string &jsonStr, Message *message) { return fromJsonString(jsonStr, message); }
 
-string ProtoJsonizer::toJson(const Message &message) {
-    return toJsonString(message, _responseField, false);
-}
+string ProtoJsonizer::toJson(const Message &message) { return toJsonString(message, _responseField, false); }
 
-int ProtoJsonizer::getStatusCode(const google::protobuf::Message& message) {
+int ProtoJsonizer::getStatusCode(const google::protobuf::Message &message) {
     const Descriptor *descriptor = message.GetDescriptor();
     const FieldDescriptor *fieldDesc = descriptor->FindFieldByName(HTTP_STATUS_CODE);
     if (fieldDesc != NULL && fieldDesc->cpp_type() == FieldDescriptor::CPPTYPE_INT32) {
@@ -97,16 +87,13 @@ int ProtoJsonizer::getStatusCode(const google::protobuf::Message& message) {
 }
 
 template <FieldDescriptor::CppType cppType>
-struct Traits {
-};
+struct Traits {};
 
-#define declare_type_traits(cppType, Type)                              \
-    template <>                                                         \
-    struct Traits<cppType> {                                            \
-        typedef Type ValueType;                                         \
-        static ValueType getDefaultValue(const FieldDescriptor *desc) { \
-            return desc->default_value_##Type();                        \
-        }                                                               \
+#define declare_type_traits(cppType, Type)                                                                             \
+    template <>                                                                                                        \
+    struct Traits<cppType> {                                                                                           \
+        typedef Type ValueType;                                                                                        \
+        static ValueType getDefaultValue(const FieldDescriptor *desc) { return desc->default_value_##Type(); }         \
     }
 
 declare_type_traits(FieldDescriptor::CPPTYPE_INT32, int32);
@@ -126,37 +113,36 @@ static T getDefaultValue(const FieldDescriptor *fieldDesc) {
 }
 
 void ProtoJsonizer::toJsonMap(const Message &message, JsonMap &jsonMap, bool outputDefault) {
-#define SET_ANY(cppType, funcSuffix)                                    \
-    case cppType:                                                       \
-    {                                                                   \
-        if (fieldDesc->is_repeated()) {                                 \
-            size_t count = ref->FieldSize(message, fieldDesc);          \
-            if (count > 0) {                                            \
-                JsonArray anyArray;                                     \
-                for (size_t i = 0; i < count; ++i) {                    \
-                    anyArray.push_back(ref->GetRepeated##funcSuffix(message, fieldDesc, i)); \
-                }                                                       \
-                jsonMap[name] = Any(anyArray);                          \
-            }                                                           \
-        } else {                                                        \
-            if (ref->HasField(message, fieldDesc)) {                    \
-                jsonMap[name] = Any(ref->Get##funcSuffix(message, fieldDesc)); \
-            } else if (outputDefault) {                                 \
-                jsonMap[name] = Any(getDefaultValue<cppType>(fieldDesc)); \
-            }                                                           \
-        }                                                               \
-        break;                                                          \
+#define SET_ANY(cppType, funcSuffix)                                                                                   \
+    case cppType: {                                                                                                    \
+        if (fieldDesc->is_repeated()) {                                                                                \
+            size_t count = ref->FieldSize(message, fieldDesc);                                                         \
+            if (count > 0) {                                                                                           \
+                JsonArray anyArray;                                                                                    \
+                for (size_t i = 0; i < count; ++i) {                                                                   \
+                    anyArray.push_back(ref->GetRepeated##funcSuffix(message, fieldDesc, i));                           \
+                }                                                                                                      \
+                jsonMap[name] = Any(anyArray);                                                                         \
+            }                                                                                                          \
+        } else {                                                                                                       \
+            if (ref->HasField(message, fieldDesc)) {                                                                   \
+                jsonMap[name] = Any(ref->Get##funcSuffix(message, fieldDesc));                                         \
+            } else if (outputDefault) {                                                                                \
+                jsonMap[name] = Any(getDefaultValue<cppType>(fieldDesc));                                              \
+            }                                                                                                          \
+        }                                                                                                              \
+        break;                                                                                                         \
     }
 
     const Descriptor *descriptor = message.GetDescriptor();
     const Reflection *ref = message.GetReflection();
     for (int i = 0; i < descriptor->field_count(); ++i) {
-        const FieldDescriptor* fieldDesc = descriptor->field(i);
-        #ifdef HTTP_ARPC_NO_CAMELCASE_NAME
-            const string &name = fieldDesc->name();
-        #else
-            const string &name = fieldDesc->camelcase_name();
-        #endif
+        const FieldDescriptor *fieldDesc = descriptor->field(i);
+#ifdef HTTP_ARPC_NO_CAMELCASE_NAME
+        const string &name = fieldDesc->name();
+#else
+        const string &name = fieldDesc->camelcase_name();
+#endif
         if (name == HTTP_STATUS_CODE) {
             continue;
         }
@@ -169,8 +155,7 @@ void ProtoJsonizer::toJsonMap(const Message &message, JsonMap &jsonMap, bool out
             SET_ANY(FieldDescriptor::CPPTYPE_FLOAT, Float);
             SET_ANY(FieldDescriptor::CPPTYPE_STRING, String);
             SET_ANY(FieldDescriptor::CPPTYPE_BOOL, Bool);
-        case FieldDescriptor::CPPTYPE_ENUM:
-        {
+        case FieldDescriptor::CPPTYPE_ENUM: {
             if (fieldDesc->is_repeated()) {
                 size_t count = ref->FieldSize(message, fieldDesc);
                 if (count > 0) {
@@ -187,16 +172,14 @@ void ProtoJsonizer::toJsonMap(const Message &message, JsonMap &jsonMap, bool out
             }
             break;
         }
-        case FieldDescriptor::CPPTYPE_MESSAGE:
-        {
+        case FieldDescriptor::CPPTYPE_MESSAGE: {
             if (fieldDesc->is_repeated()) {
                 size_t count = ref->FieldSize(message, fieldDesc);
                 if (count > 0) {
                     JsonArray anyArray;
                     for (size_t i = 0; i < count; ++i) {
                         JsonMap subJsonMap;
-                        toJsonMap(ref->GetRepeatedMessage(message, fieldDesc, i),
-                                subJsonMap, outputDefault);
+                        toJsonMap(ref->GetRepeatedMessage(message, fieldDesc, i), subJsonMap, outputDefault);
                         anyArray.push_back(Any(subJsonMap));
                     }
                     jsonMap[name] = Any(anyArray);
@@ -210,8 +193,7 @@ void ProtoJsonizer::toJsonMap(const Message &message, JsonMap &jsonMap, bool out
             }
             break;
         }
-        default:
-        {
+        default: {
             break;
         }
         }
@@ -221,10 +203,8 @@ void ProtoJsonizer::toJsonMap(const Message &message, JsonMap &jsonMap, bool out
 
 void ProtoJsonizer::fromJsonMap(const JsonMap &jsonMap, Message *message) {
     const Descriptor *descriptor = message->GetDescriptor();
-    for (map<string, Any>::const_iterator it = jsonMap.begin();
-         it != jsonMap.end(); ++it)
-    {
-        const FieldDescriptor* fieldDesc = descriptor->FindFieldByCamelcaseName(it->first);
+    for (map<string, Any>::const_iterator it = jsonMap.begin(); it != jsonMap.end(); ++it) {
+        const FieldDescriptor *fieldDesc = descriptor->FindFieldByCamelcaseName(it->first);
         if (!fieldDesc) {
             continue;
         }
@@ -239,24 +219,22 @@ void ProtoJsonizer::fromJsonMap(const JsonMap &jsonMap, Message *message) {
     }
 }
 
-void ProtoJsonizer::setOneValue(const FieldDescriptor* fieldDesc,
-                                const Any &any, Message *message)
-{
-#define SET_VALUE(funcSuffix)                                   \
-    {                                                           \
-        if (fieldDesc->is_repeated()) {                         \
-            ref->Add##funcSuffix(message, fieldDesc, value);    \
-        } else {                                                \
-            ref->Set##funcSuffix(message, fieldDesc, value);    \
-        }                                                       \
-        break;                                                  \
+void ProtoJsonizer::setOneValue(const FieldDescriptor *fieldDesc, const Any &any, Message *message) {
+#define SET_VALUE(funcSuffix)                                                                                          \
+    {                                                                                                                  \
+        if (fieldDesc->is_repeated()) {                                                                                \
+            ref->Add##funcSuffix(message, fieldDesc, value);                                                           \
+        } else {                                                                                                       \
+            ref->Set##funcSuffix(message, fieldDesc, value);                                                           \
+        }                                                                                                              \
+        break;                                                                                                         \
     }
-#define CASE_AND_CONVERT(cpptype, type, funcSuffix)     \
-    {                                                   \
-        case cpptype:                                   \
-            const type &value = parseType<type>(any);   \
-            SET_VALUE(funcSuffix);                      \
-            break;                                      \
+#define CASE_AND_CONVERT(cpptype, type, funcSuffix)                                                                    \
+    {                                                                                                                  \
+    case cpptype:                                                                                                      \
+        const type &value = parseType<type>(any);                                                                      \
+        SET_VALUE(funcSuffix);                                                                                         \
+        break;                                                                                                         \
     }
 
     const Reflection *ref = message->GetReflection();
@@ -269,8 +247,7 @@ void ProtoJsonizer::setOneValue(const FieldDescriptor* fieldDesc,
         CASE_AND_CONVERT(FieldDescriptor::CPPTYPE_FLOAT, float, Float);
         CASE_AND_CONVERT(FieldDescriptor::CPPTYPE_STRING, string, String);
         CASE_AND_CONVERT(FieldDescriptor::CPPTYPE_BOOL, bool, Bool);
-    case FieldDescriptor::CPPTYPE_ENUM:
-    {
+    case FieldDescriptor::CPPTYPE_ENUM: {
         const EnumDescriptor *ed = fieldDesc->enum_type();
         string name = AnyCast<string>(any);
         const EnumValueDescriptor *value = ed->FindValueByName(name);
@@ -281,8 +258,7 @@ void ProtoJsonizer::setOneValue(const FieldDescriptor* fieldDesc,
         SET_VALUE(Enum);
         break;
     }
-    case FieldDescriptor::CPPTYPE_MESSAGE:
-    {
+    case FieldDescriptor::CPPTYPE_MESSAGE: {
         Message *subMessage;
         if (fieldDesc->is_repeated()) {
             subMessage = ref->AddMessage(message, fieldDesc);
@@ -292,8 +268,7 @@ void ProtoJsonizer::setOneValue(const FieldDescriptor* fieldDesc,
         fromJsonMap(AnyCast<JsonMap>(any), subMessage);
         break;
     }
-    default:
-    {
+    default: {
         break;
     }
     }
@@ -301,15 +276,9 @@ void ProtoJsonizer::setOneValue(const FieldDescriptor* fieldDesc,
 
 template <typename T>
 T ProtoJsonizer::parseType(const Any &any) {
-    if (IsJsonNumber(any)) {
-        return JsonNumberCast<T>(any);
-    } else {
-        return AnyCast<T>(any);
-    }
+    return JsonNumberCast<T>(any);
 }
 
-void ProtoJsonizer::setResponseField(const string &responseField) {
-    _responseField = responseField;
-}
+void ProtoJsonizer::setResponseField(const string &responseField) { _responseField = responseField; }
 
-}
+} // namespace http_arpc

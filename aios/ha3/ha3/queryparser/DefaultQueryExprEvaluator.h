@@ -15,13 +15,13 @@
  */
 #pragma once
 
-#include "ha3/queryparser/QueryExprEvaluator.h"
 #include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/queryparser/QueryExprEvaluator.h"
 
 namespace isearch {
 namespace common {
 class Query;
-}  // namespace common
+} // namespace common
 namespace queryparser {
 class AndNotQueryExpr;
 class AndQueryExpr;
@@ -32,17 +32,17 @@ class OrQueryExpr;
 class PhraseTermExpr;
 class RankQueryExpr;
 class WordsTermExpr;
-}  // namespace queryparser
-}  // namespace isearch
+} // namespace queryparser
+} // namespace isearch
 
 namespace isearch {
 namespace queryparser {
 
-class DefaultQueryExprEvaluator : public QueryExprEvaluator
-{
+class DefaultQueryExprEvaluator : public QueryExprEvaluator {
 public:
     DefaultQueryExprEvaluator();
     ~DefaultQueryExprEvaluator();
+
 public:
     void evaluateAndExpr(AndQueryExpr *andExpr);
     void evaluateOrExpr(OrQueryExpr *orExpr);
@@ -53,17 +53,19 @@ public:
     void evaluateNumberExpr(NumberTermExpr *numberExpr);
     void evaluatePhraseExpr(PhraseTermExpr *phraseExpr);
     void evaluateMultiTermExpr(MultiTermQueryExpr *multiTermExpr);
-    common::Query* stealQuery();
-    const common::Query* getQuery();
+    common::Query *stealQuery();
+    const common::Query *getQuery();
+
 protected:
     void setQuery(common::Query *query);
-    void evaluateBinaryQueryExpr(common::Query *resultQuery, BinaryQueryExpr* expr);
+    void evaluateBinaryQueryExpr(common::Query *resultQuery, BinaryQueryExpr *expr);
+
 private:
     common::Query *_query;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
 } // namespace queryparser
 } // namespace isearch
-

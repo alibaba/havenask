@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="testEquiJoinWithThreeTables2">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT ti.id, ts.id, tr.price FROM tj_item AS ti JOIN tj_relation AS tr ON ti.id = tr.item_id JOIN tj_shop AS ts ON tr.shop_id = ts.id
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"id","id0","price"</Resource>
+        <Resource name="column_types">int64,int64,double</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1,1,1
+3,1,1
+4,2,1
+2,1,1
+5,2,1
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#8(type=api)
+    LimitOp#7(limit=100)
+        ExchangeOp#6(distribution={type:SINGLETON})
+            LimitOp#5(limit=100)
+                CalcOp#4(output_fields=[$id,$id0,$price])
+                    LookupJoinOp#3(build_node={catalog_name:default,db_name:t1,limit:2147483647,output_fields:[$id],push_down_ops:[{attrs:{output_fields:[$id]},op_name:CalcOp}],table_name:tj_shop,table_type:normal,use_nest_table:false},condition==($shop_id0,$id0),equi_condition==($shop_id0,$id0),is_equi_join=true,is_internal_build=false,join_type=INNER,left_is_build=false,output_fields=[$id,$shop_id0,$price,$id0],semi_join_type=INNER)
+                        CalcOp#2(output_field_exprs={$shop_id0:$shop_id},output_fields=[$id,$shop_id0,$price])
+                            LookupJoinOp#1(build_node={catalog_name:default,db_name:t1,limit:2147483647,output_fields:[$item_id,$shop_id,$price],push_down_ops:[{attrs:{output_fields:[$item_id,$shop_id,$price]},op_name:CalcOp}],table_name:tj_relation,table_type:normal,use_nest_table:false},condition==($id,$item_id),equi_condition==($id,$item_id),is_equi_join=true,is_internal_build=false,join_type=INNER,left_is_build=false,output_fields=[$id,$item_id,$shop_id,$price],semi_join_type=INNER)
+                                TableScanOp#0(catalog_name=default,db_name=t1,limit=2147483647,output_fields=[$id],push_down_ops=[{attrs:{output_fields:[$id]},op_name:CalcOp}],table_name=tj_item,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

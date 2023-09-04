@@ -23,8 +23,8 @@
 #include <string>
 
 #include "autil/Lock.h"
-#include "autil/Thread.h"
 #include "autil/LockFreeQueue.h"
+#include "autil/Thread.h"
 #include "autil/ThreadPool.h"
 #include "autil/WorkItem.h"
 #include "autil/WorkItemQueue.h"

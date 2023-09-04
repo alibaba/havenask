@@ -21,7 +21,8 @@
 
 namespace multi_call {
 
-class GigServerStreamCreator {
+class GigServerStreamCreator
+{
 public:
     GigServerStreamCreator();
     virtual ~GigServerStreamCreator();

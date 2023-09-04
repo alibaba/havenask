@@ -19,7 +19,8 @@ using namespace google::protobuf;
 
 namespace multi_call {
 
-GrpcByteBufferSource::GrpcByteBufferSource() {}
+GrpcByteBufferSource::GrpcByteBufferSource() {
+}
 
 bool GrpcByteBufferSource::Init(const grpc::ByteBuffer &src) {
     size_ = src.Length();
@@ -88,13 +89,19 @@ grpc::protobuf::int64 GrpcByteBufferSource::ByteCount() const {
     return byte_count_;
 }
 
-void GrpcByteBufferSource::setLimit(int limit) { limit_ = limit; }
+void GrpcByteBufferSource::setLimit(int limit) {
+    limit_ = limit;
+}
 
-int GrpcByteBufferSource::size() const { return size_; }
+int GrpcByteBufferSource::size() const {
+    return size_;
+}
 
-GrpcByteBufferSourceByteReader::GrpcByteBufferSourceByteReader(
-    GrpcByteBufferSource &source)
-    : _source(source), _data(nullptr), _size(0) {}
+GrpcByteBufferSourceByteReader::GrpcByteBufferSourceByteReader(GrpcByteBufferSource &source)
+    : _source(source)
+    , _data(nullptr)
+    , _size(0) {
+}
 
 GrpcByteBufferSourceByteReader::~GrpcByteBufferSourceByteReader() {
     _source.BackUp(_size);
@@ -113,10 +120,11 @@ bool GrpcByteBufferSourceByteReader::next(uint8_t *byte) {
     return true;
 }
 
-bool ProtobufCompatibleUtil::getFieldAndReflection(
-    const google::protobuf::Message *message, const std::string &fieldName,
-    FieldDescriptor::Type type, const Reflection *&reflection,
-    const FieldDescriptor *&field) {
+bool ProtobufCompatibleUtil::getFieldAndReflection(const google::protobuf::Message *message,
+                                                   const std::string &fieldName,
+                                                   FieldDescriptor::Type type,
+                                                   const Reflection *&reflection,
+                                                   const FieldDescriptor *&field) {
     if (!message) {
         return false;
     }
@@ -130,13 +138,13 @@ bool ProtobufCompatibleUtil::getFieldAndReflection(
     return false;
 }
 
-bool ProtobufCompatibleUtil::getErrorCodeField(
-    const google::protobuf::Message *message, const std::string &fieldName,
-    MultiCallErrorCode &ec) {
+bool ProtobufCompatibleUtil::getErrorCodeField(const google::protobuf::Message *message,
+                                               const std::string &fieldName,
+                                               MultiCallErrorCode &ec) {
     const Reflection *reflection = nullptr;
     const FieldDescriptor *pbField = nullptr;
-    if (getFieldAndReflection(message, fieldName, FieldDescriptor::TYPE_INT32,
-                              reflection, pbField)) {
+    if (getFieldAndReflection(message, fieldName, FieldDescriptor::TYPE_INT32, reflection,
+                              pbField)) {
         if (reflection->HasField(*message, pbField)) {
             ec = (MultiCallErrorCode)reflection->GetInt32(*message, pbField);
             return true;
@@ -145,24 +153,23 @@ bool ProtobufCompatibleUtil::getErrorCodeField(
     return false;
 }
 
-void ProtobufCompatibleUtil::setErrorCodeField(
-    google::protobuf::Message *message, const std::string &fieldName,
-    MultiCallErrorCode ec) {
+void ProtobufCompatibleUtil::setErrorCodeField(google::protobuf::Message *message,
+                                               const std::string &fieldName,
+                                               MultiCallErrorCode ec) {
     const Reflection *reflection = nullptr;
     const FieldDescriptor *pbField = nullptr;
-    if (getFieldAndReflection(message, fieldName, FieldDescriptor::TYPE_INT32,
-                              reflection, pbField)) {
+    if (getFieldAndReflection(message, fieldName, FieldDescriptor::TYPE_INT32, reflection,
+                              pbField)) {
         reflection->SetInt32(message, pbField, ec);
     }
 }
 
-bool ProtobufCompatibleUtil::getGigMetaField(
-    const google::protobuf::Message *message, const std::string &fieldName,
-    std::string &meta) {
+bool ProtobufCompatibleUtil::getGigMetaField(const google::protobuf::Message *message,
+                                             const std::string &fieldName, std::string &meta) {
     const Reflection *reflection = nullptr;
     const FieldDescriptor *pbField = nullptr;
-    if (getFieldAndReflection(message, fieldName, FieldDescriptor::TYPE_BYTES,
-                              reflection, pbField)) {
+    if (getFieldAndReflection(message, fieldName, FieldDescriptor::TYPE_BYTES, reflection,
+                              pbField)) {
         if (reflection->HasField(*message, pbField)) {
             meta = reflection->GetString(*message, pbField);
             return true;
@@ -176,25 +183,23 @@ void ProtobufCompatibleUtil::setGigMetaField(google::protobuf::Message *message,
                                              const std::string &meta) {
     const Reflection *reflection = nullptr;
     const FieldDescriptor *pbField = nullptr;
-    if (getFieldAndReflection(message, fieldName, FieldDescriptor::TYPE_BYTES,
-                              reflection, pbField)) {
+    if (getFieldAndReflection(message, fieldName, FieldDescriptor::TYPE_BYTES, reflection,
+                              pbField)) {
         reflection->SetString(message, pbField, meta);
     }
 }
 
-bool ProtobufCompatibleUtil::getStringField(
-    const google::protobuf::Message *message, const std::string &fieldName,
-    std::string &value) {
+bool ProtobufCompatibleUtil::getStringField(const google::protobuf::Message *message,
+                                            const std::string &fieldName, std::string &value) {
     const Reflection *reflection = nullptr;
     const FieldDescriptor *pbField = nullptr;
-    if (getFieldAndReflection(message, fieldName, FieldDescriptor::TYPE_BYTES,
-                              reflection, pbField)) {
+    if (getFieldAndReflection(message, fieldName, FieldDescriptor::TYPE_BYTES, reflection,
+                              pbField)) {
         if (reflection->HasField(*message, pbField)) {
             value = reflection->GetString(*message, pbField);
             return true;
         }
-    } else if (getFieldAndReflection(message, fieldName,
-                                     FieldDescriptor::TYPE_STRING, reflection,
+    } else if (getFieldAndReflection(message, fieldName, FieldDescriptor::TYPE_STRING, reflection,
                                      pbField)) {
         if (reflection->HasField(*message, pbField)) {
             value = reflection->GetString(*message, pbField);
@@ -204,16 +209,17 @@ bool ProtobufCompatibleUtil::getStringField(
     return false;
 }
 
-bool ProtobufCompatibleUtil::getEagleeyeField(
-    const google::protobuf::Message *message, const std::string &traceIdField,
-    const std::string &rpcIdField, const std::string &userDataField,
-    std::string &traceId, std::string &rpcId, std::string &userDatas) {
+bool ProtobufCompatibleUtil::getEagleeyeField(const google::protobuf::Message *message,
+                                              const std::string &traceIdField,
+                                              const std::string &rpcIdField,
+                                              const std::string &userDataField,
+                                              std::string &traceId, std::string &rpcId,
+                                              std::string &userDatas) {
     if (traceIdField.empty()) {
         return false;
     }
 
-    if (!ProtobufCompatibleUtil::getStringField(message, traceIdField,
-                                                traceId)) {
+    if (!ProtobufCompatibleUtil::getStringField(message, traceIdField, traceId)) {
         return false;
     }
 
@@ -226,8 +232,7 @@ bool ProtobufCompatibleUtil::getEagleeyeField(
     }
 
     if (!userDataField.empty()) {
-        ProtobufCompatibleUtil::getStringField(message, userDataField,
-                                               userDatas);
+        ProtobufCompatibleUtil::getStringField(message, userDataField, userDatas);
     }
     return true;
 }

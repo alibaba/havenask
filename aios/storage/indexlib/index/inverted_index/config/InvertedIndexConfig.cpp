@@ -22,6 +22,7 @@
 #include "indexlib/config/ConfigDefine.h"
 #include "indexlib/config/FieldConfig.h"
 #include "indexlib/config/FileCompressConfig.h"
+#include "indexlib/index/ann/Common.h"
 #include "indexlib/index/inverted_index/Constant.h"
 #include "indexlib/index/inverted_index/config/AdaptiveDictionaryConfig.h"
 #include "indexlib/index/inverted_index/config/DictionaryConfig.h"
@@ -98,6 +99,7 @@ struct InvertedIndexConfig::Impl {
         , invertedIndexType(other.invertedIndexType)
         , analyzer(other.analyzer)
         , fileCompressConfig(other.fileCompressConfig)
+        , fileCompressConfigV2(other.fileCompressConfigV2)
         , useTruncateProfiles(other.useTruncateProfiles)
         , highFrequencyTermPostingType(other.highFrequencyTermPostingType)
         , optionFlag(other.optionFlag)
@@ -269,13 +271,14 @@ void InvertedIndexConfig::SetIndexId(indexid_t id)
     }
 }
 
+const std::string& InvertedIndexConfig::GetIndexCommonPath() const { return indexlib::index::INVERTED_INDEX_PATH; }
+
 std::vector<std::string> InvertedIndexConfig::GetIndexPath() const
 {
     std::vector<std::string> paths;
-    std::string basePath = indexlib::index::INVERTED_INDEX_PATH;
     auto shardingType = GetShardingType();
     if (shardingType == IST_NO_SHARDING || shardingType == IST_IS_SHARDING) {
-        paths.push_back(basePath + "/" + GetIndexName());
+        paths.push_back(GetIndexCommonPath() + "/" + GetIndexName());
     }
     return paths;
 }
@@ -310,6 +313,8 @@ const string& InvertedIndexConfig::GetIndexType() const
     case InvertedIndexType::it_date:
     case InvertedIndexType::it_spatial:
         return indexlib::index::INVERTED_INDEX_TYPE_STR;
+    case InvertedIndexType::it_customized:
+        return indexlibv2::index::ANN_INDEX_TYPE_STR;
     default:
         static string DEFAULT = "unknown";
         return DEFAULT;
@@ -551,8 +556,6 @@ void InvertedIndexConfig::Disable()
     }
 }
 
-bool InvertedIndexConfig::IsDisable() const { return _impl->status == indexlib::is_disable; }
-
 void InvertedIndexConfig::Delete() { _impl->status = indexlib::is_deleted; }
 
 bool InvertedIndexConfig::IsDeleted() const { return _impl->status == indexlib::is_deleted; }
@@ -724,23 +727,15 @@ const string& InvertedIndexConfig::GetNonTruncateIndexName() const { return _imp
 
 void InvertedIndexConfig::SetHasTruncateFlag(bool flag) { _impl->hasTruncate = flag; }
 bool InvertedIndexConfig::HasTruncate() const { return _impl->hasTruncate; }
-void InvertedIndexConfig::SetUseTruncateProfiles(const std::string& useTruncateProfiles)
+void InvertedIndexConfig::SetUseTruncateProfilesStr(const std::string& useTruncateProfiles)
 {
     _impl->useTruncateProfiles = useTruncateProfiles;
 }
 
-bool InvertedIndexConfig::HasTruncateProfile() const
-{
-    assert(_impl->hasTruncate);
-    return _impl->useTruncateProfiles.empty() ? false : true;
-}
-
 bool InvertedIndexConfig::HasTruncateProfile(const TruncateProfileConfig* truncateProfileConfig) const
 {
-    assert(_impl->hasTruncate);
-
-    if (_impl->useTruncateProfiles.empty() && !truncateProfileConfig->GetPayloadConfig().IsInitialized()) {
-        return true;
+    if (!_impl->hasTruncate) {
+        return false;
     }
     autil::StringTokenizer st(_impl->useTruncateProfiles, USE_TRUNCATE_PROFILES_SEPRATOR,
                               autil::StringTokenizer::TOKEN_TRIM | autil::StringTokenizer::TOKEN_IGNORE_EMPTY);
@@ -752,10 +747,20 @@ bool InvertedIndexConfig::HasTruncateProfile(const TruncateProfileConfig* trunca
     return false;
 }
 
-std::string InvertedIndexConfig::GetAllTruncateProfile() const
+std::string InvertedIndexConfig::GetUseTruncateProfilesStr() const
 {
     assert(_impl->hasTruncate);
     return _impl->useTruncateProfiles;
+}
+
+void InvertedIndexConfig::SetUseTruncateProfiles(const std::vector<std::string>& profiles)
+{
+    _impl->useTruncateProfiles = autil::StringUtil::toString(profiles, USE_TRUNCATE_PROFILES_SEPRATOR);
+    if (_impl->shardingType == InvertedIndexConfig::IST_NEED_SHARDING) {
+        for (size_t i = 0; i < _impl->shardingIndexConfigs.size(); ++i) {
+            _impl->shardingIndexConfigs[i]->SetUseTruncateProfiles(profiles);
+        }
+    }
 }
 
 std::vector<std::string> InvertedIndexConfig::GetUseTruncateProfiles() const
@@ -875,5 +880,7 @@ Status InvertedIndexConfig::CheckCompatible(const IIndexConfig* other) const
     }
     return Status::OK();
 }
+
+bool InvertedIndexConfig::IsDisabled() const { return _impl->status == indexlib::is_disable; }
 
 } // namespace indexlibv2::config

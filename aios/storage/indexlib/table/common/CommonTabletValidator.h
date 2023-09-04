@@ -17,7 +17,7 @@
 
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/ITabletValidator.h"
 
 namespace indexlib::table {
@@ -29,7 +29,7 @@ public:
     ~CommonTabletValidator() = default;
 
 public:
-    Status Validate(const std::string& indexRootPath, const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    Status Validate(const std::string& indexRootPath, const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                     versionid_t versionId) override;
 
 private:

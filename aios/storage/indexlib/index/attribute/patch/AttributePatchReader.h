@@ -25,15 +25,14 @@
 namespace indexlib::file_system {
 class IDirectory;
 }
-namespace indexlibv2::config {
-class AttributeConfig;
-}
+
 namespace indexlibv2::index {
+class AttributeConfig;
 
 class AttributePatchReader : public IAttributePatch
 {
 public:
-    AttributePatchReader(const std::shared_ptr<config::AttributeConfig>& attrConfig) : _attrConfig(attrConfig) {}
+    AttributePatchReader(const std::shared_ptr<AttributeConfig>& attrConfig) : _attrConfig(attrConfig) {}
     virtual ~AttributePatchReader() = default;
 
     virtual Status Init(const PatchInfos* patchInfos, segmentid_t segmentId);
@@ -56,7 +55,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<config::AttributeConfig> _attrConfig;
+    std::shared_ptr<AttributeConfig> _attrConfig;
 
 private:
     AUTIL_LOG_DECLARE();

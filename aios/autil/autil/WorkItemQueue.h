@@ -17,8 +17,8 @@
 
 #include <deque>
 
-#include "autil/WorkItem.h"
 #include "autil/CircularQueue.h"
+#include "autil/WorkItem.h"
 
 namespace autil {
 
@@ -56,7 +56,7 @@ public:
         _queue.pop_front();
         return item;
     }
-    virtual size_t size() const override{ return _queue.size(); }
+    virtual size_t size() const override { return _queue.size(); }
 
 private:
     CircularQueue<WorkItem *> _queue;

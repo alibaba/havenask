@@ -23,8 +23,7 @@
 
 namespace kmonitor_adapter {
 
-class GaugeRecorder : public Recorder
-{
+class GaugeRecorder : public Recorder {
 protected:
     struct StatData {
         uint64_t sum = 0;
@@ -35,18 +34,12 @@ protected:
         std::atomic_uint_fast64_t sum;
         std::atomic_uint_fast64_t num;
         // During teardown, value will be summed into *merged_sum.
-        std::atomic_uint_fast64_t* mergedSum;
-        std::atomic_uint_fast64_t* mergedNum;
-        ThreadCounter(std::atomic_uint_fast64_t* _mergedSum, std::atomic_uint_fast64_t* _mergedNum)
-            : sum(0)
-            , num(0)
-            , mergedSum(_mergedSum)
-            , mergedNum(_mergedNum)
-        {
-        }
+        std::atomic_uint_fast64_t *mergedSum;
+        std::atomic_uint_fast64_t *mergedNum;
+        ThreadCounter(std::atomic_uint_fast64_t *_mergedSum, std::atomic_uint_fast64_t *_mergedNum)
+            : sum(0), num(0), mergedSum(_mergedSum), mergedNum(_mergedNum) {}
 
-        void atExit() override
-        {
+        void atExit() override {
             *mergedSum += sum.load();
             *mergedNum += num.load();
         }
@@ -54,31 +47,31 @@ protected:
 
 public:
     GaugeRecorder() = default;
-    GaugeRecorder(const std::string& name, MetricPtr metric);
-    GaugeRecorder(Monitor* monitor, const std::string& metricName, kmonitor::MetricLevel level,
-                  const Metric::KVVec& tags = Metric::KVVec());
+    GaugeRecorder(const std::string &name, MetricPtr metric);
+    GaugeRecorder(Monitor *monitor,
+                  const std::string &metricName,
+                  kmonitor::MetricLevel level,
+                  const Metric::KVVec &tags = Metric::KVVec());
     ~GaugeRecorder();
 
-    const std::string& name() const override { return _name; }
+    const std::string &name() const override { return _name; }
 
-    void record(uint64_t val)
-    {
-        auto threadCounter = static_cast<ThreadCounter*>(getThreadData());
+    void record(uint64_t val) {
+        auto threadCounter = static_cast<ThreadCounter *>(getThreadData());
         assert(threadCounter);
         threadCounter->sum.fetch_add(val, std::memory_order_relaxed);
         threadCounter->num.fetch_add(1, std::memory_order_relaxed);
     }
 
-    void report() override
-    {
+    void report() override {
         if (!_metric) {
             return;
         }
         StatData data;
         _threadData->Fold(
-            [](void* entryPtr, void* res) {
-                auto globalData = static_cast<StatData*>(res);
-                auto threadData = static_cast<ThreadCounter*>(entryPtr);
+            [](void *entryPtr, void *res) {
+                auto globalData = static_cast<StatData *>(res);
+                auto threadData = static_cast<ThreadCounter *>(entryPtr);
                 globalData->sum += threadData->sum.load(std::memory_order_relaxed);
                 globalData->num += threadData->num.load(std::memory_order_relaxed);
             },
@@ -99,15 +92,15 @@ public:
     virtual uint64_t processValue(uint64_t val) { return val; }
 
 protected:
-    AlignedThreadData* createThreadData() override { return new ThreadCounter(&_mergedSum, &_mergedNum); }
+    AlignedThreadData *createThreadData() override { return new ThreadCounter(&_mergedSum, &_mergedNum); }
 
 protected:
     std::string _name;
     MetricPtr _metric;
 
     // counter
-    std::atomic_uint_fast64_t _mergedSum {0};
-    std::atomic_uint_fast64_t _mergedNum {0};
+    std::atomic_uint_fast64_t _mergedSum{0};
+    std::atomic_uint_fast64_t _mergedNum{0};
 
     StatData _last;
 };

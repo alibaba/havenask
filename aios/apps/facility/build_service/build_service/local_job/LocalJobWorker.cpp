@@ -42,14 +42,24 @@ namespace build_service { namespace local_job {
 
 BS_LOG_SETUP(local_job, LocalJobWorker);
 
-LocalJobWorker::LocalJobWorker()
+static const string BRANCH_POLICY_ENV = "BRANCH_NAME_POLICY";
+LocalJobWorker::LocalJobWorker(bool useV2Build) : _useV2Build(useV2Build)
 {
     // this mode not use branch fs to build
-    autil::EnvUtil::setEnv("BRANCH_NAME_POLICY", indexlib::index_base::CommonBranchHinter::Option::BNP_LEGACY, 1);
+    if (!autil::EnvUtil::hasEnv(BRANCH_POLICY_ENV)) {
+        if (autil::EnvUtil::setEnv(BRANCH_POLICY_ENV, indexlib::index_base::CommonBranchHinter::Option::BNP_LEGACY,
+                                   true)) {
+            _resetEnv = true;
+        }
+    }
 }
 
-LocalJobWorker::~LocalJobWorker() { autil::EnvUtil::unsetEnv("BRANCH_NAME_POLICY"); }
-
+LocalJobWorker::~LocalJobWorker()
+{
+    if (_resetEnv) {
+        autil::EnvUtil::unsetEnv("BRANCH_NAME_POLICY");
+    }
+}
 bool LocalJobWorker::run(const string& step, uint16_t mapCount, uint16_t reduceCount, const string& jobParams)
 {
     BS_LOG(INFO, "mapCount[%u] reduceCount[%u]", mapCount, reduceCount);
@@ -75,17 +85,16 @@ bool LocalJobWorker::run(const string& step, uint16_t mapCount, uint16_t reduceC
         BS_LOG(ERROR, "load schema for cluster %s failed", clusterName.c_str());
         return false;
     }
-    bool isTablet = true;
-    if (schema->GetLegacySchema() && !schema->GetLegacySchema()->IsTablet()) {
-        isTablet = false;
+    if (!schema->GetLegacySchema() || schema->GetLegacySchema()->IsTablet()) {
+        _useV2Build = true;
     }
     bool ret = false;
     if ("build" == step) {
-        ret = buildJob(mapCount, reduceCount, jobParams, isTablet);
+        ret = buildJob(mapCount, reduceCount, jobParams, _useV2Build);
     } else if ("merge" == step) {
-        ret = mergeJob(mapCount, reduceCount, jobParams, isTablet);
+        ret = mergeJob(mapCount, reduceCount, jobParams, _useV2Build);
     } else if ("endmerge" == step) {
-        if (isTablet) {
+        if (_useV2Build) {
             BS_LOG(INFO, "end merge is not supported for tablet");
             ret = true;
         } else {

@@ -16,17 +16,17 @@
 #ifndef FSLIB_COMMON_TYPE_H_
 #define FSLIB_COMMON_TYPE_H_
 
-#include <string>
-#include <vector>
-#include <map>
-#include <unistd.h>
 #include <cstddef>
-#include <sys/types.h>
+#include <cstdio>
+#include <map>
 #include <stdint.h>
 #include <string.h>
-#include <cstdio>
+#include <string>
+#include <sys/types.h>
+#include <unistd.h>
+#include <vector>
 
-namespace fslib { 
+namespace fslib {
 
 enum ErrorCode {
     EC_OK = 0,
@@ -99,36 +99,28 @@ typedef uint64_t FileChecksum;
 typedef uint64_t DateTime;
 
 enum SeekFlag {
-    FILE_SEEK_SET,  /** seek from file beginning */
-    FILE_SEEK_CUR,  /** seek from current stream position */
-    FILE_SEEK_END   /** seek from the end of file */
+    FILE_SEEK_SET, /** seek from file beginning */
+    FILE_SEEK_CUR, /** seek from current stream position */
+    FILE_SEEK_END  /** seek from the end of file */
 };
 
-struct FileMeta
-{
+struct FileMeta {
     int64_t fileLength;
     DateTime createTime;
     DateTime lastModifyTime;
 };
 
-struct PathMeta
-{
+struct PathMeta {
 public:
-    PathMeta(int64_t _len = 0, DateTime _createTs = -1,
-             DateTime _modifyTs = -1, bool _isFile = false)
-        : isFile(_isFile)
-        , length(_len)
-        , createTime(_createTs)
-        , lastModifyTime(_modifyTs)
-    {}
+    PathMeta(int64_t _len = 0, DateTime _createTs = -1, DateTime _modifyTs = -1, bool _isFile = false)
+        : isFile(_isFile), length(_len), createTime(_createTs), lastModifyTime(_modifyTs) {}
     bool isFile;
     int64_t length;
     DateTime createTime;
     DateTime lastModifyTime;
 };
 
-struct EntryMeta
-{
+struct EntryMeta {
     bool isDir;
     std::string entryName;
 };
@@ -150,5 +142,5 @@ struct RichFileMeta {
 };
 typedef std::vector<RichFileMeta> RichFileList;
 
-}
+} // namespace fslib
 #endif

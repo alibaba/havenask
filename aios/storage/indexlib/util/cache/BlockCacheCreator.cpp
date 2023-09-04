@@ -18,9 +18,6 @@
 #include "indexlib/util/cache/CacheType.h"
 #include "indexlib/util/cache/MemoryBlockCache.h"
 
-#ifndef AIOS_OPEN_SOURCE
-#include "indexlib/util/cache/HybridBlockCache.h"
-#endif
 
 using namespace std;
 
@@ -34,11 +31,6 @@ BlockCache* BlockCacheCreator::Create(const BlockCacheOption& option)
     case LRU:
         blockCache.reset(new MemoryBlockCache());
         break;
-#ifndef AIOS_OPEN_SOURCE
-    case DADI:
-        blockCache.reset(new HybridBlockCache());
-        break;
-#endif
     default:
         AUTIL_LOG(ERROR, "unknown cacheType[%s]", option.cacheType.c_str());
         return nullptr;

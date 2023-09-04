@@ -35,16 +35,16 @@ public:
     ~DropOpLogOperation();
 
 public:
-    static bool NeedDropOpLog(segmentid_t segmentId, const std::shared_ptr<config::TabletSchema>& baseSchema,
-                              const std::shared_ptr<config::TabletSchema>& targetSchema);
+    static bool NeedDropOpLog(segmentid_t segmentId, const std::shared_ptr<config::ITabletSchema>& baseSchema,
+                              const std::shared_ptr<config::ITabletSchema>& targetSchema);
     Status Execute(const framework::IndexTaskContext& context) override;
 
     static framework::IndexOperationDescription
     CreateOperationDescription(framework::IndexOperationId id, segmentid_t targetSegmentId, schemaid_t targetSchema);
 
 private:
-    static std::set<fieldid_t> CalculateDropFields(const std::shared_ptr<config::TabletSchema>& baseSchema,
-                                                   const std::shared_ptr<config::TabletSchema>& targetSchema);
+    static std::set<fieldid_t> CalculateDropFields(const std::shared_ptr<config::ITabletSchema>& baseSchema,
+                                                   const std::shared_ptr<config::ITabletSchema>& targetSchema);
 
 private:
     framework::IndexOperationDescription _desc;

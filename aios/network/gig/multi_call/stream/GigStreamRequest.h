@@ -17,9 +17,9 @@
 #define ISEARCH_MULTI_CALL_GIGSTREAMREQUEST_H
 
 #include "aios/network/gig/multi_call/interface/Request.h"
+#include "aios/network/gig/multi_call/stream/GigStreamHandlerBase.h"
 #include "aios/network/gig/multi_call/stream/GigStreamMessage.h"
 #include "aios/network/gig/multi_call/stream/GigStreamRpcInfo.h"
-#include "aios/network/gig/multi_call/stream/GigStreamHandlerBase.h"
 #include "autil/Lock.h"
 
 namespace multi_call {
@@ -31,7 +31,7 @@ class CallBack;
 struct SingleCallInfo {
     RequestType requestType;
     bool handlerInited : 1;
-    bool sendEof : 1;
+    bool sendEof       : 1;
     std::shared_ptr<GrpcClientStreamHandler> handler;
     std::vector<GigStreamMessage> responseVec;
 };
@@ -50,8 +50,12 @@ private:
 
 public:
     ResponsePtr newResponse() override;
-    bool serialize() override { return true; }
-    size_t size() const override { return 0; }
+    bool serialize() override {
+        return true;
+    }
+    size_t size() const override {
+        return 0;
+    }
 
 public:
     void setStream(GigClientStream *stream) {
@@ -71,8 +75,7 @@ public:
         _forceStop = force;
     }
     void addHandler(RequestType requestType,
-                    const std::shared_ptr<GrpcClientStreamHandler> &handler,
-                    bool isRetry);
+                    const std::shared_ptr<GrpcClientStreamHandler> &handler, bool isRetry);
     bool post(bool cancel, const GigStreamMessage &message);
     bool receive(SingleCallInfo *callInfo, const std::shared_ptr<GigStreamBase> &stream,
                  const GigStreamMessage &message);
@@ -80,21 +83,23 @@ public:
                        const GigStreamMessage &message, MultiCallErrorCode ec);
     void abort();
     std::shared_ptr<GrpcClientStreamHandler> getResultHandler() const;
+
 private:
     bool postNormal(const GigStreamMessage &message);
     bool flushRetryMessage();
     bool postSingleMessage(SingleCallInfo &callInfo, const SendBufferMessage &message);
     bool postCancel(const GigStreamMessage &message);
     void postSingleCancelMessage(const SingleCallInfo &callInfo,
-                                 const SendBufferMessage &sendMessage,
-                                 bool ignoreIfSendEof);
+                                 const SendBufferMessage &sendMessage, bool ignoreIfSendEof);
+
 private:
     static bool receiveBufferedMessage(GigClientStream *stream, SingleCallInfo *callInfo);
+
 private:
-    bool _disableRetry : 1;
-    bool _disableProbe : 1;
+    bool _disableRetry   : 1;
+    bool _disableProbe   : 1;
     bool _useRetryResult : 1;
-    bool _forceStop : 1;
+    bool _forceStop      : 1;
     std::atomic<GigClientStream *> _stream;
     SingleCallInfo *_normalCallInfo;
     std::vector<SingleCallInfo *> _otherCallInfos;
@@ -102,6 +107,7 @@ private:
     autil::ThreadMutex _retrySendLock;
     SingleCallInfo *_retryCallInfo;
     std::vector<SendBufferMessage> _retryRequestVec;
+
 private:
     AUTIL_LOG_DECLARE();
 };

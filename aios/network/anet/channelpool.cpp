@@ -13,27 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "aios/network/anet/channelpool.h"
+
 #include <assert.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <cstdint>
 #include <list>
 #include <sstream>
+#include <stddef.h>
+#include <stdint.h>
 #include <tr1/unordered_map>
 #include <utility>
-#include <cstdint>
 
-#include "aios/network/anet/threadmutex.h"
-#include "aios/network/anet/channelpool.h"
-#include "aios/network/anet/channel.h"
 #include "aios/network/anet/atomic.h"
+#include "aios/network/anet/channel.h"
 #include "aios/network/anet/common.h"
+#include "aios/network/anet/threadmutex.h"
 
 using namespace std;
 BEGIN_ANET_NS();
 
 const uint64_t ChannelPool::AUTO_CHANNEL_ID_MAX = 0x0FFFFFFFFFFFFFFFULL;
 const uint64_t ChannelPool::HTTP_CHANNEL_ID = 0x10000000ULL;
-const uint64_t ChannelPool::ADMIN_CHANNEL_ID= 0x10000001ULL;
+const uint64_t ChannelPool::ADMIN_CHANNEL_ID = 0x10000001ULL;
 
 atomic64_t ChannelPool::_globalChannelId = {0};
 
@@ -46,22 +47,22 @@ ChannelPool::ChannelPool() {
 }
 
 ChannelPool::~ChannelPool() {
-     std::list<Channel*>::iterator it = _clusterList.begin();
+    std::list<Channel *>::iterator it = _clusterList.begin();
 
-     for (;it != _clusterList.end(); it++) {
-         delete[] *it;
-     }
+    for (; it != _clusterList.end(); it++) {
+        delete[] * it;
+    }
 }
 
 Channel *ChannelPool::allocChannel(uint64_t chid) {
     MutexGuard freeListGuard(&_freeListLock);
     Channel *channel = NULL;
-    if (_freeListHead == NULL) { 
+    if (_freeListHead == NULL) {
         assert(CHANNEL_CLUSTER_SIZE > 2);
         Channel *channelCluster = new Channel[CHANNEL_CLUSTER_SIZE];
         assert(channelCluster != NULL);
         _clusterList.push_back(channelCluster);
-		
+
         _freeListHead = _freeListTail = &channelCluster[1];
         for (size_t i = 2; i < CHANNEL_CLUSTER_SIZE; i++) {
             _freeListTail->_next = &channelCluster[i];
@@ -70,7 +71,7 @@ Channel *ChannelPool::allocChannel(uint64_t chid) {
         }
         _freeListHead->_prev = NULL;
         _freeListTail->_next = NULL;
-        channel = &channelCluster[0];   
+        channel = &channelCluster[0];
     } else {
         channel = _freeListHead;
         _freeListHead = _freeListHead->_next;
@@ -130,7 +131,7 @@ void ChannelPool::recycleChannel(Channel *channel) {
 
 Channel *ChannelPool::findChannel(uint64_t id) {
     Channel *channel = NULL;
-    std::tr1::unordered_map<uint64_t, Channel*>::iterator it;
+    std::tr1::unordered_map<uint64_t, Channel *>::iterator it;
     MutexGuard waitReplyGuard(&_waitReplyLock);
     it = _waitReplyMap.find(id);
     if (it != _waitReplyMap.end()) {
@@ -139,7 +140,7 @@ Channel *ChannelPool::findChannel(uint64_t id) {
     return channel;
 }
 
-Channel* ChannelPool::getTimeoutList(int64_t now) {
+Channel *ChannelPool::getTimeoutList(int64_t now) {
     MutexGuard waitReplyGuard(&_waitReplyLock);
     Channel *list = NULL;
     if (_waitReplyHead == NULL) {
@@ -158,7 +159,7 @@ Channel* ChannelPool::getTimeoutList(int64_t now) {
 
     if (channel != _waitReplyHead) {
         list = _waitReplyHead;
-        if (channel == NULL) { 
+        if (channel == NULL) {
             _waitReplyHead = _waitReplyTail = NULL;
         } else {
             channel->_prev->_next = NULL;
@@ -174,7 +175,7 @@ bool ChannelPool::appendFreeList(Channel *addList) {
     if (addList == NULL) {
         return true;
     }
-    
+
     Channel *tail = addList;
     while (tail->_next != NULL) {
         tail = tail->_next;
@@ -226,7 +227,7 @@ void ChannelPool::addToWaitingList(Channel *channel) {
         } else {
             Channel *preChannel = nextChannel->_prev;
             channel->_prev = preChannel;
-            channel->_next = nextChannel;            
+            channel->_next = nextChannel;
             preChannel->_next = channel;
             nextChannel->_prev = channel;
         }
@@ -235,19 +236,15 @@ void ChannelPool::addToWaitingList(Channel *channel) {
 
 uint64_t ChannelPool::createChannelId(uint64_t chid) {
     uint64_t id = chid;
-    if (id <= AUTO_CHANNEL_ID_MAX && (id != HTTP_CHANNEL_ID &&
-        id != ADMIN_CHANNEL_ID)) {
+    if (id <= AUTO_CHANNEL_ID_MAX && (id != HTTP_CHANNEL_ID && id != ADMIN_CHANNEL_ID)) {
         do {
             id = atomic_add_return(1, &_globalChannelId);
             id &= AUTO_CHANNEL_ID_MAX;
             /* Tricky. With 64 bit channel id, we just skip the original
              * HTTP channel ID and admin channel id. */
-            if ((uint32_t)id == HTTP_CHANNEL_ID || 
-                (uint32_t)id == ADMIN_CHANNEL_ID || 
-                (uint32_t)id == 0)
-            {
+            if ((uint32_t)id == HTTP_CHANNEL_ID || (uint32_t)id == ADMIN_CHANNEL_ID || (uint32_t)id == 0) {
                 id = 0;
-                continue; 
+                continue;
             }
         } while (0 == id);
     }
@@ -255,5 +252,3 @@ uint64_t ChannelPool::createChannelId(uint64_t chid) {
 }
 
 END_ANET_NS();
-
-

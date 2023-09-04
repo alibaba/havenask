@@ -19,8 +19,7 @@
 
 namespace iquan {
 
-enum JvmType
-{
+enum JvmType {
     jt_hdfs_jvm,
     jt_jnipp_jvm,
     jt_invalid_jvm

@@ -48,9 +48,6 @@ public:
     Status Execute(const framework::IndexTaskContext& context) override;
 
 private:
-    Status StoreSegmentInfos(const framework::SegmentInfo& targetSegmentInfo,
-                             const indexlib::framework::SegmentMetrics& segmentMetrics, const std::string& counterMap,
-                             const std::shared_ptr<indexlib::file_system::IDirectory>& mergerDirectory);
     Status MoveIndexDir(const framework::IndexTaskContext& context, framework::IndexOperationId opId,
                         const std::string& segDirName, const std::string& indexPath);
     Status MergeSegmentMetrics(const std::vector<indexlib::framework::SegmentMetrics>& segMetricsVec,
@@ -78,7 +75,7 @@ private:
     Status MergeSegmentToPackageFormat(const framework::IndexTaskContext& context, const std::string& segDirName,
                                        std::vector<indexlib::framework::SegmentMetrics>* segmentMetricsVec);
     static std::vector<std::shared_ptr<config::IIndexConfig>>
-    GetAllIndexConfigs(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema, const std::string& indexType,
+    GetAllIndexConfigs(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema, const std::string& indexType,
                        const std::string& indexName);
 
 private:

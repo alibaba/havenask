@@ -93,4 +93,15 @@ std::shared_ptr<FileWriter> CompressFileWriter::GetDataFileWriter() const noexce
     }
     return dataWriter;
 }
+
+size_t CompressFileWriter::EstimateCompressBufferSize(const string& compressorName, size_t bufferSize,
+                                                      const KeyValueMap& compressorParam) noexcept
+{
+    bool needHintData = GetTypeValueFromKeyValueMap(compressorParam, COMPRESS_ENABLE_HINT_PARAM_NAME, (bool)false);
+    if (needHintData) {
+        return HintCompressDataDumper::EstimateCompressBufferSize(compressorName, bufferSize, compressorParam);
+    }
+    return CompressDataDumper::EstimateCompressBufferSize(compressorName, bufferSize, compressorParam);
+}
+
 }} // namespace indexlib::file_system

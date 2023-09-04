@@ -60,5 +60,9 @@ vector<ReduceTask> IndexReducer::CreateReduceTasks(const vector<DirectoryPtr>& i
 void IndexReducer::EndParallelReduce(const OutputSegmentMergeInfos& outputSegMergeInfos, int32_t totalParallelCount,
                                      const std::vector<index_base::MergeTaskResourceVector>& instResourceVec)
 {
+    for (const auto& info : outputSegMergeInfos) {
+        indexlibv2::index::ann::ParallelReduceMeta meta(totalParallelCount);
+        meta.Store(info.directory);
+    }
 }
 }} // namespace indexlib::index

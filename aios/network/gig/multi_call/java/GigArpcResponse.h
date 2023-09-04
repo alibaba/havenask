@@ -22,10 +22,13 @@
 
 namespace multi_call {
 
-class GigArpcResponse : public Response {
+class GigArpcResponse : public Response
+{
 public:
-    GigArpcResponse() {}
-    ~GigArpcResponse() {}
+    GigArpcResponse() {
+    }
+    ~GigArpcResponse() {
+    }
 
 private:
     GigArpcResponse(const GigArpcResponse &);
@@ -40,9 +43,15 @@ public:
         }
         _data = *dataStr;
     }
-    bool deserializeApp() override { return true; }
-    size_t size() const override { return _data.size(); }
-    std::string &getData() { return _data; }
+    bool deserializeApp() override {
+        return true;
+    }
+    size_t size() const override {
+        return _data.size();
+    }
+    std::string &getData() {
+        return _data;
+    }
     void fillSpan() override {
         auto &span = getSpan();
         if (span && span->isDebug()) {

@@ -1,0 +1,80 @@
+syntax = "proto3";
+import "CatalogEntity.proto";
+
+package catalog.proto;
+
+option java_multiple_files = true;
+option java_package = "catalog.proto.entity";
+option java_outer_classname = "CatalogStoreEntityProto";
+
+option cc_enable_arenas = true;
+
+// TODO(chekong.ygm): 可能对于Table/Partition/Function等，每个都会一个自己独立的Record表达
+message EntityRecord {
+    string entity_name = 1;
+    int64 version = 2;
+}
+
+// unique_index: partition_name & table_name & database_name & catalog_name & version
+message PartitionRecord {
+    int64 version = 1;
+    EntityStatus status = 2;
+    string partition_name = 3;
+    string table_name = 4;
+    string database_name = 5;
+    string catalog_name = 6;
+    PartitionType.Code partition_type = 7;
+    PartitionConfig partition_config = 8;
+    DataSource data_source = 9;
+    EntityRecord table_structure_record = 10;
+    OperationMeta operation_meta = 11;
+}
+
+// unique_index: table_name & catalog_name & database_name & version
+message TableRecord {
+    int64 version = 1;
+    EntityStatus status = 2;
+    string table_name = 3;
+    string database_name = 4;
+    string catalog_name = 5;
+    TableConfig table_config = 6;
+    EntityRecord table_structure_record = 7;
+    repeated EntityRecord partition_records = 8;
+    // @ImmutableField, @Nullable
+    OperationMeta operation_meta = 10;
+}
+
+// unique_index: database_name & catalog_name & version
+message DatabaseRecord {
+    int64 version = 1;
+    EntityStatus status = 2;
+    string database_name = 3;
+    string catalog_name = 4;
+    DatabaseConfig database_config = 5;
+    repeated EntityRecord table_records = 6;
+    repeated EntityRecord table_group_records = 7;
+    repeated EntityRecord function_records = 8;
+    OperationMeta operation_meta = 10;
+}
+
+// unique_index: table_group_name & catalog_name & version
+message TableGroupRecord {
+    int64 version = 1;
+    EntityStatus status = 2;
+    string table_group_name = 3;
+    string database_name = 4;
+    string catalog_name = 5;
+    TableGroupConfig table_group_config = 6;
+    repeated EntityRecord load_strategy_records = 7;
+    OperationMeta operation_meta = 8;
+}
+
+// unique_index: catalog_name & version
+message CatalogRecord {
+    int64 version = 1;
+    EntityStatus status = 2;
+    string catalog_name = 3;
+    CatalogConfig catalog_config = 4;
+    repeated EntityRecord database_records = 5;
+    OperationMeta operation_meta = 6;
+}

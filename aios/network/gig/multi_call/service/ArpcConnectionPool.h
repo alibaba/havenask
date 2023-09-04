@@ -22,7 +22,8 @@
 
 namespace multi_call {
 
-class ArpcConnectionPool : public ConnectionPool {
+class ArpcConnectionPool : public ConnectionPool
+{
 public:
     ArpcConnectionPool(bool isRawArpc = false);
     ~ArpcConnectionPool();

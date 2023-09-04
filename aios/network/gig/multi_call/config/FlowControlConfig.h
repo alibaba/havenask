@@ -22,26 +22,33 @@
 
 namespace multi_call {
 
-class FlowControlConfig : public autil::legacy::Jsonizable {
+class FlowControlConfig : public autil::legacy::Jsonizable
+{
 public:
     FlowControlConfig()
-        : probePercent(DEFAULT_PROBE_PERCENT), errorRatioLimit(MAX_PERCENT),
-          latencyUpperLimitPercent(DEFAULT_LATENCY_UPPER_LIMIT_PERCENT),
-          latencyUpperLimitMs(DEFAULT_LATENCY_UPPER_LIMIT_MS),
-          beginServerDegradeLatency(DEFAULT_DEGRADE_LATENCY),
-          beginDegradeLatency(DEFAULT_DEGRADE_LATENCY),
-          fullDegradeLatency(DEFAULT_DEGRADE_LATENCY),
-          etTriggerPercent(MAX_PERCENT),
-          etWaitTimeFactor(DEFAULT_WAIT_TIME_FACTOR), etMinWaitTime(0),
-          retryTriggerPercent(MAX_PERCENT),
-          retryWaitTimeFactor(DEFAULT_WAIT_TIME_FACTOR), retryMinWaitTime(0),
-          retryMinProviderWeight(0),
-          retryLimitPerSecond(DEFAULT_RETRY_LIMIT_PER_SECOND),
-          latencyTimeWindowSize(DEFAULT_LATENCY_TIME_WINDOW_SIZE),
-          beginServerDegradeErrorRatio(MAX_PERCENT),
-          beginDegradeErrorRatio(MAX_PERCENT),
-          fullDegradeErrorRatio(MAX_PERCENT), minWeight(MIN_WEIGHT_FLOAT) {}
-    ~FlowControlConfig() {}
+        : probePercent(DEFAULT_PROBE_PERCENT)
+        , errorRatioLimit(MAX_PERCENT)
+        , latencyUpperLimitPercent(DEFAULT_LATENCY_UPPER_LIMIT_PERCENT)
+        , latencyUpperLimitMs(DEFAULT_LATENCY_UPPER_LIMIT_MS)
+        , beginServerDegradeLatency(DEFAULT_DEGRADE_LATENCY)
+        , beginDegradeLatency(DEFAULT_DEGRADE_LATENCY)
+        , fullDegradeLatency(DEFAULT_DEGRADE_LATENCY)
+        , etTriggerPercent(MAX_PERCENT)
+        , etWaitTimeFactor(DEFAULT_WAIT_TIME_FACTOR)
+        , etMinWaitTime(0)
+        , retryTriggerPercent(MAX_PERCENT)
+        , retryWaitTimeFactor(DEFAULT_WAIT_TIME_FACTOR)
+        , retryMinWaitTime(0)
+        , retryMinProviderWeight(0)
+        , retryLimitPerSecond(DEFAULT_RETRY_LIMIT_PER_SECOND)
+        , latencyTimeWindowSize(DEFAULT_LATENCY_TIME_WINDOW_SIZE)
+        , beginServerDegradeErrorRatio(MAX_PERCENT)
+        , beginDegradeErrorRatio(MAX_PERCENT)
+        , fullDegradeErrorRatio(MAX_PERCENT)
+        , minWeight(MIN_WEIGHT_FLOAT) {
+    }
+    ~FlowControlConfig() {
+    }
 
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
@@ -49,53 +56,45 @@ public:
         json.Jsonize("error_ratio_limit", errorRatioLimit, errorRatioLimit);
         json.Jsonize("latency_upper_limit_percent", latencyUpperLimitPercent,
                      latencyUpperLimitPercent);
-        json.Jsonize("latency_upper_limit_ms", latencyUpperLimitMs,
-                     latencyUpperLimitMs);
-        json.Jsonize("full_degrade_latency", fullDegradeLatency,
-                     fullDegradeLatency);
-        json.Jsonize("begin_degrade_latency", beginDegradeLatency,
-                     fullDegradeLatency);
+        json.Jsonize("latency_upper_limit_ms", latencyUpperLimitMs, latencyUpperLimitMs);
+        json.Jsonize("full_degrade_latency", fullDegradeLatency, fullDegradeLatency);
+        json.Jsonize("begin_degrade_latency", beginDegradeLatency, fullDegradeLatency);
         json.Jsonize("begin_server_degrade_latency", beginServerDegradeLatency,
                      beginDegradeLatency);
         json.Jsonize("et_trigger_percent", etTriggerPercent, etTriggerPercent);
         json.Jsonize("et_wait_time_factor", etWaitTimeFactor, etWaitTimeFactor);
         json.Jsonize("et_min_wait_time", etMinWaitTime, etMinWaitTime);
 
-        json.Jsonize("retry_trigger_percent", retryTriggerPercent,
-                     retryTriggerPercent);
-        json.Jsonize("retry_wait_time_factor", retryWaitTimeFactor,
-                     retryWaitTimeFactor);
+        json.Jsonize("retry_trigger_percent", retryTriggerPercent, retryTriggerPercent);
+        json.Jsonize("retry_wait_time_factor", retryWaitTimeFactor, retryWaitTimeFactor);
         json.Jsonize("retry_min_wait_time", retryMinWaitTime, retryMinWaitTime);
-        json.Jsonize("retry_min_provider_weight", retryMinProviderWeight,
-                     retryMinProviderWeight);
-        json.Jsonize("retry_limit_per_second", retryLimitPerSecond,
-                     retryLimitPerSecond);
-        json.Jsonize("latency_time_window_size", latencyTimeWindowSize,
-                     latencyTimeWindowSize);
+        json.Jsonize("retry_min_provider_weight", retryMinProviderWeight, retryMinProviderWeight);
+        json.Jsonize("retry_limit_per_second", retryLimitPerSecond, retryLimitPerSecond);
+        json.Jsonize("latency_time_window_size", latencyTimeWindowSize, latencyTimeWindowSize);
 
-        json.Jsonize("full_degrade_error_ratio", fullDegradeErrorRatio,
-                     fullDegradeErrorRatio);
-        json.Jsonize("begin_degrade_error_ratio", beginDegradeErrorRatio,
-                     fullDegradeErrorRatio);
-        json.Jsonize("begin_server_degrade_error_ratio",
-                     beginServerDegradeErrorRatio, beginDegradeErrorRatio);
+        json.Jsonize("full_degrade_error_ratio", fullDegradeErrorRatio, fullDegradeErrorRatio);
+        json.Jsonize("begin_degrade_error_ratio", beginDegradeErrorRatio, fullDegradeErrorRatio);
+        json.Jsonize("begin_server_degrade_error_ratio", beginServerDegradeErrorRatio,
+                     beginDegradeErrorRatio);
 
         json.Jsonize("min_weight", minWeight, minWeight);
 
         json.Jsonize("request_info_field", compatibleFieldInfo.requestInfoField,
                      compatibleFieldInfo.requestInfoField);
-        json.Jsonize("ec_field", compatibleFieldInfo.ecField,
-                     compatibleFieldInfo.ecField);
-        json.Jsonize("response_info_field",
-                     compatibleFieldInfo.responseInfoField,
+        json.Jsonize("ec_field", compatibleFieldInfo.ecField, compatibleFieldInfo.ecField);
+        json.Jsonize("response_info_field", compatibleFieldInfo.responseInfoField,
                      compatibleFieldInfo.responseInfoField);
 
         if (json.GetMode() == FROM_JSON) {
             validate();
         }
     }
-    bool etEnabled() const { return MAX_PERCENT != etTriggerPercent; }
-    bool retryEnabled() const { return MAX_PERCENT != retryTriggerPercent; }
+    bool etEnabled() const {
+        return MAX_PERCENT != etTriggerPercent;
+    }
+    bool retryEnabled() const {
+        return MAX_PERCENT != retryTriggerPercent;
+    }
     bool singleRetryEnabled() const {
         return latencyTimeWindowSize > DEFAULT_LATENCY_TIME_WINDOW_SIZE;
     }

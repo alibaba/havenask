@@ -1,0 +1,18 @@
+{
+    "table_name": "orc",
+    "table_type": "orc",
+    "indexs":[
+	{
+	    "index_name" : "nid",
+	    "index_type" : "PRIMARYKEY64",
+	    "index_fields" : "nid"
+	}
+    ],
+    "fields": [
+        { "field_name": "nid", "field_type": "INT64" },
+	{ "field_name": "user_id", "field_type": "STRING" },
+        { "field_name": "category", "field_type": "INT16", "multi_value" : true}
+    ],
+    "attributes" : ["nid", "user_id", "category"],
+    "versionid": 100
+}

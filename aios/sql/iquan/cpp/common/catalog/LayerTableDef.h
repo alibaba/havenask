@@ -15,13 +15,12 @@
  */
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
-#include <unordered_map>
-#include <map>
 
-#include "autil/legacy/jsonizable.h"
 #include "autil/legacy/any.h"
+#include "autil/legacy/jsonizable.h"
 
 namespace iquan {
 
@@ -33,7 +32,10 @@ public:
         json.Jsonize("layer_info", layerInfo);
     }
 
-    bool isValid() const { return true; }
+    bool isValid() const {
+        return true;
+    }
+
 public:
     std::string dbName;
     std::string tableName;
@@ -48,7 +50,9 @@ public:
         json.Jsonize("value_type", valueType);
     }
 
-    bool isValid() const { return true; }
+    bool isValid() const {
+        return true;
+    }
 
 public:
     std::string fieldName;
@@ -65,7 +69,10 @@ public:
         json.Jsonize("properties", properties, properties);
     }
 
-    bool isValid() const { return true; }
+    bool isValid() const {
+        return true;
+    }
+
 public:
     std::string layerTableName;
     std::vector<Layer> layers;

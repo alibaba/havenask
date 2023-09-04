@@ -24,13 +24,13 @@ namespace isearch {
 namespace util {
 class EnvParser {
 public:
-    static bool parseParaWays(const std::string &paraEnv,
-                              std::vector<std::string> &paraWaysVec);
+    static bool parseParaWays(const std::string &paraEnv, std::vector<std::string> &paraWaysVec);
+
 private:
-    static bool isWayValid(const std::string& paraVal);
+    static bool isWayValid(const std::string &paraVal);
+
 private:
     AUTIL_LOG_DECLARE();
 };
 } // namespace util
 } // namespace isearch
-

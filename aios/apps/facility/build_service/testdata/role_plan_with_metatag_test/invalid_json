@@ -1,0 +1,6 @@
+{
+    "packages" : [
+	    {
+	        "type" : "RPM",
+	        "uri" : "bs package"
+	    }

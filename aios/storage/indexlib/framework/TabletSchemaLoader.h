@@ -46,7 +46,7 @@ public:
     LoadSchema(const std::shared_ptr<indexlib::file_system::IDirectory>& dir, const std::string& schemaFileName);
 
     static Status ResolveSchema(const std::shared_ptr<config::TabletOptions>& options, const std::string& indexPath,
-                                config::TabletSchema* schema);
+                                config::ITabletSchema* schema);
 
     static schemaid_t GetSchemaId(const std::string& schemaFileName);
 

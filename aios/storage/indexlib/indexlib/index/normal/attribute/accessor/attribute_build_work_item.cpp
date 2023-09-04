@@ -41,7 +41,7 @@ AttributeBuildWorkItem::AttributeBuildWorkItem(const config::PackAttributeConfig
                                                InMemoryAttributeSegmentWriter* segmentWriter, bool isSub,
                                                docid_t buildingSegmentBaseDocId,
                                                const document::DocumentCollectorPtr& docCollector)
-    : BuildWorkItem(packAttributeConfig->GetAttrName(), BuildWorkItemType::ATTR, isSub, buildingSegmentBaseDocId,
+    : BuildWorkItem(packAttributeConfig->GetPackName(), BuildWorkItemType::ATTR, isSub, buildingSegmentBaseDocId,
                     docCollector)
     , _attributeId(INVALID_ATTRID)
     , _packAttributeId(packAttributeConfig->GetPackAttrId())

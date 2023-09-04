@@ -15,10 +15,11 @@
  */
 #pragma once
 
-#include "aios/network/gig/multi_call/proto/NewHeartbeat.pb.h"
-#include "aios/network/gig/multi_call/common/common.h"
-#include "autil/Lock.h"
 #include <unordered_map>
+
+#include "aios/network/gig/multi_call/common/common.h"
+#include "aios/network/gig/multi_call/proto/NewHeartbeat.pb.h"
+#include "autil/Lock.h"
 
 namespace multi_call {
 
@@ -39,6 +40,7 @@ class BizTopo
 public:
     BizTopo(SignatureTy publishId, PublishGroupTy group);
     ~BizTopo();
+
 public:
     bool init(const ServerBizTopoInfo &info, const std::shared_ptr<BizStat> &bizStat);
     void updateVolatileInfo(const BizVolatileInfo &info);
@@ -63,6 +65,7 @@ public:
         return _info;
     }
     void toString(std::string &ret) const;
+
 private:
     void initTopoSignature();
     void initMetaSignature();
@@ -71,6 +74,7 @@ private:
     void fillTopoKey(BizTopoKeyDef *keyDef) const;
     void fillMeta(BizMetasDef *metaDef) const;
     void fillTag(BizTagsDef *tagsDef) const;
+
 private:
     PublishGroupTy _group;
     std::string _id;
@@ -78,6 +82,7 @@ private:
     mutable autil::ReadWriteLock _tagLock;
     ServerBizTopoInfo _info;
     BizTopoSignature _signature;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -87,4 +92,4 @@ MULTI_CALL_TYPEDEF_PTR(BizTopo);
 typedef std::map<SignatureTy, BizTopoPtr> BizTopoMap;
 MULTI_CALL_TYPEDEF_PTR(BizTopoMap);
 
-}
+} // namespace multi_call

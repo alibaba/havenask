@@ -20,15 +20,12 @@
 namespace indexlib::table {
 AUTIL_LOG_SETUP(indexlib.table, TabletWriterResourceCalculator);
 
-TabletWriterResourceCalculator::TabletWriterResourceCalculator(bool isOnline, int64_t dumpThreadCount)
+TabletWriterResourceCalculator::TabletWriterResourceCalculator(
+    const std::shared_ptr<util::BuildResourceMetrics>& buildingSegmentMetrics, bool isOnline, int64_t dumpThreadCount)
     : _isOnline(isOnline)
     , _dumpThreadCount(dumpThreadCount)
+    , _buildingSegmentMetrics(buildingSegmentMetrics)
 {
-}
-
-void TabletWriterResourceCalculator::Init(const util::BuildResourceMetricsPtr& buildingSegmentMetrics)
-{
-    _buildingSegmentMetrics = buildingSegmentMetrics;
 }
 
 int64_t TabletWriterResourceCalculator::GetCurrentMemoryUse() const
@@ -41,7 +38,13 @@ int64_t TabletWriterResourceCalculator::GetCurrentMemoryUse() const
 
 int64_t TabletWriterResourceCalculator::EstimateMaxMemoryUseOfCurrentSegment() const
 {
-    return GetCurrentMemoryUse() + EstimateDumpMemoryUse() + (!_isOnline ? EstimateDumpFileSize() : 0);
+    auto currentMemoryUse = GetCurrentMemoryUse();
+    auto dumpMemoryUse = EstimateDumpMemoryUse();
+    auto dumpFileSize = (!_isOnline ? EstimateDumpFileSize() : 0);
+    auto maxMemoryUse = currentMemoryUse + dumpMemoryUse + dumpFileSize;
+    AUTIL_LOG(DEBUG, "currentMemoryUse[%ld] + dumpMemoryUse[%ld] + dumpFileSize[%ld] = maxMemoryUse[%ld]",
+              currentMemoryUse, dumpMemoryUse, dumpFileSize, maxMemoryUse);
+    return maxMemoryUse;
 }
 
 int64_t TabletWriterResourceCalculator::EstimateDumpMemoryUse() const

@@ -15,10 +15,10 @@
  */
 #pragma once
 
-#include "aios/network/gig/multi_call/new_heartbeat/HostHeartbeatInfo.h"
-#include "aios/network/gig/multi_call/config/MultiCallConfig.h"
-#include "autil/LoopThread.h"
 #include "aios/network/anet/atomic.h"
+#include "aios/network/gig/multi_call/config/MultiCallConfig.h"
+#include "aios/network/gig/multi_call/new_heartbeat/HostHeartbeatInfo.h"
+#include "autil/LoopThread.h"
 
 namespace multi_call {
 
@@ -30,13 +30,13 @@ MULTI_CALL_TYPEDEF_PTR(HostHeartbeatInfoMap);
 
 class HeartbeatClientManager;
 
-class HeartbeatClientManagerNotifier {
+class HeartbeatClientManagerNotifier
+{
 public:
-    HeartbeatClientManagerNotifier(HeartbeatClientManager *manager)
-        : _manager(manager)
-    {
+    HeartbeatClientManagerNotifier(HeartbeatClientManager *manager) : _manager(manager) {
         atomic_set(&_version, 0);
     }
+
 public:
     int64_t getVersion() const {
         return atomic_read(&_version);
@@ -46,6 +46,7 @@ public:
     }
     void notifyHeartbeatSuccess() const;
     void stealManager();
+
 private:
     atomic64_t _version;
     mutable autil::ThreadMutex _managerLock;
@@ -61,9 +62,11 @@ class HeartbeatClientManager
 public:
     HeartbeatClientManager(SearchService *searchService, SearchServiceManager *manager);
     ~HeartbeatClientManager();
+
 private:
     HeartbeatClientManager(const HeartbeatClientManager &);
     HeartbeatClientManager &operator=(const HeartbeatClientManager &);
+
 public:
     bool start(const MiscConfigPtr &miscConfig,
                const std::shared_ptr<SearchServiceSnapshot> &heartbeatSnapshot);
@@ -76,12 +79,14 @@ public:
     }
     void log();
     void getSpecSet(std::set<std::string> &specSet) const;
+
 private:
     bool initThread();
     void loop();
     void setHostMap(const HostHeartbeatInfoMapPtr &newMap);
     HostHeartbeatInfoMapPtr getHostMap() const;
     std::string toString() const;
+
 private:
     SearchService *_searchService;
     SearchServiceManager *_manager;
@@ -92,10 +97,11 @@ private:
     autil::LoopThreadPtr _thread;
     MiscConfigPtr _miscConfig;
     std::string _snapshotStr;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
 MULTI_CALL_TYPEDEF_PTR(HeartbeatClientManager);
 
-}
+} // namespace multi_call

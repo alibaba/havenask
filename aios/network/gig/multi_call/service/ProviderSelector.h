@@ -24,7 +24,8 @@
 
 namespace multi_call {
 
-class ProviderSelector {
+class ProviderSelector
+{
 public:
     ProviderSelector(const std::string &bizName);
     virtual ~ProviderSelector();
@@ -37,29 +38,26 @@ public:
     uint32_t select(const std::shared_ptr<CachedRequestGenerator> &generator,
                     const SearchServiceSnapshotInVersionPtr &versionSnapshot,
                     const FlowConfigSnapshotPtr &flowConfigSnapshot,
-                    const ReplyInfoCollectorPtr &replyInfoCollector,
-                    bool probeOnly,
+                    const ReplyInfoCollectorPtr &replyInfoCollector, bool probeOnly,
                     SearchServiceResourceVector &searchResourceVec);
 
-    SearchServiceProviderPtr selectBackupProvider(
-        const SearchServiceSnapshotInVersionPtr &versionSnapshot,
-        const SearchServiceProviderPtr &provider, PartIdTy partId,
-        SourceIdTy sourceId, const MatchTagMapPtr &matchTagMap,
-        const FlowControlConfigPtr &flowControlConfig);
+    SearchServiceProviderPtr
+    selectBackupProvider(const SearchServiceSnapshotInVersionPtr &versionSnapshot,
+                         const SearchServiceProviderPtr &provider, PartIdTy partId,
+                         SourceIdTy sourceId, const MatchTagMapPtr &matchTagMap,
+                         const FlowControlConfigPtr &flowControlConfig);
 
 private:
-    void selectFromNormalVersion(
-        const RequestGeneratorPtr &generator,
-        const SearchServiceSnapshotInVersionPtr &versionSnapshot,
-        const FlowControlConfigPtr &flowControlConfig,
-        const FlowControlParam &flowControlParam, PartIdTy partId,
-        const RequestPtr &request, bool probeOnly,
-        SearchServiceResourceVector &searchResourceVec);
-    void selectFromCopyVersion(
-        const RequestGeneratorPtr &generator,
-        const SearchServiceSnapshotInVersionPtr &versionSnapshot,
-        PartIdTy partId, const RequestPtr &request,
-        SearchServiceResourceVector &searchResourceVec);
+    void selectFromNormalVersion(const RequestGeneratorPtr &generator,
+                                 const SearchServiceSnapshotInVersionPtr &versionSnapshot,
+                                 const FlowControlConfigPtr &flowControlConfig,
+                                 const FlowControlParam &flowControlParam, PartIdTy partId,
+                                 const RequestPtr &request, bool probeOnly,
+                                 SearchServiceResourceVector &searchResourceVec);
+    void selectFromCopyVersion(const RequestGeneratorPtr &generator,
+                               const SearchServiceSnapshotInVersionPtr &versionSnapshot,
+                               PartIdTy partId, const RequestPtr &request,
+                               SearchServiceResourceVector &searchResourceVec);
 
 protected:
     std::string _bizName;

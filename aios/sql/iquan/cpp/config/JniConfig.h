@@ -18,7 +18,6 @@
 #include <string>
 
 #include "autil/legacy/jsonizable.h"
-#include "iquan/common/Common.h"
 
 namespace iquan {
 
@@ -26,7 +25,8 @@ const static std::string SUMMARY_TABLE_SUFFIX = "_summary_";
 
 class TableConfig : public autil::legacy::Jsonizable {
 public:
-    TableConfig() : summaryTableSuffix(SUMMARY_TABLE_SUFFIX) {}
+    TableConfig()
+        : summaryTableSuffix(SUMMARY_TABLE_SUFFIX) {}
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
         json.Jsonize("summary_suffix", summaryTableSuffix, summaryTableSuffix);
@@ -51,7 +51,9 @@ public:
         json.Jsonize("table_config", tableConfig, tableConfig);
     }
 
-    bool isValid() const { return tableConfig.isValid(); }
+    bool isValid() const {
+        return tableConfig.isValid();
+    }
 
 public:
     TableConfig tableConfig;

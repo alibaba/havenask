@@ -136,6 +136,7 @@ message MachineStatus {
     optional uint64 pktOutSpeed = 9 [default = 0];
     optional uint64 pktErrSpeed = 10 [default = 0];
     optional uint64 pktDropSpeed = 11 [default = 0];
+    optional int64 cpuRatioInWindow = 12 [default = -1];
 }
 
 message TaskTarget {
@@ -222,6 +223,7 @@ message ProcessorCurrent {
     optional int32 protocolVersion = 12 [default = -1];
     optional string configPath = 13;
     optional MachineStatus machineStatus = 14;
+    optional bool workflowErrorExceedThreadhold = 15 [default = false];
 }
 
 message ProcessorCounter {
@@ -232,12 +234,15 @@ message ProcessorCounter {
 message RoleCmdInfo {
     required string roleName = 1;
     required string processInfo = 2;
+    optional string configPath = 3;
 }
 
 message AgentTarget {
     repeated RoleCmdInfo targetRoles = 1;
     optional string configPath = 2;
     optional bool suspendTask = 3 [default = false];
+    optional bool isGlobalAgent = 4 [default = false];
+    repeated string globalConfigs = 5;
 }
 
 message AgentCurrent {
@@ -395,7 +400,8 @@ message CurrentResponse {
     optional PartitionId partitionId = 3;
     repeated BSResource usingResources = 4;
     optional bytes usingResourcesStr = 5;
-    optional string identifier = 6;    
+    optional string identifier = 6;
+    optional int64 startTimestamp = 7;
 };
 
 service HeartbeatService

@@ -1,20 +1,19 @@
-load('//bazel:bundle.bzl', 'bundle_files', 'bundle_tar')
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
-indexlib_cc_library(
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+strict_cc_library(
     name='tablet',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=['//aios/storage/indexlib/framework:tablet']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='document',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=['//aios/storage/indexlib/document']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='alter_table',
     srcs=[],
     hdrs=[],
@@ -26,22 +25,20 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute:indexer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='interface',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=[':document', ':tablet']
 )
-bundle_files(
-    name='codegen_package',
-    srcs=['//aios/storage/indexlib/legacy/tools:codegen_tool_bin'],
-    prefix='usr/local/bin/',
-    strip_prefix='codegen_tool',
-    visibility=['//visibility:public'],
-    deps=[
-        '//aios/storage/indexlib/indexlib:codegen_bin_package',
-        '//aios/storage/indexlib/indexlib:codegen_clang_include_package',
-        '//aios/storage/indexlib/indexlib:codegen_source_code_package'
-    ]
+filegroup(
+    name='test_log_conf',
+    srcs=['test_alog.conf'],
+    visibility=['//aios/storage/indexlib:__subpackages__']
+)
+filegroup(
+    name='testdata',
+    srcs=([':test_log_conf'] + glob(['testdata/**'])),
+    visibility=['//aios/storage/indexlib:__subpackages__']
 )

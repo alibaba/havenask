@@ -74,7 +74,7 @@ void PackFieldPatchIterator::Init(const PartitionDataPtr& partitionData, bool ig
 void PackFieldPatchIterator::CreateIndependentPatchWorkItems(vector<PatchWorkItem*>& workItems)
 {
     stringstream ss;
-    ss << mPackAttrConfig->GetAttrName() << "_";
+    ss << mPackAttrConfig->GetPackName() << "_";
     if (mIsSub) {
         ss << "sub";
     } else {
@@ -152,7 +152,7 @@ void PackFieldPatchIterator::Next(AttrFieldValue& value)
     if (valueLen == 0) {
         value.SetDocId(INVALID_DOCID);
         value.SetPackAttrId(INVALID_PACK_ATTRID);
-        IE_LOG(ERROR, "encode patch value for pack attribute [%s] failed.", mPackAttrConfig->GetAttrName().c_str());
+        IE_LOG(ERROR, "encode patch value for pack attribute [%s] failed.", mPackAttrConfig->GetPackName().c_str());
         return;
     }
 

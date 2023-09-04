@@ -23,15 +23,16 @@
 
 namespace multi_call {
 
-class ProviderSelectorFactory {
+class ProviderSelectorFactory
+{
 public:
-    ProviderSelectorFactory() {}
+    ProviderSelectorFactory() {
+    }
     virtual ~ProviderSelectorFactory() = default;
 
 private:
     ProviderSelectorFactory(const ProviderSelectorFactory &) = delete;
-    ProviderSelectorFactory &
-    operator=(const ProviderSelectorFactory &) = delete;
+    ProviderSelectorFactory &operator=(const ProviderSelectorFactory &) = delete;
 
 public:
     ProviderSelectorPtr create(const std::string &bizName);

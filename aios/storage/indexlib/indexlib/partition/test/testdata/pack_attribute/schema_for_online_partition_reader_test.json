@@ -1,0 +1,32 @@
+{
+    "table_name": "auction",
+    "fields": 
+    [
+        {"field_name":"string1", "field_type":"string"},
+        {"field_name":"long1", "field_type":"uint32"},
+        {"field_name":"long2", "field_type":"uint32"}
+    ],
+
+    "indexs": 
+    [
+	{
+	    "index_name": "pk",
+            "index_type" : "PRIMARYKEY64",
+	    "index_fields": "string1"
+	}
+    ],
+
+    "attributes":
+    [
+        
+        {
+            "pack_name" : "pack_attr",
+            "sub_attributes" : ["long1", "long2"] 
+        }
+    ],
+    "summarys":
+    {
+        "summary_fields" : ["long1"]
+    },
+    "auto_update_preference" : false
+}

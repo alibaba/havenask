@@ -26,19 +26,14 @@ namespace isearch {
 namespace search {
 AUTIL_LOG_SETUP(ha3, AttributeMetaInfo);
 
-AttributeMetaInfo::AttributeMetaInfo(
-        const string &attrName, 
-        AttributeType attrType, 
-        const IndexPartitionReaderPtr &indexPartReaderPtr)
+AttributeMetaInfo::AttributeMetaInfo(const string &attrName,
+                                     AttributeType attrType,
+                                     const IndexPartitionReaderPtr &indexPartReaderPtr)
     : _attrName(attrName)
     , _attrType(attrType)
-    , _indexPartReaderPtr(indexPartReaderPtr)
-{
-}
+    , _indexPartReaderPtr(indexPartReaderPtr) {}
 
-AttributeMetaInfo::~AttributeMetaInfo() { 
-}
+AttributeMetaInfo::~AttributeMetaInfo() {}
 
 } // namespace search
 } // namespace isearch
-

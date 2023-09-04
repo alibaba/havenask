@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 #include "fslib/fs/FileSystemManager.h"
-#include "fslib/fs/FileSystemFactory.h"
+
 #include "fslib/fs/AbstractFileSystem.h"
+#include "fslib/fs/FileSystemFactory.h"
 
 using namespace std;
 using namespace autil;
@@ -23,44 +24,28 @@ FSLIB_BEGIN_NAMESPACE(fs);
 
 AUTIL_DECLARE_AND_SETUP_LOGGER(fs, FileSystemManager);
 
-AbstractFileSystem* FileSystemManager::getFs(const FsType& type, bool safe)
-{
+AbstractFileSystem *FileSystemManager::getFs(const FsType &type, bool safe) {
     return FileSystemFactory::getInstance()->getFs(type, safe);
 }
 
-void FileSystemManager::setFs(const FsType& type, AbstractFileSystem* fs, bool safe)
-{
+void FileSystemManager::setFs(const FsType &type, AbstractFileSystem *fs, bool safe) {
     FileSystemFactory::getInstance()->setFs(type, fs, safe);
 }
 
-AbstractFileSystem* FileSystemManager::getRawFs(const FsType& type, bool safe)
-{
+AbstractFileSystem *FileSystemManager::getRawFs(const FsType &type, bool safe) {
     return FileSystemFactory::getInstance()->getRawFs(type, safe);
 }
 
-void FileSystemManager::setRawFs(const FsType& type, AbstractFileSystem* fs, bool safe)
-{
+void FileSystemManager::setRawFs(const FsType &type, AbstractFileSystem *fs, bool safe) {
     FileSystemFactory::getInstance()->setFs(type, fs, safe);
 }
 
-AbstractFileSystem* FileSystemManager::getRawFs(AbstractFileSystem* fs)
-{
-    return FileSystemFactory::getRawFs(fs);
-}
+AbstractFileSystem *FileSystemManager::getRawFs(AbstractFileSystem *fs) { return FileSystemFactory::getRawFs(fs); }
 
-void FileSystemManager::destroyFs(const FsType& type)
-{
-    FileSystemFactory::getInstance()->destroyFs(type);
-}
+void FileSystemManager::destroyFs(const FsType &type) { FileSystemFactory::getInstance()->destroyFs(type); }
 
-void FileSystemManager::close()
-{
-    FileSystemFactory::getInstance()->close();
-}
+void FileSystemManager::close() { FileSystemFactory::getInstance()->close(); }
 
-bool FileSystemManager::init()
-{
-    return FileSystemFactory::getInstance()->init();
-}
+bool FileSystemManager::init() { return FileSystemFactory::getInstance()->init(); }
 
 FSLIB_END_NAMESPACE(fs);

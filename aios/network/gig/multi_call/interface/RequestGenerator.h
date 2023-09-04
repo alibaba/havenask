@@ -24,35 +24,36 @@
 
 namespace multi_call {
 
-class RequestGenerator : public GeneratorBase {
+class RequestGenerator : public GeneratorBase
+{
 public:
-    RequestGenerator(const std::string &bizName,
-                     SourceIdTy sourceId = INVALID_SOURCE_ID,
+    RequestGenerator(const std::string &bizName, SourceIdTy sourceId = INVALID_SOURCE_ID,
                      VersionTy version = INVALID_VERSION_ID)
-        : GeneratorBase("", bizName, "", "", sourceId, version,
-                        INVALID_VERSION_ID),
-          _arena(new google::protobuf::Arena()) {}
+        : GeneratorBase("", bizName, "", "", sourceId, version, INVALID_VERSION_ID)
+        , _arena(new google::protobuf::Arena()) {
+    }
     RequestGenerator(const std::string &clusterName, const std::string &bizName,
                      SourceIdTy sourceId = INVALID_SOURCE_ID,
                      VersionTy version = INVALID_VERSION_ID)
-        : GeneratorBase(clusterName, bizName, "", "", sourceId, version,
-                        INVALID_VERSION_ID),
-          _arena(new google::protobuf::Arena()) {}
+        : GeneratorBase(clusterName, bizName, "", "", sourceId, version, INVALID_VERSION_ID)
+        , _arena(new google::protobuf::Arena()) {
+    }
     RequestGenerator(const std::string &bizName,
                      const std::shared_ptr<google::protobuf::Arena> &arena,
                      SourceIdTy sourceId = INVALID_SOURCE_ID,
                      VersionTy version = INVALID_VERSION_ID)
-        : GeneratorBase("", bizName, "", "", sourceId, version,
-                        INVALID_VERSION_ID),
-          _arena(arena) {}
+        : GeneratorBase("", bizName, "", "", sourceId, version, INVALID_VERSION_ID)
+        , _arena(arena) {
+    }
     RequestGenerator(const std::string &clusterName, const std::string &bizName,
                      const std::shared_ptr<google::protobuf::Arena> &arena,
                      SourceIdTy sourceId = INVALID_SOURCE_ID,
                      VersionTy version = INVALID_VERSION_ID)
-        : GeneratorBase(clusterName, bizName, "", "", sourceId, version,
-                        INVALID_VERSION_ID),
-          _arena(arena) {}
-    virtual ~RequestGenerator() {}
+        : GeneratorBase(clusterName, bizName, "", "", sourceId, version, INVALID_VERSION_ID)
+        , _arena(arena) {
+    }
+    virtual ~RequestGenerator() {
+    }
 
 private:
     RequestGenerator(const RequestGenerator &);
@@ -63,10 +64,12 @@ public:
     virtual bool hasError() const {
         return false;
     }
+
 public:
     const std::shared_ptr<google::protobuf::Arena> &getProtobufArena() const {
         return _arena;
     }
+
 private:
     std::shared_ptr<google::protobuf::Arena> _arena;
 };

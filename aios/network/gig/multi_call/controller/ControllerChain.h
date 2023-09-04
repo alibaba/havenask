@@ -25,7 +25,8 @@
 namespace multi_call {
 
 struct ControllerChain {
-    ControllerChain() : targetWeight(MAX_WEIGHT) {}
+    ControllerChain() : targetWeight(MAX_WEIGHT) {
+    }
 
 private:
     static float trimSmall(float value);

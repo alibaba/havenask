@@ -38,10 +38,8 @@ public:
 public:
     static std::shared_ptr<indexlib::file_system::LifecycleTable>
     CreateLifecycleTable(const indexlibv2::framework::Version& version,
-                         const indexlib::file_system::LifecycleConfig& lifecycleConfig);
-
-    static std::string CalculateLifecycle(const SegmentStatistics& segmentStatistic,
-                                          const indexlib::file_system::LifecycleConfig& lifecycleConfig);
+                         const indexlib::file_system::LifecycleConfig& lifecycleConfig,
+                         const std::map<std::string, std::string>& parameters);
 
 private:
     AUTIL_LOG_DECLARE();

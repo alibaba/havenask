@@ -14,22 +14,38 @@
  * limitations under the License.
  */
 #pragma once
+#include "autil/legacy/jsonizable.h"
 
 namespace indexlibv2::framework {
+
+struct ImportExternalFileOptions : public autil::legacy::Jsonizable {
+    void Jsonize(JsonWrapper& json) override
+    {
+        json.Jsonize("move_files", moveFiles, moveFiles);
+        json.Jsonize("failed_move_fall_back_to_copy", failedMoveFallBackToCopy, failedMoveFallBackToCopy);
+        json.Jsonize("import_behind", importBehind, importBehind);
+        json.Jsonize("fail_if_not_bottom_most_level", failIfNotBottomMostLevel, failIfNotBottomMostLevel);
+    }
+    bool moveFiles = false;
+    bool failedMoveFallBackToCopy = true;
+    bool importBehind = false;
+    bool failIfNotBottomMostLevel = false;
+};
 
 class ImportOptions
 {
 public:
-    ImportOptions() {};
-    ~ImportOptions() {};
+    ImportOptions() = default;
+    ~ImportOptions() = default;
 
-public:
-    enum DiffSrcImportStrategy { KEEP_SEGMENT_OVERWRITE_LOCATOR, KEEP_SEGMENT_IGNORE_LOCATOR, NOT_SUPPORT };
-    DiffSrcImportStrategy GetImportStrategy() const { return _importStrategy; }
-    void SetImportStrategy(DiffSrcImportStrategy strategy) { _importStrategy = strategy; }
+    const std::string& GetImportStrategy() const { return _importStrategy; }
+    void SetImportStrategy(const std::string& strategy) { _importStrategy = strategy; }
+    const std::string& GetImportType() const { return _importType; }
+    void SetImportType(const std::string& type) { _importType = type; }
 
 private:
-    DiffSrcImportStrategy _importStrategy = NOT_SUPPORT;
+    std::string _importStrategy;
+    std::string _importType;
 };
 
 } // namespace indexlibv2::framework

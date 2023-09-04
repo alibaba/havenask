@@ -19,6 +19,7 @@
 #include "indexlib/file_system/FileSystemCreator.h"
 #include "indexlib/file_system/FileSystemOptions.h"
 #include "indexlib/file_system/IDirectory.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/framework/Fence.h"
 
 namespace indexlibv2::framework {

@@ -24,14 +24,14 @@ using namespace kmonitor;
 
 namespace multi_call {
 
-class HeartbeatMetricReporter {
+class HeartbeatMetricReporter
+{
 public:
     explicit HeartbeatMetricReporter(kmonitor::KMonitor *kMonitor);
     ~HeartbeatMetricReporter();
 
     HeartbeatMetricReporter(const HeartbeatMetricReporter &) = delete;
-    HeartbeatMetricReporter &
-    operator=(const HeartbeatMetricReporter &) = delete;
+    HeartbeatMetricReporter &operator=(const HeartbeatMetricReporter &) = delete;
 
     DECLARE_METRIC(HeartbeatCostTime);
     DECLARE_METRIC(HeartbeatRequestLength);

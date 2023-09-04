@@ -15,14 +15,14 @@
  */
 #include "ha3/common/OrQuery.h"
 
-#include <sstream>
 #include <memory>
+#include <sstream>
 #include <vector>
 
+#include "autil/Log.h"
 #include "ha3/common/ModifyQueryVisitor.h"
 #include "ha3/common/Query.h"
 #include "ha3/common/QueryVisitor.h"
-#include "autil/Log.h"
 
 using namespace std;
 
@@ -35,30 +35,26 @@ OrQuery::OrQuery(const std::string &label) {
 }
 
 OrQuery::OrQuery(const OrQuery &other)
-    : Query(other)
-{
-}
+    : Query(other) {}
 
-OrQuery::~OrQuery() {
-}
+OrQuery::~OrQuery() {}
 
-bool OrQuery::operator == (const Query& query) const {
+bool OrQuery::operator==(const Query &query) const {
     if (&query == this) {
         return true;
     }
     if (query.getQueryName() != getQueryName()) {
         return false;
     }
-    const QueryVector &children2 = dynamic_cast<const OrQuery&>(query)._children;
+    const QueryVector &children2 = dynamic_cast<const OrQuery &>(query)._children;
 
     if (_children.size() != children2.size()) {
         return false;
     }
     QueryVector::const_iterator it1 = _children.begin();
     QueryVector::const_iterator it2 = children2.begin();
-    for (; it1 != _children.end(); it1++, it2++)
-    {
-        if (!( *(*it1) == *(*it2) )) {
+    for (; it1 != _children.end(); it1++, it2++) {
+        if (!(*(*it1) == *(*it2))) {
             return false;
         }
     }

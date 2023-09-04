@@ -27,7 +27,7 @@ namespace indexlib::table {
 AUTIL_LOG_SETUP(indexlib.table, CommonTabletValidator);
 
 Status CommonTabletValidator::Validate(const std::string& indexRootPath,
-                                       const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+                                       const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                        versionid_t versionId)
 {
     auto memoryQuotaController = std::make_shared<indexlibv2::MemoryQuotaController>(

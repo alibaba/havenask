@@ -15,9 +15,9 @@
  */
 #include "autil/OptionParser.h"
 
-#include <stdio.h>
 #include <iostream>
 #include <limits>
+#include <stdio.h>
 #include <utility>
 
 #include "autil/CommandLineParameter.h"
@@ -28,17 +28,11 @@ using namespace std;
 namespace autil {
 AUTIL_DECLARE_AND_SETUP_LOGGER(autil, OptionParser);
 
-OptionParser::OptionParser(const string& usageDescription) {
-    _usageDescription = usageDescription;
-}
+OptionParser::OptionParser(const string &usageDescription) { _usageDescription = usageDescription; }
 
-OptionParser::~OptionParser() {
-}
+OptionParser::~OptionParser() {}
 
-void OptionParser::addOptionInfo(const OptionInfo &optionInfo,
-                                 const string& shortOpt,
-                                 const string& longOpt)
-{
+void OptionParser::addOptionInfo(const OptionInfo &optionInfo, const string &shortOpt, const string &longOpt) {
     size_t index = _optionInfos.size();
     if (!shortOpt.empty()) {
         _shortOpt2InfoMap.insert(make_pair(shortOpt, index));
@@ -49,74 +43,76 @@ void OptionParser::addOptionInfo(const OptionInfo &optionInfo,
     _optionInfos.push_back(optionInfo);
 }
 
-void OptionParser::addOption(const string &shortOpt, const string &longOpt,
-               const string& optName, const char* defaultValue)
-{
+void OptionParser::addOption(const string &shortOpt,
+                             const string &longOpt,
+                             const string &optName,
+                             const char *defaultValue) {
     addOption(shortOpt, longOpt, optName, string(defaultValue));
 }
 
-void OptionParser::addOption(const string &shortOpt, const string &longOpt,
-               const string& optName, const string& defaultValue)
-{
+void OptionParser::addOption(const string &shortOpt,
+                             const string &longOpt,
+                             const string &optName,
+                             const string &defaultValue) {
     OptionInfo optionInfo(optName, OPT_STRING, STORE, false);
     addOptionInfo(optionInfo, shortOpt, longOpt);
     _strOptMap[optName] = defaultValue;
 }
 
-void OptionParser::addOption(const string &shortOpt, const string &longOpt,
-               const string& optName, const uint32_t defaultValue)
-{
+void OptionParser::addOption(const string &shortOpt,
+                             const string &longOpt,
+                             const string &optName,
+                             const uint32_t defaultValue) {
     string defaultStringValue = StringUtil::toString(defaultValue);
     OptionInfo optionInfo(optName, OPT_UINT32, STORE, false);
     addOptionInfo(optionInfo, shortOpt, longOpt);
     _intOptMap[optName] = (int32_t)defaultValue;
 }
 
-void OptionParser::addOption(const string &shortOpt, const string &longOpt,
-               const string& optName, const int32_t defaultValue)
-{
+void OptionParser::addOption(const string &shortOpt,
+                             const string &longOpt,
+                             const string &optName,
+                             const int32_t defaultValue) {
     string defaultStringValue = StringUtil::toString(defaultValue);
     OptionInfo optionInfo(optName, OPT_INT32, STORE, false);
     addOptionInfo(optionInfo, shortOpt, longOpt);
     _intOptMap[optName] = defaultValue;
 }
 
-void OptionParser::addOption(const string &shortOpt, const string &longOpt,
-               const string& optName, const bool defaultValue)
-{
+void OptionParser::addOption(const string &shortOpt,
+                             const string &longOpt,
+                             const string &optName,
+                             const bool defaultValue) {
     string defaultStringValue = StringUtil::toString(defaultValue);
     OptionInfo optionInfo(optName, OPT_BOOL, STORE_TRUE, false);
     addOptionInfo(optionInfo, shortOpt, longOpt);
     _boolOptMap[optName] = defaultValue;
 }
 
-void OptionParser::addOption(const string& shortOpt, const string &longOpt,
-                             const string& optName, const OptionType type,
-                             bool isRequired)
-{
+void OptionParser::addOption(
+    const string &shortOpt, const string &longOpt, const string &optName, const OptionType type, bool isRequired) {
     OptionInfo optionInfo(optName, type, STORE, isRequired);
     addOptionInfo(optionInfo, shortOpt, longOpt);
 }
 
-void OptionParser::addOption(const string &shortOpt, const string &longOpt,
-                             const string& optName, const OptionAction &action,
-                             const OptionType type, bool isRequired)
-{
+void OptionParser::addOption(const string &shortOpt,
+                             const string &longOpt,
+                             const string &optName,
+                             const OptionAction &action,
+                             const OptionType type,
+                             bool isRequired) {
     OptionInfo optionInfo(optName, type, action, isRequired);
     addOptionInfo(optionInfo, shortOpt, longOpt);
 }
 
-void OptionParser::addMultiValueOption(const string &shortOpt, const string &longOpt,
-               const string& optName)
-{
+void OptionParser::addMultiValueOption(const string &shortOpt, const string &longOpt, const string &optName) {
     OptionInfo optionInfo(optName, OPT_STRING, STORE, false, "", true);
     addOptionInfo(optionInfo, shortOpt, longOpt);
 }
 
 bool OptionParser::parseArgs(int argc, char **argv) {
     string option;
-    for (int i = 0; i < argc; ++i)
-    {
+    for (int i = 0; i < argc; ++i) {
         string optName = string(argv[i]);
         size_t index;
         ShortOpt2InfoMap::const_iterator shortIt = _shortOpt2InfoMap.find(optName);
@@ -132,25 +128,21 @@ bool OptionParser::parseArgs(int argc, char **argv) {
         }
         OptionInfo &info = _optionInfos[index];
         if (info.optionType == OPT_HELP) {
-            cout<<_usageDescription<<endl;
+            cout << _usageDescription << endl;
             return false;
         }
 
         string optarg;
         if (info.hasValue()) {
 
-            if (i + 1 >= argc)
-            {
-                fprintf(stderr, "Option parse error: option [%s] must have value!\n",
-                        optName.c_str());
+            if (i + 1 >= argc) {
+                fprintf(stderr, "Option parse error: option [%s] must have value!\n", optName.c_str());
                 return false;
             } else {
-                ShortOpt2InfoMap::const_iterator shortIt = _shortOpt2InfoMap.find(argv[i+1]);
-                LongOpt2InfoMap::const_iterator longIt = _longOpt2InfoMap.find(argv[i+1]);
-                if (shortIt != _shortOpt2InfoMap.end() || (longIt != _longOpt2InfoMap.end()))
-                {
-                    fprintf(stderr, "Option parse error: option [%s] must have value!\n",
-                            optName.c_str());
+                ShortOpt2InfoMap::const_iterator shortIt = _shortOpt2InfoMap.find(argv[i + 1]);
+                LongOpt2InfoMap::const_iterator longIt = _longOpt2InfoMap.find(argv[i + 1]);
+                if (shortIt != _shortOpt2InfoMap.end() || (longIt != _longOpt2InfoMap.end())) {
+                    fprintf(stderr, "Option parse error: option [%s] must have value!\n", optName.c_str());
                     return false;
                 }
                 optarg = argv[++i];
@@ -158,7 +150,7 @@ bool OptionParser::parseArgs(int argc, char **argv) {
         }
 
         info.isSet = true;
-        switch(info.optionType) {
+        switch (info.optionType) {
         case OPT_STRING:
             if (!info.isMultiValue) {
                 _strOptMap[info.optionName] = optarg;
@@ -166,26 +158,26 @@ bool OptionParser::parseArgs(int argc, char **argv) {
                 _multiValueStrOptMap[info.optionName].push_back(optarg);
             }
             break;
-        case OPT_INT32:
-        {
+        case OPT_INT32: {
             int32_t intValue;
             if (StringUtil::strToInt32(optarg.c_str(), intValue) == false) {
-                fprintf(stderr, "Option parse error: invalid int32 value[%s] for option [%s]\n",
-                        optarg.c_str(), optName.c_str());
+                fprintf(stderr,
+                        "Option parse error: invalid int32 value[%s] for option [%s]\n",
+                        optarg.c_str(),
+                        optName.c_str());
                 return false;
             }
             _intOptMap[info.optionName] = intValue;
             break;
         }
-        case OPT_UINT32:
-        {
+        case OPT_UINT32: {
             int64_t intValue;
-            if (StringUtil::strToInt64(optarg.c_str(), intValue) == false
-                || intValue < numeric_limits<uint32_t>::min()
-                    || intValue > numeric_limits<uint32_t>::max())
-            {
-                fprintf(stderr, "Option parse error: invalid uint32 value[%s] for option [%s]\n",
-                        optarg.c_str(), optName.c_str());
+            if (StringUtil::strToInt64(optarg.c_str(), intValue) == false ||
+                intValue < numeric_limits<uint32_t>::min() || intValue > numeric_limits<uint32_t>::max()) {
+                fprintf(stderr,
+                        "Option parse error: invalid uint32 value[%s] for option [%s]\n",
+                        optarg.c_str(),
+                        optName.c_str());
                 return false;
             }
             _intOptMap[info.optionName] = (int32_t)intValue;
@@ -206,13 +198,10 @@ bool OptionParser::parseArgs(int argc, char **argv) {
 }
 
 bool OptionParser::isValidArgs() {
-    for (OptionInfos::const_iterator it = _optionInfos.begin();
-         it != _optionInfos.end(); ++it)
-    {
+    for (OptionInfos::const_iterator it = _optionInfos.begin(); it != _optionInfos.end(); ++it) {
         OptionInfo info = (*it);
         if (info.isRequired && info.isSet == false) {
-            fprintf(stderr, "Option parse error: missing required option [%s]\n",
-                    info.optionName.c_str());
+            fprintf(stderr, "Option parse error: missing required option [%s]\n", info.optionName.c_str());
             return false;
         }
     }
@@ -225,9 +214,7 @@ bool OptionParser::parseArgs(const string &commandString) {
     return parseArgs(cmdLinePara.getArgc(), cmdLinePara.getArgv());
 }
 
-OptionParser::StrOptMap OptionParser::getOptionValues() const {
-    return _strOptMap;
-}
+OptionParser::StrOptMap OptionParser::getOptionValues() const { return _strOptMap; }
 
 bool OptionParser::getOptionValue(const string &optName, string &value) const {
     StrOptMap::const_iterator it = _strOptMap.find(optName);
@@ -238,7 +225,7 @@ bool OptionParser::getOptionValue(const string &optName, string &value) const {
     return false;
 }
 
-bool OptionParser::getOptionValue(const string &optName, bool &value) const{
+bool OptionParser::getOptionValue(const string &optName, bool &value) const {
     BoolOptMap::const_iterator it = _boolOptMap.find(optName);
     if (it != _boolOptMap.end()) {
         value = it->second;
@@ -247,8 +234,7 @@ bool OptionParser::getOptionValue(const string &optName, bool &value) const{
     return false;
 }
 
-
-bool OptionParser::getOptionValue(const string &optName, int32_t &value) const{
+bool OptionParser::getOptionValue(const string &optName, int32_t &value) const {
     IntOptMap::const_iterator it = _intOptMap.find(optName);
     if (it != _intOptMap.end()) {
         value = it->second;
@@ -257,7 +243,7 @@ bool OptionParser::getOptionValue(const string &optName, int32_t &value) const{
     return false;
 }
 
-bool OptionParser::getOptionValue(const string &optName, uint32_t &value) const{
+bool OptionParser::getOptionValue(const string &optName, uint32_t &value) const {
     IntOptMap::const_iterator it = _intOptMap.find(optName);
     if (it != _intOptMap.end()) {
         value = (uint32_t)it->second;
@@ -266,7 +252,7 @@ bool OptionParser::getOptionValue(const string &optName, uint32_t &value) const{
     return false;
 }
 
-bool OptionParser::getOptionValue(const string &optName, vector<string> &valueVec) const{
+bool OptionParser::getOptionValue(const string &optName, vector<string> &valueVec) const {
     MultiValueStrOptMap::const_iterator it = _multiValueStrOptMap.find(optName);
     if (it != _multiValueStrOptMap.end()) {
         valueVec.clear();
@@ -276,8 +262,6 @@ bool OptionParser::getOptionValue(const string &optName, vector<string> &valueVe
     return false;
 }
 
-void OptionParser::updateUsageDescription(const string &usageDescription) {
-    _usageDescription = usageDescription;
-}
+void OptionParser::updateUsageDescription(const string &usageDescription) { _usageDescription = usageDescription; }
 
-}
+} // namespace autil

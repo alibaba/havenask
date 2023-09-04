@@ -23,7 +23,8 @@ namespace multi_call {
 
 struct GrpcCallData;
 
-class GigGrpcClosure : public GigClosure {
+class GigGrpcClosure : public GigClosure
+{
 public:
     GigGrpcClosure(GrpcCallData *callData);
     ~GigGrpcClosure();

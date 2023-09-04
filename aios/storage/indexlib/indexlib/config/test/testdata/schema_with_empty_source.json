@@ -1,0 +1,71 @@
+{
+    "attributes":
+    [
+	"string1",
+	"price"
+    ],
+    "fields":
+    [
+	{
+	    "field_name":
+	    "string1",
+	    "field_type":
+	    "STRING"
+	},
+	{
+	    "field_name":
+	    "string2",
+	    "field_type":
+	    "STRING"
+	},
+	{
+	    "field_name":
+	    "price",
+	    "field_type":
+	    "UINT32"
+	}
+    ],
+    "indexs":
+    [
+	{
+	    "doc_payload_flag":
+	    0,
+	    "index_fields":
+	    "string2",
+	    "index_name":
+	    "index2",
+	    "index_type":
+	    "STRING",
+	    "term_payload_flag":
+	    0
+	},
+	{
+	    "has_primary_key_attribute":
+	    true,
+	    "index_fields":
+	    "string1",
+	    "index_name":
+	    "pk",
+	    "index_type":
+	    "PRIMARYKEY64"
+	}
+    ],
+    "source":
+    {
+	"modules": [
+            {
+		"module_name": "test_module",
+		"module_path": "testpath",
+		"parameters": {"k1":"param1"}
+            },
+            {
+		"module_name": "test_module2",
+		"module_path": "testpath2",
+		"parameters": {"k2":"param2"}
+            }
+	],
+	"group_configs": []
+    },
+    "table_name":
+    "noname"
+}

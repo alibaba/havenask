@@ -5,6 +5,7 @@
  * Author Email: yixuan@alibaba-inc.com
  */
 #include "kmonitor/client/core/MetricsTagsManager.h"
+
 #include "kmonitor/client/core/MetricsConfig.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
@@ -12,15 +13,12 @@ AUTIL_LOG_SETUP(kmonitor, MetricsTagsManager);
 
 using namespace std;
 
-MetricsTagsManager::MetricsTagsManager(MetricsTags *tags)
-    : tags_(tags)
-{
+MetricsTagsManager::MetricsTagsManager(MetricsTags *tags) : tags_(tags) {
     config_ = NULL;
     clearNum_ = 0;
 }
 
-MetricsTagsPtr MetricsTagsManager::GetMetricsTags(const map<string, string>& tags_map)
-{
+MetricsTagsPtr MetricsTagsManager::GetMetricsTags(const map<string, string> &tags_map) {
     static MetricsTagsPtr nullTagsPtr;
     if (!validateTags(tags_map)) {
         return nullTagsPtr;
@@ -47,8 +45,7 @@ MetricsTagsPtr MetricsTagsManager::GetMetricsTags(const map<string, string>& tag
     }
 }
 
-void MetricsTagsManager::clearUselessTags()
-{
+void MetricsTagsManager::clearUselessTags() {
     static const int recycle_num = 1000;
     autil::ScopedLock lock(metric_mutex_);
     size_t tags_size = all_tags_.size();
@@ -58,7 +55,7 @@ void MetricsTagsManager::clearUselessTags()
 
     std::map<uint64_t, MetricsTagsPtr>::iterator it = all_tags_.begin();
     while (it != all_tags_.end()) {
-        MetricsTagsPtr& tagsPtr = it->second;
+        MetricsTagsPtr &tagsPtr = it->second;
         if (tagsPtr.use_count() == 1) {
             it = all_tags_.erase(it);
         } else {
@@ -67,8 +64,7 @@ void MetricsTagsManager::clearUselessTags()
     }
 }
 
-bool MetricsTagsManager::validateTags(const std::map<std::string, std::string> &tags) const
-{
+bool MetricsTagsManager::validateTags(const std::map<std::string, std::string> &tags) const {
     for (auto &t : tags) {
         if (t.first.empty() || t.second.empty())
             return false;

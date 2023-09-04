@@ -26,4 +26,4 @@ public:
     static double GiB(int64_t sizeInB) noexcept;
     static std::string GiBDebugString(int64_t sizeInB) noexcept;
 };
-}
+} // namespace autil

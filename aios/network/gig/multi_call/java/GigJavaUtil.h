@@ -34,16 +34,16 @@ namespace multi_call {
 
 struct ReplyInfoCollectorHolder {
 public:
-    ReplyInfoCollectorHolder(
-        const MetricReporterManagerPtr &metricReporterManger,
-        const ReplyInfoCollectorPtr &replyInfoCollector)
-        : _metricReporterManager(metricReporterManger),
-          _replyInfoCollector(replyInfoCollector) {
+    ReplyInfoCollectorHolder(const MetricReporterManagerPtr &metricReporterManger,
+                             const ReplyInfoCollectorPtr &replyInfoCollector)
+        : _metricReporterManager(metricReporterManger)
+        , _replyInfoCollector(replyInfoCollector) {
         atomic_set(&_count, 0);
     }
-    void setCount(int64_t count) { atomic_set(&_count, count); }
-    void decCount(const std::string &bizName,
-                  const SearchServiceReplicaPtr &replica) {
+    void setCount(int64_t count) {
+        atomic_set(&_count, count);
+    }
+    void decCount(const std::string &bizName, const SearchServiceReplicaPtr &replica) {
         assert(replica);
         if (0 == atomic_dec_return(&_count)) {
             _metricReporterManager->reportReplyInfo(*_replyInfoCollector);
@@ -51,8 +51,7 @@ public:
             float baseAvgLatency = 0.0f;
             float baseErrorRatio = 0.0f;
             float baseDegradeRatio = 0.0f;
-            auto bizReporterPtr =
-                _metricReporterManager->getBizMetricReporter(bizName);
+            auto bizReporterPtr = _metricReporterManager->getBizMetricReporter(bizName);
             if (bizReporterPtr) {
                 if (controller.getBaseAvgLatency(baseAvgLatency)) {
                     bizReporterPtr->reportSnapshotMinAvgLatency(baseAvgLatency);
@@ -61,11 +60,9 @@ public:
                     bizReporterPtr->reportSnapshotMinErrorRatio(baseErrorRatio);
                 }
                 if (controller.getBaseDegradeRatio(baseDegradeRatio)) {
-                    bizReporterPtr->reportSnapshotMinDegradeRatio(
-                        baseDegradeRatio);
+                    bizReporterPtr->reportSnapshotMinDegradeRatio(baseDegradeRatio);
                 }
-                bizReporterPtr->reportReplicaAvgWeight(
-                    controller.getAvgWeight());
+                bizReporterPtr->reportReplicaAvgWeight(controller.getAvgWeight());
             }
             delete this;
         }
@@ -82,12 +79,13 @@ private:
 
 struct SearchServiceResourceHolder {
 public:
-    SearchServiceResourceHolder(
-        const SearchServiceResourcePtr &ptr_,
-        ReplyInfoCollectorHolder *replyInfoCollectorHolder_,
-        JavaCallback javaCallback_)
-        : ptr(ptr_), replyInfoCollectorHolder(replyInfoCollectorHolder_),
-          javaCallback(javaCallback_) {}
+    SearchServiceResourceHolder(const SearchServiceResourcePtr &ptr_,
+                                ReplyInfoCollectorHolder *replyInfoCollectorHolder_,
+                                JavaCallback javaCallback_)
+        : ptr(ptr_)
+        , replyInfoCollectorHolder(replyInfoCollectorHolder_)
+        , javaCallback(javaCallback_) {
+    }
     SearchServiceResourcePtr ptr;
     ReplyInfoCollectorHolder *replyInfoCollectorHolder;
     JavaCallback javaCallback;
@@ -96,22 +94,23 @@ public:
 struct QueryInfoHolder {
 public:
     QueryInfoHolder(const QueryInfoPtr &ptr_, JavaCallback javaCallback_)
-        : ptr(ptr_), javaCallback(javaCallback_) {}
+        : ptr(ptr_)
+        , javaCallback(javaCallback_) {
+    }
     QueryInfoPtr ptr;
     JavaCallback javaCallback;
 };
 
-class GigJavaUtil {
+class GigJavaUtil
+{
 public:
-    static bool convertToTopoNode(const SubProviderInfos &infos,
-                                  TopoNodeVec &topoNodeVec);
-    static void
-    convertResourceInfo(const QuerySessionPtr &querySession,
-                        const std::string &bizName, JavaCallback javaCallback,
-                        const SearchServiceResourceVector &resourceVec,
-                        const MetricReporterManagerPtr &metricReporterManger,
-                        const ReplyInfoCollectorPtr &replyInfoCollector,
-                        GigSearchResourceInfos &resourceInfos);
+    static bool convertToTopoNode(const SubProviderInfos &infos, TopoNodeVec &topoNodeVec);
+    static void convertResourceInfo(const QuerySessionPtr &querySession, const std::string &bizName,
+                                    JavaCallback javaCallback,
+                                    const SearchServiceResourceVector &resourceVec,
+                                    const MetricReporterManagerPtr &metricReporterManger,
+                                    const ReplyInfoCollectorPtr &replyInfoCollector,
+                                    GigSearchResourceInfos &resourceInfos);
     static void fillGeneratorByPlan(const GigRequestPlan &requestPlan,
                                     GigRequestGenerator *generator);
     static void fillSessionByPlan(const GigRequestPlan &requestPlan,
@@ -122,8 +121,7 @@ public:
                  const std::shared_ptr<google::protobuf::Arena> &arena);
 
 private:
-    static bool addTopoNode(const BizProviderInfos &bizProviderInfos,
-                            TopoNodeVec &topoNodeVec);
+    static bool addTopoNode(const BizProviderInfos &bizProviderInfos, TopoNodeVec &topoNodeVec);
 
 private:
     AUTIL_LOG_DECLARE();

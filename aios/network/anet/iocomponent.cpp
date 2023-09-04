@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "aios/network/anet/timeutil.h"
-#include "aios/network/anet/socket.h"
-#include "aios/network/anet/socketevent.h"
-#include "aios/network/anet/log.h"
 #include "aios/network/anet/iocomponent.h"
-#include "aios/network/anet/connection.h"
-#include "aios/network/anet/transport.h"
-#include "aios/network/anet/ioworker.h"
+
 #include <assert.h>
 #include <stddef.h>
 
 #include "aios/network/anet/atomic.h"
+#include "aios/network/anet/connection.h"
 #include "aios/network/anet/debug.h"
 #include "aios/network/anet/ilogger.h"
+#include "aios/network/anet/ioworker.h"
+#include "aios/network/anet/log.h"
+#include "aios/network/anet/socket.h"
+#include "aios/network/anet/socketevent.h"
 #include "aios/network/anet/threadmutex.h"
+#include "aios/network/anet/timeutil.h"
+#include "aios/network/anet/transport.h"
 
 namespace anet {
 
@@ -43,7 +44,7 @@ IOComponent::IOComponent(Transport *owner, Socket *socket) {
     _socketEvent = NULL;
     atomic_set(&_refcount, 1);
     _state = ANET_TO_BE_CONNECTING; // 姝ｅ�杩��
-    _autoReconn = 0; // 涓��������
+    _autoReconn = 0;                // 涓��������
     _prev = _next = NULL;
     _lastUseTime = TimeUtil::getTime();
     _enableRead = true;
@@ -66,21 +67,20 @@ IOComponent::~IOComponent() {
     }
 }
 
-void IOComponent::setSocketEvent(SocketEvent *socketEvent) {
-    _socketEvent = socketEvent;
-}
+void IOComponent::setSocketEvent(SocketEvent *socketEvent) { _socketEvent = socketEvent; }
 
 void IOComponent::enableRead(bool on) {
     _enableRead = on;
     bool read = _enableRead;
     bool write = _enableWrite;
     if (_socketEvent) {
-        ANET_LOG(SPAM,"setEvent(R:%d,W:%d). IOC(%p)", read, write, this);
+        ANET_LOG(SPAM, "setEvent(R:%d,W:%d). IOC(%p)", read, write, this);
         MutexGuard lock(&_socketMutex);
-        if (!_isSocketInEpoll) return;
+        if (!_isSocketInEpoll)
+            return;
         bool rc = _socketEvent->setEvent(_socket, read, write);
         if (!rc)
-            ANET_LOG(ERROR,"setEvent(R:%d,W:%d). IOC(%p) fail", read, write, this);
+            ANET_LOG(ERROR, "setEvent(R:%d,W:%d). IOC(%p) fail", read, write, this);
     }
 }
 
@@ -89,44 +89,37 @@ void IOComponent::enableWrite(bool on) {
     bool read = _enableRead;
     bool write = _enableWrite;
     if (_socketEvent) {
-        ANET_LOG(SPAM,"setEvent(R:%d,W:%d). IOC(%p)", read, write, this);
+        ANET_LOG(SPAM, "setEvent(R:%d,W:%d). IOC(%p)", read, write, this);
         MutexGuard lock(&_socketMutex);
-        if (!_isSocketInEpoll) return;
+        if (!_isSocketInEpoll)
+            return;
         bool rc = _socketEvent->setEvent(_socket, read, write);
         if (!rc)
-            ANET_LOG(ERROR,"setEvent(R:%d,W:%d). IOC(%p) fail", read, write, this);
+            ANET_LOG(ERROR, "setEvent(R:%d,W:%d). IOC(%p) fail", read, write, this);
     }
 }
 
 void IOComponent::addRef() {
-    ANET_LOG(SPAM,"IOC(%p)->addRef(), [%d]", this, _refcount.counter);
+    ANET_LOG(SPAM, "IOC(%p)->addRef(), [%d]", this, _refcount.counter);
     atomic_add(1, &_refcount);
 }
 
 void IOComponent::subRef() {
-    ANET_LOG(SPAM,"IOC(%p)->subRef(), [%d]", this, _refcount.counter);
+    ANET_LOG(SPAM, "IOC(%p)->subRef(), [%d]", this, _refcount.counter);
     int ref = atomic_dec_return(&_refcount);
     if (!ref) {
-        ANET_LOG(SPAM,"Deleting this IOC(%p)", this);
+        ANET_LOG(SPAM, "Deleting this IOC(%p)", this);
         delete this;
     }
 }
 
-void IOComponent::closeConnection(Connection *conn) {
-    conn->closeHook();
-}
+void IOComponent::closeConnection(Connection *conn) { conn->closeHook(); }
 
-int IOComponent::getRef() {
-    return atomic_read(&_refcount);
-}
+int IOComponent::getRef() { return atomic_read(&_refcount); }
 
-void IOComponent::lock() {
-    _mutex.lock();
-}
+void IOComponent::lock() { _mutex.lock(); }
 
-void IOComponent::unlock() {
-    _mutex.unlock();
-}
+void IOComponent::unlock() { _mutex.unlock(); }
 
 bool IOComponent::setState(IOCState state) {
     _state = state;
@@ -134,18 +127,18 @@ bool IOComponent::setState(IOCState state) {
 }
 
 void IOComponent::closeSocketNoLock() {
-   if (_socket) {
-       {
-           MutexGuard lock(&_socketMutex);
-           if (!_isSocketInEpoll) return;
-           bool rc = _socketEvent->removeEvent(_socket);
-           if (!rc)
-           {
-               ANET_LOG(ERROR,"IOC(%p)Remove event error", this);
-           }
-           _isSocketInEpoll = false;
-       }
-       _socket->close();
+    if (_socket) {
+        {
+            MutexGuard lock(&_socketMutex);
+            if (!_isSocketInEpoll)
+                return;
+            bool rc = _socketEvent->removeEvent(_socket);
+            if (!rc) {
+                ANET_LOG(ERROR, "IOC(%p)Remove event error", this);
+            }
+            _isSocketInEpoll = false;
+        }
+        _socket->close();
     }
 }
 
@@ -161,9 +154,7 @@ RECONNErr IOComponent::reconnect() {
     return ANET_RECONN_OK;
 }
 
-char* IOComponent::getLocalAddrStr(char *dest, int len) {
-    return _socket->getAddr(dest, len, true);
-}
+char *IOComponent::getLocalAddrStr(char *dest, int len) { return _socket->getAddr(dest, len, true); }
 
 void IOComponent::initialize() {
     _belongedWorker = _owner->getBelongedWorker(this);
@@ -177,4 +168,4 @@ void IOComponent::shutdownSocket() {
     }
 }
 
-}
+} // namespace anet

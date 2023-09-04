@@ -15,22 +15,19 @@
  */
 #include "ha3/search/MultiTermOrQueryExecutor.h"
 
-#include "ha3/search/MultiQueryExecutor.h"
 #include "autil/Log.h"
+#include "ha3/search/MultiQueryExecutor.h"
 
 namespace isearch {
 namespace search {
 AUTIL_LOG_SETUP(ha3, MultiTermOrQueryExecutor);
 
-MultiTermOrQueryExecutor::MultiTermOrQueryExecutor() { 
-}
+MultiTermOrQueryExecutor::MultiTermOrQueryExecutor() {}
 
-MultiTermOrQueryExecutor::~MultiTermOrQueryExecutor() { 
-}
+MultiTermOrQueryExecutor::~MultiTermOrQueryExecutor() {}
 
 std::string MultiTermOrQueryExecutor::toString() const {
     return "MultiTermOr" + MultiQueryExecutor::toString();
 }
 } // namespace search
 } // namespace isearch
-

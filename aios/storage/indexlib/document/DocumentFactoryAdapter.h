@@ -29,12 +29,12 @@ public:
     ~DocumentFactoryAdapter();
 
 public:
-    std::unique_ptr<RawDocument> CreateRawDocument(const std::shared_ptr<config::TabletSchema>& schema) override;
+    std::unique_ptr<RawDocument> CreateRawDocument(const std::shared_ptr<config::ITabletSchema>& schema) override;
 
     std::unique_ptr<ExtendDocument> CreateExtendDocument() override;
 
     std::unique_ptr<IRawDocumentParser>
-    CreateRawDocumentParser(const std::shared_ptr<config::TabletSchema>& schema,
+    CreateRawDocumentParser(const std::shared_ptr<config::ITabletSchema>& schema,
                             const std::shared_ptr<DocumentInitParam>& initParam) override;
 
 private:

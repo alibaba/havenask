@@ -1,0 +1,486 @@
+sub_graphs {
+  nodes {
+    name: "3"
+    kernel_name: "sql.AggKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10003,\"agg_funcs\":[{\"approximate\":false,\"distinct\":false,\"filter_arg\":-1,\"input\":[\"$min$0\"],\"name\":\"MIN\",\"output\":[\"$agg_min\"],\"type\":\"FINAL\"}],\"group_fields\":[\"$pk\"],\"output_fields\":[\"$pk\",\"$agg_min\"],\"output_fields_hash\":1646954905,\"output_fields_type\":[\"BIGINT\",\"BIGINT\"],\"scope\":\"FINAL\"}"
+  }
+  nodes {
+    name: "4"
+    kernel_name: "sql.CalcKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10004,\"output_field_exprs\":{\"$type\":\"t1\"},\"output_fields\":[\"$type\",\"$agg_min\"],\"output_fields_hash\":-1635657631,\"output_fields_type\":[\"CHAR\",\"BIGINT\"]}"
+  }
+  nodes {
+    name: "12"
+    kernel_name: "sql.AggKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10012,\"agg_funcs\":[{\"approximate\":false,\"distinct\":false,\"filter_arg\":-1,\"input\":[\"$min$0\"],\"name\":\"MIN\",\"output\":[\"$agg_min\"],\"type\":\"FINAL\"}],\"group_fields\":[\"$pk\"],\"output_fields\":[\"$pk\",\"$agg_min\"],\"output_fields_hash\":1646954905,\"output_fields_type\":[\"BIGINT\",\"BIGINT\"],\"scope\":\"FINAL\"}"
+  }
+  nodes {
+    name: "13"
+    kernel_name: "sql.CalcKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10013,\"output_field_exprs\":{\"$type\":\"t3\"},\"output_fields\":[\"$type\",\"$agg_min\"],\"output_fields_hash\":-1635657631,\"output_fields_type\":[\"CHAR\",\"BIGINT\"]}"
+  }
+  nodes {
+    name: "14"
+    kernel_name: "sql.UnionKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10014,\"all\":true,\"block\":false,\"output_fields_hash\":-1635657631}"
+  }
+  nodes {
+    name: "15"
+    kernel_name: "sql.LimitKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10015,\"limit\":100,\"offset\":0,\"output_fields_hash\":-1635657631}"
+  }
+  nodes {
+    name: "16"
+    kernel_name: "sql.SinkKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10016,\"output_fields_hash\":-1635657631,\"type\":\"api\"}"
+  }
+  nodes {
+    name: "merge:1:0"
+    kernel_name: "sql.TableMergeKernel"
+    type: NT_MERGE
+  }
+  nodes {
+    name: "merge:3:2"
+    kernel_name: "sql.TableMergeKernel"
+    type: NT_MERGE
+  }
+  nodes {
+    name: "merge:5:4"
+    kernel_name: "sql.TableMergeKernel"
+    type: NT_MERGE
+  }
+  edges {
+    input {
+      node_name: "3"
+      port_name: "output0"
+    }
+    output {
+      node_name: "4"
+      port_name: "input0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "12"
+      port_name: "output0"
+    }
+    output {
+      node_name: "13"
+      port_name: "input0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "4"
+      port_name: "output0"
+    }
+    output {
+      node_name: "14"
+      port_name: "input0:0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "13"
+      port_name: "output0"
+    }
+    output {
+      node_name: "14"
+      port_name: "input0:2"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "14"
+      port_name: "output0"
+    }
+    output {
+      node_name: "15"
+      port_name: "input0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "15"
+      port_name: "output0"
+    }
+    output {
+      node_name: "16"
+      port_name: "input0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "merge:1:0"
+      port_name: "out"
+    }
+    output {
+      node_name: "3"
+      port_name: "input0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "merge:3:2"
+      port_name: "out"
+    }
+    output {
+      node_name: "14"
+      port_name: "input0:1"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "merge:5:4"
+      port_name: "out"
+    }
+    output {
+      node_name: "12"
+      port_name: "input0"
+    }
+    require: true
+  }
+  location {
+    biz_name: "qrs.default_sql"
+    part_info {
+    }
+    this_part_id: -1
+    gig_info {
+      enable_probe: true
+    }
+  }
+  borders {
+    peer {
+      graph_id: 1
+      part_info {
+      }
+    }
+    edges {
+      edge_id: 1
+      edge {
+        input {
+          node_name: "1"
+          port_name: "output0"
+        }
+        output {
+          node_name: "3"
+          port_name: "input0"
+        }
+      }
+      node: "merge:1:0"
+    }
+    edges {
+      edge_id: 3
+      edge {
+        input {
+          node_name: "7"
+          port_name: "output0"
+        }
+        output {
+          node_name: "14"
+          port_name: "input0:1"
+        }
+      }
+      peer_edge_id: 2
+      node: "merge:3:2"
+    }
+    edges {
+      edge_id: 5
+      edge {
+        input {
+          node_name: "10"
+          port_name: "output0"
+        }
+        output {
+          node_name: "12"
+          port_name: "input0"
+        }
+      }
+      peer_edge_id: 4
+      node: "merge:5:4"
+    }
+  }
+  binary_attrs {
+    key: "table_distribution"
+    value: "{\"assigned_hash_values\":\"\",\"assigned_partition_ids\":\"\",\"hash_mode\":{\"hash_field\":\"\",\"hash_fields\":[],\"hash_function\":\"HASH\",\"hash_params\":{}},\"hash_values\":{},\"hash_values_sep\":{},\"partition_cnt\":1,\"type\":\"\"}"
+  }
+  scopes: 0
+  next_scope_id: 1
+}
+sub_graphs {
+  graph_id: 1
+  nodes {
+    name: "0"
+    kernel_name: "sql.ScanKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10000,\"catalog_name\":\"default\",\"db_name\":\"db1\",\"limit\":2147483647,\"output_fields\":[\"$pk\"],\"output_fields_hash\":1304792684,\"output_fields_internal\":[\"$pk\"],\"output_fields_internal_type\":[\"BIGINT\"],\"output_fields_type\":[\"BIGINT\"],\"push_down_ops\":[{\"attrs\":{\"output_field_exprs\":{\"$pk\":\"$id\"},\"output_fields\":[\"$pk\"],\"output_fields_type\":[\"BIGINT\"]},\"op_name\":\"CalcOp\"}],\"table_distribution\":{\"hash_mode\":{\"hash_fields\":[\"$id\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5},\"table_meta\":{\"field_meta\":[{\"field_name\":\"$id\",\"field_type\":\"int64\",\"index_name\":\"id\",\"index_type\":\"primarykey128\"}]},\"table_name\":\"tj_item\",\"table_type\":\"normal\",\"use_nest_table\":false,\"used_fields\":[\"$id\"]}"
+  }
+  nodes {
+    name: "1"
+    kernel_name: "sql.AggKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10001,\"agg_funcs\":[{\"approximate\":false,\"distinct\":false,\"filter_arg\":-1,\"input\":[\"$pk\"],\"name\":\"MIN\",\"output\":[\"$min$0\"],\"type\":\"PARTIAL\"}],\"group_fields\":[\"$pk\"],\"output_fields\":[\"$pk\",\"$min$0\"],\"output_fields_hash\":-1780478749,\"output_fields_type\":[\"BIGINT\",\"BIGINT\"],\"reuse_inputs\":[0],\"scope\":\"PARTIAL\"}"
+  }
+  nodes {
+    name: "5"
+    kernel_name: "sql.ScanKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10005,\"catalog_name\":\"default\",\"db_name\":\"db1\",\"limit\":2147483647,\"output_fields\":[\"$pk\"],\"output_fields_hash\":1304792684,\"output_fields_internal\":[\"$pk\"],\"output_fields_internal_type\":[\"BIGINT\"],\"output_fields_type\":[\"BIGINT\"],\"push_down_ops\":[{\"attrs\":{\"output_field_exprs\":{\"$pk\":\"$id\"},\"output_fields\":[\"$pk\"],\"output_fields_type\":[\"BIGINT\"]},\"op_name\":\"CalcOp\"}],\"table_distribution\":{\"hash_mode\":{\"hash_fields\":[\"$id\"],\"hash_function\":\"HASH\"},\"partition_cnt\":1},\"table_meta\":{\"field_meta\":[{\"field_name\":\"$id\",\"field_type\":\"int64\",\"index_name\":\"id\",\"index_type\":\"primarykey128\"}]},\"table_name\":\"tj_shop\",\"table_type\":\"normal\",\"use_nest_table\":false,\"used_fields\":[\"$id\"]}"
+  }
+  nodes {
+    name: "6"
+    kernel_name: "sql.AggKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10006,\"agg_funcs\":[{\"approximate\":false,\"distinct\":false,\"filter_arg\":-1,\"input\":[\"$pk\"],\"name\":\"MIN\",\"output\":[\"$agg_min\"],\"type\":\"NORMAL\"}],\"group_fields\":[\"$pk\"],\"output_fields\":[\"$pk\",\"$agg_min\"],\"output_fields_hash\":1646954905,\"output_fields_type\":[\"BIGINT\",\"BIGINT\"],\"reuse_inputs\":[5],\"scope\":\"NORMAL\"}"
+  }
+  nodes {
+    name: "7"
+    kernel_name: "sql.CalcKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10007,\"output_field_exprs\":{\"$type\":\"t2\"},\"output_fields\":[\"$type\",\"$agg_min\"],\"output_fields_hash\":-1635657631,\"output_fields_type\":[\"CHAR\",\"BIGINT\"]}"
+  }
+  nodes {
+    name: "9"
+    kernel_name: "sql.UnionKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10009,\"all\":true,\"block\":false,\"output_fields_hash\":1304792684,\"reuse_inputs\":[0,5]}"
+  }
+  nodes {
+    name: "10"
+    kernel_name: "sql.AggKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10010,\"agg_funcs\":[{\"approximate\":false,\"distinct\":false,\"filter_arg\":-1,\"input\":[\"$pk\"],\"name\":\"MIN\",\"output\":[\"$min$0\"],\"type\":\"PARTIAL\"}],\"group_fields\":[\"$pk\"],\"output_fields\":[\"$pk\",\"$min$0\"],\"output_fields_hash\":-1780478749,\"output_fields_type\":[\"BIGINT\",\"BIGINT\"],\"scope\":\"PARTIAL\"}"
+  }
+  nodes {
+    name: "split:0:1"
+    kernel_name: "sql.TableSplitKernel"
+    binary_attrs {
+      key: "table_distribution"
+      value: "{\"assigned_hash_values\":\"\",\"assigned_partition_ids\":\"\",\"hash_mode\":{\"hash_field\":\"\",\"hash_fields\":[],\"hash_function\":\"HASH\",\"hash_params\":{}},\"hash_values\":{},\"hash_values_sep\":{},\"partition_cnt\":1,\"type\":\"\"}"
+    }
+    type: NT_SPLIT
+    is_scope_border: true
+  }
+  nodes {
+    name: "navi.terminator"
+    kernel_name: "navi.TerminatorKernel"
+    type: NT_TERMINATOR
+  }
+  nodes {
+    name: "split:2:3"
+    kernel_name: "sql.TableSplitKernel"
+    binary_attrs {
+      key: "table_distribution"
+      value: "{\"assigned_hash_values\":\"\",\"assigned_partition_ids\":\"\",\"hash_mode\":{\"hash_field\":\"\",\"hash_fields\":[],\"hash_function\":\"HASH\",\"hash_params\":{}},\"hash_values\":{},\"hash_values_sep\":{},\"partition_cnt\":1,\"type\":\"\"}"
+    }
+    type: NT_SPLIT
+    is_scope_border: true
+  }
+  nodes {
+    name: "split:4:5"
+    kernel_name: "sql.TableSplitKernel"
+    binary_attrs {
+      key: "table_distribution"
+      value: "{\"assigned_hash_values\":\"\",\"assigned_partition_ids\":\"\",\"hash_mode\":{\"hash_field\":\"\",\"hash_fields\":[],\"hash_function\":\"HASH\",\"hash_params\":{}},\"hash_values\":{},\"hash_values_sep\":{},\"partition_cnt\":1,\"type\":\"\"}"
+    }
+    type: NT_SPLIT
+    is_scope_border: true
+  }
+  edges {
+    input {
+      node_name: "0"
+      port_name: "output0"
+    }
+    output {
+      node_name: "1"
+      port_name: "input0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "5"
+      port_name: "output0"
+    }
+    output {
+      node_name: "6"
+      port_name: "input0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "6"
+      port_name: "output0"
+    }
+    output {
+      node_name: "7"
+      port_name: "input0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "0"
+      port_name: "output0"
+    }
+    output {
+      node_name: "9"
+      port_name: "input0:0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "5"
+      port_name: "output0"
+    }
+    output {
+      node_name: "9"
+      port_name: "input0:1"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "9"
+      port_name: "output0"
+    }
+    output {
+      node_name: "10"
+      port_name: "input0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "split:0:1"
+      port_name: "node@finish"
+    }
+    output {
+      node_name: "navi.terminator"
+      port_name: "navi.terminator@input"
+    }
+  }
+  edges {
+    input {
+      node_name: "1"
+      port_name: "output0"
+    }
+    output {
+      node_name: "split:0:1"
+      port_name: "in"
+    }
+  }
+  edges {
+    input {
+      node_name: "split:2:3"
+      port_name: "node@finish"
+    }
+    output {
+      node_name: "navi.terminator"
+      port_name: "navi.terminator@input"
+    }
+  }
+  edges {
+    input {
+      node_name: "7"
+      port_name: "output0"
+    }
+    output {
+      node_name: "split:2:3"
+      port_name: "in"
+    }
+  }
+  edges {
+    input {
+      node_name: "split:4:5"
+      port_name: "node@finish"
+    }
+    output {
+      node_name: "navi.terminator"
+      port_name: "navi.terminator@input"
+    }
+  }
+  edges {
+    input {
+      node_name: "10"
+      port_name: "output0"
+    }
+    output {
+      node_name: "split:4:5"
+      port_name: "in"
+    }
+  }
+  location {
+    biz_name: "db1.default_sql"
+    part_info {
+    }
+    this_part_id: -1
+    gig_info {
+      enable_probe: true
+    }
+  }
+  borders {
+    io_type: 1
+    peer {
+      part_info {
+      }
+    }
+    edges {
+      edge {
+        input {
+          node_name: "1"
+          port_name: "output0"
+        }
+        output {
+          node_name: "3"
+          port_name: "input0"
+        }
+      }
+      peer_edge_id: 1
+      node: "split:0:1"
+    }
+    edges {
+      edge_id: 2
+      edge {
+        input {
+          node_name: "7"
+          port_name: "output0"
+        }
+        output {
+          node_name: "14"
+          port_name: "input0:1"
+        }
+      }
+      peer_edge_id: 3
+      node: "split:2:3"
+    }
+    edges {
+      edge_id: 4
+      edge {
+        input {
+          node_name: "10"
+          port_name: "output0"
+        }
+        output {
+          node_name: "12"
+          port_name: "input0"
+        }
+      }
+      peer_edge_id: 5
+      node: "split:4:5"
+    }
+  }
+  binary_attrs {
+    key: "table_distribution"
+    value: "{\"hash_mode\":{\"hash_fields\":[\"$id\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5}"
+  }
+  scopes: 0
+  next_scope_id: 1
+}
+counter_info {
+  next_graph_id: 2
+  next_edge_id: 6
+}

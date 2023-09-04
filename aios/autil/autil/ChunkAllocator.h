@@ -19,15 +19,14 @@
 
 namespace autil {
 
-class ChunkAllocator 
-{
+class ChunkAllocator {
 public:
     virtual ~ChunkAllocator() {}
+
 public:
-    virtual void* allocate(uint32_t size) = 0;
-    virtual void free(void* const addr) = 0;
+    virtual void *allocate(uint32_t size) = 0;
+    virtual void free(void *const addr) = 0;
     virtual void release() = 0;
 };
 
-}
-
+} // namespace autil

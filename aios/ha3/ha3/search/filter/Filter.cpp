@@ -34,40 +34,34 @@ namespace search {
 AUTIL_LOG_SETUP(ha3, Filter);
 
 Filter::Filter(AttributeExpressionTyped<bool> *attributeExpr)
-    : _attributeExpr(attributeExpr)
-{
-}
+    : _attributeExpr(attributeExpr) {}
 
 Filter::~Filter() {
     _attributeExpr = NULL;
 }
 
-void Filter::setAttributeExpression(
-        AttributeExpressionTyped<bool> *attributeExpr)
-{
+void Filter::setAttributeExpression(AttributeExpressionTyped<bool> *attributeExpr) {
     _attributeExpr = attributeExpr;
 }
 
-Filter *Filter::createFilter(
-        const suez::turing::SyntaxExpr *filterExpr,
-        AttributeExpressionCreatorBase *attributeExpressionCreator,
-        autil::mem_pool::Pool *pool)
-{
+Filter *Filter::createFilter(const suez::turing::SyntaxExpr *filterExpr,
+                             AttributeExpressionCreatorBase *attributeExpressionCreator,
+                             autil::mem_pool::Pool *pool) {
     if (filterExpr == nullptr) {
         return nullptr;
     }
-    AttributeExpression *attrExpr =
-        attributeExpressionCreator->createAttributeExpression(filterExpr);
+    AttributeExpression *attrExpr
+        = attributeExpressionCreator->createAttributeExpression(filterExpr);
     if (!attrExpr) {
-        AUTIL_LOG(WARN, "create filter expression[%s] fail.",
-                filterExpr->getExprString().c_str());
+        AUTIL_LOG(WARN, "create filter expression[%s] fail.", filterExpr->getExprString().c_str());
         return nullptr;
     }
-    AttributeExpressionTyped<bool> *boolAttrExpr =
-        dynamic_cast<AttributeExpressionTyped<bool>*>(attrExpr);
+    AttributeExpressionTyped<bool> *boolAttrExpr
+        = dynamic_cast<AttributeExpressionTyped<bool> *>(attrExpr);
     if (!boolAttrExpr) {
-        AUTIL_LOG(WARN, "filter expression[%s] return type should be bool.",
-                filterExpr->getExprString().c_str());
+        AUTIL_LOG(WARN,
+                  "filter expression[%s] return type should be bool.",
+                  filterExpr->getExprString().c_str());
         return nullptr;
     }
     return POOL_NEW_CLASS(pool, Filter, boolAttrExpr);

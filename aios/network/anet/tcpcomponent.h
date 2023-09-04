@@ -15,9 +15,9 @@
  */
 #ifndef ANET_TCPCOMPONENT_H_
 #define ANET_TCPCOMPONENT_H_
+#include <iosfwd>
 #include <stddef.h>
 #include <stdint.h>
-#include <iosfwd>
 
 #include "aios/network/anet/iocomponent.h"
 
@@ -38,14 +38,14 @@ class TCPComponent : public IOComponent {
     friend class TCPComponentTest_testSetQosOnConnection_Test;
     friend class TCPComponentTest_testCloseSocketNoLock_Test;
     friend class TCPConnectionTest_testMemLeak_Test;
+
 public:
     TCPComponent(Transport *owner, Socket *socket);
     ~TCPComponent();
 
     bool init(bool isServer = false);
 
-    Connection *createConnection(IPacketStreamer *streamer,
-                                 IServerAdapter *adapter = NULL);
+    Connection *createConnection(IPacketStreamer *streamer, IServerAdapter *adapter = NULL);
     virtual RECONNErr reconnect();
 
     /*
@@ -53,12 +53,12 @@ public:
      */
     void close();
     void closeConnection(Connection *conn);
-//     void closeSocket();
-//     void closeSocketNoLock();
+    //     void closeSocket();
+    //     void closeSocketNoLock();
 
     /*
      * 当有数据可写到时被Transport调用
-     * 
+     *
      * @return 是否成功, true - 成功, false - 失败。
      */
     bool handleWriteEvent();
@@ -73,12 +73,10 @@ public:
     bool handleErrorEvent();
     /*
      * 得到connection
-     * 
+     *
      * @return TCPConnection
      */
-    Connection *getConnection() {
-        return _connection;
-    }
+    Connection *getConnection() { return _connection; }
 
     virtual void dump(std::ostringstream &buf);
 
@@ -86,7 +84,7 @@ public:
     bool setState(IOCState state);
     virtual void closeAndSetState();
     bool socketReconnect(int64_t now);
-      
+
 protected:
     /*
      * 连接到socket
@@ -100,6 +98,6 @@ private:
     int _shrinkCount;
     bool _keepIOBuffer;
 };
-}
+} // namespace anet
 
 #endif /*TCPCOMPONENT_H_*/

@@ -30,9 +30,7 @@ LocalRef<jbyteArray> JIquanClient::updateTables(jint format, AliasRef<jbyteArray
     return method(self(), format, request.get());
 }
 
-LocalRef<jbyteArray> JIquanClient::updateLayerTables(jint format,
-        AliasRef<jbyteArray> request)
-{
+LocalRef<jbyteArray> JIquanClient::updateLayerTables(jint format, AliasRef<jbyteArray> request) {
     static auto method = getClass()->getMethod<jbyteArray(jint, jbyteArray)>("updateLayerTables");
     return method(self(), format, request.get());
 }
@@ -47,7 +45,8 @@ LocalRef<jbyteArray> JIquanClient::updateFunctions(jint format, AliasRef<jbyteAr
     return method(self(), format, request.get());
 }
 
-LocalRef<jbyteArray> JIquanClient::query(jint inputFormat, jint outputFormat, AliasRef<jbyteArray> request) const {
+LocalRef<jbyteArray>
+JIquanClient::query(jint inputFormat, jint outputFormat, AliasRef<jbyteArray> request) const {
     static auto method = getClass()->getMethod<jbyteArray(jint, jint, jbyteArray)>("sqlQuery");
     return method(self(), inputFormat, outputFormat, request.get());
 }
@@ -99,7 +98,8 @@ AliasRef<jclass> JIquanClient::getSelfClazz() {
         return nullptr;
     }
 
-    LocalRef<jclass> localClazz = classLoader->loadClass("com.taobao.search.iquan.client.IquanClient");
+    LocalRef<jclass> localClazz
+        = classLoader->loadClass("com.taobao.search.iquan.client.IquanClient");
     _clazz = localClazz;
     return _clazz;
 }

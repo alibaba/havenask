@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 #include "fslib/cache/FileBlockPool.h"
-#include <unistd.h>
+
 #include <errno.h>
+#include <unistd.h>
 
 FSLIB_BEGIN_NAMESPACE(cache);
 AUTIL_DECLARE_AND_SETUP_LOGGER(cache, FileBlockPool);
 
-FileBlockPool::FileBlockPool(int64_t bufferSize, size_t blockSize, 
-                             bool forceAllocate) 
-{ 
-    AUTIL_LOG(INFO, "buffer size [%ld], block size [%ld]",
-              bufferSize, blockSize);
+FileBlockPool::FileBlockPool(int64_t bufferSize, size_t blockSize, bool forceAllocate) {
+    AUTIL_LOG(INFO, "buffer size [%ld], block size [%ld]", bufferSize, blockSize);
     assert(bufferSize > 0);
-    assert(blockSize > 0);    
+    assert(blockSize > 0);
     _forceAllocate = forceAllocate;
     _blockSize = blockSize;
     _maxBlockCount = (bufferSize + blockSize - 1) / blockSize;
     _blockCount = 0;
-    AUTIL_LOG(INFO, "create blockPool, blockcount %ld, maxBlockCount %ld", 
-              _blockCount, _maxBlockCount);
+    AUTIL_LOG(INFO, "create blockPool, blockcount %ld, maxBlockCount %ld", _blockCount, _maxBlockCount);
     _bufferVec.reserve(_maxBlockCount);
 }
 
-FileBlockPool::~FileBlockPool() { 
+FileBlockPool::~FileBlockPool() {
     assert(_blockCount == 0);
     for (size_t i = 0; i < _bufferVec.size(); ++i) {
         free(_bufferVec[i]);
@@ -44,22 +41,22 @@ FileBlockPool::~FileBlockPool() {
     _bufferVec.clear();
 }
 
-int32_t FileBlockPool::allocate(void* &buf) {
+int32_t FileBlockPool::allocate(void *&buf) {
     buf = NULL;
     bool canAllocate = false;
     {
         autil::ScopedLock lock(_mutex);
-        if(_blockCount < _maxBlockCount || _forceAllocate) {
+        if (_blockCount < _maxBlockCount || _forceAllocate) {
             ++_blockCount;
             canAllocate = true;
         }
     }
-    
+
     if (!canAllocate) {
         AUTIL_LOG(DEBUG, "allocate block failed!exceed max memory pool size.");
         return ENOMEM;
-    } 
-    
+    }
+
     {
         autil::ScopedLock lock(_mutex);
         if (!_bufferVec.empty()) {
@@ -68,14 +65,14 @@ int32_t FileBlockPool::allocate(void* &buf) {
         }
     }
     if (buf == NULL) {
-        size_t alignment = getpagesize();        
+        size_t alignment = getpagesize();
         int32_t errCode = posix_memalign(&buf, alignment, _blockSize);
         return errCode;
     }
     return 0;
 }
 
-void FileBlockPool::deAllocate(void* &buf) {
+void FileBlockPool::deAllocate(void *&buf) {
     autil::ScopedLock lock(_mutex);
     if (buf == NULL) {
         AUTIL_LOG(WARN, "try to free NULL pointer");
@@ -87,4 +84,3 @@ void FileBlockPool::deAllocate(void* &buf) {
 }
 
 FSLIB_END_NAMESPACE(cache);
-

@@ -1,0 +1,190 @@
+{
+    "table_name": "auction",
+    "fields": [
+        {
+            "field_name": "int8_single",
+            "field_type": "int8"
+        },
+        {
+            "field_name": "int16_single",
+            "field_type": "int16"
+        },
+        {
+            "field_name": "int32_single",
+            "field_type": "int32"
+        },
+        {
+            "field_name": "int64_single",
+            "field_type": "int64"
+        },
+        {
+            "field_name": "int8_multi",
+            "field_type": "int8",
+            "multi_value": true,
+            "compress_type": "equal",
+            "updatable_multi_value": true
+        },
+        {
+            "field_name": "int16_multi",
+            "field_type": "int16",
+            "multi_value": true,
+            "compress_type": "uniq|equal"
+        },
+        {
+            "field_name": "int32_multi",
+            "field_type": "int32",
+            "multi_value": true
+        },
+        {
+            "field_name": "int64_multi",
+            "field_type": "int64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "field_name": "uint8_single",
+            "field_type": "uint8"
+        },
+        {
+            "field_name": "uint16_single",
+            "field_type": "uint16"
+        },
+        {
+            "field_name": "uint32_single",
+            "field_type": "uint32"
+        },
+        {
+            "field_name": "uint64_single",
+            "field_type": "uint64"
+        },
+
+        {
+            "field_name": "uint8_multi",
+            "field_type": "uint8",
+            "multi_value": true,
+            "compress_type": "equal"
+        },
+        {
+            "field_name": "uint16_multi",
+            "field_type": "uint16",
+            "multi_value": true,
+            "compress_type": "uniq|equal"
+        },
+        {
+            "field_name": "uint32_multi",
+            "field_type": "uint32",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+        {
+            "field_name": "uint64_multi",
+            "field_type": "uint64",
+            "multi_value": true,
+            "updatable_multi_value": true
+        },
+
+        {
+            "field_name": "integer_single",
+            "field_type": "integer"
+        },
+        {
+            "field_name": "long_single",
+            "field_type": "long"
+        },
+
+        {
+            "field_name": "integer_multi",
+            "field_type": "integer",
+            "multi_value": true
+        },
+        {
+            "field_name": "long_multi",
+            "field_type": "long",
+            "multi_value": true
+        },
+        {
+            "field_name": "float_single",
+            "field_type": "float"
+        },
+        {
+            "field_name": "double_single",
+            "field_type": "double"
+        },
+
+        {
+            "field_name": "float_multi",
+            "field_type": "float",
+            "multi_value": true
+        },
+        {
+            "field_name": "double_multi",
+            "field_type": "double",
+            "multi_value": true
+        },
+        {
+            "field_name": "time_single",
+            "field_type": "time"
+        },
+        {
+            "field_name": "timestamp_single",
+            "field_type": "timestamp"
+        },
+        {
+            "field_name": "date_single",
+            "field_type": "date"
+        },
+        {
+            "field_name": "str_single",
+            "field_type": "string"
+        },
+        {
+            "field_name": "str_multi",
+            "field_type": "string",
+            "multi_value": true
+        },
+        {
+            "field_name": "not_attribute",
+            "field_type": "double"
+        }
+    ],
+
+    "indexs": [
+        {
+            "index_name": "pk",
+            "index_type": "PRIMARYKEY64",
+            "index_fields": "str_single"
+        }
+    ],
+
+    "attributes": [
+        "int8_single",
+        "int8_multi",
+        "int16_single",
+        "int16_multi",
+        "int32_single",
+        "int32_multi",
+        "int64_single",
+        "int64_multi",
+        "uint8_single",
+        "uint8_multi",
+        "uint16_single",
+        "uint16_multi",
+        "uint32_single",
+        "uint32_multi",
+        "uint64_single",
+        "uint64_multi",
+        "integer_single",
+        "integer_multi",
+        "long_single",
+        "long_multi",
+        "time_single",
+        "timestamp_single",
+        "date_single",
+        "float_single",
+        "float_multi",
+        "double_single",
+        "double_multi",
+        "str_single",
+        "str_multi"
+    ]
+}

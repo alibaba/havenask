@@ -34,7 +34,7 @@ public:
     virtual ~RpcChannelManager();
 
 public:
-    bool Init(const std::string& zkRoot);
+    bool Init(const std::string& zkRoot, bool isJsonFormat = true);
     std::shared_ptr<::google::protobuf::RpcChannel> getRpcChannel();
 
 private:
@@ -59,6 +59,7 @@ private:
     std::unique_ptr<arpc::ANetRPCChannelManager> _rpcChannelManager;
 
     std::shared_ptr<::google::protobuf::RpcChannel> _channel;
+    bool _isJsonFormat = true;
 
 private:
     BS_LOG_DECLARE();

@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="agg_avg_after_where">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT brand, AVG(price) FROM phone WHERE nid < 8 GROUP BY (brand)
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"brand", "AVG(price)"</Resource>
+        <Resource name="column_types">multi_char, double</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+"Huawei", 3993.5
+"Meizu", 1299
+"Nokia", 169
+"Apple", 3599
+"Xiaomi", 899
+"OPPO", 2999
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#4(type=api)
+    ExchangeOp#3(distribution={type:SINGLETON})
+        LimitOp#2(limit=100)
+            AggregateOp#1(agg_funcs=[{approximate:false,distinct:false,filter_arg:-1,input:[$price],name:AVG,output:[$AVG(price)],type:NORMAL}],group_fields=[$brand],scope=NORMAL)
+                TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$brand,$price],push_down_ops=[{attrs:{condition:{op:<,params:[$nid,8],type:OTHER},output_fields:[$brand,$price]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

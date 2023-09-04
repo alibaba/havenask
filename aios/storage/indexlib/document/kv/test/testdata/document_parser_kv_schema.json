@@ -1,0 +1,14 @@
+{
+    "attributes": ["userid", "username", "userage", "usernation"],
+    "fields": [
+        { "field_name": "usernick", "field_type": "STRING", "multi_value": false },
+        { "field_name": "userid", "field_type": "INT64", "multi_value": false },
+        { "field_name": "username", "field_type": "STRING", "multi_value": false },
+        { "field_name": "userage", "field_type": "INT64", "multi_value": false },
+        { "field_name": "usernation", "field_type": "STRING", "multi_value": false }
+    ],
+    "indexs": [ {"index_fields": "usernick", "index_name": "usernick", "index_type": "PRIMARY_KEY"} ],
+    "table_name": "userid2usernick",
+    "table_type": "kv",
+    "versionid": 123
+}

@@ -13,7 +13,8 @@
 
 namespace multi_call {
 
-class LatencyTimeWindow {
+class LatencyTimeWindow
+{
 public:
     explicit LatencyTimeWindow(int64_t windowSize = 1000);
     ~LatencyTimeWindow();
@@ -24,7 +25,9 @@ private:
 
 public:
     int64_t push(int64_t latency);
-    inline int64_t getAvgLatency() { return _currentAvg.getValue() >> 10; }
+    inline int64_t getAvgLatency() {
+        return _currentAvg.getValue() >> 10;
+    }
     inline void setWindowSize(int64_t windowSize) {
         if (windowSize == 0)
             return;

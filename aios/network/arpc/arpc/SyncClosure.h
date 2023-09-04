@@ -15,33 +15,27 @@
  */
 #ifndef ARPC_SYNCCLOSURE_H
 #define ARPC_SYNCCLOSURE_H
-#include "aios/network/arpc/arpc/CommonMacros.h"
-#include "aios/network/arpc/arpc/util/Log.h"
 #include "aios/network/anet/anet.h"
 #include "aios/network/anet/threadcond.h"
 #include "aios/network/anet/threadmutex.h"
+#include "aios/network/arpc/arpc/CommonMacros.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 
 ARPC_BEGIN_NAMESPACE(arpc);
 
-class SyncClosure : public RPCClosure
-{
+class SyncClosure : public RPCClosure {
 public:
-    SyncClosure()
-    {
-        _needWait = true;
-    }
+    SyncClosure() { _needWait = true; }
     virtual ~SyncClosure() {}
 
 public:
-    virtual void Run()
-    {
+    virtual void Run() {
         anet::MutexGuard guard(&_cond);
         _needWait = false;
         _cond.signal();
     }
 
-    void WaitReply()
-    {
+    void WaitReply() {
         _cond.lock();
 
         while (_needWait) {
@@ -58,4 +52,4 @@ private:
 
 ARPC_END_NAMESPACE(arpc);
 
-#endif //ARPC_SYNCCLOSURE_H
+#endif // ARPC_SYNCCLOSURE_H

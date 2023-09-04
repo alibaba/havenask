@@ -18,7 +18,7 @@
 #include "indexlib/config/CompressTypeOption.h"
 #include "indexlib/config/FileCompressConfig.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
-#include "indexlib/index/attribute/config/PackAttributeConfig.h"
+#include "indexlib/index/pack_attribute/PackAttributeConfig.h"
 
 using namespace std;
 
@@ -26,7 +26,7 @@ namespace indexlibv2::config {
 AUTIL_LOG_SETUP(indexlib.index, ValueConfig);
 
 struct ValueConfig::Impl {
-    vector<shared_ptr<AttributeConfig>> attrConfigs;
+    vector<shared_ptr<index::AttributeConfig>> attrConfigs;
     int32_t fixedValueLen = -1;
     FieldType actualFieldType = FieldType::ft_unknown;
     bool enableCompactPackAttribute = false;
@@ -41,7 +41,7 @@ ValueConfig::ValueConfig(const ValueConfig& other) : _impl(make_unique<Impl>(*ot
 
 ValueConfig::~ValueConfig() {}
 
-Status ValueConfig::Init(const vector<shared_ptr<AttributeConfig>>& attrConfigs)
+Status ValueConfig::Init(const vector<shared_ptr<index::AttributeConfig>>& attrConfigs)
 {
     if (attrConfigs.size() == 0) {
         return Status::ConfigError("attribute configs is empty, init failed");
@@ -55,7 +55,8 @@ Status ValueConfig::Init(const vector<shared_ptr<AttributeConfig>>& attrConfigs)
     return Status::OK();
 }
 
-Status ValueConfig::CheckIfAttributesSupportNull(const std::vector<std::shared_ptr<AttributeConfig>>& attrConfigs) const
+Status
+ValueConfig::CheckIfAttributesSupportNull(const std::vector<std::shared_ptr<index::AttributeConfig>>& attrConfigs) const
 {
     for (auto attr : attrConfigs) {
         if (attr && attr->SupportNull()) {
@@ -66,7 +67,7 @@ Status ValueConfig::CheckIfAttributesSupportNull(const std::vector<std::shared_p
     return Status::OK();
 }
 
-void ValueConfig::SetActualFieldType(const std::vector<std::shared_ptr<AttributeConfig>>& attrConfigs)
+void ValueConfig::SetActualFieldType(const std::vector<std::shared_ptr<index::AttributeConfig>>& attrConfigs)
 {
     if (attrConfigs.size() > 1) {
         // all field is packed
@@ -90,7 +91,7 @@ void ValueConfig::SetActualFieldType(const std::vector<std::shared_ptr<Attribute
     }
 }
 
-void ValueConfig::SetFixedValueLen(const std::vector<std::shared_ptr<AttributeConfig>>& attrConfigs)
+void ValueConfig::SetFixedValueLen(const std::vector<std::shared_ptr<index::AttributeConfig>>& attrConfigs)
 {
     _impl->fixedValueLen = 0;
     for (const auto& attrConfig : attrConfigs) {
@@ -103,27 +104,20 @@ void ValueConfig::SetFixedValueLen(const std::vector<std::shared_ptr<AttributeCo
 }
 
 size_t ValueConfig::GetAttributeCount() const { return _impl->attrConfigs.size(); }
-const shared_ptr<AttributeConfig>& ValueConfig::GetAttributeConfig(size_t idx) const
+const shared_ptr<index::AttributeConfig>& ValueConfig::GetAttributeConfig(size_t idx) const
 {
     assert(idx < GetAttributeCount());
     return _impl->attrConfigs[idx];
 }
 
-const std::vector<std::shared_ptr<AttributeConfig>>& ValueConfig::GetAttributeConfigs() const
+const std::vector<std::shared_ptr<index::AttributeConfig>>& ValueConfig::GetAttributeConfigs() const
 {
     return _impl->attrConfigs;
 }
 
-pair<Status, shared_ptr<PackAttributeConfig>> ValueConfig::CreatePackAttributeConfig() const
+pair<Status, shared_ptr<index::PackAttributeConfig>> ValueConfig::CreatePackAttributeConfig() const
 {
-    indexlib::config::CompressTypeOption compressOption;
-    [[maybe_unused]] auto status = compressOption.Init("");
-    assert(status.IsOK());
-
-    auto packAttrConfig = std::make_shared<PackAttributeConfig>("pack_values", compressOption,
-                                                                index::ATTRIBUTE_DEFAULT_DEFRAG_SLICE_PERCENT,
-                                                                shared_ptr<indexlib::config::FileCompressConfig>());
-
+    auto packAttrConfig = std::make_shared<index::PackAttributeConfig>();
     for (auto attrConfig : _impl->attrConfigs) {
         auto status = packAttrConfig->AddAttributeConfig(attrConfig);
         RETURN2_IF_STATUS_ERROR(status, nullptr, "pack attribute config add attribute config[%s] fail",
@@ -220,14 +214,19 @@ FieldType ValueConfig::FixedLenToFieldType(int32_t size) const
 
 Status ValueConfig::AppendField(const std::shared_ptr<FieldConfig>& fieldConfig)
 {
-    auto attrConfig = std::make_shared<AttributeConfig>();
-    attrConfig->Init(fieldConfig);
+    auto attrConfig = std::make_shared<index::AttributeConfig>();
+    auto status = attrConfig->Init(fieldConfig);
+    if (!status.IsOK()) {
+        AUTIL_LOG(ERROR, "append field failed, status %s", status.ToString().c_str());
+        assert(false);
+        return status;
+    }
     if (attrConfig->SupportNull()) {
         return Status::ConfigError("attribute %s which support null is not allowed in kv/kkv index",
                                    attrConfig->GetAttrName().c_str());
     }
     if (_impl->attrConfigs.empty()) {
-        std::vector<std::shared_ptr<AttributeConfig>> attrConfigs;
+        std::vector<std::shared_ptr<index::AttributeConfig>> attrConfigs;
         attrConfigs.emplace_back(std::move(attrConfig));
         return Init(attrConfigs);
     } else {

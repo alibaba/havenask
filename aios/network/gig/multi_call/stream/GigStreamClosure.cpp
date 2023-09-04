@@ -24,9 +24,13 @@ AUTIL_LOG_SETUP(multi_call, GigStreamInitClosure);
 AUTIL_LOG_SETUP(multi_call, GigStreamFinishClosure);
 AUTIL_LOG_SETUP(multi_call, GigStreamCancelClosure);
 
-void GrpcStreamBackWorkItem::process() { _closure->finishClosure(); }
+void GrpcStreamBackWorkItem::process() {
+    _closure->finishClosure();
+}
 
-void GrpcStreamBackWorkItem::destroy() { delete _closure; }
+void GrpcStreamBackWorkItem::destroy() {
+    delete _closure;
+}
 
 void GrpcStreamBackWorkItem::drop() {
     _closure->finishClosure();

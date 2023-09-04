@@ -1,0 +1,40 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+strict_cc_fast_test(
+    name='LSMTabletLoaderTest',
+    srcs=['LSMTabletLoaderTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/framework/mock:MockDiskSegment',
+        '//aios/storage/indexlib/table/common:LSMTabletLoader',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='CommonVersionImporterTest',
+    srcs=['CommonVersionImporterTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/table/common:CommonVersionImporter',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='TabletWriterResourceCalculatorTest',
+    srcs=['TabletWriterResourceCalculatorTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/table/common:TabletWriterResourceCalculator',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='CommonTabletWriterTest',
+    srcs=['CommonTabletWriterTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/framework/mock:MockDocumentBatch',
+        '//aios/storage/indexlib/framework/mock:MockMemSegment',
+        '//aios/storage/indexlib/table/common:CommonTabletWriter',
+        '//aios/unittest_framework'
+    ]
+)

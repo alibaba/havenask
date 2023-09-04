@@ -1,0 +1,42 @@
+{
+    "packages" : [
+	    {
+	        "type" : "RPM",
+	        "packageURI" : "bs_package"
+	    },
+	    {
+	        "type" : "ARCHIVE",
+	        "packageURI" : "other_packages"
+	    }
+    ],
+    "role_default" : {
+        "count" : 1,
+        "processInfos" : [
+            {
+                "isDaemon" : true,
+                "envs" : [
+                    ["HADOOP_HOME","/hadoop/home/path"]
+                ],
+                "args" : [
+                    ["-l" , "/path/to/logconf"],
+                    ["--amonitor_service_name", "__server_discard__.app"]
+                ]
+            }
+        ],
+        "properties" : {
+            "key" : "value"
+        }
+    },
+    "role_customize" : [
+	{
+            "_bs_role" : ".*",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        { "name" : "cpu", "amount" : 2 }
+                    ]
+                }
+            ]
+	}
+    ]
+}

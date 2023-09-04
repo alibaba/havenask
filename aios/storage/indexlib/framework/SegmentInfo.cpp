@@ -15,6 +15,7 @@
  */
 #include "indexlib/framework/SegmentInfo.h"
 
+#include "autil/NetUtil.h"
 #include "autil/StringUtil.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/file_system/IDirectory.h"
@@ -50,6 +51,7 @@ void SegmentInfo::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
         if (schemaId != DEFAULT_SCHEMAID) {
             json.Jsonize("schemaVersionId", schemaId);
         }
+        json.Jsonize("hostname", autil::NetUtil::getBindIp());
     } else {
         json.Jsonize("schemaVersionId", schemaId, schemaId);
         std::string locatorString;
@@ -65,17 +67,6 @@ void SegmentInfo::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
         }
     }
 }
-
-// std::pair<Status, std::string> SegmentInfo::ToString(bool compactFormat) const noexcept
-// {
-//     auto [st, content] = JsonUtil::ToString(*this);
-//     return {st.Status(), content};
-// }
-
-// Status SegmentInfo::FromString(const std::string& content) noexcept
-// {
-//     return JsonUtil::FromString(content, this).Status();
-// }
 
 Status SegmentInfo::Load(const std::shared_ptr<indexlib::file_system::IDirectory>& directory,
                          const indexlib::file_system::ReaderOption& readerOption) noexcept

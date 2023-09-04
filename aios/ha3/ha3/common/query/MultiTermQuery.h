@@ -15,9 +15,9 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <algorithm>
 #include <memory>
+#include <stdint.h>
 #include <string>
 
 #include "autil/Log.h"
@@ -27,26 +27,25 @@
 
 namespace autil {
 class DataBuffer;
-}  // namespace autil
+} // namespace autil
 namespace isearch {
 namespace common {
 class ModifyQueryVisitor;
 class QueryVisitor;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace common {
 
-class MultiTermQuery : public Query
-{
+class MultiTermQuery : public Query {
 public:
-
     MultiTermQuery(const std::string &label, QueryOperator op = OP_AND);
     MultiTermQuery(const MultiTermQuery &);
     ~MultiTermQuery();
+
 public:
-    bool operator == (const Query& query) const override;
+    bool operator==(const Query &query) const override;
     void accept(QueryVisitor *visitor) const override;
     void accept(ModifyQueryVisitor *visitor) override;
     Query *clone() const override;
@@ -55,16 +54,24 @@ public:
         return "MultiTermQuery";
     }
     std::string toString() const override;
-    const TermArray& getTermArray() const;
-    TermArray& getTermArray() {
+    const TermArray &getTermArray() const;
+    TermArray &getTermArray() {
         return _terms;
     }
-    void addTerm(const TermPtr& term);
+    void addTerm(const TermPtr &term);
 
-    void setOPExpr(QueryOperator opExpr) {_opExpr = opExpr;}
-    QueryOperator getOpExpr() const {return _opExpr;}
-    void setMinShouldMatch(uint32_t i) { _minShoudMatch = std::min(i, (uint32_t)_terms.size()); }
-    uint32_t getMinShouldMatch() const { return _minShoudMatch; }
+    void setOPExpr(QueryOperator opExpr) {
+        _opExpr = opExpr;
+    }
+    QueryOperator getOpExpr() const {
+        return _opExpr;
+    }
+    void setMinShouldMatch(uint32_t i) {
+        _minShoudMatch = std::min(i, (uint32_t)_terms.size());
+    }
+    uint32_t getMinShouldMatch() const {
+        return _minShoudMatch;
+    }
 
     void serialize(autil::DataBuffer &dataBuffer) const override;
     void deserialize(autil::DataBuffer &dataBuffer) override;
@@ -75,10 +82,12 @@ public:
     void setQueryLabelWithDefaultLevel(const std::string &label) override {
         setQueryLabelTerm(label);
     }
+
 private:
     TermArray _terms;
     QueryOperator _opExpr;
     uint32_t _minShoudMatch;
+
 private:
     AUTIL_LOG_DECLARE();
 };

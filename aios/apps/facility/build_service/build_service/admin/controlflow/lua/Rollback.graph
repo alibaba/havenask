@@ -1,0 +1,61 @@
+#import(Tool)
+#import(Log)
+
+function graphDef()
+    local clusterName = Graph.parameter["clusterName"]
+    local rollbackFlow = Graph.loadSimpleFlow("rollback_index",
+                                              "rollback_index",
+                                               Graph.parameter)
+    rollbackFlow:addTag("BSRollback");
+    local incBuildTag = clusterName..":IncBuild"                   
+    -- suspend old flow
+    local incBuildFlowIds = Graph.getFlowIdByTag(incBuildTag)
+    for i, v in ipairs(incBuildFlowIds)
+    do
+          local flow = Graph.getFlow(v)
+          if (flow ~= nil) 
+          then
+             flow:stopFlow()
+             Graph.setUpstream(rollbackFlow, flow, "stopped|finish")
+          end
+    end
+    local alterFieldTag = clusterName..":AlterField"
+    local alterFieldFlowIds = Graph.getFlowIdByTag(alterFieldTag)
+    for i, v in ipairs(alterFieldFlowIds)
+    do
+        local flow = Graph.getFlow(v)
+        if (flow ~= nil)
+        then
+            flow:stopFlow()
+            Graph.setUpstream(rollbackFlow, flow, "stopped|finish")
+        end
+    end
+    
+    local mergeCrontabTag = clusterName..":MergeCrontab" 
+    local mergeCrontabFlowId = Graph.getFlowIdByTag(mergeCrontabTag)
+    local mergeCrontab = Graph.getFlow(mergeCrontabFlowId[1])
+    local flowParam = Tool.copyMap(Graph.parameter)   
+    flowParam['mergeCrontabFlowId'] = mergeCrontabFlowId[1]
+
+    local incBuildFlow = nil
+    if (Graph.parameter['hasIncProcessor'] == 'false')
+    then
+        incBuildFlow = Graph.loadFlow("SimpleIncBuild.flow", flowParam)
+        Log.log("INFO", "start SimpleIncBuild.flow "..clusterName.." for rollback")
+    else
+        local incProcessorFlowIds = Graph.getFlowIdByTag(clusterName..":BSIncProcessor")
+        local incProcessorFlowId = incProcessorFlowIds[#incProcessorFlowIds]
+        flowParam['processorFlowId'] = incProcessorFlowId
+        local incProcessorFlow = Graph.getFlow(incProcessorFlowId)
+        incBuildFlow = Graph.loadFlow("IncBuild.flow",flowParam)
+        Graph.declareFriend(incProcessorFlow, incBuildFlow)
+        incBuildFlow:setProperty("_is_first_finish_builder_", "false")
+        Log.log("INFO", "start IncBuild.flow "..clusterName.." for rollback")
+    end
+
+    -- start new build flow
+    incBuildFlow:addTag(incBuildTag)
+    Graph.setUpstream(incBuildFlow, rollbackFlow, "stopped|finish")
+    Graph.declareFriend(mergeCrontab, incBuildFlow)
+    return true
+end

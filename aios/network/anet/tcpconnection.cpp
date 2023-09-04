@@ -13,32 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "aios/network/anet/log.h"
-#include "aios/network/anet/stats.h"
-#include "aios/network/anet/streamingcontext.h"
-#include "aios/network/anet/channel.h"
-#include "aios/network/anet/channelpool.h"
-#include "aios/network/anet/socket.h"
-#include "aios/network/anet/ipacketstreamer.h"
 #include "aios/network/anet/tcpconnection.h"
-#include "aios/network/anet/iocomponent.h"
+
 #include <errno.h>
 #include <stdint.h>
 #include <string.h>
 
+#include "aios/network/anet/channel.h"
+#include "aios/network/anet/channelpool.h"
 #include "aios/network/anet/connection.h"
 #include "aios/network/anet/databuffer.h"
 #include "aios/network/anet/ilogger.h"
+#include "aios/network/anet/iocomponent.h"
+#include "aios/network/anet/ipacketstreamer.h"
+#include "aios/network/anet/log.h"
 #include "aios/network/anet/orderedpacketqueue.h"
 #include "aios/network/anet/packet.h"
+#include "aios/network/anet/socket.h"
+#include "aios/network/anet/stats.h"
+#include "aios/network/anet/streamingcontext.h"
 #include "aios/network/anet/threadcond.h"
 #include "aios/network/anet/timeutil.h"
 
 namespace anet {
 class IServerAdapter;
 
-TCPConnection::TCPConnection(Socket *socket, IPacketStreamer *streamer,
-                             IServerAdapter *serverAdapter) : Connection(socket, streamer, serverAdapter) {
+TCPConnection::TCPConnection(Socket *socket, IPacketStreamer *streamer, IServerAdapter *serverAdapter)
+    : Connection(socket, streamer, serverAdapter) {
     _gotHeader = false;
     _writeFinishClose = false;
     _writeFinishShutdown = false;
@@ -61,11 +62,11 @@ void TCPConnection::clearOutputBuffer() {
 }
 
 bool TCPConnection::writeData() {
-    //to reduce the odds of blocking postPacket()
+    // to reduce the odds of blocking postPacket()
     _outputCond.lock();
     _outputQueue.moveTo(&_myQueue);
     if (_myQueue.size() == 0 && _output.getDataLen() == 0) {
-        ANET_LOG(DEBUG,"IOC(%p)->enableWrite(false)",_iocomponent);
+        ANET_LOG(DEBUG, "IOC(%p)->enableWrite(false)", _iocomponent);
         _iocomponent->enableWrite(false);
         _outputCond.unlock();
         return true;
@@ -87,7 +88,7 @@ bool TCPConnection::writeData() {
             }
 
             packet = _myQueue.pop();
-            myQueueSize --;
+            myQueueSize--;
             int64_t oldDataLen = _output.getDataLen();
             int64_t oldSpaceAllocated = _output.getSpaceUsed();
             _streamer->encode(packet, &_output);
@@ -101,13 +102,11 @@ bool TCPConnection::writeData() {
             ANET_ADD_OUTPUT_BUFFER_SPACE_USED(packetSizeInBuffer);
             Channel *channel = packet->getChannel();
             if (channel) {
-                if (_defaultPacketHandler == NULL
-                    && channel->getHandler() == NULL) {
-                    //free channle of packets not expecting reply
+                if (_defaultPacketHandler == NULL && channel->getHandler() == NULL) {
+                    // free channle of packets not expecting reply
                     _channelPool.freeChannel(channel);
                 } else {
-                    ANET_LOG(SPAM, "channel[%p] expire time[%ld]", channel,
-                            packet->getExpireTime());
+                    ANET_LOG(SPAM, "channel[%p] expire time[%ld]", channel, packet->getExpireTime());
                     channel->setExpireTime(packet->getExpireTime());
                     channel->setTimeoutMs(packet->getTimeoutMs());
                     _channelPool.addToWaitingList(channel);
@@ -134,28 +133,28 @@ bool TCPConnection::writeData() {
             error = _socket->getSoError();
         }
 
-        writeCnt ++;
-    } while (ret > 0 && _output.getDataLen() == 0
+        writeCnt++;
+    } while (ret > 0 &&
+             _output.getDataLen() == 0
              /**@todo remove magic number 10*/
-             && myQueueSize>0 && writeCnt < 10);
+             && myQueueSize > 0 && writeCnt < 10);
     _stats.callWriteCount += writeCnt;
 
     _outputCond.lock();
     _outputQueue.moveBack(&_myQueue);
 
-    if (error !=0 && error != EWOULDBLOCK && error != EAGAIN) {
+    if (error != 0 && error != EWOULDBLOCK && error != EAGAIN) {
         char spec[32];
-        ANET_LOG(WARN,"Connection (%s) write error: %d",
-                 _socket->getAddr(spec, 32), error);
+        ANET_LOG(WARN, "Connection (%s) write error: %d", _socket->getAddr(spec, 32), error);
         _outputCond.unlock();
         clearOutputBuffer();
         return false;
     }
     int queueSize = _outputQueue.size() + (_output.getDataLen() > 0 ? 1 : 0);
     if (queueSize > 0) {
-//when using level triggered mode, do NOT need to call enableWrite() any more.
-//        ANET_LOG(DEBUG,"IOC(%p)->enableWrite(true)", _iocomponent);
-//        _iocomponent->enableWrite(true);
+        // when using level triggered mode, do NOT need to call enableWrite() any more.
+        //         ANET_LOG(DEBUG,"IOC(%p)->enableWrite(true)", _iocomponent);
+        //         _iocomponent->enableWrite(true);
     } else if (_writeFinishShutdown) {
         _outputCond.unlock();
         _iocomponent->enableWrite(false);
@@ -167,7 +166,7 @@ bool TCPConnection::writeData() {
         clearOutputBuffer();
         return false;
     } else {
-        ANET_LOG(DEBUG,"IOC(%p)->enableWrite(false)", _iocomponent);
+        ANET_LOG(DEBUG, "IOC(%p)->enableWrite(false)", _iocomponent);
         _iocomponent->enableWrite(false);
     }
 
@@ -194,7 +193,7 @@ bool TCPConnection::readData() {
         int64_t oldSpaceUsed = _input.getSpaceUsed();
         _input.ensureFree(_readWriteBufSize);
         ret = _socket->read(_input.getFree(), _readWriteBufSize);
-        ANET_LOG(SPAM,"%d bytes read", ret);
+        ANET_LOG(SPAM, "%d bytes read", ret);
         if (ret < 0) {
             int64_t newSpaceUsed = _input.getSpaceUsed();
             addInputBufferSpaceAllocated(newSpaceUsed - oldSpaceUsed);
@@ -224,7 +223,6 @@ bool TCPConnection::readData() {
             handlePacket(packet);
             _context->reset();
             ANET_COUNT_PACKET_READ(1);
-
         }
         broken = _context->isBroken();
 
@@ -242,20 +240,19 @@ bool TCPConnection::readData() {
         } else if (ret < 0) {
             if (error != 0 && error != EAGAIN && error != EWOULDBLOCK) {
                 char spec[32];
-                ANET_LOG(DEBUG,"Connection (%s) read error: %d",
-                        _socket->getAddr(spec, 32), error);
+                ANET_LOG(DEBUG, "Connection (%s) read error: %d", _socket->getAddr(spec, 32), error);
                 broken = true;
             }
         }
     }
 
-//when using level triggered mode, do NOT need to call enableRead() any more.
-//     if (!broken) {
-//         _outputCond.lock();
-//         ANET_LOG(DEBUG,"IOC(%p)->enableRead(true)", _iocomponent);
-//         _iocomponent->enableRead(true);
-//         _outputCond.unlock();
-//     }
+    // when using level triggered mode, do NOT need to call enableRead() any more.
+    //      if (!broken) {
+    //          _outputCond.lock();
+    //          ANET_LOG(DEBUG,"IOC(%p)->enableRead(true)", _iocomponent);
+    //          _iocomponent->enableRead(true);
+    //          _outputCond.unlock();
+    //      }
 
     return !broken;
 }
@@ -290,4 +287,4 @@ void TCPConnection::shrinkOutputBuffer() {
     addOutputBufferSpaceAllocated(newSpaceUsed - oldSpaceUsed);
 }
 
-}
+} // namespace anet

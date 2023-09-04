@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/java/GigInstance.h"
+
 #include "kmonitor/client/KMonitorFactory.h"
 
 using namespace std;
@@ -36,12 +37,13 @@ alog.logger.arpc=WARN)foo";
 bool GigInstance::alogInited = false;
 bool GigInstance::kmonInited = false;
 
-bool GigInstance::isInited() { return alogInited && kmonInited; }
+bool GigInstance::isInited() {
+    return alogInited && kmonInited;
+}
 
 bool GigInstance::initKmon(const std::string &gigKmonConf) {
     if (!kmonitor::KMonitorFactory::Init(gigKmonConf)) {
-        AUTIL_LOG(ERROR, "kmonitor init failed, config content:[%s]",
-                  gigKmonConf.c_str());
+        AUTIL_LOG(ERROR, "kmonitor init failed, config content:[%s]", gigKmonConf.c_str());
         return false;
     }
 
@@ -60,8 +62,7 @@ bool GigInstance::initAlog(const std::string &gigAlogConf) {
             alog::Configurator::configureLoggerFromString(alogConf.c_str());
             alogInited = true;
         } catch (...) {
-            std::cerr << "configure logger use [" << alogConf << "] failed"
-                      << std::endl;
+            std::cerr << "configure logger use [" << alogConf << "] failed" << std::endl;
             return false;
         }
     }
@@ -83,6 +84,8 @@ SearchServicePtr GigInstance::getSearchServicePtr() {
     return _searchService;
 }
 
-JavaCallback GigInstance::getJavaCallback() const { return _callback; }
+JavaCallback GigInstance::getJavaCallback() const {
+    return _callback;
+}
 
 } // namespace multi_call

@@ -5,33 +5,36 @@
  * Author Email: xsank.mz@alibaba-inc.com
  */
 
+#include "kmonitor/client/net/AgentClient.h"
+
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
+
+#include "autil/Log.h"
 #include "autil/StringUtil.h"
 #include "kmonitor/client/common/Common.h"
-#include "autil/Log.h"
-#include "kmonitor/client/net/thrift/TSocket.h"
-#include "kmonitor/client/net/thrift/TFastFramedTransport.h"
-#include "kmonitor/client/net/thrift/TCompactProtocol.h"
-#include "kmonitor/client/net/thrift/ThriftProtocolClient.h"
-#include "kmonitor/client/net/thrift/ThriftFlumeEvent.h"
-#include "kmonitor/client/net/AgentClient.h"
 #include "kmonitor/client/common/Util.h"
+#include "kmonitor/client/net/thrift/TCompactProtocol.h"
+#include "kmonitor/client/net/thrift/TFastFramedTransport.h"
+#include "kmonitor/client/net/thrift/TSocket.h"
+#include "kmonitor/client/net/thrift/ThriftFlumeEvent.h"
+#include "kmonitor/client/net/thrift/ThriftProtocolClient.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 AUTIL_LOG_SETUP(kmonitor, AgentClient);
 
+using std::iostream;
 using std::string;
 using std::vector;
-using std::iostream;
 
 #ifndef DELETE_AND_SET_NULL
-#define DELETE_AND_SET_NULL(pointer) do { \
-    delete pointer; pointer = NULL; \
+#define DELETE_AND_SET_NULL(pointer)                                                                                   \
+    do {                                                                                                               \
+        delete pointer;                                                                                                \
+        pointer = NULL;                                                                                                \
     } while (0)
 #endif
-
 
 AgentClient::AgentClient(const string &address, int32_t timeOutMs) {
     socket_ = nullptr;
@@ -68,7 +71,11 @@ bool AgentClient::Init() {
         return false;
     }
 
-    AUTIL_LOG(INFO, "kmon agent init success, address is [%s], ip is [%s], port is [%d]", address_.c_str(), host_.c_str(), port_);    
+    AUTIL_LOG(INFO,
+              "kmon agent init success, address is [%s], ip is [%s], port is [%d]",
+              address_.c_str(),
+              host_.c_str(),
+              port_);
     socket_ = new TSocket(host_, port_, timeOutMs_);
     transport_ = new TFastFramedTransport(socket_);
     protocol_ = new TCompactProtocol(transport_);
@@ -76,14 +83,9 @@ bool AgentClient::Init() {
     return true;
 }
 
-bool AgentClient::Started() const {
-    return started_;
-}
+bool AgentClient::Started() const { return started_; }
 
-void AgentClient::Close() {
-    started_ = false;
-}
-
+void AgentClient::Close() { started_ = false; }
 
 bool AgentClient::AppendBatch(const BatchFlumeEventPtr &events) {
     if (!Started()) {
@@ -101,8 +103,7 @@ bool AgentClient::AppendBatch(const BatchFlumeEventPtr &events) {
     return true;
 }
 
-void AgentClient::CheckSocket() {
-}
+void AgentClient::CheckSocket() {}
 
 bool AgentClient::ReConnect() {
     Close();
@@ -116,6 +117,4 @@ bool AgentClient::ReConnect() {
     }
 }
 
-
 END_KMONITOR_NAMESPACE(kmonitor);
-

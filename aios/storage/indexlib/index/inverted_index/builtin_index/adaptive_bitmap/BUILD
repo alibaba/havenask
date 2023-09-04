@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='AdaptiveBitmapIndexWriter',
     deps=[
         ':AdaptiveBitmapTrigger',
@@ -10,7 +10,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:TieredDictionaryWriter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiAdaptiveBitmapIndexWriter',
     srcs=[],
     deps=[
@@ -20,8 +20,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index:PostingMerger'
     ]
 )
-indexlib_cc_library(name='AdaptiveBitmapTrigger', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='AdaptiveBitmapTrigger', srcs=[])
+strict_cc_library(
     name='PercentAdaptiveBitmapTrigger',
     srcs=[],
     deps=[
@@ -30,7 +30,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:MathUtil'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DfAdaptiveBitmapTrigger',
     srcs=[],
     deps=[
@@ -38,7 +38,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index:PostingMerger'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexSizeAdaptiveBitmapTrigger',
     srcs=[],
     deps=[
@@ -46,14 +46,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index:PostingMerger'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AdaptiveBitmapIndexWriterCreator',
     deps=[
         ':AdaptiveBitmapTriggerCreator', ':MultiAdaptiveBitmapIndexWriter',
         '//aios/storage/indexlib/index/inverted_index:PostingMerger'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AdaptiveBitmapTriggerCreator',
     deps=[
         ':AdaptiveBitmapTrigger', ':DfAdaptiveBitmapTrigger',

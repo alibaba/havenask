@@ -128,5 +128,5 @@ std::unique_ptr<config::IIndexConfig> DeletionMapIndexFactory::CreateIndexConfig
 }
 
 std::string DeletionMapIndexFactory::GetIndexPath() const { return DELETION_MAP_INDEX_PATH; }
-REGISTER_INDEX(deletionmap, DeletionMapIndexFactory);
+REGISTER_INDEX_FACTORY(deletionmap, DeletionMapIndexFactory);
 } // namespace indexlibv2::index

@@ -57,6 +57,6 @@ void DFSValueWriter::FillStatistics(SegmentStatistics& stat) const
     }
 }
 
-void DFSValueWriter::UpdateMemoryUsage(MemoryUsage& memUsage) const {}
+void DFSValueWriter::FillMemoryUsage(MemoryUsage& memUsage) const {}
 
 } // namespace indexlibv2::index

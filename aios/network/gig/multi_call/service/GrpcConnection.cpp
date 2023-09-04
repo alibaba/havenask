@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/GrpcConnection.h"
+
+#include <grpc++/generic/generic_stub.h>
+#include <unistd.h>
+
 #include "aios/network/gig/multi_call/grpc/client/GrpcClientClosure.h"
 #include "aios/network/gig/multi_call/interface/GrpcRequest.h"
 #include "aios/network/gig/multi_call/service/SearchServiceResource.h"
-#include <grpc++/generic/generic_stub.h>
-#include <unistd.h>
 
 using namespace std;
 using namespace autil;
@@ -26,22 +28,27 @@ using namespace autil;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GrpcConnection);
 
-GrpcConnection::GrpcConnection(
-    const GrpcClientWorkerPtr &grpcWorker, const std::string &spec,
-    const std::shared_ptr<grpc::ChannelCredentials> &channelCredentials,
-    const std::shared_ptr<grpc::ChannelArguments> &channelArgs)
-    : Connection(spec, MC_PROTOCOL_GRPC, 0), _grpcWorker(grpcWorker),
-      _channelCredentials(channelCredentials), _channelArgs(channelArgs) {}
+GrpcConnection::GrpcConnection(const GrpcClientWorkerPtr &grpcWorker, const std::string &spec,
+                               const std::shared_ptr<grpc::ChannelCredentials> &channelCredentials,
+                               const std::shared_ptr<grpc::ChannelArguments> &channelArgs)
+    : Connection(spec, MC_PROTOCOL_GRPC, 0)
+    , _grpcWorker(grpcWorker)
+    , _channelCredentials(channelCredentials)
+    , _channelArgs(channelArgs) {
+}
 
-GrpcConnection::GrpcConnection(
-    const GrpcClientWorkerPtr &grpcWorker, const std::string &spec,
-    const std::shared_ptr<grpc::ChannelCredentials> &channelCredentials,
-    const std::shared_ptr<grpc::ChannelArguments> &channelArgs,
-    ProtocolType type)
-    : Connection(spec, type, 0), _grpcWorker(grpcWorker),
-      _channelCredentials(channelCredentials), _channelArgs(channelArgs) {}
+GrpcConnection::GrpcConnection(const GrpcClientWorkerPtr &grpcWorker, const std::string &spec,
+                               const std::shared_ptr<grpc::ChannelCredentials> &channelCredentials,
+                               const std::shared_ptr<grpc::ChannelArguments> &channelArgs,
+                               ProtocolType type)
+    : Connection(spec, type, 0)
+    , _grpcWorker(grpcWorker)
+    , _channelCredentials(channelCredentials)
+    , _channelArgs(channelArgs) {
+}
 
-GrpcConnection::~GrpcConnection() {}
+GrpcConnection::~GrpcConnection() {
+}
 
 GrpcChannelPtr GrpcConnection::getChannel() {
     {
@@ -58,15 +65,13 @@ GrpcChannelPtr GrpcConnection::getChannel() {
         if (!_channelArgs) {
             _channel = grpc::CreateChannel(_spec, _channelCredentials);
         } else {
-            _channel = grpc::CreateCustomChannel(_spec, _channelCredentials,
-                                                 *_channelArgs);
+            _channel = grpc::CreateCustomChannel(_spec, _channelCredentials, *_channelArgs);
         }
         return _channel;
     }
 }
 
-void GrpcConnection::post(const RequestPtr &request,
-                          const CallBackPtr &callBack) {
+void GrpcConnection::post(const RequestPtr &request, const CallBackPtr &callBack) {
     const auto &resource = callBack->getResource();
     auto grpcRequest = dynamic_cast<GrpcRequest *>(request.get());
     if (!grpcRequest) {
@@ -75,33 +80,29 @@ void GrpcConnection::post(const RequestPtr &request,
     }
     auto channel = getChannel();
     if (!channel) {
-        callBack->run(NULL, MULTI_CALL_REPLY_ERROR_CONNECTION, string(),
-                      string());
+        callBack->run(NULL, MULTI_CALL_REPLY_ERROR_CONNECTION, string(), string());
         return;
     }
 
     grpcRequest->setRequestType(resource->getRequestType());
     auto message = grpcRequest->getMessage();
     if (!message) {
-        callBack->run(NULL, MULTI_CALL_REPLY_ERROR_PROTOCOL_MESSAGE, string(),
-                      string());
+        callBack->run(NULL, MULTI_CALL_REPLY_ERROR_PROTOCOL_MESSAGE, string(), string());
         return;
     }
     auto closure = new GrpcClientClosure(message, callBack);
     auto clientContext = closure->getClientContext();
-    auto deadline = std::chrono::system_clock::now() +
-                    std::chrono::milliseconds(resource->getTimeout());
+    auto deadline =
+        std::chrono::system_clock::now() + std::chrono::milliseconds(resource->getTimeout());
     clientContext->set_deadline(deadline);
 
-    clientContext->AddMetadata(GIG_GRPC_REQUEST_INFO_KEY,
-                               grpcRequest->getAgentQueryInfo());
+    clientContext->AddMetadata(GIG_GRPC_REQUEST_INFO_KEY, grpcRequest->getAgentQueryInfo());
     grpc::GenericStub stub(channel);
     auto cqs = _grpcWorker->getCompletionQueue(_allocId);
     assert(cqs);
     callBack->rpcBegin();
-    std::unique_ptr<grpc::GenericClientAsyncResponseReader> rpc(
-        stub.PrepareUnaryCall(clientContext, grpcRequest->getMethodName(),
-                              closure->getRequestBuf(), cqs->cq.get()));
+    std::unique_ptr<grpc::GenericClientAsyncResponseReader> rpc(stub.PrepareUnaryCall(
+        clientContext, grpcRequest->getMethodName(), closure->getRequestBuf(), cqs->cq.get()));
     rpc->StartCall();
     rpc->Finish(closure->getResponseBuf(), &closure->getStatus(), closure);
 }

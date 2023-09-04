@@ -16,7 +16,7 @@
 #include "indexlib/index/inverted_index/truncate/TruncateAttributeReader.h"
 
 #include "autil/mem_pool/Pool.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/index/DocMapper.h"
 #include "indexlib/index/attribute/AttributeDiskIndexer.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"

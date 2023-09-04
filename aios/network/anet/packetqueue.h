@@ -15,19 +15,21 @@
  */
 #ifndef ANET_PACKET_QUEUE_H_
 #define ANET_PACKET_QUEUE_H_
-#include "aios/network/anet/common.h"
 #include <stddef.h>
 #include <stdint.h>
 
+#include "aios/network/anet/common.h"
+
 namespace anet {
 class Packet;
-}  // namespace anet
+} // namespace anet
 
 BEGIN_ANET_NS();
 class PacketQueue {
 public:
     PacketQueue();
     virtual ~PacketQueue();
+
 public:
     Packet *pop();
     virtual void push(Packet *packet);
@@ -35,7 +37,7 @@ public:
     bool empty();
 
     /**
-     * move all entries of current queue to the tail of destQueue 
+     * move all entries of current queue to the tail of destQueue
      */
     virtual void moveTo(PacketQueue *destQueue);
 
@@ -49,11 +51,10 @@ public:
 protected:
     Packet *_head;
     Packet *_tail;
-    size_t _size; 
+    size_t _size;
     friend class OrderedPacketQueue;
 };
 
 END_ANET_NS();
 
 #endif
-

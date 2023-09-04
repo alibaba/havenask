@@ -33,7 +33,7 @@ public:
     GetIndexDirectory(const std::shared_ptr<indexlib::file_system::IDirectory>& segDir,
                       const std::shared_ptr<config::IIndexConfig>& indexConfig) const override
     {
-        auto attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+        auto attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
         assert(attrConfig);
         std::vector<std::string> indexPaths = attrConfig->GetIndexPath();
         assert(indexPaths.size() == 1);

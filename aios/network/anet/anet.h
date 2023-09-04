@@ -15,55 +15,44 @@
  */
 #ifndef ANET_ANET_H
 #define ANET_ANET_H
-#include "aios/network/anet/transport.h"
-
-#include "aios/network/anet/packet.h"
-#include "aios/network/anet/controlpacket.h"
-#include "aios/network/anet/ipackethandler.h"
-#include "aios/network/anet/iserveradapter.h"
-
-#include "aios/network/anet/iocomponent.h"
+#include "aios/network/anet/advancepacket.h"
+#include "aios/network/anet/advancepacketfactory.h"
 #include "aios/network/anet/connection.h"
-
+#include "aios/network/anet/connectionpriority.h"
+#include "aios/network/anet/controlpacket.h"
+#include "aios/network/anet/databuffer.h"
+#include "aios/network/anet/databufferserializable.h"
 #include "aios/network/anet/defaultpacket.h"
 #include "aios/network/anet/defaultpacketfactory.h"
 #include "aios/network/anet/defaultpacketstreamer.h"
-
-
-#include "aios/network/anet/httppacket.h"
-#include "aios/network/anet/httppacketfactory.h"
-#include "aios/network/anet/httpstreamer.h"
-
-#include "aios/network/anet/httppacket.h"
-#include "aios/network/anet/httppacketfactory.h"
-#include "aios/network/anet/httpstreamer.h"
-
-#include "aios/network/anet/databuffer.h"
-#include "aios/network/anet/ipacketfactory.h"
-#include "aios/network/anet/ipacketstreamer.h"
-#include "aios/network/anet/streamingcontext.h"
-#include "aios/network/anet/timeutil.h"
 #include "aios/network/anet/delaydecodepacket.h"
 #include "aios/network/anet/delaydecodepacketfactory.h"
-#include "aios/network/anet/databufferserializable.h"
+#include "aios/network/anet/httppacket.h"
+#include "aios/network/anet/httppacketfactory.h"
+#include "aios/network/anet/httpstreamer.h"
+#include "aios/network/anet/iocomponent.h"
+#include "aios/network/anet/ipacketfactory.h"
+#include "aios/network/anet/ipackethandler.h"
+#include "aios/network/anet/ipacketstreamer.h"
+#include "aios/network/anet/iserveradapter.h"
+#include "aios/network/anet/packet.h"
+#include "aios/network/anet/streamingcontext.h"
+#include "aios/network/anet/timeutil.h"
+#include "aios/network/anet/transport.h"
 
-#include "aios/network/anet/advancepacket.h"
-#include "aios/network/anet/advancepacketfactory.h"
-#include "aios/network/anet/connectionpriority.h"
-
-//DO NOT export interfaces about logging implicitly
+// DO NOT export interfaces about logging implicitly
 //#include "aios/network/anet/log.h"
 
 /**legacy http related header files*/
-#include "aios/network/anet/httprequestpacket.h"
 #include "aios/network/anet/httppacketstreamer.h"
+#include "aios/network/anet/httprequestpacket.h"
 #include "aios/network/anet/httpresponsepacket.h"
 
 // for direct packet
 #include "aios/network/anet/directpacket.h"
 #include "aios/network/anet/directpacketstreamer.h"
-#include "aios/network/anet/directtcpconnection.h"
 #include "aios/network/anet/directstreamingcontext.h"
+#include "aios/network/anet/directtcpconnection.h"
 
 #define BEGIN_ANET_NS() namespace anet {
 #define END_ANET_NS() }
@@ -80,5 +69,4 @@ typedef AdvancePacketFactory<DefaultPacket> AdvanceDefaultPacketFactory;
 END_ANET_NS()
 
 #define ANET_VERSION 040000
-#endif/*End of ANET_ANET_H*/
-
+#endif /*End of ANET_ANET_H*/

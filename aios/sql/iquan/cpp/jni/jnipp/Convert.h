@@ -44,7 +44,9 @@ struct Convert;
 template <typename T>
 struct Convert<T, typename std::enable_if<IsJniPrimitive<T>::value, void>::type> {
     using type = T;
-    static type toCall(T t) { return t; }
+    static type toCall(T t) {
+        return t;
+    }
 };
 
 template <>
@@ -55,7 +57,9 @@ struct Convert<void> {
 template <>
 struct Convert<bool> {
     using type = jboolean;
-    static type toCall(bool t) { return t; }
+    static type toCall(bool t) {
+        return t;
+    }
 };
 
 template <typename T>
@@ -87,14 +91,20 @@ struct Convert<T, typename std::enable_if<IsJniReferenceOrWrapper<T>::value, voi
 template <>
 struct Convert<std::string> {
     using type = jstring;
-    static LocalRef<jstring> toCall(const std::string &s) { return JString::fromStdString(s); }
-    static LocalRef<jstring> toCall(std::string &&s) { return JString::fromStdString(s); }
+    static LocalRef<jstring> toCall(const std::string &s) {
+        return JString::fromStdString(s);
+    }
+    static LocalRef<jstring> toCall(std::string &&s) {
+        return JString::fromStdString(s);
+    }
 };
 
 template <>
 struct Convert<const char *> {
     using type = jstring;
-    static LocalRef<jstring> toCall(const char *s) { return JString::fromStdString(s); }
+    static LocalRef<jstring> toCall(const char *s) {
+        return JString::fromStdString(s);
+    }
 };
 
 template <typename F>

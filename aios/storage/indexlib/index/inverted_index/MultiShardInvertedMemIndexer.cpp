@@ -16,6 +16,7 @@
 #include "indexlib/index/inverted_index/MultiShardInvertedMemIndexer.h"
 
 #include "indexlib/config/FieldConfig.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocument.h"
 #include "indexlib/document/extractor/plain/DocumentInfoExtractorFactory.h"
 #include "indexlib/document/normal/Field.h"
@@ -26,10 +27,10 @@
 #include "indexlib/index/BuildingIndexMemoryUseUpdater.h"
 #include "indexlib/index/IIndexFactory.h"
 #include "indexlib/index/inverted_index/InvertedMemIndexer.h"
-#include "indexlib/index/inverted_index/SectionAttributeMemIndexer.h"
 #include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
 #include "indexlib/index/inverted_index/format/IndexFormatOption.h"
 #include "indexlib/index/inverted_index/format/ShardingIndexHasher.h"
+#include "indexlib/index/inverted_index/section_attribute/SectionAttributeMemIndexer.h"
 #include "indexlib/util/memory_control/BuildResourceMetrics.h"
 
 namespace indexlib::index {
@@ -194,19 +195,18 @@ Status MultiShardInvertedMemIndexer::DocBatchToDocs(IDocumentBatch* docBatch,
                                                     std::vector<document::IndexDocument*>* docs) const
 {
     docs->reserve(docBatch->GetBatchSize());
-    for (size_t i = 0; i < docBatch->GetBatchSize(); i++) {
-        if (!docBatch->IsDropped(i)) {
-            if ((*docBatch)[i]->GetDocOperateType() != ADD_DOC) {
-                continue;
-            }
-
-            document::IndexDocument* doc = nullptr;
-            Status s = _docInfoExtractor->ExtractField((*docBatch)[i].get(), (void**)&doc);
-            if (!s.IsOK()) {
-                return s;
-            }
-            (*docs).emplace_back(doc);
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(docBatch);
+    while (iter->HasNext()) {
+        std::shared_ptr<indexlibv2::document::IDocument> doc = iter->Next();
+        if (doc->GetDocOperateType() != ADD_DOC) {
+            continue;
         }
+        document::IndexDocument* indexDoc = nullptr;
+        Status s = _docInfoExtractor->ExtractField(doc.get(), (void**)&indexDoc);
+        if (!s.IsOK()) {
+            return s;
+        }
+        (*docs).emplace_back(indexDoc);
     }
     return Status::OK();
 }

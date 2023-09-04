@@ -20,10 +20,11 @@
 
 namespace multi_call {
 
-class ConnectionPoolFactory {
+class ConnectionPoolFactory
+{
 public:
-    static ConnectionPoolPtr
-    createConnectionPool(ProtocolType type, const std::string &typeStr = "");
+    static ConnectionPoolPtr createConnectionPool(ProtocolType type,
+                                                  const std::string &typeStr = "");
 
 private:
     AUTIL_LOG_DECLARE();

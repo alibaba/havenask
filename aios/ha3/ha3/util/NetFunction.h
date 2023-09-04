@@ -20,24 +20,20 @@
 #include <utility>
 #include <vector>
 
-
 struct in_addr;
 
 namespace isearch {
 namespace util {
 
-class NetFunction
-{
+class NetFunction {
 public:
-    typedef std::vector< std::pair<std::string , in_addr> > AllIPType;
-    static bool getAllIP(AllIPType & ips);
-    static std::string chooseIP(const AllIPType & ips);
+    typedef std::vector<std::pair<std::string, in_addr>> AllIPType;
+    static bool getAllIP(AllIPType &ips);
+    static std::string chooseIP(const AllIPType &ips);
     static bool getPrimaryIP(std::string &ip);
     static bool containIP(const std::string &msg, const std::string &ip);
-    static uint32_t encodeIp(const std::string& ip);
+    static uint32_t encodeIp(const std::string &ip);
 };
-
 
 } // namespace util
 } // namespace isearch
-

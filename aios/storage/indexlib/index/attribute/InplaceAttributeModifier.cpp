@@ -15,7 +15,8 @@
  */
 #include "indexlib/index/attribute/InplaceAttributeModifier.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/normal/NormalDocument.h"
 #include "indexlib/framework/Segment.h"
@@ -32,34 +33,34 @@ using indexlib::index::AttributeIndexerOrganizerUtil;
 }
 AUTIL_LOG_SETUP(indexlib.index, InplaceAttributeModifier);
 
-InplaceAttributeModifier::InplaceAttributeModifier(const std::shared_ptr<config::TabletSchema>& schema)
+InplaceAttributeModifier::InplaceAttributeModifier(const std::shared_ptr<config::ITabletSchema>& schema)
     : AttributeModifier(schema)
 {
 }
 
 Status InplaceAttributeModifier::Update(document::IDocumentBatch* docBatch)
 {
-    for (size_t i = 0; i < docBatch->GetBatchSize(); i++) {
-        if (!docBatch->IsDropped(i)) {
-            auto normalDoc = std::dynamic_pointer_cast<indexlibv2::document::NormalDocument>((*docBatch)[i]);
-            if (normalDoc == nullptr) {
-                continue;
-            }
-            if (UPDATE_FIELD != normalDoc->GetDocOperateType()) {
-                continue;
-            }
-            auto attrDoc = normalDoc->GetAttributeDocument();
-            if (attrDoc == nullptr) {
-                continue;
-            }
-            auto docId = attrDoc->GetDocId();
-            if (INVALID_DOCID == docId) {
-                continue;
-            }
-            if (!UpdateAttrDoc(docId, attrDoc.get())) {
-                AUTIL_LOG(ERROR, "update attr doc failed, docId[%d]", docId);
-                return Status::InternalError("update attr doc failed, docId:", docId);
-            }
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(docBatch);
+    while (iter->HasNext()) {
+        std::shared_ptr<indexlibv2::document::IDocument> doc = iter->Next();
+        auto normalDoc = std::dynamic_pointer_cast<indexlibv2::document::NormalDocument>(doc);
+        if (normalDoc == nullptr) {
+            continue;
+        }
+        if (UPDATE_FIELD != normalDoc->GetDocOperateType()) {
+            continue;
+        }
+        auto attrDoc = normalDoc->GetAttributeDocument();
+        if (attrDoc == nullptr) {
+            continue;
+        }
+        auto docId = attrDoc->GetDocId();
+        if (INVALID_DOCID == docId) {
+            continue;
+        }
+        if (!UpdateAttrDoc(docId, attrDoc.get())) {
+            AUTIL_LOG(ERROR, "update attr doc failed, docId[%d]", docId);
+            return Status::InternalError("update attr doc failed, docId:", docId);
         }
     }
     return Status::OK();
@@ -75,7 +76,7 @@ Status InplaceAttributeModifier::Init(const framework::TabletData& tabletData)
         return Status::OK();
     }
     for (const auto& indexConfig : attributeConfigs) {
-        auto attributeConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+        auto attributeConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
         const fieldid_t fieldId = attributeConfig->GetFieldId();
 
         docid_t baseDocId = 0;
@@ -165,7 +166,7 @@ bool InplaceAttributeModifier::UpdateAttribute(
         buildInfoHolder,
     const autil::StringView& value, const bool isNull)
 {
-    const indexlibv2::config::AttributeConfig* attributeConfig = buildInfoHolder->attributeConfig.get();
+    const AttributeConfig* attributeConfig = buildInfoHolder->attributeConfig.get();
     assert(attributeConfig != nullptr);
     auto packAttributeConfig = attributeConfig->GetPackAttributeConfig();
     if (packAttributeConfig != nullptr) {

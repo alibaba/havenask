@@ -73,5 +73,5 @@ std::unique_ptr<config::IIndexConfig> StatisticsTermIndexFactory::CreateIndexCon
 
 std::string StatisticsTermIndexFactory::GetIndexPath() const { return STATISTICS_TERM_INDEX_PATH; }
 
-REGISTER_INDEX(statistics_term, StatisticsTermIndexFactory);
+REGISTER_INDEX_FACTORY(statistics_term, StatisticsTermIndexFactory);
 } // namespace indexlibv2::index

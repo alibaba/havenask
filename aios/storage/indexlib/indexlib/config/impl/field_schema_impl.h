@@ -24,6 +24,10 @@
 #include "indexlib/config/field_config.h"
 #include "indexlib/indexlib.h"
 
+namespace indexlibv2 { namespace config {
+class LegacySchemaConvertor;
+}} // namespace indexlibv2::config
+
 namespace indexlib { namespace config {
 
 class FieldSchemaImpl : public autil::legacy::Jsonizable
@@ -72,6 +76,7 @@ private:
     bool mOnlyAddVirtual;
 
 private:
+    friend class indexlibv2::config::LegacySchemaConvertor;
     IE_LOG_DECLARE();
 };
 

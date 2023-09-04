@@ -1,0 +1,60 @@
+{
+"enable_temperature_layer":
+  false,
+"fields":
+  [
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "nid",
+    "field_type":
+      "LONG"
+    }
+  ],
+"indexes":
+  {
+  "primarykey":
+    [
+      {
+      "format_version_id":
+        0,
+      "index_fields":
+        "nid",
+      "index_name":
+        "nid",
+      "index_type":
+        "PRIMARYKEY64",
+      "pk_data_block_size":
+        4096,
+      "pk_hash_type":
+        "default_hash",
+      "pk_storage_type":
+        "sort_array"
+      }
+    ]
+  },
+"indexs":
+  [
+    {
+    "format_version_id":
+      0,
+    "index_fields":
+      "nid",
+    "index_name":
+      "nid",
+    "index_type":
+      "PRIMARYKEY64",
+    "pk_data_block_size":
+      4096,
+    "pk_hash_type":
+      "default_hash",
+    "pk_storage_type":
+      "sort_array"
+    }
+  ],
+"table_name":
+  "table1",
+"table_type":
+  "normal"
+}

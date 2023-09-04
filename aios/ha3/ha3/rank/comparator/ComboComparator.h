@@ -19,53 +19,63 @@
 #include <string>
 #include <vector>
 
+#include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/rank/Comparator.h"
 #include "matchdoc/MatchDoc.h"
 
-#include "ha3/rank/Comparator.h"
-#include "autil/Log.h" // IWYU pragma: keep
-
 namespace matchdoc {
-template <typename T> class Reference;
-}  // namespace matchdoc
+template <typename T>
+class Reference;
+} // namespace matchdoc
 namespace suez {
 namespace turing {
-template <typename T> class AttributeExpressionTyped;
-}  // namespace turing
-}  // namespace suez
+template <typename T>
+class AttributeExpressionTyped;
+} // namespace turing
+} // namespace suez
 
 namespace isearch {
 namespace rank {
 
-class ComboComparator : public Comparator
-{
+class ComboComparator : public Comparator {
 public:
     ComboComparator();
     ~ComboComparator();
+
 public:
     bool compare(matchdoc::MatchDoc a, matchdoc::MatchDoc b) const override;
-    std::string getType() const override  { return "combo"; }
+    std::string getType() const override {
+        return "combo";
+    }
 
 public:
     void addComparator(const Comparator *cmp);
-    uint32_t getComparatorCount() const { return _cmpVector.size(); }
+    uint32_t getComparatorCount() const {
+        return _cmpVector.size();
+    }
     void setExtrDocIdComparator(Comparator *cmp);
     void setExtrHashIdComparator(Comparator *cmp);
     void setExtrClusterIdComparator(Comparator *cmp);
+
 protected:
     bool compareDocInfo(matchdoc::MatchDoc a, matchdoc::MatchDoc b) const;
+
 public:
     // for test
     typedef std::vector<const Comparator *> ComparatorVector;
-    const ComparatorVector &getComparators() const { return _cmpVector; }
+    const ComparatorVector &getComparators() const {
+        return _cmpVector;
+    }
+
 private:
     ComparatorVector _cmpVector;
     Comparator *_extrDocIdCmp;
     Comparator *_extrHashIdCmp;
     Comparator *_extrClusterIdCmp;
+
 private:
     AUTIL_LOG_DECLARE();
 };
-
 
 //////optimized for comparator
 template <typename T>
@@ -75,10 +85,11 @@ public:
         _reference = variableReference;
         _sortFlag = sortFlag;
     }
+
 public:
     bool compare(matchdoc::MatchDoc a, matchdoc::MatchDoc b) const override {
-        T& ta = *_reference->getPointer(a);
-        T& tb = *_reference->getPointer(b);
+        T &ta = *_reference->getPointer(a);
+        T &tb = *_reference->getPointer(b);
         if (compareRef(ta, tb)) {
             return true;
         } else if (compareRef(tb, ta)) {
@@ -86,11 +97,15 @@ public:
         }
         return compareDocInfo(a, b);
     }
+
 private:
-    inline bool compareRef(T& a, T& b) const {
+    inline bool compareRef(T &a, T &b) const {
         return _sortFlag ? b < a : a < b;
     }
-    std::string getType() const  override { return "one_ref"; }
+    std::string getType() const override {
+        return "one_ref";
+    }
+
 private:
     const matchdoc::Reference<T> *_reference;
     bool _sortFlag;
@@ -101,13 +116,14 @@ class TwoRefComparatorTyped : public ComboComparator {
 public:
     TwoRefComparatorTyped(const matchdoc::Reference<T1> *variableReference1,
                           const matchdoc::Reference<T2> *variableReference2,
-                          bool sortFlag1, bool sortFlag2)
-    {
+                          bool sortFlag1,
+                          bool sortFlag2) {
         _reference1 = variableReference1;
         _reference2 = variableReference2;
         _sortFlag1 = sortFlag1;
         _sortFlag2 = sortFlag2;
     }
+
 public:
     bool compare(matchdoc::MatchDoc a, matchdoc::MatchDoc b) const override {
         T1 &ta = *_reference1->getPointer(a);
@@ -126,7 +142,7 @@ public:
         }
         return compareDocInfo(a, b);
     }
-    
+
 private:
     inline bool compareRef1(T1 &a, T1 &b) const {
         return _sortFlag1 ? b < a : a < b;
@@ -135,7 +151,10 @@ private:
         return _sortFlag2 ? b < a : a < b;
     }
 
-    std::string getType() const  override { return "two_ref"; }
+    std::string getType() const override {
+        return "two_ref";
+    }
+
 private:
     const matchdoc::Reference<T1> *_reference1;
     bool _sortFlag1;
@@ -148,13 +167,14 @@ class RefAndExprComparatorTyped : public ComboComparator {
 public:
     RefAndExprComparatorTyped(const matchdoc::Reference<T1> *variableReference,
                               suez::turing::AttributeExpressionTyped<T2> *expr,
-                              bool sortFlag1, bool sortFlag2)
-    {
+                              bool sortFlag1,
+                              bool sortFlag2) {
         _reference = variableReference;
         _expr = expr;
         _sortFlag1 = sortFlag1;
         _sortFlag2 = sortFlag2;
     }
+
 public:
     bool compare(matchdoc::MatchDoc a, matchdoc::MatchDoc b) const override {
         T1 &ta = *_reference->getPointer(a);
@@ -166,7 +186,7 @@ public:
         }
         T2 tc = _expr->evaluateAndReturn(a);
         T2 td = _expr->evaluateAndReturn(b);
-        
+
         if (compareExpr(tc, td)) {
             return true;
         } else if (compareExpr(td, tc)) {
@@ -174,7 +194,10 @@ public:
         }
         return compareDocInfo(a, b);
     }
-    std::string getType() const  override { return "ref_expr"; }
+    std::string getType() const override {
+        return "ref_expr";
+    }
+
 private:
     inline bool compareRef(T1 &a, T1 &b) const {
         return _sortFlag1 ? b < a : a < b;
@@ -183,6 +206,7 @@ private:
     inline bool compareExpr(T2 &a, T2 &b) const {
         return _sortFlag2 ? b < a : a < b;
     }
+
 private:
     const matchdoc::Reference<T1> *_reference;
     suez::turing::AttributeExpressionTyped<T2> *_expr;
@@ -194,10 +218,11 @@ template <typename T1, typename T2, typename T3>
 class ThreeRefComparatorTyped : public ComboComparator {
 public:
     ThreeRefComparatorTyped(const matchdoc::Reference<T1> *variableReference1,
-                          const matchdoc::Reference<T2> *variableReference2,
-                          const matchdoc::Reference<T3> *variableReference3,
-                          bool sortFlag1, bool sortFlag2, bool sortFlag3)
-    {
+                            const matchdoc::Reference<T2> *variableReference2,
+                            const matchdoc::Reference<T3> *variableReference3,
+                            bool sortFlag1,
+                            bool sortFlag2,
+                            bool sortFlag3) {
         _reference1 = variableReference1;
         _reference2 = variableReference2;
         _reference3 = variableReference3;
@@ -205,6 +230,7 @@ public:
         _sortFlag2 = sortFlag2;
         _sortFlag3 = sortFlag3;
     }
+
 public:
     bool compare(matchdoc::MatchDoc a, matchdoc::MatchDoc b) const override {
         T1 &ta = *_reference1->getPointer(a);
@@ -230,7 +256,7 @@ public:
         }
         return compareDocInfo(a, b);
     }
-    
+
 private:
     inline bool compareRef1(T1 &a, T1 &b) const {
         return _sortFlag1 ? b < a : a < b;
@@ -242,7 +268,10 @@ private:
         return _sortFlag3 ? b < a : a < b;
     }
 
-    std::string getType() const  override { return "three_ref"; }
+    std::string getType() const override {
+        return "three_ref";
+    }
+
 private:
     const matchdoc::Reference<T1> *_reference1;
     bool _sortFlag1;
@@ -258,8 +287,9 @@ public:
     TwoRefAndExprComparatorTyped(const matchdoc::Reference<T1> *variableReference1,
                                  const matchdoc::Reference<T2> *variableReference2,
                                  suez::turing::AttributeExpressionTyped<T3> *expr,
-                                 bool sortFlag1, bool sortFlag2, bool sortFlag3)
-    {
+                                 bool sortFlag1,
+                                 bool sortFlag2,
+                                 bool sortFlag3) {
         _reference1 = variableReference1;
         _reference2 = variableReference2;
         _expr = expr;
@@ -267,6 +297,7 @@ public:
         _sortFlag2 = sortFlag2;
         _sortFlag3 = sortFlag3;
     }
+
 public:
     bool compare(matchdoc::MatchDoc a, matchdoc::MatchDoc b) const override {
         T1 &ta = *_reference1->getPointer(a);
@@ -292,7 +323,10 @@ public:
         }
         return compareDocInfo(a, b);
     }
-    std::string getType() const  override { return "two_ref_expr"; }
+    std::string getType() const override {
+        return "two_ref_expr";
+    }
+
 private:
     inline bool compareRef1(T1 &a, T1 &b) const {
         return _sortFlag1 ? b < a : a < b;
@@ -305,6 +339,7 @@ private:
     inline bool compareExpr(T3 &a, T3 &b) const {
         return _sortFlag3 ? b < a : a < b;
     }
+
 private:
     const matchdoc::Reference<T1> *_reference1;
     const matchdoc::Reference<T2> *_reference2;
@@ -316,4 +351,3 @@ private:
 
 } // namespace rank
 } // namespace isearch
-

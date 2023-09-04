@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "HTTPRPCServerWorkItem.h"
+
 #include "HTTPRPCController.h"
 #include "HTTPRPCServerClosure.h"
 #include "Log.h"
@@ -24,12 +25,14 @@ using namespace std;
 
 namespace http_arpc {
 
-HTTPRPCServerWorkItem::HTTPRPCServerWorkItem(
-        RPCService *service, RPCMethodDescriptor *method,
-        anet::Connection *connection, bool keepAlive,
-        const string &encoding, const ProtoJsonizerPtr &protoJsonizer,
-        const EagleInfo &eagleInfo,
-        string requestStr)
+HTTPRPCServerWorkItem::HTTPRPCServerWorkItem(RPCService *service,
+                                             RPCMethodDescriptor *method,
+                                             anet::Connection *connection,
+                                             bool keepAlive,
+                                             const string &encoding,
+                                             const ProtoJsonizerPtr &protoJsonizer,
+                                             const EagleInfo &eagleInfo,
+                                             string requestStr)
     : _service(service)
     , _method(method)
     , _connection(NULL)
@@ -38,22 +41,18 @@ HTTPRPCServerWorkItem::HTTPRPCServerWorkItem(
     , _protoJsonizer(protoJsonizer)
     , _eagleInfo(eagleInfo)
     , _requestStr(requestStr)
-    , _beginTime(0)
-{
+    , _beginTime(0) {
     connection->addRef();
     _connection = connection;
 }
 
-HTTPRPCServerWorkItem::~HTTPRPCServerWorkItem() {
-    _connection->subRef();
-}
+HTTPRPCServerWorkItem::~HTTPRPCServerWorkItem() { _connection->subRef(); }
 
 void HTTPRPCServerWorkItem::process() {
     RPCMessage *requestMessage = _service->GetRequestPrototype(_method).New();
     RPCMessage *responseMessage = _service->GetResponsePrototype(_method).New();
     unique_ptr<HTTPRPCServerClosure> closure(new HTTPRPCServerClosure(
-                    _connection, requestMessage, responseMessage,
-                    _keepAlive, _encoding, _protoJsonizer, _eagleInfo));
+        _connection, requestMessage, responseMessage, _keepAlive, _encoding, _protoJsonizer, _eagleInfo));
     HTTPRPCController *controller = closure->getController();
 
     if (!_protoJsonizer->fromJson(_requestStr, requestMessage)) {
@@ -64,25 +63,18 @@ void HTTPRPCServerWorkItem::process() {
     int64_t queueEnd = autil::TimeUtility::currentTime();
     controller->SetQueueTime(queueEnd - _beginTime);
     controller->SetAddr(_addr);
-    _service->CallMethod(_method, controller, requestMessage,
-                         responseMessage, closure.release());
+    _service->CallMethod(_method, controller, requestMessage, responseMessage, closure.release());
 }
 
-void HTTPRPCServerWorkItem::destroy() {
-    delete this;
-}
+void HTTPRPCServerWorkItem::destroy() { delete this; }
 
 void HTTPRPCServerWorkItem::drop() {
     HTTP_ARPC_LOG(ERROR, "drop work item");
     delete this;
 }
 
-void HTTPRPCServerWorkItem::SetBeginTime(int64_t beginTime) {
-    _beginTime = beginTime;
-}
+void HTTPRPCServerWorkItem::SetBeginTime(int64_t beginTime) { _beginTime = beginTime; }
 
-void HTTPRPCServerWorkItem::SetAddr(const std::string &addr) {
-    _addr = addr;
-}
+void HTTPRPCServerWorkItem::SetAddr(const std::string &addr) { _addr = addr; }
 
-}
+} // namespace http_arpc

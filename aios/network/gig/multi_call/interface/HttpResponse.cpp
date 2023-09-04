@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/interface/HttpResponse.h"
+
 #include "aios/network/anet/controlpacket.h"
 #include "aios/network/anet/httppacket.h"
 #include "aios/network/gig/multi_call/util/PacketUtil.h"
@@ -25,9 +26,11 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, HttpResponse);
 
-HttpResponse::HttpResponse() : _packet(NULL, PacketUtil::deletePacket) {}
+HttpResponse::HttpResponse() : _packet(NULL, PacketUtil::deletePacket) {
+}
 
-HttpResponse::~HttpResponse() {}
+HttpResponse::~HttpResponse() {
+}
 
 // response should always free data
 void HttpResponse::init(void *data) {
@@ -77,7 +80,9 @@ const char *HttpResponse::getHeader(const char *key) const {
     }
 }
 
-const HTTPPacketPtr &HttpResponse::getPacket() const { return _packet; }
+const HTTPPacketPtr &HttpResponse::getPacket() const {
+    return _packet;
+}
 
 int HttpResponse::getStatusCode() const {
     if (_packet) {
@@ -105,9 +110,9 @@ void HttpResponse::fillSpan() {
             std::map<std::string, std::string> headers;
             auto iter = _packet->headerBegin();
             auto iterEnd = _packet->headerEnd();
-            while(iter != iterEnd) {
+            while (iter != iterEnd) {
                 headers.emplace(iter->first, iter->second);
-                iter ++;
+                iter++;
             }
             if (!headers.empty()) {
                 attrs.emplace("response.header", opentelemetry::TraceUtil::joinMap(headers));

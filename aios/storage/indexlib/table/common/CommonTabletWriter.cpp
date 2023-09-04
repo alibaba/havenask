@@ -43,11 +43,12 @@ AUTIL_LOG_SETUP(indexlib.table, CommonTabletWriter);
 
 #define TABLET_LOG(level, format, args...)                                                                             \
     assert(_tabletData);                                                                                               \
-    AUTIL_LOG(level, "[%s] [%p]" format, _tabletData->GetTabletName().c_str(), this, ##args)
+    AUTIL_LOG(level, "[%s] [%p] " format, _tabletData->GetTabletName().c_str(), this, ##args)
 
 const float CommonTabletWriter::MIN_DUMP_MEM_LIMIT_RATIO = 0.2;
+const float CommonTabletWriter::MEM_USE_RATIO = 0.9;
 
-CommonTabletWriter::CommonTabletWriter(const std::shared_ptr<config::TabletSchema>& schema,
+CommonTabletWriter::CommonTabletWriter(const std::shared_ptr<config::ITabletSchema>& schema,
                                        const config::TabletOptions* options)
     : _schema(schema)
     , _options(options)
@@ -192,18 +193,17 @@ void CommonTabletWriter::UpdateDocCounter(document::IDocumentBatch* batch)
 
 size_t CommonTabletWriter::GetBuildingSegmentDumpExpandSize() const
 {
-    indexlib::table::TabletWriterResourceCalculator calculator(_options->IsOnline(),
+    indexlib::table::TabletWriterResourceCalculator calculator(_buildingSegment->GetBuildResourceMetrics(),
+                                                               _options->IsOnline(),
                                                                _options->GetBuildConfig().GetDumpThreadCount());
-    calculator.Init(_buildingSegment->GetBuildResourceMetrics());
-    // TODO: consider dump file size need add in???
     return calculator.EstimateDumpMemoryUse() + calculator.EstimateDumpFileSize();
 }
 
 int64_t CommonTabletWriter::EstimateMaxMemoryUseOfCurrentSegment() const
 {
-    indexlib::table::TabletWriterResourceCalculator calculator(_options->IsOnline(),
+    indexlib::table::TabletWriterResourceCalculator calculator(_buildingSegment->GetBuildResourceMetrics(),
+                                                               _options->IsOnline(),
                                                                _options->GetBuildConfig().GetDumpThreadCount());
-    calculator.Init(_buildingSegment->GetBuildResourceMetrics());
     return calculator.EstimateMaxMemoryUseOfCurrentSegment();
 }
 
@@ -221,25 +221,34 @@ Status CommonTabletWriter::CheckMemStatus() const
     if (freeQuota <= 0) {
         TABLET_LOG(ERROR, "segment[%d] build mem free quota [%s] less than 0", _buildingSegment->GetSegmentId(),
                    autil::UnitUtil::GiBDebugString(freeQuota).c_str());
-        return Status::NoMem();
+        return Status::NoMem("freeQuota <= 0");
     }
     if (!IsDirty()) {
         return Status::OK();
     }
+    // segment最大用的内存量(包括dump, dump file、current mem use)
     int64_t curSegMaxMemUse = EstimateMaxMemoryUseOfCurrentSegment();
-    if (curSegMaxMemUse >= freeQuota) {
-        int64_t totalMemSize = GetTotalMemSize();
+    // segment现在使用的内存量
+    int64_t totalMemSize = GetTotalMemSize();
+    // segment仍然需要的内存量
+    int64_t requiredMemSize = curSegMaxMemUse - totalMemSize;
+    if (requiredMemSize >= freeQuota * MEM_USE_RATIO) {
+        //
         if (totalMemSize >= GetMinDumpSegmentMemSize()) {
-            TABLET_LOG(INFO, "segment[%d] current segment max mem [%s] use more than free quota[%s], trigger dump",
+            TABLET_LOG(INFO,
+                       "segment[%d] current segment max mem [%s], total mem size [%s], required mem [%s] more than "
+                       "free quota[%s], trigger dump",
                        _buildingSegment->GetSegmentId(), autil::UnitUtil::GiBDebugString(curSegMaxMemUse).c_str(),
+                       autil::UnitUtil::GiBDebugString(totalMemSize).c_str(),
+                       autil::UnitUtil::GiBDebugString(requiredMemSize).c_str(),
                        autil::UnitUtil::GiBDebugString(freeQuota).c_str());
-            return Status::NeedDump();
+            return Status::NeedDump("totalMemSize >= GetMinDumpSegmentMemSize");
         }
         TABLET_LOG(ERROR, "segment[%d] build no mem: current segment mem [%s], total mem [%s], free quota[%s]",
                    _buildingSegment->GetSegmentId(), autil::UnitUtil::GiBDebugString(curSegMaxMemUse).c_str(),
                    autil::UnitUtil::GiBDebugString(totalMemSize).c_str(),
                    autil::UnitUtil::GiBDebugString(freeQuota).c_str());
-        return Status::NoMem();
+        return Status::NoMem("curSegMaxMemUse >= freeQuota");
     }
     assert(_buildResource.buildingMemLimit >= 0);
     if (curSegMaxMemUse >= _buildResource.buildingMemLimit) {
@@ -247,11 +256,11 @@ Status CommonTabletWriter::CheckMemStatus() const
                    "segment[%d] reach max mem use, trigger dump: current segment mem [%s], building mem limit [%s]",
                    _buildingSegment->GetSegmentId(), autil::UnitUtil::GiBDebugString(curSegMaxMemUse).c_str(),
                    autil::UnitUtil::GiBDebugString(_buildResource.buildingMemLimit).c_str());
-        return Status::NeedDump();
+        return Status::NeedDump("curSegMaxMemUse >= buildingMemLimit");
     }
     if (_buildingSegment->NeedDump()) {
         TABLET_LOG(INFO, "segment[%d] building segment trigger dump", _buildingSegment->GetSegmentId());
-        return Status::NeedDump();
+        return Status::NeedDump("buildingSegment need dump");
     }
     return Status::OK();
 }

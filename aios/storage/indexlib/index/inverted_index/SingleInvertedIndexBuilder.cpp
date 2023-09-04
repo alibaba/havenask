@@ -74,7 +74,7 @@ Status
 SingleInvertedIndexBuilder::Init(const indexlibv2::framework::TabletData& tabletData,
                                  const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& outerIndexConfig,
                                  const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& innerIndexConfig,
-                                 size_t shardId)
+                                 size_t shardId, bool isOnline)
 {
     _shouldSkipUpdateIndex = InvertedIndexerOrganizerUtil::ShouldSkipUpdateIndex(outerIndexConfig.get());
 
@@ -100,6 +100,10 @@ SingleInvertedIndexBuilder::Init(const indexlibv2::framework::TabletData& tablet
             // MultiShardInvertedDiskIndexer's GetSingleShardIndexer requires indexer to be Open()'ed before it's
             // called. If segment doc count is 0, Open() will be skipped because of an optimization.
             if (docCount == 0) {
+                continue;
+            }
+            if (!isOnline) {
+                AUTIL_LOG(INFO, "Skip updating inverted index for disk segment in offline build");
                 continue;
             }
             _buildInfoHolder.diskIndexers[key] = nullptr;

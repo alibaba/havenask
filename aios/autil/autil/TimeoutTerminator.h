@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 
 #include "autil/CommonMacros.h"
 #include "autil/TimeUtility.h"
@@ -69,7 +69,6 @@ private:
         }
         return isTerminated();
     }
-
 
 private:
     int64_t _timeout;

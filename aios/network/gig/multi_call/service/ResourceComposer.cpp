@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/ResourceComposer.h"
+
 #include "aios/network/gig/multi_call/service/LoadBalancerContext.h"
 #include "aios/network/gig/multi_call/service/ProviderSelector.h"
 
@@ -25,26 +26,24 @@ AUTIL_LOG_SETUP(multi_call, ResourceComposer);
 ResourceComposer::ResourceComposer(const SearchServiceSnapshotPtr &snapshot,
                                    const FlowConfigSnapshotPtr &flowConfigSnapshot)
     : _snapshot(snapshot)
-    , _flowConfigSnapshot(flowConfigSnapshot)
-{
+    , _flowConfigSnapshot(flowConfigSnapshot) {
 }
 
-ResourceComposer::~ResourceComposer() {}
+ResourceComposer::~ResourceComposer() {
+}
 
 uint32_t ResourceComposer::prepareResource(const QuerySessionPtr &querySession,
                                            const RequestGeneratorPtr &generator,
                                            const ReplyInfoCollectorPtr &replyInfoCollector,
                                            SearchServiceResourceVector &searchResourceVec,
-                                           size_t &providerCount)
-{
+                                           size_t &providerCount) {
     if (!generator) {
         AUTIL_LOG(ERROR, "generator is null");
         return 0;
     }
     const auto &spec = generator->getSpec();
     if (!spec.ip.empty()) {
-        return createTempResource(generator, replyInfoCollector,
-                                  searchResourceVec, providerCount);
+        return createTempResource(generator, replyInfoCollector, searchResourceVec, providerCount);
     }
 
     size_t originalSize = searchResourceVec.size();
@@ -71,47 +70,43 @@ uint32_t ResourceComposer::prepareResource(const QuerySessionPtr &querySession,
     const SearchServiceSnapshotInVersionPtr &versionSnapshot =
         versionSelector->getBizVersionSnapshot();
     if (!sVersion || !versionSnapshot) {
-        replyInfoCollector->addErrorCode(
-            bizName, MULTI_CALL_REPLY_ERROR_VERSION_NOT_EXIST);
+        replyInfoCollector->addErrorCode(bizName, MULTI_CALL_REPLY_ERROR_VERSION_NOT_EXIST);
         return 1;
     }
     cachedRequestGenerator->setClearCacheAfterGet(true);
     // select normal
-    uint32_t expectProviderCount = providerSelector->select(
-        cachedRequestGenerator, versionSnapshot, _flowConfigSnapshot, replyInfoCollector,
-        false, searchResourceVec);
+    uint32_t expectProviderCount =
+        providerSelector->select(cachedRequestGenerator, versionSnapshot, _flowConfigSnapshot,
+                                 replyInfoCollector, false, searchResourceVec);
 
     // select probe
     const SearchServiceSnapshotInVersionPtr &probeVersionSnapshot =
         versionSelector->getProbeBizVersionSnapshot();
-    providerSelector->select(cachedRequestGenerator, probeVersionSnapshot,
-                             _flowConfigSnapshot, replyInfoCollector, true,
-                             searchResourceVec);
+    providerSelector->select(cachedRequestGenerator, probeVersionSnapshot, _flowConfigSnapshot,
+                             replyInfoCollector, true, searchResourceVec);
 
     // select copy
     const std::vector<SearchServiceSnapshotInVersionPtr> &copyVersionSnapshots =
         versionSelector->getCopyBizVersionSnapshots();
     for (const auto &copyVersionSnapshot : copyVersionSnapshots) {
-        providerSelector->select(cachedRequestGenerator, copyVersionSnapshot,
-                                 _flowConfigSnapshot, replyInfoCollector, false,
-                                 searchResourceVec);
+        providerSelector->select(cachedRequestGenerator, copyVersionSnapshot, _flowConfigSnapshot,
+                                 replyInfoCollector, false, searchResourceVec);
     }
 
-    collectProviderCount(bizName, searchResourceVec, originalSize,
-                         replyInfoCollector, providerCount);
+    collectProviderCount(bizName, searchResourceVec, originalSize, replyInfoCollector,
+                         providerCount);
     return expectProviderCount;
 }
 
-uint32_t ResourceComposer::createTempResource(
-    const RequestGeneratorPtr &generator,
-    const ReplyInfoCollectorPtr &replyInfoCollector,
-    SearchServiceResourceVector &searchResourceVec, size_t &providerCount) {
+uint32_t ResourceComposer::createTempResource(const RequestGeneratorPtr &generator,
+                                              const ReplyInfoCollectorPtr &replyInfoCollector,
+                                              SearchServiceResourceVector &searchResourceVec,
+                                              size_t &providerCount) {
     PartIdTy partCnt = 1;
     PartIdTy partId = 0;
     VersionTy version = INVALID_VERSION_ID;
     const auto &bizName = generator->getBizName();
-    SearchServiceReplicaPtr replica(
-        new SearchServiceReplica(_snapshot->getMiscConfig()));
+    SearchServiceReplicaPtr replica(new SearchServiceReplica(_snapshot->getMiscConfig()));
     TopoNode tmpNode;
     tmpNode.nodeId = "tmpNodeId";
     tmpNode.bizName = bizName;
@@ -135,16 +130,14 @@ uint32_t ResourceComposer::createTempResource(
     auto expectProviderCount = requestMap.size();
     const auto &request = requestMap[partId];
     if (!request) {
-        replyInfoCollector->addErrorCode(
-            bizName, MULTI_CALL_REPLY_ERROR_REQUEST_NOT_EXIST);
+        replyInfoCollector->addErrorCode(bizName, MULTI_CALL_REPLY_ERROR_REQUEST_NOT_EXIST);
         providerCount = 0;
         AUTIL_LOG(ERROR, "generated request is null");
         return expectProviderCount;
     }
 
     const auto &strategy = generator->getFlowControlStrategy();
-    const auto &flowControlConfig =
-        _flowConfigSnapshot->getFlowControlConfig(strategy);
+    const auto &flowControlConfig = _flowConfigSnapshot->getFlowControlConfig(strategy);
 
     doCreateSearchServiceResource(generator, nullptr, bizName, request, partCnt, partId, version,
                                   replica, provider, RT_NORMAL, flowControlConfig,
@@ -158,13 +151,13 @@ void ResourceComposer::doCreateSearchServiceResource(
     const RequestPtr &request, PartIdTy partCount, PartIdTy partId, VersionTy version,
     const SearchServiceReplicaPtr &replica, const SearchServiceProviderPtr &provider,
     RequestType requestType, const FlowControlConfigPtr &flowControlConfig,
-    SearchServiceResourceVector &searchResourceVec)
-{
+    SearchServiceResourceVector &searchResourceVec) {
     if (!provider || !replica) {
         return;
     }
-    SearchServiceResourcePtr searchResourcePtr(new SearchServiceResource(
-        bizName, generator->getRequestId(), generator->getSourceId(), request, replica, provider, requestType));
+    SearchServiceResourcePtr searchResourcePtr(
+        new SearchServiceResource(bizName, generator->getRequestId(), generator->getSourceId(),
+                                  request, replica, provider, requestType));
     searchResourcePtr->setDisableRetry(generator->getDisableRetry());
     searchResourcePtr->setMatchTags(matchTagMap);
     if (!searchResourcePtr->init(partCount, partId, version, flowControlConfig)) {
@@ -184,10 +177,11 @@ void ResourceComposer::fillUserRequestType(const RequestGeneratorPtr &generator,
     }
 }
 
-void ResourceComposer::collectProviderCount(
-    const string &bizName, const SearchServiceResourceVector &searchResourceVec,
-    size_t beginIndex, const ReplyInfoCollectorPtr &replyInfoCollector,
-    size_t &providerCount) {
+void ResourceComposer::collectProviderCount(const string &bizName,
+                                            const SearchServiceResourceVector &searchResourceVec,
+                                            size_t beginIndex,
+                                            const ReplyInfoCollectorPtr &replyInfoCollector,
+                                            size_t &providerCount) {
     size_t normalProviderCount = 0;
     size_t probeProviderCount = 0;
     size_t copyProviderCount = 0;

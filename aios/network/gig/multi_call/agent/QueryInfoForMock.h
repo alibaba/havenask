@@ -22,7 +22,8 @@ namespace multi_call {
 
 class GigStatistic;
 
-class QueryInfoForMock : public QueryInfo {
+class QueryInfoForMock : public QueryInfo
+{
 public:
     QueryInfoForMock();
     ~QueryInfoForMock();
@@ -32,10 +33,9 @@ private:
     QueryInfoForMock &operator=(const QueryInfoForMock &);
 
 public:
-    static std::string
-    createResponseInfo(float latencyMs, multi_call::MultiCallErrorCode ec,
-                       float errorRatio, float degradeRatio, float avgLatency,
-                       WeightTy targetWeight, bool warmupFinished);
+    static std::string createResponseInfo(float latencyMs, multi_call::MultiCallErrorCode ec,
+                                          float errorRatio, float degradeRatio, float avgLatency,
+                                          WeightTy targetWeight, bool warmupFinished);
 
 private:
     GigStatistic *_statistic;

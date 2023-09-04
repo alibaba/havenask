@@ -1,0 +1,42 @@
+{
+    "swift_root" : "zfs://swift/root",
+    "default_config" : {
+        "topic" : {
+        },
+    },
+    "raw_data" : {
+        "topic" : {
+        }
+    },
+    "broker_data" : {
+        "topic" : {
+        }
+    }
+
+
+
+    "reader_config" : "",
+    "writer_config" : "",
+    "topic_prefix" : "swift_prefix",
+    "swift_root" : "zfs://swift/root",
+    // data swift configs
+    "data_swift" : {
+        "partition_count" : 10,
+        "partition_resource" : 100,
+        "partition_buffer" : 1000,
+        "partition_file_buf_size" : 1000,
+        "obsolete_file_interval" : 3600,
+        "reserved_file_count" : 10
+    },
+    // broker swift configs
+    "broker_swift" : {
+        "mainse_searcher" : {
+            "partition_count" : 10,
+            "partition_resource" : 100,
+            "partition_buffer" : 1000,
+            "partition_file_buf_size" : 1000,
+            "obsolete_file_interval" : 3600,
+            "reserved_file_count" : 10
+        }
+    }
+}

@@ -16,18 +16,17 @@
 #pragma once
 
 #include "fslib/common.h"
-#include "kmonitor_adapter/Monitor.h"
 #include "fslib/fs/hdfs/PanguMonitor.h"
+#include "kmonitor_adapter/Monitor.h"
 
 FSLIB_PLUGIN_BEGIN_NAMESPACE(hdfs);
 
-class FileMonitor
-{
+class FileMonitor {
 public:
-    FileMonitor(PanguMonitor* panguMonitor, const std::string& fileName);
+    FileMonitor(PanguMonitor *panguMonitor, const std::string &fileName);
 
-    FileMonitor(const FileMonitor& other) = delete;
-    FileMonitor& operator = (const FileMonitor& other) = delete;
+    FileMonitor(const FileMonitor &other) = delete;
+    FileMonitor &operator=(const FileMonitor &other) = delete;
 
 public:
     void reportWriteLatency(uint64_t latency);
@@ -37,10 +36,10 @@ public:
     void reportReadSize(uint64_t size);
 
 private:
-    void initTag(kmonitor::MetricsTags& tags, const std::string& fileName);
+    void initTag(kmonitor::MetricsTags &tags, const std::string &fileName);
 
 private:
-    PanguMonitor* _panguMonitor = NULL;
+    PanguMonitor *_panguMonitor = NULL;
     kmonitor_adapter::LightMetricPtr _writeLatencyMetric;
     kmonitor_adapter::LightMetricPtr _writeSizeMetric;
     kmonitor_adapter::LightMetricPtr _writeSpeedMetric;
@@ -51,4 +50,3 @@ private:
 };
 
 FSLIB_PLUGIN_END_NAMESPACE(hdfs);
-

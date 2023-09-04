@@ -15,24 +15,24 @@
  */
 #pragma once
 
-#include <stddef.h>
-#include <stdint.h>
-#include <assert.h>
 #include <algorithm>
+#include <assert.h>
 #include <iterator>
 #include <memory>
 #include <new>
+#include <stddef.h>
+#include <stdint.h>
 #include <type_traits>
 
+#include "autil/CommonMacros.h"
 #include "autil/mem_pool/PoolBase.h"
 #include "autil/mem_pool/RecyclePool.h"
-#include "autil/CommonMacros.h"
 
-namespace autil { namespace mem_pool {
+namespace autil {
+namespace mem_pool {
 
 template <typename T>
-void construct(T &value, std::__true_type) {
-}
+void construct(T &value, std::__true_type) {}
 
 template <typename T>
 void construct(T &value, std::__false_type) {
@@ -46,33 +46,33 @@ void construct(T &value, const T &other, std::__true_type) {
 
 template <typename T>
 void construct(T &value, const T &other, std::__false_type) {
-    new (&value)T(other);
+    new (&value) T(other);
 }
 
 template <typename T>
-void destroy(T &value, std::__true_type) {
-}
+void destroy(T &value, std::__true_type) {}
 
 template <typename T>
 void destroy(T &value, std::__false_type) {
     value.~T();
 }
 
-template<typename T>
-class PoolVector
-{
+template <typename T>
+class PoolVector {
 public:
     typedef PoolVector<T> vector_type;
     typedef T value_type;
-    typedef T* pointer;
-    typedef const T* const_pointer;
+    typedef T *pointer;
+    typedef const T *const_pointer;
     typedef __gnu_cxx::__normal_iterator<pointer, vector_type> iterator;
     typedef __gnu_cxx::__normal_iterator<const_pointer, vector_type> const_iterator;
-    typedef std::reverse_iterator<const_iterator>  const_reverse_iterator;
-    typedef std::reverse_iterator<iterator>		 reverse_iterator;
+    typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+    typedef std::reverse_iterator<iterator> reverse_iterator;
     typedef typename std::__is_scalar<T>::__type _Has_trivial_destructor;
+
 public:
     static const uint32_t INIT_ELEMENT_COUNT = 8;
+
 private:
     template <typename noDtor, typename = void>
     struct Dtor {
@@ -85,26 +85,18 @@ private:
     };
     template <typename UnusedT>
     struct Dtor<std::true_type, UnusedT> {};
+
 public:
-    PoolVector(PoolBase *pool)
-        : _begin(NULL)
-        , _end(NULL)
-        , _bufferEnd(NULL)
-        , _pool(pool)
-    {
+    PoolVector(PoolBase *pool) : _begin(NULL), _end(NULL), _bufferEnd(NULL), _pool(pool) {
         assert(dynamic_cast<RecyclePool *>(pool) == nullptr);
     }
-    PoolVector(PoolBase* pool, size_t n, const T& element)
-        : _begin(NULL)
-        , _end(NULL)
-        , _bufferEnd(NULL)
-        , _pool(pool)
-    {
+    PoolVector(PoolBase *pool, size_t n, const T &element) : _begin(NULL), _end(NULL), _bufferEnd(NULL), _pool(pool) {
         assert(dynamic_cast<RecyclePool *>(pool) == nullptr);
         insert(begin(), n, element);
     }
 
     ~PoolVector() = default;
+
 public:
     PoolVector(const PoolVector &other) {
         _begin = NULL;
@@ -113,11 +105,8 @@ public:
         _pool = other._pool;
         *this = other;
     }
-    PoolVector(PoolVector &&other)
-        : PoolVector(NULL)
-    {
-        swap(other);
-    }
+    PoolVector(PoolVector &&other) : PoolVector(NULL) { swap(other); }
+
 public:
     void push_back(const T &element) {
         if (unlikely(_end == _bufferEnd)) {
@@ -125,9 +114,7 @@ public:
         }
         construct(*_end++, element, _Has_trivial_destructor());
     }
-    void pop_back() {
-        destroy(*(--_end), _Has_trivial_destructor());
-    }
+    void pop_back() { destroy(*(--_end), _Has_trivial_destructor()); }
 
     bool empty() const { return _end <= _begin; }
 
@@ -179,9 +166,7 @@ public:
         } else {
             construct(*_end, *(_end - 1), _Has_trivial_destructor());
             ++_end;
-            std::copy_backward(position,
-                    iterator(_end - 2),
-                    iterator(_end - 1));
+            std::copy_backward(position, iterator(_end - 2), iterator(_end - 1));
             *position = value;
         }
         return begin() + offset;
@@ -298,7 +283,7 @@ public:
         this->_bufferEnd = NULL;
     }
 
-    void clear(){
+    void clear() {
         destroy_all(begin(), end(), _Has_trivial_destructor());
         _end = _begin;
     }
@@ -346,8 +331,9 @@ public:
 
     size_t size() const { return _end - _begin; }
     size_t capacity() const { return _bufferEnd - _begin; }
-    const  pointer data() const{ return _begin;}
-    pointer data() { return _begin;}
+    const pointer data() const { return _begin; }
+    pointer data() { return _begin; }
+
 private:
     void grow() {
         size_t oldCapacity = capacity();
@@ -370,11 +356,8 @@ private:
         return newBuffer;
     }
 
-    template<typename iter_type, typename result_iterator_type>
-    result_iterator_type uninitCopy(iter_type begin,
-                         iter_type end,
-                         result_iterator_type result)
-    {
+    template <typename iter_type, typename result_iterator_type>
+    result_iterator_type uninitCopy(iter_type begin, iter_type end, result_iterator_type result) {
         iter_type it = begin;
         for (; it != end; ++it) {
             construct(*(result++), *it, _Has_trivial_destructor());
@@ -382,32 +365,32 @@ private:
         return result;
     }
 
-    template<typename iter_type>
-    void uninitFill(iter_type begin,
-                    size_t n,
-                    const T &value)
-    {
-        while(n-- > 0) {
+    template <typename iter_type>
+    void uninitFill(iter_type begin, size_t n, const T &value) {
+        while (n-- > 0) {
             construct(*begin++, value, _Has_trivial_destructor());
         }
     }
 
-    template<typename iter_type>
+    template <typename iter_type>
     void destroy_all(iter_type begin, iter_type end, std::__true_type) {}
 
-    template<typename iter_type>
+    template <typename iter_type>
     void destroy_all(iter_type begin, iter_type end, std::__false_type) {
         for (iter_type it = begin; it != end; ++it) {
             destroy<T>(*it, std::__false_type());
         }
     }
+
 private:
     pointer _begin;
     pointer _end;
     pointer _bufferEnd;
     PoolBase *_pool;
+
 private:
     friend class PoolVectorTest;
+
 private:
     // attention: make this as last object
     Dtor<typename std::is_trivially_destructible<T>::type> _dtor;
@@ -415,8 +398,7 @@ private:
 
 template <typename T>
 inline bool operator==(const PoolVector<T> &x, const PoolVector<T> &y) {
-    return (x.size() == y.size())
-        && std::equal(x.begin(), x.end(), y.begin());
+    return (x.size() == y.size()) && std::equal(x.begin(), x.end(), y.begin());
 }
 
 template <typename T>
@@ -426,8 +408,7 @@ inline bool operator!=(const PoolVector<T> &x, const PoolVector<T> &y) {
 
 template <typename T>
 inline bool operator<(const PoolVector<T> &x, const PoolVector<T> &y) {
-    return std::lexicographical_compare(x.begin(), x.end(),
-            y.begin(), y.end());
+    return std::lexicographical_compare(x.begin(), x.end(), y.begin(), y.end());
 }
 
 template <typename T>
@@ -450,6 +431,5 @@ inline void swap(PoolVector<T> &x, PoolVector<T> &y) {
     x.swap(y);
 }
 
-}
-}
-
+} // namespace mem_pool
+} // namespace autil

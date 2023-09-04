@@ -22,17 +22,6 @@ using namespace swift::protocol;
 namespace build_service { namespace reader {
 BS_LOG_SETUP(reader, SwiftReaderWrapper);
 
-namespace {
-void deepCopyReaderProgress(const swift::protocol::ReaderProgress& input, swift::protocol::ReaderProgress& output)
-{
-    output.Clear();
-    for (size_t i = 0; i < input.progress_size(); i++) {
-        auto singleProgress = output.add_progress();
-        singleProgress->CopyFrom(input.progress(i));
-    }
-}
-} // namespace
-
 SwiftReaderWrapper::SwiftReaderWrapper(swift::client::SwiftReader* reader)
     : _reader(reader)
     , _swiftCursor(0)
@@ -132,7 +121,7 @@ ErrorCode SwiftReaderWrapper::read(size_t maxMessageCount, int64_t timeout, int6
 swift::protocol::ErrorCode SwiftReaderWrapper::getReaderProgress(swift::protocol::ReaderProgress& progress)
 {
     if (_swiftCursor < _swiftMessages.msgs_size()) {
-        deepCopyReaderProgress(_lastProgress, progress);
+        progress.CopyFrom(_lastProgress);
         return swift::protocol::ERROR_NONE;
     }
 
@@ -142,8 +131,8 @@ swift::protocol::ErrorCode SwiftReaderWrapper::getReaderProgress(swift::protocol
     if (ret != swift::protocol::ERROR_NONE) {
         return ret;
     }
-    deepCopyReaderProgress(newProgress, _lastProgress);
-    deepCopyReaderProgress(newProgress, progress);
+    _lastProgress.CopyFrom(newProgress);
+    progress.Swap(&newProgress);
     return swift::protocol::ERROR_NONE;
 }
 

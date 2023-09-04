@@ -1,0 +1,396 @@
+sub_graphs {
+  nodes {
+    name: "7"
+    kernel_name: "sql.SinkKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10007}"
+  }
+  nodes {
+    name: "merge:5:4"
+    kernel_name: "sql.TableMergeKernel"
+    type: NT_MERGE
+  }
+  edges {
+    input {
+      node_name: "merge:5:4"
+      port_name: "out"
+    }
+    output {
+      node_name: "7"
+      port_name: "input0"
+    }
+    require: true
+  }
+  location {
+    biz_name: "qrs.default_sql"
+    part_info {
+    }
+    this_part_id: -1
+    gig_info {
+      enable_probe: true
+    }
+  }
+  borders {
+    peer {
+      graph_id: 1
+      part_info {
+      }
+    }
+    edges {
+      edge_id: 5
+      edge {
+        input {
+          node_name: "5"
+          port_name: "output0"
+        }
+        output {
+          node_name: "7"
+          port_name: "input0"
+        }
+      }
+      peer_edge_id: 4
+      node: "merge:5:4"
+    }
+  }
+  binary_attrs {
+    key: "table_distribution"
+    value: "{\"assigned_hash_values\":\"\",\"assigned_partition_ids\":\"\",\"hash_mode\":{\"hash_field\":\"\",\"hash_fields\":[],\"hash_function\":\"HASH\",\"hash_params\":{}},\"hash_values\":{},\"hash_values_sep\":{},\"partition_cnt\":1,\"type\":\"\"}"
+  }
+  scopes: 0
+  next_scope_id: 1
+}
+sub_graphs {
+  graph_id: 1
+  nodes {
+    name: "2"
+    kernel_name: "sql.LookupJoinKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10002}"
+  }
+  nodes {
+    name: "5"
+    kernel_name: "sql.HashJoinKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10005}"
+  }
+  nodes {
+    name: "merge:1:0"
+    kernel_name: "sql.TableMergeKernel"
+    type: NT_MERGE
+  }
+  nodes {
+    name: "merge:3:2"
+    kernel_name: "sql.TableMergeKernel"
+    type: NT_MERGE
+  }
+  nodes {
+    name: "split:4:5"
+    kernel_name: "sql.TableSplitKernel"
+    binary_attrs {
+      key: "table_distribution"
+      value: "{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":1}"
+    }
+    type: NT_SPLIT
+    is_scope_border: true
+  }
+  nodes {
+    name: "navi.terminator"
+    kernel_name: "navi.TerminatorKernel"
+    type: NT_TERMINATOR
+  }
+  edges {
+    input {
+      node_name: "2"
+      port_name: "output0"
+    }
+    output {
+      node_name: "5"
+      port_name: "input0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "merge:1:0"
+      port_name: "out"
+    }
+    output {
+      node_name: "2"
+      port_name: "input0"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "merge:3:2"
+      port_name: "out"
+    }
+    output {
+      node_name: "5"
+      port_name: "input1"
+    }
+    require: true
+  }
+  edges {
+    input {
+      node_name: "split:4:5"
+      port_name: "node@finish"
+    }
+    output {
+      node_name: "navi.terminator"
+      port_name: "navi.terminator@input"
+    }
+  }
+  edges {
+    input {
+      node_name: "5"
+      port_name: "output0"
+    }
+    output {
+      node_name: "split:4:5"
+      port_name: "in"
+    }
+  }
+  location {
+    biz_name: "db3.default_sql"
+    part_info {
+    }
+    this_part_id: -1
+    gig_info {
+      enable_probe: true
+    }
+  }
+  borders {
+    peer {
+      graph_id: 2
+      part_info {
+      }
+    }
+    edges {
+      edge_id: 1
+      edge {
+        input {
+          node_name: "0"
+          port_name: "output0"
+        }
+        output {
+          node_name: "2"
+          port_name: "input0"
+        }
+      }
+      node: "merge:1:0"
+    }
+  }
+  borders {
+    peer {
+      graph_id: 3
+      part_info {
+      }
+    }
+    edges {
+      edge_id: 3
+      edge {
+        input {
+          node_name: "3"
+          port_name: "output0"
+        }
+        output {
+          node_name: "5"
+          port_name: "input1"
+        }
+      }
+      peer_edge_id: 2
+      node: "merge:3:2"
+    }
+  }
+  borders {
+    io_type: 1
+    peer {
+      part_info {
+      }
+    }
+    edges {
+      edge_id: 4
+      edge {
+        input {
+          node_name: "5"
+          port_name: "output0"
+        }
+        output {
+          node_name: "7"
+          port_name: "input0"
+        }
+      }
+      peer_edge_id: 5
+      node: "split:4:5"
+    }
+  }
+  binary_attrs {
+    key: "table_distribution"
+    value: "{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":64}"
+  }
+  scopes: 0
+  next_scope_id: 1
+}
+sub_graphs {
+  graph_id: 2
+  nodes {
+    name: "0"
+    kernel_name: "sql.ScanKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10000}"
+  }
+  nodes {
+    name: "split:0:1"
+    kernel_name: "sql.TableSplitKernel"
+    binary_attrs {
+      key: "table_distribution"
+      value: "{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":64}"
+    }
+    type: NT_SPLIT
+    is_scope_border: true
+  }
+  nodes {
+    name: "navi.terminator"
+    kernel_name: "navi.TerminatorKernel"
+    type: NT_TERMINATOR
+  }
+  edges {
+    input {
+      node_name: "split:0:1"
+      port_name: "node@finish"
+    }
+    output {
+      node_name: "navi.terminator"
+      port_name: "navi.terminator@input"
+    }
+  }
+  edges {
+    input {
+      node_name: "0"
+      port_name: "output0"
+    }
+    output {
+      node_name: "split:0:1"
+      port_name: "in"
+    }
+  }
+  location {
+    biz_name: "db1.default_sql"
+    part_info {
+    }
+    this_part_id: -1
+    gig_info {
+      enable_probe: true
+    }
+  }
+  borders {
+    io_type: 1
+    peer {
+      graph_id: 1
+      part_info {
+      }
+    }
+    edges {
+      edge {
+        input {
+          node_name: "0"
+          port_name: "output0"
+        }
+        output {
+          node_name: "2"
+          port_name: "input0"
+        }
+      }
+      peer_edge_id: 1
+      node: "split:0:1"
+    }
+  }
+  binary_attrs {
+    key: "table_distribution"
+    value: "{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":4}"
+  }
+  scopes: 0
+  next_scope_id: 1
+}
+sub_graphs {
+  graph_id: 3
+  nodes {
+    name: "3"
+    kernel_name: "sql.ScanKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10003}"
+  }
+  nodes {
+    name: "split:2:3"
+    kernel_name: "sql.TableSplitKernel"
+    binary_attrs {
+      key: "table_distribution"
+      value: "{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":64}"
+    }
+    type: NT_SPLIT
+    is_scope_border: true
+  }
+  nodes {
+    name: "navi.terminator"
+    kernel_name: "navi.TerminatorKernel"
+    type: NT_TERMINATOR
+  }
+  edges {
+    input {
+      node_name: "split:2:3"
+      port_name: "node@finish"
+    }
+    output {
+      node_name: "navi.terminator"
+      port_name: "navi.terminator@input"
+    }
+  }
+  edges {
+    input {
+      node_name: "3"
+      port_name: "output0"
+    }
+    output {
+      node_name: "split:2:3"
+      port_name: "in"
+    }
+  }
+  location {
+    biz_name: "db2.default_sql"
+    part_info {
+    }
+    this_part_id: -1
+    gig_info {
+      enable_probe: true
+    }
+  }
+  borders {
+    io_type: 1
+    peer {
+      graph_id: 1
+      part_info {
+      }
+    }
+    edges {
+      edge_id: 2
+      edge {
+        input {
+          node_name: "3"
+          port_name: "output0"
+        }
+        output {
+          node_name: "5"
+          port_name: "input1"
+        }
+      }
+      peer_edge_id: 3
+      node: "split:2:3"
+    }
+  }
+  binary_attrs {
+    key: "table_distribution"
+    value: "{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":4}"
+  }
+  scopes: 0
+  next_scope_id: 1
+}
+counter_info {
+  next_graph_id: 4
+  next_edge_id: 6
+}

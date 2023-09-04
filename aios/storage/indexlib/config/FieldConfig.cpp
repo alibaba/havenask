@@ -41,7 +41,6 @@ struct FieldConfig::Impl {
     bool isSortField = false;
     bool isBinaryField = false;
     bool isVirtual = false;
-    bool isBuiltInField = false;
 };
 
 FieldConfig::FieldConfig() : FieldConfig("", ft_unknown, false) {}
@@ -114,9 +113,6 @@ void FieldConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
         if (_impl->isVirtual) {
             json.Jsonize(FIELD_VIRTUAL, _impl->isVirtual);
         }
-        if (_impl->isBuiltInField) {
-            json.Jsonize(FIELD_IS_BUILT_IN, _impl->isBuiltInField);
-        }
     } else { // FROM_JSON
         std::string typeStr;
         json.Jsonize(FIELD_TYPE, typeStr);
@@ -142,7 +138,7 @@ void FieldConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
         json.Jsonize(FIELD_SEPARATOR, _impl->separator, _impl->separator);
         json.Jsonize(FIELD_DEFAULT_NULL_STRING_VALUE, _impl->nullFieldString, _impl->nullFieldString);
         json.Jsonize(FIELD_VIRTUAL, _impl->isVirtual, _impl->isVirtual);
-        json.Jsonize(FIELD_IS_BUILT_IN, _impl->isBuiltInField, _impl->isBuiltInField);
+
         auto fieldType = _impl->fieldType;
         if (fieldType == ft_location || fieldType == ft_line || fieldType == ft_polygon) {
             SetIsMultiValue(true);
@@ -404,9 +400,6 @@ void FieldConfig::SetAnalyzerName(const std::string& analyzerName) { _impl->anal
 
 bool FieldConfig::IsVirtual() const { return _impl->isVirtual; }
 void FieldConfig::SetVirtual(bool isVirtual) { _impl->isVirtual = isVirtual; }
-
-bool FieldConfig::IsBuiltInField() const { return _impl->isBuiltInField; }
-void FieldConfig::SetBuiltInField(bool isBuiltIn) { _impl->isBuiltInField = isBuiltIn; }
 
 const std::string& FieldConfig::GetNullFieldLiteralString() const { return _impl->nullFieldString; }
 void FieldConfig::SetNullFieldLiteralString(const std::string& nullStr) { _impl->nullFieldString = nullStr; }

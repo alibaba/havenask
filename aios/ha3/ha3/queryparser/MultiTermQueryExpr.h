@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 #include <string>
 #include <vector>
 
@@ -27,37 +27,49 @@
 namespace isearch {
 namespace common {
 struct RequiredFields;
-}  // namespace common
+} // namespace common
 namespace queryparser {
 class QueryExprEvaluator;
-}  // namespace queryparser
-}  // namespace isearch
+} // namespace queryparser
+} // namespace isearch
 
 namespace isearch {
 namespace queryparser {
 
-class MultiTermQueryExpr : public AtomicQueryExpr
-{
+class MultiTermQueryExpr : public AtomicQueryExpr {
 public:
-    typedef std::vector<AtomicQueryExpr*> TermExprArray;
+    typedef std::vector<AtomicQueryExpr *> TermExprArray;
+
 public:
     MultiTermQueryExpr(QueryOperator opExpr);
     ~MultiTermQueryExpr();
+
 public:
     void setIndexName(const std::string &indexName);
     void setRequiredFields(const common::RequiredFields &requiredFields);
     void evaluate(QueryExprEvaluator *qee);
-public:
-    QueryOperator getOpExpr() const {return _defaultOP;}
-    TermExprArray& getTermExprs() {return _termQueryExprs;}
 
-    void addTermQueryExpr(AtomicQueryExpr* expr);
-    void setMinShouldMatch(uint32_t i) { _minShoudMatch = i; }
-    uint32_t getMinShouldMatch() const { return _minShoudMatch; }
+public:
+    QueryOperator getOpExpr() const {
+        return _defaultOP;
+    }
+    TermExprArray &getTermExprs() {
+        return _termQueryExprs;
+    }
+
+    void addTermQueryExpr(AtomicQueryExpr *expr);
+    void setMinShouldMatch(uint32_t i) {
+        _minShoudMatch = i;
+    }
+    uint32_t getMinShouldMatch() const {
+        return _minShoudMatch;
+    }
+
 private:
     TermExprArray _termQueryExprs;
     QueryOperator _defaultOP;
     uint32_t _minShoudMatch;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -66,4 +78,3 @@ typedef std::shared_ptr<MultiTermQueryExpr> MultiTermQueryExprPtr;
 
 } // namespace queryparser
 } // namespace isearch
-

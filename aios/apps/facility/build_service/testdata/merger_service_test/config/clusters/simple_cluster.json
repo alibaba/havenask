@@ -1,0 +1,16 @@
+{
+    "table_name" : "simple_table",
+    "cluster_config" : {
+	"builder_rule_config" : {
+	    "partition_count" : 1,
+	    "build_parallel_num" : 2
+	},
+        "table_name" : "simple_table"
+    },
+    "offline_index_config" : {
+        "customized_merge_config" : {
+	    "full" : {"period" : "xxxx"},
+	    "inc" : {"period" : "period=1800"}
+        }
+    }
+}

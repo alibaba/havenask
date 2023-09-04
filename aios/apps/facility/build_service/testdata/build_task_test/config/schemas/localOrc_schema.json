@@ -1,0 +1,39 @@
+{
+    "attributes": [
+        "company_id",
+        "subject",
+        "keywords",
+        "cat_id"        
+    ],
+    "fields": [
+        {
+            "field_type": "STRING",
+            "field_name": "id"
+        },
+        {
+            "field_type": "STRING",
+            "field_name": "company_id"
+        },
+        {
+            "field_type": "STRING",
+            "field_name": "subject"
+        },
+        {
+            "field_type": "STRING",
+            "field_name": "keywords"
+        },
+        {
+            "field_type": "STRING",
+            "field_name": "cat_id"
+        }
+    ],
+    "indexs": [
+        {
+            "index_fields": "id",
+            "index_type": "PRIMARYKEY64",
+            "index_name": "pk"
+        }
+    ],
+    "table_type": "normal",
+    "table_name": "localOrc"
+}

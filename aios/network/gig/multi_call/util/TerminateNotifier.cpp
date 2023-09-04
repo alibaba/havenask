@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/util/TerminateNotifier.h"
+
 #include "aios/network/gig/multi_call/interface/Closure.h"
 
 using namespace std;
@@ -23,9 +24,12 @@ namespace multi_call {
 
 AUTIL_LOG_SETUP(multi_call, TerminateNotifier);
 
-TerminateNotifier::TerminateNotifier() : _partitionCount(0), _closure(NULL) {}
+TerminateNotifier::TerminateNotifier() : _partitionCount(0), _closure(NULL) {
+}
 
-TerminateNotifier::~TerminateNotifier() { _closure = NULL; }
+TerminateNotifier::~TerminateNotifier() {
+    _closure = NULL;
+}
 
 void TerminateNotifier::inc(int partIdIndex) {
     autil::ScopedLock lock(_mutex);

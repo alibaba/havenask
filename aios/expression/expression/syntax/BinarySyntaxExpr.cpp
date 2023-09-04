@@ -24,7 +24,7 @@ bool BinarySyntaxExpr::operator == (const SyntaxExpr *expr) const {
     assert(expr);
     const BinarySyntaxExpr *checkExpr =
         dynamic_cast<const BinarySyntaxExpr*>(expr);
-    
+
     if (checkExpr && this->_syntaxType == checkExpr->_syntaxType
         && *(this->_exprA) == checkExpr->_exprA && *(this->_exprB) == checkExpr->_exprB)
     {
@@ -34,11 +34,11 @@ bool BinarySyntaxExpr::operator == (const SyntaxExpr *expr) const {
     return false;
 }
 
-void BinarySyntaxExpr::setExprString(SyntaxExpr *a, SyntaxExpr *b, 
+void BinarySyntaxExpr::setExprString(SyntaxExpr *a, SyntaxExpr *b,
                                      SyntaxExprType syntaxExprType)
 {
     assert(a && b);
-    
+
     string opStr;
     switch (syntaxExprType) {
     case SYNTAX_EXPR_TYPE_MINUS:
@@ -133,6 +133,7 @@ void BinarySyntaxExpr::deserialize(autil::DataBuffer &dataBuffer)
 
     if (_exprA && _exprB) {
         setExprString(_exprA, _exprB, _syntaxType);
+        _syntaxDepth = 1 + std::max(_exprA->getSyntaxDepth(), _exprB->getSyntaxDepth());
     }
 }
 

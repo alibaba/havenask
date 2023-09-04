@@ -15,28 +15,33 @@
  */
 #pragma once
 
-
-#include "ha3/queryparser/QueryExpr.h"
 #include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/queryparser/QueryExpr.h"
 
 namespace isearch {
 namespace queryparser {
 
-class BinaryQueryExpr : public QueryExpr
-{
+class BinaryQueryExpr : public QueryExpr {
 public:
     BinaryQueryExpr(QueryExpr *a, QueryExpr *b);
     ~BinaryQueryExpr();
+
 public:
-    QueryExpr *getLeftExpr() {return _exprA;}
-    QueryExpr *getRightExpr() {return _exprB;}
+    QueryExpr *getLeftExpr() {
+        return _exprA;
+    }
+    QueryExpr *getRightExpr() {
+        return _exprB;
+    }
     virtual void setLeafIndexName(const std::string &indexName) override {
         _exprA->setLeafIndexName(indexName);
         _exprB->setLeafIndexName(indexName);
     }
+
 private:
     QueryExpr *_exprA;
     QueryExpr *_exprB;
+
 private:
     AUTIL_LOG_DECLARE();
 };

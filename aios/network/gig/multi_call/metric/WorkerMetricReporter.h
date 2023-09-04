@@ -24,7 +24,8 @@ using namespace kmonitor;
 
 namespace multi_call {
 
-class WorkerMetricReporter {
+class WorkerMetricReporter
+{
 public:
     WorkerMetricReporter(kmonitor::KMonitor *kMonitor, const MetaEnv &metaEnv);
     ~WorkerMetricReporter();

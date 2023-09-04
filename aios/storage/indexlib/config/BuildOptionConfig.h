@@ -21,7 +21,6 @@
 namespace indexlibv2::config {
 class SortDescription;
 typedef std::vector<SortDescription> SortDescriptions;
-class TabletSchema;
 
 class BuildOptionConfig : public autil::legacy::Jsonizable
 {

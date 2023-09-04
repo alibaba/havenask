@@ -1,0 +1,41 @@
+sub_graphs {
+  nodes {
+    name: "0"
+    kernel_name: "sql.ValuesKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10000,\"output_fields\":[\"$i1\",\"$i2\"],\"output_fields_hash\":1831636447,\"output_fields_type\":[\"INTEGER\",\"INTEGER\"]}"
+  }
+  nodes {
+    name: "1"
+    kernel_name: "sql.SinkKernel"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10001,\"output_fields_hash\":1831636447,\"type\":\"api\"}"
+  }
+  edges {
+    input {
+      node_name: "0"
+      port_name: "output0"
+    }
+    output {
+      node_name: "1"
+      port_name: "input0"
+    }
+    require: true
+  }
+  location {
+    biz_name: "qrs.default_sql"
+    part_info {
+    }
+    this_part_id: -1
+    gig_info {
+      enable_probe: true
+    }
+  }
+  binary_attrs {
+    key: "table_distribution"
+    value: "{\"assigned_hash_values\":\"\",\"assigned_partition_ids\":\"\",\"hash_mode\":{\"hash_field\":\"\",\"hash_fields\":[],\"hash_function\":\"HASH\",\"hash_params\":{}},\"hash_values\":{},\"hash_values_sep\":{},\"partition_cnt\":1,\"type\":\"\"}"
+  }
+  scopes: 0
+  next_scope_id: 1
+}
+counter_info {
+  next_graph_id: 1
+}

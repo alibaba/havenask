@@ -1,0 +1,9 @@
+package(default_visibility=['//aios/suez:__subpackages__'])
+cc_library(
+    name='table_meta_util',
+    testonly=True,
+    srcs=['TableMetaUtil.cpp'],
+    hdrs=['TableMetaUtil.h'],
+    include_prefix='suez/common/test',
+    deps=['//aios/suez/common']
+)

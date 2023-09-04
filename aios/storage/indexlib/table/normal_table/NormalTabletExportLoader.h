@@ -20,7 +20,7 @@
 #include "indexlib/table/common/CommonTabletLoader.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::framework {

@@ -109,6 +109,10 @@ void OnlineConfig::TEST_SetLoadConfigList(const std::string& jsonStr)
 {
     FromJsonString(_impl->loadConfigList, jsonStr);
 }
+void OnlineConfig::TEST_SetLifecycleConfig(const std::string& jsonStr)
+{
+    FromJsonString(_impl->lifecycleConfig, jsonStr);
+}
 int64_t OnlineConfig::GetMaxRealtimeMemoryUse() const { return _impl->maxRealtimeMemoryUseMB * 1024 * 1024; }
 int64_t OnlineConfig::GetPrintMetricsInterval() const { return _impl->printMetricsInterval; }
 int32_t OnlineConfig::GetMaxRealtimeDumpIntervalSecond() const { return _impl->maxRealtimeDumpInterval; }
@@ -137,5 +141,9 @@ void OnlineConfig::TEST_SetLoadRemainFlushRealtimeIndex(bool loadRemainFlushReal
 }
 
 void OnlineConfig::TEST_SetAllowLocatorRollback(bool allow) { _impl->allowLocatorRollback = allow; }
+void OnlineConfig::TEST_SetIncConsistentWithRealtime(bool incConsistentWithRealtime)
+{
+    _impl->isIncConsistentWithRealtime = incConsistentWithRealtime;
+}
 
 } // namespace indexlibv2::config

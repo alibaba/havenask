@@ -18,7 +18,6 @@
 #include <string>
 
 #include "autil/legacy/jsonizable.h"
-#include "iquan/common/Common.h"
 
 namespace iquan {
 
@@ -85,9 +84,13 @@ public:
 
 class InspectCatalogDef : public autil::legacy::Jsonizable {
 public:
-    bool isValid() const { return !catalogName.empty(); }
+    bool isValid() const {
+        return !catalogName.empty();
+    }
 
-    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override { json.Jsonize("catalog_name", catalogName); }
+    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
+        json.Jsonize("catalog_name", catalogName);
+    }
 
 public:
     std::string catalogName;

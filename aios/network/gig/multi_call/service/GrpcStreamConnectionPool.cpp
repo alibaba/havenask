@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/GrpcStreamConnectionPool.h"
+
 #include "aios/network/gig/multi_call/service/ConnectionFactory.h"
 
 using namespace std;
@@ -22,9 +23,11 @@ using namespace autil::legacy;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GrpcStreamConnectionPool);
 
-GrpcStreamConnectionPool::GrpcStreamConnectionPool() {}
+GrpcStreamConnectionPool::GrpcStreamConnectionPool() {
+}
 
-GrpcStreamConnectionPool::~GrpcStreamConnectionPool() {}
+GrpcStreamConnectionPool::~GrpcStreamConnectionPool() {
+}
 
 void GrpcStreamConnectionPool::stop() {
     if (_worker) {
@@ -36,11 +39,9 @@ void GrpcStreamConnectionPool::stop() {
 }
 
 bool GrpcStreamConnectionPool::init(const ProtocolConfig &config) {
-    AUTIL_LOG(INFO, "GrpcStreamConnectionPool init, config [%s]",
-              ToJsonString(config).c_str());
+    AUTIL_LOG(INFO, "GrpcStreamConnectionPool init, config [%s]", ToJsonString(config).c_str());
     _worker.reset(new GrpcClientWorker(config.threadNum));
-    auto factory =
-        new GrpcStreamConnectionFactory(_worker, config.secureConfig);
+    auto factory = new GrpcStreamConnectionFactory(_worker, config.secureConfig);
     GrpcChannelInitParams params;
     params.keepAliveInterval = config.keepAliveInterval;
     params.keepAliveTimeout = config.keepAliveTimeout;

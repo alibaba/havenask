@@ -1,0 +1,32 @@
+{
+"attributes":
+  [
+    "string1",
+    "price"
+  ],
+"fields":
+  [
+    {
+    "field_name":
+      "string1",
+    "field_type":
+      "STRING"
+    },
+    {
+    "field_name":
+      "string2",
+    "field_type":
+      "STRING"
+    },
+    {
+    "field_name":
+      "price",
+    "field_type":
+      "UINT32"
+    }
+  ],
+"indexs":
+  [],
+"table_name":
+  "noname"
+}

@@ -20,8 +20,7 @@
 namespace iquan {
 
 IquanDqlRequest::IquanDqlRequest()
-    : queryHashKey(0)
-{
+    : queryHashKey(0) {
     defaultConfig();
 }
 
@@ -40,29 +39,28 @@ void IquanDqlRequest::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
 
 bool IquanDqlRequest::isValid() const {
     size_t dynamicParamSize = dynamicParams._array.size();
-    if (defaultCatalogName.empty() || defaultDatabaseName.empty() ||
-        sqls.empty() ||
-        (dynamicParamSize > 0 && (sqls.size() != dynamicParamSize))) {
+    if (defaultCatalogName.empty() || defaultDatabaseName.empty() || sqls.empty()
+        || (dynamicParamSize > 0 && (sqls.size() != dynamicParamSize))) {
         return false;
     }
     return true;
 }
 
-Status IquanDqlRequest::toCacheKey(std::string& jsonStr) {
+Status IquanDqlRequest::toCacheKey(std::string &jsonStr) {
     cacheKeyConfig();
-    auto status = Utils::toJson(*this, jsonStr);
+    auto status = Utils::fastToJson(*this, jsonStr, true);
     defaultConfig();
     return status;
 }
 
-Status IquanDqlRequest::toWarmupJson(std::string& jsonStr) {
+Status IquanDqlRequest::toWarmupJson(std::string &jsonStr) {
     warmupJsonConfig();
     auto status = Utils::toJson(*this, jsonStr, true);
     defaultConfig();
     return status;
 }
 
-Status IquanDqlRequest::fromWarmupJson(const std::string& jsonStr) {
+Status IquanDqlRequest::fromWarmupJson(const std::string &jsonStr) {
     warmupJsonConfig();
     auto status = Utils::fromJson(*this, jsonStr);
     defaultConfig();

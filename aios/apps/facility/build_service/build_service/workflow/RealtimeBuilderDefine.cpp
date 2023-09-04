@@ -17,6 +17,7 @@
 
 #include "autil/StringUtil.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/DataLinkModeUtil.h"
 #include "build_service/config/ResourceReader.h"
 #include "fslib/util/FileUtil.h"
 #include "indexlib/util/metrics/MetricProvider.h"
@@ -59,6 +60,17 @@ bool RealtimeInfoWrapper::load(const std::string& indexRoot)
                fileContent.c_str());
     }
     return true;
+}
+
+bool RealtimeInfoWrapper::adaptsToDataLinkMode(const std::string& specifiedDataLinkMode)
+{
+    if (_valid == false) {
+        BS_LOG(INFO, "cannot adapts to DataLinkMode[%s] from an invalid state", specifiedDataLinkMode.c_str());
+    }
+    if (specifiedDataLinkMode.empty()) {
+        return true;
+    }
+    return config::DataLinkModeUtil::adaptsRealtimeInfoToDataLinkMode(specifiedDataLinkMode, _kvMap);
 }
 
 std::string RealtimeInfoWrapper::getBsServerAddress() const

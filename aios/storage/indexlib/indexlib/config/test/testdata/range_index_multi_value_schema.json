@@ -1,0 +1,25 @@
+{
+    "table_name": "auction",
+    "fields": 
+    [
+        {"field_name":"range", "field_type":"int64", "multi_value":true},
+        {"field_name":"pk", "field_type":"uint64"}
+    ],
+    "indexs": 
+    [
+     	{
+            "index_name": "range_index",
+            "index_type" : "RANGE",
+            "index_fields": "range"
+	    },
+	    {
+	        "index_name": "pk",
+            "index_type": "PRIMARYKEY64",
+            "index_fields": "pk"
+        }
+    ],
+    "attributes": [],
+    "summarys":{ 
+        "summary_fields": []
+    }
+}

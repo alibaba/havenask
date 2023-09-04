@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=[':__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='SKeyCollectInfo',
     srcs=[],
     deps=[
@@ -8,8 +8,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/common:KKVDoc'
     ]
 )
-indexlib_cc_library(name='SKeyCollectInfoPool', srcs=[], deps=[])
-indexlib_cc_library(
+strict_cc_library(name='SKeyCollectInfoPool', srcs=[], deps=[])
+strict_cc_library(
     name='KKVDocFieldComparator',
     srcs=[],
     deps=[
@@ -17,10 +17,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format/pack_attribute'
     ]
 )
-indexlib_cc_library(
-    name='SKeyHashComparator', srcs=[], deps=[':SKeyCollectInfo']
-)
-indexlib_cc_library(
+strict_cc_library(name='SKeyHashComparator', srcs=[], deps=[':SKeyCollectInfo'])
+strict_cc_library(
     name='KKVDocComparator',
     deps=[
         ':KKVDocFieldComparator', ':SKeyCollectInfo',
@@ -29,8 +27,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/config'
     ]
 )
-indexlib_cc_library(name='KKVDumpPhrase', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='KKVDumpPhrase', srcs=[])
+strict_cc_library(
     name='KKVDocSorterBase',
     srcs=[],
     deps=[
@@ -38,28 +36,28 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalKKVDocSorter', deps=[':KKVDocComparator', ':KKVDocSorterBase']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TruncateKKVDocSorter',
     deps=[
         ':KKVDocComparator', ':KKVDocSorterBase', ':SKeyHashComparator',
         '//aios/storage/indexlib/index/kkv/common:Trait'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVDocSorterFactory',
     srcs=[],
     deps=[':KKVDumpPhrase', ':NormalKKVDocSorter', ':TruncateKKVDocSorter']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVFileWriterOptionHelper',
     srcs=[],
     visibility=['//aios/storage/indexlib/index/kkv:__subpackages__'],
     deps=['//aios/storage/indexlib/index/kkv/config']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PKeyDumper',
     deps=[
         '//aios/storage/indexlib/index/kkv/common:ChunkDefine',
@@ -69,7 +67,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/pkey_table'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVValueDumper',
     srcs=[],
     deps=[
@@ -78,7 +76,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/common:NormalOnDiskSKeyNode'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SKeyDumperBase',
     srcs=[],
     deps=[
@@ -87,7 +85,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/common:NormalOnDiskSKeyNode'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InlineSKeyDumper',
     srcs=[],
     deps=[
@@ -96,7 +94,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/common:InlineOnDiskSKeyNode'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalSKeyDumper',
     srcs=[],
     deps=[
@@ -105,7 +103,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/common:NormalOnDiskSKeyNode'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVDataDumperBase',
     deps=[
         ':KKVDocSorterFactory', ':KKVDumpPhrase', ':PKeyDumper',
@@ -113,22 +111,22 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InlineKKVDataDumper',
     srcs=[],
     deps=[':InlineSKeyDumper', ':KKVDataDumperBase']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalKKVDataDumper',
     srcs=[],
     deps=[':KKVDataDumperBase', ':KKVValueDumper', ':NormalSKeyDumper']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVDataDumperFactory',
     srcs=[],
     deps=[':InlineKKVDataDumper', ':NormalKKVDataDumper']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='kkv_data_dumper',
     srcs=[],
     hdrs=[],
@@ -140,7 +138,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVIndexDumper',
     srcs=[],
     visibility=['//aios/storage/indexlib/index/kkv:__subpackages__'],

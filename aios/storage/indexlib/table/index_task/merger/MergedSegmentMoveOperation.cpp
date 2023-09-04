@@ -17,12 +17,14 @@
 
 #include "indexlib/base/PathUtil.h"
 #include "indexlib/config/IIndexConfig.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/MergeConfig.h"
 #include "indexlib/config/OfflineConfig.h"
 #include "indexlib/config/TabletOptions.h"
-#include "indexlib/config/TabletSchema.h"
 #include "indexlib/file_system/IDirectory.h"
+#include "indexlib/file_system/JsonUtil.h"
 #include "indexlib/file_system/LogicalFileSystem.h"
+#include "indexlib/file_system/MergeDirsOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/package/MergePackageUtil.h"
 #include "indexlib/file_system/package/PackageFileMeta.h"
@@ -30,7 +32,6 @@
 #include "indexlib/framework/SegmentInfo.h"
 #include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
-#include "indexlib/table/index_task/merger/MergeUtil.h"
 
 namespace indexlibv2 { namespace table {
 AUTIL_LOG_SETUP(indexlib.table, MergedSegmentMoveOperation);
@@ -142,7 +143,7 @@ Status MergedSegmentMoveOperation::MergeSegmentToPackageFormat(
     const framework::IndexTaskContext& context, const std::string& segDirName,
     std::vector<indexlib::framework::SegmentMetrics>* segmentMetricsVec)
 {
-    auto mergeConfig = context.GetTabletOptions()->GetOfflineConfig().GetMergeConfig();
+    auto mergeConfig = context.GetMergeConfig();
     const indexlib::file_system::PackageFileTagConfigList& packageFileTagConfigList =
         mergeConfig.GetPackageFileTagConfigList();
     std::string packageFileTagConfigListStr = autil::legacy::ToJsonString(packageFileTagConfigList);
@@ -162,13 +163,13 @@ Status MergedSegmentMoveOperation::MergeSegmentToPackageFormat(
     return indexlib::file_system::MergePackageUtil::ConvertDirToPackage(
                /*workingDirectory=*/currentOpFenceDir,
                /*outputDirectory=*/outputSegmentDirectory, /*parentDirName=*/segDirName, mergePackageMeta,
-               mergeConfig.GetPackageFileSizeThresholdBytes())
+               mergeConfig.GetPackageFileSizeThresholdBytes(), mergeConfig.GetMergePackageThreadCount())
         .Status();
 }
 
 // Get indexConfig and maybe truncate indexConfigs
 std::vector<std::shared_ptr<config::IIndexConfig>>
-MergedSegmentMoveOperation::GetAllIndexConfigs(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+MergedSegmentMoveOperation::GetAllIndexConfigs(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                                const std::string& indexType, const std::string& indexName)
 {
     std::shared_ptr<config::IIndexConfig> indexConfig = schema->GetIndexConfig(indexType, indexName);
@@ -230,7 +231,7 @@ Status MergedSegmentMoveOperation::MergeSegment(const framework::IndexTaskContex
     auto schema = context.GetTabletSchema();
     auto status = CollectMetrics(context, segDirName, segmentMetricsVec);
     RETURN_IF_STATUS_ERROR(status, "collect metrics failed [%s]", status.ToString().c_str());
-    auto mergeConfig = context.GetTabletOptions()->GetOfflineConfig().GetMergeConfig();
+    auto mergeConfig = context.GetMergeConfig();
     if (mergeConfig.IsPackageFileEnabled()) {
         return MergeSegmentToPackageFormat(context, segDirName, segmentMetricsVec);
     }
@@ -284,12 +285,13 @@ Status MergedSegmentMoveOperation::MergeSegment(const framework::IndexTaskContex
 
 Status MergedSegmentMoveOperation::Execute(const framework::IndexTaskContext& context)
 {
-    RETURN_IF_STATUS_ERROR(MergeUtil::RewriteMergeConfig(context), "rewrite merge config failed");
     RETURN_IF_STATUS_ERROR(context.RelocateAllDependOpFolders(), "%s", "relocate depend op global root failed");
     std::string segDirName;
+    Status status;
     if (!_desc.GetParameter(PARAM_TARGET_SEGMENT_DIR, segDirName)) {
-        AUTIL_LOG(ERROR, "get target segment dir from desc failed");
-        return Status::Corruption("get target segment dir from desc failed");
+        status = Status::Corruption("get target segment dir from desc failed");
+        AUTIL_LOG(ERROR, "%s", status.ToString().c_str());
+        return status;
     }
     std::vector<indexlib::framework::SegmentMetrics> segmentMetricsVec;
     RETURN_IF_STATUS_ERROR(MergeSegment(context, segDirName, &segmentMetricsVec),
@@ -297,16 +299,15 @@ Status MergedSegmentMoveOperation::Execute(const framework::IndexTaskContext& co
     framework::SegmentInfo targetSegmentInfo;
     std::string segInfoStr;
     if (!_desc.GetParameter(PARAM_TARGET_SEGMENT_INFO, segInfoStr)) {
-        AUTIL_LOG(ERROR, "get target segment info from desc failed");
-        return Status::Corruption("get target segment info from desc failed");
+        status = Status::Corruption("get target segment info from desc failed");
+        AUTIL_LOG(ERROR, "%s", status.ToString().c_str());
+        return status;
     }
     autil::legacy::FromJsonString(targetSegmentInfo, segInfoStr);
     // Making targetSegmentDir is necessary, because the MergeSegment() above only handles the index dirs inside the
     // segment and entry table is not complete throught this operation.
     std::shared_ptr<indexlib::file_system::IDirectory> targetSegmentDirectory;
     RETURN_STATUS_DIRECTLY_IF_ERROR(GetOrMakeOutputDirectory(context, segDirName, &targetSegmentDirectory));
-    // TODO: (by yijie.zhang)
-    std::string counterMapContent;
 
     indexlib::framework::SegmentMetrics segmentMetrics;
     if (segmentMetricsVec.size() > 1) {
@@ -319,38 +320,20 @@ Status MergedSegmentMoveOperation::Execute(const framework::IndexTaskContext& co
         targetSegmentInfo.docCount = keyCount;
     }
 
-    return StoreSegmentInfos(targetSegmentInfo, segmentMetrics, counterMapContent, targetSegmentDirectory);
-}
+    status = Publish(context, segDirName, indexlib::SEGMETN_METRICS_FILE_NAME, segmentMetrics.ToString());
+    RETURN_IF_STATUS_ERROR(status, "publish %s failed.", indexlib::SEGMETN_METRICS_FILE_NAME);
 
-Status MergedSegmentMoveOperation::StoreSegmentInfos(
-    const framework::SegmentInfo& targetSegmentInfo, const indexlib::framework::SegmentMetrics& segmentMetrics,
-    const std::string& counterMap, const std::shared_ptr<indexlib::file_system::IDirectory>& mergerDirectory)
-{
-    try {
-        auto [status, isExist] = mergerDirectory->IsExist(indexlib::SEGMETN_METRICS_FILE_NAME).StatusWith();
-        RETURN_IF_STATUS_ERROR(status, "check segment metrics file exist failed");
-        if (!isExist) {
-            segmentMetrics.Store(indexlib::file_system::IDirectory::ToLegacyDirectory(mergerDirectory));
-        }
-        auto [counterStatus, counterExist] = mergerDirectory->IsExist(COUNTER_FILE_NAME).StatusWith();
-        RETURN_IF_STATUS_ERROR(counterStatus, "check counter file exist failed");
-        if (!counterExist) {
-            indexlib::file_system::WriterOption counterWriterOption;
-            counterWriterOption.notInPackage = true;
-            counterWriterOption.atomicDump = true;
-            RETURN_STATUS_DIRECTLY_IF_ERROR(
-                mergerDirectory->Store(COUNTER_FILE_NAME, counterMap, counterWriterOption).Status());
-        }
-    } catch (const autil::legacy::ExceptionBase& e) {
-        AUTIL_LOG(ERROR, "move segment failed, exception [%s]", e.what());
-        return Status::IOError("move segment failed");
-    }
-    auto [segInfoStatus, segInfoIsExist] = mergerDirectory->IsExist(SEGMENT_INFO_FILE_NAME).StatusWith();
-    RETURN_IF_STATUS_ERROR(segInfoStatus, "check segment info file exist failed");
-    if (!segInfoIsExist) {
-        return targetSegmentInfo.Store(mergerDirectory);
-    }
-    return Status::OK();
+    // TODO(yijie.zhang): fill counter map content
+    status = Publish(context, segDirName, COUNTER_FILE_NAME, "");
+    RETURN_IF_STATUS_ERROR(status, "publish %s failed.", COUNTER_FILE_NAME.c_str());
+
+    std::string segmentInfoContent;
+    std::tie(status, segmentInfoContent) = indexlib::file_system::JsonUtil::ToString(targetSegmentInfo).StatusWith();
+    RETURN_IF_STATUS_ERROR(status, "%s to str failed.", SEGMENT_INFO_FILE_NAME.c_str());
+    status = Publish(context, segDirName, SEGMENT_INFO_FILE_NAME, segmentInfoContent);
+    RETURN_IF_STATUS_ERROR(status, "publish %s failed.", SEGMENT_INFO_FILE_NAME.c_str());
+
+    return status;
 }
 
 Status MergedSegmentMoveOperation::CollectSegmentMetrics(
@@ -421,8 +404,8 @@ Status MergedSegmentMoveOperation::MoveIndexDir(const framework::IndexTaskContex
     std::string physicalPath = fenceSegmentDirectory->GetPhysicalPath(indexPath);
     indexlib::file_system::FenceContextPtr fenceContext = rootDirectory->GetFenceContext();
     std::string targetPath = PathUtil::JoinPath(segDirName, indexPath);
-    auto status =
-        toStatus(rootDirectory->GetFileSystem()->MergeDirs({physicalPath}, targetPath, false, fenceContext.get()));
+    auto status = toStatus(rootDirectory->GetFileSystem()->MergeDirs(
+        {physicalPath}, targetPath, indexlib::file_system::MergeDirsOption::NoMergePackage()));
     if (status.IsOK() || status.IsExist()) {
         return Status::OK();
     }

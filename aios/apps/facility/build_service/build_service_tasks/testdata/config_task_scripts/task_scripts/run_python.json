@@ -1,0 +1,14 @@
+{
+    "script_type" : "python",
+    "script_file" : "run_python.py",
+    "resources" : [
+	{ "path" : "bin", "type" : "binary" },
+	{ "path" : "lib", "type" : "library" }
+    ],
+    "arguments" : "3 6",
+    "force_retry" : true,
+    "max_retry_times" : 3,
+    "min_retry_interval" : 3,
+    "partition_count" : 3,
+    "parallel_num" : 2
+}

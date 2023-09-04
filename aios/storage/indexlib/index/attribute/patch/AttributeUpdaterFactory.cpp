@@ -35,7 +35,7 @@ AttributeUpdaterFactory::CreateAttributeUpdater(segmentid_t segId,
     return creator->Create(segId, indexConfig);
 }
 
-bool AttributeUpdaterFactory::IsAttributeUpdatable(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+bool AttributeUpdaterFactory::IsAttributeUpdatable(const std::shared_ptr<AttributeConfig>& attrConfig)
 {
     auto factory = AttributeFactory<AttributeUpdater, AttributeUpdaterCreator>::GetInstance();
     {

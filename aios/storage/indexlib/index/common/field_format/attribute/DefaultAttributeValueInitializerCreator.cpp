@@ -24,7 +24,7 @@ namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, DefaultAttributeValueInitializerCreator);
 
 DefaultAttributeValueInitializerCreator::DefaultAttributeValueInitializerCreator(
-    const std::shared_ptr<config::AttributeConfig>& attrConfig)
+    const std::shared_ptr<index::AttributeConfig>& attrConfig)
 {
     assert(attrConfig);
     auto fieldConfigs = attrConfig->GetFieldConfigs();

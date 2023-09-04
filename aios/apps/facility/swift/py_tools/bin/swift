@@ -1,0 +1,50 @@
+#!/bin/env python
+
+import sys
+import os
+curPath = os.path.split(os.path.realpath(__file__))[0]
+parentPath = curPath + "/../"
+toolsConfFileDir = curPath + "/../etc/swift_tools/"
+
+def append2SysPath(path):
+    if (not path in sys.path) and (os.path.exists(path)):
+        sys.path.append(path)
+
+def checkToolsConfFileAndImport():
+    append2SysPath(parentPath)
+
+    append2SysPath(toolsConfFileDir)
+
+    toolsConfFile = toolsConfFileDir + "tools_conf.py"
+    if not os.path.exists(toolsConfFile):
+        print("ERROR: tools_conf.py [%s] does not exist!" \
+            % toolsConfFile)
+        return False
+
+    import tools_conf
+    pythonPath = os.path.join(tools_conf.install_prefix,
+                              "lib/python/site-packages/")
+    append2SysPath(pythonPath)
+    pbPath = os.path.join(tools_conf.install_prefix,
+                              "lib/python2.7/site-packages/")
+    append2SysPath(pbPath)
+
+    if hasattr(tools_conf, "python_path"):
+        pythonPathVec = tools_conf.python_path.split(":")
+        sys.path = [''] + pythonPathVec + sys.path
+
+    return True
+
+def main():
+    if not checkToolsConfFileAndImport():
+        return False
+
+    from swift_tools.cmd_context import CmdContext
+    cmdContext = CmdContext(sys.argv, toolsConfFileDir)
+    return cmdContext.run()
+
+if __name__ == "__main__":
+    if main():
+        sys.exit(0)
+    else:
+        sys.exit(1)

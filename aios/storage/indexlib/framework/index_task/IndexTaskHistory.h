@@ -111,6 +111,7 @@ public:
     // hint: it should be the full merge task
     // because only one log item exist, that make it never be erased
     int64_t GetOldestTaskLogTimestamp() const;
+    int64_t GetLatestTaskLogTimestamp() const;
 
     std::vector<std::string> GetAllTaskTypes() const;
 

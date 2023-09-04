@@ -1,0 +1,15 @@
+{
+    "cluster_config" : {
+        "region_hash_mode" : [
+            {"region_name": "region1", "hash_field": "nid", "hash_function": "invalid"},
+            {"region_name": "region2", "hash_field": "timestamp", "hash_function": "NUMBER_HASH"},
+            {"region_name": "region3", "hash_field": "id", "hash_function": "GALAXY_HASH"},
+            {"region_name": "region4", "hash_field": "id", "hash_function": "KINGSO_HASH#110"},
+            {"region_name": "region5", "hash_field": "id", "hash_function": "HASH"}
+        ],
+	"hash_mode" : {
+            "hash_function" : "HASH",
+            "hash_field" : "id"
+	}
+    }
+}

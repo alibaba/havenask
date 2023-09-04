@@ -1,14 +1,15 @@
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
-indexlib_cc_library(
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+strict_cc_library(
     name='DocumentInfoExtractorFactory',
     deps=[
         ':AttrFieldInfoExtractor', ':InvertedIndexDocInfoExtractor',
-        ':PrimaryKeyInfoExtractor', ':SummaryDocInfoExtractor',
+        ':PackAttrFieldInfoExtractor', ':PrimaryKeyInfoExtractor',
+        ':SummaryDocInfoExtractor',
         '//aios/storage/indexlib/document/extractor:IDocumentInfoExtractorFactory'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttrDocInfoExtractor',
     deps=[
         '//aios/storage/indexlib/document:interface',
@@ -17,7 +18,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/document/normal:NormalDocument'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexDocInfoExtractor',
     deps=[
         '//aios/storage/indexlib/document:interface',
@@ -26,14 +27,22 @@ indexlib_cc_library(
         '//aios/storage/indexlib/document/normal:NormalDocument'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttrFieldInfoExtractor',
     deps=[
         ':AttrDocInfoExtractor', '//aios/storage/indexlib/document:interface',
         '//aios/storage/indexlib/document/extractor:IDocumentInfoExtractor'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
+    name='PackAttrFieldInfoExtractor',
+    deps=[
+        ':AttrDocInfoExtractor', '//aios/storage/indexlib/document:interface',
+        '//aios/storage/indexlib/document/extractor:IDocumentInfoExtractor',
+        '//aios/storage/indexlib/index/attribute:constants'
+    ]
+)
+strict_cc_library(
     name='PrimaryKeyInfoExtractor',
     deps=[
         '//aios/storage/indexlib/config:IIndexConfig',
@@ -45,7 +54,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/primary_key/config:PrimaryKeyIndexConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SummaryDocInfoExtractor',
     deps=[
         '//aios/storage/indexlib/document:interface',

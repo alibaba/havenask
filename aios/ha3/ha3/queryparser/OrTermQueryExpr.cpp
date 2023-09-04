@@ -17,28 +17,25 @@
 
 #include <assert.h>
 
+#include "autil/Log.h"
 #include "ha3/queryparser/AtomicQueryExpr.h"
 #include "ha3/queryparser/OrQueryExpr.h"
 #include "ha3/queryparser/QueryExprEvaluator.h"
-#include "autil/Log.h"
 
 namespace isearch {
 namespace common {
 struct RequiredFields;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace queryparser {
 AUTIL_LOG_SETUP(ha3, OrTermQueryExpr);
 
 OrTermQueryExpr::OrTermQueryExpr(AtomicQueryExpr *a, AtomicQueryExpr *b)
-    :_or(a,b)
-{ 
-}
+    : _or(a, b) {}
 
-OrTermQueryExpr::~OrTermQueryExpr() { 
-}
+OrTermQueryExpr::~OrTermQueryExpr() {}
 
 void OrTermQueryExpr::setIndexName(const std::string &indexName) {
     AtomicQueryExpr *a = static_cast<AtomicQueryExpr *>(_or.getLeftExpr());
@@ -49,9 +46,7 @@ void OrTermQueryExpr::setIndexName(const std::string &indexName) {
     b->setIndexName(indexName);
 }
 
-void OrTermQueryExpr::setRequiredFields(
-        const common::RequiredFields &requiredFields)
-{
+void OrTermQueryExpr::setRequiredFields(const common::RequiredFields &requiredFields) {
     AtomicQueryExpr *a = static_cast<AtomicQueryExpr *>(_or.getLeftExpr());
     AtomicQueryExpr *b = static_cast<AtomicQueryExpr *>(_or.getRightExpr());
     assert(a);
@@ -66,4 +61,3 @@ void OrTermQueryExpr::evaluate(QueryExprEvaluator *qee) {
 
 } // namespace queryparser
 } // namespace isearch
-

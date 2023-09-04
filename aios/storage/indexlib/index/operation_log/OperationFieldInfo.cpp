@@ -36,7 +36,7 @@ Status OperationFieldInfo::Store(const std::shared_ptr<file_system::IDirectory>&
 
 void OperationFieldInfo::Init(const std::shared_ptr<OperationLogConfig>& opLogConfig)
 {
-    auto fieldConfigs = opLogConfig->GetFieldConfigs();
+    auto fieldConfigs = opLogConfig->GetAllFieldConfigs();
     for (auto fieldConfig : fieldConfigs) {
         _fieldInfo[fieldConfig->GetFieldId()] = fieldConfig->GetFieldName();
     }

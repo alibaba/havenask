@@ -1,0 +1,8 @@
+function graphDef()
+    print "1"
+    local flowIds = Graph.getFlowIdByTag("abc")
+    local toSuspendFlow = Graph.getFlow(flowIds[1])
+    print "2"
+    toSuspendFlow:suspendFlow()
+    return true
+end

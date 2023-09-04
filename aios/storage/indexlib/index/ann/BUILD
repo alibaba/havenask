@@ -1,0 +1,47 @@
+package(
+    default_visibility=['//aios/storage/indexlib/index/ann:__subpackages__']
+)
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+strict_cc_library(
+    name='config',
+    srcs=['ANNIndexConfig.cpp'],
+    hdrs=['ANNIndexConfig.h'],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        ':constants',
+        '//aios/storage/indexlib/index/inverted_index/config:PackageIndexConfig'
+    ]
+)
+strict_cc_library(
+    name='constants',
+    srcs=[],
+    hdrs=['Common.h'],
+    visibility=['//visibility:public'],
+    deps=[]
+)
+strict_cc_library(
+    name='ANNPostingIterator',
+    srcs=['ANNPostingIterator.cpp'],
+    hdrs=['ANNPostingIterator.h'],
+    visibility=['//visibility:public'],
+    deps=[
+        ':constants',
+        '//aios/storage/indexlib/index/inverted_index:PostingIterator',
+        '//aios/storage/indexlib/index/inverted_index:TermMatchData',
+        '//aios/storage/indexlib/index/inverted_index/format:TermMeta'
+    ]
+)
+strict_cc_library(
+    name='factory',
+    srcs=['ANNIndexFactory.cpp'],
+    hdrs=['ANNIndexFactory.h'],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        ':constants', '//aios/storage/indexlib/index:IIndexFactory',
+        '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_disk_indexer',
+        '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_merger',
+        '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_reader',
+        '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_mem_indexer'
+    ],
+    alwayslink=True
+)

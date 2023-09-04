@@ -22,6 +22,6 @@ public:
     static bool clearCloseOnExec(int fd);
     static bool isCloseOnExec(int fd);
 };
-}
+} // namespace anet
 
 #endif /*FILECONTROL_H_*/

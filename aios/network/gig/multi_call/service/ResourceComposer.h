@@ -28,7 +28,8 @@
 
 namespace multi_call {
 
-class ResourceComposer {
+class ResourceComposer
+{
 public:
     ResourceComposer(const SearchServiceSnapshotPtr &snapshot,
                      const FlowConfigSnapshotPtr &flowConfigSnapshot);
@@ -39,7 +40,8 @@ private:
     ResourceComposer &operator=(const ResourceComposer &);
 
 public:
-    uint32_t prepareResource(const QuerySessionPtr &querySession, const RequestGeneratorPtr &generator,
+    uint32_t prepareResource(const QuerySessionPtr &querySession,
+                             const RequestGeneratorPtr &generator,
                              const ReplyInfoCollectorPtr &replyInfoCollector,
                              SearchServiceResourceVector &resourceVec, size_t &providerCount);
     uint32_t createTempResource(const RequestGeneratorPtr &generator,
@@ -61,14 +63,15 @@ public:
                                     const PartRequestMap &requestMap);
 
 private:
-    void collectProviderCount(
-        const std::string &bizName,
-        const SearchServiceResourceVector &searchResourceVec, size_t beginIndex,
-        const ReplyInfoCollectorPtr &replyInfoCollector, size_t &providerCount);
+    void collectProviderCount(const std::string &bizName,
+                              const SearchServiceResourceVector &searchResourceVec,
+                              size_t beginIndex, const ReplyInfoCollectorPtr &replyInfoCollector,
+                              size_t &providerCount);
 
 private:
     SearchServiceSnapshotPtr _snapshot;
     FlowConfigSnapshotPtr _flowConfigSnapshot;
+
 private:
     AUTIL_LOG_DECLARE();
 };

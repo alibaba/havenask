@@ -1,0 +1,33 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+import "proto/cm_common.proto";
+
+option cc_generic_services = true;
+option py_generic_services = true;
+option cc_enable_arenas = true;
+
+package cm_server;
+
+message SubsetConf {
+    optional string conf_name = 1;
+
+    // subset from
+    repeated string clusters = 2;
+
+    // subset genrule
+    optional bool from_topoinfo = 3[default=true];
+}
+
+message SubsetSpec {
+	optional string conf_name = 1;
+	optional string subset_name = 2;
+}
+
+message SubsetStatus {
+    optional string conf_name = 1;
+    optional string subset_name = 2;
+    optional int64 version = 3;
+    optional int64 change_type = 4;
+    repeated cm_basic.CMNode nodes = 5;
+}

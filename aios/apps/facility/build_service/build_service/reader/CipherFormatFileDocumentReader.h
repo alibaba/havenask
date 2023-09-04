@@ -25,8 +25,8 @@ namespace build_service { namespace reader {
 class CipherFormatFileDocumentReader : public FormatFileDocumentReader
 {
 public:
-    CipherFormatFileDocumentReader(autil::cipher::CipherOption option,
-                                   const std::string& docPrefix, const std::string& docSuffix);
+    CipherFormatFileDocumentReader(autil::cipher::CipherOption option, const std::string& docPrefix,
+                                   const std::string& docSuffix);
     ~CipherFormatFileDocumentReader();
 
     CipherFormatFileDocumentReader(const CipherFormatFileDocumentReader&) = delete;

@@ -18,7 +18,6 @@
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/document/IDocumentBatch.h"
-#include "indexlib/document/extractor/IDocumentInfoExtractor.h"
 #include "indexlib/index/IIndexer.h"
 
 namespace indexlib::document {

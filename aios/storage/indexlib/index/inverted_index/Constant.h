@@ -76,6 +76,7 @@ inline const std::string POSTING_FILE_NAME = "posting";
 inline const std::string BITMAP_DICTIONARY_FILE_NAME = "bitmap_dictionary";
 inline const std::string BITMAP_POSTING_FILE_NAME = "bitmap_posting";
 inline const std::string BITMAP_POSTING_EXPAND_FILE_NAME = "bitmap_posting_expand";
+static constexpr const char* TRUNCATE_STRATEGY = "truncate_strategy";
 
 } // namespace indexlib::index
 
@@ -104,4 +105,5 @@ using indexlib::OPTION_FLAG_NONE;
 
 namespace indexlibv2::index {
 using indexlib::index::INDEX_FORMAT_OPTION_FILE_NAME;
+using indexlib::index::TRUNCATE_STRATEGY;
 } // namespace indexlibv2::index

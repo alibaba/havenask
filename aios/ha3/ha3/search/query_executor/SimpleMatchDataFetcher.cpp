@@ -15,8 +15,8 @@
  */
 #include "ha3/search/SimpleMatchDataFetcher.h"
 
-#include <stddef.h>
 #include <algorithm>
+#include <stddef.h>
 
 #include "autil/Log.h"
 #include "ha3/common/CommonDef.h"
@@ -33,33 +33,25 @@ AUTIL_LOG_SETUP(ha3, SimpleMatchDataFetcher);
 using namespace matchdoc;
 
 SimpleMatchDataFetcher::SimpleMatchDataFetcher()
-    : _ref(NULL)
-{
-}
+    : _ref(NULL) {}
 
-SimpleMatchDataFetcher::~SimpleMatchDataFetcher() {
-}
+SimpleMatchDataFetcher::~SimpleMatchDataFetcher() {}
 
-ReferenceBase *SimpleMatchDataFetcher::require(
-        MatchDocAllocator *allocator,
-        const std::string &refName, uint32_t termCount)
-{
-    _ref = createReference<rank::SimpleMatchData>(
-            allocator, refName, termCount);
+ReferenceBase *SimpleMatchDataFetcher::require(MatchDocAllocator *allocator,
+                                               const std::string &refName,
+                                               uint32_t termCount) {
+    _ref = createReference<rank::SimpleMatchData>(allocator, refName, termCount);
     _termCount = termCount;
     return _ref;
 }
 
 indexlib::index::ErrorCode SimpleMatchDataFetcher::fillMatchData(
-        const SingleLayerExecutors &singleLayerExecutors,
-        MatchDoc matchDoc, MatchDoc subDoc) const
-{
+    const SingleLayerExecutors &singleLayerExecutors, MatchDoc matchDoc, MatchDoc subDoc) const {
     docid_t docId = matchDoc.getDocId();
     rank::SimpleMatchData &data = _ref->getReference(matchDoc);
     for (uint32_t i = 0; i < _termCount; ++i) {
         int32_t idx = (int32_t)i - (int32_t)_accTermCount;
-        bool isMatch = idx >= 0
-                       && (uint32_t)idx < singleLayerExecutors.size()
+        bool isMatch = idx >= 0 && (uint32_t)idx < singleLayerExecutors.size()
                        && singleLayerExecutors[idx]
                        && singleLayerExecutors[idx]->getDocId() == docId;
         data.setMatch(i, isMatch);

@@ -14,60 +14,53 @@
  * limitations under the License.
  */
 #include "autil/cipher/AESCipherCreator.h"
+
 #include "autil/cipher/AESCipherUtility.h"
 
-namespace autil { namespace cipher {
+namespace autil {
+namespace cipher {
 AUTIL_LOG_SETUP(autil, AESCipherCreator);
 
-AESCipherCreator::AESCipherCreator() 
-{}
+AESCipherCreator::AESCipherCreator() {}
 
-AESCipherCreator::~AESCipherCreator() 
-{}
+AESCipherCreator::~AESCipherCreator() {}
 
-std::unique_ptr<AESCipherEncrypter> AESCipherCreator::createEncrypter(CipherOption option)
-{
+std::unique_ptr<AESCipherEncrypter> AESCipherCreator::createEncrypter(CipherOption option) {
     std::unique_ptr<AESCipherUtility> utility(createUtility(option));
     if (utility == nullptr) {
         return nullptr;
     }
-    return std::make_unique<AESCipherEncrypter>(std::move(utility));    
+    return std::make_unique<AESCipherEncrypter>(std::move(utility));
 }
 
-std::unique_ptr<AESCipherDecrypter> AESCipherCreator::createDecrypter(CipherOption option)
-{
+std::unique_ptr<AESCipherDecrypter> AESCipherCreator::createDecrypter(CipherOption option) {
     std::unique_ptr<AESCipherUtility> utility(createUtility(option));
     if (utility == nullptr) {
         return nullptr;
     }
-    return std::make_unique<AESCipherDecrypter>(std::move(utility));    
+    return std::make_unique<AESCipherDecrypter>(std::move(utility));
 }
 
-std::unique_ptr<AESCipherStreamEncrypter> AESCipherCreator::createStreamEncrypter(
-        CipherOption option, size_t maxCapacity, size_t readTimeoutInMs)
-{
+std::unique_ptr<AESCipherStreamEncrypter>
+AESCipherCreator::createStreamEncrypter(CipherOption option, size_t maxCapacity, size_t readTimeoutInMs) {
     std::unique_ptr<AESCipherUtility> utility(createUtility(option));
     if (utility == nullptr) {
         return nullptr;
     }
-    return std::make_unique<AESCipherStreamEncrypter>(
-            std::move(utility), maxCapacity, readTimeoutInMs);
+    return std::make_unique<AESCipherStreamEncrypter>(std::move(utility), maxCapacity, readTimeoutInMs);
 }
-    
-std::unique_ptr<AESCipherStreamDecrypter> AESCipherCreator::createStreamDecrypter(
-        CipherOption option, size_t maxCapacity, size_t readTimeoutInMs)
-{
+
+std::unique_ptr<AESCipherStreamDecrypter>
+AESCipherCreator::createStreamDecrypter(CipherOption option, size_t maxCapacity, size_t readTimeoutInMs) {
     std::unique_ptr<AESCipherUtility> utility(createUtility(option));
     if (utility == nullptr) {
         return nullptr;
     }
-    return std::make_unique<AESCipherStreamDecrypter>(
-            std::move(utility), maxCapacity, readTimeoutInMs);
+    return std::make_unique<AESCipherStreamDecrypter>(std::move(utility), maxCapacity, readTimeoutInMs);
 }
 
-AESCipherUtility* AESCipherCreator::createUtility(CipherOption option)
-{
-    if (option.type == CT_UNKNOWN) {
+AESCipherUtility *AESCipherCreator::createUtility(CipherOption option) {
+    if (option.type == CipherType::CT_UNKNOWN) {
         AUTIL_LOG(ERROR, "unknown cipher type.");
         return nullptr;
     }
@@ -79,12 +72,12 @@ AESCipherUtility* AESCipherCreator::createUtility(CipherOption option)
         return utility.release();
     }
 
-    if (option.digist == DT_UNKNOWN) {
-        AUTIL_LOG(ERROR, "unknown digist type.");        
+    if (option.digist == DigistType::DT_UNKNOWN) {
+        AUTIL_LOG(ERROR, "unknown digist type.");
         return nullptr;
     }
     if (option.passwd.empty()) {
-        AUTIL_LOG(ERROR, "empty password.");        
+        AUTIL_LOG(ERROR, "empty password.");
         return nullptr;
     }
     utility->setDigistType(option.digist).setPassword(option.passwd).enableSalt(option.needSalt);
@@ -97,5 +90,5 @@ AESCipherUtility* AESCipherCreator::createUtility(CipherOption option)
     return utility.release();
 }
 
-}}
-
+} // namespace cipher
+} // namespace autil

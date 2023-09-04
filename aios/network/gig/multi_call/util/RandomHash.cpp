@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/util/RandomHash.h"
+
 #include <algorithm>
 #include <assert.h>
 

@@ -137,6 +137,12 @@ inline FL_LAZY(index::KKVIterator*) KKVCachedReaderImpl<SKeyType>::DoInnerLookup
 
     // TODO(xinfei.xsf) 这个unique_ptr使用有问题
     auto context = PrepareContext(pkeyHash, skeyHashVec, readOptions, indexOptions);
+    if (!context) {
+        if (metricsCollector) {
+            metricsCollector->EndQuery();
+        }
+        FL_CORETURN POOL_COMPATIBLE_NEW_CLASS(readOptions.pool, index::KKVIterator, readOptions.pool);
+    }
     indexlib::util::PooledUniquePtr<index::SearchContext<SKeyType>> contextPtr(context, readOptions.pool);
     FL_CORETURN FL_COAWAIT Search(*context);
 }
@@ -153,6 +159,9 @@ KKVCachedReaderImpl<SKeyType>::PrepareContext(index::PKeyType pkeyHash, const st
 
     const auto& buildingSegReaders = KKVReaderImpl<SKeyType>::_memShardReaders[shardId];
     const auto& builtSegReaders = KKVReaderImpl<SKeyType>::_diskShardReaders[shardId];
+    if (buildingSegReaders.empty() && builtSegReaders.empty()) {
+        return nullptr;
+    }
 
     uint64_t currentTsInSecond = autil::TimeUtility::us2sec(readOptions.timestamp);
     auto context = IE_POOL_COMPATIBLE_NEW_CLASS(
@@ -215,14 +224,23 @@ KKVCachedReaderImpl<SKeyType>::GetKKVDocs(index::SearchContext<SKeyType>& contex
 
     auto status = index::KKVSearchCoroutine<SKeyType>::SearchBuilding(context, docs);
     if (!status.IsOK()) {
+        if (context.metricsCollector) {
+            context.metricsCollector->EndQuery();
+        }
         FL_CORETURN status;
     }
     context.buildingSKeyCount = docs.size();
     // TODO(xinfei.sxf) move terminate state to search context
     if (context.hasPKeyDeleted || context.currentSKeyCount >= context.skeyCountLimits) {
+        if (context.metricsCollector) {
+            context.metricsCollector->EndQuery();
+        }
         FL_CORETURN Status::OK();
     }
     if (context.skeyContext && docs.size() == context.skeyContext->GetRequiredSKeyCount()) {
+        if (context.metricsCollector) {
+            context.metricsCollector->EndQuery();
+        }
         FL_CORETURN Status::OK();
     }
 
@@ -233,12 +251,12 @@ template <typename SKeyType>
 FL_LAZY(Status)
 KKVCachedReaderImpl<SKeyType>::GetDocsFromBuilt(index::SearchContext<SKeyType>& context, index::KKVDocs& docs)
 {
-    if (context.builtSegReaders.empty()) {
-        FL_CORETURN Status::OK();
-    }
-
     if (context.metricsCollector) {
         context.metricsCollector->BeginSSTableQuery();
+    }
+
+    if (context.builtSegReaders.empty()) {
+        FL_CORETURN Status::OK();
     }
 
     context.searchCacheContext.Init(context.pkey, context.skeyContext.get(), context.metricsCollector, context.pool);
@@ -350,56 +368,44 @@ template <typename SKeyType>
 void KKVCachedReaderImpl<SKeyType>::UpdateCache(index::SearchContext<SKeyType>& context, index::KKVDocs& docs,
                                                 size_t builtBeginDocPos, size_t builtEndDocPos)
 {
+    if (context.searchCacheContext.IsOnlyCache()) {
+        return;
+    }
     auto kkvCacheItem = context.searchCacheContext.template GetCacheItem<SKeyType>();
-    // TODO(xinfei.sxf) fix needUpdateCache when item's locator is not valid
-    bool needUpdateCache = !context.searchCacheContext.IsOnlyCache();
-
     bool isCacheValid = kkvCacheItem != nullptr;
     if (context.hasPKeyDeleted) {
         isCacheValid = false;
     }
 
-    if (needUpdateCache) {
-        if (!context.builtFoundSKeys.empty() || !isCacheValid) {
-            context.updateCacheRatio = 100;
-            auto docBeginIter = docs.begin() + builtBeginDocPos;
-            auto docEndIter = docs.begin() + builtEndDocPos;
+    auto lastDiskSegmentLocator = GetLastDiskSegmentLocator(context.shardId);
+    if (!context.builtFoundSKeys.empty() || !isCacheValid) {
+        context.updateCacheRatio = 100;
+        auto docBeginIter = docs.begin() + builtBeginDocPos;
+        auto docEndIter = docs.begin() + builtEndDocPos;
 
-            if (context.plainFormatEncoder) {
-                // make sure doc item in cache is decoded, so no need decode again when cache hit
-                for (auto iter = docBeginIter; iter != docEndIter; ++iter) {
-                    auto& doc = *iter;
-                    if (doc.inCache || doc.skeyDeleted) {
-                        continue;
-                    }
-                    auto ret = context.plainFormatEncoder->Decode(doc.value, context.pool, doc.value);
-                    assert(ret);
-                    (void)ret;
-                    doc.inCache = true;
+        if (context.plainFormatEncoder) {
+            // make sure doc item in cache is decoded, so no need decode again when cache hit
+            for (auto iter = docBeginIter; iter != docEndIter; ++iter) {
+                auto& doc = *iter;
+                if (doc.inCache || doc.skeyDeleted) {
+                    continue;
                 }
-            }
-            index::KKVCacheItem<SKeyType>* newKkvCacheItem =
-                index::KKVCacheItem<SKeyType>::Create(docBeginIter, docEndIter);
-
-            auto locator = GetLastDiskSegmentLocator(context.shardId);
-            if (locator) {
-                newKkvCacheItem->locator = *locator;
-            } else {
-                assert(false);
-                AUTIL_LOG(WARN, "disk segment locator must not be empty");
-            }
-            // TODO(xinfei.sxf) add metrics for insert cache
-            context.searchCacheContext.PutCacheItem(newKkvCacheItem, context.searchCacheContext.GetPriority());
-        } else {
-            // TODO(xinfei.sxf) insert this item also to convert this item to used state
-            auto locator = GetLastDiskSegmentLocator(context.shardId);
-            if (locator) {
-                kkvCacheItem->locator = *locator;
-            } else {
-                assert(false);
-                AUTIL_LOG(WARN, "disk segment locator must not be empty");
+                auto ret = context.plainFormatEncoder->Decode(doc.value, context.pool, doc.value);
+                assert(ret);
+                (void)ret;
+                doc.inCache = true;
             }
         }
+        if (lastDiskSegmentLocator) {
+            index::KKVCacheItem<SKeyType>* newKkvCacheItem =
+                index::KKVCacheItem<SKeyType>::Create(docBeginIter, docEndIter);
+            newKkvCacheItem->locator = *lastDiskSegmentLocator;
+            // TODO(xinfei.sxf) add metrics for insert cache
+            context.searchCacheContext.PutCacheItem(newKkvCacheItem, context.searchCacheContext.GetPriority());
+        }
+    } else if (lastDiskSegmentLocator && (*lastDiskSegmentLocator) != kkvCacheItem->locator) {
+        index::KKVCacheItem<SKeyType>* newKkvCacheItem = kkvCacheItem->Clone(lastDiskSegmentLocator.get());
+        context.searchCacheContext.PutCacheItem(newKkvCacheItem, context.searchCacheContext.GetPriority());
     }
 }
 

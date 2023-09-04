@@ -30,7 +30,8 @@ struct BizTopoInfo {
     int32_t gigRpcPort;
 };
 
-class TopoInfoBuilder {
+class TopoInfoBuilder
+{
 public:
     TopoInfoBuilder();
     explicit TopoInfoBuilder(int32_t grpcPort);
@@ -41,12 +42,10 @@ private:
     TopoInfoBuilder &operator=(const TopoInfoBuilder &);
 
 public:
-    void addBiz(const std::string &bizName, PartIdTy partCnt, PartIdTy partId,
-                VersionTy version, WeightTy targetWeight,
-                VersionTy protocolVersion, int32_t gigRpcPort);
-    void addBiz(const std::string &bizName, PartIdTy partCnt, PartIdTy partId,
-                VersionTy version, WeightTy targetWeight,
-                VersionTy protocolVersion);
+    void addBiz(const std::string &bizName, PartIdTy partCnt, PartIdTy partId, VersionTy version,
+                WeightTy targetWeight, VersionTy protocolVersion, int32_t gigRpcPort);
+    void addBiz(const std::string &bizName, PartIdTy partCnt, PartIdTy partId, VersionTy version,
+                WeightTy targetWeight, VersionTy protocolVersion);
     void flushAllBizVersion(VersionTy version);
     std::string build() const;
     const std::vector<BizTopoInfo> &getBizTopoInfo() const;

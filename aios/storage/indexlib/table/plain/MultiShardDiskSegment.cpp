@@ -109,7 +109,7 @@ std::shared_ptr<framework::Segment> MultiShardDiskSegment::GetShardSegment(size_
     return _shardSegments[shardIdx];
 }
 
-size_t MultiShardDiskSegment::EstimateMemUsed(const std::shared_ptr<config::TabletSchema>& schema)
+size_t MultiShardDiskSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     auto segmentInfo = GetSegmentInfo();
     auto shardCount = segmentInfo->GetShardCount();

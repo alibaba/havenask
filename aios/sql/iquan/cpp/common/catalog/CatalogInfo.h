@@ -15,14 +15,15 @@
  */
 #pragma once
 
+#include <stdint.h>
 #include <string>
 #include <vector>
 
 #include "autil/legacy/jsonizable.h"
 #include "iquan/common/catalog/ComputeNodeModel.h"
 #include "iquan/common/catalog/FunctionModel.h"
-#include "iquan/common/catalog/TableModel.h"
 #include "iquan/common/catalog/LayerTableModel.h"
+#include "iquan/common/catalog/TableModel.h"
 #include "iquan/common/catalog/TvfFunctionModel.h"
 
 namespace iquan {
@@ -40,8 +41,9 @@ public:
     }
 
     bool isValid() const {
-        return (!catalogName.empty()) &&
-               (tableModels.isValid() || functionModels.isValid() || tvfFunctionModels.isValid());
+        return (!catalogName.empty())
+               && (tableModels.isValid() || functionModels.isValid()
+                   || tvfFunctionModels.isValid());
     }
 
 public:

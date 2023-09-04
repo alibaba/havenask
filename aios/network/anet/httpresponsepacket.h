@@ -18,8 +18,8 @@
 #include <string>
 #include <tr1/unordered_map>
 
-#include "aios/network/anet/packet.h"
 #include "aios/network/anet/common.h"
+#include "aios/network/anet/packet.h"
 
 namespace anet {
 
@@ -81,14 +81,13 @@ public:
     void setKeepAlive(bool keepAlive);
 
 private:
-    bool _status;                   // 返回的状态, true => 200, false => 404
-    char *_body;                    // 返回的内容
-    int _bodyLen;                   // 返回内容找长度
-    STRING_MAP _headerMap;          // 返回其他头信息
-    bool _isKeepAlive;              // 是否keepalive
+    bool _status;          // 返回的状态, true => 200, false => 404
+    char *_body;           // 返回的内容
+    int _bodyLen;          // 返回内容找长度
+    STRING_MAP _headerMap; // 返回其他头信息
+    bool _isKeepAlive;     // 是否keepalive
 };
 
-}
+} // namespace anet
 
 #endif
-

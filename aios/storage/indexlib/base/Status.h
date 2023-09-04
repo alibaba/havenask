@@ -29,14 +29,6 @@
 namespace indexlib {
 namespace detail {
 
-inline std::string FormatMessage(const char* fmt, va_list ap)
-{
-    const uint32_t MAX_MESSAGE_LENGTH = 2048;
-    char buffer[MAX_MESSAGE_LENGTH];
-    vsnprintf(buffer, MAX_MESSAGE_LENGTH, fmt, ap);
-    return buffer;
-}
-
 enum class StatusCode : uint8_t {
     // Status code for indexlib's users, starting from 0 to 128.
     EC_OK = 0,
@@ -47,7 +39,7 @@ enum class StatusCode : uint8_t {
     EC_INVALID_ARGS = 5,
     EC_INTERNAL = 6,
     EC_OUT_OF_RANGE = 7,
-    EC_NOENT = 8,
+    // EC_NOENT = 8,
     EC_ABORT = 9,
     EC_EOF = 10,
     EC_UNKNOWN = 128,
@@ -61,6 +53,7 @@ enum class StatusCode : uint8_t {
     EC_SEALED = 135,
 };
 
+//////////////////////////////////////////////////////////////////////
 struct StatusError : public autil::result::RuntimeError {
 public:
     StatusCode code;
@@ -72,6 +65,7 @@ public:
     std::unique_ptr<autil::result::Error> clone() const override { return std::make_unique<StatusError>(*this); }
 };
 
+//////////////////////////////////////////////////////////////////////
 template <typename Self>
 class StatusApi
 {
@@ -83,30 +77,27 @@ public:
     std::string ToString() const { return self()->is_ok() ? "OK" : self()->get_error().message(); }
 
 public:
-#define IB_STATUS_IMPL_STATUS_CODE_(name, ec)                                                                          \
-    bool Is##name() const { return self()->code() == StatusCode::ec; }
+    bool IsCorruption() const { return self()->code() == StatusCode::EC_CORRUPTION; }
+    bool IsIOError() const { return self()->code() == StatusCode::EC_IOERROR; }
+    bool IsNoMem() const { return self()->code() == StatusCode::EC_NOMEM; }
+    bool IsAbort() const { return self()->code() == StatusCode::EC_ABORT; }
+    bool IsUnknown() const { return self()->code() == StatusCode::EC_UNKNOWN; }
+    bool IsConfigError() const { return self()->code() == StatusCode::EC_CONFIGERROR; }
+    bool IsInvalidArgs() const { return self()->code() == StatusCode::EC_INVALID_ARGS; }
+    bool IsInternalError() const { return self()->code() == StatusCode::EC_INTERNAL; }
+    bool IsOutOfRange() const { return self()->code() == StatusCode::EC_OUT_OF_RANGE; }
+    bool IsEof() const { return self()->code() == StatusCode::EC_EOF; }
+    // bool IsNoEntry() const { return self()->code() == StatusCode::EC_NOENT; }
 
-    IB_STATUS_IMPL_STATUS_CODE_(Corruption, EC_CORRUPTION);
-    IB_STATUS_IMPL_STATUS_CODE_(IOError, EC_IOERROR);
-    IB_STATUS_IMPL_STATUS_CODE_(NoMem, EC_NOMEM);
-    IB_STATUS_IMPL_STATUS_CODE_(Abort, EC_ABORT);
-    IB_STATUS_IMPL_STATUS_CODE_(Unknown, EC_UNKNOWN);
-    IB_STATUS_IMPL_STATUS_CODE_(ConfigError, EC_CONFIGERROR);
-    IB_STATUS_IMPL_STATUS_CODE_(InvalidArgs, EC_INVALID_ARGS);
-    IB_STATUS_IMPL_STATUS_CODE_(InternalError, EC_INTERNAL);
-    IB_STATUS_IMPL_STATUS_CODE_(OutOfRange, EC_OUT_OF_RANGE);
-    IB_STATUS_IMPL_STATUS_CODE_(Eof, EC_EOF);
-    IB_STATUS_IMPL_STATUS_CODE_(NoEntry, EC_NOENT);
+    bool IsNeedDump() const { return self()->code() == StatusCode::EC_NEED_DUMP; }
+    bool IsUnimplement() const { return self()->code() == StatusCode::EC_UNIMPLEMENT; }
+    bool IsUninitialize() const { return self()->code() == StatusCode::EC_UNINITIALIZE; }
+    bool IsNotFound() const { return self()->code() == StatusCode::EC_NOT_FOUND; }
+    bool IsExpired() const { return self()->code() == StatusCode::EC_EXPIRED; }
+    bool IsExist() const { return self()->code() == StatusCode::EC_EXIST; }
+    bool IsSealed() const { return self()->code() == StatusCode::EC_SEALED; }
 
-    IB_STATUS_IMPL_STATUS_CODE_(NeedDump, EC_NEED_DUMP);
-    IB_STATUS_IMPL_STATUS_CODE_(Unimplement, EC_UNIMPLEMENT);
-    IB_STATUS_IMPL_STATUS_CODE_(Uninitialize, EC_UNINITIALIZE);
-    IB_STATUS_IMPL_STATUS_CODE_(NotFound, EC_NOT_FOUND);
-    IB_STATUS_IMPL_STATUS_CODE_(Expired, EC_EXPIRED);
-    IB_STATUS_IMPL_STATUS_CODE_(Exist, EC_EXIST);
-    IB_STATUS_IMPL_STATUS_CODE_(Sealed, EC_SEALED);
-
-#undef IB_STATUS_IMPL_STATUS_CODE_
+    bool IsOKOrNotFound() const { return IsOK() || IsNotFound(); }
 
 private:
     StatusCode code() const
@@ -124,6 +115,7 @@ private:
     Self* self() noexcept { return static_cast<Self*>(this); }
 };
 
+//////////////////////////////////////////////////////////////////////
 class ErrorStatus : public autil::result::ErrorResult<StatusError>, public StatusApi<ErrorStatus>
 {
 public:
@@ -142,6 +134,7 @@ public:
     }
 };
 
+//////////////////////////////////////////////////////////////////////
 template <typename T = void>
 class [[nodiscard]] Status : public autil::result::Result<T>, public StatusApi<Status<T>>
 {
@@ -170,18 +163,24 @@ public:
     }
 
 public:
+    // derived methods in Result<T>(autil/result/Result.h):
+    // is_ok, is_err, get, get_err, steal_value, steal_error
+
+public:
     // Return a success status.
     static Status OK() { return Status(); }
 
-#define IB_STATUS_IMPL_STATUS_CODE_(name, ec)                                                                          \
-    static ErrorStatus name() { return std::make_unique<StatusError>(StatusCode::ec, ""); }                            \
-    static ErrorStatus name(const char* fmt, ...)                                                                      \
+    // NAME() or NAME(const char* fmt, ...)
+#define IB_STATUS_IMPL_STATUS_CODE_(NAME, EC)                                                                          \
+    static ErrorStatus NAME() { return std::make_unique<StatusError>(StatusCode::EC, ""); }                            \
+    static ErrorStatus NAME(const char* fmt, ...)                                                                      \
     {                                                                                                                  \
         va_list ap;                                                                                                    \
         va_start(ap, fmt);                                                                                             \
-        auto msg = FormatMessage(fmt, ap);                                                                             \
+        char buffer[2048];                                                                                             \
+        vsnprintf(buffer, sizeof(buffer), fmt, ap);                                                                    \
         va_end(ap);                                                                                                    \
-        return std::make_unique<StatusError>(StatusCode::ec, std::move(msg));                                          \
+        return std::make_unique<StatusError>(StatusCode::EC, std::string(buffer));                                     \
     }
 
     IB_STATUS_IMPL_STATUS_CODE_(Corruption, EC_CORRUPTION);
@@ -194,7 +193,7 @@ public:
     IB_STATUS_IMPL_STATUS_CODE_(InternalError, EC_INTERNAL);
     IB_STATUS_IMPL_STATUS_CODE_(OutOfRange, EC_OUT_OF_RANGE);
     IB_STATUS_IMPL_STATUS_CODE_(Eof, EC_EOF);
-    IB_STATUS_IMPL_STATUS_CODE_(NoEntry, EC_NOENT);
+    // IB_STATUS_IMPL_STATUS_CODE_(NoEntry, EC_NOENT);
 
     IB_STATUS_IMPL_STATUS_CODE_(NeedDump, EC_NEED_DUMP);
     IB_STATUS_IMPL_STATUS_CODE_(Unimplement, EC_UNIMPLEMENT);
@@ -206,7 +205,6 @@ public:
 
 #undef IB_STATUS_IMPL_STATUS_CODE_
 };
-
 } // namespace detail
 
 using Status = detail::Status<void>;
@@ -216,13 +214,13 @@ using StatusOr = detail::Status<T>;
 #define RETURN_STATUS_DIRECTLY_IF_ERROR(status) AR_RET_IF_ERR(status)
 
 #define RETURN_IF_STATUS_ERROR(statusOrFunc, format, args...)                                                          \
-    AR_RET_IF_ERR_IMPL_(statusOrFunc, AUTIL_LOG(ERROR, format ": %s ", ##args, __e->message().c_str()))
+    AR_RET_IF_ERR_IMPL_(statusOrFunc, AUTIL_LOG(ERROR, format " status[%s]", ##args, __e->message().c_str()))
 
 #define RETURN2_IF_STATUS_ERROR(statusOrFunc, result, format, args...)                                                 \
     do {                                                                                                               \
         indexlib::Status __status__ = (statusOrFunc);                                                                  \
         if (!__status__.IsOK()) {                                                                                      \
-            AUTIL_LOG(ERROR, format ": %s ", ##args, __status__.ToString().c_str());                                   \
+            AUTIL_LOG(ERROR, format " status[%s]", ##args, __status__.ToString().c_str());                             \
             return std::make_pair(std::move(__status__), result);                                                      \
         }                                                                                                              \
     } while (0)
@@ -239,7 +237,7 @@ using StatusOr = detail::Status<T>;
     do {                                                                                                               \
         indexlib::Status __status__ = (statusOrFunc);                                                                  \
         if (!__status__.IsOK()) {                                                                                      \
-            AUTIL_LOG(ERROR, format ": %s ", ##args, __status__.ToString().c_str());                                   \
+            AUTIL_LOG(ERROR, format " status[%s] ", ##args, __status__.ToString().c_str());                            \
             return std::make_tuple(std::move(__status__), result1, result2);                                           \
         }                                                                                                              \
     } while (0)
@@ -260,7 +258,7 @@ using StatusOr = detail::Status<T>;
 #define RETURN_STATUS_ERROR(ERROR_TYPE, format, args...)                                                               \
     do {                                                                                                               \
         auto err = indexlib::Status::ERROR_TYPE(format, ##args);                                                       \
-        AUTIL_LOG(ERROR, "%s ", err.ToString().c_str());                                                               \
+        AUTIL_LOG(ERROR, " status[%s]", err.ToString().c_str());                                                       \
         return err;                                                                                                    \
     } while (0)
 

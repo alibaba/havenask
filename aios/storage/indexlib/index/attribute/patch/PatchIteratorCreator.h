@@ -19,9 +19,10 @@
 
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
+#include "indexlib/base/Types.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::framework {
@@ -37,8 +38,9 @@ public:
     ~PatchIteratorCreator() = default;
 
 public:
-    static std::unique_ptr<PatchIterator> Create(const std::shared_ptr<config::TabletSchema>& schema,
-                                                 const std::vector<std::shared_ptr<framework::Segment>>& segments);
+    static std::unique_ptr<PatchIterator>
+    Create(const std::shared_ptr<config::ITabletSchema>& schema,
+           const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& segments);
 
 private:
     AUTIL_LOG_DECLARE();

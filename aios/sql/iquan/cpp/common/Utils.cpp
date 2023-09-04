@@ -15,15 +15,21 @@
  */
 #include "iquan/common/Utils.h"
 
+#include <algorithm>
 #include <dirent.h>
 #include <fstream>
-#include <linux/limits.h>
+#include <iterator>
+#include <limits.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <typeinfo>
 #include <unistd.h>
 
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "iquan/common/Common.h"
 
 using namespace autil;
@@ -33,27 +39,6 @@ using namespace autil::legacy::json;
 namespace iquan {
 
 AUTIL_LOG_SETUP(iquan, Utils);
-
-Status Utils::setEnv(const std::string &key, const std::string &value, bool overwrite) {
-    int ov = 0;
-    if (overwrite) {
-        ov = 1;
-    }
-    if (setenv(key.c_str(), value.c_str(), ov) != 0) {
-        return Status(IQUAN_FAIL, "set env fail");
-    } else {
-        return Status::OK();
-    }
-}
-
-std::string Utils::getEnv(const std::string &key, const std::string &defaultValue) {
-    const char *str = getenv(key.c_str());
-    if (unlikely(str == NULL)) {
-        return defaultValue;
-    } else {
-        return std::string(str);
-    }
-}
 
 Status Utils::getCurrentPath(std::string &path) {
     char cwdPath[PATH_MAX];
@@ -69,7 +54,7 @@ Status Utils::getCurrentPath(std::string &path) {
 }
 
 Status Utils::getBinaryPath(std::string &path) {
-    std::string binaryPath = getEnv(BINARY_PATH, "");
+    std::string binaryPath = EnvUtil::getEnv(BINARY_PATH, "");
     if (unlikely(binaryPath.empty())) {
         std::string workDir = "";
         Status status = getCurrentPath(workDir);
@@ -156,7 +141,8 @@ Status Utils::listDir(const std::string &path, std::vector<std::string> &fileLis
 
 Status Utils::readFile(const std::string &path, std::string &fileContent) {
     std::ifstream fileStream(path);
-    std::string tmpContent((std::istreambuf_iterator<char>(fileStream)), std::istreambuf_iterator<char>());
+    std::string tmpContent((std::istreambuf_iterator<char>(fileStream)),
+                           std::istreambuf_iterator<char>());
     fileContent = std::move(tmpContent);
     fileStream.close();
     if (fileContent.empty()) {
@@ -180,9 +166,11 @@ Status Utils::readFiles(const std::vector<std::string> &pathList,
                 fileContent.emplace_back(line);
             }
             if (!reverse) {
-                fileContentList.insert(fileContentList.end(), fileContent.begin(), fileContent.end());
+                fileContentList.insert(
+                    fileContentList.end(), fileContent.begin(), fileContent.end());
             } else {
-                fileContentList.insert(fileContentList.end(), fileContent.rbegin(), fileContent.rend());
+                fileContentList.insert(
+                    fileContentList.end(), fileContent.rbegin(), fileContent.rend());
             }
             fileStream.close();
         } else {
@@ -512,17 +500,17 @@ std::string Utils::anyToString(const autil::legacy::Any &any, const std::string 
 
     if (!isNumberType(expectedType)) {
         const std::string &typeName = GetJsonTypeName(any);
-        throw IquanException(
-            std::string("any type(" + typeName + ") cast to expect type(" + expectedType + ") is not support"));
+        throw IquanException(std::string("any type(" + typeName + ") cast to expect type("
+                                         + expectedType + ") is not support"));
     }
 
 #ifdef RETURN_TYPE_STRING
 #undef RETURN_TYPE_STRING
 #endif
-#define RETURN_TYPE_STRING(TARGETTYPE)                                                                                 \
-    if (type == typeid(TARGETTYPE)) {                                                                                  \
-        TARGETTYPE value = autil::legacy::AnyCast<TARGETTYPE>(any);                                                    \
-        return StringUtil::toString(value);                                                                            \
+#define RETURN_TYPE_STRING(TARGETTYPE)                                                             \
+    if (type == typeid(TARGETTYPE)) {                                                              \
+        TARGETTYPE value = autil::legacy::AnyCast<TARGETTYPE>(any);                                \
+        return StringUtil::toString(value);                                                        \
     }
 
     const std::type_info &type = any.GetType();
@@ -540,8 +528,8 @@ std::string Utils::anyToString(const autil::legacy::Any &any, const std::string 
 #undef RETURN_TYPE_STRING
 
     const std::string &typeName = GetJsonTypeName(any);
-    throw IquanException(
-        std::string("any type(" + typeName + ") cast to expect type(" + expectedType + ") is not support"));
+    throw IquanException(std::string("any type(" + typeName + ") cast to expect type("
+                                     + expectedType + ") is not support"));
 }
 
 /*

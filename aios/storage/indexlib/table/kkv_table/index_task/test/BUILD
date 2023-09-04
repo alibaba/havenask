@@ -1,0 +1,41 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+strict_cc_fast_test(
+    name='KKVTableMergeInteTest',
+    srcs=['KKVTableMergeInteTest.cpp'],
+    shard_count=30,
+    deps=[
+        '//aios/filesystem/fslib:fslib-framework',
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/config:BuildConfig',
+        '//aios/storage/indexlib/config:OnlineConfig',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/document:DocumentBatch',
+        '//aios/storage/indexlib/framework:DiskSegment',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/framework:MemSegment',
+        '//aios/storage/indexlib/framework:ReadResource',
+        '//aios/storage/indexlib/framework:Tablet',
+        '//aios/storage/indexlib/framework:Version',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContextCreator',
+        '//aios/storage/indexlib/framework/index_task:LocalExecuteEngine',
+        '//aios/storage/indexlib/index/kv:factory',
+        '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
+        '//aios/storage/indexlib/table/kkv_table:KKVTabletFactory',
+        '//aios/storage/indexlib/table/kkv_table/test:kkv_table_test_helper',
+        '//aios/storage/indexlib/table/kv_table/index_task:KVTableMergePlanCreator',
+        '//aios/storage/indexlib/table/kv_table/index_task:KVTableResourceCreator',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KKVIndexMergeOperationTest',
+    srcs=['KKVIndexMergeOperationTest.cpp'],
+    shard_count=30,
+    deps=[
+        '//aios/filesystem/fslib:fslib-framework',
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/table/kkv_table/index_task:KKVIndexMergeOperation',
+        '//aios/unittest_framework'
+    ]
+)

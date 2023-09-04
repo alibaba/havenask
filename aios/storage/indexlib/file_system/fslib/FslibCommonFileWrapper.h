@@ -68,7 +68,7 @@ private:
                                                  future_lite::Executor* executor) noexcept;
 
 private:
-    static const size_t MIN_ALIGNMENT = 512;
+    static const size_t MIN_ALIGNMENT;
     static constexpr size_t PANGU_MAX_READ_BYTES = 2 * 1024 * 1024;
 
     bool _useDirectIO;

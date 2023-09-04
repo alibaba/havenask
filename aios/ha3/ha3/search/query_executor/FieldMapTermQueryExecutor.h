@@ -27,13 +27,13 @@
 namespace indexlib {
 namespace index {
 class PostingIterator;
-}  // namespace index
-}  // namespace indexlib
+} // namespace index
+} // namespace indexlib
 namespace isearch {
 namespace common {
 class Term;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace search {
@@ -43,24 +43,28 @@ enum FieldMatchOperatorType {
     FM_OR
 };
 
-class FieldMapTermQueryExecutor : public BufferedTermQueryExecutor
-{
+class FieldMapTermQueryExecutor : public BufferedTermQueryExecutor {
 public:
-    FieldMapTermQueryExecutor(indexlib::index::PostingIterator *iter, 
+    FieldMapTermQueryExecutor(indexlib::index::PostingIterator *iter,
                               const common::Term &term,
                               fieldmap_t fieldMap,
                               FieldMatchOperatorType opteratorType);
     ~FieldMapTermQueryExecutor();
+
 private:
     FieldMapTermQueryExecutor(const FieldMapTermQueryExecutor &);
-    FieldMapTermQueryExecutor& operator=(const FieldMapTermQueryExecutor &);
+    FieldMapTermQueryExecutor &operator=(const FieldMapTermQueryExecutor &);
+
 public:
     std::string toString() const override;
+
 private:
-    indexlib::index::ErrorCode doSeek(docid_t id, docid_t& result) override;
+    indexlib::index::ErrorCode doSeek(docid_t id, docid_t &result) override;
+
 private:
     fieldmap_t _fieldMap;
     FieldMatchOperatorType _opteratorType;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -69,4 +73,3 @@ typedef std::shared_ptr<FieldMapTermQueryExecutor> FieldMapTermQueryExecutorPtr;
 
 } // namespace search
 } // namespace isearch
-

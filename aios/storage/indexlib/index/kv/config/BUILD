@@ -1,13 +1,13 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='config',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':KVIndexConfig']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVIndexPreference',
     deps=[
         '//aios/autil:json', '//aios/autil:log',
@@ -18,21 +18,22 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util/buffer_compressor'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ValueConfig',
     deps=[
         '//aios/autil:log', '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/base:constants',
-        '//aios/storage/indexlib/index/attribute:config'
+        '//aios/storage/indexlib/index/attribute:config',
+        '//aios/storage/indexlib/index/pack_attribute:config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TTLSettings', deps=['//aios/storage/indexlib/base:Constant']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVIndexConfig',
     deps=[
-        ':KVIndexPreference', ':ValueConfig', ':TTLSettings',
+        ':KVIndexPreference', ':TTLSettings', ':ValueConfig',
         '//aios/storage/indexlib/index/kv:Common'
     ]
 )

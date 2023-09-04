@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/stream/GigClientStreamImpl.h"
+
 #include "aios/network/gig/multi_call/grpc/client/GrpcClientStreamHandler.h"
-#include "aios/network/gig/multi_call/service/SearchServiceResource.h"
 #include "aios/network/gig/multi_call/service/ChildNodeReply.h"
+#include "aios/network/gig/multi_call/service/SearchServiceResource.h"
 #include "aios/network/gig/multi_call/stream/GigClientStream.h"
 #include "aios/network/gig/multi_call/stream/GigStreamRequest.h"
 #include "aios/network/gig/multi_call/stream/GigStreamRpcInfo.h"
@@ -28,8 +29,7 @@ AUTIL_LOG_SETUP(multi_call, GigClientStreamImpl);
 
 GigClientStreamImpl::GigClientStreamImpl(GigClientStream *stream)
     : _stream(stream)
-    , _partCount(INVALID_PART_COUNT)
-{
+    , _partCount(INVALID_PART_COUNT) {
     assert(stream);
 }
 
@@ -44,8 +44,7 @@ GigClientStreamImpl::~GigClientStreamImpl() {
 
 bool GigClientStreamImpl::init(const ChildNodeReplyPtr &reply,
                                const SearchServiceResourceVector &resourceVec,
-                               const CallerPtr &caller, bool disableRetry, bool forceStop)
-{
+                               const CallerPtr &caller, bool disableRetry, bool forceStop) {
     _reply = reply;
     _caller = caller;
     for (const auto &resource : resourceVec) {
@@ -83,8 +82,7 @@ PartIdTy GigClientStreamImpl::getPartCount() const {
     return _partCount;
 }
 
-bool GigClientStreamImpl::send(PartIdTy partId, bool eof,
-                               google::protobuf::Message *message) {
+bool GigClientStreamImpl::send(PartIdTy partId, bool eof, google::protobuf::Message *message) {
     if (!message && !eof) {
         AUTIL_LOG(ERROR, "send failed, null msg");
         return false;
@@ -105,17 +103,14 @@ bool GigClientStreamImpl::writeMessage(bool cancel, const GigStreamMessage &mess
             return false;
         }
     } else {
-        AUTIL_LOG(DEBUG,
-                  "write message failed, partId [%d] not found, cancel [%d]",
-                  partId, cancel);
+        AUTIL_LOG(DEBUG, "write message failed, partId [%d] not found, cancel [%d]", partId,
+                  cancel);
         return false;
     }
     return true;
 }
 
-void GigClientStreamImpl::sendCancel(PartIdTy partId,
-                                     google::protobuf::Message *message)
-{
+void GigClientStreamImpl::sendCancel(PartIdTy partId, google::protobuf::Message *message) {
     GigStreamMessage streamMessage;
     streamMessage.message = message;
     streamMessage.partId = partId;
@@ -126,14 +121,14 @@ void GigClientStreamImpl::sendCancel(PartIdTy partId,
 GigStreamRpcInfo GigClientStreamImpl::getStreamRpcInfo(PartIdTy partId) const {
     auto it = _requestMap.find(partId);
     if (_requestMap.end() == it) {
-        return { partId };
+        return {partId};
     }
     const auto &request = it->second;
     auto handler = request->getResultHandler();
     if (handler) {
         return handler->snapshotStreamRpcInfo();
     } else {
-        return { partId };
+        return {partId};
     }
 }
 

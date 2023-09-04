@@ -2,15 +2,15 @@ package(default_visibility=['//aios/ha3:__subpackages__'])
 cc_library(
     name='ha3_comparator_headers',
     hdrs=glob(['*.h']),
-    deps=['@suez_turing.turbojet.turing_ops_util//:suez_turing'],
-    include_prefix='ha3/rank'
+    include_prefix='ha3/rank',
+    deps=['//aios/suez_turing/suez/turing/expression:turing_expression']
 )
 cc_library(
     name='ha3_comparator',
     srcs=glob(['*.cpp']),
+    visibility=['//visibility:public'],
     deps=[
-        ':ha3_comparator_headers',
-        '@suez_turing.turbojet.turing_ops_util//:suez_turing',
-        '//aios/ha3/ha3/sql/common:sql_log'
+        ':ha3_comparator_headers', '//aios/sql/common:sql_log',
+        '//aios/suez_turing/suez/turing/expression:turing_expression'
     ]
 )

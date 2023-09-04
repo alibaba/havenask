@@ -1,0 +1,6 @@
+leak:JavaCalls::call_helper
+leak:os::malloc
+leak:jvm_define_class_common
+leak:JNI_CreateJavaVM
+leak:bash
+leak:libz

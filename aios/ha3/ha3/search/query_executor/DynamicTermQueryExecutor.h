@@ -33,8 +33,8 @@ class PostingIterator;
 namespace isearch {
 namespace common {
 class Term;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace search {

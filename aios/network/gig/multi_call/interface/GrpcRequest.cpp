@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/interface/GrpcRequest.h"
+
 #include "aios/network/gig/multi_call/interface/GrpcResponse.h"
 
 using namespace std;
@@ -23,18 +24,28 @@ AUTIL_LOG_SETUP(multi_call, GrpcRequest);
 
 GrpcRequest::GrpcRequest(const std::string &methodName,
                          const std::shared_ptr<google::protobuf::Arena> &arena)
-    : Request(MC_PROTOCOL_GRPC, arena), _methodName(methodName),
-      _message(NULL) {}
+    : Request(MC_PROTOCOL_GRPC, arena)
+    , _methodName(methodName)
+    , _message(NULL) {
+}
 
-GrpcRequest::~GrpcRequest() { DELETE_AND_SET_NULL(_message); }
+GrpcRequest::~GrpcRequest() {
+    DELETE_AND_SET_NULL(_message);
+}
 
 ResponsePtr GrpcRequest::newResponse() {
     return ResponsePtr(new GrpcResponse());
 }
 
-const std::string &GrpcRequest::getMethodName() const { return _methodName; }
-void GrpcRequest::setMessage(google::protobuf::Message *msg) { _message = msg; }
+const std::string &GrpcRequest::getMethodName() const {
+    return _methodName;
+}
+void GrpcRequest::setMessage(google::protobuf::Message *msg) {
+    _message = msg;
+}
 
-google::protobuf::Message *GrpcRequest::getMessage() const { return _message; }
+google::protobuf::Message *GrpcRequest::getMessage() const {
+    return _message;
+}
 
 } // namespace multi_call

@@ -79,6 +79,9 @@ bool OperationLogDiskIndexer::GetOperationMeta(OperationMeta& operationMeta) con
 std::pair<Status, std::shared_ptr<SegmentOperationIterator>>
 OperationLogDiskIndexer::CreateSegmentOperationIterator(size_t offset, const indexlibv2::framework::Locator& locator)
 {
+    if (_opMeta == nullptr) {
+        return {Status::OK(), nullptr};
+    }
     OperationMeta opMeta(*_opMeta);
     std::shared_ptr<NormalSegmentOperationIterator> iter(
         new NormalSegmentOperationIterator(_opConfig, _operationFieldInfo, opMeta, _segmentid, offset, locator));
@@ -91,6 +94,9 @@ OperationLogDiskIndexer::CreateSegmentOperationIterator(size_t offset, const ind
 
 std::pair<Status, std::shared_ptr<BatchOpLogIterator>> OperationLogDiskIndexer::CreateBatchIterator()
 {
+    if (_opMeta == nullptr) {
+        return {Status::OK(), nullptr};
+    }
     OperationMeta opMeta(*_opMeta);
     auto batchIter = std::make_shared<BatchOpLogIterator>();
     batchIter->Init(_opConfig, _operationFieldInfo, opMeta, _directory->GetIDirectory());

@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="anti_nested_loop_join">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT company_id, company_name FROM company where NOT EXISTS (SELECT company_id from daogou WHERE id + company.company_id <= 5)
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"company_id", "company_name"</Resource>
+        <Resource name="column_types">int32, multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:daogou;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+5, "HUAWEI"
+6, "XIAOMI"
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#5(type=api)
+    ExchangeOp#4(distribution={type:SINGLETON})
+        LimitOp#3(limit=100)
+            NestedLoopJoinOp#2(condition=<=(+($id,$company_id),5),is_equi_join=false,is_internal_build=true,join_type=ANTI,left_is_build=false,output_fields=[$company_id,$company_name],remaining_condition=<=(+($id,$company_id),5),semi_join_type=ANTI)
+                TableScanOp#0(catalog_name=default,db_name=daogou,limit=2147483647,output_fields=[$company_id,$company_name],push_down_ops=[{attrs:{output_fields:[$company_id,$company_name]},op_name:CalcOp}],table_name=company,table_type=normal,use_nest_table=false)
+                TableScanOp#1(catalog_name=default,db_name=daogou,limit=2147483647,output_fields=[$id],push_down_ops=[{attrs:{output_fields:[$id]},op_name:CalcOp}],table_name=daogou,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

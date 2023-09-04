@@ -16,19 +16,21 @@
 #ifndef ISEARCH_MULTI_CALL_CONNECTIONPOOL_H
 #define ISEARCH_MULTI_CALL_CONNECTIONPOOL_H
 
+#include <unordered_map>
+
 #include "aios/network/anet/transport.h"
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/config/MultiCallConfig.h"
 #include "aios/network/gig/multi_call/service/Connection.h"
 #include "autil/Lock.h"
 #include "autil/LoopThread.h"
-#include <unordered_map>
 
 namespace multi_call {
 
 class ConnectionFactory;
 
-class ConnectionPool {
+class ConnectionPool
+{
 public:
     ConnectionPool();
     virtual ~ConnectionPool();
@@ -47,8 +49,7 @@ private:
     ConnectionPtr addConnection(const std::string &spec);
     ConnectionPtr doGetConnection(const std::string &spec);
     void removeConnection(const std::string &spec);
-    std::vector<std::string>
-    getRemoveList(const std::set<std::string> &keepSpecs);
+    std::vector<std::string> getRemoveList(const std::set<std::string> &keepSpecs);
     // virtual for ut
     virtual anet::Transport *createTransport(uint32_t threadNum);
 

@@ -15,6 +15,9 @@
  */
 #include "indexlib/index/inverted_index/InvertedIndexFactory.h"
 
+#include <typeinfo>
+
+#include "indexlib/config/MergeConfig.h"
 #include "indexlib/framework/MetricsManager.h"
 #include "indexlib/index/IDiskIndexer.h"
 #include "indexlib/index/IIndexMerger.h"
@@ -49,6 +52,7 @@
 #include "indexlib/index/inverted_index/config/RangeIndexConfig.h"
 #include "indexlib/index/inverted_index/config/SingleFieldIndexConfig.h"
 #include "indexlib/index/inverted_index/config/SpatialIndexConfig.h"
+#include "indexlib/index/inverted_index/config/TruncateStrategy.h"
 
 namespace indexlib::index {
 namespace {
@@ -313,6 +317,22 @@ InvertedIndexFactory::CreateIndexConfig(const autil::legacy::Any& any) const
 
 std::string InvertedIndexFactory::GetIndexPath() const { return INVERTED_INDEX_PATH; }
 
-REGISTER_INDEX(inverted_index, InvertedIndexFactory);
+REGISTER_INDEX_FACTORY(inverted_index, InvertedIndexFactory);
+
+__attribute__((constructor)) static void RegisterHooks()
+{
+    indexlibv2::config::MergeConfig::RegisterOptionHook(
+        TRUNCATE_STRATEGY,
+        [](std::map<std::string, std::any>& hookOptions) {
+            hookOptions.emplace(TRUNCATE_STRATEGY, std::vector<indexlibv2::config::TruncateStrategy>());
+        },
+        [](autil::legacy::Jsonizable::JsonWrapper& json, std::map<std::string, std::any>& hookOptions) {
+            assert(hookOptions.count(TRUNCATE_STRATEGY) > 0);
+            assert(hookOptions[TRUNCATE_STRATEGY].type() == typeid(std::vector<indexlibv2::config::TruncateStrategy>));
+            auto& truncateStrategyVec =
+                std::any_cast<std::vector<indexlibv2::config::TruncateStrategy>&>(hookOptions[TRUNCATE_STRATEGY]);
+            json.Jsonize(TRUNCATE_STRATEGY, truncateStrategyVec, truncateStrategyVec);
+        });
+}
 
 } // namespace indexlib::index

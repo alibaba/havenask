@@ -1,0 +1,251 @@
+{
+  "exec_params" : { },
+  "optimize_infos" : { },
+  "rel_plan" : [ {
+    "attrs" : {
+    },
+    "id" : 0,
+    "inputs" : {
+      "input" : [ ]
+    },
+    "op_name" : "TableScanOp",
+    "outputs" : [ 1 ]
+  }, {
+    "attrs" : {
+      "catalog_name" : "default",
+      "db_name" : "db1",
+      "table_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$i1" ],
+          "hash_function" : "HASH"
+        },
+        "partition_cnt" : 4
+      },
+      "output_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$i1" ],
+          "hash_function" : "HASH"
+        },
+        "partition_cnt" : 64
+      },
+      "table_name" : "t1",
+      "table_type" : "normal",
+      "output_prunable" : 1
+    },
+    "id" : 1,
+    "inputs" : {
+      "input" : [ 0 ]
+    },
+    "op_name" : "ExchangeOp",
+    "outputs" : [ 2 ]
+  }, {
+    "attrs" : {
+    },
+    "id" : 2,
+    "inputs" : {
+      "input" : [ ]
+    },
+    "op_name" : "TableScanOp",
+    "outputs" : [ 3 ]
+  }, {
+    "attrs" : {
+      "catalog_name" : "default",
+      "db_name" : "db2",
+      "table_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$i1" ],
+          "hash_function" : "HASH"
+        },
+        "partition_cnt" : 2
+      },
+      "output_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$i1" ],
+          "hash_function" : "HASH"
+        },
+        "partition_cnt" : 64
+      },
+      "table_name" : "t2",
+      "table_type" : "normal",
+      "output_prunable" : 1
+    },
+    "id" : 3,
+    "inputs" : {
+      "input" : [ 2 ]
+    },
+    "op_name" : "ExchangeOp",
+    "outputs" : [ 5 ]
+  }, {
+    "attrs" : {
+    },
+    "id" : 4,
+    "inputs" : {
+      "input" : [ 1 ]
+    },
+    "op_name" : "LookupJoinOp",
+    "outputs" : [ 5 ]
+  }, {
+    "attrs" : {
+    },
+    "id" : 5,
+    "inputs" : {
+      "input0" : [ 4 ],
+      "input1" : [ 3 ]
+    },
+    "op_name" : "HashJoinOp",
+    "outputs" : [ 6, 7, 8 ]
+  }, {
+    "attrs" : {
+    },
+    "id" : 6,
+    "inputs" : {
+      "input" : [ 5 ]
+    },
+    "op_name" : "AggregateOp",
+    "outputs" : [ 7 ]
+  }, {
+    "attrs" : {
+      "catalog_name" : "default",
+      "db_name" : "db3",
+      "table_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$i1" ],
+          "hash_function" : "HASH"
+        },
+        "partition_cnt" : 64
+      },
+      "output_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$i1" ],
+          "hash_function" : "HASH"
+        },
+        "partition_cnt" : 1
+      },
+      "table_name" : "t3",
+      "table_type" : "normal"
+    },
+    "id" : 7,
+    "inputs" : {
+      "input" : [ 6 ]
+    },
+    "op_name" : "ExchangeOp",
+    "outputs" : [ 12 ]
+  }, {
+    "attrs" : {
+    },
+    "id" : 8,
+    "inputs" : {
+      "input" : [ 5 ]
+    },
+    "op_name" : "AggregateOp",
+    "outputs" : [ 9 ]
+  }, {
+    "attrs" : {
+      "catalog_name" : "default",
+      "db_name" : "db3",
+      "table_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$i1" ],
+          "hash_function" : "HASH"
+        },
+        "partition_cnt" : 64
+      },
+      "output_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$i1" ],
+          "hash_function" : "HASH"
+        },
+        "partition_cnt" : 1
+      },
+      "table_name" : "t3",
+      "table_type" : "normal"
+    },
+    "id" : 9,
+    "inputs" : {
+      "input" : [ 8 ]
+    },
+    "op_name" : "ExchangeOp",
+    "outputs" : [ 13 ]
+  }, {
+    "attrs" : {
+    },
+    "id" : 10,
+    "inputs" : {
+      "input" : [ 5 ]
+    },
+    "op_name" : "AggregateOp",
+    "outputs" : [ 11 ]
+  }, {
+    "attrs" : {
+      "catalog_name" : "default",
+      "db_name" : "db3",
+      "table_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$i1" ],
+          "hash_function" : "HASH"
+        },
+        "partition_cnt" : 64
+      },
+      "output_distribution" : {
+        "hash_mode" : {
+          "hash_fields" : [ "$i1" ],
+          "hash_function" : "HASH"
+        },
+        "partition_cnt" : 1
+      },
+      "table_name" : "t3",
+      "table_type" : "normal"
+    },
+    "id" : 11,
+    "inputs" : {
+      "input" : [ 10 ]
+    },
+    "op_name" : "ExchangeOp",
+    "outputs" : [ 14 ]
+  }, {
+    "attrs" : {
+    },
+    "id" : 12,
+    "inputs" : {
+      "input" : [ 7 ]
+    },
+    "op_name" : "AggregateOp",
+    "outputs" : [ 15 ]
+  }, {
+    "attrs" : {
+    },
+    "id" : 13,
+    "inputs" : {
+      "input" : [ 9 ]
+    },
+    "op_name" : "AggregateOp",
+    "outputs" : [ 15 ]
+  }, {
+    "attrs" : {
+    },
+    "id" : 14,
+    "inputs" : {
+      "input" : [ 11 ]
+    },
+    "op_name" : "AggregateOp",
+    "outputs" : [ 15 ]
+  }, {
+    "id" : 15,
+    "op_name" : "UnionOp",
+    "inputs" : {
+      "input0" : [ 12, 13, 14 ]
+    },
+    "attrs" : {
+    }
+  }, {
+    "attrs" : {
+    },
+    "id" : 16,
+    "inputs" : {
+      "input" : [ 15 ]
+    },
+    "op_name" : "SinkOp",
+    "outputs" : [ ]
+  } ],
+  "rel_plan_version" : "plan_version_0.0.1"
+}

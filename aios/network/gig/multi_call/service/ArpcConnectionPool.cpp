@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/ArpcConnectionPool.h"
+
 #include "aios/network/gig/multi_call/java/arpc/GigRPCChannelManager.h"
 #include "aios/network/gig/multi_call/service/ArpcConnection.h"
 #include "aios/network/gig/multi_call/service/ConnectionFactory.h"
@@ -24,8 +25,8 @@ using namespace autil;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, ArpcConnectionPool);
 
-ArpcConnectionPool::ArpcConnectionPool(bool isRawArpc)
-    : _isRawArpc(isRawArpc) {}
+ArpcConnectionPool::ArpcConnectionPool(bool isRawArpc) : _isRawArpc(isRawArpc) {
+}
 
 ArpcConnectionPool::~ArpcConnectionPool() {
     if (_rpcChannelManager) {
@@ -42,8 +43,7 @@ bool ArpcConnectionPool::init(const ProtocolConfig &config) {
     } else {
         _rpcChannelManager.reset(new arpc::ANetRPCChannelManager(_transport));
     }
-    _connectionFactory.reset(
-        new ArpcConnectionFactory(_rpcChannelManager, _queueSize));
+    _connectionFactory.reset(new ArpcConnectionFactory(_rpcChannelManager, _queueSize));
     return true;
 }
 

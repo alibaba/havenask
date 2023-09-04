@@ -22,6 +22,7 @@ namespace indexlibv2::index {
 const std::string& DeletionMapConfig::GetIndexName() const { return DELETION_MAP_INDEX_NAME; }
 
 const std::string& DeletionMapConfig::GetIndexType() const { return DELETION_MAP_INDEX_TYPE_STR; }
-std::vector<std::string> DeletionMapConfig::GetIndexPath() const { return {DELETION_MAP_INDEX_PATH}; }
+const std::string& DeletionMapConfig::GetIndexCommonPath() const { return DELETION_MAP_INDEX_PATH; }
+std::vector<std::string> DeletionMapConfig::GetIndexPath() const { return {GetIndexCommonPath()}; }
 
 } // namespace indexlibv2::index

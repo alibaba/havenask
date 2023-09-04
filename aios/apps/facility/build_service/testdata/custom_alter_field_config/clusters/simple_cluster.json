@@ -1,0 +1,33 @@
+{
+    "cluster_config" : {
+	"table_name" : "simple",
+	"hash_mode" : {
+            "hash_field" : "nid",
+            "hash_function" : "KINGSO_HASH#720"
+	},
+        "cluster_name" : "simple",
+        "cluster_type" : "inc_with_realtime"
+    },
+    "online_index_config" : {
+        "online_keep_version_count" : 10,
+        "max_reopen_memory_use" : 3072
+    },
+    "offline_index_config" : {
+ 	    "customized_merge_config" :
+	    {
+	        "alter_field" :
+	        {
+		        "plugin_config" : {
+                    "module_info" : {
+                        "module_name" : "fake_alter_field",
+                        "module_path": "libalter_field_fake.so"
+                    },
+		            "class_info" : {
+			            "class_name" : "FakeAlterFieldMerger",
+                        "module_name" : "fake_alter_field"
+			        }
+		        }
+	        }
+	    }
+    }
+}

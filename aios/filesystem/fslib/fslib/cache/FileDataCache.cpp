@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 #include "fslib/cache/FileDataCache.h"
+
+#include "autil/TimeUtility.h"
 #include "fslib/cache/DirectoryMapIterator.h"
 #include "fslib/util/PathUtil.h"
-#include "autil/TimeUtility.h"
 
 using namespace std;
 using namespace autil;
@@ -25,28 +26,22 @@ FSLIB_USE_NAMESPACE(util);
 FSLIB_BEGIN_NAMESPACE(cache);
 AUTIL_DECLARE_AND_SETUP_LOGGER(cache, FileDataCache);
 
-FileDataCache::FileDataCache(int64_t totalCacheSize)
-    : _cache(totalCacheSize)
-{}
+FileDataCache::FileDataCache(int64_t totalCacheSize) : _cache(totalCacheSize) {}
 
-FileDataCache::~FileDataCache()
-{}
+FileDataCache::~FileDataCache() {}
 
-bool FileDataCache::put(const string& normPath, const string& content)
-{
+bool FileDataCache::put(const string &normPath, const string &content) {
     int64_t ts = TimeUtility::currentTime();
     ScopedLock lock(_lock);
     if (_cache.put(normPath, content)) {
-        AUTIL_LOG(INFO, "put file [%s] to innerDataCache, fileLength [%lu]",
-                  normPath.c_str(), content.size());
+        AUTIL_LOG(INFO, "put file [%s] to innerDataCache, fileLength [%lu]", normPath.c_str(), content.size());
         _metaMap[normPath] = ts;
         return true;
     }
     return false;
 }
 
-bool FileDataCache::get(const string& normPath, string& content, int64_t& ts)
-{
+bool FileDataCache::get(const string &normPath, string &content, int64_t &ts) {
     ScopedLock lock(_lock);
     auto iter = _metaMap.find(normPath);
     if (iter == _metaMap.end()) {
@@ -56,8 +51,7 @@ bool FileDataCache::get(const string& normPath, string& content, int64_t& ts)
     return _cache.get(normPath, content);
 }
 
-void FileDataCache::removeFile(const string& normPath)
-{
+void FileDataCache::removeFile(const string &normPath) {
     ScopedLock lock(_lock);
     if (_metaMap.find(normPath) == _metaMap.end()) {
         return;
@@ -68,8 +62,7 @@ void FileDataCache::removeFile(const string& normPath)
     _metaMap.erase(normPath);
 }
 
-void FileDataCache::removeDirectory(const string& normPath)
-{
+void FileDataCache::removeDirectory(const string &normPath) {
     ScopedLock lock(_lock);
     DirectoryMapIterator<int64_t> iterator(_metaMap, normPath);
     while (iterator.hasNext()) {
@@ -80,15 +73,8 @@ void FileDataCache::removeDirectory(const string& normPath)
     }
 }
 
-int64_t FileDataCache::getCacheMemUse() const
-{
-    return _cache.getCacheSizeUsed();
-}
+int64_t FileDataCache::getCacheMemUse() const { return _cache.getCacheSizeUsed(); }
 
-int64_t FileDataCache::getCachedFileCount() const
-{
-    return _cache.getKeyCount();
-}
+int64_t FileDataCache::getCachedFileCount() const { return _cache.getKeyCount(); }
 
 FSLIB_END_NAMESPACE(cache);
-

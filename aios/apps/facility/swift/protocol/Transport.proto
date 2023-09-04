@@ -1,0 +1,55 @@
+import "arpc/proto/rpc_extensions.proto";
+import "BrokerRequestResponse.proto";
+import "Common.proto";
+option cc_generic_services = true;
+option py_generic_services = true;
+option java_generic_services = true;
+option java_package="com.alibaba.search.swift.protocol";
+
+package swift.protocol;
+
+service Transporter {
+    option (arpc.global_service_id) = 2100;
+    // return error code:
+    //   ERROR_BROKER_STOPPED
+    //   ERROR_BROKER_BUSY
+    //   ERROR_BROKER_TOPIC_PARTITION_NOT_FOUND
+    //   ERROR_BROKER_REQUEST_INVALID
+    //   ERROR_BROKER_NO_DATA
+    rpc getMessage(ConsumptionRequest) returns(MessageResponse) {
+        option (arpc.local_method_id) = 2101;
+    }
+
+    // return error code:
+    //    ERROR_BROKER_STOPPED
+    //    ERROR_BROKER_BUSY
+    //    ERROR_BROKER_TOPIC_PARTITION_NOT_FOUND
+    //    ERROR_BROKER_REQUEST_INVALID
+    //    ERROR_BROKER_MSG_LENGTH_EXCEEDED
+    rpc sendMessage(ProductionRequest) returns(MessageResponse) {
+        option (arpc.local_method_id) = 2102;
+    }
+
+    // return error code:
+    //    ERROR_BROKER_STOPPED
+    //    ERROR_BROKER_BUSY
+    //    ERROR_BROKER_TOPIC_PARTITION_NOT_FOUND
+    //    ERROR_BROKER_REQUEST_INVALID
+    //    ERROR_BROKER_NO_DATA
+    rpc getMaxMessageId(MessageIdRequest) returns(MessageIdResponse) {
+        option (arpc.local_method_id) = 2103;
+    }
+
+    // return error code:
+    //    ERROR_BROKER_STOPPED
+    //    ERROR_BROKER_BUSY
+    //    ERROR_BROKER_TOPIC_PARTITION_NOT_FOUND
+    //    ERROR_BROKER_REQUEST_INVALID
+    //    ERROR_BROKER_TIMESTAMP_TOO_LATEST
+    rpc getMinMessageIdByTime(MessageIdRequest) returns(MessageIdResponse) {
+        option (arpc.local_method_id) = 2104;
+    }
+    rpc setLoggerLevel(SetLoggerLevelRequest) returns (SetLoggerLevelResponse) {
+        option (arpc.local_method_id) = 2105;
+    }
+}

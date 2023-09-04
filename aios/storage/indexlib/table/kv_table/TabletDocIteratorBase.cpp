@@ -38,13 +38,23 @@ namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.index, TabletDocIteratorBase);
 
 const std::string TabletDocIteratorBase::READER_TIMESTAMP = "reader_timestamp";
-const std::string TabletDocIteratorBase::USER_REQUIRED_FIELDS = "read_index_required_fields";
 
 Status TabletDocIteratorBase::Init(const shared_ptr<framework::TabletData>& tabletData,
                                    pair<uint32_t /*0-99*/, uint32_t /*0-99*/> rangeInRatio,
                                    const std::shared_ptr<indexlibv2::framework::MetricsManager>&,
-                                   const map<string, string>& params)
+                                   const std::vector<std::string>& requiredFields, const map<string, string>& params)
 {
+    if (!tabletData) {
+        AUTIL_LOG(ERROR, "tablet data is nullptr");
+        return Status::Corruption("tablet data is nullptr");
+    }
+    auto slice = tabletData->CreateSlice();
+    if (slice.empty()) {
+        AUTIL_LOG(INFO, "init doc iterator with empty slice");
+        assert(!HasNext());
+        return Status::OK();
+    }
+    _fieldNames = requiredFields;
     Status status = DoInit(tabletData, params);
     RETURN_IF_STATUS_ERROR(status, "init tablet doc iterator failed, table version[%s]",
                            tabletData->GetOnDiskVersion().ToString().c_str());
@@ -138,16 +148,6 @@ Status TabletDocIteratorBase::DoInit(const shared_ptr<TabletData>& tabletData, c
         AUTIL_LOG(WARN, "kv reader's timestamp [%s] is invalid, use current timestamp", timeStampStr.c_str());
     }
 
-    string requiredFieldsStr = indexlib::util::GetValueFromKeyValueMap(params, USER_REQUIRED_FIELDS);
-    if (!requiredFieldsStr.empty()) {
-        try {
-            autil::legacy::FromJsonString(_fieldNames, requiredFieldsStr);
-            AUTIL_LOG(INFO, "required [%lu] fields [%s]", _fieldNames.size(), requiredFieldsStr.c_str());
-        } catch (const autil::legacy::ExceptionBase& e) {
-            RETURN_STATUS_ERROR(InvalidArgs, "parse required fields [%s] failed", requiredFieldsStr.c_str());
-        }
-    }
-
     return InitFromTabletData(tabletData);
 }
 
@@ -236,23 +236,24 @@ Status TabletDocIteratorBase::SelectTargetShards(size_t& shardCount, pair<uint32
 Status TabletDocIteratorBase::ReadValue(const index::IShardRecordIterator::ShardRecord* shardRecord,
                                         size_t recordShardId, RawDocument* doc)
 {
-    for (auto kv : shardRecord->otherFields) {
-        doc->setField(kv.first, kv.second);
-    }
-
-    StringView packValue = PreprocessPackValue(shardRecord->value);
-    FieldValueExtractor extractor(_formatter.get(), packValue, &_pool);
-    for (size_t idx = 0; idx < extractor.GetFieldCount(); idx++) {
-        string attrName;
-        string attrValue;
-        if (!extractor.GetStringValue(idx, attrName, attrValue)) {
-            AUTIL_LOG(ERROR, "attr idx [%zu] read str value failed, pkeyHash[%lu]", idx, shardRecord->key);
-            return Status::Corruption();
+    if (!_fieldNames.empty()) {
+        for (auto kv : shardRecord->otherFields) {
+            doc->setField(kv.first, kv.second);
         }
-        if (NotInFields(attrName)) {
-            continue;
+        StringView packValue = PreprocessPackValue(shardRecord->value);
+        FieldValueExtractor extractor(_formatter.get(), packValue, &_pool);
+        for (size_t idx = 0; idx < extractor.GetFieldCount(); idx++) {
+            string attrName;
+            string attrValue;
+            if (!extractor.GetStringValue(idx, attrName, attrValue)) {
+                AUTIL_LOG(ERROR, "attr idx [%zu] read str value failed, pkeyHash[%lu]", idx, shardRecord->key);
+                return Status::Corruption();
+            }
+            if (NotInFields(attrName)) {
+                continue;
+            }
+            doc->setField(attrName, attrValue);
         }
-        doc->setField(attrName, attrValue);
     }
 
     return Status::OK();
@@ -260,7 +261,7 @@ Status TabletDocIteratorBase::ReadValue(const index::IShardRecordIterator::Shard
 
 bool TabletDocIteratorBase::NotInFields(const string& fieldName) const
 {
-    return !_fieldNames.empty() && find(_fieldNames.begin(), _fieldNames.end(), fieldName) == _fieldNames.end();
+    return find(_fieldNames.begin(), _fieldNames.end(), fieldName) == _fieldNames.end();
 }
 
 void TabletDocIteratorBase::SetCheckPoint(const string& shardCheckpoint, std::string* checkpoint)

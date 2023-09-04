@@ -19,7 +19,8 @@
 
 #include "autil/Log.h"
 #include "autil/StringUtil.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/MutableJson.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/framework/Segment.h"
@@ -101,93 +102,84 @@ Status KVMerger::Merge(const SegmentMergeInfos& segMergeInfos,
     if (segMergeInfos.targetSegments.empty()) {
         return Status::OK();
     }
-    if (segMergeInfos.targetSegments.size() > 1) {
-        return Status::Unimplement("do not support merge source segments to multiple segments");
-    }
-    auto s = PrepareMerge(segMergeInfos);
-    if (!s.IsOK()) {
-        return s;
-    }
+    RETURN_STATUS_DIRECTLY_IF_ERROR(PrepareMerge(segMergeInfos));
     return DoMerge(segMergeInfos);
 }
 
 Status KVMerger::PrepareMerge(const SegmentMergeInfos& segMergeInfos)
 {
-    assert(segMergeInfos.targetSegments.size() == 1);
-    const auto& targetSegment = segMergeInfos.targetSegments[0];
-    _targetDir = PrepareTargetSegmentDirectory(targetSegment->segmentDir);
-    if (!_targetDir) {
-        return Status::IOError("prepare index directory for %s failed, segment id: %d",
-                               _indexConfig->GetIndexName().c_str(), targetSegment->segmentId);
+    if (segMergeInfos.targetSegments.size() > 1) {
+        return Status::Unimplement("do not support merge source segments to multiple segments");
     }
+    const auto& targetSegment = segMergeInfos.targetSegments[0];
+    auto r = PrepareTargetSegmentDirectory(targetSegment->segmentDir);
+    if (!r.IsOK()) {
+        AUTIL_LOG(ERROR, "prepare index directory for %s failed, segment id: %d", _indexConfig->GetIndexName().c_str(),
+                  targetSegment->segmentId);
+        return r.steal_error();
+    }
+    _targetDir = r.steal_value();
 
     assert(targetSegment->schema != nullptr);
     _schemaId = targetSegment->schema->GetSchemaId();
-    auto [s, sortDesc] = targetSegment->schema->GetSetting<config::SortDescriptions>("sort_descriptions");
+    auto [s, sortDesc] =
+        targetSegment->schema->GetRuntimeSettings().GetValue<config::SortDescriptions>("sort_descriptions");
     if (s.IsOK()) {
         _sortDescriptions = std::make_unique<config::SortDescriptions>(sortDesc);
     } else if (!s.IsNotFound()) {
         return s;
     }
     std::vector<SegmentStatistics> statVec;
-    s = LoadSegmentStatistics(segMergeInfos, statVec);
-    RETURN_IF_STATUS_ERROR(s, "load segment statistics failed");
+    RETURN_STATUS_DIRECTLY_IF_ERROR(LoadSegmentStatistics(segMergeInfos, statVec));
 
     auto [keyMemoryUsage, _] = EstimateMemoryUsage(statVec);
-
-    s = CreateKeyWriter(&_pool, keyMemoryUsage, statVec);
-    if (!s.IsOK()) {
-        return s;
-    }
+    RETURN_STATUS_DIRECTLY_IF_ERROR(CreateKeyWriter(&_pool, keyMemoryUsage, statVec));
 
     return Status::OK();
 }
 
 Status KVMerger::DoMerge(const SegmentMergeInfos& segMergeInfos)
 {
-    auto s = MergeMultiSegments(segMergeInfos);
-    if (!s.IsOK()) {
-        return s;
-    }
+    RETURN_STATUS_DIRECTLY_IF_ERROR(MergeMultiSegments(segMergeInfos));
 
-    s = Dump();
-    if (!s.IsOK()) {
-        return s;
-    }
+    RETURN_STATUS_DIRECTLY_IF_ERROR(Dump());
 
     FillSegmentMetrics(segMergeInfos.targetSegments[0]->segmentMetrics.get());
 
     return Status::OK();
 }
 
-std::shared_ptr<indexlib::file_system::Directory>
+StatusOr<std::shared_ptr<indexlib::file_system::Directory>>
 KVMerger::PrepareTargetSegmentDirectory(const std::shared_ptr<indexlib::file_system::Directory>& root) const
 {
     auto impl = root->GetIDirectory();
 
     indexlib::file_system::DirectoryOption dirOption;
     auto result = impl->MakeDirectory(KV_INDEX_PATH, dirOption);
-    if (!result.OK()) {
-        AUTIL_LOG(ERROR, "make %s failed, error: %s", KV_INDEX_PATH.c_str(), result.Status().ToString().c_str());
-        return nullptr;
+    auto status = result.Status();
+    if (!status.IsOK()) {
+        AUTIL_LOG(ERROR, "make %s failed, error: %s", KV_INDEX_PATH.c_str(), status.ToString().c_str());
+        return {status.steal_error()};
     }
     auto indexDir = result.Value();
+
     indexlib::file_system::RemoveOption removeOption;
     removeOption.mayNonExist = true;
-    auto s = indexDir->RemoveDirectory(_indexConfig->GetIndexName(), removeOption).Status();
-    if (!s.IsOK()) {
-        AUTIL_LOG(ERROR, "remove %s failed, error: %s", _indexConfig->GetIndexName().c_str(), s.ToString().c_str());
-        return nullptr;
+    status = indexDir->RemoveDirectory(_indexConfig->GetIndexName(), removeOption).Status();
+    if (!status.IsOK()) {
+        AUTIL_LOG(ERROR, "remove %s failed, error: %s", _indexConfig->GetIndexName().c_str(),
+                  status.ToString().c_str());
+        return {status.steal_error()};
     }
 
     result = indexDir->MakeDirectory(_indexConfig->GetIndexName(), dirOption);
-    if (!result.OK()) {
-        AUTIL_LOG(ERROR, "make %s failed, error: %s", _indexConfig->GetIndexName().c_str(),
-                  result.Status().ToString().c_str());
-        return nullptr;
+    status = result.Status();
+    if (!status.IsOK()) {
+        AUTIL_LOG(ERROR, "make %s failed, error: %s", _indexConfig->GetIndexName().c_str(), status.ToString().c_str());
+        return {status.steal_error()};
     }
 
-    return std::make_shared<indexlib::file_system::Directory>(result.Value());
+    return {std::make_shared<indexlib::file_system::Directory>(result.Value())};
 }
 
 KVTypeId KVMerger::MakeTypeId(const std::vector<SegmentStatistics>& statVec) const
@@ -200,17 +192,10 @@ KVTypeId KVMerger::MakeTypeId(const std::vector<SegmentStatistics>& statVec) con
 Status KVMerger::CreateKeyWriter(autil::mem_pool::PoolBase* pool, int64_t maxKeyMemoryUse,
                                  std::vector<SegmentStatistics>& statVec)
 {
-    _typeId = MakeTypeId(statVec);
     auto writer = std::make_unique<KeyMergeWriter>();
-    auto s = writer->Init(_typeId);
-    if (!s.IsOK()) {
-        return s;
-    }
+    RETURN_STATUS_DIRECTLY_IF_ERROR(writer->Init(_typeId));
     auto occupancyPct = _indexConfig->GetIndexPreference().GetHashDictParam().GetOccupancyPct();
-    s = writer->AllocateMemory(pool, maxKeyMemoryUse, occupancyPct);
-    if (!s.IsOK()) {
-        return s;
-    }
+    RETURN_STATUS_DIRECTLY_IF_ERROR(writer->AllocateMemory(pool, maxKeyMemoryUse, occupancyPct));
     _keyWriter = std::move(writer);
     return Status::OK();
 }
@@ -234,10 +219,7 @@ Status KVMerger::MergeMultiSegments(const SegmentMergeInfos& segMergeInfos)
         iterator = std::make_unique<SortedMultiSegmentKVIterator>(_schemaId, _indexConfig, _ignoreFieldCalculator,
                                                                   std::move(segments), *_sortDescriptions);
     }
-    auto s = iterator->Init();
-    if (!s.IsOK()) {
-        return s;
-    }
+    RETURN_STATUS_DIRECTLY_IF_ERROR(iterator->Init());
     autil::mem_pool::UnsafePool pool;
     while (iterator->HasNext()) {
         Record record;
@@ -265,12 +247,9 @@ Status KVMerger::MergeMultiSegments(const SegmentMergeInfos& segMergeInfos)
             continue;
         }
         if (!record.deleted) {
-            status = AddRecord(record);
+            RETURN_STATUS_DIRECTLY_IF_ERROR(AddRecord(record));
         } else {
-            status = DeleteRecord(record);
-        }
-        if (!status.IsOK()) {
-            return status;
+            RETURN_STATUS_DIRECTLY_IF_ERROR(DeleteRecord(record));
         }
     }
     return Status::OK();
@@ -292,7 +271,7 @@ Status KVMerger::LoadSegmentStatistics(const SegmentMergeInfos& segMergeInfos,
     return Status::OK();
 }
 
-std::pair<int64_t, int64_t> KVMerger::EstimateMemoryUsage(const std::vector<SegmentStatistics>& statVec) const
+std::pair<int64_t, int64_t> KVMerger::EstimateMemoryUsage(const std::vector<SegmentStatistics>& statVec)
 {
     size_t totalKeyCount = 0;
     size_t maxKeyCountInSegment = 0;
@@ -304,13 +283,13 @@ std::pair<int64_t, int64_t> KVMerger::EstimateMemoryUsage(const std::vector<Segm
     int64_t memoryUsage = 0;
 
     // for writer
-    auto typeId = MakeTypeId(statVec);
+    _typeId = MakeTypeId(statVec);
 
     std::unique_ptr<HashTableInfo> hashTableInfo;
-    if (typeId.isVarLen) {
-        hashTableInfo = VarLenHashTableCreator::CreateHashTableForWriter(typeId);
+    if (_typeId.isVarLen) {
+        hashTableInfo = VarLenHashTableCreator::CreateHashTableForWriter(_typeId);
     } else {
-        hashTableInfo = FixedLenHashTableCreator::CreateHashTableForWriter(typeId);
+        hashTableInfo = FixedLenHashTableCreator::CreateHashTableForWriter(_typeId);
     }
     HashTableOptions options(_indexConfig->GetIndexPreference().GetHashDictParam().GetOccupancyPct());
     options.mayStretch = true;

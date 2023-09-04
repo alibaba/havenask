@@ -20,6 +20,7 @@
 #include <memory>
 #include <vector>
 
+#include "autil/Log.h"
 #include "ha3/common/AndNotQuery.h"
 #include "ha3/common/AndQuery.h"
 #include "ha3/common/MultiTermQuery.h"
@@ -28,13 +29,12 @@
 #include "ha3/common/Query.h"
 #include "ha3/common/RankQuery.h"
 #include "ha3/common/TermQuery.h"
-#include "autil/Log.h"
 
 namespace isearch {
 namespace common {
 class NumberQuery;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 using namespace std;
 
@@ -46,31 +46,30 @@ QueryTermVisitor::QueryTermVisitor(VisitTermType visitType) {
     _visitTermType = visitType;
 }
 
-QueryTermVisitor::~QueryTermVisitor() {
-}
+QueryTermVisitor::~QueryTermVisitor() {}
 
-void QueryTermVisitor::visitTermQuery(const TermQuery *query){
+void QueryTermVisitor::visitTermQuery(const TermQuery *query) {
     const Term &term = query->getTerm();
     _termVector.push_back(term);
 }
 
-void QueryTermVisitor::visitPhraseQuery(const PhraseQuery *query){
+void QueryTermVisitor::visitPhraseQuery(const PhraseQuery *query) {
     const Query::TermArray &termArray = query->getTermArray();
     for (size_t i = 0; i < termArray.size(); ++i) {
         _termVector.push_back(*termArray[i]);
     }
 }
 
-void QueryTermVisitor::visitAndQuery(const AndQuery *query){
+void QueryTermVisitor::visitAndQuery(const AndQuery *query) {
     visitAdvancedQuery(query);
 }
 
-void QueryTermVisitor::visitOrQuery(const OrQuery *query){
+void QueryTermVisitor::visitOrQuery(const OrQuery *query) {
     visitAdvancedQuery(query);
 }
 
-void QueryTermVisitor::visitAndNotQuery(const AndNotQuery *query){
-    const vector<QueryPtr>* children = query->getChildQuery();
+void QueryTermVisitor::visitAndNotQuery(const AndNotQuery *query) {
+    const vector<QueryPtr> *children = query->getChildQuery();
     assert(children);
     assert(children->size() > 0);
     (*children)[0]->accept(this);
@@ -81,8 +80,8 @@ void QueryTermVisitor::visitAndNotQuery(const AndNotQuery *query){
     }
 }
 
-void QueryTermVisitor::visitRankQuery(const RankQuery *query){
-    const vector<QueryPtr>* children = query->getChildQuery();
+void QueryTermVisitor::visitRankQuery(const RankQuery *query) {
+    const vector<QueryPtr> *children = query->getChildQuery();
     assert(children);
     assert(children->size() > 0);
     (*children)[0]->accept(this);
@@ -93,12 +92,12 @@ void QueryTermVisitor::visitRankQuery(const RankQuery *query){
     }
 }
 
-void QueryTermVisitor::visitNumberQuery(const NumberQuery *query){
+void QueryTermVisitor::visitNumberQuery(const NumberQuery *query) {
     ;
 }
 
 void QueryTermVisitor::visitAdvancedQuery(const Query *query) {
-    const vector<QueryPtr>* children = query->getChildQuery();
+    const vector<QueryPtr> *children = query->getChildQuery();
     assert(children);
     for (size_t i = 0; i < children->size(); ++i) {
         (*children)[i]->accept(this);

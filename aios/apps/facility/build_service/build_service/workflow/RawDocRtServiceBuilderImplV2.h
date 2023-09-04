@@ -40,7 +40,7 @@ protected:
     bool getLastReadTimestampInProducer(int64_t& timestamp) override;
     bool producerAndBuilderPrepared() const override;
     bool producerSeek(const common::Locator& locator) override;
-    bool seekProducerToLatest(std::pair<int64_t, int64_t>& forceSeekInfo) override;
+    bool seekProducerToLatest() override;
 
     virtual void externalActions() override;
     virtual FlowFactory* createFlowFactory();

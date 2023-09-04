@@ -94,8 +94,7 @@ inline FL_LAZY(index::KVResultStatus)
                 metricsCollector->IncSearchCacheResultCount(1);
                 metricsCollector->IncResultCount();
             }
-            bool locatorSame = (*lastDiskSegmentLocator) == (*kvCacheItem->GetLocator());
-            if (nullptr != lastDiskSegmentLocator && locatorSame) {
+            if (nullptr != lastDiskSegmentLocator && (*lastDiskSegmentLocator) == (*kvCacheItem->GetLocator())) {
                 needCache = false;
             }
         } else {

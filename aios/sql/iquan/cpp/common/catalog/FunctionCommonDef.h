@@ -15,17 +15,23 @@
  */
 #pragma once
 
+#include <map>
 #include <string>
 
+#include "autil/legacy/any.h"
+#include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
 
 namespace iquan {
 
 class ParamTypeDef : public autil::legacy::Jsonizable {
 public:
-    ParamTypeDef() : isMulti(false) {}
+    ParamTypeDef()
+        : isMulti(false) {}
 
-    ParamTypeDef(bool isMulti, const std::string &type) : isMulti(isMulti), type(type) {
+    ParamTypeDef(bool isMulti, const std::string &type)
+        : isMulti(isMulti)
+        , type(type) {
         if (isMulti) {
             this->valueType["type"] = autil::legacy::Any(type);
             this->type = "array";
@@ -76,7 +82,9 @@ public:
 
 class FunctionModelBase : public autil::legacy::Jsonizable {
 public:
-    FunctionModelBase() : functionVersion(0), isDeterministic(0) {}
+    FunctionModelBase()
+        : functionVersion(0)
+        , isDeterministic(0) {}
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("catalog_name", catalogName, std::string());
@@ -89,16 +97,16 @@ public:
     }
 
     bool isValid() const {
-        if (functionName.empty() || functionType.empty() || functionVersion <= 0 ||
-            (isDeterministic != 0 && isDeterministic != 1) || functionContentVersion.empty()) {
+        if (functionName.empty() || functionType.empty() || functionVersion <= 0
+            || (isDeterministic != 0 && isDeterministic != 1) || functionContentVersion.empty()) {
             return false;
         }
         return true;
     }
 
     bool operator==(const FunctionModelBase &other) const {
-        return catalogName == other.catalogName && databaseName == other.databaseName &&
-               functionName == other.functionName;
+        return catalogName == other.catalogName && databaseName == other.databaseName
+               && functionName == other.functionName;
     }
 
 public:

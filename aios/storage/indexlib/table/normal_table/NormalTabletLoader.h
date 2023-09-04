@@ -35,7 +35,7 @@ class OperationLogReplayer;
 } // namespace indexlib::index
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::index {
@@ -64,7 +64,7 @@ public:
     FinalLoad(const framework::TabletData& currentTabletData) override;
 
 private:
-    size_t EstimateMemUsed(const std::shared_ptr<config::TabletSchema>& schema,
+    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema,
                            const std::vector<framework::Segment*>& segments) override;
     using RedoParam =
         std::tuple<Status, std::unique_ptr<indexlib::index::OperationLogReplayer>,
@@ -72,8 +72,6 @@ private:
     RedoParam CreateRedoParameters(const framework::TabletData& tabletData) const;
     Status PatchAndRedo(const framework::Version& newOnDiskVersion, Segments newOnDiskVersionSegments,
                         const framework::TabletData& lastTabletData, const framework::TabletData& newTabletData);
-    bool NeedReclaimFullSegment(const framework::Locator& versionLocator, segmentid_t lastOnDiskSegmentId,
-                                const std::shared_ptr<framework::Segment> segment) const;
     Status RemoveObsoleteRtDocs(const framework::Locator& versionLocator,
                                 const std::vector<std::pair<std::shared_ptr<framework::Segment>, docid_t>>& segments,
                                 const framework::TabletData& newTabletData);

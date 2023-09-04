@@ -8,11 +8,11 @@
 #ifndef KMONITOR_CLIENT_KMONITORFACTORY_H_
 #define KMONITOR_CLIENT_KMONITORFACTORY_H_
 
-#include <string>
 #include <map>
+#include <string>
+
 #include "autil/Log.h"
 #include "kmonitor/client/common/Common.h"
-
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
@@ -22,35 +22,35 @@ class KMonitorWorker;
 class MetricsTags;
 
 class KMonitorFactory {
- public:
+public:
     static bool Init(const std::string &config_content);
-    static bool Init(const MetricsConfig& config);
-    static bool formatMetricsConfig(const std::string& config_str, MetricsConfig& config);
+    static bool Init(const MetricsConfig &config);
+    static bool formatMetricsConfig(const std::string &config_str, MetricsConfig &config);
     static void Start();
     static bool IsStarted();
     static void Shutdown();
     static void SetServiceName(const std::string &name);
-    static const std::string& ServiceName();
+    static const std::string &ServiceName();
     static KMonitor *GetKMonitor(const std::string &name, bool useMetricCache = true, bool useConfigTags = true);
-    static MetricsConfig* GetConfig();
+    static MetricsConfig *GetConfig();
     static void ReleaseKMonitor(const std::string &name);
-    static std::map<std::string, KMonitor*>* GetKMonitorMap();
-    static KMonitorWorker* GetWorker();
-    static void registerBuildInMetrics(MetricsTags *tags = NULL, const std::string& metric_name_prefix = "");
+    static std::map<std::string, KMonitor *> *GetKMonitorMap();
+    static KMonitorWorker *GetWorker();
+    static void registerBuildInMetrics(MetricsTags *tags = NULL, const std::string &metric_name_prefix = "");
 
- private:
+private:
     KMonitorFactory();
     ~KMonitorFactory();
     KMonitorFactory(const KMonitorFactory &);
     KMonitorFactory &operator=(const KMonitorFactory &);
 
- private:
+private:
     static KMonitorWorker *worker_;
 
- private:
+private:
     AUTIL_LOG_DECLARE();
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_KMONITORFACTORY_H_
+#endif // KMONITOR_CLIENT_KMONITORFACTORY_H_

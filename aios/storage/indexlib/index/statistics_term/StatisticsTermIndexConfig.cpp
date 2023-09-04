@@ -33,9 +33,11 @@ const std::string& StatisticsTermIndexConfig::GetIndexType() const { return inde
 
 const std::string& StatisticsTermIndexConfig::GetIndexName() const { return _impl->indexName; }
 
+const std::string& StatisticsTermIndexConfig::GetIndexCommonPath() const { return index::STATISTICS_TERM_INDEX_PATH; }
+
 std::vector<std::string> StatisticsTermIndexConfig::GetIndexPath() const
 {
-    return {index::STATISTICS_TERM_INDEX_PATH + "/" + GetIndexName()};
+    return {GetIndexCommonPath() + "/" + GetIndexName()};
 }
 
 std::vector<std::string> StatisticsTermIndexConfig::GetInvertedIndexNames() const
@@ -67,4 +69,5 @@ Status StatisticsTermIndexConfig::CheckCompatible(const IIndexConfig* other) con
 
 std::vector<std::shared_ptr<config::FieldConfig>> StatisticsTermIndexConfig::GetFieldConfigs() const { return {}; }
 
+bool StatisticsTermIndexConfig::IsDisabled() const { return false; }
 } // namespace indexlibv2::index

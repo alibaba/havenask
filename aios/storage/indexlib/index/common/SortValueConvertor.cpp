@@ -101,7 +101,7 @@ SortValueConvertor::ConvertFunc SortValueConvertor::GenerateConvertor(config::So
 
 std::vector<std::pair<SortValueConvertor::ConvertFunc, size_t>>
 SortValueConvertor::GenerateConvertors(const config::SortDescriptions& sortDesc,
-                                       const std::shared_ptr<config::TabletSchema>& schema)
+                                       const std::shared_ptr<config::ITabletSchema>& schema)
 {
     std::vector<std::pair<ConvertFunc, size_t>> convertFuncs;
     for (auto& desc : sortDesc) {

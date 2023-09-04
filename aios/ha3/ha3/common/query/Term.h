@@ -15,10 +15,10 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <algorithm>
 #include <memory>
 #include <sstream>
+#include <stdint.h>
 #include <string>
 #include <vector>
 
@@ -28,7 +28,7 @@
 
 namespace autil {
 class DataBuffer;
-}  // namespace autil
+} // namespace autil
 
 namespace isearch {
 namespace common {
@@ -42,8 +42,8 @@ struct RequiredFields {
         isRequiredAnd = true;
     }
 
-    bool operator == (const RequiredFields& other) const;
-    bool operator != (const RequiredFields& other) const {
+    bool operator==(const RequiredFields &other) const;
+    bool operator!=(const RequiredFields &other) const {
         return !(*this == other);
     }
 
@@ -51,35 +51,36 @@ struct RequiredFields {
     bool isRequiredAnd;
 };
 
-class Term
-{
+class Term {
 public:
-    Term() : _boost(DEFAULT_BOOST_VALUE), _truncateName("") {}
-    Term(const std::string &word, const std::string &indexName,
+    Term()
+        : _boost(DEFAULT_BOOST_VALUE)
+        , _truncateName("") {}
+    Term(const std::string &word,
+         const std::string &indexName,
          const RequiredFields &requiredFields,
          int32_t boost = DEFAULT_BOOST_VALUE,
          const std::string &truncateName = "")
-        : _token(word, 0),
-          _indexName(indexName),
-          _boost(boost),
-          _truncateName(truncateName)
-    {
+        : _token(word, 0)
+        , _indexName(indexName)
+        , _boost(boost)
+        , _truncateName(truncateName) {
         copyRequiredFields(requiredFields);
     }
 
-    Term(const build_service::analyzer::Token& token, const char *indexName,
+    Term(const build_service::analyzer::Token &token,
+         const char *indexName,
          const RequiredFields &requiredFields,
          int32_t boost = DEFAULT_BOOST_VALUE,
          const std::string &truncateName = "")
         : _token(token)
         , _indexName(indexName)
         , _boost(boost)
-        , _truncateName(truncateName)
-    {
+        , _truncateName(truncateName) {
         copyRequiredFields(requiredFields);
     }
 
-    Term(const Term& t) {
+    Term(const Term &t) {
         if (&t != this) {
             _token = t._token;
             _indexName = t._indexName;
@@ -93,8 +94,7 @@ public:
         return new Term(*this);
     }
 
-    virtual ~Term() {
-    }
+    virtual ~Term() {}
 
 public:
     const std::string &getWord() const {
@@ -106,10 +106,10 @@ public:
         _token.setNormalizedText(word);
     }
 
-    const build_service::analyzer::Token& getToken() const {
+    const build_service::analyzer::Token &getToken() const {
         return _token;
     }
-    build_service::analyzer::Token& getToken() {
+    build_service::analyzer::Token &getToken() {
         return _token;
     }
 
@@ -124,10 +124,16 @@ public:
         return _requiredFields;
     }
 
-    int32_t getBoost() const {return _boost;}
-    void setBoost(int32_t boost) {_boost = boost;}
+    int32_t getBoost() const {
+        return _boost;
+    }
+    void setBoost(int32_t boost) {
+        _boost = boost;
+    }
 
-    const std::string &getTruncateName() const {return _truncateName;}
+    const std::string &getTruncateName() const {
+        return _truncateName;
+    }
 
     void setTruncateName(const std::string &truncateName) {
         _truncateName = truncateName;
@@ -137,35 +143,43 @@ public:
     }
 
     void copyRequiredFields(const RequiredFields &requiredFields) {
-        _requiredFields.fields.assign(requiredFields.fields.begin(),
-                requiredFields.fields.end());
+        _requiredFields.fields.assign(requiredFields.fields.begin(), requiredFields.fields.end());
         _requiredFields.isRequiredAnd = requiredFields.isRequiredAnd;
         sort(_requiredFields.fields.begin(), _requiredFields.fields.end());
     }
-    virtual TermType getTermType() const {return TT_STRING;}
+    virtual TermType getTermType() const {
+        return TT_STRING;
+    }
 
-    virtual std::string getTermName() const {return "Term";}
+    virtual std::string getTermName() const {
+        return "Term";
+    }
 
-    virtual bool operator == (const Term& term) const;
-    bool operator != (const Term& term) const {return !(*this == term);}
+    virtual bool operator==(const Term &term) const;
+    bool operator!=(const Term &term) const {
+        return !(*this == term);
+    }
     virtual std::string toString() const;
     void formatString(std::stringstream &ss) const;
 
     void serialize(autil::DataBuffer &dataBuffer) const;
     void deserialize(autil::DataBuffer &dataBuffer);
+
 protected:
     build_service::analyzer::Token _token;
     std::string _indexName;
     RequiredFields _requiredFields;
     int32_t _boost;
     std::string _truncateName;
+
 private:
     friend class TermTest;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
-inline bool operator < (const Term &lhs, const Term &rhs) {
+inline bool operator<(const Term &lhs, const Term &rhs) {
     if (lhs.getWord() < rhs.getWord()) {
         return true;
     } else if (lhs.getWord() > rhs.getWord()) {
@@ -179,12 +193,12 @@ inline bool operator < (const Term &lhs, const Term &rhs) {
     return lhs.getTruncateName() < rhs.getTruncateName();
 }
 
-inline bool operator > (const Term &lhs, const Term &rhs) {
+inline bool operator>(const Term &lhs, const Term &rhs) {
     return rhs < lhs;
 }
 
 typedef std::shared_ptr<Term> TermPtr;
-std::ostream& operator << (std::ostream &os, const Term& term);
+std::ostream &operator<<(std::ostream &os, const Term &term);
 
 } // namespace common
 } // namespace isearch

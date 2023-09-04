@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/java/arpc/GigClientPacketHandler.h"
+
 #include "aios/autil/autil/Lock.h"
 #include "aios/network/arpc/arpc/MessageSerializable.h"
 #include "aios/network/arpc/arpc/RPCMessageSerializable.h"
@@ -27,12 +28,15 @@ using namespace anet;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GigClientPacketHandler);
 
-GigClientPacketHandler::GigClientPacketHandler() { _ref = 0; }
+GigClientPacketHandler::GigClientPacketHandler() {
+    _ref = 0;
+}
 
-GigClientPacketHandler::~GigClientPacketHandler() {}
+GigClientPacketHandler::~GigClientPacketHandler() {
+}
 
-anet::IPacketHandler::HPRetCode
-GigClientPacketHandler::handlePacket(anet::Packet *packet, void *args) {
+anet::IPacketHandler::HPRetCode GigClientPacketHandler::handlePacket(anet::Packet *packet,
+                                                                     void *args) {
 
     AUTIL_LOG(DEBUG, "handle package in gig client package handler");
     IPacketHandler::HPRetCode ret = doHandlePacket(packet, args);
@@ -40,32 +44,27 @@ GigClientPacketHandler::handlePacket(anet::Packet *packet, void *args) {
     return ret;
 }
 
-IPacketHandler::HPRetCode GigClientPacketHandler::doHandlePacket(Packet *packet,
-                                                                 void *args) {
+IPacketHandler::HPRetCode GigClientPacketHandler::doHandlePacket(Packet *packet, void *args) {
     GigRpcReqArg *pArgs = (GigRpcReqArg *)args;
     if (!packet->isRegularPacket()) {
-        AUTIL_LOG(WARN, "receive control packet[%d]",
-                  ((ControlPacket *)packet)->getCommand());
+        AUTIL_LOG(WARN, "receive control packet[%d]", ((ControlPacket *)packet)->getCommand());
         return handleCmdPacket(packet, pArgs);
     }
 
     pArgs->sController->GetTracer().BeginHandleResponse();
 
-    AUTIL_LOG(TRACE1, "channel pointer: %p, msg chid: %lu", _gigRpcChannel,
-              packet->getChannelId());
+    AUTIL_LOG(TRACE1, "channel pointer: %p, msg chid: %lu", _gigRpcChannel, packet->getChannelId());
     {
         /* Check the error code and remote version.
          * Repost the request if necessary.
          */
         autil::ScopedLock lock(_channelLock);
-        if (_gigRpcChannel &&
-            !_gigRpcChannel->CheckResponsePacket(packet, pArgs)) {
+        if (_gigRpcChannel && !_gigRpcChannel->CheckResponsePacket(packet, pArgs)) {
             return IPacketHandler::FREE_CHANNEL;
         }
     }
 
-    decodePacket(pArgs->sController, packet, pArgs->sResponse,
-                 pArgs->sContext->arena);
+    decodePacket(pArgs->sController, packet, pArgs->sResponse, pArgs->sContext->arena);
     pArgs->sClosure->Run();
     delete pArgs;
 
@@ -79,8 +78,7 @@ void GigClientPacketHandler::decodePacket(
     const Tracer &tracer = controller->GetTracer();
 
     if (tracer.GetTraceFlag()) {
-        serverTraceInfo =
-            google::protobuf::Arena::CreateMessage<TraceInfo>(arenaPtr.get());
+        serverTraceInfo = google::protobuf::Arena::CreateMessage<TraceInfo>(arenaPtr.get());
     }
 
     version_t version = packet->getPacketVersion();
@@ -95,8 +93,7 @@ void GigClientPacketHandler::decodePacket(
         return;
     }
 
-    DelayDecodePacket *delayDecodePacket =
-        dynamic_cast<DelayDecodePacket *>(packet);
+    DelayDecodePacket *delayDecodePacket = dynamic_cast<DelayDecodePacket *>(packet);
     assert(delayDecodePacket);
     delayDecodePacket->setContent(pSeri, true);
 
@@ -128,8 +125,7 @@ void GigClientPacketHandler::decodePacket(
                 assert(serializable);
                 errMsg = (ErrorMsg *)serializable->getBody();
             } else {
-                MessageSerializable *serializable =
-                    dynamic_cast<MessageSerializable *>(pSeri);
+                MessageSerializable *serializable = dynamic_cast<MessageSerializable *>(pSeri);
                 assert(serializable);
                 errMsg = (ErrorMsg *)serializable->getMessage();
             }
@@ -142,8 +138,7 @@ void GigClientPacketHandler::decodePacket(
     }
 
     if (serverTraceInfo != NULL) {
-        TraceInfo *clientTraceInfo =
-            tracer.ExtractClientTraceInfo(arenaPtr.get());
+        TraceInfo *clientTraceInfo = tracer.ExtractClientTraceInfo(arenaPtr.get());
         serverTraceInfo->MergeFrom(*clientTraceInfo);
         controller->SetTraceInfo(serverTraceInfo);
     }
@@ -153,33 +148,29 @@ void GigClientPacketHandler::decodePacket(
 }
 
 DataBufferSerializable *GigClientPacketHandler::createSerializable(
-    int32_t pcode, std::string *response, TraceInfo *traceInfo,
-    version_t version,
+    int32_t pcode, std::string *response, TraceInfo *traceInfo, version_t version,
     const std::shared_ptr<google::protobuf::Arena> &arenaPtr) {
     DataBufferSerializable *pSeri = NULL;
 
     if (version == ARPC_VERSION_1 && traceInfo != NULL) {
         if (pcode != ARPC_ERROR_NONE) {
-            ErrorMsg *errMsg = google::protobuf::Arena::CreateMessage<ErrorMsg>(
-                arenaPtr.get());
+            ErrorMsg *errMsg = google::protobuf::Arena::CreateMessage<ErrorMsg>(arenaPtr.get());
 
             if (errMsg == NULL) {
                 return NULL;
             }
 
-            pSeri = new (nothrow)
-                RPCMessageSerializable(traceInfo, errMsg, arenaPtr);
+            pSeri = new (nothrow) RPCMessageSerializable(traceInfo, errMsg, arenaPtr);
         } else {
-            pSeri =
-                new (nothrow) GigRPCMessageSerializable(traceInfo, response);
+            pSeri = new (nothrow) GigRPCMessageSerializable(traceInfo, response);
         }
     }
 
     return pSeri;
 }
 
-IPacketHandler::HPRetCode
-GigClientPacketHandler::handleCmdPacket(Packet *packet, GigRpcReqArg *pArgs) {
+IPacketHandler::HPRetCode GigClientPacketHandler::handleCmdPacket(Packet *packet,
+                                                                  GigRpcReqArg *pArgs) {
     ErrorCode errCode = ARPC_ERROR_NONE;
 
     switch (((ControlPacket *)packet)->getCommand()) {

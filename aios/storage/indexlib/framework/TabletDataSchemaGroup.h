@@ -21,9 +21,7 @@
 #include "indexlib/framework/IResource.h"
 
 namespace indexlibv2::config {
-
-class TabletSchema;
-
+class ITabletSchema;
 }
 
 namespace indexlibv2::framework {
@@ -31,10 +29,10 @@ namespace indexlibv2::framework {
 struct TabletDataSchemaGroup : public IResource {
     static const char* NAME;
 
-    std::shared_ptr<config::TabletSchema> onDiskReadSchema;
-    std::shared_ptr<config::TabletSchema> onDiskWriteSchema;
-    std::shared_ptr<config::TabletSchema> writeSchema;
-    std::map<schemaid_t, std::shared_ptr<config::TabletSchema>> multiVersionSchemas;
+    std::shared_ptr<config::ITabletSchema> onDiskReadSchema;
+    std::shared_ptr<config::ITabletSchema> onDiskWriteSchema;
+    std::shared_ptr<config::ITabletSchema> writeSchema;
+    std::map<schemaid_t, std::shared_ptr<config::ITabletSchema>> multiVersionSchemas;
 
     std::shared_ptr<IResource> Clone() override;
     size_t CurrentMemmoryUse() const override { return 0; }

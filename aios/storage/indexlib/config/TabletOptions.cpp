@@ -19,7 +19,6 @@
 #include "indexlib/config/BuildConfig.h"
 #include "indexlib/config/BuildOptionConfig.h"
 #include "indexlib/config/IndexTaskConfig.h"
-#include "indexlib/config/MutableJson.h"
 #include "indexlib/config/OfflineConfig.h"
 #include "indexlib/config/OnlineConfig.h"
 
@@ -98,6 +97,10 @@ Status TabletOptions::Check(const std::string& remoteRoot, const std::string& lo
                   GetOnlineConfig().GetMaxRealtimeMemoryUse(), GetBuildConfig().GetBuildingMemoryLimit());
         return Status::InvalidArgs("memory config invalid");
     }
+    if (GetAnyFromRawJson("online_index_config.disable_fields")) {
+        AUTIL_LOG(ERROR, "not support disable fields");
+        return Status::InvalidArgs("not support disable fields");
+    }
     return Status::OK();
 }
 
@@ -124,8 +127,8 @@ const BuildOptionConfig& TabletOptions::GetBuildOptionConfig() const { return _i
 const BackgroundTaskConfig& TabletOptions::GetBackgroundTaskConfig() const { return _impl->backgroundTaskConfig; }
 BackgroundTaskConfig& TabletOptions::MutableBackgroundTaskConfig() { return _impl->backgroundTaskConfig; }
 
-const MergeConfig& TabletOptions::GetMergeConfig() const { return GetOfflineConfig().GetMergeConfig(); }
-MergeConfig& TabletOptions::MutableMergeConfig() { return _impl->offlineConfig.MutableMergeConfig(); }
+const MergeConfig& TabletOptions::GetDefaultMergeConfig() const { return GetOfflineConfig().GetDefaultMergeConfig(); }
+// MergeConfig& TabletOptions::MutableMergeConfig() { return _impl->offlineConfig.MutableMergeConfig(); }
 
 const std::vector<IndexTaskConfig>& TabletOptions::GetAllIndexTaskConfigs() const
 {
@@ -183,4 +186,5 @@ const autil::legacy::Any* TabletOptions::GetAnyFromRawJson(const std::string& js
     return _impl->rawJson.GetAny(jsonPath);
 }
 MergeConfig& TabletOptions::TEST_GetMergeConfig() { return TEST_GetOfflineConfig().TEST_GetMergeConfig(); }
+MutableJson& TabletOptions::TEST_GetRawJson() { return _impl->rawJson; }
 } // namespace indexlibv2::config

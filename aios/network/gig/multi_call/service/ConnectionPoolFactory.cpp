@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/ConnectionPoolFactory.h"
+
 #include "aios/network/gig/multi_call/service/ArpcConnectionPool.h"
 #include "aios/network/gig/multi_call/service/GrpcConnectionPool.h"
 #include "aios/network/gig/multi_call/service/GrpcStreamConnectionPool.h"
 #include "aios/network/gig/multi_call/service/HttpConnectionPool.h"
 #include "aios/network/gig/multi_call/service/TcpConnectionPool.h"
 
-#ifndef AIOS_OPEN_SOURCE
-#include "aios/network/gig/multi_call/service/RdmaArpcConnectionPool.h"
-#endif
 
 using namespace std;
 
@@ -30,9 +28,8 @@ namespace multi_call {
 
 AUTIL_LOG_SETUP(multi_call, ConnectionPoolFactory);
 
-ConnectionPoolPtr
-ConnectionPoolFactory::createConnectionPool(ProtocolType type,
-                                            const std::string &typeStr) {
+ConnectionPoolPtr ConnectionPoolFactory::createConnectionPool(ProtocolType type,
+                                                              const std::string &typeStr) {
     switch (type) {
     case MC_PROTOCOL_TCP:
         return ConnectionPoolPtr(new TcpConnectionPool());
@@ -48,13 +45,8 @@ ConnectionPoolFactory::createConnectionPool(ProtocolType type,
         return ConnectionPoolPtr(new GrpcConnectionPool());
     case MC_PROTOCOL_GRPC_STREAM:
         return ConnectionPoolPtr(new GrpcStreamConnectionPool());
-#ifndef AIOS_OPEN_SOURCE
-    case MC_PROTOCOL_RDMA_ARPC:
-        return ConnectionPoolPtr(new RdmaArpcConnectionPool());
-#endif
     default:
-        AUTIL_LOG(ERROR, "create ConnectionPool failed, unknown type [%u]",
-                  type);
+        AUTIL_LOG(ERROR, "create ConnectionPool failed, unknown type [%u]", type);
         return ConnectionPoolPtr();
     }
 }

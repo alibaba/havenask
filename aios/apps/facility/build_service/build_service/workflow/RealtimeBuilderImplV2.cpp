@@ -143,6 +143,7 @@ void RealtimeBuilderImplV2::executeBuildControlTask()
     }
 
     checkRecoverTime();
+
     if (_buildFlow && _buildFlow->hasFatalError()) {
         setErrorInfoUnsafe(ERROR_BUILD_DUMP, "build has fatal error");
     }
@@ -165,11 +166,11 @@ void RealtimeBuilderImplV2::executeBuildControlTask()
 
 void RealtimeBuilderImplV2::skipRtBeforeTimestamp()
 {
+    // TODO(tianxiao) check high bit
     auto [latestLocator, _] = getLatestLocator();
-    if (latestLocator.GetOffset() >= _timestampToSkip) {
+    if (latestLocator.GetOffset().first >= _timestampToSkip) {
         return;
     }
-
     common::Locator locatorToJump(latestLocator.GetSrc(), _timestampToSkip);
     producerSeek(locatorToJump);
 }
@@ -212,6 +213,7 @@ void RealtimeBuilderImplV2::checkRecoverBuild()
     }
 
     int64_t producerReadTimestamp;
+    // timstamp high bit
     if (!getLastReadTimestampInProducer(producerReadTimestamp)) {
         string errorMsg = "get last read timestamp in producer failed";
         BS_PREFIX_LOG(WARN, "%s", errorMsg.c_str());
@@ -223,6 +225,7 @@ void RealtimeBuilderImplV2::checkRecoverBuild()
                       "realtime build recover succeed. locator offset in producer:%ld,"
                       "maxtimestamp in producer: %ld",
                       producerReadTimestamp, maxTimestamp);
+        return;
     }
 }
 
@@ -364,10 +367,10 @@ void RealtimeBuilderImplV2::checkRecoverTime()
     if (_isRecovered) {
         return;
     }
-
     if (TimeUtility::currentTimeInSeconds() - _startRecoverTime > _maxRecoverTime) {
         string errorMsg = "recover takes too much time, treat it as recovered";
         BS_PREFIX_LOG(WARN, "%s", errorMsg.c_str());
+        handleRecoverTimeout();
         setIsRecovered(true);
         return;
     }

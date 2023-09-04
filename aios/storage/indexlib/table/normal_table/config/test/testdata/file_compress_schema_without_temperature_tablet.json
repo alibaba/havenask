@@ -1,0 +1,71 @@
+{
+    "fields": [
+        {
+            "field_name": "pk",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "status",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "time",
+            "field_type": "UINT32"
+        },
+        {
+            "field_name": "location",
+            "field_type": "location"
+        }
+    ],
+    "indexes": {
+        "attribute": [
+            {
+                "compress_type": "equal",
+                "field_name": "status",
+                "updatable": true
+            },
+            {
+                "field_name": "time"
+            }
+        ],
+        "inverted_index": [
+            {
+                "file_compressor": "compressor2",
+                "index_fields": "status",
+                "index_name": "status",
+                "index_type": "STRING"
+            },
+            {
+                "dist_calculator": "haversine",
+                "file_compressor": "compressor2",
+                "index_fields": "location",
+                "index_name": "spatial_index",
+                "index_type": "SPATIAL",
+                "max_dist_err": 20,
+                "max_search_dist": 10000
+            }
+        ],
+        "primarykey": [
+            {
+                "has_primary_key_attribute": true,
+                "index_fields": "pk",
+                "index_name": "pk",
+                "index_type": "PRIMARYKEY64"
+            }
+        ]
+    },
+    "settings": {
+        "file_compressors": [
+            {
+                "name": "compress1",
+                "type": "zstd"
+            },
+            {
+                "exclude_file_pattern": ".*/(dictionary|posting)$",
+                "name": "compressor2",
+                "type": "snappy"
+            }
+        ]
+    },
+    "table_name": "noname"
+}

@@ -1,0 +1,27 @@
+{
+    "offline_index_config": {
+        "customized_merge_config": {
+            "full": {
+                "inherit_from": "full_merge.json",
+                "merge_parallel_num": 16
+            },
+            "inc": {
+                "inherit_from": "inc_merge.json",
+                "merge_parallel_num": 8,
+                "period": "period=1800"
+            },
+            "inc_2": {
+                "inherit_from": "inc_2_merge.json",
+                "period": "daytime=12:00"
+            },
+            "inc_3" : {
+                "merge_config": {
+                    "merge_strategy": "priority_queue",
+                    "merge_thread_count": 10
+                },
+                "inherit_from": "global_doc_reclaim.json",
+                "period": "period=7200"
+            }
+        }
+    }
+}

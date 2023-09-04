@@ -22,7 +22,7 @@
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, PatchAttributeModifier);
 
-PatchAttributeModifier::PatchAttributeModifier(const std::shared_ptr<config::TabletSchema>& schema,
+PatchAttributeModifier::PatchAttributeModifier(const std::shared_ptr<config::ITabletSchema>& schema,
                                                const std::shared_ptr<indexlib::file_system::IDirectory>& workDir)
     : AttributeModifier(schema)
     , _workDir(workDir)
@@ -53,7 +53,7 @@ Status PatchAttributeModifier::Init(const framework::TabletData& tabletData)
     RETURN_IF_STATUS_ERROR(status, "create attribute patch dir [%s] failed", _workDir->DebugString().c_str());
 
     for (const auto& indexConfig : _schema->GetIndexConfigs(ATTRIBUTE_INDEX_TYPE_STR)) {
-        auto attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+        auto attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
         assert(attrConfig);
         if (attrConfig->IsAttributeUpdatable()) {
             auto patchWriter = std::make_shared<AttributePatchWriter>(attributeWorkDir, lastSegmentId, indexConfig);

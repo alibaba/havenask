@@ -26,10 +26,6 @@
 #include "indexlib/index/common/Constant.h"
 #include "indexlib/util/Singleton.h"
 
-namespace indexlib::config {
-class FieldConfig;
-}
-
 namespace indexlibv2::index {
 
 template <class INSTANCE, class CREATOR>
@@ -194,8 +190,7 @@ template <class INSTANCE, class CREATOR>
 CREATOR* AttributeFactory<INSTANCE, CREATOR>::GetAttributeInstanceCreator(
     const std::shared_ptr<config::IIndexConfig>& indexConfig) const
 {
-    std::shared_ptr<config::AttributeConfig> attrConfig =
-        std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+    std::shared_ptr<AttributeConfig> attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
     assert(nullptr != attrConfig);
     auto fieldConfig = attrConfig->GetFieldConfig();
     assert(nullptr != fieldConfig);
@@ -206,7 +201,6 @@ CREATOR* AttributeFactory<INSTANCE, CREATOR>::GetAttributeInstanceCreator(
         if (fieldName == indexlib::MAIN_DOCID_TO_SUB_DOCID_ATTR_NAME ||
             fieldName == indexlib::SUB_DOCID_TO_MAIN_DOCID_ATTR_NAME) {
             // return CreateJoinDocidAttributeReader();
-            assert(false); // TODO
             return nullptr;
         }
         std::lock_guard<std::mutex> guard(_mutex);

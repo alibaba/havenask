@@ -1,0 +1,44 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+load('//bazel:defs.bzl', 'if_clang')
+strict_cc_library(
+    name='ExpackPostingMaker',
+    testonly=True,
+    deps=[
+        '//aios/storage/indexlib/index/inverted_index:PostingWriterImpl',
+        '//aios/storage/indexlib/index/inverted_index/builtin_index/expack:OnDiskExpackIndexIterator',
+        '//aios/storage/indexlib/index/inverted_index/test:PostingMaker'
+    ]
+)
+strict_cc_library(
+    name='ExpackIndexDocumentMaker',
+    testonly=True,
+    deps=[
+        '//aios/storage/indexlib/index/inverted_index/test:InvertedTestHelper'
+    ]
+)
+strict_cc_fast_test(
+    name='expack_index_test',
+    srcs=['ExpackIndexReaderTest.cpp', 'ExpackPostingMergerTest.cpp'],
+    copts=(['-fno-access-control'] + if_clang(['-std=c++20'])),
+    shard_count=5,
+    deps=[
+        ':ExpackIndexDocumentMaker', ':ExpackPostingMaker',
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
+        '//aios/storage/indexlib/framework/mock:FakeSegment',
+        '//aios/storage/indexlib/index:IIndexMerger',
+        '//aios/storage/indexlib/index/inverted_index:InvertedDiskIndexer',
+        '//aios/storage/indexlib/index/inverted_index:InvertedIndexReaderImpl',
+        '//aios/storage/indexlib/index/inverted_index:InvertedMemIndexer',
+        '//aios/storage/indexlib/index/inverted_index:OnDiskIndexIteratorCreator',
+        '//aios/storage/indexlib/index/inverted_index:PostingMergerImpl',
+        '//aios/storage/indexlib/index/inverted_index/builtin_index/pack:OnDiskPackIndexIterator',
+        '//aios/storage/indexlib/index/inverted_index/builtin_index/pack/test:PackTestHelper',
+        '//aios/storage/indexlib/index/inverted_index/builtin_index/test_util:InvertedTestUtil',
+        '//aios/storage/indexlib/index/inverted_index/config/test:InvertedIndexConfigCreator',
+        '//aios/storage/indexlib/index/inverted_index/test:PostingMaker',
+        '//aios/storage/indexlib/index/test:FakeDocMapper',
+        '//aios/storage/indexlib/index/test:IndexTestUtil',
+        '//aios/storage/indexlib/table/normal_table:table',
+        '//aios/unittest_framework'
+    ]
+)

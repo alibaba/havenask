@@ -18,12 +18,14 @@
 #include "indexlib/document/normal/AttributeDocument.h"
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
-#include "indexlib/index/common//KeyHasherWrapper.h"
+#include "indexlib/index/common/KeyHasherWrapper.h"
 #include "indexlib/index/common/field_format/attribute/AttributeConvertorFactory.h"
 #include "indexlib/index/common/field_format/date/DateFieldEncoder.h"
 #include "indexlib/index/common/field_format/range/RangeFieldEncoder.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
+#include "indexlib/index/pack_attribute/Common.h"
+#include "indexlib/index/pack_attribute/PackAttributeConfig.h"
 #include "indexlib/index/primary_key/Common.h"
 #include "indexlib/index/statistics_term/Constant.h"
 #include "indexlib/index/statistics_term/StatisticsTermIndexConfig.h"
@@ -35,7 +37,7 @@ AUTIL_LOG_SETUP(indexlib.document, ExtendDocFieldsConvertor);
 
 const uint32_t ExtendDocFieldsConvertor::MAX_TOKEN_PER_SECTION = indexlib::document::Section::MAX_TOKEN_PER_SECTION;
 
-ExtendDocFieldsConvertor::ExtendDocFieldsConvertor(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema)
+ExtendDocFieldsConvertor::ExtendDocFieldsConvertor(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema)
     : _schema(schema)
 {
 }
@@ -475,15 +477,22 @@ void ExtendDocFieldsConvertor::initAttrConvert()
             indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(attrConfig));
     }
 }
-std::vector<std::shared_ptr<indexlibv2::config::AttributeConfig>> ExtendDocFieldsConvertor::GetAttributeConfigs() const
+std::vector<std::shared_ptr<indexlibv2::index::AttributeConfig>> ExtendDocFieldsConvertor::GetAttributeConfigs() const
 {
-    std::vector<std::shared_ptr<indexlibv2::config::AttributeConfig>> result;
-    const auto& configs = _schema->GetIndexConfigs(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR);
-    result.reserve(configs.size());
-    for (const auto& config : configs) {
-        const auto& attrConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(config);
+    std::vector<std::shared_ptr<indexlibv2::index::AttributeConfig>> result;
+    const auto& attrIndexConfigs = _schema->GetIndexConfigs(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR);
+    result.reserve(_schema->GetFieldConfigs().size());
+    for (const auto& indexConfig : attrIndexConfigs) {
+        const auto& attrConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(indexConfig);
         assert(attrConfig);
         result.push_back(attrConfig);
+    }
+    const auto& packAttrIndexConfigs = _schema->GetIndexConfigs(indexlibv2::index::PACK_ATTRIBUTE_INDEX_TYPE_STR);
+    for (const auto& indexConfig : packAttrIndexConfigs) {
+        const auto& packAttrConfig = std::dynamic_pointer_cast<indexlibv2::index::PackAttributeConfig>(indexConfig);
+        assert(packAttrConfig);
+        const auto& attrConfigs = packAttrConfig->GetAttributeConfigVec();
+        result.insert(result.end(), attrConfigs.begin(), attrConfigs.end());
     }
     return result;
 }

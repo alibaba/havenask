@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "aios/network/gig/multi_call/subscribe/GrpcAds.h"
+
+#include <grpc++/grpc++.h>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <unistd.h>
 
-#include "aios/network/gig/multi_call/subscribe/GrpcAds.h"
 #include "autil/HashAlgorithm.h"
 #include "autil/Log.h"
 #include "autil/StringTokenizer.h"
-#include <grpc++/grpc++.h>
 namespace multi_call {
 using autil::HashAlgorithm;
 using autil::StringTokenizer;
@@ -39,9 +40,9 @@ using grpc::ClientWriter;
 using grpc::Status;
 
 AUTIL_LOG_SETUP(multi_call, GrpcAdsClient);
-GrpcAdsClient::GrpcAdsClient(const std::string &nodeId,
-                             const std::vector<std::string> &xdsServers)
-    : stub_(nullptr), nodeId_(nodeId) {
+GrpcAdsClient::GrpcAdsClient(const std::string &nodeId, const std::vector<std::string> &xdsServers)
+    : stub_(nullptr)
+    , nodeId_(nodeId) {
     //  解析多个集群的 Xds server 信息
     std::vector<std::string> serversVec;
     StringTokenizer tokenizer;
@@ -57,7 +58,8 @@ GrpcAdsClient::GrpcAdsClient(const std::string &nodeId,
     context_.reset();
 }
 
-GrpcAdsClient::~GrpcAdsClient() {}
+GrpcAdsClient::~GrpcAdsClient() {
+}
 
 void GrpcAdsClient::TryCancel() {
     if (context_.get())
@@ -75,10 +77,8 @@ bool GrpcAdsClient::BuildStream() {
     channelArg.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 20000);
     channelArg.SetInt(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, 1);
     channelArg.SetInt(GRPC_ARG_HTTP2_BDP_PROBE, 1);
-    channelArg.SetInt(GRPC_ARG_HTTP2_MIN_RECV_PING_INTERVAL_WITHOUT_DATA_MS,
-                      5000);
-    channelArg.SetInt(GRPC_ARG_HTTP2_MIN_SENT_PING_INTERVAL_WITHOUT_DATA_MS,
-                      300000);
+    channelArg.SetInt(GRPC_ARG_HTTP2_MIN_RECV_PING_INTERVAL_WITHOUT_DATA_MS, 5000);
+    channelArg.SetInt(GRPC_ARG_HTTP2_MIN_SENT_PING_INTERVAL_WITHOUT_DATA_MS, 300000);
     channelArg.SetInt(GRPC_ARG_HTTP2_MAX_PINGS_WITHOUT_DATA, 0);
     channelArg.SetInt(GRPC_ARG_MAX_RECEIVE_MESSAGE_LENGTH, -1);
 
@@ -92,41 +92,34 @@ bool GrpcAdsClient::BuildStream() {
             {
                 channel_.reset();
                 channel_ = grpc::CreateCustomChannel(
-                    clusters[idx], grpc::InsecureChannelCredentials(),
-                    channelArg);
+                    clusters[idx], grpc::InsecureChannelCredentials(), channelArg);
             }
             if (nullptr == channel_) {
-                AUTIL_LOG(WARN, "create channel failed. server:%s",
-                          clusters[idx].c_str());
+                AUTIL_LOG(WARN, "create channel failed. server:%s", clusters[idx].c_str());
                 idx = (idx + i + 1) % serverSize;
                 continue;
             }
             // check connecting, retry 20 times
             for (auto i = 0; i < 20; i++) {
                 if (GRPC_CHANNEL_READY != channel_->GetState(true)) {
-                    AUTIL_LOG(INFO,
-                              "channel not ready, retry time:%d. server:%s", i,
+                    AUTIL_LOG(INFO, "channel not ready, retry time:%d. server:%s", i,
                               clusters[idx].c_str());
                     usleep(500000);
                     continue;
                 }
                 connectState = true;
-                AUTIL_LOG(INFO, "channel connect success. server:%s",
-                          clusters[idx].c_str());
+                AUTIL_LOG(INFO, "channel connect success. server:%s", clusters[idx].c_str());
                 break;
             }
             if (false == connectState) {
-                AUTIL_LOG(ERROR, "channel connect failed. server:%s",
-                          clusters[idx].c_str());
+                AUTIL_LOG(ERROR, "channel connect failed. server:%s", clusters[idx].c_str());
                 continue;
             }
-            AUTIL_LOG(INFO, "connect XDS Server success. server:%s",
-                      clusters[idx].c_str());
+            AUTIL_LOG(INFO, "connect XDS Server success. server:%s", clusters[idx].c_str());
             break;
         } // end for (auto i=0; i<serverSize; i++)
         if (false == connectState) {
-            AUTIL_LOG(ERROR,
-                      "failed to connect this cluster. try backup cluster.");
+            AUTIL_LOG(ERROR, "failed to connect this cluster. try backup cluster.");
             continue;
         }
         break;
@@ -138,8 +131,7 @@ bool GrpcAdsClient::BuildStream() {
     stub_.reset();
     stub_ = AggregatedDiscoveryService::NewStub(channel_);
     if (nullptr == stub_) {
-        AUTIL_LOG(ERROR,
-                  "create grpc ADS stub failed on channel. return false");
+        AUTIL_LOG(ERROR, "create grpc ADS stub failed on channel. return false");
         return false;
     }
     context_.reset();
@@ -154,8 +146,8 @@ bool GrpcAdsClient::BuildStream() {
     return true;
 }
 
-bool GrpcAdsClient::SendDiscoveryRequest(
-    const std::string &typeUrl, const std::set<std::string> &resourceNames) {
+bool GrpcAdsClient::SendDiscoveryRequest(const std::string &typeUrl,
+                                         const std::set<std::string> &resourceNames) {
     autil::ScopedReadWriteLock lock(rwlock_, 'w');
     DiscoveryRequest discReq;
     discReq.set_type_url(typeUrl);
@@ -166,8 +158,7 @@ bool GrpcAdsClient::SendDiscoveryRequest(
     if (nullptr == adsStream_) {
         return false;
     }
-    AUTIL_LOG(DEBUG, "SendDiscoveryRequest [%s]",
-              discReq.DebugString().c_str());
+    AUTIL_LOG(DEBUG, "SendDiscoveryRequest [%s]", discReq.DebugString().c_str());
     adsStream_->Write(discReq);
     return true;
 }
@@ -202,8 +193,7 @@ const std::string GrpcAdsClient::getChannelState() {
     return ret;
 }
 
-bool GrpcAdsClient::SendACK(const std::string &typeUrl,
-                            const std::string &responseNonce) {
+bool GrpcAdsClient::SendACK(const std::string &typeUrl, const std::string &responseNonce) {
     autil::ScopedReadWriteLock lock(rwlock_, 'w');
     DiscoveryRequest ackReq;
     ackReq.set_type_url(typeUrl);
@@ -217,8 +207,7 @@ bool GrpcAdsClient::SendACK(const std::string &typeUrl,
     return true;
 }
 
-bool GrpcAdsClient::SendNACK(const std::string &typeUrl,
-                             const std::string &responseNonce,
+bool GrpcAdsClient::SendNACK(const std::string &typeUrl, const std::string &responseNonce,
                              const std::string &failedReason) {
     autil::ScopedReadWriteLock lock(rwlock_, 'w');
     DiscoveryRequest nackReq;

@@ -28,13 +28,11 @@ namespace kmonitor_adapter {
 class Metric;
 typedef std::unique_ptr<Metric> MetricPtr;
 
-class Metric
-{
+class Metric {
 public:
-    Metric(kmonitor::MutableMetric* metric) : _metric(metric) {}
-    Metric(const Metric& other) = delete;
-    ~Metric()
-    {
+    Metric(kmonitor::MutableMetric *metric) : _metric(metric) {}
+    Metric(const Metric &other) = delete;
+    ~Metric() {
         if (_tagsMetric) {
             _metric->UndeclareMetric(_tagsMetric);
             _tagsMetric = NULL;
@@ -44,8 +42,7 @@ public:
 public:
     // immutable tags
     typedef std::vector<std::pair<std::string, std::string>> KVVec;
-    void addTags(const KVVec& tagPairs)
-    {
+    void addTags(const KVVec &tagPairs) {
         kmonitor::MetricsTags tags;
         for (auto kvPair : tagPairs) {
             tags.AddTag(kvPair.first, kvPair.second);
@@ -53,41 +50,36 @@ public:
         addTags(tags);
     }
 
-    void addTags(kmonitor::MetricsTags& tags)
-    {
+    void addTags(kmonitor::MetricsTags &tags) {
         assert(_metric);
         assert(!_tagsMetric);
         _tagsMetric = _metric->DeclareMetric(&tags);
     }
 
-    void report(double value)
-    {
+    void report(double value) {
         if (_tagsMetric) {
             _tagsMetric->Update(value);
         }
     }
 
-    LightMetricPtr declareLightMetric(kmonitor::MetricsTags& tags)
-    {
+    LightMetricPtr declareLightMetric(kmonitor::MetricsTags &tags) {
         return LightMetricPtr(new LightMetric(_metric->DeclareMetric(&tags)));
     }
 
 public:
     // mutable tags
-    void report(kmonitor::MetricsTags& tags, double value)
-    {
+    void report(kmonitor::MetricsTags &tags, double value) {
         assert(_metric);
         _metric->Report(&tags, value);
     }
-    void report(const kmonitor::MetricsTagsPtr& tags, double value)
-    {
+    void report(const kmonitor::MetricsTagsPtr &tags, double value) {
         assert(_metric);
         _metric->Report(tags, value);
     }
 
 protected:
     std::unique_ptr<kmonitor::MutableMetric> _metric = nullptr;
-    kmonitor::Metric* _tagsMetric = nullptr;
+    kmonitor::Metric *_tagsMetric = nullptr;
 };
 
 #define KMONITOR_ADAPTER_REPORT(metric, value)                                                                         \

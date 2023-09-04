@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "indexlib/indexlib/index/normal/summary/TabletSummaryReader.h"
+#include "indexlib/index/normal/summary/TabletSummaryReader.h"
 
 #include "indexlib/index/attribute/AttributeReader.h"
 #include "indexlib/index/primary_key/PrimaryKeyIndexReader.h"

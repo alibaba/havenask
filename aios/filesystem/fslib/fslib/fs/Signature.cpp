@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <string>
-#include "fslib/common/common_define.h"
 #include "fslib/Signature.h"
+
+#include <string>
+
+#include "fslib/common/common_define.h"
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-static const std::string fslib_version_info =
-    "signature_fslib_version: " __FSLIB_VERSION;
-static const std::string fslib_git_commit =
-    "signature_fslib_git_commit: " __FSLIB_GIT_COMMIT;
-static const std::string fslib_git_status =
-    "signature_fslib_git_status: " __FSLIB_GIT_STATUS;
-static const std::string fslib_build_info =
-    "signature_fslib_build: " __FSLIB_BUILD_INFO;
+static const std::string fslib_version_info = "signature_fslib_version: " __FSLIB_VERSION;
+static const std::string fslib_git_commit = "signature_fslib_git_commit: " __FSLIB_GIT_COMMIT;
+static const std::string fslib_git_status = "signature_fslib_git_status: " __FSLIB_GIT_STATUS;
+static const std::string fslib_build_info = "signature_fslib_build: " __FSLIB_BUILD_INFO;
 
 FSLIB_END_NAMESPACE(fs);

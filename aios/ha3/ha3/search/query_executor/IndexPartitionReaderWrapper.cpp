@@ -25,17 +25,22 @@
 #include "ha3/common/NumberTerm.h"
 #include "ha3/common/Term.h"
 #include "ha3/isearch.h"
+#include "ha3/search/AithetaFilter.h"
 #include "ha3/search/AttributeMetaInfo.h"
+#include "ha3/search/FilterWrapper.h"
 #include "ha3/search/LayerMetas.h"
-#include "indexlib/index/common/NumberTerm.h"
 #include "indexlib/config/TabletSchema.h"
-#include "indexlib/index/normal/deletionmap/deletion_map_reader_adaptor.h"
-#include "indexlib/index/normal/primarykey/legacy_primary_key_reader.h"
+#include "indexlib/index/common/NumberTerm.h"
+#include "indexlib/index/common/Term.h"
 #include "indexlib/index/inverted_index/InvertedIndexReader.h"
+#include "indexlib/index/inverted_index/MultiFieldIndexReader.h"
 #include "indexlib/index/inverted_index/PostingIterator.h"
 #include "indexlib/index/inverted_index/format/TermMeta.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_iterator_base.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_reader.h"
+#include "indexlib/index/normal/deletionmap/deletion_map_reader_adaptor.h"
+#include "indexlib/index/normal/inverted_index/accessor/multi_field_index_reader.h"
+#include "indexlib/index/normal/primarykey/legacy_primary_key_reader.h"
 #include "indexlib/index/normal/summary/TabletSummaryReader.h"
 #include "indexlib/index/partition_info.h"
 #include "indexlib/index_base/index_meta/version.h"
@@ -43,7 +48,6 @@
 #include "indexlib/partition/index_partition_reader.h"
 #include "indexlib/partition/partition_reader_snapshot.h"
 #include "indexlib/table/normal_table/NormalTabletSessionReader.h"
-#include "indexlib/index/common/Term.h"
 
 using namespace indexlib::index;
 using namespace indexlib::index_base;
@@ -60,7 +64,8 @@ std::shared_ptr<indexlib::index::SummaryReader>
 std::shared_ptr<indexlib::index::PrimaryKeyIndexReader>
     IndexPartitionReaderWrapper::RET_EMPTY_PRIMARY_KEY_READER
     = std::shared_ptr<indexlib::index::PrimaryKeyIndexReader>();
-std::shared_ptr<indexlib::index::InvertedIndexReader> IndexPartitionReaderWrapper::RET_EMPTY_INDEX_READER
+std::shared_ptr<indexlib::index::InvertedIndexReader>
+    IndexPartitionReaderWrapper::RET_EMPTY_INDEX_READER
     = std::shared_ptr<indexlib::index::InvertedIndexReader>();
 std::shared_ptr<indexlib::index::KKVReader> IndexPartitionReaderWrapper::RET_EMPTY_KKV_READER
     = std::shared_ptr<indexlib::index::KKVReader>();
@@ -124,11 +129,13 @@ IndexPartitionReaderWrapper::~IndexPartitionReaderWrapper() {
     }
 }
 
-void IndexPartitionReaderWrapper::addDelPosting(const std::string &indexName, PostingIterator *postIter) {
+void IndexPartitionReaderWrapper::addDelPosting(const std::string &indexName,
+                                                PostingIterator *postIter) {
     _delPostingVec.emplace_back(indexName, postIter);
 }
 
-LookupResult IndexPartitionReaderWrapper::lookup(const common::Term &term, const LayerMeta *layerMeta) {
+LookupResult IndexPartitionReaderWrapper::lookup(const common::Term &term,
+                                                 const LayerMeta *layerMeta) {
     LookupResult result;
     LookupResult originalResult;
     string key;
@@ -151,15 +158,17 @@ LookupResult IndexPartitionReaderWrapper::doLookup(const common::Term &term,
     LookupResult result;
     std::shared_ptr<InvertedIndexReader> indexReaderPtr;
     bool isSubIndex = false;
-    if (!getIndexReader(term.getIndexName(), indexReaderPtr, isSubIndex)) {
+    const auto &indexName = term.getIndexName();
+    if (!getIndexReader(indexName, indexReaderPtr, isSubIndex)) {
         AUTIL_LOG(WARN,
                   "getIndexReader failed for term: %s:%s",
-                  term.getIndexName().c_str(),
+                  indexName.c_str(),
                   term.getWord().c_str());
         return result;
     }
 
-    indexlib::index::Term *indexTerm = createIndexTerm(term);
+    auto indexType = getIndexType(indexReaderPtr, indexName);
+    indexlib::index::Term *indexTerm = createIndexTerm(term, indexType, isSubIndex);
     unique_ptr<indexlib::index::Term> indexTermPtr(indexTerm);
     PostingType pt1;
     PostingType pt2;
@@ -167,6 +176,24 @@ LookupResult IndexPartitionReaderWrapper::doLookup(const common::Term &term,
     result = doLookupWithoutCache(indexReaderPtr, isSubIndex, *indexTermPtr, pt1, pt2, layerMeta);
     _postingCache[key] = result;
     return result;
+}
+
+InvertedIndexType
+IndexPartitionReaderWrapper::getIndexType(std::shared_ptr<InvertedIndexReader> indexReaderPtr,
+                                          const std::string &indexName) {
+    auto legacyMultiIndexReader
+        = DYNAMIC_POINTER_CAST(indexlib::index::legacy::MultiFieldIndexReader, indexReaderPtr);
+    if (legacyMultiIndexReader) {
+        indexReaderPtr = legacyMultiIndexReader->GetInvertedIndexReader(indexName);
+    } else {
+        auto multiIndexReader
+            = DYNAMIC_POINTER_CAST(indexlib::index::MultiFieldIndexReader, indexReaderPtr);
+        if (multiIndexReader) {
+            indexReaderPtr = multiIndexReader->GetIndexReader(indexName);
+        }
+    }
+
+    return indexReaderPtr->GetInvertedIndexType();
 }
 
 void IndexPartitionReaderWrapper::truncateRewrite(const std::string &truncateName,
@@ -221,6 +248,10 @@ void IndexPartitionReaderWrapper::makesureIteratorExist() {
         assert(retValue);                                                                          \
     } while (0)
 
+    if (!_indexReaderVec) {
+        AUTIL_LOG(ERROR, "partition reader vec empty");
+        return;
+    }
     if (_main2SubIt == NULL || _sub2MainIt == NULL) {
         assert(_main2SubIt == NULL && _sub2MainIt == NULL);
         CREATE_DOCID_ITERATOR((*_indexReaderVec)[IndexPartitionReader::MAIN_PART_ID],
@@ -236,6 +267,9 @@ void IndexPartitionReaderWrapper::makesureIteratorExist() {
 
 bool IndexPartitionReaderWrapper::getAttributeMetaInfo(const string &attrName,
                                                        AttributeMetaInfo &metaInfo) const {
+    if (_tabletReader) {
+        return false;
+    }
     if (_attrName2IdMap->empty()) {
         metaInfo.setAttributeName(attrName);
         metaInfo.setAttributeType(AT_MAIN_ATTRIBUTE);
@@ -269,18 +303,22 @@ const IndexPartitionReaderPtr &IndexPartitionReaderWrapper::getReader() const {
     return (*_indexReaderVec)[IndexPartitionReader::MAIN_PART_ID];
 }
 const IndexPartitionReaderPtr &IndexPartitionReaderWrapper::getSubReader() const {
+    static IndexPartitionReaderPtr EMPTY;
+    if (_tabletReader) {
+        return EMPTY;
+    }
     assert(_indexReaderVec->size() > 0);
     if (_indexReaderVec->size() > IndexPartitionReader::SUB_PART_ID) {
         return (*_indexReaderVec)[IndexPartitionReader::SUB_PART_ID];
     }
-    static IndexPartitionReaderPtr EMPTY;
     return EMPTY;
 }
 
 std::shared_ptr<InvertedIndexReader> IndexPartitionReaderWrapper::getIndexReader() const {
     if (_tabletReader) {
         auto normalTabletReader
-            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(_tabletReader);
+            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(
+                _tabletReader);
         if (normalTabletReader) {
             return normalTabletReader->GetMultiFieldIndexReader();
         }
@@ -293,8 +331,7 @@ std::shared_ptr<InvertedIndexReader> IndexPartitionReaderWrapper::getIndexReader
     return nullptr;
 }
 
-std::shared_ptr<indexlibv2::config::ITabletSchema>
-IndexPartitionReaderWrapper::getSchema() const {
+std::shared_ptr<indexlibv2::config::ITabletSchema> IndexPartitionReaderWrapper::getSchema() const {
     if (_tabletReader) {
         return _tabletReader->GetSchema();
     } else {
@@ -335,12 +372,14 @@ IndexPartitionReaderWrapper::getKKVReader(regionid_t regionId) const {
 const std::shared_ptr<SummaryReader> IndexPartitionReaderWrapper::getSummaryReader() const {
     if (_tabletReader) {
         auto normalTabletReader
-            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(_tabletReader);
+            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(
+                _tabletReader);
         if (normalTabletReader) {
-            const auto& summaryReader = normalTabletReader->GetSummaryReader();
-            const auto& pkReader = normalTabletReader->GetPrimaryKeyReader();
-            if(summaryReader) {
-                return std::make_shared<indexlibv2::index::TabletSummaryReader>(summaryReader.get(), pkReader);
+            const auto &summaryReader = normalTabletReader->GetSummaryReader();
+            const auto &pkReader = normalTabletReader->GetPrimaryKeyReader();
+            if (summaryReader) {
+                return std::make_shared<indexlibv2::index::TabletSummaryReader>(summaryReader.get(),
+                                                                                pkReader);
             }
         }
     } else {
@@ -369,7 +408,8 @@ const std::shared_ptr<indexlib::index::PrimaryKeyIndexReader> &
 IndexPartitionReaderWrapper::getPrimaryKeyReader() const {
     if (_tabletReader) {
         auto normalTabletReader
-            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(_tabletReader);
+            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(
+                _tabletReader);
         if (normalTabletReader) {
             return normalTabletReader->GetPrimaryKeyReader();
         }
@@ -386,7 +426,8 @@ std::shared_ptr<indexlib::index::DeletionMapReaderAdaptor>
 IndexPartitionReaderWrapper::getDeletionMapReader() const {
     if (_tabletReader) {
         auto normalTabletReader
-            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(_tabletReader);
+            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(
+                _tabletReader);
         if (normalTabletReader) {
             return std::make_shared<indexlib::index::DeletionMapReaderAdaptor>(
                 normalTabletReader->GetDeletionMapReader());
@@ -407,7 +448,8 @@ bool IndexPartitionReaderWrapper::getSortedDocIdRanges(
     indexlib::DocIdRangeVector &resultRanges) const {
     if (_tabletReader) {
         auto normalTabletReader
-            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(_tabletReader);
+            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(
+                _tabletReader);
         if (normalTabletReader) {
             return normalTabletReader->GetSortedDocIdRanges(dimensions, rangeLimits, resultRanges);
         }
@@ -425,7 +467,8 @@ bool IndexPartitionReaderWrapper::getIndexReader(const string &indexName,
                                                  bool &isSubIndex) {
     if (_tabletReader) {
         auto normalTabletReader
-            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(_tabletReader);
+            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(
+                _tabletReader);
         if (normalTabletReader) {
             indexReader = normalTabletReader->GetMultiFieldIndexReader();
             return true;
@@ -484,9 +527,16 @@ bool IndexPartitionReaderWrapper::tryGetFromPostingCache(const string &key, Look
     return true;
 }
 
-indexlib::index::Term *IndexPartitionReaderWrapper::createIndexTerm(const common::Term &term) {
+indexlib::index::Term *IndexPartitionReaderWrapper::createIndexTerm(const common::Term &term,
+                                                                    InvertedIndexType indexType,
+                                                                    bool isSubIndex) {
     if (term.getTermType() == TT_STRING) {
         assert(term.getTermName() == "Term");
+
+        if (indexType == it_customized) {
+            return createAithetaTerm(term, isSubIndex);
+        }
+
         indexlib::index::Term *indexTerm = new indexlib::index::Term();
         indexTerm->SetWord(term.getWord());
         indexTerm->SetIndexName(term.getIndexName());
@@ -501,6 +551,29 @@ indexlib::index::Term *IndexPartitionReaderWrapper::createIndexTerm(const common
         indexTerm->SetIndexName(numberTerm->getIndexName());
         return indexTerm;
     }
+}
+
+indexlibv2::index::ann::AithetaTerm *
+IndexPartitionReaderWrapper::createAithetaTerm(const common::Term &term, bool isSubIndex) {
+    auto *indexTerm = new indexlibv2::index::ann::AithetaTerm();
+    indexTerm->SetWord(term.getWord());
+    indexTerm->SetIndexName(term.getIndexName());
+
+    if (!isSubIndex) {
+        Filter *filter = _filterWrapper ? _filterWrapper->getFilter() : nullptr;
+        if (filter) {
+            auto *aithetaFilter = new AithetaFilter();
+            aithetaFilter->SetFilter([filter](docid_t docId) -> bool {
+                matchdoc::MatchDoc doc(0, docId);
+                return !filter->pass(doc);
+            });
+            auto *auxSearchInfo = new indexlibv2::index::ann::AithetaAuxSearchInfo(
+                shared_ptr<indexlibv2::index::ann::AithetaFilterBase>(aithetaFilter));
+            indexTerm->SetAithetaSearchInfo(
+                shared_ptr<indexlibv2::index::ann::AithetaAuxSearchInfo>(auxSearchInfo));
+        }
+    }
+    return indexTerm;
 }
 
 void IndexPartitionReaderWrapper::getTermKeyStr(const common::Term &term,
@@ -519,7 +592,8 @@ void IndexPartitionReaderWrapper::getTermKeyStr(const common::Term &term,
 versionid_t IndexPartitionReaderWrapper::getCurrentVersion() const {
     if (_tabletReader) {
         auto normalTabletReader
-            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(_tabletReader);
+            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(
+                _tabletReader);
         assert(normalTabletReader);
         const indexlibv2::framework::Version &version = normalTabletReader->GetVersion();
         return version.GetVersionId();
@@ -546,7 +620,8 @@ bool IndexPartitionReaderWrapper::getPartedDocIdRanges(const indexlib::DocIdRang
                                                        indexlib::DocIdRangeVector &ranges) const {
     if (_tabletReader) {
         auto normalTabletReader
-            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(_tabletReader);
+            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(
+                _tabletReader);
         if (normalTabletReader) {
             return normalTabletReader->GetPartedDocIdRanges(
                 rangeHint, totalWayCount, wayIdx, ranges);
@@ -567,7 +642,8 @@ bool IndexPartitionReaderWrapper::getPartedDocIdRanges(
     std::vector<indexlib::DocIdRangeVector> &rangeVectors) const {
     if (_tabletReader) {
         auto normalTabletReader
-            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(_tabletReader);
+            = std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(
+                _tabletReader);
         if (normalTabletReader) {
             return normalTabletReader->GetPartedDocIdRanges(rangeHint, totalWayCount, rangeVectors);
         }
@@ -607,13 +683,13 @@ bool IndexPartitionReaderWrapper::getSubRanges(const LayerMeta *mainLayerMeta,
     return true;
 }
 
-PostingIterator *
-IndexPartitionReaderWrapper::doLookupByRanges(const std::shared_ptr<InvertedIndexReader> &indexReaderPtr,
-                                              const indexlib::index::Term *indexTerm,
-                                              PostingType pt1,
-                                              PostingType pt2,
-                                              const LayerMeta *layerMeta,
-                                              bool isSubIndex) {
+PostingIterator *IndexPartitionReaderWrapper::doLookupByRanges(
+    const std::shared_ptr<InvertedIndexReader> &indexReaderPtr,
+    const indexlib::index::Term *indexTerm,
+    PostingType pt1,
+    PostingType pt2,
+    const LayerMeta *layerMeta,
+    bool isSubIndex) {
     PostingIterator *iter
         = indexReaderPtr->Lookup(*indexTerm, _topK, pt1, _sessionPool).ValueOrThrow();
     if (!iter) {
@@ -622,7 +698,8 @@ IndexPartitionReaderWrapper::doLookupByRanges(const std::shared_ptr<InvertedInde
     return iter;
 }
 
-IndexPartitionReaderWrapper::InvertedTracerVector IndexPartitionReaderWrapper::getInvertedTracers() {
+IndexPartitionReaderWrapper::InvertedTracerVector
+IndexPartitionReaderWrapper::getInvertedTracers() {
     InvertedTracerVector result;
     for (; _tracerCursor < _delPostingVec.size(); _tracerCursor++) {
         auto *postingIter = _delPostingVec[_tracerCursor].second;
@@ -682,7 +759,9 @@ bool IndexPartitionReaderWrapper::pk2DocId(const primarykey_t &key,
 template <typename Key>
 bool IndexPartitionReaderWrapper::pk2DocIdImpl(
     const std::shared_ptr<indexlib::index::PrimaryKeyIndexReader> &pkIndexReader,
-    const Key &key, bool ignoreDelete, docid_t &docid) const {
+    const Key &key,
+    bool ignoreDelete,
+    docid_t &docid) const {
     if (_tabletReader) {
         const auto &pkReader
             = std::dynamic_pointer_cast<indexlibv2::index::PrimaryKeyReader<Key>>(pkIndexReader);

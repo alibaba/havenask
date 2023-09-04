@@ -16,26 +16,25 @@
 #include "autil/LockFreeThreadPool.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <errno.h>
 #include <exception>
 #include <functional>
 #include <memory>
 #include <new>
 #include <stack>
-#include <cstddef>
-#include <cstdint>
 #include <string>
 #include <typeinfo>
-
-#include <errno.h>
 #include <unistd.h>
 
-#include "autil/Log.h"
 #include "autil/Lock.h"
-#include "autil/Thread.h"
-#include "autil/WorkItem.h"
-#include "autil/TimeUtility.h"
 #include "autil/LockFree.h"
+#include "autil/Log.h"
+#include "autil/Thread.h"
 #include "autil/ThreadAutoScaler.h"
+#include "autil/TimeUtility.h"
+#include "autil/WorkItem.h"
 
 namespace autil {
 
@@ -52,8 +51,7 @@ LockFreeThreadPool::LockFreeThreadPool(const size_t threadNum,
     , _notifyIndex(0)
     , _waitIndex(0)
     , _notifySlots(threadNum)
-    , _autoScaler(nullptr)
-{
+    , _autoScaler(nullptr) {
     if (factory == NULL) {
         _queue.reset(new (std::nothrow) LockFreeThreadPoolQueue());
     } else {
@@ -206,9 +204,8 @@ void LockFreeThreadPool::consumeItem(autil::WorkItem *item) {
     _lastPopTime = start;
     ThreadPoolBase::consumeItem(item);
     end = autil::TimeUtility::monotonicTimeUs();
-    if(end - start >= 2000000) {
-        AUTIL_LOG(WARN, "process cost: %ld, _curQueueSize: %ld",
-                end - start, _curQueueSize);
+    if (end - start >= 2000000) {
+        AUTIL_LOG(WARN, "process cost: %ld, _curQueueSize: %ld", end - start, _curQueueSize);
     }
 }
 
@@ -216,7 +213,8 @@ bool LockFreeThreadPool::createThreads(const std::string &name) {
     size_t num = _threadNum;
     _threads.resize(num, NULL);
     while (num--) {
-        _threads[num] = autil::Thread::createThread(std::bind(&LockFreeThreadPool::WorkerRoutine, this, num), _threadName);
+        _threads[num] =
+            autil::Thread::createThread(std::bind(&LockFreeThreadPool::WorkerRoutine, this, num), _threadName);
         if (!_threads[num]) {
             AUTIL_LOG(ERROR, "Create WorkerLoop thread fail!");
             return false;

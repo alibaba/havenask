@@ -1,0 +1,43 @@
+{
+    "builder_rule_config" : {
+        "partition_resource" : 50,
+        "partition_count" : 5
+    },
+    "swift_config" : {
+        "topic" : {
+            "partition_count" : 10,
+            "partition_resource" : 100,
+            "partition_buffer_size" : 1000,
+            "partition_file_buf_size" : 1000,
+            "obsolete_file_interval" : 3600,
+            "reserved_file_count" : 10
+        },
+        "reader_config" : "",
+        "writer_config" : ""
+    },
+    "crontab_config" : {
+        "inc_version_interval" : 1800,
+        "full_merge_interval" : 86400
+    },
+    "build_config" : {
+        "NeedSort" : true,
+        "SortQueueSize" : 100000,
+        "IndexKeepTime" : 3600
+    },
+    "offline_index_config" : {
+        "build_config" : {
+            "max_memory_use": 5120,
+        },
+        "merge_config" :
+        {
+            "merge_strategy" : "balance_tree",
+            "merge_strategy_param": "conflict-segment-number=3;base-doc-count=10240;max-doc-count=512000;conflict-delete-percent=80;max-valid-doc-count=20000000",
+            "merge_thread_count" : 1
+        },
+        "customized_merge_config" : {
+	    "inc" : {
+	        "merge_parallel_num" : 5
+	    }
+        }
+    }
+}

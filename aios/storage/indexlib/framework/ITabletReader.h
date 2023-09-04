@@ -20,7 +20,7 @@
 #include "indexlib/base/Status.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::index {
@@ -37,7 +37,7 @@ public:
     // interface for search runtime
     virtual std::shared_ptr<index::IIndexReader> GetIndexReader(const std::string& indexType,
                                                                 const std::string& indexName) const = 0;
-    virtual std::shared_ptr<config::TabletSchema> GetSchema() const = 0;
+    virtual std::shared_ptr<config::ITabletSchema> GetSchema() const = 0;
     virtual Status Search(const std::string& jsonQuery, std::string& result) const = 0;
 };
 

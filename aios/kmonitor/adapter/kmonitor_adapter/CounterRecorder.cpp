@@ -23,19 +23,16 @@
 
 namespace kmonitor_adapter {
 
-CounterRecorder::CounterRecorder(const std::string& name, MetricPtr metric)
-    : _name(name)
-    , _metric(std::move(metric))
-    , _mergedSum(0)
-{
+CounterRecorder::CounterRecorder(const std::string &name, MetricPtr metric)
+    : _name(name), _metric(std::move(metric)), _mergedSum(0) {
     registerRecorder();
 }
 
-CounterRecorder::CounterRecorder(Monitor* monitor, const std::string& metricName, kmonitor::MetricLevel level,
-                                 const Metric::KVVec& tags)
-    : _name(metricName)
-    , _mergedSum(0)
-{
+CounterRecorder::CounterRecorder(Monitor *monitor,
+                                 const std::string &metricName,
+                                 kmonitor::MetricLevel level,
+                                 const Metric::KVVec &tags)
+    : _name(metricName), _mergedSum(0) {
     if (monitor) {
         _metric = monitor->registerGaugeMetric(metricName, level, tags);
         assert(_metric);

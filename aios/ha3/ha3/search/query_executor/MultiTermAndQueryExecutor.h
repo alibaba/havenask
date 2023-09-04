@@ -17,24 +17,26 @@
 
 #include <string>
 
+#include "autil/Log.h" // IWYU pragma: keep
 #include "ha3/search/AndQueryExecutor.h"
 #include "ha3/search/MultiQueryExecutor.h"
-#include "autil/Log.h" // IWYU pragma: keep
 
 namespace isearch {
 namespace search {
 
-class MultiTermAndQueryExecutor : public AndQueryExecutor
-{
+class MultiTermAndQueryExecutor : public AndQueryExecutor {
 public:
     MultiTermAndQueryExecutor();
     ~MultiTermAndQueryExecutor();
 
 public:
-    const std::string getName() const {return "MultiTermAndQueryExecutor";}
+    const std::string getName() const {
+        return "MultiTermAndQueryExecutor";
+    }
     std::string toString() const {
         return "MultiTermAnd" + MultiQueryExecutor::toString();
     }
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -43,4 +45,3 @@ typedef std::shared_ptr<MultiTermAndQueryExecutor> MultiTermAndQueryExecutorPtr;
 
 } // namespace search
 } // namespace isearch
-

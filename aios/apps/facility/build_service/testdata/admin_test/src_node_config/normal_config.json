@@ -1,0 +1,11 @@
+{
+    "online_index_config":{
+        "build_config" : {
+            "build_total_memory":1024
+        }
+    },
+    "enable_order_preserving":true,
+    "order_preserving_field":"reserve_price",
+    "enable_update_to_add":true,
+    "block_cache_param":"cache_size=2;block_size=2097152"
+}

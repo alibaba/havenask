@@ -30,7 +30,8 @@ AUTIL_LOG_SETUP(indexlib.config, KKVIndexConfig);
 
 namespace {
 static const uint32_t DEFAULT_SKIPLIT_THRESHOLD = []() {
-    uint32_t ret = autil::EnvUtil::getEnv("indexlib_kkv_default_skiplist_threshold", 100);
+    uint32_t ret =
+        autil::EnvUtil::getEnv("indexlib_kkv_default_skiplist_threshold", index::KKV_DEFAULT_SKIPLIST_THRESHOLD);
     return ret;
 }();
 }
@@ -99,7 +100,7 @@ void KKVIndexConfig::Check() const
 
 void KKVIndexConfig::CheckSortParams() const
 {
-    vector<std::shared_ptr<AttributeConfig>> subAttrConfigs;
+    vector<std::shared_ptr<index::AttributeConfig>> subAttrConfigs;
     const auto& valueConfig = GetValueConfig();
     size_t attributeCount = valueConfig->GetAttributeCount();
     subAttrConfigs.reserve(attributeCount);
@@ -230,7 +231,7 @@ void KKVIndexConfig::OptimizeKKVSKeyStore()
     const auto& skeyFieldConfig = GetSuffixFieldConfig();
     const auto& valueConfig = GetValueConfig();
     size_t attrCount = valueConfig->GetAttributeCount();
-    vector<std::shared_ptr<AttributeConfig>> optAttrConfigs;
+    vector<std::shared_ptr<index::AttributeConfig>> optAttrConfigs;
     optAttrConfigs.reserve(attrCount);
     for (size_t i = 0; i < attrCount; ++i) {
         const auto& attrConfig = valueConfig->GetAttributeConfig(i);

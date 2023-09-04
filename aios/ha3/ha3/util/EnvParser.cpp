@@ -29,8 +29,7 @@ namespace util {
 AUTIL_LOG_SETUP(ha3, EnvParser);
 
 bool EnvParser::parseParaWays(const string &paraEnv,
-                              vector<string> &paraWaysVec)
-{ //paraWays=2,4,8
+                              vector<string> &paraWaysVec) { // paraWays=2,4,8
     paraWaysVec.clear();
     StringUtil::split(paraWaysVec, paraEnv, ',');
     if (0 == paraWaysVec.size()) {
@@ -38,8 +37,10 @@ bool EnvParser::parseParaWays(const string &paraEnv,
     }
     for (const auto &paraVal : paraWaysVec) {
         if (!isWayValid(paraVal)) {
-            AUTIL_LOG(ERROR, "para search ways param [(%s) from (%s)] invalid",
-                    paraVal.c_str(), paraEnv.c_str());
+            AUTIL_LOG(ERROR,
+                      "para search ways param [(%s) from (%s)] invalid",
+                      paraVal.c_str(),
+                      paraEnv.c_str());
             paraWaysVec.clear();
             return false;
         }
@@ -47,7 +48,7 @@ bool EnvParser::parseParaWays(const string &paraEnv,
     return true;
 }
 
-bool EnvParser::isWayValid(const string& paraVal) {
+bool EnvParser::isWayValid(const string &paraVal) {
     if ("2" == paraVal || "4" == paraVal || "8" == paraVal || "16" == paraVal) {
         return true;
     }

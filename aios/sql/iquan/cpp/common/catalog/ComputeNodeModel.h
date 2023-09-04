@@ -15,15 +15,12 @@
  */
 #pragma once
 
-#include <string>
 #include <vector>
 
-#include "autil/legacy/jsonizable.h"
 #include "iquan/common/catalog/ComputeNodeDef.h"
-#include "iquan/common/catalog/LocationDef.h"
 
 namespace iquan {
 
-typedef std::vector<ComputeNodeDef>  ComputeNodeModels;
+typedef std::vector<ComputeNodeDef> ComputeNodeModels;
 
 } // namespace iquan

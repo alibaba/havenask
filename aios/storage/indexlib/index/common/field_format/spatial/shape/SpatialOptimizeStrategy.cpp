@@ -17,18 +17,17 @@
 
 #include <unistd.h>
 
+#include "autil/EnvUtil.h"
+
 namespace indexlib::index {
 AUTIL_LOG_SETUP(indexlib.index, SpatialOptimizeStrategy);
 
 SpatialOptimizeStrategy::SpatialOptimizeStrategy() : _enableOptimize(true)
 {
-    char* envParam = getenv("DISABLE_SPATIAL_OPTIMIZE");
-    if (envParam != nullptr) {
-        std::string envValue = std::string(envParam);
-        if (envValue == "true") {
-            AUTIL_LOG(INFO, "disable spatial index optimize!");
-            _enableOptimize = false;
-        }
+    std::string envParam = autil::EnvUtil::getEnv("DISABLE_SPATIAL_OPTIMIZE");
+    if (envParam == "true") {
+        AUTIL_LOG(INFO, "disable spatial index optimize!");
+        _enableOptimize = false;
     }
 }
 

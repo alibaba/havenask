@@ -16,11 +16,11 @@
 #pragma once
 
 #include <assert.h>
-#include <string.h>
 #include <iosfwd>
+#include <string.h>
 
-#include "autil/mem_pool/Pool.h"
 #include "autil/CommonMacros.h"
+#include "autil/mem_pool/Pool.h"
 
 #ifndef RAPIDJSON_HAS_STDSTRING
 #define RAPIDJSON_HAS_STDSTRING 1
@@ -36,8 +36,7 @@ class AutilPoolAllocator {
 public:
     static const bool kNeedFree = false;
 
-    AutilPoolAllocator(autil::mem_pool::Pool *pool_ = NULL)
-    {
+    AutilPoolAllocator(autil::mem_pool::Pool *pool_ = NULL) {
         if (pool_) {
             pool = pool_;
             ownPool = false;
@@ -51,19 +50,20 @@ public:
             DELETE_AND_SET_NULL(pool);
         }
     }
+
 private:
     AutilPoolAllocator(const AutilPoolAllocator &);
-    AutilPoolAllocator& operator=(const AutilPoolAllocator &);
+    AutilPoolAllocator &operator=(const AutilPoolAllocator &);
 
 public:
-    void* Malloc(size_t size) {
+    void *Malloc(size_t size) {
         if (size == 0) {
             return NULL;
         } else {
             return pool->allocate(size);
         }
     }
-    void* Realloc(void* originalPtr, size_t originalSize, size_t newSize) {
+    void *Realloc(void *originalPtr, size_t originalSize, size_t newSize) {
         // do nothing to old mem
         if (originalPtr == 0) {
             return Malloc(newSize);
@@ -74,7 +74,7 @@ public:
         if (originalSize >= newSize) {
             return originalPtr;
         }
-        void* newBuffer = Malloc(newSize);
+        void *newBuffer = Malloc(newSize);
         assert(newBuffer != 0);
         if (originalSize)
             std::memcpy(newBuffer, originalPtr, originalSize);
@@ -83,6 +83,7 @@ public:
     static void Free(void *ptr) {
         // do nothing to old mem
     }
+
 public:
     autil::mem_pool::Pool *pool;
     bool ownPool;
@@ -91,4 +92,4 @@ public:
 typedef rapidjson::GenericValue<rapidjson::UTF8<>, AutilPoolAllocator> SimpleValue;
 typedef rapidjson::GenericDocument<rapidjson::UTF8<>, AutilPoolAllocator> SimpleDocument;
 
-}
+} // namespace autil

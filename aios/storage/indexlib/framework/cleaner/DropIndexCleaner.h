@@ -19,7 +19,7 @@
 #include "autil/NoCopyable.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/config/IIndexConfig.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/framework/TabletData.h"
 
@@ -33,9 +33,9 @@ public:
 
 public:
     static std::vector<std::string> CaclulateDropIndexDirs(const std::shared_ptr<TabletData>& originTabletData,
-                                                           const std::shared_ptr<config::TabletSchema>& targetSchema);
+                                                           const std::shared_ptr<config::ITabletSchema>& targetSchema);
     static Status CleanIndexInLogical(const std::shared_ptr<TabletData>& originTabletData,
-                                      const std::shared_ptr<config::TabletSchema>& targetSchema,
+                                      const std::shared_ptr<config::ITabletSchema>& targetSchema,
                                       const std::shared_ptr<indexlib::file_system::IDirectory>& rootDirectory);
     static Status DropPrivateFence(const std::string& localRoot);
 

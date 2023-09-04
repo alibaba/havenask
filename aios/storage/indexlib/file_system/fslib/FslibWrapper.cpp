@@ -724,6 +724,25 @@ bool FslibWrapper::NeedMkParentDirBeforeOpen(const string& path) noexcept
     return fslib::fs::FileSystem::getFsType(path) == FSLIB_FS_LOCAL_FILESYSTEM_NAME;
 }
 
+FSResult<void> FslibWrapper::Link(const string& srcPath, const string& dstPath) noexcept
+{
+    fslib::ErrorCode ec = fslib::fs::FileSystem::link(srcPath, dstPath);
+    if (ec == fslib::EC_NOENT) {
+        AUTIL_LOG(WARN, "link [%s] to [%s] failed, src not exist", srcPath.c_str(), dstPath.c_str());
+        return FSEC_NOENT;
+    } else if (ec == fslib::EC_EXIST) {
+        AUTIL_LOG(WARN, "link [%s] to [%s] failed, dst exist", srcPath.c_str(), dstPath.c_str());
+        return FSEC_EXIST;
+    } else if (ec == fslib::EC_NOTSUP) {
+        AUTIL_LOG(ERROR, "not support link for src path[%s] to dst path[%s]", srcPath.c_str(), dstPath.c_str());
+        return FSEC_NOTSUP;
+    } else if (ec != fslib::EC_OK) {
+        AUTIL_LOG(ERROR, "link [%s] to [%s] failed, ec[%d]", srcPath.c_str(), dstPath.c_str(), ec);
+        return FSEC_ERROR;
+    }
+    return FSEC_OK;
+}
+
 FSResult<void> FslibWrapper::SymLink(const string& srcPath, const string& dstPath) noexcept
 {
     if (fslib::fs::FileSystem::getFsType(srcPath) != FSLIB_FS_LOCAL_FILESYSTEM_NAME) {
@@ -772,7 +791,7 @@ FSResult<void> FslibWrapper::UpdatePanguInlineFile(const string& path, const str
     constexpr const char* UPDATE_INLINE_COMMAND = "pangu_UpdateInlinefile";
     static string out;
 
-    if (getenv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE")) {
+    if (autil::EnvUtil::hasEnv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE")) {
         ScopedLock lock(TEST_panguLock);
         auto ec = DeleteFile(path, DeleteOption::NoFence(true)).Code();
         if (ec != FSEC_OK) {
@@ -800,7 +819,7 @@ FSResult<void> FslibWrapper::UpdatePanguInlineFileCAS(const std::string& path, c
 {
     constexpr const char* UPDATE_INLINE_COMMAND = "pangu_UpdateInlinefileCAS";
 
-    if (getenv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE")) {
+    if (autil::EnvUtil::hasEnv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE")) {
         ScopedLock lock(TEST_panguLock);
         auto ec = DeleteFile(path, DeleteOption::NoFence(true)).Code();
         if (ec != FSEC_OK) {
@@ -832,7 +851,7 @@ FSResult<void> FslibWrapper::UpdatePanguInlineFileCAS(const std::string& path, c
 
 FSResult<void> FslibWrapper::CreatePanguInlineFile(const std::string& path) noexcept
 {
-    if (getenv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE")) {
+    if (autil::EnvUtil::hasEnv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE")) {
         ScopedLock lock(TEST_panguLock);
         auto ec = Store(path, "").Code();
         return ec;
@@ -857,7 +876,7 @@ FSResult<void> FslibWrapper::CreatePanguInlineFile(const std::string& path) noex
 
 FSResult<void> FslibWrapper::StatPanguInlineFile(const std::string& path, string& out) noexcept
 {
-    if (getenv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE")) {
+    if (autil::EnvUtil::hasEnv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE")) {
         ScopedLock lock(TEST_panguLock);
         return Load(path, out);
     }
@@ -881,7 +900,7 @@ FSResult<void> FslibWrapper::StatPanguInlineFile(const std::string& path, string
 
 FSResult<void> FslibWrapper::DeletePanguPathCAS(const std::string& path, const std::string& args) noexcept
 {
-    if (getenv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE")) {
+    if (autil::EnvUtil::hasEnv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE")) {
         ScopedLock lock(TEST_panguLock);
         return Delete(path, FenceContext::NoFence());
     }
@@ -908,7 +927,7 @@ FSResult<void> FslibWrapper::DeletePanguPathCAS(const std::string& path, const s
 
 FSResult<void> FslibWrapper::RenamePanguPathCAS(const std::string& srcName, const std::string& args) noexcept
 {
-    if (getenv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE")) {
+    if (autil::EnvUtil::hasEnv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE")) {
         ScopedLock lock(TEST_panguLock);
         vector<string> argVec;
         StringUtil::split(argVec, args, FENCE_ARGS_SEP, false);
@@ -1087,11 +1106,11 @@ FenceContext* FslibWrapper::CreateFenceContext(const std::string& fenceHintPath,
 {
     bool needFence = false;
     bool usePangu = false;
-    if (epochId.empty() || EnvUtil::getEnv("INDEXLIB_FENCE_OPERATE_ROOT", "true") == "false") {
+    if (epochId.empty() || autil::EnvUtil::getEnv("INDEXLIB_FENCE_OPERATE_ROOT", "true") == "false") {
         return FenceContext::NoFence();
     }
     // for test
-    if (EnvUtil::getEnv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE", "false") == "true") {
+    if (autil::EnvUtil::getEnv("INDEXLIB_TEST_MOCK_PANGU_INLINE_FILE", "false") == "true") {
         needFence = true;
         usePangu = true;
     } else {

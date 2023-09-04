@@ -78,13 +78,15 @@ VirtualAttributeIndexFactory::CreateIndexReader(const std::shared_ptr<config::II
     auto virtualAttrConfig = std::dynamic_pointer_cast<VirtualAttributeConfig>(indexConfig);
     assert(virtualAttrConfig);
     auto attrConfig =
-        std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(virtualAttrConfig->GetAttributeConfig());
+        std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(virtualAttrConfig->GetAttributeConfig());
     assert(attrConfig);
     auto fieldType = attrConfig->GetFieldType();
     if (fieldType == ft_uint16) {
         return std::make_unique<VirtualAttributeIndexReader<uint16_t>>();
     } else if (fieldType == ft_int64) {
         return std::make_unique<VirtualAttributeIndexReader<int64_t>>();
+    } else if (fieldType == ft_uint32) {
+        return std::make_unique<VirtualAttributeIndexReader<uint32_t>>();
     }
     AUTIL_LOG(ERROR, "not support field type [%d]", fieldType);
     assert(false);
@@ -121,5 +123,5 @@ VirtualAttributeIndexFactory::CreateIndexConfig(const autil::legacy::Any& any) c
 }
 
 std::string VirtualAttributeIndexFactory::GetIndexPath() const { return VIRTUAL_ATTRIBUTE_INDEX_PATH; }
-REGISTER_INDEX(normal_tablet_virtual_attribute, VirtualAttributeIndexFactory);
+REGISTER_INDEX_FACTORY(normal_tablet_virtual_attribute, VirtualAttributeIndexFactory);
 } // namespace indexlibv2::table

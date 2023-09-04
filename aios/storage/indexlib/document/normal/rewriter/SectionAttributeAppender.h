@@ -23,7 +23,7 @@
 
 namespace indexlibv2::config {
 class PackageIndexConfig;
-class TabletSchema;
+class ITabletSchema;
 } // namespace indexlibv2::config
 
 namespace indexlib::document {
@@ -60,7 +60,7 @@ public:
     ~SectionAttributeAppender();
 
 public:
-    bool Init(const std::shared_ptr<config::TabletSchema>& schema);
+    bool Init(const std::shared_ptr<config::ITabletSchema>& schema);
     std::pair<Status, bool>
     AppendSectionAttribute(const std::shared_ptr<indexlib::document::IndexDocument>& indexDocument);
     SectionAttributeAppender* Clone();

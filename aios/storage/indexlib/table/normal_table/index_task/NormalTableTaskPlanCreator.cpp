@@ -34,7 +34,7 @@ NormalTableTaskPlanCreator::NormalTableTaskPlanCreator()
 }
 
 std::shared_ptr<framework::IIndexOperationCreator>
-NormalTableTaskPlanCreator::CreateIndexOperationCreator(const std::shared_ptr<config::TabletSchema>& tabletSchema)
+NormalTableTaskPlanCreator::CreateIndexOperationCreator(const std::shared_ptr<config::ITabletSchema>& tabletSchema)
 {
     return std::make_shared<NormalTableTaskOperationCreator>(tabletSchema);
 }

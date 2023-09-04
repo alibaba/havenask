@@ -1,0 +1,34 @@
+--[[
+   Graph.parameter : graph related kv parameters
+   Graph.loadSimpleFlow(taskType, taskIdentifier, taskKVParam = nil) : return flowObject
+   Graph.loadFlow(flowFileName, flowKVParam = nil) : return flowObject
+   Graph.loadSubGraph(graphId, graphFileName, graphKVParam = nil) : return true : false
+   Graph.setUpstream(flow, upstreamFlow, waitStatus = "finish"|"stop"|"xxx")
+   Graph.declareFriend(flow, friendFlow)
+   Graph.getFlowIdByTag(tag) : return flowId list
+   Graph.getFlow(flowId) : return flowObject
+--]]
+
+#import(Tool)
+#import(Log)
+
+function graphDef()
+   local clusterNames = Tool.jsonToList(Graph.parameter["clusterNames"])
+
+   for i, v in ipairs(clusterNames)
+   do
+      local clusterParam = {}
+      clusterParam["clusterName"] = v
+      clusterParam["dataDescriptions"] = Graph.parameter["dataDescriptions"]
+      clusterParam["buildId"] = Graph.parameter["buildId"]
+      clusterParam["buildStep"] = Graph.parameter["buildStep"]
+
+      local loadClusterSuccess = Graph.loadSubGraph(v, "SingleClusterBuildV1ToBuildV2.graph", clusterParam)
+      if (not loadClusterSuccess)
+      then
+         Log.log("ERROR", "load SingleClusterAlterField.graph fail for cluster:"..v)
+         return false
+      end
+   end
+   return true
+end

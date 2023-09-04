@@ -1,0 +1,12 @@
+{
+    "cluster_config" : {
+        "table_name" : "simple_table",
+	    "hash_mode" : {
+            "hash_function" : "KINGSO_HASH#720",
+            "hash_field" : "id"
+	    },
+        "builder_rule_config" : {
+            "partition_count" : 2
+        }
+    }
+}

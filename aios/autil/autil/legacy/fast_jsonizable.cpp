@@ -25,7 +25,7 @@
 namespace autil {
 namespace legacy {
 
-class JsonNumberWriter: public RapidWriter {
+class JsonNumberWriter : public RapidWriter {
 public:
     void WriteJsonNumber(const json::JsonNumber &number) {
         Prefix(rapidjson::kNumberType);
@@ -37,14 +37,14 @@ public:
     // ATTENTION: do not add payload data
 };
 
-void FromRapidValue(Any& t, RapidValue& value) {
-#define FROM_BASIC(tps, tp)                     \
-    if (value.Is##tps()) {                      \
-        tp i = tp();                            \
-        FromRapidValue(i, value);               \
-        Any o(i);                               \
-        t.Swap(o);                              \
-        return;                                 \
+void FromRapidValue(Any &t, RapidValue &value) {
+#define FROM_BASIC(tps, tp)                                                                                            \
+    if (value.Is##tps()) {                                                                                             \
+        tp i = tp();                                                                                                   \
+        FromRapidValue(i, value);                                                                                      \
+        Any o(i);                                                                                                      \
+        t.Swap(o);                                                                                                     \
+        return;                                                                                                        \
     }
     FROM_BASIC(Int, int);
     FROM_BASIC(Uint, unsigned);
@@ -84,66 +84,58 @@ void FromRapidValue(Any& t, RapidValue& value) {
     AUTIL_LEGACY_THROW(NotSupportException, "RapidValue to Any not support");
 }
 
-void serializeToWriter(RapidWriter *writer, const Any& a) {
+void serializeToWriter(RapidWriter *writer, const Any &a) {
     decltype(a.GetType()) &type = a.GetType();
-    if (type == typeid(void))                               /// void (null)
+    if (type == typeid(void)) /// void (null)
     {
         writer->Null();
-    }
-    else if (type == typeid(std::vector<Any>))              /// list
+    } else if (type == typeid(std::vector<Any>)) /// list
     {
-        const json::JsonArray& v = *(AnyCast<json::JsonArray>(&a));
+        const json::JsonArray &v = *(AnyCast<json::JsonArray>(&a));
         serializeToWriter(writer, v);
-    }
-    else if (type == typeid(std::map<std::string, Any>))    /// map
+    } else if (type == typeid(std::map<std::string, Any>)) /// map
     {
-        const json::JsonMap& m = *(AnyCast<json::JsonMap>(&a));
+        const json::JsonMap &m = *(AnyCast<json::JsonMap>(&a));
         serializeToWriter(writer, m);
-    }
-    else if (type == typeid(std::string))               /// string
+    } else if (type == typeid(std::string)) /// string
     {
         serializeToWriter(writer, (*AnyCast<std::string>(&a)));
-    } else if (type == typeid(bool))                    /// bool
+    } else if (type == typeid(bool)) /// bool
     {
         serializeToWriter(writer, AnyCast<bool>(a));
     }
     /// different numberic types
-#define WRITE_DATA(tp)                                  \
-    else if (type == typeid(tp))                        \
-    {                                                   \
-        serializeToWriter(writer, (AnyCast<tp>(a)));    \
+#define WRITE_DATA(tp)                                                                                                 \
+    else if (type == typeid(tp)) {                                                                                     \
+        serializeToWriter(writer, (AnyCast<tp>(a)));                                                                   \
     }
     WRITE_DATA(double)
-        WRITE_DATA(float)
-        WRITE_DATA(uint16_t)
-        WRITE_DATA(int16_t)
-        WRITE_DATA(uint32_t)
-        WRITE_DATA(int32_t)
-        WRITE_DATA(uint64_t)
-        WRITE_DATA(int64_t)
+    WRITE_DATA(float)
+    WRITE_DATA(uint16_t)
+    WRITE_DATA(int16_t)
+    WRITE_DATA(uint32_t)
+    WRITE_DATA(int32_t)
+    WRITE_DATA(uint64_t)
+    WRITE_DATA(int64_t)
 #undef WRITE_DATA
-#define WRITE_DATA_AS(tp, as)                                           \
-        else if (type == typeid(tp))                                    \
-        {                                                               \
-            serializeToWriter(writer, (static_cast<as>(AnyCast<tp>(a)))); \
-        }
-        WRITE_DATA_AS(uint8_t, uint32_t)
-        WRITE_DATA_AS(int8_t, int32_t)
+#define WRITE_DATA_AS(tp, as)                                                                                          \
+    else if (type == typeid(tp)) {                                                                                     \
+        serializeToWriter(writer, (static_cast<as>(AnyCast<tp>(a))));                                                  \
+    }
+    WRITE_DATA_AS(uint8_t, uint32_t)
+    WRITE_DATA_AS(int8_t, int32_t)
 #undef WRITE_DATA_AS
-        /// end of different numberic types
+    /// end of different numberic types
     else if (type == typeid(json::JsonNumber)) /// number literal
     {
         auto obj = AnyCast<json::JsonNumber>(a);
         ((JsonNumberWriter *)writer)->WriteJsonNumber(obj);
     }
-    else                                            /// other un-supported type
+    else /// other un-supported type
     {
-        AUTIL_LEGACY_THROW(
-                ParameterInvalidException,
-                std::string("See unsupported data in Any:") + type.name()
-                           );
+        AUTIL_LEGACY_THROW(ParameterInvalidException, std::string("See unsupported data in Any:") + type.name());
     }
 }
 
-}
-}
+} // namespace legacy
+} // namespace autil

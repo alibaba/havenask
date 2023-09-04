@@ -1,0 +1,29 @@
+package(default_visibility=['//aios/apps/facility/swift:__subpackages__'])
+cc_binary(
+    name='swift_config_validator',
+    srcs=glob(['main.cpp']),
+    copts=['-Iswift'],
+    deps=[
+        ':swift_config_validator_lib',
+        '//aios/apps/facility/swift/tools:swift_log_setup'
+    ]
+)
+cc_library(
+    name='swift_config_validator_lib',
+    srcs=glob(['*.cpp'], exclude=['main.cpp']),
+    hdrs=glob(['*.h']),
+    include_prefix='swift/tools/config_validator',
+    deps=[
+        '//aios/apps/facility/swift/admin:swift_admin_lib',
+        '//aios/apps/facility/swift/common:swift_common',
+        '//aios/apps/facility/swift/config:swift_config',
+        '//aios/apps/facility/swift/monitor:swift_monitor'
+    ]
+)
+cc_test(
+    name='config_validator_test',
+    srcs=glob(['test/*Test.cpp']),
+    copts=['-fno-access-control'],
+    data=['//aios/apps/facility/swift:swift_testdata'],
+    deps=[':swift_config_validator_lib', '//aios/unittest_framework']
+)

@@ -1,0 +1,9 @@
+{
+    "user_name" : "user_name",
+    "service_name" : "service_name",
+    "index_root" : "hdsf://index/root/",
+    "swift_root" : "swift_root",
+    "full_swift_root" : "swift_full_root",
+    "hippo_root" : "path/to/hippo/leader/elector/root",
+    "zookeeper_root" : "path/to/zk/root"
+}

@@ -16,22 +16,26 @@
 #ifndef ISEARCH_MULTI_CALL_GRPCCLIENTCLOSURE_H
 #define ISEARCH_MULTI_CALL_GRPCCLIENTCLOSURE_H
 
+#include <grpc++/grpc++.h>
+
 #include "aios/network/gig/multi_call/service/CallBack.h"
 #include "aios/network/gig/multi_call/util/ProtobufByteBufferUtil.h"
-#include <grpc++/grpc++.h>
 
 namespace multi_call {
 
-class GrpcClientClosure {
+class GrpcClientClosure
+{
 public:
-    GrpcClientClosure(google::protobuf::Message *request,
-                      const CallBackPtr &callBack)
-        : _callBack(callBack), _responseBuf(new grpc::ByteBuffer()),
-          _status(grpc::StatusCode::UNKNOWN, "") {
+    GrpcClientClosure(google::protobuf::Message *request, const CallBackPtr &callBack)
+        : _callBack(callBack)
+        , _responseBuf(new grpc::ByteBuffer())
+        , _status(grpc::StatusCode::UNKNOWN, "") {
         assert(request);
         ProtobufByteBufferUtil::serializeToBuffer(*request, &_requestBuf);
     }
-    virtual ~GrpcClientClosure() { DELETE_AND_SET_NULL(_responseBuf); }
+    virtual ~GrpcClientClosure() {
+        DELETE_AND_SET_NULL(_responseBuf);
+    }
 
 private:
     GrpcClientClosure(const GrpcClientClosure &);
@@ -41,15 +45,23 @@ public:
     virtual void run(bool ok);
 
 public:
-    grpc::ByteBuffer &getRequestBuf() { return _requestBuf; }
-    grpc::ByteBuffer *getResponseBuf() { return _responseBuf; }
+    grpc::ByteBuffer &getRequestBuf() {
+        return _requestBuf;
+    }
+    grpc::ByteBuffer *getResponseBuf() {
+        return _responseBuf;
+    }
     grpc::ByteBuffer *stealResponseBuf() {
         auto buf = _responseBuf;
         _responseBuf = NULL;
         return buf;
     }
-    grpc::ClientContext *getClientContext() { return &_context; }
-    grpc::Status &getStatus() { return _status; }
+    grpc::ClientContext *getClientContext() {
+        return &_context;
+    }
+    grpc::Status &getStatus() {
+        return _status;
+    }
 
 private:
     CallBackPtr _callBack;

@@ -26,6 +26,7 @@
 #include "indexlib/document/RawDocument.h"
 #include "indexlib/document/normal/tokenize/TokenizeDocument.h"
 #include "indexlib/document/normal/tokenize/TokenizeSection.h"
+#include "indexlib/index/ann/Common.h"
 #include "indexlib/index/inverted_index/Common.h"
 
 using namespace indexlibv2::analyzer;
@@ -52,6 +53,14 @@ void TokenizeDocumentConvertor::InitFields(const std::shared_ptr<config::ITablet
 
     {
         auto fieldConfigs = schema->GetIndexFieldConfigs(indexlib::index::INVERTED_INDEX_TYPE_STR);
+        for (const auto& fieldConfig : fieldConfigs) {
+            auto fieldId = fieldConfig->GetFieldId();
+            assert(fieldId >= 0 && static_cast<size_t>(fieldId) < _isFieldInIndex.size());
+            _isFieldInIndex[fieldId] = true;
+        }
+    }
+    {
+        auto fieldConfigs = schema->GetIndexFieldConfigs(indexlibv2::index::ANN_INDEX_TYPE_STR);
         for (const auto& fieldConfig : fieldConfigs) {
             auto fieldId = fieldConfig->GetFieldId();
             assert(fieldId >= 0 && static_cast<size_t>(fieldId) < _isFieldInIndex.size());

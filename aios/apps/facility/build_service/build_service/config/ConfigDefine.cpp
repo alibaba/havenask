@@ -36,7 +36,7 @@ const std::string HIPPO_FILE_NAME = "bs_hippo.json";
 
 const std::string INHERIT_FROM_KEY = "inherit_from";
 const std::string INHERIT_FROM_EXTERNAL_KEY = "inherit_from_external";
-
+const std::string BS_APP_NAME = "appName";
 const std::string BS_FIELD_SEPARATOR = "field_separator";
 const std::string BS_FILE_NAME = "file_name";
 const std::string BS_LINE_DATA = "line_data";
@@ -54,7 +54,6 @@ const std::string BS_TASK_SYNC_INDEX = "sync_index_task";
 const std::string BS_REPARTITION = "repartition";
 const std::string BS_TASK_RUN_SCRIPT = "run_script";
 const std::string BS_SNAPSHOT_VERSION = "snapshot_version";
-const std::string BS_TASK_CONFIG_FILE_PATH = "task_config_file_path";
 const std::string BS_DROP_BUILDING_INDEX = "drop_building_index";
 const std::string BS_BUILDER_TASK_V2 = "builderV2";
 

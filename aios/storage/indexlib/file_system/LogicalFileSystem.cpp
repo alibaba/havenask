@@ -32,6 +32,8 @@
 #include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/FileSystemOptions.h"
 #include "indexlib/file_system/ListOption.h"
+#include "indexlib/file_system/MergeDirsOption.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/RemoveOption.h"
 #include "indexlib/file_system/Storage.h"
 #include "indexlib/file_system/WriterOption.h"
@@ -227,7 +229,7 @@ FSResult<void> LogicalFileSystem::CommitPreloadDependence(FenceContext* fenceCon
 
 FSResult<void>
 LogicalFileSystem::MountVersion(const std::string& rawPhysicalRoot, versionid_t versionId,
-                                const std::string& rawLogicalPath, MountDirOption mountOption,
+                                const std::string& rawLogicalPath, MountOption mountOption,
                                 const std::shared_ptr<indexlib::file_system::LifecycleTable>& lifecycleTable) noexcept
 {
     AUTIL_LOG(DEBUG,
@@ -269,7 +271,7 @@ LogicalFileSystem::MountVersion(const std::string& rawPhysicalRoot, versionid_t 
 }
 
 FSResult<void> LogicalFileSystem::MountDir(const std::string& rawPhysicalRoot, const std::string& rawPhysicalPath,
-                                           const std::string& rawLogicalPath, MountDirOption mountOption,
+                                           const std::string& rawLogicalPath, MountOption mountOption,
                                            bool enableLazyMount) noexcept
 {
     AUTIL_LOG(DEBUG, "MountDir, physicalRoot[%s], physicalPath[%s], logicalPath[%s], mountType[%d]",
@@ -398,8 +400,8 @@ FSResult<void> LogicalFileSystem::CopyToOutputRoot(const std::string& logicalPat
 }
 
 FSResult<void> LogicalFileSystem::MergeDirs(const std::vector<std::string>& physicalDirs,
-                                            const std::string& logicalPath, bool mergePackageFiles,
-                                            FenceContext* fenceContext) noexcept
+                                            const std::string& logicalPath,
+                                            const MergeDirsOption& mergeDirsOption) noexcept
 {
     AUTIL_LOG(INFO, "merge dirs [%s] to [%s]", StringUtil::toString(physicalDirs).c_str(), logicalPath.c_str());
     if (physicalDirs.empty()) {
@@ -466,8 +468,8 @@ FSResult<void> LogicalFileSystem::MergeDirs(const std::vector<std::string>& phys
     } else {
         RETURN_IF_FS_ERROR(MountFile(destPhysicalRoot, logicalPath, logicalPath, FSMT_READ_WRITE, -1, false), "");
     }
-    if (mergePackageFiles) {
-        RETURN_IF_FS_ERROR(MergePackageFiles(logicalPath, fenceContext), "");
+    if (mergeDirsOption.mergePackageFiles) {
+        RETURN_IF_FS_ERROR(MergePackageFiles(logicalPath, mergeDirsOption.fenceContext), "");
     }
     return FSEC_OK;
 }

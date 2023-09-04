@@ -129,6 +129,8 @@ const std::string& IndexPartitionSchema::GetTableTypeV2() const
         return table::TABLE_TYPE_KV;
     case indexlib::TableType::tt_kkv:
         return table::TABLE_TYPE_KKV;
+    case indexlib::TableType::tt_customized:
+        return table::TABLE_TYPE_CUSTOMIZED;
     default:
         static std::string null;
         return null;
@@ -137,9 +139,9 @@ const std::string& IndexPartitionSchema::GetTableTypeV2() const
 
 void IndexPartitionSchema::SetTableType(const string& str) { mImpl->SetTableType(str); }
 
-const JsonMap& IndexPartitionSchema::GetUserDefinedParam() const { return mImpl->GetUserDefinedParam(); }
+const util::JsonMap& IndexPartitionSchema::GetUserDefinedParam() const { return mImpl->GetUserDefinedParam(); }
 
-JsonMap& IndexPartitionSchema::GetUserDefinedParam() { return mImpl->GetUserDefinedParam(); }
+util::JsonMap& IndexPartitionSchema::GetUserDefinedParam() { return mImpl->GetUserDefinedParam(); }
 
 void IndexPartitionSchema::SetUserDefinedParam(const JsonMap& jsonMap) { mImpl->SetUserDefinedParam(jsonMap); }
 

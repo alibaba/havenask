@@ -20,12 +20,14 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, SnapshotInfoCollector);
 
-SnapshotInfoCollector::SnapshotInfoCollector() {}
+SnapshotInfoCollector::SnapshotInfoCollector() {
+}
 
-SnapshotInfoCollector::~SnapshotInfoCollector() {}
+SnapshotInfoCollector::~SnapshotInfoCollector() {
+}
 
-void SnapshotInfoCollector::addSnapshotBizInfo(
-    const string &bizName, const SnapshotBizInfo &snapshotInfo) {
+void SnapshotInfoCollector::addSnapshotBizInfo(const string &bizName,
+                                               const SnapshotBizInfo &snapshotInfo) {
     _snapshotInfoMap[bizName] = snapshotInfo;
 }
 

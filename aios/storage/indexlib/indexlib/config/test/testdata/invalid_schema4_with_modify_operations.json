@@ -1,0 +1,122 @@
+{
+    "versionid" : 3,
+    "attributes":
+    [
+	"string1",
+	"string2",
+	"price"
+    ],
+    "fields":
+    [
+	{
+	    "field_name":
+	    "string1",
+	    "field_type":
+	    "STRING"
+	},
+	{
+	    "field_name":
+	    "string2",
+	    "field_type":
+	    "STRING"
+	},
+	{
+	    "field_name":
+	    "price",
+	    "field_type":
+	    "UINT32"
+	}
+    ],
+    "indexs":
+    [
+	{
+	    "doc_payload_flag":
+	    0,
+	    "index_fields":
+	    "string2",
+	    "index_name":
+	    "index2",
+	    "index_type":
+	    "STRING",
+	    "term_payload_flag":
+	    0
+	},
+	{
+	    "has_primary_key_attribute":
+	    true,
+	    "index_fields":
+	    "string1",
+	    "index_name":
+	    "pk",
+	    "index_type":
+	    "PRIMARYKEY64"
+	}
+    ],
+    "table_name": "noname",
+    "modify_operations" :
+    [
+	{
+	    "add" : {
+		"fields" : [
+		    {
+			"field_name" : "nid",
+			"field_type" : "LONG"
+		    }
+		],
+		"indexs" : [
+		    {
+			"index_name" : "nid",
+			"index_type" : "NUMBER",
+			"index_fields": "nid"
+		    }
+		],
+		"attributes" : [ "nid" ]
+	    },
+	    "delete" : {
+		"attributes" : [ "price", "string2" ],
+		"indexs" : ["index2"]
+	    }
+	},
+	{
+	    "add" : {
+		"fields" : [
+		    {
+			"field_name" : "new_nid",
+			"field_type" : "LONG"
+		    }
+		],
+		"indexs" : [
+		    {
+			"index_name" : "new_nid",
+			"index_type" : "NUMBER",
+			"index_fields": "new_nid"
+		    }
+		],
+		"attributes" : [ "new_nid" ]
+	    },
+	    "delete" : {
+		"fields" : [ "nid" ],
+		"attributes" : [ "nid" ],
+		"indexs" : ["nid"]
+	    }
+	},
+	{
+	    "add" : {
+		"fields" : [
+		    {
+			"field_name" : "nid",
+			"field_type" : "STRING"
+		    }
+		],
+		"indexs" : [
+		    {
+			"index_name" : "nid",
+			"index_type" : "STRING",
+			"index_fields": "nid"
+		    }
+		],
+		"attributes" : [ "nid" ]
+	    }
+	}
+    ]
+}

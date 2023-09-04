@@ -15,24 +15,24 @@
  */
 #ifndef ARPC_SHAREDCLIENTPACKETHANDLER_H
 #define ARPC_SHAREDCLIENTPACKETHANDLER_H
-#include <stdint.h>
 #include <functional>
+#include <stdint.h>
 
+#include "aios/autil/autil/Lock.h"
+#include "aios/network/anet/ipackethandler.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/arpc/arpc/anet/ClientPacketHandler.h"
 #include "aios/network/arpc/arpc/util/Log.h"
-#include "aios/network/anet/ipackethandler.h"
-#include "aios/autil/autil/Lock.h"
 
 ARPC_BEGIN_NAMESPACE(arpc);
 
-class SharedClientPacketHandler : public ClientPacketHandler
-{
+class SharedClientPacketHandler : public ClientPacketHandler {
 public:
     SharedClientPacketHandler();
+
 protected:
     virtual ~SharedClientPacketHandler();
-    
+
 public:
     anet::IPacketHandler::HPRetCode handlePacket(anet::Packet *packet, void *args);
     void addRef();
@@ -40,21 +40,21 @@ public:
     void cleanChannel();
 
 private:
-    anet::IPacketHandler::HPRetCode doHandlePacket(
-            anet::Packet *packet, void *args);
+    anet::IPacketHandler::HPRetCode doHandlePacket(anet::Packet *packet, void *args);
+
 private:
-    //for test
-    void setHandlePacketPreFunc(const std::function<void ()> *func);
+    // for test
+    void setHandlePacketPreFunc(const std::function<void()> *func);
     friend class ANetRPCChannelCloseBugTest;
-    
+
 private:
     int64_t _ref;
     mutable autil::ThreadMutex _mutex;
     mutable autil::ThreadMutex _channelLock;
-    const std::function<void ()> *_func;
+    const std::function<void()> *_func;
 };
 
 TYPEDEF_PTR(SharedClientPacketHandler);
 ARPC_END_NAMESPACE(arpc);
 
-#endif //ARPC_SHAREDCLIENTPACKETHANDLER_H
+#endif // ARPC_SHAREDCLIENTPACKETHANDLER_H

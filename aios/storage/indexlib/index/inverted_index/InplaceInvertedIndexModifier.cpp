@@ -15,6 +15,7 @@
  */
 #include "indexlib/index/inverted_index/InplaceInvertedIndexModifier.h"
 
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/normal/NormalDocument.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/index/common/IndexerOrganizerUtil.h"
@@ -31,18 +32,16 @@ using indexlibv2::framework::Segment;
 AUTIL_LOG_SETUP(index, InplaceInvertedIndexModifier);
 
 InplaceInvertedIndexModifier::InplaceInvertedIndexModifier(
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema)
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema)
     : InvertedIndexModifier(schema)
 {
 }
 
 Status InplaceInvertedIndexModifier::Update(indexlibv2::document::IDocumentBatch* docBatch)
 {
-    for (size_t i = 0; i < docBatch->GetBatchSize(); i++) {
-        if (docBatch->IsDropped(i)) {
-            continue;
-        }
-        indexlibv2::document::IDocument* doc = (*docBatch)[i].get();
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(docBatch);
+    while (iter->HasNext()) {
+        indexlibv2::document::IDocument* doc = iter->Next().get();
         const std::vector<document::ModifiedTokens>& multiFieldModifiedTokens =
             InvertedIndexerOrganizerUtil::GetModifiedTokens(doc);
         for (const auto& modifiedTokens : multiFieldModifiedTokens) {
@@ -177,7 +176,6 @@ bool InplaceInvertedIndexModifier::UpdateOneIndexTermsForReplay(IndexUpdateTermI
     indexid_t indexId = termIter->GetIndexId();
     auto keyIter = _segmentId2BaseDocIdAndDocCountPair.find(termIter->GetSegmentId());
     if (keyIter == _segmentId2BaseDocIdAndDocCountPair.end()) {
-        AUTIL_LOG(ERROR, "Can not find matched segment[%d]", termIter->GetSegmentId());
         return false;
     }
     if (_buildInfoHolders.find(indexId) == _buildInfoHolders.end()) {

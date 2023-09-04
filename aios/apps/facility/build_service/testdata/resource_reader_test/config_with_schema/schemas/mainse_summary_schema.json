@@ -1,0 +1,44 @@
+{
+    "attributes": [
+        "quantity"
+    ],
+    "fields": [
+        {
+            "field_name": "quantity",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "nid",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "pid",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "cid",
+            "field_type": "STRING"
+        }
+    ],
+    "indexs": [
+        {
+            "has_primary_key_attribute": false,
+            "index_fields": "nid",
+            "index_name": "pk",
+            "index_type": "PRIMARYKEY64",
+            "is_primary_key_sorted": false,
+            "pk_storage_type": "hash_table"
+        }
+    ],
+    "summarys": {
+        "compress": true,
+        "compress_type": "zstd",
+        "summary_fields": [
+            "pid",
+            "cid",
+            "nid",
+            "quantity"
+        ]
+    },
+    "table_name": "mainse_summary"
+}

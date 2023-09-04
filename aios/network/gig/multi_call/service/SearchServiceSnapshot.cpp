@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/SearchServiceSnapshot.h"
+
 #include "aios/network/gig/multi_call/new_heartbeat/ClientTopoInfoMap.h"
 #include "aios/network/gig/multi_call/service/LatencyTimeSnapshot.h"
 #include "autil/TimeUtility.h"
@@ -23,25 +24,24 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, SearchServiceSnapshot);
 
-SearchServiceSnapshot::SearchServiceSnapshot(
-    const ConnectionManagerPtr &connectionManager,
-    const MetricReporterManagerPtr &metricReporterManager,
-    const MiscConfigPtr &miscConfig)
-    : _connectionManager(connectionManager),
-      _metricReporterManager(metricReporterManager), _miscConfig(miscConfig),
-      _randomGenerator(autil::TimeUtility::currentTimeInMicroSeconds()) {
+SearchServiceSnapshot::SearchServiceSnapshot(const ConnectionManagerPtr &connectionManager,
+                                             const MetricReporterManagerPtr &metricReporterManager,
+                                             const MiscConfigPtr &miscConfig)
+    : _connectionManager(connectionManager)
+    , _metricReporterManager(metricReporterManager)
+    , _miscConfig(miscConfig)
+    , _randomGenerator(autil::TimeUtility::currentTimeInMicroSeconds()) {
     assert(_miscConfig);
 }
 
-SearchServiceSnapshot::~SearchServiceSnapshot() {}
+SearchServiceSnapshot::~SearchServiceSnapshot() {
+}
 
-void SearchServiceSnapshot::getDiffBiz(const BizInfoMap &bizInfoMap,
-                                       BizInfoMap &newBizInfoMap,
+void SearchServiceSnapshot::getDiffBiz(const BizInfoMap &bizInfoMap, BizInfoMap &newBizInfoMap,
                                        BizSnapshotMap &keepBizSnapshot) {
     for (const auto &bizInfo : bizInfoMap) {
         auto it = _bizSnapshotMap.find(bizInfo.first);
-        if (_bizSnapshotMap.end() == it ||
-            it->second->hasDiff(bizInfo.second)) {
+        if (_bizSnapshotMap.end() == it || it->second->hasDiff(bizInfo.second)) {
             newBizInfoMap.insert(bizInfo);
         } else {
             keepBizSnapshot[bizInfo.first] = it->second;
@@ -89,8 +89,8 @@ void SearchServiceSnapshot::finishCreateSnapshot(const BizInfoMap &bizInfoMap) c
     }
 }
 
-bool SearchServiceSnapshot::constructFromBizMap(
-    const BizInfoMap &newBizInfoMap, const ProviderMap &oldProviderMap) {
+bool SearchServiceSnapshot::constructFromBizMap(const BizInfoMap &newBizInfoMap,
+                                                const ProviderMap &oldProviderMap) {
     for (const auto &bizInfo : newBizInfoMap) {
         for (const auto &topoNode : bizInfo.second) {
             if (!addProvider(topoNode, oldProviderMap)) {
@@ -101,8 +101,8 @@ bool SearchServiceSnapshot::constructFromBizMap(
     return constructConsistentHash();
 }
 
-void SearchServiceSnapshot::addBizSnapshot(
-    const BizSnapshotMap &keepBizSnapshot, const ProviderMap &oldProviderMap) {
+void SearchServiceSnapshot::addBizSnapshot(const BizSnapshotMap &keepBizSnapshot,
+                                           const ProviderMap &oldProviderMap) {
     for (const auto &bizSnapshot : keepBizSnapshot) {
         _bizSnapshotMap.insert(bizSnapshot);
         const auto &topoNodes = bizSnapshot.second->getTopoNodes();
@@ -110,15 +110,13 @@ void SearchServiceSnapshot::addBizSnapshot(
             const auto &id = node.nodeId;
             auto it = oldProviderMap.find(id);
             if (oldProviderMap.end() == it) {
-                AUTIL_LOG(ERROR, "find nodeId[%s] in oldProviderMap failed",
-                          id.c_str());
+                AUTIL_LOG(ERROR, "find nodeId[%s] in oldProviderMap failed", id.c_str());
                 continue;
             }
             _providerMap[id] = it->second;
             const auto &provider = it->second.first;
             if (provider->supportHeartbeat()) {
-                _providerAddressMap[provider->getHeartbeatSpec()].emplace_back(
-                    provider);
+                _providerAddressMap[provider->getHeartbeatSpec()].emplace_back(provider);
             }
             _clusterSet.insert(node.clusterName);
         }
@@ -139,8 +137,7 @@ bool SearchServiceSnapshot::addProvider(const TopoNode &topoNode,
     SearchServiceSnapshotInBizPtr bizSnapshot;
     auto it = _bizSnapshotMap.find(topoNode.bizName);
     if (_bizSnapshotMap.end() == it) {
-        bizSnapshot.reset(
-            new SearchServiceSnapshotInBiz(topoNode.bizName, _miscConfig));
+        bizSnapshot.reset(new SearchServiceSnapshotInBiz(topoNode.bizName, _miscConfig));
         if (!bizSnapshot->init(_metricReporterManager)) {
             return false;
         }
@@ -154,16 +151,14 @@ bool SearchServiceSnapshot::addProvider(const TopoNode &topoNode,
     }
     _providerMap[topoNode.nodeId] = std::make_pair(provider, retReplica);
     if (provider->supportHeartbeat()) {
-        _providerAddressMap[provider->getHeartbeatSpec()].emplace_back(
-            provider);
+        _providerAddressMap[provider->getHeartbeatSpec()].emplace_back(provider);
     }
     _clusterSet.insert(topoNode.clusterName);
     return true;
 }
 
-SearchServiceProviderPtr
-SearchServiceSnapshot::createProvider(const TopoNode &topoNode,
-                                      const ProviderMap &oldProviderMap) {
+SearchServiceProviderPtr SearchServiceSnapshot::createProvider(const TopoNode &topoNode,
+                                                               const ProviderMap &oldProviderMap) {
     SearchServiceProviderPtr oldProvider;
     auto it = oldProviderMap.find(topoNode.nodeId);
     if (oldProviderMap.end() != it) {
@@ -180,8 +175,8 @@ SearchServiceSnapshot::createProvider(const TopoNode &topoNode,
     }
 }
 
-void SearchServiceSnapshot::updateProviderStatus(
-    const SearchServiceProviderPtr &provider, const TopoNode &topoNode) {
+void SearchServiceSnapshot::updateProviderStatus(const SearchServiceProviderPtr &provider,
+                                                 const TopoNode &topoNode) {
     assert(provider);
     provider->setClusterName(topoNode.clusterName);
     provider->updateValidState(topoNode.isValid);
@@ -192,9 +187,8 @@ void SearchServiceSnapshot::updateProviderStatus(
     provider->setSubscribeType(topoNode.ssType);
 }
 
-void SearchServiceSnapshot::updateProviderFromOld(
-    const SearchServiceProviderPtr &oldProvider,
-    const SearchServiceProviderPtr &newProvider) {
+void SearchServiceSnapshot::updateProviderFromOld(const SearchServiceProviderPtr &oldProvider,
+                                                  const SearchServiceProviderPtr &newProvider) {
     if (!oldProvider || !newProvider) {
         return;
     }
@@ -245,8 +239,7 @@ bool SearchServiceSnapshot::hasBiz(const std::string &bizName) const {
     return _bizSnapshotMap.end() != _bizSnapshotMap.find(bizName);
 }
 
-bool SearchServiceSnapshot::hasVersion(const std::string &bizName,
-                                       VersionTy version,
+bool SearchServiceSnapshot::hasVersion(const std::string &bizName, VersionTy version,
                                        VersionInfo &info) const {
     auto it = _bizSnapshotMap.find(bizName);
     if (_bizSnapshotMap.end() == it) {
@@ -256,8 +249,21 @@ bool SearchServiceSnapshot::hasVersion(const std::string &bizName,
     return it->second->hasVersion(version, info);
 }
 
-SearchServiceSnapshotInBizPtr
-SearchServiceSnapshot::getBizSnapshot(const string &bizName) {
+void SearchServiceSnapshot::getBizMetaInfos(std::vector<BizMetaInfo> &bizMetaInfos) const {
+    // sorted for diff
+    std::map<std::string, SearchServiceSnapshotInBizPtr> sortMap;
+    for (const auto &pair : _bizSnapshotMap) {
+        sortMap.insert(pair);
+    }
+    for (const auto &bizPair : sortMap) {
+        BizMetaInfo info;
+        info.bizName = bizPair.first;
+        bizPair.second->getMetaInfo(info);
+        bizMetaInfos.emplace_back(std::move(info));
+    }
+}
+
+SearchServiceSnapshotInBizPtr SearchServiceSnapshot::getBizSnapshot(const string &bizName) {
     auto iter = _bizSnapshotMap.find(bizName);
     if (iter != _bizSnapshotMap.end()) {
         return iter->second;
@@ -270,8 +276,7 @@ SearchServiceSnapshot::getBizSnapshot(const string &bizName) {
 }
 
 SearchServiceSnapshotInVersionPtr
-SearchServiceSnapshot::getBizVersionSnapshot(const string &bizName,
-                                             const VersionTy version) {
+SearchServiceSnapshot::getBizVersionSnapshot(const string &bizName, const VersionTy version) {
     auto bizSnapshot = getBizSnapshot(bizName);
     if (bizSnapshot) {
         return bizSnapshot->getVersionSnapshot(version);
@@ -279,8 +284,7 @@ SearchServiceSnapshot::getBizVersionSnapshot(const string &bizName,
     return SearchServiceSnapshotInVersionPtr();
 }
 
-vector<VersionTy>
-SearchServiceSnapshot::getBizVersion(const std::string &bizName) const {
+vector<VersionTy> SearchServiceSnapshot::getBizVersion(const std::string &bizName) const {
     auto iter = _bizSnapshotMap.find(bizName);
     if (_bizSnapshotMap.end() == iter) {
         return vector<VersionTy>();
@@ -288,8 +292,7 @@ SearchServiceSnapshot::getBizVersion(const std::string &bizName) const {
     return iter->second->getVersion();
 }
 
-std::set<VersionTy>
-SearchServiceSnapshot::getBizProtocalVersion(const std::string &bizName) const {
+std::set<VersionTy> SearchServiceSnapshot::getBizProtocalVersion(const std::string &bizName) const {
     auto iter = _bizSnapshotMap.find(bizName);
     if (_bizSnapshotMap.end() == iter) {
         return std::set<VersionTy>();
@@ -311,8 +314,11 @@ void SearchServiceSnapshot::toString(std::string &debugStr) {
         debugStr += bizName;
         debugStr += ", versionCount: ";
         debugStr += autil::StringUtil::toString(versionCount);
-        debugStr += ", avgLatency: ";
-        debugStr += autil::StringUtil::fToString(_latencyTimeSnapshot->getAvgLatency(bizName) / 1000.0f);
+        if (_latencyTimeSnapshot) {
+            debugStr += ", avgLatency: ";
+            debugStr += autil::StringUtil::fToString(_latencyTimeSnapshot->getAvgLatency(bizName) /
+                                                     1000.0f);
+        }
         debugStr += "\n";
         bizSnapshot->toString(debugStr);
         debugStr += "\n";
@@ -342,8 +348,7 @@ bool SearchServiceSnapshot::disableBizNotExistLog() const {
     return _miscConfig && _miscConfig->disableBizNotExistLog;
 }
 
-SearchServiceProviderPtr
-SearchServiceSnapshot::getProvider(const std::string &nodeId) const {
+SearchServiceProviderPtr SearchServiceSnapshot::getProvider(const std::string &nodeId) const {
     auto iter = _providerMap.find(nodeId);
     if (iter != _providerMap.end()) {
         return iter->second.first;

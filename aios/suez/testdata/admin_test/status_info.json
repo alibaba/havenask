@@ -1,0 +1,59 @@
+{
+    "zone1": {
+        "role": [
+            {
+                "biz_name": "enhanced_private_compute_123456789.default",
+                "ip": "127.0.0.1",
+                "part_count": 1,
+                "part_id": 0,
+                "version": 3689812725
+            },
+            {
+                "biz_name": "enhanced_private_compute_123456789.default_agg",
+                "ip": "127.0.0.1",
+                "part_count": 1,
+                "part_id": 0,
+                "version": 3689812725
+            },
+            {
+                "biz_name": "enhanced_private_compute_123456789.default_sql",
+                "ip": "127.0.0.1",
+                "part_count": 1,
+                "part_id": 0,
+                "version": 3689812725
+            },
+            {
+                "biz_name": "enhanced_private_compute_123456789.para_search_16",
+                "ip": "127.0.0.1",
+                "part_count": 1,
+                "part_id": 0,
+                "version": 3689812725
+            },
+            {
+                "biz_name": "enhanced_private_compute_123456789.para_search_2",
+                "ip": "127.0.0.1",
+                "part_count": 1,
+                "part_id": 0,
+                "version": 3689812725
+            },
+            {
+                "biz_name": "enhanced_private_compute_123456789.para_search_4",
+                "ip": "127.0.0.1",
+                "part_count": 1,
+                "part_id": 0,
+                "version": 3689812725
+            },
+            {
+                "biz_name": "enhanced_private_compute_123456789.para_search_8",
+                "ip": "127.0.0.1",
+                "part_count": 1,
+                "part_id": 0,
+                "version": 3689812725
+            }
+        ]
+    },
+    "zone2": {
+        "role": [
+        ]
+    }
+}

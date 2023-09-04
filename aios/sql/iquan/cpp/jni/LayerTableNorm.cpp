@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <sstream>
-
 #include "iquan/jni/LayerTableNorm.h"
+
+#include <sstream>
 
 using namespace std;
 
@@ -26,13 +26,11 @@ AUTIL_LOG_SETUP(dynamicParamCache, LayerTableNorm);
 const string STR_NOT_EXIST = "****NOT$EXIST****";
 
 LayerTableNorm::LayerTableNorm(const vector<LayerTablePlanMeta> &metas)
-    : planMetas(metas)
-{};
+    : planMetas(metas) {};
 
 bool LayerTableNorm::normalize(const unordered_map<string, LayerTableMetaPtr> &layerTableMetaMap,
                                const vector<autil::legacy::Any> &params,
-                               string &result) const 
-{
+                               string &result) const {
     stringstream out;
     for (const auto &planMeta : planMetas) {
         string normedStr;
@@ -49,8 +47,7 @@ bool LayerTableNorm::normalize(const unordered_map<string, LayerTableMetaPtr> &l
 bool LayerTableNorm::doNorm(const unordered_map<string, LayerTableMetaPtr> &layerTableMetaMap,
                             const LayerTablePlanMeta &planMeta,
                             const vector<autil::legacy::Any> &params,
-                            string &result) const
-{
+                            string &result) const {
     const string &layerTableName = planMeta.layerTableName;
     const string &fieldName = planMeta.fieldName;
     auto op = planMeta.op;
@@ -81,32 +78,32 @@ bool LayerTableNorm::doNorm(const unordered_map<string, LayerTableMetaPtr> &laye
         const auto &intVec = intValueVecIter->second;
         int64_t intValue = autil::legacy::AnyNumberCast<int64_t>(value);
 
-        switch(op) {
-            case EQUALS: {
+        switch (op) {
+        case EQUALS: {
+            auto iter = lower_bound(intVec.begin(), intVec.end(), intValue);
+            int ret = *iter == intValue ? intValue : *(--iter) + 1;
+            result = to_string(ret);
+            return true;
+        }
+        case GREATER_THAN:
+        case GREATER_THAN_OR_EQUAL:
+        case LESS_THAN:
+        case LESS_THAN_OR_EQUAL: {
+            bool greater = (op == GREATER_THAN || op == GREATER_THAN_OR_EQUAL);
+            if (greater == isRev) {
+                auto iter = upper_bound(intVec.begin(), intVec.end(), intValue);
+                result = to_string(*(--iter));
+                return true;
+            } else {
                 auto iter = lower_bound(intVec.begin(), intVec.end(), intValue);
-                int ret =  *iter == intValue ? intValue : *(--iter) + 1;
-                result = to_string(ret);
+                result = to_string(*iter);
                 return true;
             }
-            case GREATER_THAN:
-            case GREATER_THAN_OR_EQUAL:
-            case LESS_THAN:
-            case LESS_THAN_OR_EQUAL: {
-                bool greater = (op == GREATER_THAN || op == GREATER_THAN_OR_EQUAL);
-                if (greater == isRev) {
-                    auto iter = upper_bound(intVec.begin(), intVec.end(), intValue);
-                    result = to_string(*(--iter));
-                    return true;
-                } else {
-                    auto iter = lower_bound(intVec.begin(), intVec.end(), intValue);
-                    result= to_string(*iter);
-                    return true;
-                }
-            }
+        }
         }
     }
     return false;
 }
 
 } // namespace dynamicParamCache
-} // namespce iquan
+} // namespace iquan

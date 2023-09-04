@@ -1,0 +1,259 @@
+{
+  "plan": {
+    "exec_params": {}, 
+    "optimize_infos": {}, 
+    "plan_meta": {}, 
+    "rel_plan": [
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "t1", 
+          "limit": 2147483647, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "t1"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "HASH"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$i2"
+          ], 
+          "output_fields_hash": -370424623, 
+          "output_fields_internal": [
+            "$i2"
+          ], 
+          "output_fields_internal_type": [
+            "INTEGER"
+          ], 
+          "output_fields_type": [
+            "INTEGER"
+          ], 
+          "push_down_ops": [
+            {
+              "attrs": {
+                "output_fields": [
+                  "$i2"
+                ], 
+                "output_fields_type": [
+                  "INTEGER"
+                ]
+              }, 
+              "op_name": "CalcOp"
+            }
+          ], 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$i1"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "partition_cnt": 1
+          }, 
+          "table_meta": {
+            "field_meta": [
+              {
+                "field_name": "$i2", 
+                "field_type": "int32", 
+                "index_name": "i2", 
+                "index_type": "number", 
+                "is_attribute": "true"
+              }
+            ]
+          }, 
+          "table_name": "t2", 
+          "table_type": "normal", 
+          "use_nest_table": false, 
+          "used_fields": [
+            "$i2"
+          ], 
+          "used_fields_type": [
+            "INTEGER"
+          ]
+        }, 
+        "id": 0, 
+        "inputs": {
+          "input": []
+        }, 
+        "op_name": "TableScanOp", 
+        "outputs": [
+          1
+        ]
+      }, 
+      {
+        "attrs": {
+          "agg_funcs": [
+            {
+              "approximate": false, 
+              "distinct": false, 
+              "filter_arg": -1, 
+              "name": "COUNT", 
+              "output": [
+                "$COUNT(*)"
+              ], 
+              "type": "NORMAL"
+            }
+          ], 
+          "group_fields": [
+            "$i2"
+          ], 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "t1"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "HASH"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$i2", 
+            "$COUNT(*)"
+          ], 
+          "output_fields_hash": 488046170, 
+          "output_fields_type": [
+            "INTEGER", 
+            "BIGINT"
+          ], 
+          "scope": "NORMAL"
+        }, 
+        "id": 1, 
+        "inputs": {
+          "input": [
+            0
+          ]
+        }, 
+        "op_name": "AggregateOp", 
+        "outputs": [
+          2
+        ]
+      }, 
+      {
+        "attrs": {
+          "directions": [
+            "ASC"
+          ], 
+          "limit": 10, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "t1"
+          }, 
+          "offset": 0, 
+          "op_scope": "default", 
+          "order_fields": [
+            "$i2"
+          ], 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "HASH"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields_hash": 488046170
+        }, 
+        "id": 2, 
+        "inputs": {
+          "input": [
+            1
+          ]
+        }, 
+        "op_name": "SortOp", 
+        "outputs": [
+          3
+        ]
+      }, 
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "t1", 
+          "distribution": {
+            "type": "SINGLETON"
+          }, 
+          "input_fields": [
+            "$i2", 
+            "$COUNT(*)"
+          ], 
+          "input_fields_type": [
+            "INTEGER", 
+            "BIGINT"
+          ], 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": 488046170, 
+          "output_prunable": 0, 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_function": "HASH"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "table_group_name": "t1"
+        }, 
+        "id": 3, 
+        "inputs": {
+          "input": [
+            2
+          ]
+        }, 
+        "op_name": "ExchangeOp", 
+        "outputs": [
+          4
+        ]
+      }, 
+      {
+        "attrs": {
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "qrs"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": 488046170, 
+          "type": "api"
+        }, 
+        "id": 4, 
+        "inputs": {
+          "input": [
+            3
+          ]
+        }, 
+        "op_name": "SinkOp"
+      }
+    ], 
+    "rel_plan_version": "plan_version_0.0.1"
+  }, 
+  "sql_params": {
+    "iquan.optimizer.debug.enable": "false", 
+    "iquan.plan.format.object.enable": "true", 
+    "iquan.plan.format.type": "json", 
+    "iquan.plan.format.version": "plan_version_0.0.1", 
+    "iquan.plan.output.exec_params": "false", 
+    "iquan.plan.prepare.level": "end"
+  }, 
+  "sqls": [
+    "select i2, count(*) from t2 group by i2 order by i2 limit 10"
+  ]
+}

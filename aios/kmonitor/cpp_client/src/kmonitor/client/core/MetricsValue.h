@@ -8,32 +8,33 @@
 #ifndef KMONITOR_CLIENT_CORE_METRICSVALUE_H_
 #define KMONITOR_CLIENT_CORE_METRICSVALUE_H_
 
-#include <string>
 #include <map>
+#include <string>
+
 #include "kmonitor/client/common/Common.h"
 #include "kmonitor/client/core/MetricsInfo.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 class MetricsValue {
- public:
+public:
     MetricsValue();
     ~MetricsValue();
     MetricsValue(const std::string &name, const std::string &value);
     MetricsValue(const MetricsInfoPtr &info, const std::string &value);
     MetricsValue(const MetricsValue &) = default;
     const std::string &Value() const;
-    const std::string& Name() const;
+    const std::string &Name() const;
     const std::map<std::string, std::string> &Headers() const;
 
- private:
+private:
     MetricsValue &operator=(const MetricsValue &);
 
- private:
+private:
     MetricsInfoPtr info_;
     std::string value_;
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_CORE_METRICSVALUE_H_
+#endif // KMONITOR_CLIENT_CORE_METRICSVALUE_H_

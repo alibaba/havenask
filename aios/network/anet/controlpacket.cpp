@@ -28,10 +28,10 @@ ControlPacket::ControlPacket(int c, bool freeDelete) {
     _freeDelete = freeDelete;
 }
 
-void  ControlPacket::free() {
+void ControlPacket::free() {
     if (_freeDelete) {
         delete this;
     }
 }
 
-}
+} // namespace anet

@@ -15,12 +15,12 @@
  */
 #include "autil/RangeUtil.h"
 
-#include <ext/alloc_traits.h>
-#include <stddef.h>
 #include <cassert>
+#include <ext/alloc_traits.h>
 #include <iosfwd>
-#include <type_traits>
 #include <memory>
+#include <stddef.h>
+#include <type_traits>
 
 using namespace std;
 
@@ -39,12 +39,9 @@ static vector<RangeVec> initRangeVecTable(uint32_t maxPart) {
 
 static const vector<RangeVec> globalRangeVecTable = initRangeVecTable(512);
 
+RangeUtil::RangeUtil() {}
 
-RangeUtil::RangeUtil() {
-}
-
-RangeUtil::~RangeUtil() {
-}
+RangeUtil::~RangeUtil() {}
 
 bool RangeUtil::getRange(uint32_t partCount, uint32_t partId, PartitionRange &range) {
     if (partId >= partCount || partCount > MAX_PARTITION_RANGE + 1) {
@@ -63,12 +60,9 @@ bool RangeUtil::getRange(uint32_t partCount, uint32_t partId, PartitionRange &ra
     return true;
 }
 
-RangeVec RangeUtil::splitRange(uint32_t rangeFrom, uint32_t rangeTo, uint32_t partitionCount)
-{
+RangeVec RangeUtil::splitRange(uint32_t rangeFrom, uint32_t rangeTo, uint32_t partitionCount) {
     assert(rangeTo <= MAX_PARTITION_RANGE);
-    if (rangeFrom == 0 && rangeTo == MAX_PARTITION_RANGE
-        && partitionCount < globalRangeVecTable.size())
-    {
+    if (rangeFrom == 0 && rangeTo == MAX_PARTITION_RANGE && partitionCount < globalRangeVecTable.size()) {
         return globalRangeVecTable[partitionCount];
     }
     RangeVec ranges;
@@ -87,14 +81,13 @@ RangeVec RangeUtil::splitRange(uint32_t rangeFrom, uint32_t rangeTo, uint32_t pa
     return ranges;
 }
 
-int32_t RangeUtil::getRangeIdx(uint32_t rangeFrom, uint32_t rangeTo,
-                               uint32_t partitionCount, const PartitionRange &range)
-{
+int32_t
+RangeUtil::getRangeIdx(uint32_t rangeFrom, uint32_t rangeTo, uint32_t partitionCount, const PartitionRange &range) {
     auto rangeVec = splitRange(rangeFrom, rangeTo, partitionCount);
     if (rangeVec.size() == 0) {
         return -1;
     }
-    for (size_t i = 0 ; i < rangeVec.size(); i++) {
+    for (size_t i = 0; i < rangeVec.size(); i++) {
         if (rangeVec[i].first == range.first && rangeVec[i].second == range.second) {
             return i;
         }
@@ -103,7 +96,7 @@ int32_t RangeUtil::getRangeIdx(uint32_t rangeFrom, uint32_t rangeTo,
 }
 
 int32_t RangeUtil::getRangeIdxByHashId(uint32_t rangeFrom, uint32_t rangeTo, uint32_t partitionCount, uint32_t hashId) {
-    assert(rangeFrom <=rangeTo && rangeTo <= MAX_PARTITION_RANGE && "invalid range");
+    assert(rangeFrom <= rangeTo && rangeTo <= MAX_PARTITION_RANGE && "invalid range");
     assert(partitionCount > 0 && partitionCount <= (rangeTo - rangeFrom + 1) && "invalid partitionCount");
     uint32_t rangeCount = rangeTo - rangeFrom + 1;
     uint32_t c = rangeCount / partitionCount;
@@ -116,4 +109,8 @@ int32_t RangeUtil::getRangeIdxByHashId(uint32_t rangeFrom, uint32_t rangeTo, uin
     }
 }
 
+std::string RangeUtil::getRangeName(const autil::PartitionRange &range) {
+    return std::to_string(range.first) + "_" + std::to_string(range.second);
 }
+
+} // namespace autil

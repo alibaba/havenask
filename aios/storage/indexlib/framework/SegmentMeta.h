@@ -30,7 +30,7 @@ class SegmentMetrics;
 }
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::framework {
@@ -45,7 +45,8 @@ struct SegmentMeta {
     std::shared_ptr<indexlib::file_system::Directory> segmentDir;
     std::shared_ptr<SegmentInfo> segmentInfo;
     std::shared_ptr<indexlib::framework::SegmentMetrics> segmentMetrics;
-    std::shared_ptr<config::TabletSchema> schema;
+    std::shared_ptr<config::ITabletSchema> schema;
+    std::string lifecycle;
 };
 
 } // namespace indexlibv2::framework

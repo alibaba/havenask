@@ -18,9 +18,8 @@
 #include <stdint.h>
 #include <utility>
 
-#include "indexlib/indexlib.h"
-
 #include "autil/Log.h" // IWYU pragma: keep
+#include "indexlib/indexlib.h"
 
 namespace isearch {
 namespace search {
@@ -34,22 +33,16 @@ struct QueryExecutorEntry {
     }
 };
 
-inline void adjustDown(uint32_t idx, uint32_t end,
-                       QueryExecutorEntry* heap)
-{
+inline void adjustDown(uint32_t idx, uint32_t end, QueryExecutorEntry *heap) {
     uint32_t min = idx;
     do {
         idx = min;
         uint32_t left = idx << 1;
         uint32_t right = left + 1;
-        if (left <= end &&
-            heap[left].docId < heap[min].docId)
-        {
+        if (left <= end && heap[left].docId < heap[min].docId) {
             min = left;
         }
-        if (right <= end &&
-            heap[right].docId < heap[min].docId)
-        {
+        if (right <= end && heap[right].docId < heap[min].docId) {
             min = right;
         }
         if (min != idx) {
@@ -59,23 +52,13 @@ inline void adjustDown(uint32_t idx, uint32_t end,
 }
 
 template <class CollectFn>
-void collectMinEntries(
-        uint32_t idx,
-        uint32_t end,
-        const QueryExecutorEntry* heap,
-        CollectFn& fn)
-{
+void collectMinEntries(uint32_t idx, uint32_t end, const QueryExecutorEntry *heap, CollectFn &fn) {
     collectMinEntries(idx, end, heap[idx].docId, heap, fn);
 }
 
 template <class CollectFn>
 void collectMinEntries(
-        uint32_t idx,
-        uint32_t end,
-        docid_t min,
-        const QueryExecutorEntry* heap,
-        CollectFn& fn)
-{
+    uint32_t idx, uint32_t end, docid_t min, const QueryExecutorEntry *heap, CollectFn &fn) {
     fn(heap[idx].entryId);
     uint32_t left = idx << 1;
     if (left <= end && heap[left].docId == min) {
@@ -89,4 +72,3 @@ void collectMinEntries(
 
 } // namespace search
 } // namespace isearch
-

@@ -1,0 +1,15 @@
+{
+    "tables" : [
+        {
+            "table_name" : "t1",
+            "is_main_table" : true,
+            "data_path" : "data/t1.dat"
+        },
+        {
+            "table_name" : "t2",
+            "is_main_table" : false,
+            "data_path" : "data/t2.dat"
+        }
+    ],
+    "config_path" : "config/config_table_t1_t2"
+}

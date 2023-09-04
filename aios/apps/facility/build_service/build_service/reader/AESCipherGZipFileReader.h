@@ -15,13 +15,12 @@
  */
 #pragma once
 
-#include "build_service/common_define.h"
-#include "build_service/util/Log.h"
-#include "build_service/reader/GZipFileReader.h"
 #include "autil/cipher/AESCipherCommon.h"
+#include "build_service/common_define.h"
+#include "build_service/reader/GZipFileReader.h"
+#include "build_service/util/Log.h"
 
-namespace build_service {
-namespace reader {
+namespace build_service { namespace reader {
 
 /* first: make a gzip file, second: encrypt the gzip file with openssl AES cipher */
 /* CipherAfterGZip is preferred, make gzip by plain data may have good compress ratio */
@@ -31,23 +30,21 @@ public:
     AESCipherGZipFileReader(autil::cipher::CipherOption option, uint32_t bufferSize);
     ~AESCipherGZipFileReader();
 
-    AESCipherGZipFileReader(const AESCipherGZipFileReader &) = delete;
-    AESCipherGZipFileReader& operator=(const AESCipherGZipFileReader &) = delete;
+    AESCipherGZipFileReader(const AESCipherGZipFileReader&) = delete;
+    AESCipherGZipFileReader& operator=(const AESCipherGZipFileReader&) = delete;
     AESCipherGZipFileReader(AESCipherGZipFileReader&&) = delete;
     AESCipherGZipFileReader& operator=(AESCipherGZipFileReader&&) = delete;
-    
+
 protected:
     FileReaderBase* createInnerFileReader() override;
 
 private:
     autil::cipher::CipherOption _option;
-    
+
 private:
     BS_LOG_DECLARE();
 };
 
 BS_TYPEDEF_PTR(AESCipherGZipFileReader);
 
-}
-}
-
+}} // namespace build_service::reader

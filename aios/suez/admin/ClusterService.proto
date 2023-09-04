@@ -1,0 +1,148 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+package suez;
+
+option cc_generic_services = true;
+
+message CommonResponse {
+    enum ErrorCode {
+        ERROR_NONE = 0;
+
+        ERROR_SERVICE_NOT_READY = 1;
+        ERROR_EXIST = 2;
+        ERROR_NOT_FOUND = 3;
+        ERROR_INTERNAL = 4;
+
+        ERROR_OTHRES = 400;
+        ERROR_UNKOWN = 404;
+    }
+    optional ErrorCode errorCode = 1 [default = ERROR_NONE];
+    optional string errorMsg = 2;
+}
+
+message ClusterConfig {
+    enum ClusterType {
+        CT_QRS = 0;
+        CT_SEARCHER = 1;
+    }
+    required ClusterType type = 1 [default = CT_SEARCHER];
+    required string configStr = 2;
+}
+
+message Cluster {
+    required string clusterName = 1;
+    optional int64 version = 2 [default = 0];
+
+    optional ClusterConfig config = 11;
+}
+
+message ClusterDeploymentConfig {
+    required string configRoot = 1; // biz config upload root path
+    optional string defaultClusterName = 2;
+}
+
+message ClusterDeployment {
+    required string deploymentName = 1;
+    repeated Cluster clusters = 2;
+    required ClusterDeploymentConfig config = 3;
+}
+
+message ClusterServiceStateEntity {
+    repeated ClusterDeployment clusterDeployments = 1;
+    repeated DatabaseDeployment databaseDeployments = 2;
+}
+
+message CreateClusterDeploymentRequest {
+    required ClusterDeployment deployment = 1;
+}
+
+message DeleteClusterRequest {
+    required string deploymentName = 1;
+    required string clusterName = 2;
+}
+
+message CreateClusterRequest {
+    required string deploymentName = 1;
+    required Cluster cluster = 2;
+}
+
+message UpdateClusterRequest {
+    required string deploymentName = 1;
+    required Cluster cluster = 2;
+}
+
+message DatabaseDeployment {
+    message TableGroupBinding {
+        required string tableGroupName = 1;
+        required string clusterName = 2;
+    }
+
+    required string catalogName = 1;
+    required string databaseName = 2;
+    required string deploymentName = 3;
+    repeated TableGroupBinding bindings = 4;
+}
+
+message DeployDatabaseRequest {
+    required DatabaseDeployment databaseDeployment = 1;
+}
+
+message GetClusterDeploymentRequest {
+    required string deploymentName = 1;
+}
+
+message GetClusterDeploymentResponse {
+    optional ClusterDeployment clusterDeployment = 1;
+}
+
+message GetDatabaseDeploymentRequest {
+    required string catalogName = 1;
+    required string databaseName = 2;
+}
+
+message GetDatabaseDeploymentResponse {
+    optional DatabaseDeployment databaseDeployment = 1;
+}
+
+message DeleteDatabaseDeploymentRequest {
+    required string catalogName = 1;
+    required string databaseName = 2;
+}
+
+
+service ClusterService {
+    option (arpc.global_service_id) = 200;
+
+    rpc createClusterDeployment(CreateClusterDeploymentRequest) returns (CommonResponse) {
+        option (arpc.local_method_id) = 1;
+    }
+
+    rpc deleteCluster(DeleteClusterRequest) returns (CommonResponse) {
+        option (arpc.local_method_id) = 2;
+    }
+
+    rpc createCluster(CreateClusterRequest) returns (CommonResponse) {
+        option (arpc.local_method_id) = 3;
+    }
+    
+    rpc updateCluster(UpdateClusterRequest) returns (CommonResponse) {
+        option (arpc.local_method_id) = 4;
+    }
+
+    rpc deployDatabase(DeployDatabaseRequest) returns (CommonResponse) {
+        option (arpc.local_method_id) = 5;
+    }
+
+    rpc deleteDatabaseDeployment(DeleteDatabaseDeploymentRequest) returns (CommonResponse) {
+        option (arpc.local_method_id) = 6;
+    }
+
+    rpc getClusterDeployment(GetClusterDeploymentRequest) returns (GetClusterDeploymentResponse) {
+        option (arpc.local_method_id) = 7;
+    }
+
+    rpc getDatabaseDeployment(GetDatabaseDeploymentRequest) returns (GetDatabaseDeploymentResponse) {
+        option (arpc.local_method_id) = 8;
+    }
+}

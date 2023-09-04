@@ -15,6 +15,7 @@
  */
 #include "indexlib/index/kkv/KKVShardRecordIterator.h"
 
+#include "indexlib/config/MutableJson.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/index/common/field_format/pack_attribute/PackAttributeFormatter.h"
 #include "indexlib/index/common/field_format/pack_attribute/PackValueAdapter.h"
@@ -33,7 +34,7 @@ AUTIL_LOG_SETUP_TEMPLATE(indexlib.table, KKVShardRecordIterator, SKeyType);
 template <typename SKeyType>
 Status KKVShardRecordIterator<SKeyType>::Init(const vector<shared_ptr<Segment>>& segments,
                                               const map<string, string>& params,
-                                              const shared_ptr<TabletSchema>& readSchema,
+                                              const shared_ptr<ITabletSchema>& readSchema,
                                               const shared_ptr<AdapterIgnoreFieldCalculator>& ignoreFieldCalculator,
                                               int64_t currentTs)
 {
@@ -43,8 +44,10 @@ Status KKVShardRecordIterator<SKeyType>::Init(const vector<shared_ptr<Segment>>&
     GetKKVIndexConfig(readSchema);
     assert(_kkvIndexConfig);
     _segments = segments;
-    _kkvIterator = CreateKKVIterator(segments);
-    assert(_kkvIterator);
+    auto result = CreateKKVIterator(segments);
+    RETURN_IF_STATUS_ERROR(result.first, "create kkv iterator failed[%s] for table[%s]",
+                           result.first.ToString().c_str(), readSchema->GetTableName().c_str());
+    _kkvIterator = result.second;
     if (_pkValueIndexConfig) {
         auto status = CreatePKValueReaders(segments);
         RETURN_IF_STATUS_ERROR(status, "create PKValue reader failed[%s] for table[%s]", status.ToString().c_str(),
@@ -60,14 +63,14 @@ Status KKVShardRecordIterator<SKeyType>::Init(const vector<shared_ptr<Segment>>&
         }
     }
 
-    auto [status, ttlEnable] = readSchema->GetSetting<bool>("enable_ttl");
+    auto [status, ttlEnable] = readSchema->GetRuntimeSettings().GetValue<bool>("enable_ttl");
     if (status.IsNotFound()) {
         ttlEnable = false;
     } else if (!status.IsOK()) {
         RETURN_IF_STATUS_ERROR(status, "get 'enable_ttl' failed[%s] for table[%s]", status.ToString().c_str(),
                                readSchema->GetTableName().c_str());
     }
-    auto [retStatus, ttlFromDoc] = readSchema->GetSetting<bool>("ttl_from_doc");
+    auto [retStatus, ttlFromDoc] = readSchema->GetRuntimeSettings().GetValue<bool>("ttl_from_doc");
     if (retStatus.IsNotFound()) {
         ttlFromDoc = false;
     } else if (!retStatus.IsOK()) {
@@ -75,7 +78,7 @@ Status KKVShardRecordIterator<SKeyType>::Init(const vector<shared_ptr<Segment>>&
                                readSchema->GetTableName().c_str());
     }
     if (ttlEnable && ttlFromDoc) {
-        auto [status, ttlFieldName] = readSchema->GetSetting<string>("ttl_field_name");
+        auto [status, ttlFieldName] = readSchema->GetRuntimeSettings().GetValue<string>("ttl_field_name");
         if (status.IsNotFound()) {
             ttlFieldName = DOC_TIME_TO_LIVE_IN_SECONDS;
         } else if (!status.IsOK()) {
@@ -194,8 +197,10 @@ Status KKVShardRecordIterator<SKeyType>::Seek(const string& checkpoint)
     _pkeyOffset = 0;
     _skeyOffset = 0;
     _currentRecord.Clear();
-    _kkvIterator = CreateKKVIterator(_segments);
-    assert(_kkvIterator);
+    auto result = CreateKKVIterator(_segments);
+    RETURN_IF_STATUS_ERROR(result.first, "create kkv iterator failed[%s] for table[%s]",
+                           result.first.ToString().c_str(), _kkvIndexConfig->GetIndexName().c_str());
+    _kkvIterator = result.second;
     while (_pkeyOffset < shardCheckpoint->first && _kkvIterator->IsValid()) {
         _currentPKeyIter = _kkvIterator->GetCurrentIterator();
         MoveToNextPkeyIter();
@@ -224,7 +229,7 @@ Status KKVShardRecordIterator<SKeyType>::Seek(const string& checkpoint)
 }
 
 template <typename SKeyType>
-void KKVShardRecordIterator<SKeyType>::GetKKVIndexConfig(const shared_ptr<TabletSchema>& readSchema)
+void KKVShardRecordIterator<SKeyType>::GetKKVIndexConfig(const shared_ptr<ITabletSchema>& readSchema)
 {
     auto indexConfigs = readSchema->GetIndexConfigs();
     assert(indexConfigs.size() <= 2);
@@ -238,7 +243,7 @@ void KKVShardRecordIterator<SKeyType>::GetKKVIndexConfig(const shared_ptr<Tablet
 }
 
 template <typename SKeyType>
-shared_ptr<OnDiskKKVIterator<SKeyType>> KKVShardRecordIterator<SKeyType>::CreateKKVIterator(
+std::pair<Status, std::shared_ptr<OnDiskKKVIterator<SKeyType>>> KKVShardRecordIterator<SKeyType>::CreateKKVIterator(
     const vector<shared_ptr<indexlibv2::framework::Segment>>& segments) const
 {
     vector<IIndexMerger::SourceSegment> sourceSegments;
@@ -248,8 +253,11 @@ shared_ptr<OnDiskKKVIterator<SKeyType>> KKVShardRecordIterator<SKeyType>::Create
         sourceSegments.emplace_back(sourceSegment);
     }
     auto kkvIterator = make_shared<OnDiskKKVIterator<SKeyType>>(_kkvIndexConfig);
-    kkvIterator->Init(sourceSegments);
-    return kkvIterator;
+    auto status = kkvIterator->Init(sourceSegments);
+    if (!status.IsOK()) {
+        return {status, nullptr};
+    }
+    return {Status::OK(), kkvIterator};
 }
 
 template <typename SKeyType>

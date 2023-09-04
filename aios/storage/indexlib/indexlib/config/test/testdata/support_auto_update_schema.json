@@ -1,0 +1,95 @@
+{
+    "attributes":
+    [
+	"string1",
+	"string2",
+	"price"
+    ],
+    "fields":
+    [
+	{
+	    "field_name":
+	    "string1",
+	    "field_type":
+	    "STRING"
+	},
+	{
+	    "field_name":
+	    "string2",
+	    "field_type":
+	    "STRING"
+	},
+	{
+	    "field_name":
+	    "price",
+	    "field_type":
+	    "UINT32"
+	}
+    ],
+    "indexs":
+    [
+	{
+	    "has_primary_key_attribute":
+	    true,
+	    "index_fields":
+	    "string1",
+	    "index_name":
+	    "pk",
+	    "index_type":
+	    "PRIMARYKEY64"
+	}
+    ],
+    "table_name": "noname",
+    "modify_operations" :
+    [
+	{
+	    "add" : {
+		"fields" : [
+		    {
+			"field_name" : "nid",
+			"field_type" : "LONG"
+		    }
+		],
+		"attributes" : [ "nid" ]
+	    },
+	    "delete" : {
+		"attributes" : [ "price", "string2" ]
+	    },
+	    "parameters" : {
+		"enable_pre_alter_field" : "true"
+	    }
+	},
+	{
+	    "add" : {
+		"fields" : [
+		    {
+			"field_name" : "new_nid",
+			"field_type" : "LONG"
+		    }
+		],
+		"attributes" : [ "new_nid" ]
+	    },
+	    "delete" : {
+		"fields" : [ "nid" ],
+		"attributes" : [ "nid" ]
+	    },
+	    "parameters" : {
+		"enable_pre_alter_field" : "false"
+	    }
+	},
+	{
+	    "add" : {
+		"fields" : [
+		    {
+			"field_name" : "nid",
+			"field_type" : "STRING"
+		    }
+		],
+		"attributes" : [ "nid" ]
+	    },
+	    "parameters" : {
+		"xxx_key" : "xxx_value"
+	    }
+	}
+    ]
+}

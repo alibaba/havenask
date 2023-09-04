@@ -19,12 +19,9 @@
 #include "indexlib/config/IIndexConfig.h"
 #include "indexlib/config/IndexConfigDeserializeResource.h"
 #include "indexlib/config/LegacySchemaConvertor.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/IIndexFactory.h"
 #include "indexlib/index/IndexFactoryCreator.h"
 #include "indexlib/index/common/Constant.h"
-#include "indexlib/index/inverted_index/Common.h"
-#include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
 
 namespace indexlibv2::config {
 AUTIL_LOG_SETUP(indexlib.config, UnresolvedSchema);
@@ -46,14 +43,15 @@ std::string UnresolvedSchema::GetSchemaFileName(schemaid_t schemaId)
     return SCHEMA_FILE_NAME + "." + autil::StringUtil::toString(schemaId);
 }
 
-std::pair<bool, const autil::legacy::Any&> UnresolvedSchema::GetSettingConfig(const std::string& key) const
+std::pair<bool, const autil::legacy::Any&> UnresolvedSchema::GetRuntimeSetting(const std::string& key) const
 {
     static autil::legacy::Any empty;
-    auto iter = _settings.find(key);
-    if (iter != _settings.end()) {
-        return {true, iter->second};
+    auto any = _runtimeSettings.GetAny(key);
+    if (any) {
+        return {true, *any};
+    } else {
+        return {false, empty};
     }
-    return {false, empty};
 }
 
 fieldid_t UnresolvedSchema::GetFieldId(const std::string& fieldName) const
@@ -84,35 +82,39 @@ size_t UnresolvedSchema::GetFieldCount() const { return _fields.size(); }
 
 std::vector<std::shared_ptr<FieldConfig>> UnresolvedSchema::GetIndexFieldConfigs(const std::string& indexType) const
 {
-    if (indexType == GENERALIZED_VALUE_INDEX_TYPE_STR) {
-        return _generalizedValueIndexFieldConfigs;
-    } else {
-        std::vector<std::shared_ptr<FieldConfig>> ret;
-        std::map<fieldid_t, std::shared_ptr<FieldConfig>> fields;
+    std::vector<std::shared_ptr<FieldConfig>> ret;
+    std::map<fieldid_t, std::shared_ptr<FieldConfig>> fields;
 
-        ForEachIndexConfigs(indexType, [&fields](const auto& indexConfig) {
-            auto indexFields = indexConfig->GetFieldConfigs();
-            for (const auto& fieldConfig : indexFields) {
-                fields.insert({fieldConfig->GetFieldId(), fieldConfig});
-            }
-        });
-
-        for (const auto& [fieldId, fieldConfig] : fields) {
-            ret.push_back(fieldConfig);
+    ForEachIndexConfigs(indexType, [&fields](const auto& indexConfig) {
+        if (indexConfig->IsDisabled()) {
+            return;
         }
-        return ret;
+        auto indexFields = indexConfig->GetFieldConfigs();
+        for (const auto& fieldConfig : indexFields) {
+            fields.insert({fieldConfig->GetFieldId(), fieldConfig});
+        }
+    });
+
+    for (const auto& [fieldId, fieldConfig] : fields) {
+        ret.push_back(fieldConfig);
     }
+    return ret;
 }
 
-bool UnresolvedSchema::SetSettingConfig(const std::string& key, const autil::legacy::Any& value, bool overwrite)
+bool UnresolvedSchema::SetRuntimeSetting(const std::string& key, const autil::legacy::Any& value, bool overwrite)
 {
-    auto iter = _settings.find(key);
-    if (iter != _settings.end() && !overwrite) {
-        AUTIL_LOG(ERROR, "schema setting key [%s] is exist, value is [%s], cannot set again", key.c_str(),
-                  autil::legacy::ToJsonString(iter->second, true).c_str());
+    auto any = _runtimeSettings.GetAny(key);
+    if (any && !overwrite) {
+        AUTIL_LOG(ERROR, "schema runtime setting key [%s] is exist, value is [%s], cannot set again", key.c_str(),
+                  autil::legacy::ToJsonString(*any, true).c_str());
         return false;
     }
-    _settings[key] = value;
+    bool ret = _runtimeSettings.SetAny(key, value);
+    if (!ret) {
+        AUTIL_LOG(ERROR, "set runtime setting failed, key [%s], value [%s]", key.c_str(),
+                  autil::legacy::ToJsonString(value, true).c_str());
+        return false;
+    }
     return true;
 }
 
@@ -215,9 +217,14 @@ bool UnresolvedSchema::JsonizeCommonInfo(autil::legacy::Jsonizable::JsonWrapper&
         std::vector<autil::legacy::Any> anyVec;
         anyVec.reserve(_fields.size());
         for (const auto& fieldConfig : _fields) {
-            anyVec.push_back(autil::legacy::ToJson(*fieldConfig));
+            if (!fieldConfig->IsVirtual()) {
+                anyVec.push_back(autil::legacy::ToJson(*fieldConfig));
+            }
         }
         json.Jsonize(TABLET_SCHEMA_FIELDS, anyVec);
+        if (!_userDefinedParam.empty()) {
+            json.Jsonize(TABLET_SCHEMA_USER_DEFINED_PARAM, _userDefinedParam.GetMap());
+        }
     } else {
         json.Jsonize(TABLET_SCHEMA_ID, _schemaId, _schemaId);
         json.Jsonize(TABLET_SCHEMA_FORMAT_VERSION, _formatVersion, DEFAULT_FORMAT_VERSION);
@@ -237,6 +244,7 @@ bool UnresolvedSchema::JsonizeCommonInfo(autil::legacy::Jsonizable::JsonWrapper&
                 }
             }
         }
+        json.Jsonize(TABLET_SCHEMA_USER_DEFINED_PARAM, _userDefinedParam.GetMap(), _userDefinedParam.GetMap());
     }
     return true;
 }
@@ -247,11 +255,14 @@ Status UnresolvedSchema::PrepareIndexConfigs(const autil::legacy::json::JsonMap&
     _extendedIndexConfigs.clear();
     _indexConfigMap.clear();
     GetJsonValue(jsonMap, TABLET_SCHEMA_SETTINGS, &_settings);
+    if (!_runtimeSettings.SetAny("", _settings)) {
+        RETURN_IF_STATUS_ERROR(Status::InternalError(), "runtime setting copy  from setting failed");
+    }
 
     autil::legacy::json::JsonMap indexes;
     GetJsonValue(jsonMap, TABLET_SCHEMA_INDEXES, &indexes);
     auto indexFactoryCreator = index::IndexFactoryCreator::GetInstance();
-    IndexConfigDeserializeResource resource(_fields, _settings, _runtimeSettings);
+    IndexConfigDeserializeResource resource(_fields, _runtimeSettings);
     for (const auto& [key, value] : indexes) {
         std::string keyStr = autil::legacy::AnyCast<std::string>(key);
         auto [factoryStatus, indexFactory] = indexFactoryCreator->Create(keyStr);
@@ -311,14 +322,22 @@ Status UnresolvedSchema::LoadIndexConfigs(const index::IIndexFactory* indexFacto
 std::vector<std::shared_ptr<IIndexConfig>> UnresolvedSchema::GetIndexConfigs() const
 {
     std::vector<std::shared_ptr<IIndexConfig>> ret;
-    ForEachIndexConfigs([&ret](const auto& indexConfig) { ret.push_back(indexConfig); });
+    ForEachIndexConfigs([&ret](const auto& indexConfig) {
+        if (!indexConfig->IsDisabled()) {
+            ret.push_back(indexConfig);
+        }
+    });
     return ret;
 }
 
 std::vector<std::shared_ptr<IIndexConfig>> UnresolvedSchema::GetIndexConfigs(const std::string& indexType) const
 {
     std::vector<std::shared_ptr<IIndexConfig>> ret;
-    ForEachIndexConfigs(indexType, [&ret](const auto& indexConfig) { ret.push_back(indexConfig); });
+    ForEachIndexConfigs(indexType, [&ret](const auto& indexConfig) {
+        if (!indexConfig->IsDisabled()) {
+            ret.push_back(indexConfig);
+        }
+    });
     return ret;
 }
 
@@ -327,6 +346,9 @@ UnresolvedSchema::GetIndexConfigsByFieldName(const std::string& fieldName) const
 {
     std::vector<std::shared_ptr<IIndexConfig>> ret;
     ForEachIndexConfigs([&ret, &fieldName](const auto& indexConfig) {
+        if (indexConfig->IsDisabled()) {
+            return;
+        }
         auto fields = indexConfig->GetFieldConfigs();
         for (const auto& fieldConfig : fields) {
             if (fieldConfig->GetFieldName() == fieldName) {
@@ -342,30 +364,23 @@ UnresolvedSchema::GetIndexConfigsByFieldName(const std::string& fieldName) const
 std::shared_ptr<IIndexConfig> UnresolvedSchema::GetIndexConfig(const std::string& indexType,
                                                                const std::string& indexName) const
 {
-    // if (indexType == "inverted_index") {
-    //     std::string originalIndexName;
-    //     if (InvertedIndexConfig::GetIndexNameFromShardingIndexName(indexName, originalIndexName)) {
-    //         assert(false);
-    //     }
-    // }
     auto iter = _indexConfigMap.find({indexName, indexType});
     if (iter == _indexConfigMap.end()) {
         static const std::shared_ptr<IIndexConfig> NULL_INDEXCONFIG;
         return NULL_INDEXCONFIG;
     }
-    return iter->second;
+    return iter->second->IsDisabled() ? nullptr : iter->second;
 }
 
-std::shared_ptr<IIndexConfig> UnresolvedSchema::GetPrimaryKeyIndexConfig() const { return _primaryKeyIndexConfig; }
+std::shared_ptr<IIndexConfig> UnresolvedSchema::GetPrimaryKeyIndexConfig() const
+{
+    assert(!_primaryKeyIndexConfig || !_primaryKeyIndexConfig->IsDisabled());
+    return _primaryKeyIndexConfig;
+}
 
 void UnresolvedSchema::SetPrimaryKeyIndexConfig(const std::shared_ptr<IIndexConfig>& pkConfig)
 {
     _primaryKeyIndexConfig = pkConfig;
-}
-
-void UnresolvedSchema::SetGeneralizedValueIndexFieldConfigs(std::vector<std::shared_ptr<FieldConfig>> fieldConfigs)
-{
-    _generalizedValueIndexFieldConfigs = std::move(fieldConfigs);
 }
 
 Status UnresolvedSchema::AddIndexConfig(const std::shared_ptr<IIndexConfig>& indexConfig)
@@ -388,7 +403,7 @@ Status UnresolvedSchema::DoAddIndexConfig(const std::string& indexType,
     if (GetIndexConfig(indexType, indexConfig->GetIndexName())) {
         AUTIL_LOG(ERROR, "index config [%s] [%s] already exist", indexType.c_str(),
                   indexConfig->GetIndexName().c_str());
-        return Status::Corruption("index config already exist");
+        return Status::Exist("index config already exist");
     }
     if (nativeFromJson) {
         _nativeIndexConfigs.push_back(indexConfig);
@@ -411,21 +426,13 @@ bool UnresolvedSchema::GetJsonValue(const autil::legacy::json::JsonMap& parent, 
     return false;
 }
 
-bool UnresolvedSchema::GetValueFromUserDefinedParam(const std::string& key, std::string& value) const
-{
-    auto [status, settingValue] = GetSetting<std::string>(key);
-    if (!status.IsOK()) {
-        return false;
-    }
-    value = settingValue;
-    return true;
-}
+// void UnresolvedSchema::SetUserDefinedParam(const std::string& key, const std::string& value)
+// {
+//     [[maybe_unused]] auto r = SetSettingConfig(key, value, /*overwrite*/ true);
+//     assert(r);
+// }
 
-void UnresolvedSchema::SetUserDefinedParam(const std::string& key, const std::string& value)
-{
-    [[maybe_unused]] auto r = SetSettingConfig(key, value, /*overwrite*/ true);
-    assert(r);
-}
+const indexlib::util::JsonMap& UnresolvedSchema::GetUserDefinedParam() const { return _userDefinedParam; }
 
 Status UnresolvedSchema::AddFieldConfig(const std::shared_ptr<FieldConfig>& fieldConfig)
 {
@@ -434,7 +441,7 @@ Status UnresolvedSchema::AddFieldConfig(const std::shared_ptr<FieldConfig>& fiel
     if (iter != _fieldNameToIdMap.end()) {
         RETURN_STATUS_ERROR(ConfigError, "duplicate field name[%s]", fieldConfig->GetFieldName().c_str());
     }
-    fieldid_t fieldId = _fieldNameToIdMap.size();
+    fieldid_t fieldId = _fields.size();
     assert(fieldConfig->GetFieldId() == INVALID_FIELDID || fieldConfig->GetFieldId() == fieldId);
     fieldConfig->SetFieldId(fieldId);
     _fields.push_back(fieldConfig);

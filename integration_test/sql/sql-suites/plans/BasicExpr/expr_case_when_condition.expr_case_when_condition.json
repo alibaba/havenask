@@ -1,0 +1,339 @@
+{
+  "plan": {
+    "exec_params": {}, 
+    "optimize_infos": {}, 
+    "plan_meta": {}, 
+    "rel_plan": [
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "phone", 
+          "limit": 100, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "phone"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$nid"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "nid": "default.phone.phone.nid"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$nid", 
+            "$brand", 
+            "$price", 
+            "$size", 
+            "$_case_"
+          ], 
+          "output_fields_hash": 1419135769, 
+          "output_fields_internal": [
+            "$nid", 
+            "$brand", 
+            "$price", 
+            "$size", 
+            "$_case_"
+          ], 
+          "output_fields_internal_type": [
+            "BIGINT", 
+            "VARCHAR", 
+            "DOUBLE", 
+            "DOUBLE", 
+            "DOUBLE"
+          ], 
+          "output_fields_type": [
+            "BIGINT", 
+            "VARCHAR", 
+            "DOUBLE", 
+            "DOUBLE", 
+            "DOUBLE"
+          ], 
+          "push_down_ops": [
+            {
+              "attrs": {
+                "condition": {
+                  "op": "AND", 
+                  "params": [
+                    {
+                      "op": ">", 
+                      "params": [
+                        "$size", 
+                        5.0
+                      ], 
+                      "type": "OTHER"
+                    }, 
+                    {
+                      "op": "OR", 
+                      "params": [
+                        {
+                          "op": "=", 
+                          "params": [
+                            "$brand", 
+                            "Huawei"
+                          ], 
+                          "type": "OTHER"
+                        }, 
+                        {
+                          "op": "AND", 
+                          "params": [
+                            {
+                              "op": "=", 
+                              "params": [
+                                "$brand", 
+                                "Xiaomi"
+                              ], 
+                              "type": "OTHER"
+                            }, 
+                            {
+                              "op": "<", 
+                              "params": [
+                                "$size", 
+                                3000
+                              ], 
+                              "type": "OTHER"
+                            }
+                          ], 
+                          "type": "OTHER"
+                        }, 
+                        {
+                          "op": "AND", 
+                          "params": [
+                            {
+                              "op": "<", 
+                              "params": [
+                                "$price", 
+                                3000
+                              ], 
+                              "type": "OTHER"
+                            }, 
+                            {
+                              "op": "<>", 
+                              "params": [
+                                "$brand", 
+                                "Xiaomi"
+                              ], 
+                              "type": "OTHER"
+                            }
+                          ], 
+                          "type": "OTHER"
+                        }
+                      ], 
+                      "type": "OTHER"
+                    }
+                  ], 
+                  "type": "OTHER"
+                }, 
+                "output_field_exprs": {
+                  "$_case_": {
+                    "op": "CASE", 
+                    "params": [
+                      {
+                        "op": "=", 
+                        "params": [
+                          "$brand", 
+                          "Huawei"
+                        ], 
+                        "type": "OTHER"
+                      }, 
+                      1.0, 
+                      {
+                        "op": "=", 
+                        "params": [
+                          "$brand", 
+                          "Xiaomi"
+                        ], 
+                        "type": "OTHER"
+                      }, 
+                      "$size", 
+                      "$price"
+                    ], 
+                    "type": "OTHER"
+                  }
+                }, 
+                "output_fields": [
+                  "$nid", 
+                  "$brand", 
+                  "$price", 
+                  "$size", 
+                  "$_case_"
+                ], 
+                "output_fields_type": [
+                  "BIGINT", 
+                  "VARCHAR", 
+                  "DOUBLE", 
+                  "DOUBLE", 
+                  "DOUBLE"
+                ]
+              }, 
+              "op_name": "CalcOp"
+            }
+          ], 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$nid"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "partition_cnt": 1
+          }, 
+          "table_meta": {
+            "field_meta": [
+              {
+                "field_name": "$nid", 
+                "field_type": "int64", 
+                "index_name": "nid", 
+                "index_type": "primarykey64", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$price", 
+                "field_type": "double", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$brand", 
+                "field_type": "string", 
+                "index_name": "brand", 
+                "index_type": "string", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$size", 
+                "field_type": "double", 
+                "is_attribute": "true"
+              }
+            ]
+          }, 
+          "table_name": "phone", 
+          "table_type": "normal", 
+          "use_nest_table": false, 
+          "used_fields": [
+            "$nid", 
+            "$brand", 
+            "$price", 
+            "$size"
+          ], 
+          "used_fields_type": [
+            "BIGINT", 
+            "VARCHAR", 
+            "DOUBLE", 
+            "DOUBLE"
+          ]
+        }, 
+        "id": 0, 
+        "inputs": {
+          "input": []
+        }, 
+        "op_name": "TableScanOp", 
+        "outputs": [
+          1
+        ]
+      }, 
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "phone", 
+          "distribution": {
+            "type": "SINGLETON"
+          }, 
+          "input_fields": [
+            "$nid", 
+            "$brand", 
+            "$price", 
+            "$size", 
+            "$_case_"
+          ], 
+          "input_fields_type": [
+            "BIGINT", 
+            "VARCHAR", 
+            "DOUBLE", 
+            "DOUBLE", 
+            "DOUBLE"
+          ], 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": 1419135769, 
+          "output_prunable": 0, 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$nid"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "nid": "default.phone.phone.nid"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "table_group_name": "phone", 
+          "table_name": "phone", 
+          "table_type": "normal"
+        }, 
+        "id": 1, 
+        "inputs": {
+          "input": [
+            0
+          ]
+        }, 
+        "op_name": "ExchangeOp", 
+        "outputs": [
+          2
+        ]
+      }, 
+      {
+        "attrs": {
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "qrs"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": 1419135769, 
+          "type": "api"
+        }, 
+        "id": 2, 
+        "inputs": {
+          "input": [
+            1
+          ]
+        }, 
+        "op_name": "SinkOp"
+      }
+    ], 
+    "rel_plan_version": "plan_version_0.0.1"
+  }, 
+  "sql_params": {
+    "iquan.optimizer.debug.enable": "false", 
+    "iquan.plan.format.object.enable": "true", 
+    "iquan.plan.format.type": "json", 
+    "iquan.plan.format.version": "plan_version_0.0.1", 
+    "iquan.plan.output.exec_params": "false", 
+    "iquan.plan.prepare.level": "end"
+  }, 
+  "sqls": [
+    "SELECT nid, brand, price, size, _case_ FROM (SELECT nid, brand, price, size, CASE WHEN brand = 'Huawei' THEN 1.0 WHEN brand = 'Xiaomi' THEN size ELSE price END AS _case_ FROM phone WHERE size > 5.0) t WHERE _case_ < 3000"
+  ]
+}

@@ -13,19 +13,19 @@
 //     1. Remove cross platform features.
 //     2. Remove restrict on UBsan
 
-#include <cstring>
 #include "cache_hash.h"
+
+#include <cstring>
 
 using namespace std;
 
 namespace autil {
 
-uint32_t CacheHash::Hash(const char* data, size_t n, uint32_t seed)
-{
+uint32_t CacheHash::Hash(const char *data, size_t n, uint32_t seed) {
     // Similar to murmur hash
     const uint32_t m = 0xc6a4a793;
     const uint32_t r = 24;
-    const char* limit = data + n;
+    const char *limit = data + n;
     uint32_t h = static_cast<uint32_t>(seed ^ (n * m));
 
     // Pick up four bytes at a time
@@ -70,4 +70,4 @@ uint32_t CacheHash::Hash(const char* data, size_t n, uint32_t seed)
     return h;
 }
 
-}
+} // namespace autil

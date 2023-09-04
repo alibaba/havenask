@@ -25,18 +25,26 @@ VersionMeta::VersionMeta(const Version& version, int64_t docCount, int64_t index
     , _readSchemaId(version.GetReadSchemaId())
     , _commitTime(version.GetCommitTime())
     , _timestamp(version.GetTimestamp())
-    , _minLocatorTs(version.GetLocator().GetOffset())
-    , _maxLocatorTs(version.GetLocator().GetMaxOffset())
+    , _minLocatorTs(version.GetLocator().GetOffset().first)
+    , _maxLocatorTs(version.GetLocator().GetMaxOffset().first)
     , _docCount(docCount)
     , _indexSize(indexSize)
     , _fenceName(version.GetFenceName())
     , _versionLine(version.GetVersionLine())
 {
+    for (const auto& indexTask : version.GetIndexTasks()) {
+        auto meta = *indexTask;
+        // in case of params are too long
+        meta.params.clear();
+        _indexTaskQueue.emplace_back(meta);
+    }
     for (auto [segId, _] : version) {
         _segments.push_back(segId);
     }
     _sealed = version.IsSealed();
 }
+
+VersionMeta::VersionMeta(versionid_t versionId) : _versionId(versionId) {}
 
 void VersionMeta::Jsonize(JsonWrapper& json)
 {
@@ -52,6 +60,7 @@ void VersionMeta::Jsonize(JsonWrapper& json)
     json.Jsonize("sealed", _sealed, _sealed);
     json.Jsonize("fence_name", _fenceName, _fenceName);
     json.Jsonize("version_line", _versionLine, _versionLine);
+    json.Jsonize("index_task_queue", _indexTaskQueue, _indexTaskQueue);
 }
 
 bool VersionMeta::operator==(const VersionMeta& other) const
@@ -60,7 +69,7 @@ bool VersionMeta::operator==(const VersionMeta& other) const
            _commitTime == other._commitTime && _timestamp == other._timestamp && _docCount == other._docCount &&
            _indexSize == other._indexSize && _fenceName == other._fenceName && _sealed == other._sealed &&
            _minLocatorTs == other._minLocatorTs && _maxLocatorTs == other._maxLocatorTs &&
-           _versionLine == other._versionLine;
+           _versionLine == other._versionLine && _indexTaskQueue == other._indexTaskQueue;
 }
 
 void VersionMeta::TEST_Set(versionid_t versionId, std::vector<segmentid_t> segments, int64_t commitTime)

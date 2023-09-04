@@ -24,6 +24,7 @@
 #include "indexlib/base/Types.h"
 #include "indexlib/config/IndexConfigDeserializeResource.h"
 #include "indexlib/config/MutableJson.h"
+#include "indexlib/util/JsonMap.h"
 
 namespace indexlibv2::index {
 class IIndexFactory;
@@ -46,6 +47,8 @@ public:
     UnresolvedSchema();
     ~UnresolvedSchema();
 
+public:
+    // base
     const std::string& GetTableType() const { return _tableType; }
     const std::string& GetTableName() const { return _tableName; }
     schemaid_t GetSchemaId() const { return _schemaId; }
@@ -55,13 +58,13 @@ public:
     bool Deserialize(const std::string& jsonStr);
 
     // fields
+    size_t GetFieldCount() const;
     fieldid_t GetFieldId(const std::string& fieldName) const;
     std::shared_ptr<FieldConfig> GetFieldConfig(fieldid_t fieldId) const;
     std::shared_ptr<FieldConfig> GetFieldConfig(const std::string& fieldName) const;
-    Status AddFieldConfig(const std::shared_ptr<FieldConfig>& fieldConfig);
     std::vector<std::shared_ptr<FieldConfig>> GetFieldConfigs() const;
-    size_t GetFieldCount() const;
     std::vector<std::shared_ptr<FieldConfig>> GetIndexFieldConfigs(const std::string& indexType) const;
+    Status AddFieldConfig(const std::shared_ptr<FieldConfig>& fieldConfig);
 
     // indexes
     std::vector<std::shared_ptr<IIndexConfig>> GetIndexConfigs() const;
@@ -70,29 +73,20 @@ public:
     std::shared_ptr<IIndexConfig> GetIndexConfig(const std::string& indexType, const std::string& indexName) const;
     std::shared_ptr<IIndexConfig> GetPrimaryKeyIndexConfig() const;
     void SetPrimaryKeyIndexConfig(const std::shared_ptr<IIndexConfig>& pkConfig);
-    void SetGeneralizedValueIndexFieldConfigs(std::vector<std::shared_ptr<FieldConfig>> fieldConfigs);
     Status AddIndexConfig(const std::shared_ptr<IIndexConfig>& indexConfig);
     Status AddIndexConfig(const std::string& indexType, const std::shared_ptr<IIndexConfig>& indexConfig);
 
+    // runtime setting
     template <typename T>
-    bool SetSetting(const std::string& key, const T& value, bool overwrite);
+    bool SetRuntimeSetting(const std::string& path, const T& value, bool overwrite);
     template <typename T>
-    std::pair<Status, T> GetSetting(const std::string& key) const;
-    template <typename T>
-    Status GetSetting(const std::string& key, T& value, const T& defaultValue) const;
-    const autil::legacy::json::JsonMap& GetSettings() const { return _settings; }
+    Status GetRuntimeSetting(const std::string& path, T& value, const T& defaultValue) const;
+    const MutableJson& GetRuntimeSettings() const { return _runtimeSettings; }
+    std::pair<bool, const autil::legacy::Any&> GetRuntimeSetting(const std::string& key) const;
+    bool SetRuntimeSetting(const std::string& key, const autil::legacy::Any& value, bool overwrite);
 
-    // duplicate key will be overwrite
-    template <typename T>
-    bool SetRuntimeSetting(const std::string& path, const T& value);
-    template <typename T>
-    std::pair<bool, T> GetRuntimeSetting(const std::string& path) const;
-
-    bool GetValueFromUserDefinedParam(const std::string& key, std::string& value) const;
-    void SetUserDefinedParam(const std::string& key, const std::string& value);
-
-    std::pair<bool, const autil::legacy::Any&> GetSettingConfig(const std::string& key) const;
-    bool SetSettingConfig(const std::string& key, const autil::legacy::Any& value, bool overwrite);
+    // user payload
+    const indexlib::util::JsonMap& GetUserDefinedParam() const;
 
 public:
     void SetSchemaId(schemaid_t schemaId);
@@ -102,6 +96,8 @@ public:
 public:
     void TEST_SetTableName(const std::string& name);
     void TEST_SetTableType(const std::string& type);
+    template <typename T>
+    bool TEST_SetSetting(const std::string& path, const T& value, bool overwrite);
 
 private:
     const std::shared_ptr<indexlib::config::IndexPartitionSchema>& GetLegacySchema() const { return _legacySchema; }
@@ -130,25 +126,28 @@ private:
     static constexpr const char TABLET_SCHEMA_FIELDS[] = "fields";
     static constexpr const char TABLET_SCHEMA_INDEXES[] = "indexes";
     static constexpr const char TABLET_SCHEMA_SETTINGS[] = "settings";
+    static constexpr const char TABLET_SCHEMA_USER_DEFINED_PARAM[] = "user_defined_param";
     static constexpr const char TABLET_SCHEMA_ID[] = "versionid";
 
 private:
-    std::shared_ptr<indexlib::config::IndexPartitionSchema> _legacySchema;
-    std::vector<std::shared_ptr<FieldConfig>> _fields;
-    std::unordered_map<std::string, fieldid_t> _fieldNameToIdMap;
-    std::vector<std::shared_ptr<IIndexConfig>> _nativeIndexConfigs;
-    std::vector<std::pair</*indexType*/ std::string, std::shared_ptr<IIndexConfig>>> _extendedIndexConfigs;
-    autil::legacy::json::JsonMap _settings;
-    MutableJson _runtimeSettings;
-
     std::string _tableType;
     std::string _tableName;
     schemaid_t _schemaId = DEFAULT_SCHEMAID;
     int32_t _formatVersion = 2;
-    std::shared_ptr<IIndexConfig> _primaryKeyIndexConfig;
-    std::vector<std::shared_ptr<FieldConfig>> _generalizedValueIndexFieldConfigs;
 
+    std::shared_ptr<indexlib::config::IndexPartitionSchema> _legacySchema;
+
+    std::vector<std::shared_ptr<FieldConfig>> _fields;
+    std::unordered_map<std::string, fieldid_t> _fieldNameToIdMap;
+
+    std::vector<std::shared_ptr<IIndexConfig>> _nativeIndexConfigs;
+    std::vector<std::pair</*indexType*/ std::string, std::shared_ptr<IIndexConfig>>> _extendedIndexConfigs;
+    std::shared_ptr<IIndexConfig> _primaryKeyIndexConfig;
     std::map<std::pair</*name*/ std::string, /*type*/ std::string>, std::shared_ptr<IIndexConfig>> _indexConfigMap;
+
+    autil::legacy::json::JsonMap _settings; // load from schema file, cannot be modified, will be serialized
+    MutableJson _runtimeSettings; // copy from _settings when deserialize, can be modified, will not be serialized
+    indexlib::util::JsonMap _userDefinedParam;
 
 private:
     friend class TabletSchema;
@@ -158,42 +157,25 @@ private:
 
 //////////////////////////////////////////////////////////////////////
 template <typename T>
-inline std::pair<Status, T> UnresolvedSchema::GetSetting(const std::string& key) const
+inline Status UnresolvedSchema::GetRuntimeSetting(const std::string& key, T& value, const T& defaultValue) const
 {
-    T setting {};
-    auto [isExist, settingAny] = GetSettingConfig(key);
-    if (!isExist) {
-        return {Status::NotFound(), setting};
-    }
-    try {
-        autil::legacy::FromJson(setting, settingAny);
-    } catch (const autil::legacy::ExceptionBase& e) {
-        Status status = Status::ConfigError("[%s] is json invalid, %s", key.c_str(), e.what());
-        AUTIL_LOG(ERROR, "%s", status.ToString().c_str());
-        return {status, setting};
-    }
-    return {Status::OK(), setting};
-}
-
-template <typename T>
-inline Status UnresolvedSchema::GetSetting(const std::string& key, T& value, const T& defaultValue) const
-{
-    auto [status, settings] = GetSetting<T>(key);
+    auto [status, val] = _runtimeSettings.GetValue<T>(key);
     if (status.IsOK()) {
-        value = settings;
-        return status;
+        value = val;
+        return Status::OK();
     } else if (status.IsNotFound()) {
         value = defaultValue;
         return Status::OK();
+    } else {
+        return status;
     }
-    return status;
 }
 
 template <typename T>
-inline bool UnresolvedSchema::SetSetting(const std::string& key, const T& value, bool overwrite)
+inline bool UnresolvedSchema::SetRuntimeSetting(const std::string& key, const T& value, bool overwrite)
 {
     try {
-        return SetSettingConfig(key, autil::legacy::ToJson(value), overwrite);
+        return SetRuntimeSetting(key, autil::legacy::ToJson(value), overwrite);
     } catch (const autil::legacy::ExceptionBase& e) {
         AUTIL_LOG(ERROR, "[%s] to json failed, %s", key.c_str(), e.what());
         return false;
@@ -201,17 +183,26 @@ inline bool UnresolvedSchema::SetSetting(const std::string& key, const T& value,
 }
 
 template <typename T>
-inline bool UnresolvedSchema::SetRuntimeSetting(const std::string& path, const T& value)
+inline bool UnresolvedSchema::TEST_SetSetting(const std::string& key, const T& value, bool overwrite)
 {
-    return _runtimeSettings.SetValue(path, value);
-}
+    try {
+        const autil::legacy::Any& any = autil::legacy::ToJson(value);
+        auto iter = _settings.find(key);
+        if (iter != _settings.end() && !overwrite) {
+            AUTIL_LOG(ERROR, "schema setting key [%s] is exist, value is [%s], cannot set again", key.c_str(),
+                      autil::legacy::ToJsonString(iter->second, true).c_str());
 
-template <typename T>
-inline std::pair<bool, T> UnresolvedSchema::GetRuntimeSetting(const std::string& path) const
-{
-    T value {};
-    auto ret = _runtimeSettings.GetValue(path, &value);
-    return {ret, value};
+            return false;
+        }
+        _settings[key] = any;
+    } catch (const autil::legacy::ExceptionBase& e) {
+        AUTIL_LOG(ERROR, "[%s] to json failed, %s", key.c_str(), e.what());
+        return false;
+    } catch (...) {
+        AUTIL_LOG(ERROR, "[%s] to json failed, unknown exception", key.c_str());
+        return false;
+    }
+    return SetRuntimeSetting(key, value, overwrite);
 }
 
 } // namespace indexlibv2::config

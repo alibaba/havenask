@@ -33,7 +33,7 @@ Status VersionLoader::LoadVersion(const indexlib::file_system::DirectoryPtr& dir
                   ->Load(versionFileName,
                          indexlib::file_system::ReaderOption::PutIntoCache(indexlib::file_system::FSOT_MEM), content)
                   .Status();
-    if (st.IsNoEntry()) {
+    if (st.IsNotFound()) {
         auto status = Status::InternalError("version not exist, logical dir[%s] version[%s]",
                                             dir->DebugString().c_str(), versionFileName.c_str());
         AUTIL_LOG(ERROR, "%s", status.ToString().c_str());

@@ -151,6 +151,15 @@ void IndexTaskConfig::FillLegacyReclaimConfig(const std::string& name,
               _impl->taskType.c_str());
 }
 
+void IndexTaskConfig::FillMergeConfig(const std::string& name, const indexlibv2::config::MergeConfig& mergeConfig)
+{
+    _impl->taskName = name;
+    _impl->taskType = "merge";
+    autil::legacy::json::JsonMap settings;
+    settings["merge_config"] = autil::legacy::ToJson(mergeConfig);
+    _impl->settings = settings;
+}
+
 void IndexTaskConfig::FillLegacyMergeConfig(const std::string& name,
                                             const indexlib::legacy::config::OfflineMergeConfig& legacyMergeConfig)
 {
@@ -168,14 +177,30 @@ void IndexTaskConfig::FillLegacyMergeConfig(const std::string& name,
     if (parallelNum > 0) {
         settings["parallel_num"] = parallelNum;
     }
-    auto threadCount = legacyMergeConfig.mergeConfig.GetMergeThreadCount();
+    indexlibv2::config::MergeConfig mergeConfig;
+    autil::legacy::FromJson(mergeConfig, legacyMergeConfig.mergeConfig);
+    auto threadCount = mergeConfig.GetMergeThreadCount();
     if (threadCount > 0) {
         settings["thread_num"] = threadCount;
     }
-    settings["merge_config"] = autil::legacy::ToJson(legacyMergeConfig.mergeConfig);
+    settings["merge_config"] = legacyMergeConfig.mergeConfig;
     _impl->settings = settings;
     AUTIL_LOG(INFO, "fill legacy merge config [%s].[%s] with parallelNum [%d] threadNum [%d]", _impl->taskType.c_str(),
               _impl->taskName.c_str(), parallelNum, threadCount);
+}
+
+void IndexTaskConfig::RewriteWithDefaultMergeConfig(const indexlibv2::config::MergeConfig& defaultMergeConfig)
+{
+    auto mergeConfig = defaultMergeConfig;
+    auto [isExist, settingAny] = GetSettingConfig("merge_config");
+    if (isExist) {
+        autil::legacy::FromJson(mergeConfig, settingAny);
+    }
+    _impl->settings["merge_config"] = autil::legacy::ToJson(mergeConfig);
+    auto [status, threadCount] = GetSetting<uint32_t>("thread_num");
+    if (!status.IsOK()) {
+        _impl->settings["thread_num"] = mergeConfig.GetMergeThreadCount();
+    }
 }
 
 void IndexTaskConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)

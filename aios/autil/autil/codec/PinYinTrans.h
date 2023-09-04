@@ -20,11 +20,10 @@
  * Create time: 2014-01-05 16:57:51
  */
 
-
-#include <stddef.h>
-#include <stdint.h>
 #include <map>
 #include <memory>
+#include <stddef.h>
+#include <stdint.h>
 #include <string>
 #include <vector>
 
@@ -37,9 +36,9 @@ namespace autil {
 namespace codec {
 
 class PinYinTrans {
- public:
+public:
     typedef struct {
-        bool repeat;  // 多音字
+        bool repeat; // 多音字
         std::string chinese;
         std::string quanpin;
         std::string jianpin;
@@ -47,24 +46,26 @@ class PinYinTrans {
     typedef std::map<uint64_t, PINYIN> PinYinMap;
     typedef std::map<uint64_t, PINYIN>::iterator PinYinMapItr;
 
- public:
+public:
     PinYinTrans();
     ~PinYinTrans();
 
- public:
+public:
     int32_t init(const std::string &pinyin_file);
 
     int32_t getQuanPin(const std::string &str, std::vector<std::string> &res, bool single = false);
     int32_t getJianPin(const std::string &str, std::vector<std::string> &res, bool single = false);
-    int32_t getPinYin(const std::string &str, std::vector<std::string> &quanpin, std::vector<std::string> &jianpin,
+    int32_t getPinYin(const std::string &str,
+                      std::vector<std::string> &quanpin,
+                      std::vector<std::string> &jianpin,
                       bool single = false);
 
- private:
+private:
     uint64_t hashKey(const char *str, size_t len);
     inline int32_t appendSolitionRes(const std::string &str, std::vector<std::string> &res);
     inline int32_t appendMultipleRes(const std::string &str, std::vector<std::string> &res, bool single);
 
- private:
+private:
     PinYinMap _pinyin_trans_map;
     AUTIL_LOG_DECLARE();
 };
@@ -118,5 +119,5 @@ int32_t PinYinTrans::appendMultipleRes(const std::string &str, std::vector<std::
     return 0;
 }
 
-}
-}
+} // namespace codec
+} // namespace autil

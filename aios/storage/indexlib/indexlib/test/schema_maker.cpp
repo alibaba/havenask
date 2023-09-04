@@ -1,25 +1,12 @@
-/*
- * Copyright 2014-present Alibaba Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 #include "indexlib/test/schema_maker.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
 #include "autil/legacy/json.h"
 #include "indexlib/config/FileCompressConfig.h"
 #include "indexlib/config/configurator_define.h"
+#include "indexlib/config/customized_index_config.h"
 #include "indexlib/config/index_config_creator.h"
 #include "indexlib/config/kkv_index_config.h"
 #include "indexlib/config/number_index_type_transformor.h"
@@ -27,6 +14,7 @@
 #include "indexlib/config/schema_configurator.h"
 #include "indexlib/config/source_group_config.h"
 #include "indexlib/config/source_schema.h"
+#include "indexlib/framework/TabletSchemaLoader.h"
 
 using namespace std;
 using namespace autil;
@@ -57,13 +45,35 @@ IndexPartitionSchemaPtr SchemaMaker::MakeSchema(const string& fieldNames, const 
 
     if (truncateProfileStr.size() > 0) {
         MakeTruncateProfiles(schema, truncateProfileStr);
+        ResolveEmptyProfileNamesForTruncateIndex(schema->GetTruncateProfileSchema(), schema->GetIndexSchema());
     }
-
     if (!sourceFields.empty()) {
         MakeSourceSchema(schema, sourceFields);
     }
     schema->GetRegionSchema(DEFAULT_REGIONID)->EnsureSpatialIndexWithAttribute();
     return schema;
+}
+
+void SchemaMaker::ResolveEmptyProfileNamesForTruncateIndex(const TruncateProfileSchemaPtr& truncateProfileSchema,
+                                                           const IndexSchemaPtr& indexSchema)
+{
+    std::vector<std::string> usingTruncateNames;
+    for (auto iter = truncateProfileSchema->Begin(); iter != truncateProfileSchema->End(); iter++) {
+        if (iter->second->GetPayloadConfig().IsInitialized()) {
+            continue;
+        }
+        usingTruncateNames.push_back(iter->first);
+    }
+    for (auto it = indexSchema->Begin(); it != indexSchema->End(); ++it) {
+        const IndexConfigPtr& indexConfig = *it;
+        if (indexConfig->GetShardingType() == IndexConfig::IST_IS_SHARDING || !indexConfig->HasTruncate()) {
+            continue;
+        }
+        auto useTruncateProfiles = indexConfig->GetUseTruncateProfiles();
+        if (useTruncateProfiles.size() == 0) {
+            indexConfig->SetUseTruncateProfiles(usingTruncateNames);
+        }
+    }
 }
 
 IndexPartitionSchemaPtr SchemaMaker::MakeKKVSchema(const string& fieldNames, const string& pkeyName,
@@ -90,6 +100,32 @@ config::IndexPartitionSchemaPtr SchemaMaker::MakeKVSchema(const std::string& fie
     MakeKVIndex(schema, keyName, DEFAULT_REGIONID, ttl, valueFormat, useNumberHash);
     schema->SetDefaultTTL(ttl);
     return schema;
+}
+
+shared_ptr<indexlibv2::config::TabletSchema> SchemaMaker::MakeKVTabletSchema(const std::string& fieldNames,
+                                                                             const std::string& keyName,
+                                                                             const std::string& valueNames, int64_t ttl,
+                                                                             const std::string& valueFormat,
+                                                                             bool useNumberHash)
+{
+    auto partitionSchema = MakeKVSchema(fieldNames, keyName, valueNames, ttl, valueFormat, useNumberHash);
+    if (!partitionSchema) {
+        return nullptr;
+    }
+    auto jsonStr = autil::legacy::ToJsonString(*partitionSchema);
+    return indexlibv2::framework::TabletSchemaLoader::LoadSchema(jsonStr);
+}
+
+shared_ptr<indexlibv2::config::TabletSchema>
+SchemaMaker::MakeKKVTabletSchema(const string& fieldNames, const string& pkeyName, const string& skeyName,
+                                 const string& valueNames, int64_t ttl, const std::string& valueFormat)
+{
+    auto partitionSchema = MakeKKVSchema(fieldNames, pkeyName, skeyName, valueNames, ttl, valueFormat);
+    if (!partitionSchema) {
+        return nullptr;
+    }
+    auto jsonStr = autil::legacy::ToJsonString(*partitionSchema);
+    return indexlibv2::framework::TabletSchemaLoader::LoadSchema(jsonStr);
 }
 
 SchemaMaker::StringVector SchemaMaker::SplitToStringVector(const string& names)
@@ -292,6 +328,10 @@ vector<IndexConfigPtr> SchemaMaker::MakeIndexConfigs(const string& indexNames, c
             if (shardingCount >= 2) {
                 IndexConfigCreator::CreateShardingIndexConfigs(indexConfig, shardingCount);
             }
+            if (indexType == it_customized) {
+                auto customizedIndexConfig = std::dynamic_pointer_cast<CustomizedIndexConfig>(indexConfig);
+                customizedIndexConfig->SetIndexer(indexName); // need st[7]?
+            }
             ret.push_back(indexConfig);
         }
     }
@@ -393,6 +433,9 @@ void SchemaMaker::MakeKKVIndex(IndexPartitionSchemaPtr& schema, const string& pk
     KKVIndexFieldInfo skeyFieldInfo;
     skeyFieldInfo.fieldName = skeyName;
     skeyFieldInfo.keyType = KKVKeyType::SUFFIX;
+    uint32_t skipListThreshold =
+        EnvUtil::getEnv("indexlib_kkv_default_skiplist_threshold", indexlibv2::index::KKV_DEFAULT_SKIPLIST_THRESHOLD);
+    skeyFieldInfo.skipListThreshold = skipListThreshold;
     kkvIndexConfig->SetSuffixFieldInfo(skeyFieldInfo);
     schema->AddIndexConfig(kkvIndexConfig, id);
     kkvIndexConfig->SetRegionInfo(DEFAULT_REGIONID, 1);

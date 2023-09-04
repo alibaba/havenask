@@ -15,25 +15,21 @@
  */
 #pragma once
 #include <assert.h>
+#include <memory>
 #include <stdint.h>
-#include <unordered_map>
-#include <memory>
 #include <string>
-#include <memory>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "autil/CompressionUtil.h"
-
 #include "matchdoc/CommonDefine.h"
 #include "matchdoc/MatchDocAllocator.h"
 #include "matchdoc/Trait.h"
 #include "matchdoc/ValueType.h"
-
 #include "table/Column.h"
 #include "table/ColumnData.h"
 #include "table/ColumnSchema.h"
-#include "table/DataCommon.h"
 #include "table/Row.h"
 #include "table/TableSchema.h"
 
@@ -41,51 +37,45 @@ namespace autil {
 class DataBuffer;
 namespace mem_pool {
 class Pool;
-}  // namespace mem_pool
-}  // namespace autil
+} // namespace mem_pool
+} // namespace autil
 namespace matchdoc {
 class MatchDoc;
 class ReferenceBase;
-template <typename T> class Reference;
-}  // namespace matchdoc
+template <typename T>
+class Reference;
+} // namespace matchdoc
 
 namespace table {
 
 struct TableSerializeInfo {
-    TableSerializeInfo()
-        : version(0)
-        , compress(0)
-        , serializeLevel(SL_ATTRIBUTE)
-    {}
-    uint32_t version:4;
-    uint32_t compress:4;
-    uint32_t serializeLevel:8;
+    TableSerializeInfo() : version(0), compress(0), serializeLevel(SL_ATTRIBUTE) {}
+    uint32_t version        : 4;
+    uint32_t compress       : 4;
+    uint32_t serializeLevel : 8;
     void serialize(autil::DataBuffer &dataBuffer) const;
     void deserialize(autil::DataBuffer &dataBuffer);
 
     static constexpr uint32_t MAX_COMPRESS_VALUE = 31; // 4 bits
 };
 
-class Table
-{
+class Table {
 public:
     Table(const std::shared_ptr<autil::mem_pool::Pool> &poolPtr);
     Table(const std::vector<matchdoc::MatchDoc> &matchDocs,
           const matchdoc::MatchDocAllocatorPtr &allocator,
           uint8_t level = SL_ATTRIBUTE);
     ~Table();
+
 private:
     Table(const Table &);
-    Table& operator=(const Table &);
+    Table &operator=(const Table &);
+
 public:
-    inline size_t getRowCount() const {
-        return _rows.size();
-    }
-    inline size_t getColumnCount() const {
-        return _columnVec.size();
-    }
-    Column* getColumn(const std::string &name) const;
-    Column* getColumn(size_t col) const;
+    inline size_t getRowCount() const { return _rows.size(); }
+    inline size_t getColumnCount() const { return _columnVec.size(); }
+    Column *getColumn(const std::string &name) const;
+    Column *getColumn(size_t col) const;
 
     matchdoc::ValueType getColumnType(size_t col) const {
         assert(col < getColumnCount());
@@ -97,34 +87,20 @@ public:
         return _columnVec[col]->getColumnSchema()->getName();
     }
     template <typename T>
-    Column* declareColumn(const std::string &name, bool endGroup = true);
-
-    Column* declareColumn(const std::string &name, matchdoc::BuiltinType bt,
-                            bool isMulti, bool endGroup = true);
-    Column* declareColumn(const std::string &name, ValueType valType,
-                            bool endGroup = true);
-    Column* declareColumnWithConstructFlag(const std::string &name, matchdoc::BuiltinType bt,
-                          bool isMulti, bool needConstruct, bool endGroup = true);
-    Column* declareColumnWithConstructFlag(const std::string &name, ValueType vt, bool endGroup);
-
+    Column *declareColumn(const std::string &name, bool endGroup = true);
+    Column *declareColumn(const std::string &name, matchdoc::BuiltinType bt, bool isMulti, bool endGroup = true);
+    Column *declareColumn(const std::string &name, ValueType valType, bool endGroup = true);
     void endGroup() {
         if (_allocator) {
             _allocator->extend();
         }
     }
-    const TableSchema& getTableSchema() const {
-        return _schema;
-    }
-    bool isSameSchema(const std::shared_ptr<Table> &table);
-    bool isSameSchema(const Table *table);
+    const TableSchema &getTableSchema() const { return _schema; }
 
-    autil::mem_pool::Pool *getDataPool() {
-        return _allocator->getSessionPool();
-    }
+    autil::mem_pool::Pool *getDataPool() { return _allocator->getSessionPool(); }
 
     bool merge(const std::shared_ptr<Table> &other);
-    bool copyTable(const std::shared_ptr<Table> &other);
-    bool copyTable(Table* other);
+    bool copyTable(Table *other);
     Row getRow(size_t rowIndex) const {
         assert(rowIndex < _rows.size());
         return _rows[rowIndex];
@@ -159,10 +135,8 @@ public:
     matchdoc::MatchDocAllocatorPtr getMatchDocAllocatorPtr() { // to friend for calc
         return _allocator;
     }
-    void appendRows(const std::vector<Row> &rows) {
-        _rows.insert(_rows.end(), rows.begin(), rows.end());
-    }
-    void setRows(std::vector<Row> &rows) {
+    void appendRows(const std::vector<Row> &rows) { _rows.insert(_rows.end(), rows.begin(), rows.end()); }
+    void setRows(std::vector<Row> rows) {
         _rows = std::move(rows);
         _deleteFlag.clear();
     }
@@ -175,41 +149,43 @@ public:
 
     const std::set<std::shared_ptr<autil::mem_pool::Pool>> &getDependentPools() const;
 
-    std::string getDependentPoolListDebugString() const;
-
-    bool hasMultiValueColumn() const;
-    std::string explainSchema() const;
 public:
-    void serialize(autil::DataBuffer &dataBuffer,
-                   autil::CompressType type = autil::CompressType::NO_COMPRESS) const;
+    void serialize(autil::DataBuffer &dataBuffer, autil::CompressType type = autil::CompressType::NO_COMPRESS) const;
     void deserialize(autil::DataBuffer &dataBuffer);
-    void serializeToString(std::string &data, autil::mem_pool::Pool *pool,
+    void serializeToString(std::string &data,
+                           autil::mem_pool::Pool *pool,
                            autil::CompressType type = autil::CompressType::NO_COMPRESS) const;
     void deserializeFromString(const std::string &data, autil::mem_pool::Pool *pool);
     void deserializeFromString(const char *data, size_t len, autil::mem_pool::Pool *pool);
+
 protected:
     std::string toString(size_t row, size_t col) const;
     friend class TableUtil;
+
 private:
     void init();
-    ColumnDataBase* createColumnData(matchdoc::ReferenceBase* refBase,
-                                     std::vector<Row>* rows);
+    ColumnDataBase *createColumnData(matchdoc::ReferenceBase *refBase, std::vector<Row> *rows);
+    Column *declareColumnWithConstructFlag(
+        const std::string &name, matchdoc::BuiltinType bt, bool isMulti, bool needConstruct, bool endGroup = true);
+    Column *declareColumnWithConstructFlag(const std::string &name, ValueType vt, bool endGroup);
     size_t estimateUsedMemory() const;
+
 private:
-    std::vector<Column*> _columnVec;
-    std::unordered_map<std::string, Column*> _columnMap;
+    std::vector<Column *> _columnVec;
+    std::unordered_map<std::string, Column *> _columnMap;
     std::vector<bool> _deleteFlag; // for rows
     std::vector<Row> _rows;
     matchdoc::MatchDocAllocatorPtr _allocator;
     TableSchema _schema;
     mutable TableSerializeInfo _serializeInfo;
     std::set<std::shared_ptr<autil::mem_pool::Pool>> _dependentPools;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
 template <typename T>
-Column* Table::declareColumn(const std::string &name, bool endGroup) {
+Column *Table::declareColumn(const std::string &name, bool endGroup) {
     ValueType vt = matchdoc::ValueTypeHelper<T>::getValueType();
     if (!vt.isBuiltInType() || matchdoc::bt_unknown == vt.getBuiltinType()) {
         return nullptr;
@@ -222,22 +198,23 @@ Column* Table::declareColumn(const std::string &name, bool endGroup) {
             return nullptr;
         }
     }
-    matchdoc::Reference<T>* ref = _allocator->declareWithConstructFlagDefaultGroup<T>(name, matchdoc::ConstructTypeTraits<T>::NeedConstruct(), SL_ATTRIBUTE);
+    matchdoc::Reference<T> *ref = _allocator->declareWithConstructFlagDefaultGroup<T>(
+        name, matchdoc::ConstructTypeTraits<T>::NeedConstruct(), SL_ATTRIBUTE);
     if (!ref) {
         return nullptr;
     }
     if (endGroup) {
         _allocator->extend();
     }
-    ColumnData<T>* colData = new ColumnData<T>(ref, &_rows);
+    ColumnData<T> *colData = new ColumnData<T>(ref, &_rows);
     ColumnSchemaPtr columnSchema(new ColumnSchema(name, ref->getValueType()));
     _schema.addColumnSchema(columnSchema);
     Column *column = new Column(columnSchema.get(), colData);
-    _columnMap.insert(std::pair<std::string, Column*>(name, column));
+    _columnMap.insert(std::pair<std::string, Column *>(name, column));
     _columnVec.push_back(column);
     return column;
 }
 
 typedef std::shared_ptr<Table> TablePtr;
 
-}
+} // namespace table

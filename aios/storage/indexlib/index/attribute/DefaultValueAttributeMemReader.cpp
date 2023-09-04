@@ -21,7 +21,7 @@
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, DefaultValueAttributeMemReader);
 
-Status DefaultValueAttributeMemReader::Open(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+Status DefaultValueAttributeMemReader::Open(const std::shared_ptr<AttributeConfig>& attrConfig)
 {
     auto [status, defaultValue] = DefaultValueAttributePatch::GetDecodedDefaultValue(attrConfig, &_pool);
     _fixedValueCount = attrConfig->GetFixedMultiValueCount();

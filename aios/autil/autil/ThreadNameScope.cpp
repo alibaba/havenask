@@ -17,10 +17,7 @@
 
 namespace autil {
 
-ThreadNameScope::ThreadNameScope(const std::string &name)
-    : _name(name)
-    , _self(pthread_self())
-{
+ThreadNameScope::ThreadNameScope(const std::string &name) : _name(name), _self(pthread_self()) {
     if (_name.size() >= MAX_LENGTH) {
         _name.resize(MAX_LENGTH);
         _name[MAX_LENGTH - 1] = '\0';
@@ -37,4 +34,4 @@ ThreadNameScope::~ThreadNameScope() {
     }
 }
 
-}
+} // namespace autil

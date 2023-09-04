@@ -1,0 +1,63 @@
+{
+    "processor_chain_config" : [
+        {
+            "chain_name" : "chain1",
+            "clusters" : [
+                "simple_cluster"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+            ]
+        },
+        {
+            "chain_name" : "chain2",
+            "clusters" : [
+                "simple_no_summary_cluster"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+            ]
+        }
+    ],
+    "processor_config" : {
+        "processor_queue_size" : 250,
+        "processor_thread_num" : 1
+    },
+    "processor_rule_config" : {
+        "partition_resource" : 100,
+        "processor_count" : 10
+    },
+    "processor_chain_selector_config" :
+    {
+        "select_fields": ["field", "section"],
+        "select_rules": [
+            { 
+                "matcher": {"field": "f1", "section": "s1"},
+                "dest_chains": ["chain1"]
+            },
+            { 
+                "matcher": {"field": "f2", "section": "s2"},
+                "dest_chains": ["chain2"]
+            },
+            { 
+                "matcher": {"field": "f3", "section": "s3"},
+                "dest_chains": ["chain2"]
+            }
+        ]
+    }
+
+}

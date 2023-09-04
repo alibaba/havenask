@@ -1,0 +1,30 @@
+#import(Log)
+#import(Tool)
+#import(BatchBuild/FlowIdTools)
+
+function graphDef()
+    local batchId = Graph.parameter["batchId"]
+    local clusterName = Graph.parameter["clusterName"]
+    
+    local builderTag = FlowIdTools.getBatchBuilder(batchId, clusterName)
+    local builderFlowId = Graph.getFlowIdByTag(builderTag)
+
+    if (table.getn(builderFlowId) == 0)
+    then 
+       Log.log("INFO", "toSkipBuilder tag ["..builderTag.."] flow not exist, ignore it.")
+       return true
+    end
+
+    local toCombinedBuilder = Graph.getFlow(builderFlowId[1])
+    if (toCombinedBuilder == nil) 
+    then 
+       Log.log("INFO", "get toCombinedBuilder flow ("..builderFlowId[1]..") failed, flow not exist.")
+       return false
+    end
+
+    -- we only set builder, because merger is combined-native --
+    Log.log("INFO", "set builder flow ("..builderFlowId[1]..") need combine")
+    toCombinedBuilder:setProperty("combinedBuilder", "true")
+    return true
+end
+

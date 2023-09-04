@@ -21,23 +21,21 @@
 
 FSLIB_BEGIN_NAMESPACE(util);
 
-class PathUtil
-{
+class PathUtil {
 public:
     PathUtil();
     ~PathUtil();
 
 public:
-    static std::string normalizePath(const std::string& path);
+    static std::string normalizePath(const std::string &path);
 
-    static bool isInRootPath(const std::string& normPath,
-                             const std::string& normRootPath);
+    static bool isInRootPath(const std::string &normPath, const std::string &normRootPath);
 
-    static std::string joinPath(const std::string& path, const std::string& name);
+    static std::string joinPath(const std::string &path, const std::string &name);
 
-    static std::string GetParentDirPath(const std::string& path);
+    static std::string GetParentDirPath(const std::string &path);
 
-    static std::string GetFileName(const std::string& path);
+    static std::string GetFileName(const std::string &path);
 
     static bool rewriteToDcachePath(const std::string &source, std::string &target);
 };
@@ -46,4 +44,4 @@ FSLIB_TYPEDEF_AUTO_PTR(PathUtil);
 
 FSLIB_END_NAMESPACE(util);
 
-#endif //FSLIB_PATHUTIL_H
+#endif // FSLIB_PATHUTIL_H

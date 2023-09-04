@@ -54,6 +54,7 @@ private:
     std::shared_ptr<IMemIndexer>
     CreateVarLenKVMemIndexer(const std::shared_ptr<indexlibv2::config::KVIndexConfig>& indexConfig,
                              const IndexerParameter& indexerParam) const;
+    int64_t GetMaxBuildMemoryUse(const IndexerParameter& indexerParam) const;
 
 public:
     void TEST_SetMemoryFactor(uint32_t memoryFactor) { _memoryFactor = memoryFactor; }

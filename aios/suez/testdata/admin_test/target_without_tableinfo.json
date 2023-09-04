@@ -1,0 +1,79 @@
+{
+    "config" : "",
+    "zones" : {
+        "zone1" : {
+            "config" : "config_path",
+            "hippo_config" : {
+		"step_percent":1,
+		"force_update":false,
+		"role_desc": {
+		    "count": 10,
+		    "packageInfos":
+		    [
+			{
+			    "packageURI":"http://xxx"
+			}
+		    ],
+		    "processInfos":
+		    [
+			{
+			    "processName": "abc"
+			}
+		    ],
+		    "resources":
+		    [
+			{
+			    "resources":
+			    [
+				{
+				    "amount": 1,
+				    "name": "cpu"
+				}
+			    ]
+			}
+		    ],
+		    "roleName": "role"
+		},
+		"service_desc": {
+		    "proxy" : {
+			"name": "vip",
+			"type": "ST_VIP",
+			"statusPath": "../role_proc/vip.status",
+			"configStr": {
+			    "domain": "com.taobao.vip_test",
+			    "jmenvDom": "172.21.95.147:8080",
+			    "token": "123456",
+			    "port": 9001
+			}
+		    },
+		    "searcher" : {
+			"name": "cm2",
+			"type": "ST_CM2",
+			"statusPath": "../role_proc/cm2.status",
+			"configStr": {
+			    "cm2_server_zookeeper_host": "10.101.83.215:2181,10.101.83.226:2181,10.101.83.227:2181",
+			    "cm2_server_leader_path": "/cm_server_test",
+			    "cm2_server_cluster_name": "sp_wireless_http2",
+			    "signature": "sig2",
+			    "tcpPort": 21009,
+			    "httpPort": 20009,
+			    "idc_type": 1,
+			    "weight": 100
+			}
+		    }
+		}
+            },
+            "table_info" : {
+            },
+            "biz_info" : {
+                "biz1": {
+                    "config_path" : "config_path"
+                },
+                "biz2": {
+                    "config_path" : "config_path"
+                }
+            }
+        }
+    }
+}
+

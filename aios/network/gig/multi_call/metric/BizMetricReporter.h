@@ -23,10 +23,10 @@ using namespace kmonitor;
 
 namespace multi_call {
 
-class BizMetricReporter {
+class BizMetricReporter
+{
 public:
-    BizMetricReporter(const std::string &bizName, kmonitor::KMonitor *kMonitor,
-                      bool isAgent);
+    BizMetricReporter(const std::string &bizName, kmonitor::KMonitor *kMonitor, bool isAgent);
     ~BizMetricReporter();
 
 private:

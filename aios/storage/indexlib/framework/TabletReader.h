@@ -22,7 +22,7 @@
 #include "indexlib/framework/TabletData.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::framework {
@@ -30,7 +30,7 @@ namespace indexlibv2::framework {
 class TabletReader : public ITabletReader
 {
 public:
-    explicit TabletReader(const std::shared_ptr<config::TabletSchema>& schema);
+    explicit TabletReader(const std::shared_ptr<config::ITabletSchema>& schema);
     ~TabletReader();
 
 public:
@@ -38,7 +38,7 @@ public:
 
 public:
     Status Search(const std::string& jsonQuery, std::string& result) const override;
-    std::shared_ptr<config::TabletSchema> GetSchema() const override;
+    std::shared_ptr<config::ITabletSchema> GetSchema() const override;
     std::shared_ptr<index::IIndexReader> GetIndexReader(const std::string& indexType,
                                                         const std::string& indexName) const override;
     template <typename IndexReaderType>
@@ -47,7 +47,7 @@ public:
 protected:
     using IndexReaderMapKey = std::pair<std::string, std::string>;
 
-    std::shared_ptr<config::TabletSchema> _schema;
+    std::shared_ptr<config::ITabletSchema> _schema;
     std::map<IndexReaderMapKey, std::shared_ptr<index::IIndexReader>> _indexReaderMap;
 
 private:

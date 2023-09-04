@@ -18,7 +18,7 @@
 #include "autil/Log.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/index/attribute/AttributeDiskIndexer.h"
@@ -32,7 +32,6 @@
 
 namespace indexlibv2::config {
 class IIndexConfig;
-class AttributeConfig;
 } // namespace indexlibv2::config
 
 namespace indexlibv2::framework {
@@ -43,6 +42,7 @@ class TabletData;
 namespace indexlibv2::index {
 class IDiskIndexer;
 class IMemIndexer;
+class AttributeConfig;
 } // namespace indexlibv2::index
 
 namespace indexlib::index {
@@ -61,7 +61,7 @@ struct SingleAttributeBuildInfoHolder {
     // VirtualAttributeConfig and AttributeConfig return different index types. So when we need to call GetIndexType(),
     // we should use indexConfig->GetIndexType().
     std::shared_ptr<indexlibv2::config::IIndexConfig> indexConfig;
-    std::shared_ptr<indexlibv2::config::AttributeConfig> attributeConfig;
+    std::shared_ptr<indexlibv2::index::AttributeConfig> attributeConfig;
     std::shared_ptr<indexlibv2::index::AttributeConvertor> attributeConvertor;
     std::map<std::pair<docid_t, uint32_t>, std::shared_ptr<DiskIndexerType>> diskIndexers;
     std::map<std::pair<docid_t, uint64_t>, indexlibv2::framework::Segment*> diskSegments;
@@ -85,7 +85,7 @@ public:
     template <typename DiskIndexerType, typename MemIndexerType>
     static Status CreateSingleAttributeBuildInfoHolder(
         const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
-        const std::shared_ptr<indexlibv2::config::AttributeConfig>& attributeConfig,
+        const std::shared_ptr<indexlibv2::index::AttributeConfig>& attributeConfig,
         SingleAttributeBuildInfoHolder<DiskIndexerType, MemIndexerType>* buildInfoHolder);
 
 private:
@@ -109,7 +109,7 @@ private:
 template <typename DiskIndexerType, typename MemIndexerType>
 Status AttributeIndexerOrganizerUtil::CreateSingleAttributeBuildInfoHolder(
     const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
-    const std::shared_ptr<indexlibv2::config::AttributeConfig>& attributeConfig,
+    const std::shared_ptr<indexlibv2::index::AttributeConfig>& attributeConfig,
     SingleAttributeBuildInfoHolder<DiskIndexerType, MemIndexerType>* buildInfoHolder)
 {
     buildInfoHolder->indexConfig = indexConfig;
@@ -133,7 +133,7 @@ bool AttributeIndexerOrganizerUtil::UpdateField(
     SingleAttributeBuildInfoHolder<DiskIndexerType, MemIndexerType>* buildInfoHolder, const autil::StringView& value,
     bool isNull)
 {
-    const indexlibv2::config::AttributeConfig* attributeConfig = buildInfoHolder->attributeConfig.get();
+    const indexlibv2::index::AttributeConfig* attributeConfig = buildInfoHolder->attributeConfig.get();
     assert(attributeConfig != nullptr);
     if (!attributeConfig->IsAttributeUpdatable()) {
         return false;
@@ -158,7 +158,7 @@ bool AttributeIndexerOrganizerUtil::UpdateField(
     SingleAttributeBuildInfoHolder<DiskIndexerType, MemIndexerType>* buildInfoHolder, const autil::StringView& value,
     bool isNull, const uint64_t* hashKey)
 {
-    const indexlibv2::config::AttributeConfig* attributeConfig = buildInfoHolder->attributeConfig.get();
+    const indexlibv2::index::AttributeConfig* attributeConfig = buildInfoHolder->attributeConfig.get();
     const fieldid_t fieldId = attributeConfig->GetFieldId();
     if (docId < indexerOrganizerMeta.dumpingBaseDocId) {
         return UpdateFieldInDiskIndexer<DiskIndexerType, MemIndexerType>(buildInfoHolder, docId, fieldId, value, isNull,
@@ -214,7 +214,10 @@ bool AttributeIndexerOrganizerUtil::UpdateFieldInDiskIndexer(
             return true;
         }
     }
-    return false;
+    AUTIL_INTERVAL_LOG2(60, WARN,
+                        "Unable to find disk segment in updating attribute, this is OK in offline build, but fatal in "
+                        "online build");
+    return true;
 }
 
 template <typename DiskIndexerType, typename MemIndexerType>

@@ -15,15 +15,15 @@
  */
 #ifndef ANET_HTTP_PACKET_STREAMER_H
 #define ANET_HTTP_PACKET_STREAMER_H
-#include "aios/network/anet/ipacketfactory.h"
 #include "aios/network/anet/defaultpacketstreamer.h"
 #include "aios/network/anet/httprequestpacket.h"
 #include "aios/network/anet/httpresponsepacket.h"
+#include "aios/network/anet/ipacketfactory.h"
 
 namespace anet {
 
-  class DataBuffer;
-  class PacketHeader;
+class DataBuffer;
+class PacketHeader;
 
 class HttpPacketStreamer : public DefaultPacketStreamer {
 public:
@@ -54,7 +54,6 @@ public:
     }
 };
 
-}
+} // namespace anet
 
 #endif
-

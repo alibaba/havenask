@@ -19,6 +19,7 @@
 #include "indexlib/framework/SegmentTopologyInfo.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/table/index_task/merger/MergePlan.h"
+#include "indexlib/table/index_task/merger/SegmentMergePlan.h"
 
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, KeyValueOptimizeMergeStrategy);
@@ -28,8 +29,12 @@ KeyValueOptimizeMergeStrategy::CreateMergePlan(const framework::IndexTaskContext
 {
     auto tabletData = context->GetTabletData();
     auto levelInfo = tabletData->GetOnDiskVersion().GetSegmentDescriptions()->GetLevelInfo();
-    if (!CheckLevelInfo(levelInfo)) {
+    bool needMerge = false;
+    if (!CheckLevelInfo(levelInfo, needMerge)) {
         return {Status::InvalidArgs(), nullptr};
+    }
+    if (!needMerge) {
+        return {Status::OK(), std::make_shared<MergePlan>(MERGE_PLAN, MERGE_PLAN)};
     }
     std::vector<SegmentMergePlan> segMergePlans(levelInfo->GetShardCount());
     FillSrcSegments(levelInfo, segMergePlans);
@@ -129,7 +134,8 @@ void KeyValueOptimizeMergeStrategy::FillMergePlan(
     mergePlan->SetTargetVersion(std::move(targetVersion));
 }
 
-bool KeyValueOptimizeMergeStrategy::CheckLevelInfo(const std::shared_ptr<framework::LevelInfo>& levelInfo) const
+bool KeyValueOptimizeMergeStrategy::CheckLevelInfo(const std::shared_ptr<framework::LevelInfo>& levelInfo,
+                                                   bool& needMerge) const
 {
     if (levelInfo == nullptr) {
         AUTIL_LOG(ERROR, "levelInfo is nullptr");
@@ -147,7 +153,6 @@ bool KeyValueOptimizeMergeStrategy::CheckLevelInfo(const std::shared_ptr<framewo
                   framework::LevelMeta::TopologyToStr(levelInfo->GetTopology()).c_str());
         return false;
     }
-    bool needMerge = false;
     const auto& levelMetas = levelInfo->levelMetas;
     for (size_t i = 0; i < levelMetas.size(); i++) {
         const auto& topology = levelMetas[i].topology;
@@ -167,9 +172,9 @@ bool KeyValueOptimizeMergeStrategy::CheckLevelInfo(const std::shared_ptr<framewo
         }
     }
     if (!needMerge) {
-        AUTIL_LOG(ERROR, "no segments need to be merged.");
+        AUTIL_LOG(WARN, "no segments need to be merged.");
     }
-    return needMerge;
+    return true;
 }
 
 void KeyValueOptimizeMergeStrategy::CollectSegmentDescriptions(

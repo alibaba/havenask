@@ -25,14 +25,14 @@ namespace indexlibv2::table {
 class NormalTableMergeDescriptionCreator : public CommonMergeDescriptionCreator
 {
 public:
-    NormalTableMergeDescriptionCreator(const std::shared_ptr<config::TabletSchema>& schema,
+    NormalTableMergeDescriptionCreator(const std::shared_ptr<config::ITabletSchema>& schema,
                                        const std::string& mergeStrategy, const std::string& compactionType,
                                        bool isOptimizeMerge);
     ~NormalTableMergeDescriptionCreator();
 
 public:
     static std::unique_ptr<framework::IndexOperationDescription>
-    CreateOpLog2PatchOperationDescription(const std::shared_ptr<config::TabletSchema>& schema,
+    CreateOpLog2PatchOperationDescription(const std::shared_ptr<config::ITabletSchema>& schema,
                                           framework::IndexOperationId operationId);
 
 protected:

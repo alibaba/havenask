@@ -16,51 +16,49 @@
 #ifndef APPADAPTER_H
 #define APPADAPTER_H
 
-#include "aios/network/anet/iserveradapter.h"
 #include <string>
 
-namespace anet
-{
+#include "aios/network/anet/iserveradapter.h"
+
+namespace anet {
 class IConnection;
 class IPacketStreamer;
 class Transport;
 
-class Acceptor
-{
+class Acceptor {
 public:
     Acceptor(){};
-    virtual ~Acceptor(){}
+    virtual ~Acceptor() {}
 
-   /*
-    * @note for anet, could just call transport function listen.
-    *
-    * @note for asio , this function should be implemented as following code:
-    * @par Example
-    * @code
-    * void accept_handler(const asio::error_code& error)
-    * {
-    *   if (!error)
-    *   {
-    *     // Accept succeeded.
-    *   }
-    * }
-    *
-    * ...
-    *
-    * asio::ip::tcp::acceptor acceptor(io_service);
-    * ...
-    * asio::ip::tcp::socket socket(io_service);
-    * acceptor.async_accept(socket, accept_handler);
-    * @endcode
-    */
+    /*
+     * @note for anet, could just call transport function listen.
+     *
+     * @note for asio , this function should be implemented as following code:
+     * @par Example
+     * @code
+     * void accept_handler(const asio::error_code& error)
+     * {
+     *   if (!error)
+     *   {
+     *     // Accept succeeded.
+     *   }
+     * }
+     *
+     * ...
+     *
+     * asio::ip::tcp::acceptor acceptor(io_service);
+     * ...
+     * asio::ip::tcp::socket socket(io_service);
+     * acceptor.async_accept(socket, accept_handler);
+     * @endcode
+     */
     virtual void HandleAccept() = 0;
 };
 
-class Connector
-{
+class Connector {
 public:
     Connector(){};
-    virtual ~Connector(){}
+    virtual ~Connector() {}
 
     /*
      * NO handle the destruction of object connection.
@@ -69,42 +67,40 @@ public:
      *
      * @note for asio , should create connection object.
      */
-    virtual IConnection* Connect() = 0;
+    virtual IConnection *Connect() = 0;
 };
 
-class AnetAcceptor : public Acceptor, IServerAdapter
-{
+class AnetAcceptor : public Acceptor, IServerAdapter {
 public:
-    AnetAcceptor(const std::string& address,
-        Transport* transport, IPacketStreamer* streamer,
-        int postPacketTimeout, int maxIdleTime);
+    AnetAcceptor(const std::string &address,
+                 Transport *transport,
+                 IPacketStreamer *streamer,
+                 int postPacketTimeout,
+                 int maxIdleTime);
 
     /* override */ void HandleAccept();
 
 private:
     std::string mAddress;
-    Transport* mTransport;
-    IPacketStreamer* mStreamer;
+    Transport *mTransport;
+    IPacketStreamer *mStreamer;
     int mPostPacketTimeout;
     int mMaxIdleTime;
 };
 
-class AnetConnector : public Connector
-{
+class AnetConnector : public Connector {
 public:
-    AnetConnector(const std::string& address, Transport* transport,
-        IPacketStreamer* streamer, bool autoReconn);
+    AnetConnector(const std::string &address, Transport *transport, IPacketStreamer *streamer, bool autoReconn);
 
-    /* override */ IConnection* Connect();
+    /* override */ IConnection *Connect();
 
 private:
     std::string mAddress;
-    Transport* mTransport;
-    IPacketStreamer* mStreamer;
+    Transport *mTransport;
+    IPacketStreamer *mStreamer;
     bool mAutoReconn;
 };
 
 } // namespace anet
-
 
 #endif /* APPADAPTER_H */

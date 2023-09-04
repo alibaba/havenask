@@ -1,0 +1,35 @@
+{
+    "packages" : [
+	    {
+	        "type" : "RPM",
+	        "packageURI" : "bs_package"
+	    },
+	    {
+	        "type" : "ARCHIVE",
+	        "packageURI" : "other_packages"
+	    }
+    ],
+    "role_default" : {
+        "count" : 1,
+        "processInfos" : [
+            {
+                "stopTimeout":10
+            }
+        ],
+        "properties" : {
+            "key" : "value"
+        }
+    },
+    "role_customize" : [
+	{
+            "_bs_role" : ".*",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        { "name" : "cpu", "amount" : 2 }
+                    ]
+                }
+            ]
+	}
+    ]
+}

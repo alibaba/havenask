@@ -87,6 +87,8 @@ private:
                                                                        std::pair<uint32_t, uint32_t> indexRange);
 
 private:
+    static const std::string USER_REQUIRED_FIELDS;
+
     std::shared_ptr<indexlibv2::framework::Tablet> _currentTablet;
     std::unique_ptr<indexlibv2::framework::ITabletDocIterator> _iter;
     std::shared_ptr<indexlibv2::framework::MetricsManager> _metricsManager;

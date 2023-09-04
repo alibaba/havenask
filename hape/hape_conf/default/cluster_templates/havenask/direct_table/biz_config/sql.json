@@ -1,0 +1,6 @@
+{
+    "output_format": "json",
+    "table_writer_config": {
+        "zone_names": $zones
+    }
+}

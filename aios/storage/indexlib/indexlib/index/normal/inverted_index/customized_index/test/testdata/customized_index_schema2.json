@@ -1,0 +1,50 @@
+{
+    "table_name": "auction",
+    "fields": 
+    [
+        {"field_name":"cfield1", "field_type":"raw"},
+        {"field_name":"cfield2", "field_type":"raw"},        
+        {"field_name":"pk", "field_type":"string"}
+    ],
+    "indexs": 
+    [
+     	{
+	    "index_name": "cindex1",
+            "index_type" : "CUSTOMIZED",
+	    "index_fields":
+            [
+                {"field_name" : "cfield1", "boost" : 0},
+                {"field_name" : "cfield2", "boost" : 0}
+            ],
+            "indexer" : "demo_indexer",
+            "parameters" : {
+                "k1" : "100",
+                "k2" : "200"
+            }
+	},
+     	{
+	    "index_name": "cindex2",
+            "index_type" : "CUSTOMIZED",
+	    "index_fields":
+            [
+                {"field_name" : "cfield1", "boost" : 0},
+                {"field_name" : "cfield2", "boost" : 0}
+            ],
+            "indexer" : "demo_indexer",
+            "parameters" : {
+                "k1" : "300",
+                "k2" : "400"
+            }
+	},        
+	{
+	    "index_name": "pk",
+            "index_type": "PRIMARYKEY64",
+            "index_fields": "pk",
+            "has_primary_key_attribute": false
+        }
+    ],
+    "attributes": [],
+    "summarys":{ 
+        "summary_fields": []
+    }
+}

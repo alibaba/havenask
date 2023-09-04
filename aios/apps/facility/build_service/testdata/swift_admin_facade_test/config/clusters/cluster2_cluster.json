@@ -1,0 +1,17 @@
+{
+    "swift_config" : {
+        "topic" : {
+            "partition_count" : 20,
+            "partition_resource" : 80,
+            "partition_buffer_size" : 2000,
+            "partition_file_buf_size" : 2000,
+            "obsolete_file_interval" : 7200,
+            "reserved_file_count" : 20
+        },
+        "reader_config" : "",
+        "writer_config" : ""
+    },
+    "cluster_config" : {
+	    "table_name" : "simple"
+	}
+}

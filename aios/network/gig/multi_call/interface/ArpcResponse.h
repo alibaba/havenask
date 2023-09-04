@@ -23,7 +23,8 @@ namespace multi_call {
 
 typedef std::shared_ptr<google::protobuf::Message> ProtoMessagePtr;
 
-class ArpcResponse : public Response {
+class ArpcResponse : public Response
+{
 public:
     ArpcResponse(const std::shared_ptr<google::protobuf::Arena> &arena);
     ~ArpcResponse();

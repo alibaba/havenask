@@ -1,0 +1,9 @@
+{
+    "modules" : [
+        {
+            "module_name": "Module",
+            "module_path": "libsql_test_agg_plugin_lib.so",
+            "parameters": {}
+        }
+    ]
+}

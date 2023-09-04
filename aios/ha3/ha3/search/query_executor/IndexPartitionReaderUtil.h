@@ -15,9 +15,9 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <map>
 #include <memory>
+#include <stdint.h>
 #include <string>
 
 #include "autil/Log.h" // IWYU pragma: keep
@@ -31,41 +31,43 @@ class IndexPartitionReader;
 class PartitionReaderSnapshot;
 
 typedef std::shared_ptr<IndexPartitionReader> IndexPartitionReaderPtr;
-}  // namespace partition
-}  // namespace indexlib
+} // namespace partition
+} // namespace indexlib
 
 namespace isearch {
 namespace search {
 
-class IndexPartitionReaderUtil
-{
+class IndexPartitionReaderUtil {
 public:
     IndexPartitionReaderUtil();
     ~IndexPartitionReaderUtil();
+
 private:
     IndexPartitionReaderUtil(const IndexPartitionReaderUtil &);
-    IndexPartitionReaderUtil& operator=(const IndexPartitionReaderUtil &);
+    IndexPartitionReaderUtil &operator=(const IndexPartitionReaderUtil &);
+
 public:
     static search::IndexPartitionReaderWrapperPtr createIndexPartitionReaderWrapper(
-            indexlib::partition::PartitionReaderSnapshot *partitionReaderSnapshot,
-            const std::string& mainTableName, bool usePartial = false);
+        indexlib::partition::PartitionReaderSnapshot *partitionReaderSnapshot,
+        const std::string &mainTableName,
+        bool usePartial = false);
 
     static search::IndexPartitionReaderWrapperPtr createIndexPartitionReaderWrapper(
-            const indexlib::partition::IndexPartitionReaderPtr &indexPartReader,
-            bool usePartial = false);
+        const indexlib::partition::IndexPartitionReaderPtr &indexPartReader,
+        bool usePartial = false);
 
 private:
     static search::IndexPartitionReaderWrapperPtr createIndexPartitionReaderWrapper(
-            const std::map<std::string, uint32_t> *indexName2IdMap,
-            const std::map<std::string, uint32_t> *attrName2IdMap,
-            const std::vector<indexlib::partition::IndexPartitionReaderPtr> *indexReaderVec,
-            bool usePartial, bool ownMap);
+        const std::map<std::string, uint32_t> *indexName2IdMap,
+        const std::map<std::string, uint32_t> *attrName2IdMap,
+        const std::vector<indexlib::partition::IndexPartitionReaderPtr> *indexReaderVec,
+        bool usePartial,
+        bool ownMap);
 
     static void addIndexPartition(const indexlib::config::IndexPartitionSchemaPtr &schemaPtr,
                                   uint32_t id,
                                   std::map<std::string, uint32_t> &indexName2IdMap,
                                   std::map<std::string, uint32_t> &attrName2IdMap);
-
 
 private:
     AUTIL_LOG_DECLARE();

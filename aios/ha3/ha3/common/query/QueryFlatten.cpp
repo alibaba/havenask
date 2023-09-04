@@ -49,12 +49,12 @@ QueryFlatten::~QueryFlatten() {
     DELETE_AND_SET_NULL(_visitedQuery);
 }
 
-void QueryFlatten::visitTermQuery(const TermQuery *query){
+void QueryFlatten::visitTermQuery(const TermQuery *query) {
     assert(!_visitedQuery);
     _visitedQuery = new TermQuery(*query);
 }
 
-void QueryFlatten::visitPhraseQuery(const PhraseQuery *query){
+void QueryFlatten::visitPhraseQuery(const PhraseQuery *query) {
     assert(!_visitedQuery);
     _visitedQuery = new PhraseQuery(*query);
 }
@@ -64,16 +64,14 @@ void QueryFlatten::visitMultiTermQuery(const MultiTermQuery *query) {
     _visitedQuery = new MultiTermQuery(*query);
 }
 
-void QueryFlatten::flatten(Query *resultQuery,
-                           const Query *srcQuery)
-{
+void QueryFlatten::flatten(Query *resultQuery, const Query *srcQuery) {
     const vector<QueryPtr> *childrenQuery = srcQuery->getChildQuery();
     assert(childrenQuery->size() > 1);
 
     vector<QueryPtr>::const_iterator it = childrenQuery->begin();
     const QueryPtr &leftChild = *it;
-    auto& leftChild_raw = *leftChild;
-    auto& srcQuery_raw = *srcQuery;
+    auto &leftChild_raw = *leftChild;
+    auto &srcQuery_raw = *srcQuery;
     if (typeid(leftChild_raw) == typeid(srcQuery_raw)
         && MDL_SUB_QUERY != leftChild->getMatchDataLevel()) {
         flatten(resultQuery, leftChild.get());
@@ -83,11 +81,10 @@ void QueryFlatten::flatten(Query *resultQuery,
         resultQuery->addQuery(visitedQueryPtr);
     }
 
-    bool bFlattenRightChild = typeid(srcQuery_raw) == typeid(AndQuery)
-                              || typeid(srcQuery_raw) == typeid(OrQuery);
-    for(it++; it != childrenQuery->end(); it++)
-    {
-        auto& childrenQueryItem_raw = *(*it);
+    bool bFlattenRightChild
+        = typeid(srcQuery_raw) == typeid(AndQuery) || typeid(srcQuery_raw) == typeid(OrQuery);
+    for (it++; it != childrenQuery->end(); it++) {
+        auto &childrenQueryItem_raw = *(*it);
         if (bFlattenRightChild && typeid(srcQuery_raw) == typeid(childrenQueryItem_raw)
             && MDL_SUB_QUERY != (*it)->getMatchDataLevel()) {
             flatten(resultQuery, (*it).get());
@@ -97,39 +94,38 @@ void QueryFlatten::flatten(Query *resultQuery,
             resultQuery->addQuery(visitedQueryPtr);
         }
     }
-
 }
 
-void QueryFlatten::visitAndQuery(const AndQuery *query){
+void QueryFlatten::visitAndQuery(const AndQuery *query) {
     AndQuery *resultQuery = new AndQuery(query->getQueryLabel());
     flatten(resultQuery, query);
     _visitedQuery = resultQuery;
 }
 
-void QueryFlatten::visitOrQuery(const OrQuery *query){
+void QueryFlatten::visitOrQuery(const OrQuery *query) {
     OrQuery *resultQuery = new OrQuery(query->getQueryLabel());
     flatten(resultQuery, query);
     _visitedQuery = resultQuery;
 }
 
-void QueryFlatten::visitAndNotQuery(const AndNotQuery *query){
+void QueryFlatten::visitAndNotQuery(const AndNotQuery *query) {
     AndNotQuery *resultQuery = new AndNotQuery(query->getQueryLabel());
     flatten(resultQuery, query);
     _visitedQuery = resultQuery;
 }
 
-void QueryFlatten::visitRankQuery(const RankQuery *query){
+void QueryFlatten::visitRankQuery(const RankQuery *query) {
     RankQuery *resultQuery = new RankQuery(query->getQueryLabel());
     flatten(resultQuery, query);
     _visitedQuery = resultQuery;
 }
 
-void QueryFlatten::visitNumberQuery(const NumberQuery *query){
+void QueryFlatten::visitNumberQuery(const NumberQuery *query) {
     assert(!_visitedQuery);
     _visitedQuery = new NumberQuery(*query);
 }
 
-Query* QueryFlatten::stealQuery() {
+Query *QueryFlatten::stealQuery() {
     Query *tmpQuery = _visitedQuery;
     _visitedQuery = NULL;
     return tmpQuery;

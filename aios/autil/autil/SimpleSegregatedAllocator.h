@@ -15,19 +15,19 @@
  */
 #pragma once
 
+#include <memory>
 #include <stddef.h>
 #include <stdint.h>
-#include <memory>
 
 #include "autil/ChunkAllocator.h"
 
 namespace autil {
 
-class SimpleSegregatedAllocator : public ChunkAllocator
-{
+class SimpleSegregatedAllocator : public ChunkAllocator {
 private:
-    SimpleSegregatedAllocator(const SimpleSegregatedAllocator&);
-    void operator=(const SimpleSegregatedAllocator&);
+    SimpleSegregatedAllocator(const SimpleSegregatedAllocator &);
+    void operator=(const SimpleSegregatedAllocator &);
+
 public:
     /** constructor */
     SimpleSegregatedAllocator();
@@ -44,13 +44,13 @@ public:
      * allocate one memory chunk from this pool
      * @return allocated memory address
      */
-    void* allocate(uint32_t size);
+    void *allocate(uint32_t size);
 
     /**
      * free memory chunk which was previously returned from alloc()
      * @param pAddr chunk to free
      */
-    void free(void* const pAddr);
+    void free(void *const pAddr);
 
     /**
      * release all allocated memory
@@ -68,13 +68,12 @@ protected:
     virtual bool allocateChunk();
 
 protected:
-    /** 
+    /**
      * get next node of pAddr
      * @param pAddr pointer
-     * @return next node 
+     * @return next node
      */
-    inline static void*& nextOf(void* const pAddr)
-    {return *(static_cast<void**>(pAddr));}
+    inline static void *&nextOf(void *const pAddr) { return *(static_cast<void **>(pAddr)); }
 
     /**
      * segregate a chunk to partitions
@@ -84,18 +83,17 @@ protected:
      * @param pEndNode the last node to link to
      * @return first node of partitions
      */
-    static void* segregate(void* pChunk, uint64_t nChunkSize, 
-                           uint32_t requestedSize, void* pEndNode = NULL);
+    static void *segregate(void *pChunk, uint64_t nChunkSize, uint32_t requestedSize, void *pEndNode = NULL);
 
 protected:
     uint64_t _chunkSize;
+
 private:
-    void* _first; ///first free node
-    uint32_t _requestSize;///request size
-    void * _memChunk;
+    void *_first;          /// first free node
+    uint32_t _requestSize; /// request size
+    void *_memChunk;
 };
 
 typedef std::shared_ptr<SimpleSegregatedAllocator> SimpleSegregatedAllocatorPtr;
 
-}
-
+} // namespace autil

@@ -42,8 +42,8 @@ public:
 
 public:
     const BuildConfig& GetBuildConfig() const;
-    const MergeConfig& GetMergeConfig() const;
-    MergeConfig& MutableMergeConfig();
+    const MergeConfig& GetDefaultMergeConfig() const;
+    // MergeConfig& MutableMergeConfig();
 
     const std::vector<IndexTaskConfig>& GetAllIndexTaskConfigs() const;
     std::optional<IndexTaskConfig> GetIndexTaskConfig(const std::string& taskType, const std::string& taskName) const;

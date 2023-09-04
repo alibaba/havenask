@@ -30,7 +30,7 @@
 #include "indexlib/index_base/index_meta/partition_meta.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 class TruncateOptionConfig;
 } // namespace indexlibv2::config
 
@@ -68,7 +68,7 @@ public:
 private:
     SingleDocProcessorChain* createSingleChain(const plugin::PlugInManagerPtr& plugInManagerPtr,
                                                const config::ProcessorInfos& processorInfos,
-                                               const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+                                               const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                                const std::vector<std::string>& clusterNames,
                                                bool processForSubDoc) const;
 
@@ -78,26 +78,26 @@ private:
     std::string checkAndGetTableName(const std::vector<std::string>& clusterNames) const;
     std::string getTableName(const std::string& clusterName) const;
     bool
-    initParamForAdd2UpdateRewriter(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    initParamForAdd2UpdateRewriter(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                    const std::vector<std::string>& clusterNames,
                                    std::vector<std::shared_ptr<indexlibv2::config::TruncateOptionConfig>>& optionsVec,
                                    std::vector<indexlibv2::config::SortDescriptions>& sortDescVec) const;
 
     std::shared_ptr<indexlibv2::document::IDocumentRewriter>
-    createAndInitAdd2UpdateRewriter(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    createAndInitAdd2UpdateRewriter(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                     const std::vector<std::string>& clusterNames) const;
 
     indexlib::document::DocumentInitParamPtr
-    createBuiltInInitParam(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    createBuiltInInitParam(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                            const std::vector<std::string>& clusterNames, bool needAdd2Update) const;
 
     bool initDocumentProcessorChain(const config::DocProcessorChainConfig& docProcessorChainConfig,
                                     const config::ProcessorInfos& mainProcessorInfos,
-                                    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+                                    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                     const std::vector<std::string>& clusterNames, const std::string& tableName,
                                     DocumentProcessorChainPtr retChain) const;
     std::unique_ptr<indexlibv2::document::IDocumentFactory>
-    createDocumentFactory(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    createDocumentFactory(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                           const std::vector<std::string>& clusterNames) const;
 
 private:

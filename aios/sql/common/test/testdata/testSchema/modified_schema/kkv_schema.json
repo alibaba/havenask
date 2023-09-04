@@ -1,0 +1,33 @@
+{
+    "table_name" : "kkv1",
+    "table_type" : "kkv",
+    "attributes" : [
+        "company_name",
+        "country"
+    ],
+    "fields" : [
+        {
+            "field_name" : "company_id",
+            "field_type" : "INT32"
+        },
+        {
+            "field_name" : "company_name",
+            "field_type" : "STRING"
+        },
+        {
+            "field_name" : "country",
+            "field_type" : "STRING"
+        }
+    ],
+    "indexs" : [
+        {
+            "index_fields" :
+            [
+                {"field_name" : "company_id", "key_type" : "prefix"},
+                {"field_name" : "company_name", "key_type" : "suffix"}
+            ],
+            "index_name" : "company_id",
+            "index_type" : "PRIMARY_KEY"
+        }
+    ]
+}

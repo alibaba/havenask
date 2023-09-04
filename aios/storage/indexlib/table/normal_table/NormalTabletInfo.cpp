@@ -23,73 +23,80 @@
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, NormalTabletInfo);
 
-NormalTabletInfo::NormalTabletInfo(const NormalTabletInfo& other)
-    : _tabletMeta(other._tabletMeta)
-    , _deletionMapReader(other._deletionMapReader)
-    , _segmentIds(other._segmentIds)
-    , _baseDocIds(other._baseDocIds)
-    , _segmentIdSet(other._segmentIdSet)
-    , _segmentCount(other._segmentCount)
-    , _delDocCount(other._delDocCount)
-    , _totalDocCount(other._totalDocCount)
-    , _incDocCount(other._incDocCount)
-    , _orderRanges(other._orderRanges)
-    , _unorderRange(other._unorderRange)
-    , _tabletInfoHint(other._tabletInfoHint)
-{
-}
-
-Status NormalTabletInfo::Init(const std::shared_ptr<framework::TabletData>& tabletData,
-                              const std::shared_ptr<NormalTabletMeta>& tabletMeta,
-                              const std::shared_ptr<index::DeletionMapIndexReader>& deletionMapReader)
+void NormalTabletInfo::Init(const std::shared_ptr<framework::TabletData>& tabletData,
+                            const std::shared_ptr<NormalTabletMeta>& tabletMeta,
+                            const std::shared_ptr<index::DeletionMapIndexReader>& deletionMapReader,
+                            const HistorySegmentInfos& historySegmentMap)
 {
     _tabletMeta = tabletMeta;
     _deletionMapReader = deletionMapReader;
-    InitSegmentIds(tabletData);
-    InitBaseDocIds(tabletData);
+    _historySegmentInfos = historySegmentMap;
+
+    InitCurrentInfo(tabletData);
+    InitHistorySegMap(tabletData, historySegmentMap);
     InitDocCount(tabletData);
     InitOrderedDocIdRanges(tabletData);
     InitUnorderedDocIdRange();
     InitTabletInfoHint(tabletData);
-    return Status::OK();
+    assert(_historySegToIdxMap.size() == _historySegmentInfos.infos.size());
 }
 
-void NormalTabletInfo::InitSegmentIds(const std::shared_ptr<framework::TabletData>& tabletData)
+void NormalTabletInfo::InitHistorySegMap(const std::shared_ptr<framework::TabletData>& tabletData,
+                                         const HistorySegmentInfos& historySegmentInfos)
 {
-    const auto& version = tabletData->GetOnDiskVersion();
-    _segmentIds.reserve(tabletData->GetSegmentCount());
-    for (const auto& [segId, _] : version) {
-        _segmentIds.push_back(segId);
-        _segmentIdSet.insert(segId);
+    // <segmentid, <current idx, is sorted> >
+    std::map<segmentid_t, std::pair<int32_t, bool>> segIdxMap;
+    assert(!_historySegmentInfos.infos.empty());
+    const auto& currentSegments = *(_historySegmentInfos.infos.rbegin());
+    for (size_t i = 0; i < currentSegments.size(); ++i) {
+        segIdxMap[currentSegments[i].segmentId] = std::make_pair(i, currentSegments[i].isSorted);
     }
-    auto segments = tabletData->CreateSlice();
-    for (const auto& segment : segments) {
-        auto segStatus = segment->GetSegmentStatus();
-        if (segStatus == framework::Segment::SegmentStatus::ST_DUMPING ||
-            segStatus == framework::Segment::SegmentStatus::ST_BUILDING) {
-            _segmentIds.push_back(segment->GetSegmentId());
-            _segmentIdSet.insert(segment->GetSegmentId());
+    for (size_t i = 0; i < _historySegmentInfos.infos.size(); ++i) {
+        std::unordered_map<segmentid_t, int32_t> currentInfo;
+        auto& sortInfos = _historySegmentInfos.infos[i];
+        for (const auto& sortInfo : sortInfos) {
+            auto currentIter = segIdxMap.find(sortInfo.segmentId);
+            if (currentIter == segIdxMap.end() || (sortInfo.isSorted != currentIter->second.second)) {
+                // do not has current segment or sort status changed
+                continue;
+            }
+            currentInfo[sortInfo.segmentId] = currentIter->second.first;
         }
+        _historySegToIdxMap.push_back(currentInfo);
     }
 }
 
-void NormalTabletInfo::InitBaseDocIds(const std::shared_ptr<framework::TabletData>& tabletData)
+void NormalTabletInfo::InitCurrentInfo(const std::shared_ptr<framework::TabletData>& tabletData)
 {
     auto segments = tabletData->CreateSlice();
     docid_t baseDocId = 0;
+    std::vector<SegmentSortInfo> currentSegmentSortInfo;
+
     for (const auto& segment : segments) {
         _baseDocIds.push_back(baseDocId);
         baseDocId += segment->GetSegmentInfo()->docCount;
+        auto segStatus = segment->GetSegmentStatus();
+        SegmentSortInfo sortInfo;
+        sortInfo.segmentId = segment->GetSegmentId();
+        sortInfo.isSorted = false;
+        if (segStatus == framework::Segment::SegmentStatus::ST_BUILT) {
+            sortInfo.isSorted = SegmentSortDecisionMaker::IsSortedDiskSegment(_tabletMeta->GetSortDescriptions(),
+                                                                              segment->GetSegmentId());
+        }
+        currentSegmentSortInfo.push_back(sortInfo);
     }
-}
-
-bool NormalTabletInfo::HasSegment(segmentid_t segmentId) const
-{
-    return _segmentIdSet.find(segmentId) != _segmentIdSet.end();
+    assert(std::is_sorted(currentSegmentSortInfo.begin(), currentSegmentSortInfo.end(),
+                          [](const auto& left, const auto& right) { return left.segmentId < right.segmentId; }));
+    _historySegmentInfos.infos.push_back(currentSegmentSortInfo);
+    if (_historySegmentInfos.infos.size() > MAX_HISTORY_SEG_INFO_COUNT) {
+        _historySegmentInfos.infos.erase(_historySegmentInfos.infos.begin());
+        _historySegmentInfos.minVersion++;
+    }
 }
 
 std::unique_ptr<NormalTabletInfo> NormalTabletInfo::Clone() const { return std::make_unique<NormalTabletInfo>(*this); }
 
+// calculate _segmentCount, _delDocCount, _totalDocCount, _incDocCount
 void NormalTabletInfo::InitDocCount(const std::shared_ptr<framework::TabletData>& tabletData)
 {
     auto segments = tabletData->CreateSlice();
@@ -99,10 +106,9 @@ void NormalTabletInfo::InitDocCount(const std::shared_ptr<framework::TabletData>
         auto segStatus = segment->GetSegmentStatus();
         _segmentCount++;
         totalDocCount += segment->GetSegmentInfo()->docCount;
-        if (segStatus == framework::Segment::SegmentStatus::ST_BUILT) {
-            if (HasSegment(segment->GetSegmentId())) {
-                incDocCount += segment->GetSegmentInfo()->docCount;
-            }
+        if (segStatus == framework::Segment::SegmentStatus::ST_BUILT ||
+            !framework::Segment::IsPrivateSegmentId(segment->GetSegmentId())) {
+            incDocCount += segment->GetSegmentInfo()->docCount;
         }
         _delDocCount = _deletionMapReader ? _deletionMapReader->GetDeletedDocCount() : 0;
     }
@@ -119,9 +125,6 @@ void NormalTabletInfo::InitOrderedDocIdRanges(const std::shared_ptr<framework::T
     docid_t baseDocId = 0;
     auto segments = tabletData->CreateSlice(framework::Segment::SegmentStatus::ST_BUILT);
     for (const auto& segment : segments) {
-        if (!HasSegment(segment->GetSegmentId())) {
-            break;
-        }
         if (!SegmentSortDecisionMaker::IsSortedDiskSegment(_tabletMeta->GetSortDescriptions(),
                                                            segment->GetSegmentId())) {
             break;
@@ -164,40 +167,14 @@ bool NormalTabletInfo::GetUnorderedDocIdRange(DocIdRange& range) const
 
 void NormalTabletInfo::InitTabletInfoHint(const std::shared_ptr<framework::TabletData>& tabletData)
 {
-    _tabletInfoHint.lastRtSegmentId = INVALID_SEGMENTID;
-    auto segments = tabletData->CreateSlice();
-
-    for (auto iter = segments.rbegin(); iter != segments.rend(); ++iter) {
-        auto& segment = *iter;
-        segmentid_t segId = segment->GetSegmentId();
-        auto segStatus = segment->GetSegmentStatus();
-        if (segStatus == framework::Segment::SegmentStatus::ST_DUMPING ||
-            segStatus == framework::Segment::SegmentStatus::ST_BUILDING) {
-            _tabletInfoHint.lastRtSegmentId = segId;
-            _tabletInfoHint.lastRtSegmentDocCount = segment->GetSegmentInfo()->docCount;
-            break;
-        }
-    }
-
-    auto dumpingSegments = tabletData->CreateSlice(framework::Segment::SegmentStatus::ST_DUMPING);
-    if (!dumpingSegments.empty()) {
-        _tabletInfoHint.needRefindRtSegmentId = (*(dumpingSegments.begin()))->GetSegmentId();
-    } else {
-        auto buildingSegments = tabletData->CreateSlice(framework::Segment::SegmentStatus::ST_BUILDING);
-        _tabletInfoHint.needRefindRtSegmentId =
-            buildingSegments.empty() ? INVALID_SEGMENTID : (*(buildingSegments.begin()))->GetSegmentId();
-    }
-
-    assert(_tabletInfoHint.needRefindRtSegmentId <= _tabletInfoHint.lastRtSegmentId);
-
-    _tabletInfoHint.lastIncSegmentId = INVALID_SEGMENTID;
-    auto builtSegments = tabletData->CreateSlice(framework::Segment::SegmentStatus::ST_BUILT);
-    for (auto iter = builtSegments.rbegin(); iter != builtSegments.rend(); ++iter) {
-        auto& segment = *iter;
-        if (HasSegment(segment->GetSegmentId())) {
-            _tabletInfoHint.lastIncSegmentId = segment->GetSegmentId();
-            break;
-        }
+    _tabletInfoHint.infoVersion = _historySegmentInfos.minVersion + _historySegmentInfos.infos.size() - 1;
+    auto buildingSegmentSlice = tabletData->CreateSlice(framework::Segment::SegmentStatus::ST_BUILDING);
+    auto iter = buildingSegmentSlice.begin();
+    if (iter != buildingSegmentSlice.end()) {
+        auto segmentPtr = *iter;
+        assert(segmentPtr);
+        _tabletInfoHint.lastRtSegmentId = segmentPtr->GetSegmentId();
+        _tabletInfoHint.lastRtSegmentDocCount = segmentPtr->GetSegmentInfo()->docCount;
     }
 }
 
@@ -211,8 +188,9 @@ globalid_t NormalTabletInfo::GetGlobalId(docid_t docId) const
     for (int32_t i = (int32_t)_baseDocIds.size() - 1; i >= 0; --i) {
         if (docId >= _baseDocIds[i]) {
             docid_t localDocId = docId - _baseDocIds[i];
-            segmentid_t segId = _segmentIds[i];
-            if (_deletionMapReader->IsDeleted(docId)) {
+            const auto& currentSegmentInfos = *(_historySegmentInfos.infos.rbegin());
+            segmentid_t segId = currentSegmentInfos[i].segmentId;
+            if (_deletionMapReader && _deletionMapReader->IsDeleted(docId)) {
                 return INVALID_GLOBALID;
             }
             gid = localDocId;
@@ -231,94 +209,90 @@ docid_t NormalTabletInfo::GetSegmentDocCount(size_t idx) const
     return _baseDocIds[idx + 1] - _baseDocIds[idx];
 }
 
+bool NormalTabletInfo::GetHistoryMapOffset(int32_t version, int32_t* offset) const
+{
+    assert(!_historySegmentInfos.infos.empty());
+    assert(offset);
+    int32_t mapOffset = version - _historySegmentInfos.minVersion;
+    if (mapOffset < 0 || mapOffset >= _historySegmentInfos.infos.size()) {
+        return false;
+    }
+    *offset = mapOffset;
+    return true;
+}
+
 docid_t NormalTabletInfo::GetDocId(const TabletInfoHint& infoHint, globalid_t gid) const
 {
-    docid_t docId = INVALID_DOCID;
-    int32_t segId = gid >> 32;
-    if (segId >= infoHint.needRefindRtSegmentId) {
+    int32_t mapOffset = 0;
+    if (!GetHistoryMapOffset(infoHint.infoVersion, &mapOffset)) {
         return INVALID_DOCID;
     }
-    for (size_t i = 0; i < _baseDocIds.size(); ++i) {
-        if (_segmentIds[i] == segId) {
-            docid_t localDocId = gid & 0xFFFFFFFF;
-            if (localDocId >= GetSegmentDocCount(i)) {
-                return INVALID_GLOBALID;
-            }
-            docId = localDocId + _baseDocIds[i];
-            if (_deletionMapReader->IsDeleted(docId)) {
-                return INVALID_DOCID;
-            }
-            break;
-        }
+    int32_t segId = gid >> 32;
+    const auto& idxMap = _historySegToIdxMap[mapOffset];
+    auto currentIdxIter = idxMap.find(segId);
+    if (currentIdxIter == idxMap.end()) {
+        return INVALID_DOCID;
+    }
+    docid_t localDocId = gid & 0xFFFFFFFF;
+    if (localDocId >= GetSegmentDocCount(currentIdxIter->second)) {
+        return INVALID_DOCID;
+    }
+    docid_t docId = localDocId + _baseDocIds[currentIdxIter->second];
+    if (_deletionMapReader && _deletionMapReader->IsDeleted(docId)) {
+        return INVALID_DOCID;
     }
     return docId;
 }
 
 bool NormalTabletInfo::GetDiffDocIdRanges(const TabletInfoHint& infoHint, DocIdRangeVector& docIdRanges) const
 {
-    if (infoHint.lastIncSegmentId == INVALID_SEGMENTID && infoHint.lastRtSegmentId == INVALID_SEGMENTID) {
-        return false;
-    }
-
+    int32_t mapOffset = 0;
     docIdRanges.clear();
-
-    DocIdRange range;
-    if (GetIncDiffDocIdRange(infoHint.lastIncSegmentId, range)) {
-        docIdRanges.push_back(range);
+    if (!GetHistoryMapOffset(infoHint.infoVersion, &mapOffset)) {
+        MigrageDocIdRanges(docIdRanges, {0, _totalDocCount});
+    } else {
+        const auto& hisSegments = _historySegmentInfos.infos[mapOffset];
+        const auto& currentSegments = *(_historySegmentInfos.infos.rbegin());
+        auto iterHis = hisSegments.begin();
+        auto iterCurrent = currentSegments.begin();
+        uint32_t currentIdx = 0;
+        while (iterCurrent != currentSegments.end()) {
+            segmentid_t currentSegId = iterCurrent->segmentId;
+            while (iterHis != hisSegments.end() && iterHis->segmentId < currentSegId) {
+                iterHis++;
+            }
+            docid_t beginDocId = INVALID_DOCID;
+            docid_t endDocId = INVALID_DOCID;
+            if (iterHis == hisSegments.end() || currentSegId != iterHis->segmentId) {
+                // history not has this segment, migrate all
+                beginDocId = _baseDocIds[currentIdx];
+                endDocId = _baseDocIds[currentIdx] + GetSegmentDocCount(currentIdx);
+            } else if (iterHis->isSorted != iterCurrent->isSorted) {
+                // segment sort status changed, migrage all
+                beginDocId = _baseDocIds[currentIdx];
+                endDocId = _baseDocIds[currentIdx] + GetSegmentDocCount(currentIdx);
+            } else if (currentSegId == infoHint.lastRtSegmentId) {
+                // last building segment, migrage new docs
+                beginDocId = _baseDocIds[currentIdx] + infoHint.lastRtSegmentDocCount;
+                endDocId = _baseDocIds[currentIdx] + GetSegmentDocCount(currentIdx);
+            }
+            MigrageDocIdRanges(docIdRanges, {beginDocId, endDocId});
+            iterCurrent++;
+            currentIdx++;
+        }
     }
-
-    if (GetRtDiffDocIdRange(infoHint.needRefindRtSegmentId, range)) {
-        docIdRanges.push_back(range);
-    }
-
     return !docIdRanges.empty();
 }
 
-bool NormalTabletInfo::GetIncDiffDocIdRange(segmentid_t lastIncSegId, DocIdRange& range) const
+bool NormalTabletInfo::NeedUpdate(size_t lastRtSegDocCount) const
 {
-    size_t segmentCount = _segmentIds.size();
-    for (size_t i = 0; i < segmentCount; ++i) {
-        // TODO(yonghao.fyh): confirm check is inc segment condition
-        if (!HasSegment(_segmentIds[i]) || _segmentIds[i] <= lastIncSegId) {
-            continue;
-        }
-        if (static_cast<size_t>(_baseDocIds[i]) >= _incDocCount) {
-            return false;
-        }
-        range = DocIdRange(_baseDocIds[i], _incDocCount);
-        return true;
-    }
-    return false;
+    return lastRtSegDocCount > _tabletInfoHint.lastRtSegmentDocCount;
 }
 
-bool NormalTabletInfo::GetRtDiffDocIdRange(segmentid_t needRefindSegmentId, DocIdRange& range) const
+void NormalTabletInfo::UpdateDocCount(size_t lastRtSegDocCount)
 {
-    size_t totalDocCount = _totalDocCount;
-    size_t segmentCount = _segmentIds.size();
-    for (size_t i = 0; i < segmentCount; ++i) {
-        if (_segmentIds[i] >= needRefindSegmentId) {
-            range = DocIdRange(_baseDocIds[i], totalDocCount);
-            return range.first < range.second;
-        }
-    }
-    return false;
-}
-
-bool NormalTabletInfo::NeedUpdate(segmentid_t lastRtSegId, size_t lastRtSegDocCount) const
-{
-    assert(_tabletInfoHint.lastRtSegmentId == lastRtSegId);
-    return (lastRtSegDocCount > _tabletInfoHint.lastRtSegmentDocCount);
-}
-
-bool NormalTabletInfo::NeedUpdate(segmentid_t lastRtSegId, size_t lastRtSegDocCount, segmentid_t refindRtSegment) const
-{
-    return NeedUpdate(lastRtSegId, lastRtSegDocCount) || (refindRtSegment != _tabletInfoHint.needRefindRtSegmentId);
-}
-
-void NormalTabletInfo::UpdateDocCount(segmentid_t lastRtSegId, size_t lastRtSegDocCount, segmentid_t refindRtSegId)
-{
-    assert(_tabletInfoHint.lastRtSegmentId == lastRtSegId);
-    if (NeedUpdate(lastRtSegId, lastRtSegDocCount)) {
+    if (NeedUpdate(lastRtSegDocCount)) {
+        assert(_tabletInfoHint.lastRtSegmentId);
         size_t increaseDocCount = lastRtSegDocCount - _tabletInfoHint.lastRtSegmentDocCount;
         _tabletInfoHint.lastRtSegmentDocCount = lastRtSegDocCount;
         _totalDocCount += increaseDocCount;
@@ -327,9 +301,19 @@ void NormalTabletInfo::UpdateDocCount(segmentid_t lastRtSegId, size_t lastRtSegD
     if (_deletionMapReader) {
         _delDocCount = _deletionMapReader->GetDeletedDocCount();
     }
-    _tabletInfoHint.needRefindRtSegmentId = refindRtSegId;
+}
 
-    assert(refindRtSegId <= lastRtSegId);
+void NormalTabletInfo::MigrageDocIdRanges(DocIdRangeVector& current, const DocIdRange& toAppend) const
+{
+    if (toAppend.first >= toAppend.second) {
+        return;
+    }
+    assert(current.empty() || current.rbegin()->second <= toAppend.first);
+    if (current.empty() || current.rbegin()->second != toAppend.first) {
+        current.push_back(toAppend);
+    } else {
+        current.rbegin()->second = toAppend.second;
+    }
 }
 
 } // namespace indexlibv2::table

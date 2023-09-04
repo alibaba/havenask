@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/interface/HttpRequest.h"
-#include "autil/legacy/base64.h"
+
 #include "aios/network/opentelemetry/core/TraceUtil.h"
+#include "autil/legacy/base64.h"
 
 using namespace std;
 using namespace anet;
@@ -23,9 +24,12 @@ using namespace anet;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, HttpRequest);
 
-HttpRequest::~HttpRequest() {}
+HttpRequest::~HttpRequest() {
+}
 
-bool HttpRequest::serialize() { return serializeBody(_body); }
+bool HttpRequest::serialize() {
+    return serializeBody(_body);
+}
 
 HTTPPacket *HttpRequest::makeHttpPacket() {
     unique_ptr<anet::HTTPPacket> packet(new anet::HTTPPacket());

@@ -16,46 +16,46 @@
 #ifndef FSLIB_PATHMETACACHE_H
 #define FSLIB_PATHMETACACHE_H
 
-#include "autil/Log.h"
-#include "autil/Lock.h"
-#include "fslib/fslib.h"
 #include <map>
 #include <set>
 #include <unordered_map>
 
+#include "autil/Lock.h"
+#include "autil/Log.h"
+#include "fslib/fslib.h"
+
 FSLIB_BEGIN_NAMESPACE(cache);
 
-class PathMetaCache
-{
+class PathMetaCache {
 public:
     PathMetaCache();
     ~PathMetaCache();
-    
+
 public:
-    void addPathMeta(const std::string& normPath, int64_t fileLength,
-                     uint64_t createTime, uint64_t modifyTime, bool isDirectory);
+    void addPathMeta(
+        const std::string &normPath, int64_t fileLength, uint64_t createTime, uint64_t modifyTime, bool isDirectory);
 
-    bool removeFile(const std::string& normPath);
-    
-    bool removeDirectory(const std::string& normPath);
+    bool removeFile(const std::string &normPath);
 
-    bool isExist(const std::string& normPath) const;
+    bool removeDirectory(const std::string &normPath);
 
-    bool getPathMeta(const std::string& normPath, PathMeta& fileInfo) const;
+    bool isExist(const std::string &normPath) const;
 
-    size_t getFileLength(const std::string& normPath) const;
+    bool getPathMeta(const std::string &normPath, PathMeta &fileInfo) const;
 
-    void markImmutablePath(const std::string& normImmutablePath, bool exist = true);
+    size_t getFileLength(const std::string &normPath) const;
 
-    bool matchImmutablePath(const std::string& normPath) const;
+    void markImmutablePath(const std::string &normImmutablePath, bool exist = true);
 
-    bool ListPathMetaInCache(const std::string& normPath,
-                             std::vector<std::pair<std::string, PathMeta>>& pathMetas,
+    bool matchImmutablePath(const std::string &normPath) const;
+
+    bool ListPathMetaInCache(const std::string &normPath,
+                             std::vector<std::pair<std::string, PathMeta>> &pathMetas,
                              bool recursive);
 
     int64_t getCachedPathCount() const;
     int64_t getImmutablePathCount() const;
-    
+
 private:
     FSLIB_TYPEDEF_SHARED_PTR(PathMeta);
     typedef std::map<std::string, PathMetaPtr> PathMetaMap;
@@ -74,4 +74,4 @@ FSLIB_TYPEDEF_SHARED_PTR(PathMetaCache);
 
 FSLIB_END_NAMESPACE(cache);
 
-#endif //FSLIB_PATHMETACACHE_H
+#endif // FSLIB_PATHMETACACHE_H

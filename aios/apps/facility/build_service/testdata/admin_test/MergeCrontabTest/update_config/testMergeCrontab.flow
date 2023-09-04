@@ -1,0 +1,19 @@
+function stepRunFlow()
+    local mergeCrontab = Flow.getTaskInFlow("mergeCrontab", "cluster1_merge_crontab")
+    local mergeConfig = mergeCrontab:getProperty("merging_task_name")
+    if (mergeConfig == nil)
+    then
+        return 1
+    end
+    local state = Flow.getProperty('mock_state')
+    if (state == "merge_finish")
+    then
+        mergeCrontab:setProperty("current_merging_task_finished", "true")
+        return 1
+    end
+    if (state == "flow_finish")
+    then
+        return 0
+    end
+    return 1
+end

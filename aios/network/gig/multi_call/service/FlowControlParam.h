@@ -16,17 +16,22 @@
 #ifndef MULTI_CALL_FLOWCONTROLPARAM_H
 #define MULTI_CALL_FLOWCONTROLPARAM_H
 
+#include <limits>
+
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/config/FlowControlConfig.h"
-#include <limits>
 namespace multi_call {
 
-class FlowControlParam {
+class FlowControlParam
+{
 public:
     FlowControlParam(const FlowControlConfigPtr &flowControlConfig_)
-        : flowControlConfig(flowControlConfig_), partitionCount(0),
-          partitionIndex(0) {}
-    ~FlowControlParam() {}
+        : flowControlConfig(flowControlConfig_)
+        , partitionCount(0)
+        , partitionIndex(0) {
+    }
+    ~FlowControlParam() {
+    }
 
 public:
     FlowControlParam(const FlowControlParam &other) {

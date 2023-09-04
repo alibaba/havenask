@@ -16,20 +16,24 @@
 #ifndef ISEARCH_MULTI_CALL_GIGSTREAMBASE_H
 #define ISEARCH_MULTI_CALL_GIGSTREAMBASE_H
 
-#include "aios/network/gig/multi_call/stream/GigStreamMessage.h"
 #include <list>
+
+#include "aios/network/gig/multi_call/stream/GigStreamMessage.h"
 
 namespace multi_call {
 
 class QueryInfo;
 
-class PartMessageQueue {
+class PartMessageQueue
+{
 public:
     PartMessageQueue();
     ~PartMessageQueue();
+
 private:
     PartMessageQueue(const PartMessageQueue &);
     PartMessageQueue &operator=(const PartMessageQueue &);
+
 public:
     bool nextMessage(GigStreamMessage &message, MultiCallErrorCode &ec);
     bool empty() const {
@@ -38,6 +42,7 @@ public:
     void appendMessage(const GigStreamMessage &message, MultiCallErrorCode ec);
     bool beginReceive();
     bool endReceive();
+
 private:
     autil::ThreadMutex _lock;
     std::atomic<bool> _receiving;
@@ -46,29 +51,33 @@ private:
     MultiCallErrorCode _ec;
 };
 
-class GigStreamBase : public std::enable_shared_from_this<GigStreamBase> {
+class GigStreamBase : public std::enable_shared_from_this<GigStreamBase>
+{
 public:
     GigStreamBase();
     virtual ~GigStreamBase();
+
 private:
     GigStreamBase(const GigStreamBase &);
     GigStreamBase &operator=(const GigStreamBase &);
+
 public:
-    virtual google::protobuf::Message *
-    newReceiveMessage(google::protobuf::Arena *arena) const = 0;
+    virtual google::protobuf::Message *newReceiveMessage(google::protobuf::Arena *arena) const = 0;
+
 public:
-    virtual bool send(PartIdTy partId, bool eof,
-                      google::protobuf::Message *message) = 0;
-    virtual void sendCancel(PartIdTy partId,
-                            google::protobuf::Message *message) = 0;
+    virtual bool send(PartIdTy partId, bool eof, google::protobuf::Message *message) = 0;
+    virtual void sendCancel(PartIdTy partId, google::protobuf::Message *message) = 0;
+
 private:
     virtual bool receive(const GigStreamMessage &message) = 0;
-    virtual void receiveCancel(const GigStreamMessage &message,
-                               MultiCallErrorCode ec) = 0;
+    virtual void receiveCancel(const GigStreamMessage &message, MultiCallErrorCode ec) = 0;
+
 public:
     virtual void notifyIdle(PartIdTy partId) = 0;
+
 public:
     virtual bool hasError() const;
+
 public:
     virtual std::shared_ptr<QueryInfo> getQueryInfo() const {
         return nullptr;
@@ -76,6 +85,7 @@ public:
     virtual std::string getPeer() const {
         return std::string();
     }
+
 public:
     // async
     void setAsyncMode(bool async) {
@@ -89,15 +99,18 @@ public:
         return asyncReceive(partId);
     }
     bool asyncReceive(PartIdTy partId);
+
 private:
     bool innerReceive(const GigStreamMessage &message, MultiCallErrorCode ec);
     friend class GigStreamHandlerBase;
     friend class GigStreamRequest;
+
 private:
     bool appendMessage(const GigStreamMessage &message, MultiCallErrorCode ec);
     PartMessageQueue &getPartQueue(PartIdTy partId);
     void tryNotify(PartIdTy partId);
     bool doReceive(PartMessageQueue &partQueue);
+
 private:
     bool _asyncMode;
     mutable autil::ReadWriteLock _asyncQueueLock;

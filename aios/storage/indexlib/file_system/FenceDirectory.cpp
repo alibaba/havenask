@@ -232,7 +232,7 @@ FSResult<void> FenceDirectory::InnerRemoveFile(const std::string& filePath, cons
 FSResult<void> FenceDirectory::InnerRename(const std::string& srcPath, const std::shared_ptr<IDirectory>& destDirectory,
                                            const std::string& destPath, FenceContext*) noexcept
 {
-    AUTIL_LOG(ERROR, "fence dirtory not support rename action, srcPath [%s], destPath [%s]", srcPath.c_str(),
+    AUTIL_LOG(ERROR, "fence directory not support rename action, srcPath [%s], destPath [%s]", srcPath.c_str(),
               destPath.c_str());
     return FSEC_NOTSUP;
 }

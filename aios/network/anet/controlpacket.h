@@ -24,9 +24,9 @@ public:
     enum {
         CMD_BAD_PACKET = 1,
         CMD_TIMEOUT_PACKET,
-        CMD_CONNECTION_CLOSED,  // packet-level: triggered when post packet at a closed connection
+        CMD_CONNECTION_CLOSED,      // packet-level: triggered when post packet at a closed connection
         CMD_RECEIVE_NEW_CONNECTION, // connection-level: triggered when tcpacceptor accepts a new connection
-        CMD_CLOSE_CONNECTION,   // connection-level: triggered when close the given connection
+        CMD_CLOSE_CONNECTION,       // connection-level: triggered when close the given connection
         CMD_END
     };
 
@@ -44,36 +44,26 @@ public:
      */
     ControlPacket(int c, bool freeDelete = true);
 
-    bool isRegularPacket() {
-        return false;
-    }
+    bool isRegularPacket() { return false; }
 
     void free();
 
     void countDataLen() {}
 
-    bool encode(DataBuffer *output) {
-        return false;
-    }
+    bool encode(DataBuffer *output) { return false; }
 
-    bool decode(DataBuffer *input, PacketHeader *header) {
-        return false;
-    }
+    bool decode(DataBuffer *input, PacketHeader *header) { return false; }
 
-    int getCommand() {
-        return _command;
-    }
+    int getCommand() { return _command; }
 
     /**
      * get description of this packet
      **/
-    const char* what() {
-        return whatCmd(_command);
-    }
+    const char *what() { return whatCmd(_command); }
 
 public:
-    static const char* whatCmd(int command) {
-        switch(command){
+    static const char *whatCmd(int command) {
+        switch (command) {
         case CMD_BAD_PACKET:
             return "Bad Packet received";
             break;
@@ -91,11 +81,12 @@ public:
             return "NULL";
         }
     }
+
 private:
     int _command;
     bool _freeDelete;
 };
 
-}
+} // namespace anet
 
 #endif /*PACKET_H_*/

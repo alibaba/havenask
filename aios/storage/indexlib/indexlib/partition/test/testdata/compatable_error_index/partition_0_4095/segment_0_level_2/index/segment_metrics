@@ -1,0 +1,19 @@
+{
+"segment_stat_metrics_@_0":
+  {
+  "key_count":
+    7061,
+  "kv_hash_mem_use":
+    188352,
+  "kv_hash_occupancy_pct":
+    60,
+  "kv_key_value_mem_ratio":
+    0.01,
+  "kv_segment_mem_use":
+    1231524,
+  "kv_value_mem_use":
+    1043172,
+  "kv_writer_typeid":
+    "N9heavenask8indexlib5index18HashTableVarWriterINS0_4util20DenseHashTableTraitsImNS3_15Timestamp0ValueImEEEEEE"
+  }
+}

@@ -33,24 +33,34 @@ public:
     LegacySchemaAdapter(const std::shared_ptr<IndexPartitionSchema>& legacySchema);
     ~LegacySchemaAdapter() = default;
 
-    // ITabletSchema
+public:
+    // base
     const std::string& GetTableType() const override;
     const std::string& GetTableName() const override;
-    std::shared_ptr<indexlibv2::config::FieldConfig> GetFieldConfig(const std::string& fieldName) const override;
+    schemaid_t GetSchemaId() const override;
+    std::string GetSchemaFileName() const override;
+    // fields
+    size_t GetFieldCount() const override;
     fieldid_t GetFieldId(const std::string& fieldName) const override;
     std::shared_ptr<indexlibv2::config::FieldConfig> GetFieldConfig(fieldid_t fieldId) const override;
-    size_t GetFieldCount() const override;
+    std::shared_ptr<indexlibv2::config::FieldConfig> GetFieldConfig(const std::string& fieldName) const override;
     std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>> GetFieldConfigs() const override;
     std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>>
     GetIndexFieldConfigs(const std::string& indexType) const override;
-    IIndexConfigVector GetIndexConfigs(const std::string& indexType) const override;
+    // indexes
     std::shared_ptr<indexlibv2::config::IIndexConfig> GetIndexConfig(const std::string& indexType,
                                                                      const std::string& indexName) const override;
+    IIndexConfigVector GetIndexConfigs(const std::string& indexType) const override;
+    IIndexConfigVector GetIndexConfigs() const override;
+    IIndexConfigVector GetIndexConfigsByFieldName(const std::string& fieldName) const override;
     std::shared_ptr<IIndexConfig> GetPrimaryKeyIndexConfig() const override;
-    bool GetValueFromUserDefinedParam(const std::string& key, std::string& value) const override;
-    void SetUserDefinedParam(const std::string& key, const std::string& value) override;
-    autil::legacy::json::JsonMap GetUserDefinedParam() const override;
+    // settings
+    const indexlibv2::config::MutableJson& GetRuntimeSettings() const override;
+    // user payload, no affect on index, we just serialize and deserialize
+    const indexlib::util::JsonMap& GetUserDefinedParam() const override;
+    // serialization
     bool Serialize(bool isCompact, std::string* output) const override;
+    // legacy
     const std::shared_ptr<IndexPartitionSchema>& GetLegacySchema() const override { return _legacySchema; }
 
 public:
@@ -67,14 +77,16 @@ private:
     std::shared_ptr<IndexPartitionSchema> _legacySchema;
 
     IIndexConfigVector _primaryKeyIndexConfigs;
+    IIndexConfigVector _annIndexConfigs;
     IIndexConfigVector _invertedIndexConfigs;
     IIndexConfigVector _attributeConfigs;
+    IIndexConfigVector _packAttributeConfigs;
     IIndexConfigVector _virtualAttributeConfigs;
     IIndexConfigVector _summaryIndexConfigs;
     IIndexConfigVector _kvIndexConfigs;
     IIndexConfigVector _kkvIndexConfigs;
-
-    std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>> _generalizedValueIndexFieldConfigs;
+    IIndexConfigVector _generalInvertedIndexConfigs;
+    IIndexConfigVector _generalValueConfigs;
 
     std::map<std::pair</*type*/ std::string, /*name*/ std::string>, std::shared_ptr<IIndexConfig>> _indexConfigMap;
     std::shared_ptr<indexlibv2::config::IIndexConfig> _primaryKeyIndexConfig;

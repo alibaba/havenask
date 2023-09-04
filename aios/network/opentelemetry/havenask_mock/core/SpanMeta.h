@@ -15,17 +15,16 @@
  */
 #pragma once
 
-#include <string>
-#include <memory>
 #include <map>
+#include <memory>
+#include <string>
 
 namespace opentelemetry {
-//using AttributeValue = std::variant<bool, int32_t, int64_t, uint32_t, double, const std::string&>;
+// using AttributeValue = std::variant<bool, int32_t, int64_t, uint32_t, double, const std::string&>;
 using AttributeValue = std::string;
 using AttributeMap = std::map<std::string, AttributeValue>;
 
-enum class SpanKind
-{
+enum class SpanKind {
     kInternal,
     kServer,
     kClient,
@@ -34,11 +33,10 @@ enum class SpanKind
 };
 
 // StatusCode - Represents the canonical set of status codes of a finished Span.
-enum class StatusCode
-{
-    kUnset,  // default status
-    kOk,     // Operation has completed successfully.
-    kError   // The operation contains an error
+enum class StatusCode {
+    kUnset, // default status
+    kOk,    // Operation has completed successfully.
+    kError  // The operation contains an error
 };
 
 constexpr char kEagleeyeServiceName[] = "eagleeye.service_name";
@@ -88,10 +86,10 @@ constexpr char kEnvRole[] = "role";
 constexpr char kEnvHippoVMIP[] = "HIPPO_ENV_VM_IP";
 constexpr char kHostSeparator[] = ".";
 
-constexpr size_t kMaxRequestEventSize = 4*1024*1024;
-constexpr size_t kMaxResponseEventSize = 8*1024*1024;
+constexpr size_t kMaxRequestEventSize = 4 * 1024 * 1024;
+constexpr size_t kMaxResponseEventSize = 8 * 1024 * 1024;
 
 #define OTEL_TYPEDEF_PTR(x) typedef std::shared_ptr<x> x##Ptr;
 #define OTEL_TYPEDEF_CONST_PTR(x) typedef std::shared_ptr<const x> x##ConstPtr;
 
-}
+} // namespace opentelemetry

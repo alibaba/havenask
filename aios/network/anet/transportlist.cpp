@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "aios/network/anet/debug.h"
 #include "aios/network/anet/transportlist.h"
-#include "aios/network/anet/transport.h"
-#include "aios/network/anet/log.h"
-#include <stddef.h>
-#include <ostream>
 
+#include <ostream>
+#include <stddef.h>
+
+#include "aios/network/anet/debug.h"
 #include "aios/network/anet/ilogger.h"
+#include "aios/network/anet/log.h"
 #include "aios/network/anet/threadmutex.h"
+#include "aios/network/anet/transport.h"
 
 using namespace std;
 
@@ -32,23 +33,20 @@ static int TransportCount = 0;
 
 #define INC_TRANSPORT() (TransportCount++)
 #define DEC_TRANSPORT() (TransportCount--)
-TransportListT & GetTransportList()
-{
+TransportListT &GetTransportList() {
     /* We rely on the fact that static data will be cleared to
      * NULL by the compiler. */
     static TransportListT TransportList;
     return TransportList;
 }
 
-ThreadMutex & GetTransportListMutex()
-{
+ThreadMutex &GetTransportListMutex() {
     static ThreadMutex TransportListMutex;
     return TransportListMutex;
 }
 
-int getTransportCount()
-{
-    ThreadMutex & TransportListMutex = GetTransportListMutex();
+int getTransportCount() {
+    ThreadMutex &TransportListMutex = GetTransportListMutex();
     TransportListMutex.lock();
     int rc = TransportCount;
     TransportListMutex.unlock();
@@ -58,14 +56,14 @@ int getTransportCount()
 bool addTransportToList(Transport *t) {
     bool added = false;
     int i = 0;
-    TransportListT & TransportList = GetTransportList();
-    ThreadMutex & TransportListMutex = GetTransportListMutex();
+    TransportListT &TransportList = GetTransportList();
+    ThreadMutex &TransportListMutex = GetTransportListMutex();
 
     /* We don't want to add duplicated items. */
     if (findTransportFromList(t) < 0) {
         TransportListMutex.lock();
         for (i = 0; i < MAX_TRANSPORTS; i++) {
-            if (TransportList[i] == NULL ){
+            if (TransportList[i] == NULL) {
                 TransportList[i] = t;
                 INC_TRANSPORT();
                 added = true;
@@ -76,7 +74,7 @@ bool addTransportToList(Transport *t) {
         DBGASSERT(getTransportCount() <= MAX_TRANSPORTS);
         if (i == MAX_TRANSPORTS) {
             ANET_LOG(WARN, "Slot number limits to %d. No more slots for Transport: %p", MAX_TRANSPORTS, t);
-        } 
+        }
     }
     return added;
 }
@@ -85,12 +83,12 @@ bool delTransportFromList(Transport *t) {
     bool deleted = false;
     int i = 0;
 
-    TransportListT & TransportList = GetTransportList();
-    ThreadMutex & TransportListMutex = GetTransportListMutex();
+    TransportListT &TransportList = GetTransportList();
+    ThreadMutex &TransportListMutex = GetTransportListMutex();
 
     TransportListMutex.lock();
     for (i = 0; i < MAX_TRANSPORTS; i++) {
-        if (TransportList[i] == t){
+        if (TransportList[i] == t) {
             TransportList[i] = NULL;
             DEC_TRANSPORT();
             deleted = true;
@@ -107,12 +105,12 @@ int findTransportFromList(Transport *t) {
     int i = 0;
     int rc = -1;
 
-    TransportListT & TransportList = GetTransportList();
-    ThreadMutex & TransportListMutex = GetTransportListMutex();
+    TransportListT &TransportList = GetTransportList();
+    ThreadMutex &TransportListMutex = GetTransportListMutex();
 
     TransportListMutex.lock();
     for (i = 0; i < MAX_TRANSPORTS; i++) {
-        if (TransportList[i] == t){
+        if (TransportList[i] == t) {
             rc = i;
             break;
         }
@@ -124,8 +122,8 @@ int findTransportFromList(Transport *t) {
 
 int dumpTransportList(ostringstream &buf) {
     int i = 0;
-    TransportListT & TransportList = GetTransportList();
-    ThreadMutex & TransportListMutex = GetTransportListMutex();
+    TransportListT &TransportList = GetTransportList();
+    ThreadMutex &TransportListMutex = GetTransportListMutex();
 
     int count = getTransportCount();
     buf << "===============================Dump of Transports===============================" << endl
@@ -137,11 +135,12 @@ int dumpTransportList(ostringstream &buf) {
 
     TransportListMutex.lock();
     for (i = 0; i < MAX_TRANSPORTS; i++) {
-        if (TransportList[i] != NULL) TransportList[i]->dump(buf);
+        if (TransportList[i] != NULL)
+            TransportList[i]->dump(buf);
     }
     TransportListMutex.unlock();
 
     return 0;
 }
 
-}
+} // namespace anet

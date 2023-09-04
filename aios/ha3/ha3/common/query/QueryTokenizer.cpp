@@ -15,13 +15,12 @@
  */
 #include "ha3/common/QueryTokenizer.h"
 
-#include <stdint.h>
 #include <cstddef>
 #include <memory>
+#include <stdint.h>
 
 #include "alog/Logger.h"
 #include "autil/Log.h"
-#include "indexlib/analyzer/Analyzer.h"
 #include "build_service/analyzer/AnalyzerFactory.h"
 #include "build_service/analyzer/IdleTokenizer.h"
 #include "build_service/analyzer/Token.h"
@@ -37,14 +36,15 @@
 #include "ha3/common/Term.h"
 #include "ha3/common/TermQuery.h"
 #include "ha3/isearch.h"
+#include "indexlib/analyzer/Analyzer.h"
 #include "indexlib/indexlib.h"
 #include "suez/turing/expression/util/IndexInfos.h"
 
 namespace isearch {
 namespace common {
 class NumberTerm;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 using namespace std;
 using namespace suez::turing;
@@ -57,10 +57,11 @@ namespace common {
 AUTIL_LOG_SETUP(ha3, QueryTokenizer);
 
 QueryTokenizer::QueryTokenizer(const AnalyzerFactory *analyzerFactory)
-    : _indexInfos(nullptr), _defaultOP(OP_AND), _analyzerFactory(analyzerFactory),
-      _visitedQuery(nullptr), _needCleanStopWords(false)
-{
-}
+    : _indexInfos(nullptr)
+    , _defaultOP(OP_AND)
+    , _analyzerFactory(analyzerFactory)
+    , _visitedQuery(nullptr)
+    , _needCleanStopWords(false) {}
 
 QueryTokenizer::QueryTokenizer(const QueryTokenizer &tokenzier) {
     _indexInfos = tokenzier._indexInfos;
@@ -80,11 +81,10 @@ QueryTokenizer::~QueryTokenizer() {
 void QueryTokenizer::tokenize(const string &indexName,
                               const Term &term,
                               TokenVect &tokens,
-                              bool needCleanStopWords)
-{
+                              bool needCleanStopWords) {
     if (needTokenize(indexName)) {
         doTokenize(indexName, term.getWord(), tokens, needCleanStopWords);
-    } else {
+    } else if (!_errorResult.hasError()) {
         if (needCleanStopWords && term.getToken().isStopWord()) {
             return;
         }
@@ -96,31 +96,27 @@ bool QueryTokenizer::needTokenize(const string &indexName) {
     assert(_indexInfos);
     const IndexInfo *indexInfo = _indexInfos->getIndexInfo(indexName.c_str());
     if (nullptr == indexInfo) {
-        _errorResult.resetError(ERROR_INDEX_NOT_EXIST,
-                                string("Index name:") + indexName);
+        _errorResult.resetError(ERROR_INDEX_NOT_EXIST, string("Index name:") + indexName);
         return false;
     }
 
     InvertedIndexType indexType = indexInfo->getIndexType();
-    return (it_text == indexType) || (it_pack == indexType)
-        || (it_expack == indexType);
+    return (it_text == indexType) || (it_pack == indexType) || (it_expack == indexType);
 }
 
 void QueryTokenizer::doTokenize(const string &indexName,
-                              const string &word,
+                                const string &word,
                                 TokenVect &tokens,
-                                bool needCleanStopWords)
-{
+                                bool needCleanStopWords) {
     const IndexInfo *indexInfo = _indexInfos->getIndexInfo(indexName.c_str());
     string analyzerName = getIndexAnalyzerName(indexName);
-    Analyzer* analyzer = nullptr;
+    Analyzer *analyzer = nullptr;
     if (analyzerName.empty()) {
         analyzerName = indexInfo->getAnalyzerName();
     }
     analyzer = _analyzerFactory->createAnalyzer(analyzerName);
-    if (!analyzer){
-        _errorResult.resetError(ERROR_ANALYZER_NOT_EXIST,
-                                string("Analyzer name: ") + analyzerName);
+    if (!analyzer) {
+        _errorResult.resetError(ERROR_ANALYZER_NOT_EXIST, string("Analyzer name: ") + analyzerName);
         return;
     }
     bool needIdleTokenize = isIndexNoTokenize(indexName);
@@ -130,10 +126,7 @@ void QueryTokenizer::doTokenize(const string &indexName,
     analyzer->tokenize(word.data(), word.size());
     Token token;
     while (analyzer->next(token)) {
-        if (!token.isSpace()
-            && !token.isDelimiter()
-            && token.isRetrieve())
-        {
+        if (!token.isSpace() && !token.isDelimiter() && token.isRetrieve()) {
             if (needCleanStopWords && token.isStopWord()) {
                 continue;
             }
@@ -186,11 +179,10 @@ void QueryTokenizer::visitMultiTermQuery(const MultiTermQuery *query) {
         }
 
         MultiTermQuery *multiTermQuery = new MultiTermQuery(query->getQueryLabel(), op);
-        Query::TermArray &resultTermArray = multiTermQuery->getTermArray() ;
+        Query::TermArray &resultTermArray = multiTermQuery->getTermArray();
         for (size_t i = 0; i < termArray.size(); ++i) {
             TokenVect tokens;
-            doTokenize(indexName, termArray[i]->getWord().c_str(),
-                       tokens, _needCleanStopWords);
+            doTokenize(indexName, termArray[i]->getWord().c_str(), tokens, _needCleanStopWords);
             addMultiTerms(resultTermArray, tokens, *termArray[i]);
         }
         size_t termSize = resultTermArray.size();
@@ -211,7 +203,7 @@ void QueryTokenizer::reConstructBinaryQuery(const MultiTermQuery *query) {
     Query *resultQuery = nullptr;
     QueryOperator op = query->getOpExpr();
     if (op == OP_AND) {
-        resultQuery =  new AndQuery(query->getQueryLabel());
+        resultQuery = new AndQuery(query->getQueryLabel());
     } else if (op == OP_OR) {
         resultQuery = new OrQuery(query->getQueryLabel());
     } else {
@@ -222,11 +214,10 @@ void QueryTokenizer::reConstructBinaryQuery(const MultiTermQuery *query) {
     const string indexName = termArray[0]->getIndexName();
 
     MultiTermQuery *multiTermQuery = new MultiTermQuery("", query->getOpExpr());
-    Query::TermArray &resultTermArray = multiTermQuery->getTermArray() ;
+    Query::TermArray &resultTermArray = multiTermQuery->getTermArray();
     for (size_t i = 0; i < termArray.size(); ++i) {
         TokenVect tokens;
-        doTokenize(indexName, termArray[i]->getWord().c_str(),
-                   tokens, _needCleanStopWords);
+        doTokenize(indexName, termArray[i]->getWord().c_str(), tokens, _needCleanStopWords);
         size_t tokenSize = tokens.size();
         if (tokenSize == 1) {
             addMultiTerms(resultTermArray, tokens, *termArray[i]);
@@ -248,7 +239,7 @@ void QueryTokenizer::reConstructBinaryQuery(const MultiTermQuery *query) {
     }
 
     if (resultQuery->getChildQuery()->size() > 0) {
-        if(nullptr != lastQuery) {
+        if (nullptr != lastQuery) {
             resultQuery->addQuery(QueryPtr(lastQuery));
         }
         _visitedQuery = resultQuery;
@@ -287,9 +278,7 @@ void QueryTokenizer::visitRankQuery(const RankQuery *query) {
     visitAndNotRankQuery(resultQuery, query);
 }
 
-void QueryTokenizer::visitAndOrQuery(common::Query *resultQuery,
-                                     const common::Query *srcQuery)
-{
+void QueryTokenizer::visitAndOrQuery(common::Query *resultQuery, const common::Query *srcQuery) {
     const vector<QueryPtr> *childQueryPtr = srcQuery->getChildQuery();
     assert(childQueryPtr);
     vector<Query *> restQuery;
@@ -333,8 +322,7 @@ void QueryTokenizer::visitAndOrQuery(common::Query *resultQuery,
 }
 
 void QueryTokenizer::visitAndNotRankQuery(common::Query *resultQuery,
-                          const common::Query *srcQuery)
-{
+                                          const common::Query *srcQuery) {
     const vector<QueryPtr> *childQueryPtr = srcQuery->getChildQuery();
     assert(childQueryPtr);
     vector<Query *> rightQuery;
@@ -351,9 +339,11 @@ void QueryTokenizer::visitAndNotRankQuery(common::Query *resultQuery,
     if (_errorResult.hasError() || nullptr == leftQuery) {
         delete resultQuery;
         _visitedQuery = nullptr;
+        DELETE_AND_SET_NULL(leftQuery);
         if (!_errorResult.hasError()) {
-            _errorResult.resetError(ERROR_QUERY_INVALID, "AndNotQuery or RankQuery's "
-                    "leftQuery is nullptr or stop word.");
+            _errorResult.resetError(ERROR_QUERY_INVALID,
+                                    "AndNotQuery or RankQuery's "
+                                    "leftQuery is nullptr or stop word.");
         }
         return;
     }
@@ -395,40 +385,35 @@ void QueryTokenizer::visitAndNotRankQuery(common::Query *resultQuery,
     }
 }
 
-Query* QueryTokenizer::createTermQuery(const Token &token, const Term &term,
-                                       const string &label) {
+Query *QueryTokenizer::createTermQuery(const Token &token, const Term &term, const string &label) {
     const string &indexName = term.getIndexName();
     const RequiredFields &requiredFields = term.getRequiredFields();
     const int32_t boost = term.getBoost();
     const string &secondaryChain = term.getTruncateName();
-    Query *query = new TermQuery(token, indexName.c_str(),
-                                 requiredFields, label, boost, secondaryChain);
+    Query *query
+        = new TermQuery(token, indexName.c_str(), requiredFields, label, boost, secondaryChain);
 
-    AUTIL_LOG(DEBUG, "token : %s, pos : %d",
-            token.getText().c_str(), (int32_t)token.getPosition());
+    AUTIL_LOG(DEBUG, "token : %s, pos : %d", token.getText().c_str(), (int32_t)token.getPosition());
     return query;
 }
 
 void QueryTokenizer::addMultiTerms(Query::TermArray &termArray,
-        const TokenVect &tokens, const Term &term)
-{
+                                   const TokenVect &tokens,
+                                   const Term &term) {
     const string &indexName = term.getIndexName();
     const RequiredFields &requiredFields = term.getRequiredFields();
     const int32_t boost = term.getBoost();
     const string &secondaryChain = term.getTruncateName();
 
-    for (TokenVect::const_iterator it = tokens.begin();
-         it != tokens.end(); ++it)
-    {
+    for (TokenVect::const_iterator it = tokens.begin(); it != tokens.end(); ++it) {
         const Token &token = *it;
-        TermPtr termPtr(new Term(token, indexName.c_str(),
-                        requiredFields, boost, secondaryChain));
+        TermPtr termPtr(new Term(token, indexName.c_str(), requiredFields, boost, secondaryChain));
         termArray.push_back(termPtr);
     }
 }
 
-Query* QueryTokenizer::createDefaultQuery(const TokenVect &tokens, const Term &term,
-                                          const string& label) {
+Query *
+QueryTokenizer::createDefaultQuery(const TokenVect &tokens, const Term &term, const string &label) {
     Query *query = nullptr;
     if (_defaultOP == OP_AND) {
         query = new AndQuery(label);
@@ -439,9 +424,7 @@ Query* QueryTokenizer::createDefaultQuery(const TokenVect &tokens, const Term &t
         return nullptr;
     }
 
-    for (TokenVect::const_iterator it = tokens.begin();
-         it != tokens.end(); ++it)
-    {
+    for (TokenVect::const_iterator it = tokens.begin(); it != tokens.end(); ++it) {
         const Token &token = *it;
         Query *tmpQuery = createTermQuery(token, term, "");
         QueryPtr tmpQueryPtr(tmpQuery);
@@ -451,7 +434,7 @@ Query* QueryTokenizer::createDefaultQuery(const TokenVect &tokens, const Term &t
     return query;
 }
 
-Query* QueryTokenizer::stealQuery() {
+Query *QueryTokenizer::stealQuery() {
     Query *tmpQuery = _visitedQuery;
     _visitedQuery = nullptr;
     return tmpQuery;

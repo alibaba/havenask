@@ -17,50 +17,31 @@
 
 namespace opentelemetry {
 
-bool EagleeyeUtil::validSpan(const SpanPtr& span) {
-    return false;
-}
+bool EagleeyeUtil::validSpan(const SpanPtr &span) { return false; }
 
-const std::string& EagleeyeUtil::getETraceId(const SpanPtr& span) {
-    return EMPTY_STRING;
-}
+const std::string &EagleeyeUtil::getETraceId(const SpanPtr &span) { return EMPTY_STRING; }
 
-const std::string& EagleeyeUtil::getERpcId(const SpanPtr& span) {
-    return EMPTY_STRING;
+const std::string &EagleeyeUtil::getERpcId(const SpanPtr &span) { return EMPTY_STRING; }
 
-}
+const std::string &EagleeyeUtil::getEAppId(const SpanPtr &span) { return EMPTY_STRING; }
 
-const std::string& EagleeyeUtil::getEAppId(const SpanPtr& span) {
-    return EMPTY_STRING;
-}
+void EagleeyeUtil::setEAppId(const SpanPtr &span, const std::string &eAppId) {}
 
-void EagleeyeUtil::setEAppId(const SpanPtr& span, const std::string& eAppId) {
-}
+void EagleeyeUtil::putEUserData(const SpanPtr &span, const std::string &k, const std::string &v) {}
 
-void EagleeyeUtil::putEUserData(const SpanPtr& span, const std::string& k, const std::string& v) {
-}
+void EagleeyeUtil::putEUserData(const SpanPtr &span, const std::map<std::string, std::string> &dataMap) {}
 
-void EagleeyeUtil::putEUserData(const SpanPtr& span, const std::map<std::string, std::string>& dataMap) {
-}
+const std::string &EagleeyeUtil::getEUserData(const SpanPtr &span, const std::string &k) { return EMPTY_STRING; }
 
-const std::string& EagleeyeUtil::getEUserData(const SpanPtr& span, const std::string& k) {
-    return EMPTY_STRING;
-}
-
-const std::map<std::string, std::string>& EagleeyeUtil::getEUserDatas(const SpanPtr& span) {
+const std::map<std::string, std::string> &EagleeyeUtil::getEUserDatas(const SpanPtr &span) {
     static std::map<std::string, std::string> emptyMap;
     return emptyMap;
 }
 
-void EagleeyeUtil::splitUserData(const std::string &userData, std::map<std::string, std::string>& datas) {
-}
+void EagleeyeUtil::splitUserData(const std::string &userData, std::map<std::string, std::string> &datas) {}
 
-std::string EagleeyeUtil::joinUserData(const std::map<std::string, std::string> &m) {
-    return EMPTY_STRING;
-}
+std::string EagleeyeUtil::joinUserData(const std::map<std::string, std::string> &m) { return EMPTY_STRING; }
 
-bool EagleeyeUtil::isSampled(const SpanContextPtr& context) {
-    return false;
-}
+bool EagleeyeUtil::isSampled(const SpanContextPtr &context) { return false; }
 
-}
+} // namespace opentelemetry

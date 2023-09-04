@@ -1,0 +1,58 @@
+{
+    "table_name": "mainse_searcher",
+    "versionid" : 0,
+    "adaptive_dictionaries" : [
+        {
+            "adaptive_dictionary_name" : "df",
+            "dict_type" : "DOC_FREQUENCY",
+            "threshold" : 3
+                    
+        }
+    ],
+    "dictionaries" : [
+        {
+            "content" : "tag1;tag2",
+            "dictionary_name" : "top_term"
+                    
+        }
+    ],
+    
+    "fields": [
+	{"field_name":"nid", "field_type":"INT32"},
+	{"field_name":"name", "field_type":"string"},
+        {"field_name":"tag", "field_type":"string"},
+	{"field_name":"price", "field_type":"INT32"}
+    ],
+    "indexs": [
+	{"index_name":"nid", "index_fields":"nid", "index_type": "PRIMARYKEY64", "has_primary_key_attribute": false, "term_frequency_flag" : 0},
+        {
+            "index_name":"name",
+            "index_fields":"name",
+            "index_type": "STRING",
+            "high_frequency_adaptive_dictionary" : "df",
+            "high_frequency_term_posting_type" : "both",
+            "has_truncate":true
+        },
+        {
+            "index_name":"tag",
+            "index_fields":"tag",
+            "index_type": "STRING",
+            "high_frequency_dictionary" : "top_term",
+            "high_frequency_adaptive_dictionary" : "df",
+            "high_frequency_term_posting_type" : "bitmap",
+            "has_truncate":true
+        }
+    ],
+    "attributes": ["price", "name"],
+    "summarys": {
+	"summary_fields":["nid"],
+	"compress":true
+    },
+    "truncate_profiles" : [
+        {
+            "sort_descriptions" : "+price",
+            "truncate_profile_name" : "asc_price"
+        }
+            
+    ]
+}

@@ -16,20 +16,21 @@
 #ifndef ISEARCH_MULTI_CALL_SEARCHSERVICESNAPSHOTINBIZ_H
 #define ISEARCH_MULTI_CALL_SEARCHSERVICESNAPSHOTINBIZ_H
 
+#include <unordered_map>
+
 #include "aios/network/gig/multi_call/common/VersionInfo.h"
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/metric/MetricReporterManager.h"
 #include "aios/network/gig/multi_call/metric/SnapshotInfoCollector.h"
 #include "aios/network/gig/multi_call/service/SearchServiceProvider.h"
 #include "aios/network/gig/multi_call/service/SearchServiceSnapshotInVersion.h"
-#include <unordered_map>
 
 namespace multi_call {
 
-class SearchServiceSnapshotInBiz {
+class SearchServiceSnapshotInBiz
+{
 public:
-    SearchServiceSnapshotInBiz(const std::string &bizName,
-                               const MiscConfigPtr &miscConfig);
+    SearchServiceSnapshotInBiz(const std::string &bizName, const MiscConfigPtr &miscConfig);
     ~SearchServiceSnapshotInBiz();
 
 private:
@@ -44,14 +45,18 @@ public:
     void toString(std::string &debugStr);
     void fillSnapshotBizInfo(SnapshotBizInfo &bizInfo);
     bool hasDiff(const std::set<TopoNode> &topoNodes);
-    const std::set<TopoNode> &getTopoNodes() const { return _topoNodes; }
+    const std::set<TopoNode> &getTopoNodes() const {
+        return _topoNodes;
+    }
     const VersionSnapshotMap &getVersionSnapshotMap() const {
         return _versionSnapshotMap;
     }
     const VersionSnapshotMap &getCopyVersionSnapshotMap() const {
         return _copyVersionSnapshotMap;
     }
-    size_t getNormalProviderCount() const { return _normalProviderCount; }
+    size_t getNormalProviderCount() const {
+        return _normalProviderCount;
+    }
     std::vector<VersionTy> getVersion() {
         std::vector<VersionTy> result;
         for (auto item : _versionSnapshotMap) {
@@ -68,18 +73,25 @@ public:
         }
         return result;
     }
-    const std::vector<std::pair<VersionTy, WeightTy> > &
-    getVersionNormalProviderCountVec() const {
+    const std::vector<std::pair<VersionTy, WeightTy>> &getVersionNormalProviderCountVec() const {
         return _versionNormalProviderCountVec;
     }
     bool hasVersion(VersionTy version, VersionInfo &info) const;
+    void getMetaInfo(BizMetaInfo &metaInfo) const;
     SearchServiceSnapshotInVersionPtr getVersionSnapshot(VersionTy version);
-    std::string getBizName() const { return _bizName; }
-    bool active() const { return _active; }
-    void setActive() { _active = true; }
+    std::string getBizName() const {
+        return _bizName;
+    }
+    bool active() const {
+        return _active;
+    }
+    void setActive() {
+        _active = true;
+    }
+
 private:
-    static void doToString(const VersionSnapshotMap &versionSnapshotMap,
-                           bool isCopy, std::string &debugStr);
+    static void doToString(const VersionSnapshotMap &versionSnapshotMap, bool isCopy,
+                           std::string &debugStr);
 
 private:
     std::string _bizName;
@@ -89,7 +101,7 @@ private:
     std::set<TopoNode> _topoNodes;
     RandomGenerator _randomGenerator;
     size_t _normalProviderCount;
-    std::vector<std::pair<VersionTy, WeightTy> > _versionNormalProviderCountVec;
+    std::vector<std::pair<VersionTy, WeightTy>> _versionNormalProviderCountVec;
     bool _active; // has query in this biz
 private:
     AUTIL_LOG_DECLARE();

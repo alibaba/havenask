@@ -19,7 +19,7 @@
 #include "autil/NoCopyable.h"
 #include "expression/framework/AtomicAttributeExpressionCreatorBase.h"
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::framework {
@@ -41,7 +41,7 @@ class AtomicExpressionCreator : public expression::AtomicAttributeExpressionCrea
 {
 public:
     AtomicExpressionCreator(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                            const std::shared_ptr<config::TabletSchema>& schema,
+                            const std::shared_ptr<config::ITabletSchema>& schema,
                             expression::AttributeExpressionPool* exprPool, autil::mem_pool::Pool* pool);
     ~AtomicExpressionCreator();
 
@@ -57,7 +57,7 @@ private:
     std::vector<AtomicAttributeExpressionBase*> _uniqCreatedExpressions;
     std::vector<AtomicAttributeExpressionBase*> _createdExpressions;
     std::vector<std::shared_ptr<framework::Segment>> _segments;
-    std::shared_ptr<config::TabletSchema> _schema;
+    std::shared_ptr<config::ITabletSchema> _schema;
     expression::AttributeExpressionPool* _exprPool;
     autil::mem_pool::Pool* _pool;
 

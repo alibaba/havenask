@@ -43,7 +43,7 @@ public:
     size_t Size() { return _records.size(); }
     auto& GetRecords() { return _records; };
     const auto& GetRecords() const { return _records; }
-    void UpdateMemoryUsage(MemoryUsage& memoryUsage) const;
+    void FillMemoryUsage(MemoryUsage& memoryUsage) const;
 
 public:
     auto& TEST_GetRecords() { return _records; }

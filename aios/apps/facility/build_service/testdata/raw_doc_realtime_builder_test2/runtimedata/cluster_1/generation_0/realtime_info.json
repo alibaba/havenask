@@ -1,0 +1,9 @@
+{
+    "type": "swift",
+    "topic_name": "test",
+    "swift_start_timestamp": "1603152000000000",
+    "swift_root": "http://test.com",
+    "src_signature": "1",
+    "src": "swift",
+    "realtime_mode": "realtime_service_rawdoc_rt_build_mode"
+}

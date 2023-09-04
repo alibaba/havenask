@@ -1,0 +1,36 @@
+{
+"format_version":
+  2,
+"last_segmentid":
+  0,
+"level_info":
+  {
+  "level_metas":
+    [
+      {
+      "cursor":
+        0,
+      "level_idx":
+        0,
+      "segments":
+        [
+          0
+        ],
+      "topology":
+        "sequence"
+      }
+    ]
+  },
+"locator":
+  "00000000000000000100000000000000",
+"schema_version":
+  0,
+"segments":
+  [
+    0
+  ],
+"timestamp":
+  0,
+"versionid":
+  0
+}

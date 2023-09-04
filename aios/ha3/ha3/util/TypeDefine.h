@@ -20,20 +20,20 @@
 
 namespace isearch {
 
-constexpr double TIMEOUT_PERCENTAGE = 0.95; // 95%
-constexpr double SEEK_TIMEOUT_PERCENTAGE =  0.70; // 70%
+constexpr double TIMEOUT_PERCENTAGE = 0.95;      // 95%
+constexpr double SEEK_TIMEOUT_PERCENTAGE = 0.70; // 70%
 
-constexpr int32_t QRS_ARPC_CONNECTION_TIMEOUT = 60000; //ms
+constexpr int32_t QRS_ARPC_CONNECTION_TIMEOUT = 60000; // ms
 constexpr uint64_t QRS_ARPC_REQUEST_QUEUE_SIZE = 100;
 constexpr uint64_t QRS_RETURN_HITS_LIMIT = 5000;
 constexpr uint64_t QRS_REPLICA_COUNT = 1;
 constexpr uint32_t THREAD_INIT_ROUND_ROBIN = 8;
 constexpr uint32_t RETURN_HIT_REWRITE_THRESHOLD = 320;
 constexpr double RETURN_HIT_REWRITE_RATIO = -1.0;
-constexpr size_t POOL_TRUNK_SIZE = 10; // 10 M
+constexpr size_t POOL_TRUNK_SIZE = 10;         // 10 M
 constexpr size_t POOL_RECYCLE_SIZE_LIMIT = 20; // 20 M
 constexpr size_t POOL_MAX_COUNT = 200;
-constexpr size_t CAVA_ALLOC_SIZE_LIMIT = 40; // 40 M
+constexpr size_t CAVA_ALLOC_SIZE_LIMIT = 40;  // 40 M
 constexpr size_t CAVA_INIT_SIZE_LIMIT = 1024; // 1024 M
 constexpr size_t CAVA_MODULE_CACHE_SIZE_LIMIT = 500000;
 constexpr size_t CAVA_MODULE_CACHE_SIZE_DEFAULT = 100000;
@@ -42,7 +42,7 @@ constexpr char HA3_CAVA_PLUGINS[] = "../binary/usr/local/share/cava/plugins";
 constexpr char SQL_FUNCTION_CONF[] = "/usr/local/etc/ha3/sql_function.json";
 constexpr char DEFAULT_RESOURCE_TYPE[] = "default";
 
-constexpr uint64_t PROXY_ARPC_CONNECTION_TIMEOUT = 60000; //ms
+constexpr uint64_t PROXY_ARPC_CONNECTION_TIMEOUT = 60000; // ms
 constexpr uint64_t PROXY_ARPC_REQUEST_QUEUE_SIZE = 100;
 
 constexpr char USER_NAME[] = "UserName";
@@ -154,7 +154,6 @@ constexpr char QRS_BIN_NAME[] = "qrs_worker";
 
 constexpr char DEFAULT_QRS_HEALTHCHECK_FILE[] = "qrs.status";
 
-#define JSONIZE(json, configName, value)        \
-    json.Jsonize(configName, value, value)
+#define JSONIZE(json, configName, value) json.Jsonize(configName, value, value)
 
-};
+}; // namespace isearch

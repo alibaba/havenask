@@ -1,0 +1,36 @@
+{
+"fields":
+  [
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "string1",
+    "field_type":
+      "STRING"
+    }
+  ],
+"indexs":
+  [
+    {
+    "doc_payload_flag":
+      0,
+    "has_dict_inline_compress":
+      true,
+    "index_fields":
+      "string1",
+    "index_name":
+      "index",
+    "index_type":
+      "STRING",
+    "is_compressed_posting_header":
+      false,
+    "term_frequency_flag":
+      0,
+    "term_payload_flag":
+      0
+    }
+  ],
+"table_name":
+  "noname"
+}

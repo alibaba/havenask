@@ -1,0 +1,26 @@
+{
+    "table_name": "kv_table",
+    "table_type": "kv",
+    "fields": [
+        { "field_name": "nid", "field_type": "INT64" },
+        { "field_name": "multi_int32_fixed", "field_type": "INT32", "multi_value": true, "fixed_multi_value_count" : 4},
+        { "field_name": "multi_int16", "field_type": "INT16", "multi_value" : true}
+    ],
+    "indexs": [
+        {
+            "index_name": "nid",
+            "index_fields": "nid",
+            "index_type": "PRIMARY_KEY",
+	    "index_preference" : { "type" : "PERF" },
+            "customized_config" :
+            [
+                {
+                    "plugin_name" : "plugin4",
+                    "parameters" : {"key":"param4"},
+                    "id" : "accessor.writer"
+                }
+            ]            
+        }
+    ],
+    "attributes": [ "nid", "multi_int32_fixed", "multi_int16"]
+}

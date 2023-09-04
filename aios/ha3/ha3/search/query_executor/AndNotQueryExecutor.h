@@ -52,10 +52,10 @@ public:
         assert(false);
     }
     indexlib::index::ErrorCode seekSubDoc(docid_t docId,
-                                           docid_t subDocId,
-                                           docid_t subDocEnd,
-                                           bool needSubMatchdata,
-                                           docid_t &result) override;
+                                          docid_t subDocId,
+                                          docid_t subDocEnd,
+                                          bool needSubMatchdata,
+                                          docid_t &result) override;
     bool isMainDocHit(docid_t docId) const override;
     void setCurrSub(docid_t docid) override;
     uint32_t getSeekDocCount() override {

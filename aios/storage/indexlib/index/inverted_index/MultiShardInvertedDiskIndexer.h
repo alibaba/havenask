@@ -28,13 +28,10 @@ class Directory;
 }
 
 namespace indexlibv2::index {
-template <typename T>
-class MultiValueAttributeDiskIndexer;
-}
-
+class AttributeConfig;
+} // namespace indexlibv2::index
 namespace indexlibv2::config {
 class IIndexConfig;
-class AttributeConfig;
 class InvertedIndexConfig;
 } // namespace indexlibv2::config
 
@@ -66,8 +63,6 @@ public:
     std::shared_ptr<InvertedDiskIndexer> GetSingleShardIndexer(const std::string& indexName) const;
     std::shared_ptr<IDiskIndexer> GetSectionAttributeDiskIndexer() const override;
 
-    std::shared_ptr<IDiskIndexer> GetMultiSliceAttributeDiskIndexer() const { return _multiSliceAttrDiskIndexer; }
-
 private:
     size_t EstimateSectionAttributeMemUsed(const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& config,
                                            const std::shared_ptr<file_system::IDirectory>& indexDirectory);
@@ -77,9 +72,8 @@ private:
     std::map<std::string, std::shared_ptr<InvertedDiskIndexer>> _indexers;
     std::vector<std::shared_ptr<InvertedDiskIndexer>> _shardIndexers;
     std::unique_ptr<ShardingIndexHasher> _indexHasher;
-    std::shared_ptr<indexlibv2::index::MultiValueAttributeDiskIndexer<char>> _sectionAttrDiskIndexer;
-    std::shared_ptr<IDiskIndexer> _multiSliceAttrDiskIndexer;
-    std::shared_ptr<indexlibv2::config::AttributeConfig> _sectionAttrConfig;
+    std::shared_ptr<IDiskIndexer> _sectionAttrDiskIndexer;
+    std::shared_ptr<indexlibv2::index::AttributeConfig> _sectionAttrConfig;
 
     AUTIL_LOG_DECLARE();
 };

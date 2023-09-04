@@ -22,13 +22,10 @@ namespace search {
 AUTIL_LOG_SETUP(ha3, MatchDataFetcher);
 
 MatchDataFetcher::MatchDataFetcher()
-    : _termCount (0)
-    , _accTermCount(0) {
-}
+    : _termCount(0)
+    , _accTermCount(0) {}
 
-MatchDataFetcher::~MatchDataFetcher() {
-}
-
+MatchDataFetcher::~MatchDataFetcher() {}
 
 } // namespace search
 } // namespace isearch

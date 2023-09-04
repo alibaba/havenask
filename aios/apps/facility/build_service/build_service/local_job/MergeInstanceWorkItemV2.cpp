@@ -95,7 +95,6 @@ void MergeInstanceWorkItemV2::process()
     if (_buildMode == "full") {
         params[indexlibv2::table::IS_OPTIMIZE_MERGE] = "true";
     }
-    params[indexlibv2::table::IS_DESIGNATE_TASK] = "true";
 
     auto [status, _] = tablet->ExecuteTask(version, taskType, taskName, params);
     if (!status.IsOK()) {
@@ -105,13 +104,10 @@ void MergeInstanceWorkItemV2::process()
         return;
     }
     BS_LOG(INFO, "success merge, index path[%s]", _finalIndexRoot.c_str());
-    auto needCommit = tablet->NeedCommit();
-    if (needCommit) {
-        st = tablet->Commit(indexlibv2::framework::CommitOptions().SetNeedPublish(true)).first;
-        if (!st.IsOK()) {
-            setFailFlag();
-            BS_LOG(ERROR, "tablet commit failed");
-        }
+    st = tablet->Commit(indexlibv2::framework::CommitOptions().SetNeedPublish(true)).first;
+    if (!st.IsOK()) {
+        setFailFlag();
+        BS_LOG(ERROR, "tablet commit failed");
     }
     return;
 }
@@ -148,17 +144,17 @@ std::unique_ptr<future_lite::Executor> MergeInstanceWorkItemV2::createExecutor(c
         future_lite::ExecutorCreator::Parameters().SetExecutorName(executorName).SetThreadNum(threadCount));
 }
 
-int64_t MergeInstanceWorkItemV2::getMachineTotalMemory() const
+int64_t MergeInstanceWorkItemV2::getMachineTotalMemoryMb() const
 {
-    int64_t totalMemory = autil::MemUtil::getMachineTotalMem();
+    int64_t totalMemoryBytes = autil::MemUtil::getMachineTotalMem();
     static constexpr double defaultAllowRatio = 0.95;
     auto allowRatio = autil::EnvUtil::getEnv<double>("bs_build_task_memory_allow_ratio", defaultAllowRatio);
     if (allowRatio <= 0 or allowRatio > 1.0) {
         BS_LOG(WARN, "bs_build_task_memory_allow_ratio [%lf] is not valid, set to %lf", allowRatio, defaultAllowRatio);
         allowRatio = defaultAllowRatio;
     }
-    totalMemory = int64_t(totalMemory * allowRatio);
-    return totalMemory;
+    totalMemoryBytes = int64_t(totalMemoryBytes * allowRatio);
+    return totalMemoryBytes / 1024 / 1024;
 }
 
 bool MergeInstanceWorkItemV2::createQuotaController(int64_t buildTotalMemory)
@@ -171,7 +167,7 @@ bool MergeInstanceWorkItemV2::createQuotaController(int64_t buildTotalMemory)
         return false;
     }
 
-    int64_t totalMemory = getMachineTotalMemory();
+    int64_t totalMemory = getMachineTotalMemoryMb();
     if (totalMemory < buildTotalMemory) {
         buildTotalMemory = totalMemory;
     }
@@ -184,17 +180,28 @@ bool MergeInstanceWorkItemV2::createQuotaController(int64_t buildTotalMemory)
     return true;
 }
 
-bool MergeInstanceWorkItemV2::prepareResource(const config::OfflineIndexConfigMap& configMap)
+bool MergeInstanceWorkItemV2::prepareResource()
 {
+    auto clusterName = _jobConfig.getClusterName();
+    const std::string clusterConfig = _resourceReader->getClusterConfRelativePath(clusterName);
+
     uint32_t executorThreadCount = 1;
     uint32_t dumpThreadCount = 1;
-    int64_t buildTotalMemory = 6 * 1024; // 6G
-    auto iter = configMap.find(/*default config*/ "");
-    if (iter != configMap.end()) {
-        const auto& buildConfig = iter->second.buildConfig;
-        executorThreadCount = buildConfig.executorThreadCount;
-        dumpThreadCount = buildConfig.dumpThreadCount;
-        buildTotalMemory = buildConfig.buildTotalMemory;
+    int64_t buildTotalMemory = getMachineTotalMemoryMb();
+    if (!_resourceReader->getConfigWithJsonPath(
+            clusterConfig, "offline_index_config.build_config.executor_thread_count", executorThreadCount)) {
+        BS_LOG(ERROR, "read offline_index_config.build_config failed, cluster [%s]", clusterName.c_str());
+        return false;
+    }
+    if (!_resourceReader->getConfigWithJsonPath(clusterConfig, "offline_index_config.build_config.dump_thread_count",
+                                                dumpThreadCount)) {
+        BS_LOG(ERROR, "read offline_index_config.build_config failed, cluster [%s]", clusterName.c_str());
+        return false;
+    }
+    if (!_resourceReader->getConfigWithJsonPath(clusterConfig, "offline_index_config.build_config.build_total_memory",
+                                                buildTotalMemory)) {
+        BS_LOG(ERROR, "read offline_index_config.build_config failed, cluster [%s]", clusterName.c_str());
+        return false;
     }
     if (!_dumpExecutor) {
         _dumpExecutor = createExecutor("dump_executor", dumpThreadCount);
@@ -214,20 +221,11 @@ bool MergeInstanceWorkItemV2::prepareResource(const config::OfflineIndexConfigMa
 
 std::shared_ptr<indexlibv2::framework::ITablet> MergeInstanceWorkItemV2::prepareTablet()
 {
-    auto clusterName = _jobConfig.getClusterName();
-
-    const std::string clusterConfig = _resourceReader->getClusterConfRelativePath(clusterName);
-    config::OfflineIndexConfigMap configMap;
-    if (!_resourceReader->getConfigWithJsonPath(clusterConfig, "offline_index_config", configMap)) {
-        BS_LOG(ERROR, "read offline_index_config failed, cluster:%s", clusterName.c_str());
-        return nullptr;
-    }
-
-    if (!prepareResource(configMap)) {
+    if (!prepareResource()) {
         BS_LOG(ERROR, "prepare resource failed.");
         return nullptr;
     }
-
+    const std::string clusterName = _jobConfig.getClusterName();
     auto tabletOptions = _resourceReader->getTabletOptions(clusterName);
     if (tabletOptions == nullptr) {
         BS_LOG(ERROR, "init tablet options [%s] failed", clusterName.c_str());
@@ -236,8 +234,8 @@ std::shared_ptr<indexlibv2::framework::ITablet> MergeInstanceWorkItemV2::prepare
 
     tabletOptions->SetAutoMerge(false);
     tabletOptions->SetIsOnline(false);
-    tabletOptions->SetFlushRemote(false);
-    tabletOptions->SetFlushLocal(true);
+    tabletOptions->SetFlushRemote(true);
+    tabletOptions->SetFlushLocal(false);
     tabletOptions->SetIsLeader(true);
 
     _tabletSchema = getTabletSchema(tabletOptions);
@@ -249,7 +247,7 @@ std::shared_ptr<indexlibv2::framework::ITablet> MergeInstanceWorkItemV2::prepare
         reporter = _metricProvider->GetReporter();
     }
 
-    std::shared_ptr<indexlibv2::framework::ITabletMergeController> mergeController = createMergeController(configMap);
+    std::shared_ptr<indexlibv2::framework::ITabletMergeController> mergeController = createMergeController();
     if (mergeController == nullptr) {
         BS_LOG(ERROR, "get merge controller failed");
         return nullptr;
@@ -279,14 +277,10 @@ std::shared_ptr<indexlibv2::framework::IdGenerator> MergeInstanceWorkItemV2::get
     return idGenerator;
 }
 
-std::shared_ptr<indexlibv2::framework::ITabletMergeController>
-MergeInstanceWorkItemV2::createMergeController(const config::OfflineIndexConfigMap& configMap)
+std::shared_ptr<indexlibv2::framework::ITabletMergeController> MergeInstanceWorkItemV2::createMergeController()
 {
-    auto it = configMap.find(/*default config*/ "");
-    if (it != configMap.end()) {
-        if (!_localMergeExecutor) {
-            _localMergeExecutor = createExecutor("merge_controller", 1);
-        }
+    if (!_localMergeExecutor) {
+        _localMergeExecutor = createExecutor("merge_controller", 1);
     }
     assert(_localMergeExecutor != nullptr);
     indexlibv2::table::LocalTabletMergeController::InitParam param;
@@ -306,7 +300,7 @@ MergeInstanceWorkItemV2::createMergeController(const config::OfflineIndexConfigM
     return controller;
 }
 
-std::shared_ptr<indexlibv2::config::TabletSchema>
+std::shared_ptr<indexlibv2::config::ITabletSchema>
 MergeInstanceWorkItemV2::getTabletSchema(const std::shared_ptr<indexlibv2::config::TabletOptions>& tabletOptions) const
 {
     auto clusterName = _jobConfig.getClusterName();

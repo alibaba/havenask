@@ -1,0 +1,12 @@
+{
+    "amonitor_port" : 7105,
+    "apsara_package_name" : "package://zhubin_bs_func_test",
+    "hadoop_package_name" : "hdfs://10.101.170.93:9000/zhubin/bs_func_test/hadoop_build_package.tar.gz",
+    "hippo_root" : "zfs://10.125.224.30:2181,10.125.224.31:2181,10.125.224.32:2181/perf_search_test_hippo/hippo/",
+    "index_root" : "./job_test_index_root",
+    "nuwa_service_ip" : "AT-ha3perf",
+    "service_name" : "2015-10-30-17-15_grp_admin_test_sut_parallel_build",
+    "swift_root" : "zfs://10.125.224.30:2181,10.125.224.31:2181,10.125.224.32:2181/swift/swift_service",
+    "user_name" : "doranbin.zhu",
+    "zookeeper_root" : "zfs://10.125.224.30:2181,10.125.224.31:2181,10.125.224.32:2181/zhubin/bs_func_test/grp_admin_test/sut_parallel_build"
+}

@@ -88,6 +88,8 @@ public:
     FSResult<uint32_t> ReadVUInt32(ReadOption option = ReadOption()) noexcept;
     FSResult<uint32_t> ReadVUInt32(size_t offset, ReadOption option = ReadOption()) noexcept;
     bool IsMemLock() const noexcept;
+    // TODO(shouya) for kv/kkv
+    size_t EvaluateCurrentMemUsed() noexcept;
 
 public:
     std::string TEST_Load() noexcept(false);

@@ -1,8 +1,8 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(
     default_visibility=['//aios/storage/indexlib/file_system:__subpackages__']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='interface',
     srcs=[],
     hdrs=['FileReader.h', 'FileWriter.h', 'ReadOption.h'],
@@ -12,7 +12,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:CoroutineConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='headers',
     srcs=[],
     hdrs=[
@@ -22,8 +22,8 @@ indexlib_cc_library(
     ],
     deps=[':interface']
 )
-indexlib_cc_library(name='file', srcs=[], hdrs=[], deps=[':base', ':compress'])
-indexlib_cc_library(
+strict_cc_library(name='file', srcs=[], hdrs=[], deps=[':base', ':compress'])
+strict_cc_library(
     name='compress',
     srcs=[
         'CompressDataDumper.cpp', 'CompressFileAddressMapper.cpp',
@@ -51,7 +51,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system:interface'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='base',
     srcs=[
         'BlockByteSliceList.cpp', 'BlockFileAccessor.cpp', 'BlockFileNode.cpp',

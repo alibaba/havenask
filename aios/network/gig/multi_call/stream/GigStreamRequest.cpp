@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/stream/GigStreamRequest.h"
+
 #include "aios/network/gig/multi_call/grpc/client/GrpcClientStreamHandler.h"
 #include "aios/network/gig/multi_call/stream/GigClientStream.h"
 #include "aios/network/gig/multi_call/stream/GigStreamResponse.h"
@@ -33,8 +34,7 @@ GigStreamRequest::GigStreamRequest(const std::shared_ptr<Arena> &arena)
     , _stream(nullptr)
     , _normalCallInfo(nullptr)
     , _retryReceived(false)
-    , _retryCallInfo(nullptr)
-{
+    , _retryCallInfo(nullptr) {
 }
 
 GigStreamRequest::~GigStreamRequest() {
@@ -62,11 +62,9 @@ std::shared_ptr<GigStreamBase> GigStreamRequest::getStream() const {
     }
 }
 
-void GigStreamRequest::addHandler(
-    RequestType requestType,
-    const std::shared_ptr<GrpcClientStreamHandler> &handler,
-    bool isRetry)
-{
+void GigStreamRequest::addHandler(RequestType requestType,
+                                  const std::shared_ptr<GrpcClientStreamHandler> &handler,
+                                  bool isRetry) {
     auto callInfo = new SingleCallInfo();
     callInfo->requestType = requestType;
     callInfo->handlerInited = false;
@@ -149,8 +147,7 @@ bool GigStreamRequest::flushRetryMessage() {
 }
 
 bool GigStreamRequest::postSingleMessage(SingleCallInfo &callInfo,
-                                         const SendBufferMessage &message)
-{
+                                         const SendBufferMessage &message) {
     const auto &handler = callInfo.handler;
     if (!handler) {
         return false;
@@ -193,8 +190,7 @@ bool GigStreamRequest::postCancel(const GigStreamMessage &message) {
 
 void GigStreamRequest::postSingleCancelMessage(const SingleCallInfo &callInfo,
                                                const SendBufferMessage &sendMessage,
-                                               bool ignoreIfSendEof)
-{
+                                               bool ignoreIfSendEof) {
     const auto &handler = callInfo.handler;
     if (!handler) {
         return;
@@ -211,8 +207,7 @@ void GigStreamRequest::postSingleCancelMessage(const SingleCallInfo &callInfo,
 
 bool GigStreamRequest::receive(SingleCallInfo *callInfo,
                                const std::shared_ptr<GigStreamBase> &stream,
-                               const GigStreamMessage &message)
-{
+                               const GigStreamMessage &message) {
     if (RT_NORMAL != callInfo->requestType) {
         return true;
     }
@@ -239,9 +234,7 @@ bool GigStreamRequest::receive(SingleCallInfo *callInfo,
 
 void GigStreamRequest::receiveCancel(SingleCallInfo *callInfo,
                                      const std::shared_ptr<GigStreamBase> &stream,
-                                     const GigStreamMessage &message,
-                                     MultiCallErrorCode ec)
-{
+                                     const GigStreamMessage &message, MultiCallErrorCode ec) {
     if (RT_NORMAL != callInfo->requestType) {
         return;
     }
@@ -297,4 +290,4 @@ std::shared_ptr<GrpcClientStreamHandler> GigStreamRequest::getResultHandler() co
     }
 }
 
-}
+} // namespace multi_call

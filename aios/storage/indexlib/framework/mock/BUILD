@@ -1,0 +1,183 @@
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+strict_cc_library(
+    name='tablet',
+    srcs=[],
+    hdrs=[],
+    visibility=['//visibility:public'],
+    deps=[
+        ':MockTablet', ':MockTabletOptions', ':MockTabletReader',
+        ':MockTabletSchema'
+    ]
+)
+strict_cc_library(
+    name='factory',
+    srcs=[],
+    hdrs=[],
+    visibility=['//visibility:public'],
+    deps=[':MockTabletFactory']
+)
+strict_cc_library(
+    name='MockTablet',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/framework:Tablet',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='FakeSegment',
+    testonly=True,
+    deps=[
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/index:interface'
+    ]
+)
+strict_cc_library(
+    name='FakeMemSegment',
+    testonly=True,
+    deps=[
+        '//aios/storage/indexlib/config:ITabletSchema',
+        '//aios/storage/indexlib/framework:DumpParams',
+        '//aios/storage/indexlib/framework:MemSegment',
+        '//aios/storage/indexlib/index:IndexFactoryCreator',
+        '//aios/storage/indexlib/index:interface',
+        '//aios/storage/indexlib/util:SimplePool'
+    ]
+)
+strict_cc_library(
+    name='FakeDiskSegment',
+    testonly=True,
+    deps=[
+        '//aios/storage/indexlib/config:ITabletSchema',
+        '//aios/storage/indexlib/framework:DiskSegment',
+        '//aios/storage/indexlib/index:IndexFactoryCreator',
+        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:interface'
+    ]
+)
+strict_cc_library(
+    name='MockMemSegment',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/base:Types',
+        '//aios/storage/indexlib/framework:MemSegment',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockIdGenerator',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/framework:IdGenerator',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockDiskSegment',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/framework:DiskSegment',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockDocumentBatch',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/document:DocumentBatch',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockSegmentDumpItem',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/framework:SegmentDumpItem',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockTabletFactory',
+    deps=[
+        ':MockSchemaResolver', '//aios/storage/indexlib/document:interface',
+        '//aios/storage/indexlib/framework:BuildResource',
+        '//aios/storage/indexlib/framework:DiskSegment',
+        '//aios/storage/indexlib/framework:ITabletExporter',
+        '//aios/storage/indexlib/framework:ITabletFactory',
+        '//aios/storage/indexlib/framework:ITabletImporter',
+        '//aios/storage/indexlib/framework:ITabletValidator',
+        '//aios/storage/indexlib/framework:MemSegment',
+        '//aios/storage/indexlib/framework:TabletLoader',
+        '//aios/storage/indexlib/framework:TabletReader',
+        '//aios/storage/indexlib/framework:TabletWriter',
+        '//aios/storage/indexlib/framework/index_task:IIndexOperationCreator',
+        '//aios/storage/indexlib/framework/index_task:IIndexTaskPlanCreator',
+        '//aios/storage/indexlib/framework/index_task:IIndexTaskResourceCreator',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockTabletLoader',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/framework:TabletLoader',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockTabletOptions',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/config:TabletOptions',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockTabletReader',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/framework:ITabletReader',
+        '//aios/storage/indexlib/framework:ReadResource',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockTabletSchema',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/config:TabletSchema',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockTabletWriter',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/file_system/load_config:interface',
+        '//aios/storage/indexlib/framework:TabletWriter',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockBuildOptionConfig',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/config:BuildOptionConfig',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockSegmentDumper',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/framework:SegmentDumper',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockSchemaResolver',
+    srcs=[],
+    deps=['//aios/storage/indexlib/config:SchemaResolver']
+)

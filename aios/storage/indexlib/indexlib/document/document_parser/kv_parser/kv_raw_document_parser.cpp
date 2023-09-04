@@ -127,7 +127,7 @@ bool KvRawDocumentParser::parseMultiMessage(const std::vector<Message>& msgs, do
         }
         hasValidDoc = true;
         multiDoc.setDocTimestamp(msg.timestamp);
-        multiDoc.SetDocInfo({msg.hashId, msg.timestamp});
+        multiDoc.SetDocInfo({msg.hashId, msg.timestamp, 0});
     }
     multiDoc.SetDocOperateType(ADD_DOC);
 

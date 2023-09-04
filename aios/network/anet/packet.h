@@ -16,19 +16,20 @@
 #ifndef ANET_PACKET_H_
 #define ANET_PACKET_H_
 #include <stdint.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
+
 #include "aios/network/anet/common.h"
 #include "aios/network/anet/connectionpriority.h"
 
 namespace anet {
 class Channel;
 class DataBuffer;
-}  // namespace anet
+} // namespace anet
 
 BEGIN_ANET_NS();
 
-#define ANET_PACKET_FLAG 0x416e4574  // AnEt
+#define ANET_PACKET_FLAG 0x416e4574 // AnEt
 #define CONNECTION_CLOSE "close"
 #define CONNECTION_KEEP_ALIVE "Keep-Alive"
 
@@ -36,10 +37,10 @@ class IPacketHandler;
 
 class PacketHeader {
 public:
-    uint32_t _chid;         // channel id
-    int32_t _pcode;             // packet type
-    int32_t _dataLen;           // body length
-}  __attribute__((packed));
+    uint32_t _chid;   // channel id
+    int32_t _pcode;   // packet type
+    int32_t _dataLen; // body length
+} __attribute__((packed));
 
 static_assert(sizeof(PacketHeader) == 12, "PacketHeader size");
 
@@ -53,14 +54,13 @@ class Packet {
     friend class OrderedPacketQueue;
     friend class OrderedPacketQueueTest;
     friend class OrderedPacketQueueTest_testGetTimeoutList_Test;
+
 public:
     Packet();
 
     virtual ~Packet();
 
-    PacketHeader *getPacketHeader() {
-        return &_packetHeader;
-    }
+    PacketHeader *getPacketHeader() { return &_packetHeader; }
 
     void setPacketHeader(PacketHeader *header) {
         if (header) {
@@ -72,13 +72,9 @@ public:
      * packet are freed in TCPConnection::writeData() atomatically
      * through this function.
      */
-    virtual void free() {
-        delete this;
-    }
+    virtual void free() { delete this; }
 
-    virtual bool isRegularPacket() {
-        return true;
-    }
+    virtual bool isRegularPacket() { return true; }
 
     /**
      * Write data into DataBuffer. This function is called by
@@ -109,12 +105,8 @@ public:
 
     virtual void setPacketVersion(uint8_t version) {}
 
-    int64_t getExpireTime() {
-        return _expireTime;
-    }
-    int32_t getTimeoutMs() {
-        return _timeoutMs;
-    }
+    int64_t getExpireTime() { return _expireTime; }
+    int32_t getTimeoutMs() { return _timeoutMs; }
 
     /**
      * Set packet expire time.
@@ -129,15 +121,11 @@ public:
 
     int32_t getPcode();
 
-    Channel *getChannel() {
-        return _channel;
-    }
+    Channel *getChannel() { return _channel; }
 
-    Packet *getNext() {
-        return _next;
-    }
+    Packet *getNext() { return _next; }
 
-    IPacketHandler * getDequeueCB(void) { return _packetDequeueCB; }
+    IPacketHandler *getDequeueCB(void) { return _packetDequeueCB; }
     void setDequeueCB(IPacketHandler *cb) { _packetDequeueCB = cb; }
     void invokeDequeueCB(void);
     /**
@@ -146,41 +134,31 @@ public:
      * packets. In the derived advanced packet, we will return the correspond
      * actual priority embeded in the extended header.
      */
-    virtual CONNPRIORITY getPriority(){
-        return ANET_PRIORITY_NORMAL;
-    }
+    virtual CONNPRIORITY getPriority() { return ANET_PRIORITY_NORMAL; }
 
     virtual void setPriority(CONNPRIORITY prio) { ; }
 
     /* Virtual functions to support 64 bit channel id for advance packet. */
 
-    virtual void setChannelId(uint64_t chid) {
-        _packetHeader._chid = (uint32_t)chid;
-    }
+    virtual void setChannelId(uint64_t chid) { _packetHeader._chid = (uint32_t)chid; }
 
-    virtual uint64_t getChannelId() {
-        return ((uint64_t) _packetHeader._chid);
-    }
+    virtual uint64_t getChannelId() { return ((uint64_t)_packetHeader._chid); }
 
-    virtual void setDataLen( int32_t len) {
-       _packetHeader._dataLen = len;
-    }
+    virtual void setDataLen(int32_t len) { _packetHeader._dataLen = len; }
 
-    virtual int32_t getDataLen(void) {
-        return _packetHeader._dataLen;
-    }
+    virtual int32_t getDataLen(void) { return _packetHeader._dataLen; }
 
     /* Virtual function to enable advance packet has a chance to cleanup the
      * advance packet flag set in pcode field before passing the packet up to
      * arpc layer. */
-    virtual void cleanupFlags() {
-        ;
-    }
+    virtual void cleanupFlags() { ; }
 
     virtual void dump() {
         printf("============Dumping of packet header=============\n");
         printf("chid = 0x%x     pcode = 0x%x    dataLen = %d\n",
-               _packetHeader._chid, _packetHeader._pcode, _packetHeader._dataLen);
+               _packetHeader._chid,
+               _packetHeader._pcode,
+               _packetHeader._dataLen);
     }
 
 protected:
@@ -206,7 +184,7 @@ protected:
      *       callback is finished.
      *       User is responsible to keep the callback object before it is used.
      *       The callback will be invoked from the IO thread. */
-    IPacketHandler * _packetDequeueCB;
+    IPacketHandler *_packetDequeueCB;
     Packet *_next;
 };
 

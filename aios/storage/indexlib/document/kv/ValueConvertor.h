@@ -24,12 +24,12 @@ class Pool;
 namespace indexlibv2::config {
 class ValueConfig;
 class FieldConfig;
-class PackAttributeConfig;
 } // namespace indexlibv2::config
 
 namespace indexlibv2::index {
 class AttributeConvertor;
 class PackAttributeFormatter;
+class PackAttributeConfig;
 } // namespace indexlibv2::index
 
 namespace indexlibv2::document {
@@ -66,7 +66,7 @@ private:
 private:
     bool _parseDelete;
     std::shared_ptr<config::ValueConfig> _valueConfig;
-    std::shared_ptr<config::PackAttributeConfig> _packAttrConfig;
+    std::shared_ptr<index::PackAttributeConfig> _packAttrConfig;
     std::vector<std::unique_ptr<index::AttributeConvertor>> _fieldConvertors; // indexed by fieldId
     std::unique_ptr<index::PackAttributeFormatter> _packFormatter;
 

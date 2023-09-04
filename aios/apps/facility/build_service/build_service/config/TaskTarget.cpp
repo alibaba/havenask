@@ -20,6 +20,8 @@ using namespace std;
 namespace build_service { namespace config {
 BS_LOG_SETUP(config, TaskTarget);
 
+const std::string BS_TASK_CONFIG_FILE_PATH = "task_config_file_path";
+
 TaskTarget::TaskTarget() : _partitionCount(0), _parallelNum(0), _targetTimestamp(-1) {}
 
 TaskTarget::TaskTarget(const TaskTarget& other)

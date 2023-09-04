@@ -1,0 +1,21 @@
+package(default_visibility=['//aios/apps/facility/swift:__subpackages__'])
+cc_binary(
+    name='local_admin_daemon',
+    srcs=glob(['LocalAdminDaemonMain.cpp']),
+    copts=['-Iswift'],
+    visibility=['//visibility:public'],
+    deps=[
+        ':local_admin_daemon_lib',
+        '//aios/apps/facility/swift/tools:swift_log_setup'
+    ]
+)
+cc_library(
+    name='local_admin_daemon_lib',
+    srcs=glob(['*.cpp'], exclude=['LocalAdminDaemonMain.cpp']),
+    hdrs=glob(['*.h']),
+    include_prefix='swift/tools/local_admin_daemon',
+    deps=[
+        '//aios/apps/facility/swift/config:swift_config',
+        '//aios/apps/facility/swift/util:swift_util'
+    ]
+)

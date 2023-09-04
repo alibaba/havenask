@@ -32,10 +32,10 @@
 #include "indexlib/file_system/FileInfo.h"
 #include "indexlib/file_system/FileSystemOptions.h"
 #include "indexlib/file_system/LifecycleTable.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/load_config/LoadConfig.h"
 #include "indexlib/file_system/load_config/LoadConfigList.h"
-
 using namespace std;
 
 namespace indexlib { namespace file_system {

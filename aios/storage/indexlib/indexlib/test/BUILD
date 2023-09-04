@@ -10,6 +10,19 @@ gen_conf_lib(
     include_prefix='indexlib/test'
 )
 cc_library(
+    name='testbase_helper',
+    hdrs=['multi_thread_test_base.h', 'unittest.h'],
+    copts=['-Werror'],
+    include_prefix='indexlib/test',
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
+    deps=[
+        ':test_h', '//aios/storage/indexlib/file_system',
+        '//aios/unittest_framework',
+        '//aios/future_lite/future_lite/executors:simple_executor'
+    ],
+    alwayslink=True
+)
+cc_library(
     name='query',
     srcs=[
         'atomic_query.cpp', 'docid_query.cpp', 'or_query.cpp', 'query.cpp',
@@ -77,7 +90,33 @@ cc_library(
     copts=['-Werror'],
     include_prefix='indexlib/test',
     visibility=['//aios/storage/indexlib:__subpackages__'],
-    deps=['//aios/storage/indexlib/indexlib/config']
+    deps=[
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
+        '//aios/storage/indexlib/indexlib/config'
+    ]
+)
+cc_library(
+    name='index_meta_maker',
+    srcs=['version_maker.cpp'],
+    hdrs=['version_maker.h'],
+    copts=['-Werror'],
+    include_prefix='indexlib/test',
+    visibility=['//visibility:public'],
+    deps=['//aios/storage/indexlib/indexlib/index_base']
+)
+cc_library(
+    name='single_field_partition_data_provider',
+    testonly=True,
+    srcs=['single_field_partition_data_provider.cpp'],
+    hdrs=['single_field_partition_data_provider.h'],
+    copts=['-Werror'],
+    include_prefix='indexlib/test',
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        ':document', ':schema_maker',
+        '//aios/storage/indexlib/indexlib/partition:indexlib_partition',
+        '//aios/storage/indexlib/indexlib/util/test:indexlib_util_test_helper'
+    ]
 )
 cc_library(
     name='simple_table_reader',
@@ -121,4 +160,13 @@ cc_library(
         '//aios/storage/indexlib/indexlib:indexlib_misc'
     ],
     alwayslink=True
+)
+cc_library(
+    name='test',
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        ':directory-creator', ':partition_state_machine', ':schema_maker',
+        ':searcher', ':simple_table_reader',
+        '//aios/storage/indexlib/util/testutil:exception_runner'
+    ]
 )

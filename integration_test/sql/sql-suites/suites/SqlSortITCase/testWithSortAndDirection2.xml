@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="testWithSortAndDirection2">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT i1, s5 FROM t1 where s6= '华为' order by i1 asc, d4 asc limit 10
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"i1","s5"</Resource>
+        <Resource name="column_types">int32, multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+12,"str3"
+13,"str4"
+14,"str5"
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#4(type=api)
+    ExchangeOp#3(distribution={type:SINGLETON})
+        CalcOp#2(output_fields=[$i1,$s5])
+            SortOp#1(directions=[ASC,ASC],limit=10,order_fields=[$i1,$d4])
+                TableScanOp#0(catalog_name=default,db_name=t1,limit=2147483647,output_fields=[$i1,$s5,$d4],push_down_ops=[{attrs:{condition:{op:=,params:[$s6,华为],type:OTHER},output_fields:[$i1,$s5,$d4]},op_name:CalcOp}],table_name=t1,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

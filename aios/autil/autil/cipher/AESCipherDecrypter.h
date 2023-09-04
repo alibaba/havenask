@@ -17,23 +17,23 @@
 
 #include "autil/Log.h"
 
-namespace autil { namespace cipher {
+namespace autil {
+namespace cipher {
 
 class AESCipherUtility;
-class AESCipherDecrypter
-{
+class AESCipherDecrypter {
 public:
     AESCipherDecrypter(std::unique_ptr<AESCipherUtility> utility);
     virtual ~AESCipherDecrypter();
 
 public:
-    /* for single message decrypt, not thread safe */    
-    bool decryptMessage(const std::string& cipherText, std::string& plainText);
+    /* for single message decrypt, not thread safe */
+    bool decryptMessage(const std::string &cipherText, std::string &plainText);
 
     std::string getKeyHexString() const;
     std::string getIvHexString() const;
     std::string getSaltHexString() const;
-    
+
 protected:
     std::string toErrorString(unsigned long err);
 
@@ -45,5 +45,5 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-}}
-
+} // namespace cipher
+} // namespace autil

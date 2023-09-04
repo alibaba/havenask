@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Title </title>
+  </head>
+  <body>
+    <div id="demo">
+      <h1>XMLHttpRequest对象</h1>
+      <button type="button" onclick="loadDoc()">修改</button>
+    </div>
+
+    <div id="search">
+      <input id='myInput' onkeyup='searchAllTable()' type='text'>
+      <table id='myTable1'>
+	<tr>
+	  <td>Apple</td>
+	  <td>Green</td>
+	</tr>
+	<tr>
+	  <td>Grapes</td>
+	  <td>Green</td>
+	</tr>
+	<tr>
+	  <td>Orange</td>
+	  <td>Orange</td>
+	</tr>
+      </table>
+      Guest List: <br>
+      <table id='myTable2'>      
+## for guest in guests
+	<tr>
+	  <td> {{ loop.index1 }} </td>
+	  <td> {{ guest }} </td>
+	</tr>
+## endfor
+      </table>
+
+    </div>
+    <form action="/login" method="POST">
+      用户名 <input type="text" name="username">
+      密码 <input type="password" name="pwd">
+      <input type="submit" value="登陆">
+    </form>
+
+    {% include "monitor.html" %}
+    
+    <script>
+      function loadDoc() {
+          var xhttp = new XMLHttpRequest();
+          xhttp.onreadystatechange = function() {
+              if (this.readyState == 4 && this.status == 200) {
+		  document.getElementById("demo").innerHTML =
+		      this.responseText;
+              }
+          };
+          xhttp.open("GET", "/modify", true);
+          xhttp.send();
+      }
+
+      function searchTable(inputId, tableId) {
+	  var input, filter, found, table, tr, td, i, j;
+	  input = document.getElementById(inputId);
+	  filter = input.value.toUpperCase();
+	  table = document.getElementById(tableId);
+	  tr = table.getElementsByTagName("tr");
+	  for (i = 0; i < tr.length; i++) {
+	      td = tr[i].getElementsByTagName("td");
+	      for (j = 0; j < td.length; j++) {
+		  if (td[j].innerHTML.toUpperCase().indexOf(filter) > -1) {
+		      found = true;
+		  }
+	      }
+	      if (found) {
+		  tr[i].style.display = "";
+		  found = false;
+	      } else {
+		  tr[i].style.display = "none";
+	      }
+	  }
+      }
+
+      function searchAllTable() {
+	  searchTable("myInput", "myTable1");
+	  searchTable("myInput", "myTable2");	  
+      }
+      
+    </script>
+  </body>
+</html>

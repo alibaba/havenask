@@ -1,0 +1,27 @@
+{
+    "truncate_strategy" : [
+        {
+            "strategy_name" : "ends_filter_normal_inc",
+            "diversity_constrain": {
+	    	"filter_type" : "FilterByTimeStamp",
+		"filter_parameter" : "fieldName=ends;beginTime=now;minInterval=1"
+            },
+	    "truncate_profiles" :
+	    [
+		"ends_filter"
+	    ]
+        },
+        {
+            "strategy_name" : "ends_filter_big_inc",
+            "diversity_constrain": {
+	    	"filter_type" : "FilterByTimeStamp",
+		"filter_parameter" : "fieldName=ends;beginTime=8:0:4;adviseEndTime=23:00:00"
+            },
+	    "truncate_profiles" :
+	    [
+		"ends_filter2"
+	    ]
+        }
+    ]
+}
+

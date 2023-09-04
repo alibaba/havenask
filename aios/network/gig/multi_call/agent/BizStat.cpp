@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/agent/BizStat.h"
+
+#include <math.h>
+
 #include "aios/network/gig/multi_call/agent/WarmUpStrategy.h"
 #include "autil/StringUtil.h"
-#include <math.h>
 
 using namespace std;
 
@@ -32,12 +34,9 @@ bool PropagationStat::update(const PropagationStatDef &stat, int64_t &delay) {
     if (newVersion <= currentVersion) {
         return false;
     }
-    errorMetric.setMetric(errorFilter.ratio(),
-                          errorFilter.load_balance_ratio());
-    degradeMetric.setMetric(degradeFilter.ratio(),
-                            degradeFilter.load_balance_ratio());
-    latencyMetric.setMetric(avgLatency.latency(),
-                            avgLatency.load_balance_latency());
+    errorMetric.setMetric(errorFilter.ratio(), errorFilter.load_balance_ratio());
+    degradeMetric.setMetric(degradeFilter.ratio(), degradeFilter.load_balance_ratio());
+    latencyMetric.setMetric(avgLatency.latency(), avgLatency.load_balance_latency());
     agentId = avgLatency.agent_id();
     avgWeight = avgLatency.avg_weight();
     if (currentVersion > 0) {
@@ -54,8 +53,7 @@ void BizStat::beginQuery(bool degrade) {
         currentCount = processingCount;
         newCount.degradeCount = currentCount.degradeCount + (degrade == true);
         newCount.normalCount = currentCount.normalCount + (degrade == false);
-    } while (
-        !cmpxchg(&processingCount.value, currentCount.value, newCount.value));
+    } while (!cmpxchg(&processingCount.value, currentCount.value, newCount.value));
 }
 
 void BizStat::endQuery(bool degrade) {
@@ -63,12 +61,9 @@ void BizStat::endQuery(bool degrade) {
     InProcessingQueryCount newCount;
     do {
         currentCount = processingCount;
-        newCount.degradeCount =
-            max(0, currentCount.degradeCount - (degrade == true));
-        newCount.normalCount =
-            max(0, currentCount.normalCount - (degrade == false));
-    } while (
-        !cmpxchg(&processingCount.value, currentCount.value, newCount.value));
+        newCount.degradeCount = max(0, currentCount.degradeCount - (degrade == true));
+        newCount.normalCount = max(0, currentCount.normalCount - (degrade == false));
+    } while (!cmpxchg(&processingCount.value, currentCount.value, newCount.value));
 }
 
 float BizStat::updatePropagationStats(const PropagationStats &propagationStats) {
@@ -110,22 +105,19 @@ void BizStat::fillPropagationInfos(PropagationStats &propagationStats) {
         auto errorRatio = pbInfo->mutable_error();
         errorRatio->set_filter_ready(true);
         errorRatio->set_ratio(propagationStat->errorMetric.value);
-        errorRatio->set_load_balance_ratio(
-            propagationStat->errorMetric.loadBalanceValue);
+        errorRatio->set_load_balance_ratio(propagationStat->errorMetric.loadBalanceValue);
 
         auto degradeRatio = pbInfo->mutable_degrade();
         degradeRatio->set_filter_ready(true);
         degradeRatio->set_ratio(propagationStat->degradeMetric.value);
-        degradeRatio->set_load_balance_ratio(
-            propagationStat->degradeMetric.loadBalanceValue);
+        degradeRatio->set_load_balance_ratio(propagationStat->degradeMetric.loadBalanceValue);
 
         auto latency = pbInfo->mutable_latency();
         latency->set_filter_ready(true);
         latency->set_agent_id(propagationStat->agentId);
         latency->set_version(version);
         latency->set_latency(propagationStat->latencyMetric.value);
-        latency->set_load_balance_latency(
-            propagationStat->latencyMetric.loadBalanceValue);
+        latency->set_load_balance_latency(propagationStat->latencyMetric.loadBalanceValue);
         latency->set_avg_weight(propagationStat->avgWeight);
     }
 }
@@ -187,10 +179,8 @@ float BizStat::getAdjustLbDegradeRatio() const {
     const auto &degradeFilter = degradeMetricFilter.loadBalanceValue;
     auto degradeRatio = degradeFilter.output();
     auto windowSize = degradeFilter.getWindowSize();
-    return (windowSize * degradeRatio +
-            processingCount.degradeCount * MAX_RATIO) /
-           (windowSize + processingCount.degradeCount +
-            processingCount.normalCount);
+    return (windowSize * degradeRatio + processingCount.degradeCount * MAX_RATIO) /
+           (windowSize + processingCount.degradeCount + processingCount.normalCount);
 }
 
 float BizStat::getAdjustedLoadBalanceLatency() const {
@@ -221,7 +211,9 @@ void BizStat::fillThisPropagationStat(PropagationStatDef *statDef) const {
     fillAvgLatency(*statDef->mutable_latency());
 }
 
-BizStat::~BizStat() { clear(); }
+BizStat::~BizStat() {
+    clear();
+}
 
 void BizStat::clear() {
     autil::ScopedWriteLock lock(_statLock);
@@ -232,7 +224,9 @@ void BizStat::clear() {
     _statMap.clear();
 }
 
-int64_t BizStat::count() const { return errorMetricFilter.value.count(); }
+int64_t BizStat::count() const {
+    return errorMetricFilter.value.count();
+}
 
 bool BizStat::warmUpFinished(WarmUpStrategy *strategy) {
     auto currentTime = autil::TimeUtility::currentTime();
@@ -258,26 +252,18 @@ std::string BizStat::toString() const {
     string str;
     str += "started: " + autil::StringUtil::toString(started);
     str += ", beginTime: " + autil::StringUtil::toString(beginTimeStamp);
-    str +=
-        ", lastQueryTime: " + autil::StringUtil::toString(lastQueryTimestamp);
+    str += ", lastQueryTime: " + autil::StringUtil::toString(lastQueryTimestamp);
     str += "\n      ErrorRatio:   " + errorMetricFilter.value.toString();
-    str += "\n      LBErrorRatio:   " +
-           errorMetricFilter.loadBalanceValue.toString();
+    str += "\n      LBErrorRatio:   " + errorMetricFilter.loadBalanceValue.toString();
     str += "\n      DegradeRatio: " + degradeMetricFilter.value.toString();
-    str += "\n      LBDegradeRatio: " +
-           degradeMetricFilter.loadBalanceValue.toString();
+    str += "\n      LBDegradeRatio: " + degradeMetricFilter.loadBalanceValue.toString();
     str += "\n      Latency:      " + latencyMetricFilter.value.toString();
-    str += "\n      LBLatency:      " +
-           latencyMetricFilter.loadBalanceValue.toString();
-    str += "\n      processingCount: " +
-           autil::StringUtil::toString(processingCount.degradeCount) + " D " +
-           autil::StringUtil::toString(processingCount.normalCount) + " N";
-    str +=
-        ", latNorm: " +
-        autil::StringUtil::toString(normalLatencyFilter.output()) +
-        ", latD: " + autil::StringUtil::toString(degradeLatencyFilter.output());
-    str += "\n      weightAvg: " +
-           autil::StringUtil::toString(weightFilter.output());
+    str += "\n      LBLatency:      " + latencyMetricFilter.loadBalanceValue.toString();
+    str += "\n      processingCount: " + autil::StringUtil::toString(processingCount.degradeCount) +
+           " D " + autil::StringUtil::toString(processingCount.normalCount) + " N";
+    str += ", latNorm: " + autil::StringUtil::toString(normalLatencyFilter.output()) +
+           ", latD: " + autil::StringUtil::toString(degradeLatencyFilter.output());
+    str += "\n      weightAvg: " + autil::StringUtil::toString(weightFilter.output());
     str += "\n";
     return str;
 }

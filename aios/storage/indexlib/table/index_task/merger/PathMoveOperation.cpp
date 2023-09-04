@@ -18,6 +18,7 @@
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/IFileSystem.h"
+#include "indexlib/file_system/MergeDirsOption.h"
 
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, PathMoveOperation);
@@ -51,7 +52,7 @@ Status PathMoveOperation::Execute(const framework::IndexTaskContext& context)
 
         std::string physicalPath = fenceRootDirectory->GetPhysicalPath(path);
         auto status = rootDirectory->GetFileSystem()
-                          ->MergeDirs({physicalPath}, path, false, indexlib::file_system::FenceContext::NoFence())
+                          ->MergeDirs({physicalPath}, path, indexlib::file_system::MergeDirsOption::NoMergePackage())
                           .Status();
         RETURN_IF_STATUS_ERROR(status, "move path [%s] to [%s] failed", physicalPath.c_str(),
                                rootDirectory->DebugString().c_str());

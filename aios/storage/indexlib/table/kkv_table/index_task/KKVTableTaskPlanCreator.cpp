@@ -31,7 +31,7 @@ KKVTableTaskPlanCreator::KKVTableTaskPlanCreator()
 KKVTableTaskPlanCreator::~KKVTableTaskPlanCreator() {}
 
 std::shared_ptr<framework::IIndexOperationCreator>
-KKVTableTaskPlanCreator::CreateIndexOperationCreator(const std::shared_ptr<config::TabletSchema>& tabletSchema)
+KKVTableTaskPlanCreator::CreateIndexOperationCreator(const std::shared_ptr<config::ITabletSchema>& tabletSchema)
 {
     return std::make_shared<KKVTableTaskOperationCreator>(tabletSchema);
 }

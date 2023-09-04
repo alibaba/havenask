@@ -1,0 +1,18 @@
+{
+    "table_name": "simple_table",
+    "table_type" : "line_data",
+    "user_defined_param" : {
+        "file_name" : "line_data"
+    },
+    "fields":[
+        {
+            "field_name": "feature",
+            "field_type": "STRING"
+        }
+    ],
+    "indexs":[],
+    "attributes": [ "feature" ],
+    "summarys":{
+        "summary_fields" : []
+    }
+}

@@ -1,0 +1,22 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+strict_cc_library(
+    name='kkv_index_config_builder',
+    testonly=True,
+    srcs=['KKVIndexConfigBuilder.cpp'],
+    hdrs=['KKVIndexConfigBuilder.h'],
+    copts=['-fno-access-control'],
+    visibility=['//aios/storage/indexlib/index/kkv:__subpackages__'],
+    deps=[
+        '//aios/storage/indexlib/config:schema',
+        '//aios/storage/indexlib/index/kkv/config',
+        '//aios/storage/indexlib/table/kkv_table/test:KKVTabletSchemaMaker'
+    ]
+)
+strict_cc_fast_test(
+    name='KKVIndexConfigTest',
+    srcs=['KKVIndexConfigTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/index/kkv/config:KKVIndexConfig',
+        '//aios/unittest_framework'
+    ]
+)

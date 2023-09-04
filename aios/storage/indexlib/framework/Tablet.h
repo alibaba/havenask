@@ -37,6 +37,7 @@
 #include "indexlib/framework/TabletWriter.h"
 #include "indexlib/framework/Version.h"
 #include "indexlib/framework/VersionMerger.h"
+#include "indexlib/framework/index_task/Constant.h"
 #include "indexlib/framework/mem_reclaimer/IIndexMemoryReclaimer.h"
 
 namespace indexlib {
@@ -80,7 +81,7 @@ public:
     ~Tablet() override;
 
 public:
-    Status Open(const IndexRoot& indexRoot, const std::shared_ptr<config::TabletSchema>& schema,
+    Status Open(const IndexRoot& indexRoot, const std::shared_ptr<config::ITabletSchema>& schema,
                 const std::shared_ptr<config::TabletOptions>& options, const VersionCoord& versionCoord) override;
     Status Reopen(const ReopenOptions& reopenOptions, const VersionCoord& versionCoord) override;
     void Close() override;
@@ -91,15 +92,18 @@ public:
     Status Flush() override;
     Status Seal() override;
     Status CleanIndexFiles(const std::vector<versionid_t>& reservedVersions) override;
-    Status AlterTable(const std::shared_ptr<config::TabletSchema>& newSchema) override;
+    Status CleanUnreferencedDeployFiles(const std::set<std::string>& toKeepFiles) override;
+    Status AlterTable(const std::shared_ptr<config::ITabletSchema>& newSchema) override;
     std::pair<Status, versionid_t> ExecuteTask(const Version& sourceVersion, const std::string& taskType,
                                                const std::string& taskName,
                                                const std::map<std::string, std::string>& params) override;
     Status Import(const std::vector<Version>& versions, const ImportOptions& options) override;
+    Status ImportExternalFiles(const std::string& bulkloadId, const std::vector<std::string>& externalFiles,
+                               const std::shared_ptr<ImportExternalFileOptions>& options, Action action) override;
 
     std::shared_ptr<ITabletReader> GetTabletReader() const override;
     const TabletInfos* GetTabletInfos() const override;
-    std::shared_ptr<config::TabletSchema> GetTabletSchema() const override;
+    std::shared_ptr<config::ITabletSchema> GetTabletSchema() const override;
     std::shared_ptr<config::TabletOptions> GetTabletOptions() const override;
     std::shared_ptr<TabletData> GetTabletData() const;
 
@@ -122,15 +126,18 @@ private:
     };
 
 private:
-    std::pair<Status, std::shared_ptr<VersionDeployDescription>> CreateVersionDeployDescription(versionid_t versionId);
+    StatusOr<std::shared_ptr<indexlibv2::framework::VersionDeployDescription>>
+    CreateVersionDeployDescription(versionid_t versionId);
     Status CheckDoc(document::IDocumentBatch* batch);
-    std::pair<Status, Version> MountOnDiskVersion(const VersionCoord& versionCoord);
+    std::pair<Status, Version>
+    MountOnDiskVersion(const VersionCoord& versionCoord,
+                       const std::shared_ptr<indexlibv2::framework::VersionDeployDescription>& versionDpDesc);
     Status LoadVersion(const VersionCoord& versionCoord, Version* version, std::string* versionRoot) const;
     Status PrepareResource();
     Status InitIndexDirectory(const IndexRoot& indexRoot);
     Status RecoverIndexInfo(const std::string& indexRoot, const std::string& fenceName);
-    Status ReopenNewSegment(const std::shared_ptr<config::TabletSchema>& schema);
-    Status RefreshTabletData(RefreshStrategy strategy, const std::shared_ptr<config::TabletSchema>& writeSchema);
+    Status ReopenNewSegment(const std::shared_ptr<config::ITabletSchema>& schema);
+    Status RefreshTabletData(RefreshStrategy strategy, const std::shared_ptr<config::ITabletSchema>& writeSchema);
     Status DoReopenUnsafe(const ReopenOptions& reopenOptions, const VersionCoord& versionCoord);
     void DumpSegmentOverInterval();
     Status FlushUnsafe();
@@ -138,16 +145,18 @@ private:
 
     Status UpdateControlFlow(const ReopenOptions& reopenOptions);
 
-    Status OpenWriterAndReader(std::shared_ptr<TabletData> tabletData, const framework::OpenOptions& openOptions);
+    Status OpenWriterAndReader(std::shared_ptr<TabletData> tabletData, const framework::OpenOptions& openOptions,
+                               const std::shared_ptr<indexlibv2::framework::VersionDeployDescription>& versionDpDesc);
     bool StartIntervalTask();
     void ReportMetrics(const std::shared_ptr<TabletWriter>& tabletWriter);
     Locator GetMemSegmentLocator();
 
-    Status PrepareIndexRoot(const std::shared_ptr<config::TabletSchema>& schema);
+    Status PrepareIndexRoot(const std::shared_ptr<config::ITabletSchema>& schema);
     bool IsEmptyDir(std::shared_ptr<indexlib::file_system::Directory> directory,
-                    const std::shared_ptr<config::TabletSchema>& schema);
-    Status InitBasicIndexInfo(const std::shared_ptr<config::TabletSchema>& schema);
+                    const std::shared_ptr<config::ITabletSchema>& schema);
+    Status InitBasicIndexInfo(const std::shared_ptr<config::ITabletSchema>& schema);
     std::shared_ptr<TabletWriter> GetTabletWriter() const;
+    void CloseWriterUnsafe();
     std::shared_ptr<indexlib::file_system::Directory> GetRootDirectory() const;
     void PrepareTabletMetrics(const std::shared_ptr<TabletWriter>& tabletWriter);
 
@@ -156,10 +165,10 @@ private:
     void UpdateDocCount();
 
     Status CheckAlterTableCompatible(const std::shared_ptr<TabletData>& tabletData,
-                                     const config::TabletSchema& oldSchema, const config::TabletSchema& newSchema);
-    Status FinalizeTabletData(TabletData* tabletData, const std::shared_ptr<config::TabletSchema>& writeSchema);
-    std::shared_ptr<config::TabletSchema> GetReadSchema(const std::shared_ptr<TabletData>& tabletData);
-    Status DoAlterTable(const std::shared_ptr<config::TabletSchema>& newSchema);
+                                     const config::ITabletSchema& oldSchema, const config::ITabletSchema& newSchema);
+    Status FinalizeTabletData(TabletData* tabletData, const std::shared_ptr<config::ITabletSchema>& writeSchema);
+    std::shared_ptr<config::ITabletSchema> GetReadSchema(const std::shared_ptr<TabletData>& tabletData);
+    Status DoAlterTable(const std::shared_ptr<config::ITabletSchema>& newSchema);
 
     Version MakeEmptyVersion(schemaid_t schemaId) const;
     void SetTabletData(std::shared_ptr<TabletData> tabletData);
@@ -168,10 +177,12 @@ private:
     std::shared_ptr<indexlib::file_system::LifecycleTable> GetLifecycleTableFromVersion(const Version& version);
     Status RenewFenceLease(bool createIfNotExist);
     std::pair<Status, Version> RecoverLatestVersion(const std::string& path) const;
-    Status PrepareEmptyTabletData(const std::shared_ptr<config::TabletSchema>& tabletSchema);
+    Status PrepareEmptyTabletData(const std::shared_ptr<config::ITabletSchema>& tabletSchema);
     bool NeedRecoverFromLocal() const;
     std::string GetDiffSegmentDebugString(const Version& targetVersion,
                                           const std::shared_ptr<TabletData>& currentTabletData) const;
+    void HandleIndexTask(const std::string& taskType, const std::string& taskName,
+                         const std::map<std::string, std::string>& params, Action action, const std::string& comment);
 
 private:
     mutable std::mutex _dataMutex;

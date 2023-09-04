@@ -1,0 +1,126 @@
+{
+    "build_option_config" : {
+	"inherit_from" : "section_configs/common/common_build_config.json",
+        "NeedSort" : true,
+        "NeedPartition" : true,
+        "MapBufferSize" : 256,
+        "MapReduceRatio" : 8,
+        "BuildQps" : 500,
+        "NeedSkip": false,
+        "IndexKeepTime" : 36000,
+        "IndexDumpInterval" : 60,
+        "HashFieldAllowEmpty" : false,
+        "IncDedupOption": "use:yes;ignore_fields:commend",
+        "SortParams":
+        [
+            {
+                "SortFieldName": "category",
+                "SortFieldType": "INT32",
+                "SortPattern": "DESC"
+            },
+            {
+                "SortFieldName": "ends",
+                "SortFieldType": "INT64",
+                "SortPattern": "ASC"
+            }
+        ],
+        "NeedParseEnds" : true,
+        "RealtimeBuildDelayTime" : 90,
+	"RawDocumentFormat" : "isearch",
+	"RawDocFilePattern" : "lasttable_common/good-part-<720>.gz;lasttable_mall/good-part-<720>.gz",
+	"DocumentProcessThreadNum" : 8,
+	"DocumentProcessQueueSize" : 5000,
+	"IndexDocumentQueueSize" : 5000,
+	"EnableSyncBuild" : false
+    },
+    "index_option_config" : {
+	"inherit_from" : "section_configs/common/common_index_option_config.json",
+        "MaxMemoryUse": 5120,
+        "MaxReopenMemoryUse": 20480,
+        "ReaderKeepAliveTime": 10000,
+        "KeepVersionCount": 20,
+        "Index" :
+        {
+            "ReadMode" : "mmap",
+            "Parameter" : "lock",
+            "EnableWarmUp" : true
+        },
+        "Attribute" :
+        {
+            "ReadMode" : "mmap",
+            "Parameter" : "lock",
+            "EnableWarmUp" : true
+        },
+        "Summary" :
+        {
+            "ReadMode" : "mmap",
+            "Parameter" : "lock",
+            "EnableWarmUp" : false
+        },
+        "RtOptions" :
+        {
+            "KeepVersionCount": 10,
+            "MergeStrategy" : "realtime",
+            "MergeStrategyParam" :"max-small-segment-count=5;merge-size-upperbound=128;merge-size-lowerbound=128",
+            "TrimmerType" : "doc_trimmer",
+            "MaxMemoryUse": 512,
+            "MaxIndexSize": 1024,
+            "ReservedOlderIndex" : true,
+            "Index" :
+            {
+                "ReadMode" : "mmap",
+                "Parameter" : "none",
+                "EnableWarmUp" : false
+            },
+            "Attribute" :
+            {
+                "ReadMode" : "mmap",
+                "Parameter" : "none",
+                "EnableWarmUp" : false
+            },
+            "Summary" :
+            {
+                "ReadMode" : "mmap",
+                "Parameter" : "none",
+                "EnableWarmUp" : false
+            }
+        },
+	"MergeStrategy": "optimize",
+	"MergeStrategyParam": "",
+	"MergeThreadCount" : 4,
+	"TruncateOptionConfig" :
+	{
+            "TruncateStrategy" : [
+		{
+                    "StrategyName" : "distinct_sort",
+                    "Threshold" : 100000,
+                    "Limit" : 50000,
+                    "DiversityConstrain": {
+			"DistinctField" : "user_id",
+			"DistinctCount" : 20000,
+			"DistinctExpandLimit" : 150000
+                    }
+		},
+		{
+                    "StrategyName" : "distinct_sort_for_ends",
+                    "Threshold" : 120000,
+                    "Limit" : 80000,
+                    "DiversityConstrain": {
+			"DistinctField" : "user_id",
+			"DistinctCount" : 32000,
+			"DistinctExpandLimit" : 180000
+                    }
+		}
+            ],
+            "ProfileToStrategyNameMap" : {
+		"desc_static_trans_score" : "distinct_sort",
+		"desc_tk_trans_score" : "distinct_sort",
+		"desc_biz30day" : "distinct_sort",
+		"desc_tk_total_sales" : "distinct_sort",
+		"desc_uvsum" : "distinct_sort",
+		"desc_uvsum_suc" : "distinct_sort",
+		"asc_ends" : "distinct_sort"
+            }
+	}
+    }
+}

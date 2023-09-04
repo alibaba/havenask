@@ -1,0 +1,35 @@
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+strict_cc_library(
+    name='MockIndexFactory',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/document:IIndexFieldsParser',
+        '//aios/storage/indexlib/index:IIndexFactory',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockMemIndexer',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/index:interface',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockDiskIndexer',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/index:interface',
+        '@com_google_googletest//:gtest'
+    ]
+)
+strict_cc_library(
+    name='MockIndexConfig',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/config:IIndexConfig',
+        '@com_google_googletest//:gtest'
+    ]
+)

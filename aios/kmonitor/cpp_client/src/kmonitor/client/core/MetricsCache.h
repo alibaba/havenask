@@ -10,10 +10,11 @@
 
 #include <string>
 #include <unordered_map>
+
+#include "autil/Lock.h"
 #include "autil/Log.h"
 #include "kmonitor/client/core/MetricsTags.h"
 #include "kmonitor/client/metric/Metric.h"
-#include "autil/Lock.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
@@ -25,24 +26,27 @@ BEGIN_KMONITOR_NAMESPACE(kmonitor);
  */
 
 class MetricsCache {
- public:
+public:
     MetricsCache();
     ~MetricsCache();
 
-    Metric* GetCachedMetic(const std::string &name, uint64_t tags_hash);
-    bool InsertCache(const std::string &name, uint64_t tags_hash, Metric* metric, const std::string &fullName, uint64_t mergedTags_hash);
-    bool ClearCache(const std::string &fullName, uint64_t tags_hash, Metric* metric);
+    Metric *GetCachedMetic(const std::string &name, uint64_t tags_hash);
+    bool InsertCache(const std::string &name,
+                     uint64_t tags_hash,
+                     Metric *metric,
+                     const std::string &fullName,
+                     uint64_t mergedTags_hash);
+    bool ClearCache(const std::string &fullName, uint64_t tags_hash, Metric *metric);
 
- private:
-    std::map<std::pair<std::string, uint64_t>, std::pair<std::string, uint64_t> > name_map_;
-    std::unordered_map<uint64_t, std::unordered_map<std::string, Metric*> > metric_cache_;
+private:
+    std::map<std::pair<std::string, uint64_t>, std::pair<std::string, uint64_t>> name_map_;
+    std::unordered_map<uint64_t, std::unordered_map<std::string, Metric *>> metric_cache_;
     autil::ReadWriteLock lock_;
 
- private:
+private:
     AUTIL_LOG_DECLARE();
 };
 
-
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_CORE_METRICSCACHE_H_
+#endif // KMONITOR_CLIENT_CORE_METRICSCACHE_H_

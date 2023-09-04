@@ -60,6 +60,10 @@ public:
     {
         return _impl->GetAttributeReader(attrName);
     }
+    std::shared_ptr<index::PackAttributeReader> GetPackAttributeReader(const std::string& packName) const
+    {
+        return _impl->GetPackAttributeReader(packName);
+    }
 
     bool GetSortedDocIdRanges(const std::vector<std::shared_ptr<indexlib::table::DimensionDescription>>& dimensions,
                               const DocIdRange& rangeLimits, DocIdRangeVector& resultRanges) const

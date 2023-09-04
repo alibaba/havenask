@@ -15,7 +15,7 @@
  */
 #include "indexlib/index/kv/SingleShardKVIndexReader.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/index/kv/AdapterIgnoreFieldCalculator.h"
 #include "indexlib/index/kv/KVDiskIndexer.h"

@@ -5,12 +5,13 @@
  * Author Email: beifei@taobao.com
  */
 
-#include <algorithm>
-#include "kmonitor/client/common/UniformSnapshot.h"
 #include "kmonitor/client/common/SlidingWindowReservoir.h"
 
-BEGIN_KMONITOR_NAMESPACE(kmonitor);
+#include <algorithm>
 
+#include "kmonitor/client/common/UniformSnapshot.h"
+
+BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 SlidingWindowReservoir::SlidingWindowReservoir(int64_t size) {
     size_ = size;
@@ -25,9 +26,7 @@ SlidingWindowReservoir::~SlidingWindowReservoir() {
     }
 }
 
-int32_t SlidingWindowReservoir::Size() const {
-    return static_cast<int32_t>(std::min(count_, size_));
-}
+int32_t SlidingWindowReservoir::Size() const { return static_cast<int32_t>(std::min(count_, size_)); }
 
 void SlidingWindowReservoir::Add(double value) {
     int32_t pos = static_cast<int32_t>(count_++ % size_);
@@ -41,15 +40,8 @@ double SlidingWindowReservoir::GetValue(int32_t pos) {
     return measurements_[pos];
 }
 
-UniformSnapshot* SlidingWindowReservoir::GetSnapShot() {
-    return new UniformSnapshot(measurements_, Size());
-}
+UniformSnapshot *SlidingWindowReservoir::GetSnapShot() { return new UniformSnapshot(measurements_, Size()); }
 
-void SlidingWindowReservoir::Reset() {
-    count_ = 0;
-}
-
-
+void SlidingWindowReservoir::Reset() { count_ = 0; }
 
 END_KMONITOR_NAMESPACE(kmonitor);
-

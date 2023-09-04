@@ -1,0 +1,14 @@
+--[[
+Graph.parameter : graph related kv parameters 
+Graph.loadSimpleFlow(flowId, taskType, taskIdentifier, taskKVParam = nil) : return flowObject
+Graph.loadFlow(flowFileName, flowId, flowKVParam = nil) : return flowObject
+Graph.loadSubGraph(graphId, graphFileName, graphKVParam = nil) : return true : false
+Graph.getFlow(flowId) : return flowObject
+Graph.setUpstreaem(flow, upstreamFlow, waitStatus = "finish"|"stop"|"xxx") 
+--]]
+
+--#import(Tool)
+
+function graphDef()
+   invalid_graph!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+end

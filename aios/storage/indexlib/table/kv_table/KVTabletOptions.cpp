@@ -27,7 +27,7 @@ uint32_t KVTabletOptions::GetShardNum() const
     } else {
         path = "offline_index_config.build_config.sharding_column_num";
     }
-    if (!_tabletOptions->GetFromRawJson(path, &shardNum)) {
+    if (!_tabletOptions->GetFromRawJson(path, &shardNum).IsOK()) {
         return 1;
     }
     return shardNum;
@@ -42,7 +42,7 @@ uint32_t KVTabletOptions::GetLevelNum() const
     } else {
         path = "offline_index_config.build_config.level_num";
     }
-    if (!_tabletOptions->GetFromRawJson(path, &levelNum)) {
+    if (!_tabletOptions->GetFromRawJson(path, &levelNum).IsOK()) {
         AUTIL_LOG(WARN, "kv table level num not existed, rewrite to 2");
         return 2;
     }
@@ -60,7 +60,7 @@ bool KVTabletOptions::IsMemoryReclaimEnabled() const
     }
     std::string path = "online_index_config.build_config.enable_kv_memory_reclaim";
     bool ret = false;
-    if (!_tabletOptions->GetFromRawJson(path, &ret)) {
+    if (!_tabletOptions->GetFromRawJson(path, &ret).IsOK()) {
         return false;
     }
     return ret;

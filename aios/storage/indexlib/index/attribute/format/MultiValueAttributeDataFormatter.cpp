@@ -29,7 +29,7 @@ MultiValueAttributeDataFormatter::MultiValueAttributeDataFormatter()
 {
 }
 
-void MultiValueAttributeDataFormatter::Init(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+void MultiValueAttributeDataFormatter::Init(const std::shared_ptr<AttributeConfig>& attrConfig)
 {
     _fixedValueCount = attrConfig->GetFieldConfig()->GetFixedMultiValueCount();
     if (_fixedValueCount != -1) {

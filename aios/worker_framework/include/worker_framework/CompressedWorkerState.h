@@ -23,6 +23,9 @@
 namespace worker_framework {
 namespace worker_base {
 
+extern const std::string ZK_PREFIX;
+extern const std::string LOCAL_PREFIX;
+
 class CompressedWorkerState : public WorkerState {
 public:
     explicit CompressedWorkerState(std::unique_ptr<WorkerState> underlying);
@@ -37,6 +40,7 @@ protected:
     virtual bool decompress(const std::string &input, std::string &output) = 0;
 
 public:
+    static std::unique_ptr<WorkerState> createWithFilePath(const std::string &filePath, autil::CompressType type);
     static std::unique_ptr<WorkerState> create(std::unique_ptr<WorkerState> underlying, autil::CompressType type);
 
 private:

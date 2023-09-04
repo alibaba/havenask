@@ -17,6 +17,7 @@
 
 #include <stddef.h>
 
+#include "autil/Log.h"
 #include "ha3/common/QueryInfo.h"
 #include "ha3/isearch.h"
 #include "ha3/queryparser/AndNotQueryExpr.h"
@@ -29,7 +30,6 @@
 #include "ha3/queryparser/QueryExpr.h"
 #include "ha3/queryparser/RankQueryExpr.h"
 #include "ha3/queryparser/WordsTermExpr.h"
-#include "autil/Log.h"
 
 using namespace std;
 using namespace isearch::common;
@@ -37,11 +37,9 @@ namespace isearch {
 namespace queryparser {
 AUTIL_LOG_SETUP(ha3, QueryExprToStringEvaluator);
 
-QueryExprToStringEvaluator::QueryExprToStringEvaluator() {
-}
+QueryExprToStringEvaluator::QueryExprToStringEvaluator() {}
 
-QueryExprToStringEvaluator::~QueryExprToStringEvaluator() {
-}
+QueryExprToStringEvaluator::~QueryExprToStringEvaluator() {}
 
 void QueryExprToStringEvaluator::evaluateAndExpr(AndQueryExpr *andExpr) {
     _ss << "{ANDExpr";
@@ -95,7 +93,6 @@ void QueryExprToStringEvaluator::evaluateRankExpr(RankQueryExpr *rankExpr) {
     _ss << "}";
 }
 
-
 void QueryExprToStringEvaluator::evaluateWordsExpr(WordsTermExpr *wordsExpr) {
     _ss << "{WordsExpr";
     string label = wordsExpr->getLabel();
@@ -104,7 +101,7 @@ void QueryExprToStringEvaluator::evaluateWordsExpr(WordsTermExpr *wordsExpr) {
     }
     _ss << ": ";
     _ss << "(" << wordsExpr->getIndexName() << ")";
-    _ss <<"'" << wordsExpr->getText() << "'}";
+    _ss << "'" << wordsExpr->getText() << "'}";
 }
 
 void QueryExprToStringEvaluator::evaluateNumberExpr(NumberTermExpr *numberExpr) {
@@ -115,13 +112,9 @@ void QueryExprToStringEvaluator::evaluateNumberExpr(NumberTermExpr *numberExpr) 
     }
     _ss << ": ";
     _ss << "(" << numberExpr->getIndexName() << ")";
-    _ss << string(numberExpr->getLeftInclusive() ? "[" : "(")
-        << numberExpr->getLeftNumber()
-        << ", "
-        << numberExpr->getRightNumber()
-        << string(numberExpr->getRightInclusive() ? "]" : ")")
+    _ss << string(numberExpr->getLeftInclusive() ? "[" : "(") << numberExpr->getLeftNumber() << ", "
+        << numberExpr->getRightNumber() << string(numberExpr->getRightInclusive() ? "]" : ")")
         << "}";
-
 }
 
 void QueryExprToStringEvaluator::evaluatePhraseExpr(PhraseTermExpr *phraseExpr) {
@@ -132,12 +125,10 @@ void QueryExprToStringEvaluator::evaluatePhraseExpr(PhraseTermExpr *phraseExpr) 
     }
     _ss << ": ";
     _ss << "(" << phraseExpr->getIndexName() << ")";
-    _ss <<"\"" << phraseExpr->getText() << "\"}";
+    _ss << "\"" << phraseExpr->getText() << "\"}";
 }
 
-void QueryExprToStringEvaluator::evaluateMultiTermExpr(
-        MultiTermQueryExpr *multiTermExpr)
-{
+void QueryExprToStringEvaluator::evaluateMultiTermExpr(MultiTermQueryExpr *multiTermExpr) {
     if (multiTermExpr->getOpExpr() == OP_OR) {
         _ss << "{ORExpr";
     } else if (multiTermExpr->getOpExpr() == OP_AND) {
@@ -150,7 +141,7 @@ void QueryExprToStringEvaluator::evaluateMultiTermExpr(
         _ss << "@" << label;
     }
     _ss << ": ";
-    const MultiTermQueryExpr::TermExprArray& termQueryExprs = multiTermExpr->getTermExprs();
+    const MultiTermQueryExpr::TermExprArray &termQueryExprs = multiTermExpr->getTermExprs();
     size_t s = termQueryExprs.size();
     for (size_t i = 0; i < s; ++i) {
         termQueryExprs[i]->evaluate(this);
@@ -170,7 +161,7 @@ string QueryExprToStringEvaluator::getString() {
 }
 
 string QueryExprToStringEvaluator::stealString() {
-    string tmp =  _ss.str();
+    string tmp = _ss.str();
     reset();
     return tmp;
 }

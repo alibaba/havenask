@@ -1,0 +1,14 @@
+{
+    "script_type" : "python",
+    "script_file" : "run_python_fail.py",
+    "resources" : [
+	{ "path" : "bin", "type" : "binary" },
+	{ "path" : "lib", "type" : "library" }
+    ],
+    "arguments" : "3 6",
+    "action_when_failed" : "finish",
+    "force_retry" : true,
+    "max_retry_times" : 2,
+    "partition_count" : 3,
+    "parallel_num" : 2
+}

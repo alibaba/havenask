@@ -25,20 +25,18 @@ public:
     struct CppTypeTag {
         typedef T value_type;
     };
+
 public:
     template <typename F1, typename F2>
     static bool switchType(matchdoc::ValueType vt, F1 func, F2 multiFunc);
     template <typename F1, typename F2>
-    static bool switchType(matchdoc::BuiltinType bt, bool isMulti,
-                           F1 func, F2 multiFunc);
+    static bool switchType(matchdoc::BuiltinType bt, bool isMulti, F1 func, F2 multiFunc);
     template <typename F1, typename F2, typename F3, typename F4>
-    static bool switchType(matchdoc::ValueType vt,
-                           F1 func, F2 multiFunc,
-                           F3 stringFunc, F4 multiStringFunc);
+    static bool switchType(matchdoc::ValueType vt, F1 func, F2 multiFunc, F3 stringFunc, F4 multiStringFunc);
     template <typename F1, typename F2, typename F3, typename F4>
-    static bool switchType(matchdoc::BuiltinType bt, bool isMulti,
-                           F1 func, F2 multiFunc,
-                           F3 stringFunc, F4 multiStringFunc);
+    static bool
+    switchType(matchdoc::BuiltinType bt, bool isMulti, F1 func, F2 multiFunc, F3 stringFunc, F4 multiStringFunc);
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -49,22 +47,20 @@ bool ValueTypeSwitch::switchType(matchdoc::ValueType vt, F1 func, F2 multiFunc) 
 }
 
 template <typename F1, typename F2>
-bool ValueTypeSwitch::switchType(matchdoc::BuiltinType bt, bool isMulti,
-                                 F1 func, F2 multiFunc)
-{
+bool ValueTypeSwitch::switchType(matchdoc::BuiltinType bt, bool isMulti, F1 func, F2 multiFunc) {
     using matchdoc::MatchDocBuiltinType2CppType;
     switch (bt) {
-#define CASE_MACRO(ft)                                                  \
-        case ft: {                                                      \
-            if (isMulti) {                                              \
-                typedef MatchDocBuiltinType2CppType<ft, true>::CppType T; \
-                return multiFunc(CppTypeTag<T>());                      \
-            } else {                                                    \
-                typedef MatchDocBuiltinType2CppType<ft, false>::CppType T; \
-                return func(CppTypeTag<T>());                           \
-            }                                                           \
-            break;                                                      \
-        }
+#define CASE_MACRO(ft)                                                                                                 \
+    case ft: {                                                                                                         \
+        if (isMulti) {                                                                                                 \
+            typedef MatchDocBuiltinType2CppType<ft, true>::CppType T;                                                  \
+            return multiFunc(CppTypeTag<T>());                                                                         \
+        } else {                                                                                                       \
+            typedef MatchDocBuiltinType2CppType<ft, false>::CppType T;                                                 \
+            return func(CppTypeTag<T>());                                                                              \
+        }                                                                                                              \
+        break;                                                                                                         \
+    }
         BUILTIN_TYPE_MACRO_HELPER(CASE_MACRO);
     case matchdoc::BuiltinType::bt_bool: {
         if (isMulti) {
@@ -82,34 +78,27 @@ bool ValueTypeSwitch::switchType(matchdoc::BuiltinType bt, bool isMulti,
     return true;
 }
 
-
 template <typename F1, typename F2, typename F3, typename F4>
-bool ValueTypeSwitch::switchType(matchdoc::ValueType vt,
-                                 F1 func, F2 multiFunc,
-                                 F3 stringFunc, F4 multiStringFunc)
-{
-    return switchType(vt.getBuiltinType(), vt.isMultiValue(),
-                      func, multiFunc, stringFunc, multiStringFunc);
+bool ValueTypeSwitch::switchType(matchdoc::ValueType vt, F1 func, F2 multiFunc, F3 stringFunc, F4 multiStringFunc) {
+    return switchType(vt.getBuiltinType(), vt.isMultiValue(), func, multiFunc, stringFunc, multiStringFunc);
 }
 
 template <typename F1, typename F2, typename F3, typename F4>
-bool ValueTypeSwitch::switchType(matchdoc::BuiltinType bt, bool isMulti,
-                                 F1 func, F2 multiFunc,
-                                 F3 stringFunc, F4 multiStringFunc)
-{
+bool ValueTypeSwitch::switchType(
+    matchdoc::BuiltinType bt, bool isMulti, F1 func, F2 multiFunc, F3 stringFunc, F4 multiStringFunc) {
     using matchdoc::MatchDocBuiltinType2CppType;
     switch (bt) {
-#define CASE_MACRO(ft)                                                  \
-        case ft: {                                                      \
-            if (isMulti) {                                              \
-                typedef MatchDocBuiltinType2CppType<ft, true>::CppType T; \
-                return multiFunc(CppTypeTag<T>());                      \
-            } else {                                                    \
-                typedef MatchDocBuiltinType2CppType<ft, false>::CppType T; \
-                return func(CppTypeTag<T>());                           \
-            }                                                           \
-            break;                                                      \
-        }
+#define CASE_MACRO(ft)                                                                                                 \
+    case ft: {                                                                                                         \
+        if (isMulti) {                                                                                                 \
+            typedef MatchDocBuiltinType2CppType<ft, true>::CppType T;                                                  \
+            return multiFunc(CppTypeTag<T>());                                                                         \
+        } else {                                                                                                       \
+            typedef MatchDocBuiltinType2CppType<ft, false>::CppType T;                                                 \
+            return func(CppTypeTag<T>());                                                                              \
+        }                                                                                                              \
+        break;                                                                                                         \
+    }
         NUMBER_BUILTIN_TYPE_MACRO_HELPER(CASE_MACRO);
 #undef CASE_MACRO
     case matchdoc::BuiltinType::bt_string: {
@@ -136,4 +125,4 @@ bool ValueTypeSwitch::switchType(matchdoc::BuiltinType bt, bool isMulti,
     return true;
 }
 
-}
+} // namespace table

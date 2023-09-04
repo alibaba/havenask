@@ -15,6 +15,7 @@
  */
 #include "indexlib/table/normal_table/index_task/NormalTableMergeDescriptionCreator.h"
 
+#include "indexlib/config/MutableJson.h"
 #include "indexlib/index/DocMapper.h"
 #include "indexlib/index/attribute/AttributeDataInfo.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
@@ -32,14 +33,14 @@ namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, NormalTableMergeDescriptionCreator);
 
 NormalTableMergeDescriptionCreator::NormalTableMergeDescriptionCreator(
-    const std::shared_ptr<config::TabletSchema>& schema, const std::string& mergeStrategy,
+    const std::shared_ptr<config::ITabletSchema>& schema, const std::string& mergeStrategy,
     const std::string& compactionType, bool isOptimizeMerge)
     : CommonMergeDescriptionCreator(schema)
     , _isOptimizeMerge(isOptimizeMerge)
     , _compactionType(compactionType)
     , _mergeStrategy(mergeStrategy)
 {
-    auto [status, sortDescs] = schema->GetSetting<config::SortDescriptions>("sort_descriptions");
+    auto [status, sortDescs] = schema->GetRuntimeSettings().GetValue<config::SortDescriptions>("sort_descriptions");
     if (!status.IsOK() && !status.IsNotFound()) {
         assert(false);
     } else {
@@ -73,7 +74,7 @@ NormalTableMergeDescriptionCreator::CreateIndexMergeOperationDescription(
             return std::make_pair(Status::ConfigError("can not get shard index name for indexer with shading"), opDesc);
         }
     }
-    const auto& attributeIndexConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(indexConfig);
+    const auto& attributeIndexConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(indexConfig);
     if (attributeIndexConfig) {
         if (attributeIndexConfig->GetSliceCount() > 1 && attributeIndexConfig->GetSliceIdx() != -1) {
             opDesc.AddParameter(index::ATTRIBUTE_SLICE_COUNT, std::to_string(attributeIndexConfig->GetSliceCount()));
@@ -140,7 +141,7 @@ NormalTableMergeDescriptionCreator::CreateBeforeMergeIndexOperationDescriptions(
 
 std::unique_ptr<framework::IndexOperationDescription>
 NormalTableMergeDescriptionCreator::CreateOpLog2PatchOperationDescription(
-    const std::shared_ptr<config::TabletSchema>& schema, framework::IndexOperationId operationId)
+    const std::shared_ptr<config::ITabletSchema>& schema, framework::IndexOperationId operationId)
 {
     if (!schema->GetIndexConfig(indexlib::index::OPERATION_LOG_INDEX_TYPE_STR,
                                 indexlib::index::OPERATION_LOG_INDEX_NAME)) {
@@ -165,7 +166,7 @@ std::vector<std::shared_ptr<config::IIndexConfig>> NormalTableMergeDescriptionCr
                                              shardingIndexConfigs.end());
             }
         }
-        const auto& attributeConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(indexConfig);
+        const auto& attributeConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(indexConfig);
         // TODO: by yijie.zhang support unique attribute slice
         if (MergeStrategyDefine::OPTIMIZE_MERGE_STRATEGY_NAME == _mergeStrategy && attributeConfig &&
             attributeConfig->GetSliceCount() > 1 && !attributeConfig->IsUniqEncode()) {

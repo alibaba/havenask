@@ -1,0 +1,60 @@
+{
+    "table_name": "kkv_table",
+    "table_type": "kkv",
+    "fields": [
+        {
+            "field_name": "nick",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "nid",
+            "field_type": "INT64",
+            "multi_value": true
+        },
+        {
+            "field_name": "pidvid",
+            "field_type": "INT64",
+            "multi_value": true
+        },
+        {
+            "field_name": "timestamp",
+            "field_type": "INT64"
+        }
+    ],
+    "indexs": [
+        {
+            "index_name": "nick_nid",
+            "index_type": "PRIMARY_KEY",
+            "index_fields": [
+                {
+                    "field_name": "nick",
+                    "key_type": "prefix"
+                },
+                {
+                    "field_name": "nid",
+                    "key_type": "suffix",
+                    "count_limits": 5000
+                }
+            ],
+            "index_preference": {
+                "type": "PERF",
+                "parameters": {
+                    "hash_dict": {},
+                    "suffix_key": {
+                        "encode": false
+                    },
+                    "value": {
+                        "encode": true,
+                        "file_compressor": "lz4"
+                    }
+                }
+            }
+        }
+    ],
+    "attributes": [
+        "nick",
+        "nid",
+        "pidvid",
+        "timestamp"
+    ]
+}

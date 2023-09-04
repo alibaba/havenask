@@ -28,7 +28,7 @@ enum LevelTopology {
     topo_default = 0x00,
     topo_sequence = 0x01,
     topo_hash_mod = 0x02,
-    topo_hash_range = 0x04,
+    topo_key_range = 0x04,
 };
 
 class LevelMeta : public autil::legacy::Jsonizable
@@ -58,7 +58,7 @@ public:
 private:
     inline static const std::string TOPOLOGY_SEQUENCE_STR = "sequence";
     inline static const std::string TOPOLOGY_HASH_MODE_STR = "hash_mod";
-    inline static const std::string TOPOLOGY_HASH_RANGE_STR = "hash_range";
+    inline static const std::string TOPOLOGY_KEY_RANGE_STR = "key_range";
 };
 
 class LevelInfo : public autil::legacy::Jsonizable
@@ -67,12 +67,11 @@ public:
     LevelInfo();
     ~LevelInfo();
 
-public:
     void Jsonize(JsonWrapper& json) override;
-
-    void Init(LevelTopology topo, uint32_t levelNum, size_t shardCount);
+    void Init(LevelTopology topo, uint32_t levelNum, size_t shardCount = 1);
 
     void AddSegment(segmentid_t segmentId);
+    bool AddSegment(segmentid_t segmentId, uint32_t levelIdx);
     void AddLevel(LevelTopology levelTopo);
     Status Import(const std::vector<std::shared_ptr<LevelInfo>>& otherLevelInfos,
                   const std::set<segmentid_t>& newSegmentHint);

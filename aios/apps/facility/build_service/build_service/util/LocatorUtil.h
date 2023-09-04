@@ -33,10 +33,37 @@ public:
     convertLocatorProgress(const std::vector<indexlibv2::base::Progress>& progress, const std::string& topicName,
                            const std::vector<std::pair<uint8_t, uint8_t>>& maskFilterPairs, bool useBSInnerMaskFilter);
     static std::vector<indexlibv2::base::Progress>
-    ComputeMinProgress(const std::vector<indexlibv2::base::Progress>& lastProgress,
-                       const std::vector<indexlibv2::base::Progress>& progress);
+    ComputeProgress(const std::vector<indexlibv2::base::Progress>& lastProgress,
+                    const std::vector<indexlibv2::base::Progress>& progress,
+                    std::function<indexlibv2::base::Progress::Offset(indexlibv2::base::Progress::Offset,
+                                                                     indexlibv2::base::Progress::Offset)>
+                        compareFunc);
+
+    static std::string progress2DebugString(const std::vector<indexlibv2::base::Progress> progress);
+
+    // for stream topic mode
+    static bool EncodeOffset(int8_t streamIdx, int64_t timestamp, int64_t* offset);
+    static void DecodeOffset(int64_t encodedOffset, int8_t* streamIdx, int64_t* timestamp);
+
+    static int64_t GetSwiftWatermark(const common::Locator& locator);
+
+    static indexlibv2::base::Progress::Offset minOffset(indexlibv2::base::Progress::Offset left,
+                                                        indexlibv2::base::Progress::Offset right)
+    {
+        return std::min(left, right);
+    }
+    static indexlibv2::base::Progress::Offset maxOffset(indexlibv2::base::Progress::Offset left,
+                                                        indexlibv2::base::Progress::Offset right)
+    {
+        return std::max(left, right);
+    }
 
 private:
+    static const int64_t TIMESTAMP_BIT = 56;
+    static const int64_t MAX_TIMESTAMP = (1L << TIMESTAMP_BIT);
+    static const int64_t INVALID_TIMESTAMP = -1;
+    static const int64_t TIMESTAMP_MASK = MAX_TIMESTAMP - 1;
+    static const int64_t INVALID_STREAM_IDX = -1;
     LocatorUtil();
     ~LocatorUtil();
 

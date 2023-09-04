@@ -20,21 +20,20 @@
 
 #include "alog/Logger.h"
 #include "autil/CommonMacros.h"
-
+#include "autil/Log.h"
 #include "ha3/isearch.h"
 #include "ha3/search/TermQueryExecutor.h"
-#include "autil/Log.h"
 
 namespace indexlib {
 namespace index {
 class PostingIterator;
-}  // namespace index
-}  // namespace indexlib
+} // namespace index
+} // namespace indexlib
 namespace isearch {
 namespace common {
 class Term;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 using namespace std;
 
@@ -42,26 +41,25 @@ namespace isearch {
 namespace search {
 AUTIL_LOG_SETUP(ha3, SubTermQueryExecutor);
 
-SubTermQueryExecutor::SubTermQueryExecutor(indexlib::index::PostingIterator *iter, 
-        const common::Term &term,
-        DocMapAttrIterator *mainToSubIter,
-        DocMapAttrIterator *subToMainIter)
+SubTermQueryExecutor::SubTermQueryExecutor(indexlib::index::PostingIterator *iter,
+                                           const common::Term &term,
+                                           DocMapAttrIterator *mainToSubIter,
+                                           DocMapAttrIterator *subToMainIter)
     : TermQueryExecutor(iter, term)
     , _curSubDocId(INVALID_DOCID)
     , _mainToSubIter(mainToSubIter)
-    , _subToMainIter(subToMainIter)
-{
+    , _subToMainIter(subToMainIter) {
     _hasSubDocExecutor = true;
 }
 
-SubTermQueryExecutor::~SubTermQueryExecutor() { 
-}
+SubTermQueryExecutor::~SubTermQueryExecutor() {}
 
-indexlib::index::ErrorCode SubTermQueryExecutor::doSeek(docid_t docId, docid_t& result) {
+indexlib::index::ErrorCode SubTermQueryExecutor::doSeek(docid_t docId, docid_t &result) {
     docid_t subDocStartId = 0;
     if (likely(docId != 0)) {
         bool ret = _mainToSubIter->Seek(docId - 1, subDocStartId);
-        assert(ret); (void)ret;
+        assert(ret);
+        (void)ret;
     }
     if (unlikely(INVALID_DOCID == subDocStartId)) {
         // building doc in rt: set sub join, but not set main join
@@ -75,20 +73,25 @@ indexlib::index::ErrorCode SubTermQueryExecutor::doSeek(docid_t docId, docid_t& 
         IE_RETURN_CODE_IF_ERROR(ec);
         if (subDocId == END_DOCID) {
             break;
-        } 
+        }
         bool ret = _subToMainIter->Seek(subDocId, retDocId);
-        assert(ret); (void)ret;
+        assert(ret);
+        (void)ret;
         subDocId++;
     } while (retDocId == INVALID_DOCID);
-   
+
     if (unlikely(retDocId == INVALID_DOCID)) {
         retDocId = END_DOCID;
     }
     if (unlikely(retDocId < docId)) {
-        AUTIL_LOG(ERROR, "Invalid map between sub and main table."
-                "main doc[%d] map to start sub doc[%d], "
-                "seek sub doc[%d] map to main doc[%d].",
-                docId, subDocStartId, subDocId, retDocId);
+        AUTIL_LOG(ERROR,
+                  "Invalid map between sub and main table."
+                  "main doc[%d] map to start sub doc[%d], "
+                  "seek sub doc[%d] map to main doc[%d].",
+                  docId,
+                  subDocStartId,
+                  subDocId,
+                  retDocId);
         retDocId = END_DOCID;
     }
     assert(retDocId >= docId);
@@ -96,9 +99,8 @@ indexlib::index::ErrorCode SubTermQueryExecutor::doSeek(docid_t docId, docid_t& 
     return indexlib::index::ErrorCode::OK;
 }
 
-indexlib::index::ErrorCode SubTermQueryExecutor::seekSubDoc(docid_t docId, docid_t subDocId,
-        docid_t subDocEnd, bool needSubMatchdata, docid_t& result)
-{
+indexlib::index::ErrorCode SubTermQueryExecutor::seekSubDoc(
+    docid_t docId, docid_t subDocId, docid_t subDocEnd, bool needSubMatchdata, docid_t &result) {
     auto ec = subDocSeek(subDocId, subDocId);
     IE_RETURN_CODE_IF_ERROR(ec);
     if (subDocId < subDocEnd) {
@@ -124,4 +126,3 @@ string SubTermQueryExecutor::toString() const {
 
 } // namespace search
 } // namespace isearch
-

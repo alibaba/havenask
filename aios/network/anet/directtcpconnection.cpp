@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/anet/directtcpconnection.h"
-#include "aios/network/anet/stats.h"
-#include "aios/network/anet/log.h"
-#include "aios/network/anet/directpacketstreamer.h"
-#include "aios/network/anet/directstreamingcontext.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <stdint.h>
@@ -27,11 +24,15 @@
 #include "aios/network/anet/connection.h"
 #include "aios/network/anet/databuffer.h"
 #include "aios/network/anet/directpacket.h"
+#include "aios/network/anet/directpacketstreamer.h"
+#include "aios/network/anet/directstreamingcontext.h"
 #include "aios/network/anet/ilogger.h"
 #include "aios/network/anet/iocomponent.h"
 #include "aios/network/anet/ipacketstreamer.h"
+#include "aios/network/anet/log.h"
 #include "aios/network/anet/orderedpacketqueue.h"
 #include "aios/network/anet/socket.h"
+#include "aios/network/anet/stats.h"
 #include "aios/network/anet/streamingcontext.h"
 #include "aios/network/anet/tcpconnection.h"
 #include "aios/network/anet/threadcond.h"
@@ -44,8 +45,7 @@ constexpr int32_t DIRECT_READ_WRITE_SIZE = READ_WRITE_SIZE;
 
 static const DirectPayload kEmptyPayload{};
 
-DirectTCPConnection::DirectTCPConnection(Socket *socket, IPacketStreamer *streamer,
-                                         IServerAdapter *serverAdapter)
+DirectTCPConnection::DirectTCPConnection(Socket *socket, IPacketStreamer *streamer, IServerAdapter *serverAdapter)
     : TCPConnection(socket, streamer, serverAdapter) {
     _directStreamer = dynamic_cast<DirectPacketStreamer *>(streamer);
     assert(nullptr != _directStreamer);
@@ -56,7 +56,7 @@ DirectTCPConnection::DirectTCPConnection(Socket *socket, IPacketStreamer *stream
 
 DirectTCPConnection::~DirectTCPConnection() {
     ANET_LOG(DEBUG, "DirectTCPConnection destroy");
-    clearWritingPacket();  // in case no error, but packet is still sending
+    clearWritingPacket(); // in case no error, but packet is still sending
 }
 
 bool DirectTCPConnection::writeData() {
@@ -110,15 +110,14 @@ bool DirectTCPConnection::writeData() {
                         // free channel of packets not expecting reply
                         _channelPool.freeChannel(channel);
                     } else {
-                        ANET_LOG(SPAM, "channel[%p] expire time[%ld]", channel,
-                                 _writingPacket->getExpireTime());
+                        ANET_LOG(SPAM, "channel[%p] expire time[%ld]", channel, _writingPacket->getExpireTime());
                         channel->setExpireTime(_writingPacket->getExpireTime());
                         _channelPool.addToWaitingList(channel);
                     }
                 }
             }
         CONTINUE_WRITE_PAYLOAD:
-            if (_payloadLeftToWrite > 0) {  // write direct payload:
+            if (_payloadLeftToWrite > 0) { // write direct payload:
                 if (_output.getDataLen() > 0) {
                     ret = sendBuffer(writeCnt, error);
                     if (_output.getDataLen() > 0) {
@@ -126,19 +125,18 @@ bool DirectTCPConnection::writeData() {
                     }
                 }
                 ret = sendPayload(writeCnt, error);
-                if (0UL == _payloadLeftToWrite) {  // write to socket success with payload
+                if (0UL == _payloadLeftToWrite) { // write to socket success with payload
                     finishPacketWrite();
                 }
                 break;
-            } else {  // write to buffer success without payload
+            } else { // write to buffer success without payload
                 finishPacketWrite();
             }
         }
         if (_output.getDataLen() > 0) {
             ret = sendBuffer(writeCnt, error);
         }
-    } while (ret > 0 && _output.getDataLen() == 0 && _payloadLeftToWrite == 0 && myQueueSize > 0 &&
-             writeCnt < 10);
+    } while (ret > 0 && _output.getDataLen() == 0 && _payloadLeftToWrite == 0 && myQueueSize > 0 && writeCnt < 10);
     _outputCond.lock();
     _outputQueue.moveBack(&_myQueue);
     if (error != 0 && error != EWOULDBLOCK && error != EAGAIN) {
@@ -146,11 +144,10 @@ bool DirectTCPConnection::writeData() {
         ANET_LOG(WARN, "Connection (%s) write error: %d", _socket->getAddr(spec, 32), error);
         _outputCond.unlock();
         clearOutputBuffer();
-        clearWritingPacket();  // clear packet on error
+        clearWritingPacket(); // clear packet on error
         return false;
     }
-    int queueSize = _outputQueue.size() + (_output.getDataLen() > 0 ? 1 : 0) +
-                    (_payloadLeftToWrite > 0 ? 1 : 0);
+    int queueSize = _outputQueue.size() + (_output.getDataLen() > 0 ? 1 : 0) + (_payloadLeftToWrite > 0 ? 1 : 0);
     if (queueSize > 0) {
         // when using level triggered mode, do NOT need to call enableWrite() any more.
     } else if (_writeFinishShutdown) {
@@ -215,8 +212,7 @@ bool DirectTCPConnection::readData() {
                 break;
             }
         CONTINUE_READ_PAYLOAD:
-            bool success =
-                _directStreamer->readPayload(&_input, _socket, &_channelPool, _directContext, ret);
+            bool success = _directStreamer->readPayload(&_input, _socket, &_channelPool, _directContext, ret);
             if (ret > 0) {
                 _stats.totalRxBytes += ret;
             }
@@ -230,13 +226,11 @@ bool DirectTCPConnection::readData() {
 
             // continue original logic
             auto packet = _directContext->stealDirectPacket();
-            int64_t packetSizeInBuffer =
-                ANET_DIRECT_PACKET_INFO_LEN + packet->getDirectHeader()._msgSize;
+            int64_t packetSizeInBuffer = ANET_DIRECT_PACKET_INFO_LEN + packet->getDirectHeader()._msgSize;
             if (packetSizeInBuffer > _maxRecvPacketSize) {
                 _maxRecvPacketSize = packetSizeInBuffer;
             }
-            assert((int32_t)_directContext->getPayloadReadOffset() ==
-                   packet->getDirectHeader()._payloadSize);
+            assert((int32_t)_directContext->getPayloadReadOffset() == packet->getDirectHeader()._payloadSize);
             packet->cleanupFlags();
             handlePacket(packet);
             _directContext->reset();
@@ -249,13 +243,12 @@ bool DirectTCPConnection::readData() {
     } while (ret == DIRECT_READ_WRITE_SIZE && !broken && readCnt < 10);
 
     if (!broken) {
-        if (ret == 0) {  // maybe closing connection
+        if (ret == 0) { // maybe closing connection
             broken = true;
         } else if (ret < 0) {
             if (error != 0 && error != EAGAIN && error != EWOULDBLOCK) {
                 char spec[32];
-                ANET_LOG(DEBUG, "Connection (%s) read error: %d", _socket->getAddr(spec, 32),
-                         error);
+                ANET_LOG(DEBUG, "Connection (%s) read error: %d", _socket->getAddr(spec, 32), error);
                 broken = true;
             }
         }
@@ -312,4 +305,4 @@ int DirectTCPConnection::sendPayload(int &writeCnt, int &error) {
     return ret;
 }
 
-}  // namespace anet
+} // namespace anet

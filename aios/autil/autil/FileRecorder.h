@@ -27,4 +27,4 @@ public:
     static const size_t _maxCount;
 };
 
-}
+} // namespace autil

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/controller/LatencyController.h"
+
 #include "aios/network/gig/multi_call/controller/ControllerChain.h"
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
 #include "autil/StringUtil.h"
@@ -25,13 +26,13 @@ namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, LatencyController);
 
 LatencyController::LatencyController()
-    : ControllerBase("latency"),
-      _netLatencyFilter(NET_LATENCY_FILTER_INIT_LIMIT) {}
+    : ControllerBase("latency")
+    , _netLatencyFilter(NET_LATENCY_FILTER_INIT_LIMIT) {
+}
 
 float LatencyController::update(ControllerFeedBack &feedBack) {
     assert(!feedBack.mirrorResponse);
-    updateServerLatency(feedBack.stat,
-                        feedBack.metricLimits.getLatencyUpperLimitMs());
+    updateServerLatency(feedBack.stat, feedBack.metricLimits.getLatencyUpperLimitMs());
     auto responseLatency = adjustResponseLatency(feedBack);
     updateLocalLatency(feedBack.stat.ec, responseLatency);
     float decStep = LATENCY_WEIGHT_DEC_STEP;
@@ -48,8 +49,7 @@ float LatencyController::update(ControllerFeedBack &feedBack) {
     }
 }
 
-bool LatencyController::isLegal(const ControllerChain *bestChain,
-                                const MetricLimits &metricLimits,
+bool LatencyController::isLegal(const ControllerChain *bestChain, const MetricLimits &metricLimits,
                                 float responseLatency) const {
     if (!bestControllerValid(bestChain)) {
         return true;
@@ -64,14 +64,12 @@ bool LatencyController::isLegal(const ControllerChain *bestChain,
         // use response latency as avg latency
         providerAvgLatency = responseLatency;
     }
-    float bestLatency = min(providerAvgLatency,
-                            bestChain->latencyController.controllerOutput());
+    float bestLatency = min(providerAvgLatency, bestChain->latencyController.controllerOutput());
     float maxAllowedLatency = getMaxAllowLatency(bestLatency, metricLimits);
     return providerAvgLatency < maxAllowedLatency;
 }
 
-bool LatencyController::bestControllerValid(
-    const ControllerChain *bestChain) const {
+bool LatencyController::bestControllerValid(const ControllerChain *bestChain) const {
     if (!bestChain) {
         return false;
     }
@@ -82,11 +80,9 @@ bool LatencyController::bestControllerValid(
     return true;
 }
 
-float LatencyController::adjustResponseLatency(
-    const ControllerFeedBack &feedBack) {
+float LatencyController::adjustResponseLatency(const ControllerFeedBack &feedBack) {
     const auto &metricLimits = feedBack.metricLimits;
-    return min(metricLimits.fullDegradeLatency *
-                   metricLimits.latencyUpperLimitPercent,
+    return min(metricLimits.fullDegradeLatency * metricLimits.latencyUpperLimitPercent,
                (float)feedBack.stat.getRpcLatency() / FACTOR_US_TO_MS);
 }
 
@@ -100,8 +96,7 @@ float LatencyController::controllerOutput() const {
     return localValue();
 }
 
-void LatencyController::updateServerLatency(QueryResultStatistic &stat,
-                                            float latencyUpperLimitMs) {
+void LatencyController::updateServerLatency(QueryResultStatistic &stat, float latencyUpperLimitMs) {
     if (!stat.agentInfo) {
         clearServerValue();
         return;
@@ -155,8 +150,7 @@ void LatencyController::doUpdateServerValue(const AverageLatency &avgLatency,
     float latency = min(avgLatency.latency(), latencyUpperLimitMs);
     setServerValue(latency);
     if (avgLatency.has_load_balance_latency()) {
-        float loadBalanceLatencyMs =
-            min(avgLatency.load_balance_latency(), latencyUpperLimitMs);
+        float loadBalanceLatencyMs = min(avgLatency.load_balance_latency(), latencyUpperLimitMs);
         setLoadBalanceServerValue(loadBalanceLatencyMs);
     } else {
         // gig-2.1 compatible logic
@@ -170,21 +164,18 @@ void LatencyController::doUpdateServerValue(const AverageLatency &avgLatency,
     }
 }
 
-void LatencyController::updateLocalLatency(MultiCallErrorCode ec,
-                                           float responseLatency) {
+void LatencyController::updateLocalLatency(MultiCallErrorCode ec, float responseLatency) {
     if (ec <= MULTI_CALL_ERROR_DEC_WEIGHT || responseLatency > localValue()) {
         updateLocal(responseLatency);
     }
 }
 
-float LatencyController::getMaxAllowLatency(float bestLatency,
-                                            const MetricLimits &metricLimits) {
+float LatencyController::getMaxAllowLatency(float bestLatency, const MetricLimits &metricLimits) {
     return min(bestLatency + metricLimits.latencyUpperLimitMs,
                bestLatency * metricLimits.latencyUpperLimitPercent);
 }
 
-float LatencyController::getLegalLimit(
-    const FlowControlConfigPtr &flowControlConfig) const {
+float LatencyController::getLegalLimit(const FlowControlConfigPtr &flowControlConfig) const {
     if (!isValid()) {
         return INVALID_FILTER_VALUE;
     }
@@ -201,8 +192,8 @@ float LatencyController::getLoadBalanceLegalLimit(
     return getLatencyLimit(output, flowControlConfig);
 }
 
-float LatencyController::getLatencyLimit(
-    float base, const FlowControlConfigPtr &flowControlConfig) {
+float LatencyController::getLatencyLimit(float base,
+                                         const FlowControlConfigPtr &flowControlConfig) {
     return min(base + flowControlConfig->latencyUpperLimitMs,
                base * (1.0f + flowControlConfig->latencyUpperLimitPercent));
 }
@@ -227,8 +218,7 @@ float LatencyController::updateLoadBalance(ControllerFeedBack &feedBack) {
     }
     auto &stat = feedBack.stat;
     if (feedBack.mirrorResponse) {
-        updateServerLatencyMirror(
-            stat, feedBack.metricLimits.getLatencyUpperLimitMs());
+        updateServerLatencyMirror(stat, feedBack.metricLimits.getLatencyUpperLimitMs());
     }
     if (!serverFilterReady()) {
         return MAX_PERCENT;
@@ -242,13 +232,13 @@ float LatencyController::updateLoadBalance(ControllerFeedBack &feedBack) {
         return MAX_PERCENT;
     }
     const auto &metricLimits = feedBack.metricLimits;
-    auto returnPercent = calculateWeightPercent(
-        lowLimit, controllerLoadBalanceOutput(), metricLimits);
+    auto returnPercent =
+        calculateWeightPercent(lowLimit, controllerLoadBalanceOutput(), metricLimits);
     return std::max(LOAD_BALANCE_MIN_PERCENT, returnPercent);
 }
 
-bool LatencyController::getLoadBalanceLowLimit(
-    const ControllerFeedBack &feedBack, float &lowLimit) const {
+bool LatencyController::getLoadBalanceLowLimit(const ControllerFeedBack &feedBack,
+                                               float &lowLimit) const {
     auto bestChain = feedBack.bestChain;
     if (!bestControllerValid(bestChain)) {
         return false;
@@ -261,10 +251,9 @@ bool LatencyController::getLoadBalanceLowLimit(
     return true;
 }
 
-float LatencyController::calculateWeightPercent(
-    float lowLimit, float thisLatency, const MetricLimits &metricLimits) {
-    if (INVALID_FILTER_VALUE == lowLimit ||
-        INVALID_FILTER_VALUE == thisLatency) {
+float LatencyController::calculateWeightPercent(float lowLimit, float thisLatency,
+                                                const MetricLimits &metricLimits) {
+    if (INVALID_FILTER_VALUE == lowLimit || INVALID_FILTER_VALUE == thisLatency) {
         return MAX_PERCENT;
     }
     auto upperLimit = getMaxAllowLatency(lowLimit, metricLimits);

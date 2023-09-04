@@ -25,15 +25,16 @@
 namespace isearch {
 namespace common {
 
-class QueryInfo : public autil::legacy::Jsonizable
-{
+class QueryInfo : public autil::legacy::Jsonizable {
 public:
     QueryInfo();
     QueryInfo(const std::string &defaultIndexName,
-              QueryOperator defaultOP = OP_AND, bool flag = false);
+              QueryOperator defaultOP = OP_AND,
+              bool flag = false);
     ~QueryInfo();
+
 public:
-    const std::string& getDefaultIndexName() const {
+    const std::string &getDefaultIndexName() const {
         return _defaultIndexName;
     }
     void setDefaultIndexName(const std::string &indexName) {
@@ -53,11 +54,13 @@ public:
         _useMultiTermOptimize = flag;
     }
 
-    void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json);
+    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json);
+
 private:
     std::string _defaultIndexName;
     QueryOperator _defaultOP;
     bool _useMultiTermOptimize;
+
 private:
     AUTIL_LOG_DECLARE();
 };

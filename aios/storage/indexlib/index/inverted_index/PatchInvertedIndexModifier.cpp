@@ -23,7 +23,7 @@ namespace indexlib::index {
 AUTIL_LOG_SETUP(indexlib.index, PatchInvertedIndexModifier);
 
 PatchInvertedIndexModifier::PatchInvertedIndexModifier(
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
     const std::shared_ptr<indexlib::file_system::IDirectory>& workDir)
     : InvertedIndexModifier(schema)
     , _workDir(workDir)

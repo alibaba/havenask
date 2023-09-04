@@ -15,8 +15,9 @@
  */
 #pragma once
 
-#include "aios/network/opentelemetry/core/Span.h"
 #include <memory>
+
+#include "aios/network/opentelemetry/core/Span.h"
 
 namespace opentelemetry {
 class TracerContext;
@@ -27,25 +28,19 @@ protected:
     Tracer() {}
 
 public:
-    Tracer(TracerContextPtr context)
-    {}
+    Tracer(TracerContextPtr context) {}
     virtual ~Tracer() {}
 
 public:
-    virtual SpanPtr startSpan(SpanKind spanKind,
-                              const SpanContextPtr& parent = SpanContextPtr());
+    virtual SpanPtr startSpan(SpanKind spanKind, const SpanContextPtr &parent = SpanContextPtr());
 
-    SpanPtr getCurrentSpan() {
-        return nullptr;
-    }
+    SpanPtr getCurrentSpan() { return nullptr; }
 
-    void withActiveSpan(const SpanPtr &span) {
-    }
+    void withActiveSpan(const SpanPtr &span) {}
 
 protected:
-    SpanPtr startChildSpan(SpanKind spanKind, const SpanContextPtr& parent);
+    SpanPtr startChildSpan(SpanKind spanKind, const SpanContextPtr &parent);
     SpanPtr startNewTrace(SpanKind spanKind);
-
 };
 OTEL_TYPEDEF_PTR(Tracer);
-}
+} // namespace opentelemetry

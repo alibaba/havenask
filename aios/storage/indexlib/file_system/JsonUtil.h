@@ -36,12 +36,12 @@ public:
     template <typename Json>
     static FSResult<void> FromString(const std::string& content, Json* json);
     template <typename Json>
-    static FSResult<void> ToString(const Json& json, std::string* content);
+    static FSResult<void> ToString(const Json& json, std::string* content, bool compact = false);
 
     template <typename Json>
     static FSResult<Json> FromString(const std::string& content);
     template <typename Json>
-    static FSResult<std::string> ToString(const Json& json);
+    static FSResult<std::string> ToString(const Json& json, bool compact = false);
 
     template <typename Json>
     static FSResult<int64_t> Load(const std::string& path, Json* json);
@@ -69,11 +69,11 @@ FSResult<void> JsonUtil::FromString(const std::string& content, Json* json)
 }
 
 template <typename Json>
-FSResult<void> JsonUtil::ToString(const Json& json, std::string* content)
+FSResult<void> JsonUtil::ToString(const Json& json, std::string* content, bool compact)
 {
     assert(content);
     try {
-        *content = autil::legacy::ToJsonString(json);
+        *content = autil::legacy::ToJsonString(json, compact);
     } catch (const std::exception& e) {
         AUTIL_LOG(ERROR, "To json string failed, exception[%s]", e.what());
         return FSEC_ERROR;
@@ -93,10 +93,10 @@ FSResult<Json> JsonUtil::FromString(const std::string& content)
 }
 
 template <typename Json>
-FSResult<std::string> JsonUtil::ToString(const Json& json)
+FSResult<std::string> JsonUtil::ToString(const Json& json, bool compact)
 {
     std::string content;
-    auto ec = ToString(json, &content).Code();
+    auto ec = ToString(json, &content, compact).Code();
     return {ec, content};
 }
 

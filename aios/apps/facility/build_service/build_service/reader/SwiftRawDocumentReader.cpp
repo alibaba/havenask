@@ -319,7 +319,7 @@ bool SwiftRawDocumentReader::initSwiftReader(SwiftReaderWrapper* swiftReader, co
     }
 
     std::vector<indexlibv2::base::Progress> progress;
-    progress.emplace_back(_swiftParam.from, _swiftParam.to, startTimestamp);
+    progress.push_back({_swiftParam.from, _swiftParam.to, {startTimestamp, 0}});
     if (startTimestamp > 0 && !seek(Checkpoint(/*offset=*/startTimestamp, /*progress=*/progress, /*userData=*/""))) {
         BS_LOG(ERROR, "swift reader seek to %ld failed", startTimestamp);
         return false;
@@ -398,15 +398,22 @@ bool SwiftRawDocumentReader::doSeek(int64_t timestamp, const std::vector<indexli
             REPORT_ERROR_WITH_ADVICE(READER_ERROR_SWIFT_SEEK, errorMsg, BS_RETRY);
             return false;
         }
-        return true;
+    } else {
+        swift::protocol::ErrorCode ec = _swiftReader->seekByTimestamp(timestamp, false);
+        if (ec != swift::protocol::ERROR_NONE && ec != swift::protocol::ERROR_CLIENT_NO_MORE_MESSAGE) {
+            string errorMsg = "seek by timestamp failed for swift source with " + StringUtil::toString(timestamp);
+            REPORT_ERROR_WITH_ADVICE(READER_ERROR_SWIFT_SEEK, errorMsg, BS_RETRY);
+            return false;
+        }
     }
-
-    swift::protocol::ErrorCode ec = _swiftReader->seekByTimestamp(timestamp, false);
-    if (ec != swift::protocol::ERROR_NONE && ec != swift::protocol::ERROR_CLIENT_NO_MORE_MESSAGE) {
-        string errorMsg = "seek by timestamp failed for swift source with " + StringUtil::toString(timestamp);
-        REPORT_ERROR_WITH_ADVICE(READER_ERROR_SWIFT_SEEK, errorMsg, BS_RETRY);
+    indexlibv2::framework::Locator locator;
+    locator.SetProgress(progress);
+    if (!locator.ShrinkToRange(_swiftParam.from, _swiftParam.to)) {
+        BS_LOG(ERROR, "seek failed, shrink failed, locator [%s], from [%d], to [%d]", locator.DebugString().c_str(),
+               _swiftParam.from, _swiftParam.to);
         return false;
     }
+    _messageFilter.setSeekProgress(locator.GetProgress());
     return true;
 }
 
@@ -514,36 +521,39 @@ RawDocumentReader::ErrorCode SwiftRawDocumentReader::readDocStr(std::string& doc
             return ERROR_WAIT;
         }
     }
-
     _lastDocTimestamp = checkpoint->offset;
     _lastDocU16Payload = message.uint16payload();
-    docInfo.docTimestamp = message.timestamp();
+    docInfo.timestamp = message.timestamp();
     docInfo.hashId = _lastDocU16Payload;
+    docInfo.concurrentIdx = message.offsetinrawmsg();
     _noMoreMsgStartTs = -1;
 
     auto [success, progress] = util::LocatorUtil::convertSwiftProgress(
         readerProgress, _swiftParam.isMultiTopic || _enableRawTopicFastSlowQueue);
     if (!success) {
-        AUTIL_LOG(ERROR, "convert swift progress failed [%s]", readerProgress.ShortDebugString().c_str());
+        BS_LOG(ERROR, "convert swift progress failed [%s]", readerProgress.ShortDebugString().c_str());
         return ERROR_EXCEPTION;
     }
+    if (_messageFilter.filterOrRewriteProgress(docInfo.hashId, {docInfo.timestamp, docInfo.concurrentIdx}, &progress)) {
+        BS_INTERVAL_LOG2(10, WARN, "filter message payload [%u] timestamp [%ld] progress [%s]", docInfo.hashId,
+                         docInfo.timestamp, readerProgress.ShortDebugString().c_str());
+        return ERROR_SKIP;
+    }
     checkpoint->progress = progress;
-
     if (!_swiftParam.isMultiTopic) {
         // TODO: assert topic equal
-        if (readerProgress.progress_size() > 0) {
-            checkpoint->userData = readerProgress.progress(0).topic();
+        if (readerProgress.topicprogress_size() > 0) {
+            checkpoint->userData = readerProgress.topicprogress(0).topicname();
         } else {
             checkpoint->userData = _swiftParam.topicName;
         }
     }
-
     if (_enableSchema) {
         encodeSchemaDocString(message, docStr);
     } else {
         docStr = message.data();
     }
-    _lastMsgTimestamp = docInfo.docTimestamp;
+    _lastMsgTimestamp = docInfo.timestamp;
     _lastMsgId = message.msgid();
     _exceedSuspendTimestamp = false;
 
@@ -632,8 +642,8 @@ RawDocumentReader::ErrorCode SwiftRawDocumentReader::readDocStr(std::vector<Mess
     checkpoint->progress = progress;
 
     if (!_swiftParam.isMultiTopic) {
-        if (readerProgress.progress_size() > 0) {
-            checkpoint->userData = readerProgress.progress(0).topic();
+        if (readerProgress.topicprogress_size() > 0) {
+            checkpoint->userData = readerProgress.topicprogress(0).topicname();
         } else {
             checkpoint->userData = _swiftParam.topicName;
         }

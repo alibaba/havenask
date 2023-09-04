@@ -16,7 +16,7 @@
 #pragma once
 
 #include "autil/Log.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/index_task/IndexOperationDescription.h"
 #include "indexlib/table/index_task/merger/MergePlan.h"
 #include "indexlib/table/index_task/merger/MergedVersionCommitOperation.h"
@@ -26,7 +26,7 @@ namespace indexlibv2::table {
 class CommonMergeDescriptionCreator
 {
 public:
-    CommonMergeDescriptionCreator(const std::shared_ptr<config::TabletSchema>& schema);
+    CommonMergeDescriptionCreator(const std::shared_ptr<config::ITabletSchema>& schema);
     ~CommonMergeDescriptionCreator();
 
 public:
@@ -55,7 +55,7 @@ protected:
     virtual std::vector<std::shared_ptr<config::IIndexConfig>> GetSupportConfigs();
 
 protected:
-    std::shared_ptr<config::TabletSchema> _schema;
+    std::shared_ptr<config::ITabletSchema> _schema;
 
 private:
     AUTIL_LOG_DECLARE();

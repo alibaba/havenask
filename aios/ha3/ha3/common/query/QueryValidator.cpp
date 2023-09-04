@@ -16,10 +16,10 @@
 #include "ha3/common/QueryValidator.h"
 
 #include <assert.h>
-#include <stddef.h>
-#include <stdint.h>
 #include <memory>
 #include <sstream>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "autil/Log.h"
 #include "ha3/common/AndNotQuery.h"
@@ -49,8 +49,7 @@ QueryValidator::QueryValidator(const IndexInfos *indexInfos) {
     reset();
 }
 
-QueryValidator::~QueryValidator() {
-}
+QueryValidator::~QueryValidator() {}
 
 bool QueryValidator::validateIndexName(const string &indexName) {
     assert(_indexInfos);
@@ -67,8 +66,7 @@ bool QueryValidator::validateIndexName(const string &indexName) {
 }
 
 bool QueryValidator::validateIndexFields(const string &indexName,
-                                         const RequiredFields &requiredFields)
-{
+                                         const RequiredFields &requiredFields) {
     if (requiredFields.fields.empty()) {
         return true;
     }
@@ -99,10 +97,11 @@ bool QueryValidator::validateIndexFields(const string &indexName,
     return true;
 }
 
-void QueryValidator::validateAdvancedQuery(const Query* query) {
-    const vector<QueryPtr>& child = *(query->getChildQuery());
+void QueryValidator::validateAdvancedQuery(const Query *query) {
+    const vector<QueryPtr> &child = *(query->getChildQuery());
     for (size_t i = 0; i < child.size(); ++i) {
-        if (checkNullQuery(child[i].get())) return;
+        if (checkNullQuery(child[i].get()))
+            return;
         child[i]->accept(this);
         if (_errorCode != ERROR_NONE) {
             return;
@@ -110,8 +109,7 @@ void QueryValidator::validateAdvancedQuery(const Query* query) {
     }
 }
 
-
-void QueryValidator::visitTermQuery(const TermQuery *query){
+void QueryValidator::visitTermQuery(const TermQuery *query) {
     if (checkNullQuery(query)) {
         return;
     }
@@ -119,8 +117,7 @@ void QueryValidator::visitTermQuery(const TermQuery *query){
     if (!validateIndexName(indexName)) {
         return;
     }
-    validateIndexFields(indexName,
-                        query->getTerm().getRequiredFields());
+    validateIndexFields(indexName, query->getTerm().getRequiredFields());
 }
 
 void QueryValidator::visitMultiTermQuery(const MultiTermQuery *query) {
@@ -132,7 +129,7 @@ void QueryValidator::visitMultiTermQuery(const MultiTermQuery *query) {
     validateTerms(termArray, ERROR_NULL_MULTI_TERM_QUERY, errorMsg, false);
 }
 
-void QueryValidator::visitPhraseQuery(const PhraseQuery *query){
+void QueryValidator::visitPhraseQuery(const PhraseQuery *query) {
     if (checkNullQuery(query)) {
         return;
     }
@@ -142,18 +139,16 @@ void QueryValidator::visitPhraseQuery(const PhraseQuery *query){
 }
 
 void QueryValidator::validateTerms(const vector<TermPtr> &termArray,
-                                   const ErrorCode ec, string &errorMsg,
-                                   bool validateTermEmpty/*=true*/)
-{
+                                   const ErrorCode ec,
+                                   string &errorMsg,
+                                   bool validateTermEmpty /*=true*/) {
     if (termArray.empty()) {
         _errorCode = ec;
         _errorMsg = errorMsg;
         return;
     }
-    if(validateTermEmpty) {
-        for (vector<TermPtr>::const_iterator it = termArray.begin();
-             it != termArray.end(); ++it)
-        {
+    if (validateTermEmpty) {
+        for (vector<TermPtr>::const_iterator it = termArray.begin(); it != termArray.end(); ++it) {
             if ((*it)->getWord().empty()) {
                 _errorCode = ec;
                 _errorMsg = errorMsg;
@@ -166,33 +161,37 @@ void QueryValidator::validateTerms(const vector<TermPtr> &termArray,
     if (!validateIndexName(indexName)) {
         return;
     }
-    validateIndexFields(indexName,
-                        termArray[0]->getRequiredFields());
+    validateIndexFields(indexName, termArray[0]->getRequiredFields());
 }
 
-void QueryValidator::visitAndQuery(const AndQuery *query){
-    if (checkNullQuery(query)) return;
+void QueryValidator::visitAndQuery(const AndQuery *query) {
+    if (checkNullQuery(query))
+        return;
     validateAdvancedQuery(query);
 }
 
-void QueryValidator::visitOrQuery(const OrQuery *query){
-    if (checkNullQuery(query)) return;
+void QueryValidator::visitOrQuery(const OrQuery *query) {
+    if (checkNullQuery(query))
+        return;
     validateAdvancedQuery(query);
 }
 
-void QueryValidator::visitAndNotQuery(const AndNotQuery *query){
-    if (checkNullQuery(query)) return;
+void QueryValidator::visitAndNotQuery(const AndNotQuery *query) {
+    if (checkNullQuery(query))
+        return;
     validateAdvancedQuery(query);
 }
 
-void QueryValidator::visitRankQuery(const RankQuery *query){
-    if (checkNullQuery(query)) return;
+void QueryValidator::visitRankQuery(const RankQuery *query) {
+    if (checkNullQuery(query))
+        return;
     validateAdvancedQuery(query);
 }
 
-void QueryValidator::visitNumberQuery(const NumberQuery *query){
-    if (checkNullQuery(query)) return;
-    const NumberTerm& term = query->getTerm();
+void QueryValidator::visitNumberQuery(const NumberQuery *query) {
+    if (checkNullQuery(query))
+        return;
+    const NumberTerm &term = query->getTerm();
     int64_t leftNum = term.getLeftNumber();
     int64_t rightNum = term.getRightNumber();
     if (rightNum < leftNum) {
@@ -204,19 +203,18 @@ void QueryValidator::visitNumberQuery(const NumberQuery *query){
         return;
     }
 
-    const string& indexName = term.getIndexName();
+    const string &indexName = term.getIndexName();
     if (!validateIndexName(indexName)) {
         return;
     }
-    validateIndexFields(indexName,
-                        query->getTerm().getRequiredFields());
+    validateIndexFields(indexName, query->getTerm().getRequiredFields());
 }
 
-template<typename T>
-bool QueryValidator::checkNullQuery(const T* query) {
+template <typename T>
+bool QueryValidator::checkNullQuery(const T *query) {
     if (query == NULL) {
         _errorCode = ERROR_NULL_QUERY;
-	_errorMsg = "Query is null";
+        _errorMsg = "Query is null";
         return true;
     }
     return false;

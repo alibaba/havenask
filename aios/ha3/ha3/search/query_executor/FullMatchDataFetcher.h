@@ -15,14 +15,14 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 #include <string>
 
 #include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/search/MatchData.h"
 #include "ha3/search/MatchDataFetcher.h"
 #include "ha3/search/QueryExecutor.h"
-#include "ha3/search/MatchData.h"
 #include "indexlib/index/common/ErrorCode.h"
 #include "indexlib/misc/common.h"
 #include "matchdoc/Reference.h"
@@ -30,28 +30,32 @@
 namespace matchdoc {
 class MatchDoc;
 class MatchDocAllocator;
-}  // namespace matchdoc
+} // namespace matchdoc
 
 namespace isearch {
 namespace search {
 
-class FullMatchDataFetcher : public MatchDataFetcher
-{
+class FullMatchDataFetcher : public MatchDataFetcher {
 public:
     FullMatchDataFetcher();
     ~FullMatchDataFetcher();
+
 private:
     FullMatchDataFetcher(const FullMatchDataFetcher &);
-    FullMatchDataFetcher& operator=(const FullMatchDataFetcher &);
+    FullMatchDataFetcher &operator=(const FullMatchDataFetcher &);
+
 public:
     matchdoc::ReferenceBase *require(matchdoc::MatchDocAllocator *allocator,
-            const std::string &refName, uint32_t termCount) override;
+                                     const std::string &refName,
+                                     uint32_t termCount) override;
     indexlib::index::ErrorCode fillMatchData(const SingleLayerExecutors &singleLayerExecutors,
-                       matchdoc::MatchDoc matchDoc,
-                       matchdoc::MatchDoc subDoc) const override;
+                                             matchdoc::MatchDoc matchDoc,
+                                             matchdoc::MatchDoc subDoc) const override;
+
 private:
     matchdoc::Reference<rank::MatchData> *_ref;
     friend class FullMatchDataFetcherTest;
+
 private:
     AUTIL_LOG_DECLARE();
 };

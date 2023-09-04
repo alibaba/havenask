@@ -69,7 +69,7 @@ void StrcatFuncInterface::batchEvaluate(matchdoc::MatchDoc *matchDocs, uint32_t 
             }
         }
         _ref->set(matchDoc, MultiChar(MultiValueCreator::createMultiValueBuffer(
-                                     res.c_str(), res.size())));
+                                     res.c_str(), res.size(), &_pool)));
     }
 }
 

@@ -24,7 +24,7 @@
 #include "indexlib/framework/ITabletMergeController.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 class TabletOptions;
 } // namespace indexlibv2::config
 
@@ -46,12 +46,13 @@ private:
 public:
     struct InitParam {
         future_lite::Executor* executor = nullptr;
-        std::shared_ptr<indexlibv2::config::TabletSchema> schema;
+        std::shared_ptr<indexlibv2::config::ITabletSchema> schema;
         std::shared_ptr<indexlibv2::config::TabletOptions> options;
         std::string remotePartitionIndexRoot;
         std::string buildTempIndexRoot;
         int32_t generationId = -1;
         std::string tableName;
+        std::string appName;
         uint16_t rangeFrom = 0;
         uint16_t rangeTo = 0;
         uint64_t branchId = 0;
@@ -65,6 +66,7 @@ public:
     virtual ~RemoteTabletMergeController() = default;
 
     indexlib::Status Init(InitParam param);
+    static std::string GetOriginalAppName(const std::string& appName);
 
 public:
     future_lite::coro::Lazy<indexlib::Status> Recover() override;

@@ -6,7 +6,7 @@ from build_service.proto.BasicDefs_pb2 import *
 from build_service.proto.Heartbeat_pb2 import *
 from hippo_py_sdk.hippo_client import HippoClient
 from hippo.proto.Common_pb2 import *
-import include.json as json
+import include.json_wrapper as json
 import common_define
 import datetime
 import admin_locator
@@ -53,7 +53,7 @@ examples:
                                choices=['summary', 'detail', 'error', 'source', 'worker', 'counter'])
         self.parser.add_option('-g', '--generation', action='store', dest='generation', default='')
         self.parser.add_option('', '--history', action='store_true', dest='history')
-        self.parser.add_option('', '--all', action='store_true', dest='allcounter') 
+        self.parser.add_option('', '--all', action='store_true', dest='allcounter')
 
     def initMember(self, options):
         super(GetStatusCmd, self).initMember(options)
@@ -89,7 +89,7 @@ examples:
         elif 'worker' == self.commandType:
             print self.processWorkerStatus(response)
         elif 'counter' == self.commandType:
-            print self.processCounterStatus(response)            
+            print self.processCounterStatus(response)
         else:
             print self.processResponse(response, self.commandType)
 
@@ -166,7 +166,7 @@ examples:
 
         for partitionInfo in workerInfo.partitionInfos:
             result += self.processPartitionCounters(rolePrefix, partitionInfo)
-        return result 
+        return result
 
     def processClusterErrorStatus(self, prefix, clusterInfo):
         result = ''
@@ -217,7 +217,7 @@ examples:
             result += counterMsg
         if len(result) > 0:
             return "%s\n%s" % (prefix, result)
-        return result 
+        return result
 
     def processGenerationCounters(self, prefix, generationInfo):
         result = ''
@@ -225,7 +225,7 @@ examples:
             rolePrefix = "%s:" % (roleCounterInfo.roleName)
             roleCounters = ''
             for counterItem in roleCounterInfo.counterItem:
-                counterMsg = "\t%s : %d\n" % (counterItem.name, counterItem.value) 
+                counterMsg = "\t%s : %d\n" % (counterItem.name, counterItem.value)
                 roleCounters += counterMsg
             if len(roleCounters) > 0:
                 result += "%s\n%s" % (rolePrefix, roleCounters)
@@ -246,13 +246,13 @@ examples:
             for processorInfo in generationInfo.processorInfos:
                 for partitionInfo in processorInfo.partitionInfos:
                     result += self.processPartitionCounters("%s.Processor"%(prefix), partitionInfo)
-                
+
             for clusterInfo in generationInfo.buildInfo.clusterInfos:
                 result += self.processClusterCounterStatus(prefix, clusterInfo)
 
             for jobPartitionInfo in generationInfo.jobInfo.partitionInfos:
                 result += self.processPartitionCounters("%s.Job"%(prefix), jobPartitionInfo)
-        return result    
+        return result
 
     def processGenerationStatus(self, generationInfo, commandType):
         result = ''
@@ -287,7 +287,7 @@ examples:
         result += '%s.Job.DataSource: %s\n' % (clusterPrefix, dataSourceStr)
 
         return result
-        
+
     def printProcessorStatus(self, prefix, processorInfo, commandType, processorTaskCount):
         result = ''
         taskId = ''

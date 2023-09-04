@@ -15,8 +15,8 @@
  */
 #include "autil/UrlDecoder.h"
 
-#include <ctype.h>
 #include <cstddef>
+#include <ctype.h>
 
 #include "string.h"
 
@@ -24,21 +24,18 @@ using namespace std;
 
 namespace autil {
 
-UrlDecoder::UrlDecoder() {
-}
+UrlDecoder::UrlDecoder() {}
 
-UrlDecoder::~UrlDecoder() {
-}
+UrlDecoder::~UrlDecoder() {}
 
-string UrlDecoder::Decode(const string& str) {
+string UrlDecoder::Decode(const string &str) {
     string result;
     size_t index = 0;
     const char *data = str.c_str();
     for (size_t len = str.length(); len > 0; --len, ++index) {
         if (*data == '+') {
             result.append(" ");
-        } else if (*data == '%' && len >= 2 &&
-                   isxdigit(*(data + 1)) && isxdigit(*(data + 2))) {
+        } else if (*data == '%' && len >= 2 && isxdigit(*(data + 1)) && isxdigit(*(data + 2))) {
             result.append(1, (char)DecodeChar(data + 1));
             data += 2;
             len -= 2;
@@ -57,8 +54,7 @@ char *UrlDecoder::Decode(const char *str) {
     for (; *str != '\0'; ++str, ++cur) {
         if (*str == '+') {
             *cur = ' ';
-        } else if (*str == '%' && *(str + 1) != '\0'
-                   && *(str + 2) != '\0') {
+        } else if (*str == '%' && *(str + 1) != '\0' && *(str + 2) != '\0') {
             *cur = DecodeChar(str + 1);
             str += 2;
         } else {

@@ -347,9 +347,9 @@ bool PackAttributeFormatter::GetMergedAttributeFieldData(const char* baseAddr,
         int32_t idx = GetIdxByAttrId(packAttrFields[i].first);
         if (idx == UNKNOWN_VALUE_COUNT) {
             IE_LOG(ERROR, "attribute [attrId:%u] not in pack attribute [%s]", packAttrFields[i].first,
-                   mPackAttrConfig->GetAttrName().c_str());
+                   mPackAttrConfig->GetPackName().c_str());
             ERROR_COLLECTOR_LOG(ERROR, "attribute [attrId:%u] not in pack attribute [%s]", packAttrFields[i].first,
-                                mPackAttrConfig->GetAttrName().c_str());
+                                mPackAttrConfig->GetPackName().c_str());
             return false;
         }
         if (hasHashKeyInAttrFields) {

@@ -1,5 +1,5 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
-indexlib_cc_library(
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+strict_cc_library(
     name='flush',
     srcs=[
         'AsyncDumpScheduler.cpp', 'DirOperationCache.cpp',

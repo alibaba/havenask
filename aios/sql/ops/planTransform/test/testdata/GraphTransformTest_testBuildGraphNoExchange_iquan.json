@@ -1,0 +1,37 @@
+{
+    "rel_plan_version" : "fake version",
+    "rel_plan" : [
+        {
+            "id" : 2,
+            "op_name" : "UnionKernel",
+            "inputs" : {
+
+            },
+            "attrs" : {
+            }
+        },
+        {
+            "id" : 1,
+            "op_name" : "UnionKernel",
+            "inputs" : {
+
+            },
+            "attrs" : {
+            }
+        },
+        {
+            "id" : 0,
+            "op_name" : "UnionKernel",
+            "inputs" : {
+                "input0" : [
+                    1
+                ],
+                "input1" : [
+                    2
+                ]
+            },
+            "attrs" : {
+            }
+        }
+    ]
+}

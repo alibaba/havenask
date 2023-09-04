@@ -20,9 +20,8 @@
 
 namespace autil {
 
-template<typename T>
-class LockFreeStack
-{
+template <typename T>
+class LockFreeStack {
     struct Node {
         uint32_t mNext;
         uint32_t mNextFreeNode;
@@ -53,9 +52,8 @@ private:
     __attribute__((aligned(64))) uint64_t mFreeNodeHead;
 };
 
-template<typename T>
-LockFreeStack<T>::LockFreeStack(size_t size)
-{
+template <typename T>
+LockFreeStack<T>::LockFreeStack(size_t size) {
     mLimit = Normalize(size);
     mSize = 0;
     mFreeNodeHead = kNullPointer;
@@ -80,15 +78,13 @@ LockFreeStack<T>::LockFreeStack(size_t size)
     mHead = kNullPointer;
 }
 
-template<typename T>
-LockFreeStack<T>::~LockFreeStack()
-{
+template <typename T>
+LockFreeStack<T>::~LockFreeStack() {
     delete[] mNodeBuffer;
 }
 
-template<typename T>
-bool LockFreeStack<T>::Push(const T &elem)
-{
+template <typename T>
+bool LockFreeStack<T>::Push(const T &elem) {
     Node *node = 0;
 
     if (!AcquireNode(&node)) {
@@ -104,15 +100,14 @@ bool LockFreeStack<T>::Push(const T &elem)
         head = mHead;
         node->mNext = detail::Index(head);
         newhead = detail::MakePointer(index, detail::Tag(head) + 1);
-    } while(!AtomicCompareExchange(&mHead, newhead, head));
+    } while (!AtomicCompareExchange(&mHead, newhead, head));
 
     AtomicIncrement(&mSize);
     return true;
 }
 
-template<typename T>
-bool LockFreeStack<T>::Pop(T *elem)
-{
+template <typename T>
+bool LockFreeStack<T>::Pop(T *elem) {
     detail::Pointer head;
     detail::Pointer newhead;
     Node *node = 0;
@@ -136,21 +131,18 @@ bool LockFreeStack<T>::Pop(T *elem)
     return true;
 }
 
-template<typename T>
-size_t LockFreeStack<T>::Size() const
-{
+template <typename T>
+size_t LockFreeStack<T>::Size() const {
     return AtomicGet(&mSize);
 }
 
-template<typename T>
-bool LockFreeStack<T>::Empty() const
-{
+template <typename T>
+bool LockFreeStack<T>::Empty() const {
     return Size() == 0;
 }
 
-template<typename T>
-size_t LockFreeStack<T>::Normalize(size_t size) const
-{
+template <typename T>
+size_t LockFreeStack<T>::Normalize(size_t size) const {
     if (size == 0 || size >= (1 << 24)) {
         abort();
     }
@@ -158,15 +150,13 @@ size_t LockFreeStack<T>::Normalize(size_t size) const
     return size;
 }
 
-template<typename T>
-int32_t LockFreeStack<T>::GetIndex(Node *node) const
-{
+template <typename T>
+int32_t LockFreeStack<T>::GetIndex(Node *node) const {
     return node - mNodeBuffer;
 }
 
-template<typename T>
-bool LockFreeStack<T>::AcquireNode(Node **node)
-{
+template <typename T>
+bool LockFreeStack<T>::AcquireNode(Node **node) {
     Node *pnode;
     uint64_t head;
     uint64_t newhead;
@@ -188,9 +178,8 @@ bool LockFreeStack<T>::AcquireNode(Node **node)
     return true;
 }
 
-template<typename T>
-void LockFreeStack<T>::ReleaseNode(Node *node)
-{
+template <typename T>
+void LockFreeStack<T>::ReleaseNode(Node *node) {
     // put this node into the head atomically
     node->mValue = T();
     uint64_t head;
@@ -198,8 +187,7 @@ void LockFreeStack<T>::ReleaseNode(Node *node)
 
     do {
         head = mFreeNodeHead;
-        newhead = detail::MakePointer(GetIndex(node),
-                                      detail::Tag(head) + 1);
+        newhead = detail::MakePointer(GetIndex(node), detail::Tag(head) + 1);
         node->mNextFreeNode = detail::Index(head);
     } while (!AtomicCompareExchange(&mFreeNodeHead, newhead, head));
 }

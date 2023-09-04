@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='BitmapDiskIndexer',
     deps=[
         ':BitmapLeafReader', '//aios/storage/indexlib/index:interface',
@@ -8,7 +8,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:InMemDictionaryReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BitmapLeafReader',
     deps=[
         ':BitmapPostingExpandData', ':BitmapPostingWriter',
@@ -18,7 +18,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:HashMap'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BitmapIndexReader',
     deps=[
         ':BitmapIndexWriter', ':BitmapLeafReader', ':BitmapPostingIterator',
@@ -27,7 +27,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index:InvertedIndexReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BitmapPostingMerger',
     deps=[
         ':BitmapPostingDecoder', ':MultiSegmentBitmapPostingWriter',
@@ -37,7 +37,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index:PostingMerger'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiSegmentBitmapPostingWriter',
     deps=[
         ':BitmapPostingIterator', ':BitmapPostingWriter', '//aios/autil:log',
@@ -47,7 +47,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index:PostingMerger'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BitmapPostingWriter',
     deps=[
         '//aios/autil:memory', '//aios/storage/indexlib/file_system',
@@ -58,18 +58,18 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:ExpandableBitmap'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BitmapPostingDumper',
     deps=[
         ':BitmapPostingWriter',
         '//aios/storage/indexlib/index/inverted_index:PostingDumper'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BitmapPostingIterator',
     deps=['//aios/storage/indexlib/index/inverted_index:PositionIteratorTyped']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleBitmapPostingIterator',
     deps=[
         ':BitmapInDocPositionState', ':BitmapPostingExpandData',
@@ -79,23 +79,21 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index:TermMatchData'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BitmapInDocPositionState',
     deps=[
         ':BitmapInDocPositionIterator',
         '//aios/storage/indexlib/util:object_pool'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BitmapInDocPositionIterator',
     srcs=[],
     deps=['//aios/storage/indexlib/index/inverted_index:InDocPositionState']
 )
-indexlib_cc_library(name='BitmapPostingExpandData', srcs=[])
-indexlib_cc_library(
-    name='InMemBitmapIndexDecoder', deps=[':BitmapPostingWriter']
-)
-indexlib_cc_library(
+strict_cc_library(name='BitmapPostingExpandData', srcs=[])
+strict_cc_library(name='InMemBitmapIndexDecoder', deps=[':BitmapPostingWriter'])
+strict_cc_library(
     name='OnDiskBitmapIndexIterator',
     deps=[
         ':BitmapPostingDecoder', '//aios/storage/indexlib/file_system',
@@ -104,14 +102,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:CommonDiskTieredDictionaryReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BitmapPostingDecoder',
     deps=[
         '//aios/storage/indexlib/file_system:byte_slice_rw',
         '//aios/storage/indexlib/index/inverted_index/format:PostingDecoder'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InMemBitmapIndexSegmentReader',
     deps=[
         ':BitmapPostingWriter',
@@ -122,7 +120,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:HashMap'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BitmapIndexWriter',
     deps=[
         ':BitmapPostingWriter', ':InMemBitmapIndexSegmentReader',

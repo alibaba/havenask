@@ -1,0 +1,72 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+strict_cc_library(
+    name='MockOperation',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/index/operation_log:OperationFactory',
+        '//aios/storage/indexlib/index/operation_log:operation_basic'
+    ]
+)
+strict_cc_fast_test(
+    name='RemoveOperationTest',
+    srcs=['RemoveOperationTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/autil:long_hash_value',
+        '//aios/storage/indexlib/index/operation_log:OperationBlock',
+        '//aios/storage/indexlib/index/operation_log:OperationFactory',
+        '//aios/storage/indexlib/index/operation_log:RemoveOperation',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='OperationLogIndexFactoryTest',
+    srcs=['OperationLogIndexFactoryTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/index/operation_log:CompressOperationLogMemIndexer',
+        '//aios/storage/indexlib/index/operation_log:OperationLogIndexFactory',
+        '//aios/storage/indexlib/index/test:ConfigAdapter',
+        '//aios/storage/indexlib/table/normal_table/test:NormalTabletSchemaMaker',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='TargetSegmentsRedoStrategyTest',
+    srcs=['TargetSegmentsRedoStrategyTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/framework/mock:FakeSegment',
+        '//aios/storage/indexlib/index/operation_log:RemoveOperation',
+        '//aios/storage/indexlib/index/operation_log:TargetSegmentsRedoStrategy',
+        '//aios/storage/indexlib/index/operation_log:UpdateFieldOperation',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='OperationBlockTest',
+    srcs=['OperationBlockTest.cpp'],
+    deps=[
+        ':MockOperation',
+        '//aios/storage/indexlib/index/operation_log:OperationBlock',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='UpdateFieldOperationTest',
+    srcs=['UpdateFieldOperationTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/autil:long_hash_value', '//aios/future_lite',
+        '//aios/storage/indexlib/index/operation_log:UpdateFieldOperation',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='OperationLogConfigTest',
+    srcs=['OperationLogConfigTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/index/operation_log:config',
+        '//aios/storage/indexlib/table/normal_table/test:NormalTabletSchemaMaker',
+        '//aios/unittest_framework'
+    ]
+)

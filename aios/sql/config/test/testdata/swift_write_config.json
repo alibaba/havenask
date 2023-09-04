@@ -1,0 +1,15 @@
+{
+    "swift_client_config" : "client1",
+    "table_read_write_config" : {
+        "table1" : {
+            "swift_topic_name" : "topic1",
+            "swift_reader_config" : "reader1",
+            "swift_writer_config" : "writer1"
+        },
+        "table2" : {
+            "swift_topic_name" : "topic2",
+            "swift_reader_config" : "reader2",
+            "swift_writer_config" : "writer2"
+        }
+    }
+}

@@ -40,7 +40,7 @@ class MultiSwiftProcessedDocProducerV2 : public SwiftProcessedDocProducer
 {
 public:
     MultiSwiftProcessedDocProducerV2(
-        std::vector<common::SwiftParam> params, const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+        std::vector<common::SwiftParam> params, const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
         const proto::PartitionId& partitionId,
         const indexlib::util::TaskSchedulerPtr& taskScheduler = indexlib::util::TaskSchedulerPtr());
     ~MultiSwiftProcessedDocProducerV2();
@@ -63,7 +63,7 @@ public:
 
 public: // 功能相关接口
     bool needUpdateCommittedCheckpoint() const override;
-    bool updateCommittedCheckpoint(int64_t checkpoint) override;
+    bool updateCommittedCheckpoint(const indexlibv2::base::Progress::Offset& checkpoint) override;
 
     int64_t getStartTimestamp() const override;
     bool getMaxTimestamp(int64_t& timestamp) override;

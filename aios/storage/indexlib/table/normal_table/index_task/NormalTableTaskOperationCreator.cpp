@@ -30,13 +30,14 @@
 #include "indexlib/table/normal_table/index_task/NormalTableAddIndexOperation.h"
 #include "indexlib/table/normal_table/index_task/NormalTableReclaimOperation.h"
 #include "indexlib/table/normal_table/index_task/OpLog2PatchOperation.h"
+#include "indexlib/table/normal_table/index_task/PackAttributeIndexMergeOperation.h"
 #include "indexlib/table/normal_table/index_task/PrepareIndexReclaimParamOperation.h"
 #include "indexlib/table/normal_table/index_task/ReclaimMapOperation.h"
 
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, NormalTableTaskOperationCreator);
 
-NormalTableTaskOperationCreator::NormalTableTaskOperationCreator(const std::shared_ptr<config::TabletSchema>& schema)
+NormalTableTaskOperationCreator::NormalTableTaskOperationCreator(const std::shared_ptr<config::ITabletSchema>& schema)
     : _schema(schema)
 {
 }
@@ -64,13 +65,15 @@ NormalTableTaskOperationCreator::CreateOperationForMerge(const framework::IndexO
         }
         std::unique_ptr<IndexMergeOperation> operation;
         if (indexType == index::ATTRIBUTE_INDEX_TYPE_STR) {
-            auto attributeConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(
+            auto attributeConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(
                 _schema->GetIndexConfig(index::ATTRIBUTE_INDEX_TYPE_STR, indexName));
             if (attributeConfig == nullptr) {
                 AUTIL_LOG(ERROR, "Invalid attribute config encountered[%s]:[%s]", indexType.c_str(), indexName.c_str());
                 return nullptr;
             }
             operation.reset(new AttributeIndexMergeOperation(opDesc));
+        } else if (indexType == index::PACK_ATTRIBUTE_INDEX_TYPE_STR) {
+            operation = std::make_unique<PackAttributeIndexMergeOperation>(opDesc);
         } else if (indexType == index::DELETION_MAP_INDEX_TYPE_STR) {
             operation.reset(new DeletionMapIndexMergeOperation(opDesc));
         } else if (indexType == indexlib::index::INVERTED_INDEX_TYPE_STR) {

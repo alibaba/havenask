@@ -22,21 +22,20 @@
 namespace indexlib {
 namespace index {
 class PostingIterator;
-}  // namespace index
-}  // namespace indexlib
+} // namespace index
+} // namespace indexlib
 namespace isearch {
 namespace common {
 class Term;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 using namespace indexlib::index;
 namespace isearch {
 namespace search {
 AUTIL_LOG_SETUP(ha3, NumberQueryExecutor);
 
-NumberQueryExecutor::NumberQueryExecutor(PostingIterator *iter,
-        const common::Term &term)
+NumberQueryExecutor::NumberQueryExecutor(PostingIterator *iter, const common::Term &term)
     : TermQueryExecutor(iter, term) {}
 
 NumberQueryExecutor::~NumberQueryExecutor() {}

@@ -16,10 +16,10 @@
 #ifndef ISEARCH_MULTI_CALL_CONNECTION_H
 #define ISEARCH_MULTI_CALL_CONNECTION_H
 
-#include "autil/LockFreeThreadPool.h"
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/interface/Request.h"
 #include "aios/network/gig/multi_call/service/CallBack.h"
+#include "autil/LockFreeThreadPool.h"
 
 namespace autil {
 class ThreadPool;
@@ -27,7 +27,8 @@ class ThreadPool;
 
 namespace multi_call {
 
-class Connection {
+class Connection
+{
 public:
     Connection(const std::string &spec, ProtocolType type, size_t queueSize);
     virtual ~Connection();
@@ -37,8 +38,8 @@ private:
     Connection &operator=(const Connection &);
 
 public:
-    virtual void post(const RequestPtr &request,
-                      const CallBackPtr &callBack) = 0;
+    virtual void post(const RequestPtr &request, const CallBackPtr &callBack) = 0;
+
 public:
     const std::string &getSpec() const {
         return _spec;
@@ -50,11 +51,11 @@ public:
         size_t end = _spec.rfind(':');
         return _spec.substr(4, end - 4); // remove "tcp:" and end ":port"
     }
-    ProtocolType getType() const { return _type; }
-    void startChildRpc(const RequestPtr &request,
-                       const CallBackPtr &callBack) const;
-    void
-    setCallBackThreadPool(autil::LockFreeThreadPool *callBackThreadPool);
+    ProtocolType getType() const {
+        return _type;
+    }
+    void startChildRpc(const RequestPtr &request, const CallBackPtr &callBack) const;
+    void setCallBackThreadPool(autil::LockFreeThreadPool *callBackThreadPool);
 
 private:
     static size_t genAllocId();

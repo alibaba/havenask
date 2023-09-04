@@ -60,13 +60,13 @@ bool RealtimeIndexSynchronizer::Init(const std::string& remoteRtPath,
 {
     mRemoteRtDir = remoteRtPath;
     mPartitionMemoryQuotaController = partitionMemController;
-    char* envParam = getenv("INDEXLIB_REALTIME_SYNC_ENABLE_SLEEP");
-    if (envParam && string(envParam) == "false") {
+    string envParam = autil::EnvUtil::getEnv("INDEXLIB_REALTIME_SYNC_ENABLE_SLEEP");
+    if (envParam == "false") {
         mEnableSleep = false;
     }
 
-    envParam = getenv("INDEXLIB_REALTIME_SYNC_REMOVE_OLD_INDEX");
-    if (envParam && string(envParam) == "false") {
+    envParam = autil::EnvUtil::getEnv("INDEXLIB_REALTIME_SYNC_REMOVE_OLD_INDEX");
+    if (envParam == "false") {
         mRemoveOldIndex = false;
     }
     auto ec = file_system::FslibWrapper::MkDirIfNotExist(remoteRtPath).Code();

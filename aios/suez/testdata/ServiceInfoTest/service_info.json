@@ -1,0 +1,11 @@
+{
+    "part_count" : 3,
+    "part_id" : 1,
+    "version" : 1,
+    "role_name" : "role",
+    "zone_name" : "zone",
+    "cm2_config": {
+	"a" : "b",
+	"c" : "d" 
+    }
+}

@@ -22,50 +22,43 @@
 
 namespace autil {
 
-template<class T>
-struct ListNode
-{
+template <class T>
+struct ListNode {
     T _value;
-    struct ListNode<T>* _prev;
-    struct ListNode<T>* _next;
+    struct ListNode<T> *_prev;
+    struct ListNode<T> *_next;
 
-    ListNode(): _prev(NULL), _next(NULL) {}
+    ListNode() : _prev(NULL), _next(NULL) {}
 
-    ListNode(const T& value) : _prev(NULL), _next(NULL)
-    {
-        _value = value;
-    }
+    ListNode(const T &value) : _prev(NULL), _next(NULL) { _value = value; }
 
-    ListNode(const T& value, struct ListNode<T>* prev, struct ListNode<T>* next) :
-        _prev(prev), _next(next)
-    {
+    ListNode(const T &value, struct ListNode<T> *prev, struct ListNode<T> *next) : _prev(prev), _next(next) {
         _value = value;
     }
 };
 
-template<class T>
-class SynchronizedList
-{
+template <class T>
+class SynchronizedList {
 public:
-    typedef ListNode<T>* ListNodePtr;
+    typedef ListNode<T> *ListNodePtr;
 
 public:
     SynchronizedList();
     ~SynchronizedList();
 
 public:
-    bool getFront(T& value);
-    bool getFront(ListNodePtr& p);
+    bool getFront(T &value);
+    bool getFront(ListNodePtr &p);
 
-    bool getBack(T& value);
-    bool getBack(ListNodePtr& p);
+    bool getBack(T &value);
+    bool getBack(ListNodePtr &p);
 
-    ListNodePtr pushFront(const T& value);
-    ListNodePtr pushFront(ListNode<T>* node);
+    ListNodePtr pushFront(const T &value);
+    ListNodePtr pushFront(ListNode<T> *node);
     void popFront();
 
-    ListNodePtr pushBack(const T& value);
-    ListNodePtr pushBack(ListNode<T>* node);
+    ListNodePtr pushBack(const T &value);
+    ListNodePtr pushBack(ListNode<T> *node);
     void popBack();
 
     void erase(ListNodePtr p);
@@ -79,10 +72,10 @@ public:
     void unLink(ListNodePtr p);
 
 private:
-    void insertBefore(ListNodePtr next, const T& value);
+    void insertBefore(ListNodePtr next, const T &value);
     void insertBefore(ListNodePtr next, ListNodePtr p);
 
-    void insertAfter(ListNodePtr prev, const T& value);
+    void insertAfter(ListNodePtr prev, const T &value);
     void insertAfter(ListNodePtr prev, ListNodePtr p);
 
     void unLinkWithoutLock(ListNodePtr p);
@@ -94,28 +87,20 @@ private:
     mutable RecursiveThreadMutex _listMutex;
 };
 
-template<class T>
-SynchronizedList<T>::SynchronizedList()
-    : _size(0)
-    , _head(NULL)
-    , _tail(NULL)
-{
+template <class T>
+SynchronizedList<T>::SynchronizedList() : _size(0), _head(NULL), _tail(NULL) {}
 
-}
-
-template<class T>
+template <class T>
 SynchronizedList<T>::~SynchronizedList() {
-    while (_head)
-    {
+    while (_head) {
         ListNodePtr next = _head->_next;
         delete _head;
         _head = next;
     }
 }
 
-template<class T>
-bool SynchronizedList<T>::getFront(T& value)
-{
+template <class T>
+bool SynchronizedList<T>::getFront(T &value) {
     ScopedLock lock(_listMutex);
     if (isEmpty())
         return false;
@@ -124,9 +109,8 @@ bool SynchronizedList<T>::getFront(T& value)
     return true;
 }
 
-template<class T>
-bool SynchronizedList<T>::getFront(ListNodePtr& p)
-{
+template <class T>
+bool SynchronizedList<T>::getFront(ListNodePtr &p) {
     ScopedLock lock(_listMutex);
     if (isEmpty())
         return false;
@@ -135,9 +119,8 @@ bool SynchronizedList<T>::getFront(ListNodePtr& p)
     return true;
 }
 
-template<class T>
-bool SynchronizedList<T>::getBack(T& value)
-{
+template <class T>
+bool SynchronizedList<T>::getBack(T &value) {
     ScopedLock lock(_listMutex);
     if (isEmpty())
         return false;
@@ -147,9 +130,8 @@ bool SynchronizedList<T>::getBack(T& value)
     return true;
 }
 
-template<class T>
-bool SynchronizedList<T>::getBack(ListNodePtr& p)
-{
+template <class T>
+bool SynchronizedList<T>::getBack(ListNodePtr &p) {
     ScopedLock lock(_listMutex);
     if (isEmpty())
         return false;
@@ -158,46 +140,40 @@ bool SynchronizedList<T>::getBack(ListNodePtr& p)
     return true;
 }
 
-template<class T>
-ListNode<T>* SynchronizedList<T>::pushFront(const T& value)
-{
+template <class T>
+ListNode<T> *SynchronizedList<T>::pushFront(const T &value) {
     ScopedLock lock(_listMutex);
     ListNodePtr p = new ListNode<T>(value, NULL, _head);
-    if (_head)
-    {
+    if (_head) {
         _head->_prev = p;
     }
     _head = p;
     if (!_tail)
         _tail = p;
-    _size ++;
+    _size++;
     return p;
 }
 
-template<class T>
-ListNode<T>* SynchronizedList<T>::pushFront(ListNode<T>* node)
-{
+template <class T>
+ListNode<T> *SynchronizedList<T>::pushFront(ListNode<T> *node) {
     ScopedLock lock(_listMutex);
     node->_prev = NULL;
     node->_next = _head;
 
-    if (_head)
-    {
+    if (_head) {
         _head->_prev = node;
     }
     _head = node;
     if (!_tail)
         _tail = node;
-    _size ++;
+    _size++;
     return node;
 }
 
-template<class T>
-void SynchronizedList<T>::popFront()
-{
+template <class T>
+void SynchronizedList<T>::popFront() {
     ScopedLock lock(_listMutex);
-    if (!isEmpty())
-    {
+    if (!isEmpty()) {
         ListNodePtr p = _head;
         _head = _head->_next;
         if (_head)
@@ -205,64 +181,58 @@ void SynchronizedList<T>::popFront()
         else
             _tail = NULL;
         delete p;
-        _size --;
+        _size--;
     }
 }
 
-template<class T>
-ListNode<T>* SynchronizedList<T>::pushBack(const T& value)
-{
+template <class T>
+ListNode<T> *SynchronizedList<T>::pushBack(const T &value) {
     ScopedLock lock(_listMutex);
     ListNodePtr p = new ListNode<T>(value, _tail, NULL);
-    if (_tail)
-    {
+    if (_tail) {
         _tail->_next = p;
     }
     _tail = p;
     if (!_head)
         _head = p;
-    _size ++;
+    _size++;
 
     return p;
 }
 
-template<class T>
-ListNode<T>* SynchronizedList<T>::pushBack(ListNode<T>* node)
-{
+template <class T>
+ListNode<T> *SynchronizedList<T>::pushBack(ListNode<T> *node) {
     ScopedLock lock(_listMutex);
     node->_prev = _tail;
     node->_next = NULL;
-    if (_tail)
-    {
+    if (_tail) {
         _tail->_next = node;
     }
     _tail = node;
     if (!_head)
         _head = node;
-    _size ++;
+    _size++;
 
     return node;
 }
 
-template<class T>
+template <class T>
 void SynchronizedList<T>::popBack() {
     ScopedLock lock(_listMutex);
-    if (!isEmpty())
-    {
+    if (!isEmpty()) {
         ListNodePtr p = _tail;
         _tail = _tail->_prev;
         if (_tail)
             _tail->_next = NULL;
-        else 
+        else
             _head = NULL;
         delete p;
-        _size --;
+        _size--;
     }
 }
 
-template<class T>
-void SynchronizedList<T>::insertBefore(ListNodePtr next, const T& value)
-{
+template <class T>
+void SynchronizedList<T>::insertBefore(ListNodePtr next, const T &value) {
     ListNodePtr prev = next->_prev;
     ListNodePtr p = new ListNode<T>(value, prev, next);
     next->_prev = p;
@@ -270,12 +240,11 @@ void SynchronizedList<T>::insertBefore(ListNodePtr next, const T& value)
         prev->_next = p;
     else
         _head = p;
-    _size ++;
+    _size++;
 }
 
-template<class T>
-void SynchronizedList<T>::insertBefore(ListNodePtr next, ListNodePtr p)
-{
+template <class T>
+void SynchronizedList<T>::insertBefore(ListNodePtr next, ListNodePtr p) {
     ListNodePtr prev = next->_prev;
     next->_prev = p;
     p->_prev = prev;
@@ -284,12 +253,11 @@ void SynchronizedList<T>::insertBefore(ListNodePtr next, ListNodePtr p)
         prev->_next = p;
     else
         _head = p;
-    _size ++;
+    _size++;
 }
 
-template<class T>
-void SynchronizedList<T>::insertAfter(ListNodePtr prev, const T& value)
-{
+template <class T>
+void SynchronizedList<T>::insertAfter(ListNodePtr prev, const T &value) {
     ListNodePtr next = prev->_next;
     ListNodePtr p = new ListNode<T>(value, prev, next);
     prev->_next = p;
@@ -297,12 +265,11 @@ void SynchronizedList<T>::insertAfter(ListNodePtr prev, const T& value)
         next->_prev = p;
     else
         _tail = p;
-    _size ++;
+    _size++;
 }
 
-template<class T>
-void SynchronizedList<T>::insertAfter(ListNodePtr prev, ListNodePtr p)
-{
+template <class T>
+void SynchronizedList<T>::insertAfter(ListNodePtr prev, ListNodePtr p) {
     ListNodePtr next = prev->_next;
     prev->_next = p;
     p->_prev = prev;
@@ -311,52 +278,45 @@ void SynchronizedList<T>::insertAfter(ListNodePtr prev, ListNodePtr p)
         next->_prev = p;
     else
         _tail = p;
-    _size ++;
+    _size++;
 }
 
-template<class T>
-void SynchronizedList<T>::erase(ListNodePtr p)
-{
+template <class T>
+void SynchronizedList<T>::erase(ListNodePtr p) {
     ScopedLock lock(_listMutex);
     unLink(p);
     delete p;
 }
 
-template<class T>
-void SynchronizedList<T>::unLink(ListNodePtr p)
-{
+template <class T>
+void SynchronizedList<T>::unLink(ListNodePtr p) {
     ScopedLock lock(_listMutex);
     unLinkWithoutLock(p);
 }
 
-template<class T>
-void SynchronizedList<T>::unLinkWithoutLock(ListNodePtr p)
-{
+template <class T>
+void SynchronizedList<T>::unLinkWithoutLock(ListNodePtr p) {
     ListNodePtr prev = p->_prev;
     ListNodePtr next = p->_next;
-    if (!prev)
-    {
+    if (!prev) {
         _head = next;
         if (next)
             next->_prev = NULL;
     }
-    if (!next)
-    {
+    if (!next) {
         _tail = prev;
         if (prev)
             prev->_next = NULL;
     }
-    if (prev && next)
-    {
+    if (prev && next) {
         prev->_next = next;
         next->_prev = prev;
     }
-    _size --;
+    _size--;
 }
 
-template<class T>
-void SynchronizedList<T>::moveToBack(ListNodePtr p)
-{
+template <class T>
+void SynchronizedList<T>::moveToBack(ListNodePtr p) {
     ScopedLock lock(_listMutex);
     if (p == _tail)
         return;
@@ -365,5 +325,4 @@ void SynchronizedList<T>::moveToBack(ListNodePtr p)
     insertAfter(_tail, p);
 }
 
-}
-
+} // namespace autil

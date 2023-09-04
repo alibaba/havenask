@@ -1,0 +1,130 @@
+syntax = "proto3";
+
+import "proto/GraphDef.proto";
+
+package navi;
+option cc_enable_arenas = true;
+
+message LoggingEventDef {
+    string name = 1;
+    uint64 object = 2;
+    string prefix = 3;
+    bytes message = 4;
+    string bt = 5;
+    int32 level = 6;
+    string file = 7;
+    int32 line = 8;
+    string func = 9;
+    int32 pid = 10;
+    int64 tid = 11;
+    int64 time_sec = 12;
+    int64 time_usec = 13;
+}
+
+enum GraphEventType {
+    GET_KERNEL_UNKNOWN = 0;
+    GET_KERNEL_CREATE = 1;
+    GET_KERNEL_INIT = 2;
+    GET_KERNEL_COMPUTE = 3;
+    GET_KERNEL_DELETE_KERNEL = 4;
+    GET_KERNEL_DELETE_DATA = 5;
+};
+
+message ScheduleInfoDef {
+    int64 enqueue_time = 1;
+    int64 dequeue_time = 2;
+    int64 running_thread = 3;
+    int32 sched_tid = 4;
+    int32 signal_tid = 5;
+    int32 process_tid = 6;
+    int64 thread_counter = 7;
+    int64 thread_wait_counter = 8;
+    int64 queue_size = 9;
+};
+
+enum PerfEventType {
+    PET_UNKNOWN = 0;
+    PET_SAMPLE = 1;
+    PET_THROTTLE = 2;
+    PET_UNTHROTTLE = 3;
+    PET_SWITCH_IN = 4;
+    PET_SWITCH_OUT = 5;
+};
+
+message PerfEventDef {
+    PerfEventType sample_type = 1;
+    uint32 cpu = 2;
+    uint32 pid = 3;
+    uint32 tid = 4;
+    uint64 time = 5;
+    repeated uint32 addr = 6;
+};
+
+message KernelPerfDef {
+    repeated PerfEventDef events = 1;
+}
+
+message KernelComputeEventDef {
+    GraphEventType type = 1;
+    int32 part_id = 2;
+    int64 schedule_id = 3;
+    ScheduleInfoDef schedInfo = 4;
+    int64 begin_time_us = 5;
+    int64 end_time_us = 6;
+    int64 utime_in_us = 7;
+    int64 stime_in_us = 8;
+    int64 nvcsw = 9;
+    int64 nivcsw = 10;
+    int64 minflt = 11;
+    int64 majflt = 12;
+    int64 pool_malloc_count = 13;
+    int64 pool_malloc_size = 14;
+    KernelPerfDef perf = 15;
+}
+
+message KernelMetricDef {
+    int64 graph_id = 1;
+    string node = 2;
+    string kernel = 3;
+    int64 schedule_count = 4;
+    int64 try_schedule_count = 5;
+    int64 queue_latency_us = 6;
+    int64 compute_latency_us = 7;
+    repeated KernelComputeEventDef events = 8;
+}
+
+message PerfSymbolDef {
+    uint64 ip = 1;
+    string symbol = 2;
+}
+
+message PerfSymbolTableDef {
+    repeated PerfSymbolDef symbols = 1;
+}
+
+message GraphMetricDef {
+    int64 begin_time = 1;
+    int64 end_time = 2;
+    int64 compute_latency_us = 3;
+    int64 queue_latency_us = 4;
+    repeated KernelMetricDef metrics = 5;
+    PerfSymbolTableDef perf_symbol_table = 6;
+    int64 begin_time_mono_ns = 7;
+}
+
+message GraphSummaryDef {
+    SessionIdDef session = 1;
+    string ec = 2;
+    LoggingEventDef error_event = 3;
+}
+
+message GraphTraceDef {
+    repeated LoggingEventDef events = 1;
+}
+
+message GraphVisDef {
+    GraphDef graph = 1;
+    GraphSummaryDef summary = 2;
+    GraphTraceDef trace = 3;
+    GraphMetricDef metric = 4;
+}

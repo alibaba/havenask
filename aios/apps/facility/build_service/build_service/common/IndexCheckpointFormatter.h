@@ -39,6 +39,11 @@ private:
     IndexCheckpointFormatter& operator=(const IndexCheckpointFormatter&);
 
 public:
+    static std::string getClusterCheckpointVisiableId(const std::string& clusterName)
+    {
+        std::string visiableId = BS_CHECKPOINT_VISIABLE_ID + "_" + clusterName;
+        return visiableId;
+    }
     static void convertToCheckpoint(const proto::IndexInfo& indexInfo, proto::CheckpointInfo& checkpoint);
     static std::string getBuilderCheckpointId(const std::string& clusterName)
     {

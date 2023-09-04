@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='document_reclaim',
     srcs=[],
     hdrs=[],
@@ -10,7 +10,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/normal_table/index_task/document_reclaim:IndexReclaimerParam'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTableTaskPlanCreator',
     deps=[
         ':NormalTableAlterTablePlanCreator', ':NormalTableCompactPlanCreator',
@@ -19,7 +19,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task:ComplexIndexTaskPlanCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTableTaskOperationCreator',
     deps=[
         ':AttributeIndexMergeOperation', ':BucketMapOperation',
@@ -28,14 +28,15 @@ indexlib_cc_library(
         ':MultiShardInvertedIndexMergeOperation',
         ':NormalTableAddIndexOperation', ':NormalTableReclaimOperation',
         ':NormalTableResourceCreator', ':OpLog2PatchOperation',
-        ':ReclaimMapOperation', '//aios/autil:NoCopyable', '//aios/autil:log',
+        ':PackAttributeIndexMergeOperation', ':ReclaimMapOperation',
+        '//aios/autil:NoCopyable', '//aios/autil:log',
         '//aios/storage/indexlib/config:IIndexConfig',
         '//aios/storage/indexlib/framework/index_task:IIndexOperationCreator',
         '//aios/storage/indexlib/table/index_task/add_index:PatchSegmentMoveOperation',
         '//aios/storage/indexlib/table/index_task/merger:CommonTaskOperationCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTableAlterTablePlanCreator',
     deps=[
         ':DropOpLogOperation', ':NormalTableAddIndexOperation',
@@ -51,7 +52,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task/merger:MergedVersionCommitOperation'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTableReclaimPlanCreator',
     deps=[
         ':Common', ':NormalTableReclaimOperation',
@@ -69,7 +70,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task/merger:PathMoveOperation'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTableCompactPlanCreator',
     deps=[
         ':NormalTableMergeDescriptionCreator', '//aios/autil:NoCopyable',
@@ -93,6 +94,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task/merger:SpecificSegmentsMergeStrategy',
         '//aios/storage/indexlib/table/normal_table:NormalSchemaResolver',
         '//aios/storage/indexlib/table/normal_table/index_task:NormalTableResourceCreator',
+        '//aios/storage/indexlib/table/normal_table/index_task/merger:AdaptiveMergeStrategy',
         '//aios/storage/indexlib/table/normal_table/index_task/merger:BalanceTreeMergeStrategy',
         '//aios/storage/indexlib/table/normal_table/index_task/merger:CombinedMergeStrategy',
         '//aios/storage/indexlib/table/normal_table/index_task/merger:NormalTableMergeStrategyUtil',
@@ -100,7 +102,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/normal_table/index_task/merger:PriorityQueueMergeStrategy'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTableResourceCreator',
     deps=[
         ':SingleSegmentDocumentGroupSelector',
@@ -112,7 +114,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/normal_table/index_task:SortedReclaimMap'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ReclaimMap',
     deps=[
         ':SegmentMapper', '//aios/autil:log',
@@ -127,7 +129,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task/merger:SegmentMergePlan'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SortedReclaimMap',
     hdrs=['SortedReclaimMap.h', 'WeightedDocIterator.h'],
     deps=[
@@ -151,7 +153,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:ClassTypedFactory'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeIndexMergeOperation',
     deps=[
         ':Common', ':OpLog2PatchOperation', ':PatchFileFinderUtil',
@@ -162,7 +164,15 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task/merger:IndexMergeOperation'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
+    name='PackAttributeIndexMergeOperation',
+    deps=[
+        ':Common', '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework/index_task:IndexOperationDescription',
+        '//aios/storage/indexlib/table/index_task/merger:IndexMergeOperation'
+    ]
+)
+strict_cc_library(
     name='PrepareIndexReclaimParamOperation',
     deps=[
         '//aios/storage/indexlib/framework/index_task:IndexOperation',
@@ -172,7 +182,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:task'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTableReclaimOperation',
     deps=[
         ':PatchedDeletionMapLoader', ':PrepareIndexReclaimParamOperation',
@@ -182,7 +192,6 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute:reader',
         '//aios/storage/indexlib/index/deletionmap:modifier',
         '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
-        '//aios/storage/indexlib/table/index_task/merger:MergeUtil',
         '//aios/storage/indexlib/table/normal_table:NormalMemSegment',
         '//aios/storage/indexlib/table/normal_table/index_task:Common',
         '//aios/storage/indexlib/table/normal_table/index_task/document_reclaim:IndexReclaimer',
@@ -190,7 +199,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:Clock'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexMergeOperation',
     deps=[
         ':Common', ':OpLog2PatchOperation', ':PatchFileFinderUtil',
@@ -202,14 +211,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task/merger:IndexMergeOperation'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiShardInvertedIndexMergeOperation',
     deps=[
         ':Common', ':InvertedIndexMergeOperation',
         '//aios/storage/indexlib/framework/index_task:IndexOperationDescription'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DeletionMapIndexMergeOperation',
     deps=[
         ':Common', ':PatchedDeletionMapLoader',
@@ -218,7 +227,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task/merger:IndexMergeOperation'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PatchedDeletionMapLoader',
     deps=[
         '//aios/storage/indexlib/file_system',
@@ -226,7 +235,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/deletionmap:modifier'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='OpLog2PatchOperation',
     deps=[
         ':Common', ':PatchedDeletionMapLoader', '//aios/autil:log',
@@ -244,11 +253,10 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/operation_log:reader',
         '//aios/storage/indexlib/index/primary_key:reader',
         '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
-        '//aios/storage/indexlib/table/index_task/merger:MergePlan',
-        '//aios/storage/indexlib/table/index_task/merger:MergeUtil'
+        '//aios/storage/indexlib/table/index_task/merger:MergePlan'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DropOpLogOperation',
     deps=[
         '//aios/autil:log', '//aios/storage/indexlib/config:schema',
@@ -260,7 +268,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/operation_log:config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ReclaimMapOperation',
     deps=[
         ':Common', ':NormalTableResourceCreator', ':PatchedDeletionMapLoader',
@@ -277,7 +285,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/normal_table/config:SegmentGroupConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BucketMapOperation',
     deps=[
         ':Common', ':NormalTableResourceCreator', '//aios/autil:log',
@@ -292,11 +300,10 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/truncate:TruncateAttributeReaderCreator',
         '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
         '//aios/storage/indexlib/table/index_task/merger:MergePlan',
-        '//aios/storage/indexlib/table/index_task/merger:MergeUtil',
         '//aios/storage/indexlib/table/index_task/merger:SegmentMergePlan'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTableMergeDescriptionCreator',
     deps=[
         ':BucketMapOperation', ':NormalTableResourceCreator',
@@ -309,17 +316,18 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/normal_table:NormalSchemaResolver'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='Common',
     srcs=[],
     deps=[
         '//aios/storage/indexlib/index/attribute:constants',
         '//aios/storage/indexlib/index/deletionmap:constants',
         '//aios/storage/indexlib/index/operation_log:constants',
+        '//aios/storage/indexlib/index/pack_attribute:constants',
         '//aios/storage/indexlib/index/primary_key:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleSegmentDocumentGroupSelector',
     deps=[
         '//aios/autil:NoCopyable', '//aios/storage/indexlib/base:Status',
@@ -331,14 +339,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/normal_table/config:SegmentGroupConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTableSplitPlanCreator',
     deps=[
         ':NormalTableCompactPlanCreator',
         '//aios/storage/indexlib/table/normal_table/index_task/merger:SplitStrategy'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTableAddIndexOperation',
     deps=[
         '//aios/storage/indexlib/analyzer',
@@ -355,7 +363,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:simple_pool'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PatchFileFinderUtil',
     deps=[
         ':Common', '//aios/autil:log',
@@ -365,10 +373,10 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task:IndexTaskConstant'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentMapper', srcs=[], deps=['//aios/storage/indexlib/base:Types']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentMergeInfo',
     srcs=[],
     deps=[

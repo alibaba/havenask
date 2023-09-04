@@ -32,12 +32,10 @@ class IndexConfigDeserializeResource : private autil::NoCopyable
 {
 public:
     IndexConfigDeserializeResource(const std::vector<std::shared_ptr<FieldConfig>>& fieldConfigs,
-                                   const autil::legacy::json::JsonMap& settings, MutableJson& runtimeSettings);
+                                   MutableJson& runtimeSettings);
 
 public:
     const std::shared_ptr<FieldConfig>& GetFieldConfig(const std::string& fieldName) const;
-    template <typename T>
-    std::optional<T> GetSetting(const std::string& key) const;
     template <typename T>
     std::optional<T> GetRuntimeSetting(const std::string& path) const;
 
@@ -54,31 +52,12 @@ private:
 };
 
 ///////////////////////////////////////////////
-template <typename T>
-inline std::optional<T> IndexConfigDeserializeResource::GetSetting(const std::string& key) const
-{
-    auto iter = _settings.find(key);
-    if (iter == _settings.end()) {
-        return std::nullopt;
-    }
-    // TODO(makuo.mnb) add cache
-    try {
-        auto any = iter->second;
-        T object {};
-        autil::legacy::FromJson(object, any);
-        return object;
-    } catch (const autil::legacy::ExceptionBase& e) {
-        AUTIL_LOG(ERROR, "decode json[%s] failed: %s", key.c_str(), e.what());
-        return std::nullopt;
-    }
-}
 
 template <typename T>
 inline std::optional<T> IndexConfigDeserializeResource::GetRuntimeSetting(const std::string& path) const
 {
-    T object {};
-    auto ret = _runtimeSettings.GetValue(path, &object);
-    if (ret) {
+    auto [status, object] = _runtimeSettings.GetValue<T>(path);
+    if (status.IsOK()) {
         return object;
     } else {
         return std::nullopt;

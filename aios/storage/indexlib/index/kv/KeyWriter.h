@@ -64,7 +64,7 @@ public:
 
 public:
     void FillStatistics(SegmentStatistics& stat) const;
-    void UpdateMemoryUsage(MemoryUsage& usage) const;
+    void FillMemoryUsage(MemoryUsage& usage) const;
 
 public:
     template <typename ValueType>

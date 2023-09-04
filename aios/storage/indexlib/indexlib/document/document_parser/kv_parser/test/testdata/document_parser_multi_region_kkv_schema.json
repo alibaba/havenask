@@ -1,0 +1,46 @@
+{
+    "table_name": "kkv_table",
+    "table_type": "kkv",
+    "fields": [
+        { "field_name": "id", "field_type": "INT64" },
+	{ "field_name": "nid", "field_type": "INT64" },
+        { "field_name": "nick", "field_type": "STRING" },
+	{ "field_name": "pidvid", "field_type": "INT64", "multi_value": true },
+	{ "field_name": "timestamp", "field_type": "INT64" }
+    ],
+    "regions" :
+    [
+	{
+	    "region_name" : "region1",
+	    "indexs": [
+		{
+                    "index_name": "id",
+                    "index_fields": [
+                        { "field_name": "id", "key_type": "prefix" },
+                        { "field_name": "nid", "key_type": "suffix",
+                          "count_limits": 5000,"trunc_sort_params": "+nid" }
+                    ],
+                    "index_type": "PRIMARY_KEY",
+		    "index_preference" : { "type" : "PERF" }
+		}
+	    ],
+	    "attributes": [ "id", "nick", "nid" ]
+	},
+        {
+	    "region_name" : "region2",
+	    "indexs": [
+		{
+                    "index_name": "id",
+                    "index_fields": [
+                        { "field_name": "nid", "key_type": "prefix" },
+                        { "field_name": "id", "key_type": "suffix",
+                          "count_limits": 5000,"trunc_sort_params": "+nid" }
+                    ],
+                    "index_type": "PRIMARY_KEY",
+		    "index_preference" : { "type" : "PERF" }
+		}
+	    ],
+	    "attributes": [ "id", "timestamp", "nid" ]
+	}
+    ]
+}

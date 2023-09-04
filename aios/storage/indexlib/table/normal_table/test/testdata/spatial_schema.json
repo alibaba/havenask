@@ -1,0 +1,57 @@
+{
+    "table_name": "normal_table",
+    "table_type": "normal",
+    "fields": [
+        {
+            "field_name": "baba",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "nid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "multi_int16",
+            "field_type": "INT16",
+            "multi_value": true
+        },
+        {
+            "field_name": "string1",
+            "field_type": "STRING"
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "ops_geo_point_field",
+            "field_type": "LOCATION"
+        }
+    ],
+    "indexs": [
+        {
+            "index_name": "primary_key_index",
+            "index_type": "PRIMARYKEY64",
+            "index_fields": "string1",
+            "has_primary_key_attribute": true,
+            "is_primary_key_sorted": true
+        },
+        {
+            "index_fields": "ops_geo_point_field",
+            "index_name": "ops_geo_point_index",
+            "index_type": "SPATIAL",
+            "max_dist_err": 100,
+            "max_search_dist": 10000
+        }
+    ],
+    "attributes": [
+        "nid",
+        "baba",
+        "multi_int16",
+        "string1"
+    ],
+    "summarys": {
+        "summary_fields": [
+            "nid",
+            "baba"
+        ],
+        "compress": false
+    }
+}

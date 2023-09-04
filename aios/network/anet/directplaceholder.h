@@ -32,6 +32,6 @@ private:
     uint32_t _len;
 };
 
-}  // namespace anet
+} // namespace anet
 
-#endif  // ANET_DIRECTPLACEHOLDER_H_
+#endif // ANET_DIRECTPLACEHOLDER_H_

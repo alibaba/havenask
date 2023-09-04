@@ -8,26 +8,27 @@
 #ifndef KMONITOR_CLIENT_METRIC_GAUGEMETRIC_H_
 #define KMONITOR_CLIENT_METRIC_GAUGEMETRIC_H_
 
-#include <vector>
 #include <string>
+#include <vector>
+
 #include "kmonitor/client/common/Common.h"
-#include "kmonitor/client/metric/Metric.h"
 #include "kmonitor/client/common/MinMaxCalculator.h"
+#include "kmonitor/client/metric/Metric.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 class GaugeMetric : public Metric {
- public:
+public:
     virtual ~GaugeMetric();
     GaugeMetric(const std::string &name);
     void doUpdate(double value) override;
     void doSnapshot(MetricsRecord *record, int64_t period) override;
 
- private:
+private:
     GaugeMetric(const GaugeMetric &);
     GaugeMetric &operator=(const GaugeMetric &);
 
- private:
+private:
     MinMaxCalculator calculator_;
 };
 
@@ -35,4 +36,4 @@ TYPEDEF_PTR(GaugeMetric);
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_METRIC_GAUGEMETRIC_H_
+#endif // KMONITOR_CLIENT_METRIC_GAUGEMETRIC_H_

@@ -15,10 +15,9 @@
  */
 #pragma once
 
-
+#include <iosfwd>
 #include <stddef.h>
 #include <stdint.h>
-#include <iosfwd>
 #include <string>
 
 #include "autil/DataBuffer.h"
@@ -26,91 +25,81 @@
 namespace autil {
 namespace mem_pool {
 class Pool;
-}  // namespace mem_pool
-}  // namespace autil
+} // namespace mem_pool
+} // namespace autil
 
 namespace autil {
 
-#define HLL_DENSE     0       /* 稠密编码方式，占用 16K 内存 */
-#define HLL_SPARSE    1       /* 稀疏编码方式, 创建时用 1.5K 内存，在元素不断加入后，自行决定何时转换为稠密编码方式 */
-#define HLL_P                       14                          /* The greater is P, the smaller the error. */
-#define HLL_Q                       50                          /* (64-HLL_P) The number of bits of the hash value used for
-                                                                    determining the number of leading zeros. */
-#define HLL_REGISTERS               16384                       /* (1<<HLL_P) With P=14, 16384 registers. */
-#define HLL_P_MASK                  16383                       /* (HLL_REGISTERS-1) Mask to index register. */
+#define HLL_DENSE 0  /* 稠密编码方式，占用 16K 内存 */
+#define HLL_SPARSE 1 /* 稀疏编码方式, 创建时用 1.5K 内存，在元素不断加入后，自行决定何时转换为稠密编码方式 */
+#define HLL_P 14     /* The greater is P, the smaller the error. */
+#define HLL_Q                                                                                                          \
+    50                      /* (64-HLL_P) The number of bits of the hash value used for                                \
+                                determining the number of leading zeros. */
+#define HLL_REGISTERS 16384 /* (1<<HLL_P) With P=14, 16384 registers. */
+#define HLL_P_MASK 16383    /* (HLL_REGISTERS-1) Mask to index register. */
 
-#define HLL_BITS                    6                           /* Enough to count up to 63 leading zeroes. */
-#define HLL_REGISTER_MAX            63                          /* ((1<<HLL_BITS)-1) */
+#define HLL_BITS 6          /* Enough to count up to 63 leading zeroes. */
+#define HLL_REGISTER_MAX 63 /* ((1<<HLL_BITS)-1) */
 
-#define HLL_ALPHA_INF               0.721347520444481703680     /* constant for 0.5/ln(2) */
+#define HLL_ALPHA_INF 0.721347520444481703680 /* constant for 0.5/ln(2) */
 
-#define HLL_SERIAL_SPARSE_MIN       3000
-#define HLL_SERIAL_SPARSE_BYTES     6144
-#define HLL_SERIAL_DENSE_BYTES      HLL_REGISTERS               /* HLL_REGISTERS * 6 / 8 = 12288 */
+#define HLL_SERIAL_SPARSE_MIN 3000
+#define HLL_SERIAL_SPARSE_BYTES 6144
+#define HLL_SERIAL_DENSE_BYTES HLL_REGISTERS /* HLL_REGISTERS * 6 / 8 = 12288 */
 
-#define HLL_MAGIC                   "HLL"
-#define HLL_MAGIC_BYTES             3
+#define HLL_MAGIC "HLL"
+#define HLL_MAGIC_BYTES 3
 
-#define VARINT32_MAX_BYTES          5
+#define VARINT32_MAX_BYTES 5
 
-#define HLL_REGI_MAX                512                         /* 总共512个位置 */
-#define HLL_REGI_MAX_BYTES          1536                        /* 总共 1.5K */
-#define HLL_REGI_AREA_NUM           16                          /* 拆成16个子区域 */
-#define HLL_REGI_AREA_SIZE          32                          /* 每个区域32个位置 */
+#define HLL_REGI_MAX 512        /* 总共512个位置 */
+#define HLL_REGI_MAX_BYTES 1536 /* 总共 1.5K */
+#define HLL_REGI_AREA_NUM 16    /* 拆成16个子区域 */
+#define HLL_REGI_AREA_SIZE 32   /* 每个区域32个位置 */
 
-struct HllRegi
-{
+struct HllRegi {
     //桶号
-    uint16_t  index;
+    uint16_t index;
     //值
-    uint8_t   count;
-}__attribute__ ((packed));
+    uint8_t count;
+} __attribute__((packed));
 
-class HllCtx
-{
+class HllCtx {
 public:
-    HllCtx():_encoding(0), _eleNum(0), _registers(NULL), _regiArr(NULL) {}
+    HllCtx() : _encoding(0), _eleNum(0), _registers(NULL), _regiArr(NULL) {}
     ~HllCtx() {}
+
 public:
     /* HLL_DENSE or HLL_SPARSE. */
-    uint8_t     _encoding;
-    int         _eleNum;
+    uint8_t _encoding;
+    int _eleNum;
     uint8_t *_registers;
     /* 总长 512*sizeof(HllRegi) ，
      * 拆分成32个子区域，每条放16个元素，只要有一个满了，就转成稠密
      * 假设：hash值是很均匀的 */
     HllRegi *_regiArr;
+
 public:
     void serialize(autil::DataBuffer &dataBuffer) const;
-    void deserialize(autil::DataBuffer &dataBuffer,
-                     autil::mem_pool::Pool *pool);
+    void deserialize(autil::DataBuffer &dataBuffer, autil::mem_pool::Pool *pool);
     int ReadAndDecodeUnit32(autil::DataBuffer &dataBuffer);
 
-    void EncodeAndWriteUint32(uint32_t value, autil::DataBuffer& dataBuffer) const;
+    void EncodeAndWriteUint32(uint32_t value, autil::DataBuffer &dataBuffer) const;
 
     int varintEncodeUint32(uint32_t value, uint8_t *buf) const;
 
     std::string toString() const;
 };
 
-template <> inline void autil::DataBuffer::read(HllCtx &hllCtx) {
-    hllCtx.deserialize(*this, _pool);
-}
+std::ostream &operator<<(std::ostream &stream, const HllCtx &x);
 
-template <> inline void autil::DataBuffer::write(const HllCtx& hllCtx) {
-    hllCtx.serialize(*this);
-}
-
-std::ostream& operator <<(std::ostream& stream, const HllCtx &x);
-
-class Hyperloglog
-{
+class Hyperloglog {
 public:
     Hyperloglog() {}
     ~Hyperloglog() {}
 
 public:
-
     /**
      * 创建
      * encoding：预计可能加入的元素大概率 >512 时，请直接选择 HLL_DENSE, 提升性能
@@ -118,7 +107,7 @@ public:
      *
      * 返回 NULL:表示失败
      */
-    static HllCtx* hllCtxCreate( unsigned char encoding, autil::mem_pool::Pool *pool);
+    static HllCtx *hllCtxCreate(unsigned char encoding, autil::mem_pool::Pool *pool);
 
     /** 重置 */
     static void hllCtxReset(HllCtx *thiz);
@@ -130,20 +119,20 @@ public:
      * 添加一个新的值
      *      返回值：-1：表示失败 0:表示成功
      */
-    static int hllCtxAdd(HllCtx *thiz, const unsigned char *ele, int eleLen, autil::mem_pool::Pool* pool);
+    static int hllCtxAdd(HllCtx *thiz, const unsigned char *ele, int eleLen, autil::mem_pool::Pool *pool);
 
     /**
      * 合并
      *      返回值：-1：表示失败 0:表示成功
      */
-    static int hllCtxMerge(HllCtx *thiz, HllCtx *forMerge, autil::mem_pool::Pool* pool);
+    static int hllCtxMerge(HllCtx *thiz, HllCtx *forMerge, autil::mem_pool::Pool *pool);
 
 private:
-    static double hllSigma( double x );
-    static double hllTau( double x );
-    static int hllCtxRegiArrToRegisters( uint8_t * registers, HllRegi * regiArr );
-    static int hllCtxSparseToDense( HllCtx * thiz, autil::mem_pool::Pool* pool );
-    static int hllCtxMergeRegisters( uint8_t * dst, uint8_t * src );
+    static double hllSigma(double x);
+    static double hllTau(double x);
+    static int hllCtxRegiArrToRegisters(uint8_t *registers, HllRegi *regiArr);
+    static int hllCtxSparseToDense(HllCtx *thiz, autil::mem_pool::Pool *pool);
+    static int hllCtxMergeRegisters(uint8_t *dst, uint8_t *src);
 
     static uint64_t MurmurHash64A(const uint8_t *data, int len) {
         const uint64_t m = 0xc6a4a7935bd1e995ULL;
@@ -164,21 +153,21 @@ private:
         }
 
         switch (len & 7) {
-            case 7:
-                h ^= (uint64_t)data[6] << 48;
-            case 6:
-                h ^= (uint64_t)data[5] << 40;
-            case 5:
-                h ^= (uint64_t)data[4] << 32;
-            case 4:
-                h ^= (uint64_t)data[3] << 24;
-            case 3:
-                h ^= (uint64_t)data[2] << 16;
-            case 2:
-                h ^= (uint64_t)data[1] << 8;
-            case 1:
-                h ^= (uint64_t)data[0];
-                h *= m;
+        case 7:
+            h ^= (uint64_t)data[6] << 48;
+        case 6:
+            h ^= (uint64_t)data[5] << 40;
+        case 5:
+            h ^= (uint64_t)data[4] << 32;
+        case 4:
+            h ^= (uint64_t)data[3] << 24;
+        case 3:
+            h ^= (uint64_t)data[2] << 16;
+        case 2:
+            h ^= (uint64_t)data[1] << 8;
+        case 1:
+            h ^= (uint64_t)data[0];
+            h *= m;
         };
 
         h ^= h >> 47;
@@ -188,7 +177,7 @@ private:
         return h;
     }
 
-    static int varintDecodeUint32( const uint8_t * buffer, uint32_t * value ) {
+    static int varintDecodeUint32(const uint8_t *buffer, uint32_t *value) {
         const uint8_t *ptr = buffer;
 
         uint32_t b;
@@ -263,5 +252,4 @@ private:
     }
 };
 
-}
-
+} // namespace autil

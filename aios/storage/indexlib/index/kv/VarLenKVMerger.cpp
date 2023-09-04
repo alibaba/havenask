@@ -97,7 +97,7 @@ void VarLenKVMerger::FillSegmentMetrics(indexlib::framework::SegmentMetrics* seg
     }
 }
 
-std::pair<int64_t, int64_t> VarLenKVMerger::EstimateMemoryUsage(const std::vector<SegmentStatistics>& statVec) const
+std::pair<int64_t, int64_t> VarLenKVMerger::EstimateMemoryUsage(const std::vector<SegmentStatistics>& statVec)
 {
     auto [keyMemoryUsage, memoryUsage] = KVMerger::EstimateMemoryUsage(statVec);
     memoryUsage += indexlib::file_system::WriterOption::DEFAULT_COMPRESS_BUFFER_SIZE; // value

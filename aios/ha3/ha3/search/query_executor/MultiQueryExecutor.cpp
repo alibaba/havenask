@@ -15,22 +15,19 @@
  */
 #include "ha3/search/MultiQueryExecutor.h"
 
-#include "autil/mem_pool/PoolBase.h"
-
-#include "ha3/search/QueryExecutor.h"
 #include "autil/Log.h"
+#include "autil/mem_pool/PoolBase.h"
+#include "ha3/search/QueryExecutor.h"
 
 namespace isearch {
 namespace search {
 AUTIL_LOG_SETUP(ha3, MultiQueryExecutor);
 
-MultiQueryExecutor::MultiQueryExecutor() { 
-}
+MultiQueryExecutor::MultiQueryExecutor() {}
 
-MultiQueryExecutor::~MultiQueryExecutor() { 
-    for (QueryExecutorVector::iterator it = _queryExecutors.begin(); 
-         it != _queryExecutors.end(); it++) 
-    {
+MultiQueryExecutor::~MultiQueryExecutor() {
+    for (QueryExecutorVector::iterator it = _queryExecutors.begin(); it != _queryExecutors.end();
+         it++) {
         POOL_DELETE_CLASS(*it);
     }
     _queryExecutors.clear();
@@ -55,8 +52,8 @@ docid_t MultiQueryExecutor::seek(docid_t id) {
 void MultiQueryExecutor::moveToEnd() {
     QueryExecutor::moveToEnd();
     for (QueryExecutorVector::const_iterator it = _queryExecutors.begin();
-         it != _queryExecutors.end(); it++)
-    {
+         it != _queryExecutors.end();
+         it++) {
         (*it)->moveToEnd();
     }
 }
@@ -64,8 +61,8 @@ void MultiQueryExecutor::moveToEnd() {
 void MultiQueryExecutor::setEmpty() {
     QueryExecutor::setEmpty();
     for (QueryExecutorVector::const_iterator it = _queryExecutors.begin();
-         it != _queryExecutors.end(); it++)
-    {
+         it != _queryExecutors.end();
+         it++) {
         (*it)->setEmpty();
     }
 }
@@ -87,9 +84,9 @@ uint32_t MultiQueryExecutor::getSeekDocCount() {
 
 void MultiQueryExecutor::reset() {
     QueryExecutor::reset();
-    for (QueryExecutorVector::const_iterator it = _queryExecutors.begin(); 
-         it != _queryExecutors.end(); it++) 
-    {
+    for (QueryExecutorVector::const_iterator it = _queryExecutors.begin();
+         it != _queryExecutors.end();
+         it++) {
         (*it)->reset();
     }
 }
@@ -100,4 +97,3 @@ std::string MultiQueryExecutor::toString() const {
 
 } // namespace search
 } // namespace isearch
-

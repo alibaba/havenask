@@ -1,0 +1,242 @@
+{
+    "catalog": {
+        "version": 1,
+        "status": {
+            "code": "PUBLISHED"
+        },
+        "catalogName": "catalog",
+        "catalogConfig": {
+            "version": 1,
+            "status": {
+                "code": "PUBLISHED"
+            },
+            "workspaceName": "ExampleWorkspace",
+            "dataSpaceName": "ExampleDataSpace"
+        },
+        "databases": [
+            {
+                "version": 1,
+                "status": {
+                    "code": "PUBLISHED"
+                },
+                "databaseName": "database",
+                "catalogName": "catalog",
+                "databaseConfig": {
+                    "version": 1,
+                    "status": {
+                        "code": "PUBLISHED"
+                    },
+                    "configs": [
+                        "config1",
+                        "config2"
+                    ],
+                    "accessTokens": [
+                        "token1",
+                        "token2"
+                    ],
+                    "storeRoot": "$configRoot"
+                },
+                "tables": [
+                    {
+                        "version": 1,
+                        "status": {
+                            "code": "PUBLISHED"
+                        },
+                        "tableName": "table",
+                        "databaseName": "database",
+                        "catalogName": "catalog",
+                        "tableConfig": {
+                            "version": 1,
+                            "status": {
+                                "code": "PUBLISHED"
+                            },
+                            "partitionTtl": 30,
+                            "offlineAppName": "ExampleApp"
+                        },
+                        "tableStructure": {
+                            "version": 1,
+                            "status": {
+                                "code": "PUBLISHED"
+                            },
+                            "tableName": "table",
+                            "databaseName": "database",
+                            "catalogName": "catalog",
+                            "columns": [
+                                {
+                                    "name": "id",
+                                    "type": "INT32",
+                                    "multiValue": false,
+                                    "defaultValue": "0",
+                                },
+                                {
+                                    "name": "company_id",
+                                    "type": "STRING",
+                                    "multiValue": false,
+                                },
+                                {
+                                    "name": "price",
+                                    "type": "DOUBLE",
+                                    "multiValue": false,
+                                },
+                                {
+                                    "name": "multi_int",
+                                    "type": "INT32",
+                                    "multiValue": true,
+                                    "separator": ","
+                                },
+                                {
+                                    "name": "multi_double",
+                                    "type": "DOUBLE",
+                                    "multiValue": true,
+                                    "separator": ","
+                                },
+                                {
+                                    "name": "multi_company_id",
+                                    "type": "STRING",
+                                    "multiValue": true,
+                                    "separator": ","
+                                }
+                            ],
+                            "indexes": [
+                                {
+                                    "name": "company_id",
+                                    "indexType": "PRIMARY_KEY64",
+                                    "indexConfig": {
+                                        "indexFields": [
+                                            {
+                                                "fieldName": "company_id"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "orc",
+                                    "indexType": "ORC",
+                                    "indexConfig": {
+                                        "indexFields": [
+                                            {
+                                                "fieldName": "id"
+                                            },
+                                            {
+                                                "fieldName": "company_id"
+                                            },
+                                            {
+                                                "fieldName": "price"
+                                            },
+                                            {
+                                                "fieldName": "multi_int"
+                                            },
+                                            {
+                                                "fieldName": "multi_double"
+                                            },
+                                            {
+                                                "fieldName": "multi_company_id"
+                                            }
+                                        ],
+                                        "indexParams": {
+                                            "a": "z",
+                                            "z": "b",
+                                            "c": "ccc"
+                                        }
+                                    }
+                                }
+                            ],
+                            "tableStructureConfig": {
+                                "shardInfo": {
+                                    "shardFields": [
+                                        "column1"
+                                    ],
+                                    "shardFunc": "HASH",
+                                    "shardCount": 1,
+                                    "hashParams": {
+                                        "hashFunc": "HASH",
+                                        "routingRatio": "0.5",
+                                        "hotValues": "value1,value2",
+                                        "hotValuesRatio": "0.1"
+                                    }
+                                },
+                                "tableType": "ORC",
+                                "comment": "Example table structure",
+                                "ttlOption": {
+                                    "enableTtl": true,
+                                    "ttlFieldName": "ttlField",
+                                    "defaultTtl": 300
+                                },
+                                "buildType": "DIRECT"
+                            }
+                        },
+                        "partitions": [
+                            {
+                                "version": 1,
+                                "status": {
+                                    "code": "PUBLISHED"
+                                },
+                                "partitionName": "1234567",
+                                "tableName": "table",
+                                "databaseName": "database",
+                                "catalogName": "catalog",
+                                "partitionType": "TABLE_PARTITION",
+                                "partitionConfig": {
+                                    "version": 1,
+                                    "status": {
+                                        "code": "PUBLISHED"
+                                    },
+                                    "custom_metas": {
+                                        "build_config": '{"max_doc_count": 2}'
+                                    }
+                                },
+                                "dataSource": {
+                                    "dataVersion": {
+                                        "version": "1.0",
+                                        "dataDescriptions": [
+                                            {
+                                                "src": "swift",
+                                                "swift_root": "http://fs-proxy.vip.tbsite.net:3066/swift_na63_mainse_sample",
+                                                "swift_topic_name": "table_1234567",
+                                                "swift_start_timestamp": "1234"
+                                            }
+                                        ],
+                                        "dataInfo": {
+                                            "fieldCount": 10,
+                                            "fullDataRecordCount": 1000,
+                                            "fullDataPhysicalSize": 1024,
+                                            "fullDataLogicalSize": 2048,
+                                            "fullDataModifiedTime": 1619713126
+                                        }
+                                    },
+                                    "processConfigs": [
+                                        {
+                                            "version": 1,
+                                            "tableName": "table",
+                                            "detail": "exampleDetail"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "tableGroups": [
+                    {
+                        "tableGroupName": "tg",
+                        "databaseName": "database",
+                        "catalogName": "catalog"
+                    }
+                ],
+                "functions": []
+            }
+        ],
+        "operationMeta": {
+            "owners": [
+                {
+                    "userId": "user1",
+                    "userName": "User 1",
+                    "empId": "emp1"
+                }
+            ],
+            "lastOperator": "user1",
+            "createdTime": 1619713126,
+            "modifiedTime": 1619713126
+        }
+    }
+}

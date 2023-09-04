@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/config/MultiCallConfig.h"
+
 #include "aios/network/gig/multi_call/common/WorkerNodeInfo.h"
 #include "autil/StringUtil.h"
 
@@ -35,11 +36,9 @@ AUTIL_LOG_SETUP(multi_call, MultiCallConfig);
 void Cm2Config::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
     json.Jsonize("zk_host", zkHost, zkHost);
     json.Jsonize("zk_path", zkPath, zkPath);
-    json.Jsonize("enable_cluster_biz_search", enableClusterBizSearch,
-                 enableClusterBizSearch);
+    json.Jsonize("enable_cluster_biz_search", enableClusterBizSearch, enableClusterBizSearch);
     json.Jsonize("sub_master_only", subMasterOnly, subMasterOnly);
-    json.Jsonize("sub_protocol_version", subProtocolVersion,
-                 subProtocolVersion);
+    json.Jsonize("sub_protocol_version", subProtocolVersion, subProtocolVersion);
     json.Jsonize("cm2_part", clusters, clusters);
     json.Jsonize("cm2_part_no_topo_info", noTopoClusters, noTopoClusters);
     json.Jsonize("cm2_group", groups, groups);
@@ -49,15 +48,14 @@ void Cm2Config::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
 bool Cm2Config::operator==(const Cm2Config &rhs) const {
     return zkHost == rhs.zkHost && zkPath == rhs.zkPath &&
            enableClusterBizSearch == rhs.enableClusterBizSearch &&
-           subMasterOnly == rhs.subMasterOnly &&
-           subProtocolVersion == rhs.subProtocolVersion &&
+           subMasterOnly == rhs.subMasterOnly && subProtocolVersion == rhs.subProtocolVersion &&
            clusters == rhs.clusters && noTopoClusters == rhs.noTopoClusters &&
            groups == rhs.groups && allGroupsTopo == rhs.allGroupsTopo;
 }
 
 bool Cm2Config::validate(bool &enabled) const {
-    enabled = !zkHost.empty() || !zkPath.empty() || !clusters.empty() ||
-              !noTopoClusters.empty() || !groups.empty();
+    enabled = !zkHost.empty() || !zkPath.empty() || !clusters.empty() || !noTopoClusters.empty() ||
+              !groups.empty();
     if (!enabled) {
         return true;
     }
@@ -120,10 +118,8 @@ bool VipConfig::validate(bool &enabled) const {
 void IstioConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
     json.Jsonize("istio_host", istioHost, istioHost);
     json.Jsonize("biz_clusters", clusters, clusters);
-    json.Jsonize("xdsCallbackQueueSize", xdsCallbackQueueSize,
-                 xdsCallbackQueueSize);
-    json.Jsonize("enable_host_transform", enableHostTransform,
-                 enableHostTransform);
+    json.Jsonize("xdsCallbackQueueSize", xdsCallbackQueueSize, xdsCallbackQueueSize);
+    json.Jsonize("enable_host_transform", enableHostTransform, enableHostTransform);
     json.Jsonize("cacheFile", cacheFile, cacheFile);
     json.Jsonize("readCache", readCache, readCache);
     json.Jsonize("xdsClientWorkerThreadNumber", xdsClientWorkerThreadNumber,
@@ -135,9 +131,8 @@ void IstioConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
 bool IstioConfig::operator==(const IstioConfig &rhs) const {
     return istioHost == rhs.istioHost && clusters == rhs.clusters &&
            enableHostTransform == rhs.enableHostTransform &&
-           xdsCallbackQueueSize == rhs.xdsCallbackQueueSize &&
-           cacheFile == rhs.cacheFile && readCache == rhs.readCache &&
-           writeCache == rhs.writeCache &&
+           xdsCallbackQueueSize == rhs.xdsCallbackQueueSize && cacheFile == rhs.cacheFile &&
+           readCache == rhs.readCache && writeCache == rhs.writeCache &&
            xdsClientWorkerThreadNumber == rhs.xdsClientWorkerThreadNumber &&
            writeInterval == rhs.writeInterval;
 }
@@ -164,16 +159,23 @@ bool IstioConfig::validate(bool &enabled) const {
     return true;
 }
 
-LocalConfig::LocalConfig() {}
+LocalConfig::LocalConfig() {
+}
 
-LocalConfig::~LocalConfig() {}
+LocalConfig::~LocalConfig() {
+}
 
 LocalJsonize::LocalJsonize()
-    : _partCnt(INVALID_PART_COUNT), _partId(INVALID_PART_ID),
-      _version(INVALID_VERSION_ID), _weight(MAX_WEIGHT), _tcpPort(INVALID_PORT),
-      _httpPort(INVALID_PORT), _grpcPort(INVALID_PORT),
-      _rdmaPort(INVALID_PORT),
-      _supportHeartbeat(false) {}
+    : _partCnt(INVALID_PART_COUNT)
+    , _partId(INVALID_PART_ID)
+    , _version(INVALID_VERSION_ID)
+    , _weight(MAX_WEIGHT)
+    , _tcpPort(INVALID_PORT)
+    , _httpPort(INVALID_PORT)
+    , _grpcPort(INVALID_PORT)
+    , _rdmaPort(INVALID_PORT)
+    , _supportHeartbeat(false) {
+}
 
 void LocalJsonize::Jsonize(Jsonizable::JsonWrapper &json) {
     json.Jsonize("biz_name", _bizName, _bizName);
@@ -196,12 +198,11 @@ bool LocalJsonize::validate() const {
 }
 
 bool LocalJsonize::operator==(const LocalJsonize &rhs) const {
-    return _bizName == rhs._bizName && _partCnt == rhs._partCnt &&
-           _partId == rhs._partId && _version == rhs._version &&
-           _weight == rhs._weight && _ip == rhs._ip &&
-           _tcpPort == rhs._tcpPort && _httpPort == rhs._httpPort &&
-           _grpcPort == rhs._grpcPort && _rdmaPort == rhs._rdmaPort &&
-           _meta == rhs._meta && _supportHeartbeat == rhs._supportHeartbeat;
+    return _bizName == rhs._bizName && _partCnt == rhs._partCnt && _partId == rhs._partId &&
+           _version == rhs._version && _weight == rhs._weight && _ip == rhs._ip &&
+           _tcpPort == rhs._tcpPort && _httpPort == rhs._httpPort && _grpcPort == rhs._grpcPort &&
+           _rdmaPort == rhs._rdmaPort && _meta == rhs._meta &&
+           _supportHeartbeat == rhs._supportHeartbeat;
 }
 
 TopoNode LocalJsonize::getTopoNode() const {
@@ -244,7 +245,9 @@ bool LocalConfig::validate(bool &enabled) const {
     return true;
 }
 
-bool LocalConfig::empty() const { return nodes.empty(); }
+bool LocalConfig::empty() const {
+    return nodes.empty();
+}
 
 void SubscribeConfig::Jsonize(Jsonizable::JsonWrapper &json) {
     json.Jsonize("cm2", cm2Config, cm2Config);
@@ -302,8 +305,8 @@ bool SubscribeConfig::getIstioConfigs(std::vector<IstioConfig> &configs) const {
     return true;
 }
 
-bool SubscribeConfig::validate(bool &cm2Enabled, bool &vipEnabled,
-                               bool &localEnabled, bool &istioEnabled) const {
+bool SubscribeConfig::validate(bool &cm2Enabled, bool &vipEnabled, bool &localEnabled,
+                               bool &istioEnabled) const {
     std::vector<Cm2Config> cm2Configs;
     auto cm2Validate = getCm2Configs(cm2Configs);
     cm2Enabled = !cm2Configs.empty();
@@ -336,9 +339,7 @@ void MultiCallConfig::Jsonize(Jsonizable::JsonWrapper &json) {
 }
 
 bool MultiCallConfig::operator==(const MultiCallConfig &rhs) const {
-    return subConf == rhs.subConf &&
-           connectConf == rhs.connectConf &&
-           miscConf == rhs.miscConf &&
+    return subConf == rhs.subConf && connectConf == rhs.connectConf && miscConf == rhs.miscConf &&
            traceConf == rhs.traceConf;
 }
 
@@ -350,8 +351,7 @@ void SecureConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
 }
 
 bool SecureConfig::operator==(const SecureConfig &rhs) const {
-    return pemRootCerts == rhs.pemRootCerts &&
-           pemPrivateKey == rhs.pemPrivateKey &&
+    return pemRootCerts == rhs.pemRootCerts && pemPrivateKey == rhs.pemPrivateKey &&
            pemCertChain == rhs.pemCertChain && targetName == rhs.targetName;
 }
 
@@ -366,61 +366,49 @@ void ProtocolConfig::Jsonize(Jsonizable::JsonWrapper &json) {
 
 bool ProtocolConfig::operator==(const ProtocolConfig &rhs) const {
     return threadNum == rhs.threadNum && queueSize == rhs.queueSize &&
-           anetLoopTimeout == rhs.anetLoopTimeout &&
-           keepAliveInterval == rhs.keepAliveInterval &&
-           keepAliveTimeout == rhs.keepAliveTimeout &&
-           secureConfig == rhs.secureConfig;
+           anetLoopTimeout == rhs.anetLoopTimeout && keepAliveInterval == rhs.keepAliveInterval &&
+           keepAliveTimeout == rhs.keepAliveTimeout && secureConfig == rhs.secureConfig;
 }
 
 void MiscConfig::Jsonize(Jsonizable::JsonWrapper &json) {
     json.Jsonize("snapshot_log_count", snapshotLogCount, snapshotLogCount);
     json.Jsonize("snapshot_interval", snapshotInterval, snapshotInterval);
-    json.Jsonize("consistent_hash_virtual_point", virtualNodeCount,
-                 virtualNodeCount);
+    json.Jsonize("consistent_hash_virtual_point", virtualNodeCount, virtualNodeCount);
     json.Jsonize("heartbeat_timeout", heartbeatTimeout, heartbeatTimeout);
-    json.Jsonize("heartbeat_thread_num", heartbeatThreadCount,
-                 heartbeatThreadCount);
+    json.Jsonize("heartbeat_thread_num", heartbeatThreadCount, heartbeatThreadCount);
     json.Jsonize("callback_thread_num", callbackThreadNum, callbackThreadNum);
-    json.Jsonize("call_process_interval", callProcessInterval,
-                 callProcessInterval);
+    json.Jsonize("call_process_interval", callProcessInterval, callProcessInterval);
     json.Jsonize("grpc_channel_poll_interval_ms", grpcChannelPollIntervalMs,
                  grpcChannelPollIntervalMs);
     json.Jsonize("weight_update_step", weightUpdateStep, weightUpdateStep);
     json.Jsonize("snapshot_log_prefix", logPrefix, logPrefix);
     json.Jsonize("enable_heartbeat", enableHeartbeat, enableHeartbeat);
-    json.Jsonize("check_need_update_snapshot", checkNeedUpdateSnapshot,
-                 checkNeedUpdateSnapshot);
-    json.Jsonize("disable_biz_not_exist_log", disableBizNotExistLog,
-                 disableBizNotExistLog);
-    json.Jsonize("disable_metric_report", disableMetricReport,
-                 disableMetricReport);
-    json.Jsonize("simplify_metric_report", simplifyMetricReport,
-                 simplifyMetricReport);
-    json.Jsonize("metric_report_sampling_rate", metricReportSamplingRate,
-                 metricReportSamplingRate);
-    json.Jsonize("manager_update_time_interval", updateTimeInterval,
-                 updateTimeInterval);
+    json.Jsonize("check_need_update_snapshot", checkNeedUpdateSnapshot, checkNeedUpdateSnapshot);
+    json.Jsonize("disable_biz_not_exist_log", disableBizNotExistLog, disableBizNotExistLog);
+    json.Jsonize("disable_metric_report", disableMetricReport, disableMetricReport);
+    json.Jsonize("simplify_metric_report", simplifyMetricReport, simplifyMetricReport);
+    json.Jsonize("metric_report_sampling_rate", metricReportSamplingRate, metricReportSamplingRate);
+    json.Jsonize("manager_update_time_interval", updateTimeInterval, updateTimeInterval);
     json.Jsonize("hash_policy", hashPolicy, hashPolicy);
     json.Jsonize("call_delegation_queue_size", callDelegationQueueSize, callDelegationQueueSize);
 }
 
 bool MiscConfig::operator==(const MiscConfig &rhs) const {
-    return snapshotLogCount == rhs.snapshotLogCount &&
-           virtualNodeCount == rhs.virtualNodeCount &&
+    return snapshotLogCount == rhs.snapshotLogCount && virtualNodeCount == rhs.virtualNodeCount &&
            heartbeatTimeout == rhs.heartbeatTimeout &&
            heartbeatThreadCount == rhs.heartbeatThreadCount &&
            callbackThreadNum == rhs.callbackThreadNum &&
            grpcChannelPollIntervalMs == rhs.grpcChannelPollIntervalMs &&
-           weightUpdateStep == rhs.weightUpdateStep &&
-           logPrefix == rhs.logPrefix &&
+           weightUpdateStep == rhs.weightUpdateStep && logPrefix == rhs.logPrefix &&
            enableHeartbeat == rhs.enableHeartbeat &&
            checkNeedUpdateSnapshot == rhs.checkNeedUpdateSnapshot &&
            simplifyMetricReport == rhs.simplifyMetricReport &&
-           metricReportSamplingRate == rhs.metricReportSamplingRate &&
-           hashPolicy == rhs.hashPolicy;
+           metricReportSamplingRate == rhs.metricReportSamplingRate && hashPolicy == rhs.hashPolicy;
 }
 
-bool MiscConfig::enableConsistentHash() const { return virtualNodeCount != 0; }
+bool MiscConfig::enableConsistentHash() const {
+    return virtualNodeCount != 0;
+}
 
 HashPolicy MiscConfig::getHashPolicy() const {
     if (virtualNodeCount != 0) {
@@ -435,10 +423,8 @@ HashPolicy MiscConfig::getHashPolicy() const {
 }
 
 void GigRpcServerConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
-    json.Jsonize("heartbeat_thread_num", heartbeatThreadNum,
-                 heartbeatThreadNum);
-    json.Jsonize("heartbeat_queue_size", heartbeatQueueSize,
-                 heartbeatQueueSize);
+    json.Jsonize("heartbeat_thread_num", heartbeatThreadNum, heartbeatThreadNum);
+    json.Jsonize("heartbeat_queue_size", heartbeatQueueSize, heartbeatQueueSize);
     json.Jsonize("enable_agent_stat", enableAgentStat, enableAgentStat);
 }
 
@@ -455,8 +441,8 @@ void EagleeyeConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
 }
 
 bool EagleeyeConfig::operator==(const EagleeyeConfig &rhs) const {
-    return eAppId == rhs.eAppId && eDataId == rhs.eDataId &&
-           eGroup == rhs.eGroup && eAppGroup == rhs.eAppGroup;
+    return eAppId == rhs.eAppId && eDataId == rhs.eDataId && eGroup == rhs.eGroup &&
+           eAppGroup == rhs.eAppGroup;
 }
 
 } // namespace multi_call

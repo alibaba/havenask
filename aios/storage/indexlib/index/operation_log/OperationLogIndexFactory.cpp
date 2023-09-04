@@ -116,6 +116,6 @@ OperationLogIndexFactory::CreateIndexConfig(const autil::legacy::Any& any) const
 }
 
 std::string OperationLogIndexFactory::GetIndexPath() const { return OPERATION_LOG_INDEX_PATH; }
-REGISTER_INDEX(operation_log, OperationLogIndexFactory);
+REGISTER_INDEX_FACTORY(operation_log, OperationLogIndexFactory);
 
 } // namespace indexlib::index

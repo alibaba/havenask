@@ -26,41 +26,35 @@
 using namespace std;
 using namespace isearch::common;
 
-
 namespace isearch {
 namespace queryparser {
 AUTIL_LOG_SETUP(ha3, MultiTermQueryExpr);
 
 MultiTermQueryExpr::MultiTermQueryExpr(QueryOperator opExpr)
     : _defaultOP(opExpr)
-    , _minShoudMatch(1)
-{
-}
+    , _minShoudMatch(1) {}
 
 MultiTermQueryExpr::~MultiTermQueryExpr() {
-    for (TermExprArray::const_iterator it = _termQueryExprs.begin();
-         it != _termQueryExprs.end(); it++)
-    {
-        delete(*it);
+    for (TermExprArray::const_iterator it = _termQueryExprs.begin(); it != _termQueryExprs.end();
+         it++) {
+        delete (*it);
     }
 }
 
-void MultiTermQueryExpr::addTermQueryExpr(AtomicQueryExpr* expr) {
+void MultiTermQueryExpr::addTermQueryExpr(AtomicQueryExpr *expr) {
     _termQueryExprs.push_back(expr);
 }
 
 void MultiTermQueryExpr::setIndexName(const std::string &indexName) {
-    for (TermExprArray::const_iterator it = _termQueryExprs.begin();
-         it != _termQueryExprs.end(); it++)
-    {
+    for (TermExprArray::const_iterator it = _termQueryExprs.begin(); it != _termQueryExprs.end();
+         it++) {
         (*it)->setIndexName(indexName);
     }
 }
 
 void MultiTermQueryExpr::setRequiredFields(const common::RequiredFields &requiredFields) {
-    for (TermExprArray::const_iterator it = _termQueryExprs.begin();
-         it != _termQueryExprs.end(); it++)
-    {
+    for (TermExprArray::const_iterator it = _termQueryExprs.begin(); it != _termQueryExprs.end();
+         it++) {
         (*it)->setRequiredFields(requiredFields);
     }
 }

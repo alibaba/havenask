@@ -15,6 +15,7 @@
  */
 #include "indexlib/legacy/tools/partition_querier/executors/IndexTableExecutor.h"
 
+#include "indexlib/document/normal/SearchSummaryDocument.h"
 #include "indexlib/index/common/NumberTerm.h"
 #include "indexlib/index/inverted_index/InvertedIndexReader.h"
 #include "indexlib/index/inverted_index/PostingIterator.h"
@@ -23,6 +24,7 @@
 #include "indexlib/index/normal/attribute/accessor/attribute_reader.h"
 #include "indexlib/index/normal/attribute/accessor/pack_attribute_reader.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
+#include "indexlib/index/normal/summary/summary_reader.h"
 #include "indexlib/index/partition_info.h"
 #include "indexlib/index/primary_key/PrimaryKeyIndexReader.h"
 #include "indexlib/indexlib.h"
@@ -82,14 +84,44 @@ vector<string> IndexTableExecutor::ValidateAttrs(const std::shared_ptr<config::I
 {
     const auto& attrSchema = legacySchema->GetAttributeSchema();
     vector<string> indexAttrs;
+    if (!attrSchema) {
+        return indexAttrs;
+    }
     for (size_t i = 0; i < attrSchema->GetAttributeCount(); i++) {
         const auto& attrConfig = attrSchema->GetAttributeConfigs()[i];
-        if (attrConfig->IsDisable() || attrConfig->IsDeleted()) {
+        if (attrConfig->IsDisabled() || attrConfig->IsDeleted()) {
             continue;
         }
         indexAttrs.push_back(attrConfig->GetAttrName());
     }
     return AttrHelper::ValidateAttrs(indexAttrs, attrs);
+}
+
+vector<string> IndexTableExecutor::ValidateSummarys(const std::shared_ptr<config::IndexPartitionSchema>& legacySchema,
+                                                    const vector<string>& summarys)
+{
+    vector<string> indexSummarys;
+    const auto& summarySchema = legacySchema->GetSummarySchema();
+    if (!summarySchema) {
+        return indexSummarys;
+    }
+    if (summarys.empty()) {
+        for (auto iter = summarySchema->Begin(); iter != summarySchema->End(); ++iter) {
+            indexSummarys.push_back((*iter)->GetSummaryName());
+        }
+        return indexSummarys;
+    }
+    for (const auto& summary : summarys) {
+        auto fieldConfig = legacySchema->GetFieldConfig(summary);
+        if (!fieldConfig) {
+            continue;
+        }
+        if (!summarySchema->GetSummaryConfig(fieldConfig->GetFieldId())) {
+            continue;
+        }
+        indexSummarys.push_back(summary);
+    }
+    return indexSummarys;
 }
 
 Status IndexTableExecutor::ValidateDocIds(const std::shared_ptr<indexlib::index::DeletionMapReader>& deletionMapReader,
@@ -116,7 +148,7 @@ IndexTableExecutor::QueryDocIdsByTerm(const std::shared_ptr<InvertedIndexReader>
     autil::mem_pool::Pool pool;
     auto postingIter = indexReader->Lookup(term, limit, postingType, &pool).ValueOrThrow();
     if (!postingIter) {
-        return Status::NotFound("create index iterator for index name", term.GetIndexName().c_str(), "failed.");
+        return Status::NotFound("create index iterator for index name [%s] failed", term.GetIndexName().c_str());
     }
     auto termMeta = postingIter->GetTermMeta();
     if (termMeta) {
@@ -231,24 +263,23 @@ IndexTableExecutor::QueryDocIdsByPks(const std::shared_ptr<indexlib::index::Prim
     return Status::OK();
 }
 
-Status IndexTableExecutor::QueryRowByDocId(const IndexPartitionReaderPtr& indexPartitionReader, const docid_t docid,
-                                           const vector<string>& attrs, Row& row)
+Status IndexTableExecutor::QueryRowAttrByDocId(const IndexPartitionReaderPtr& indexPartitionReader, const docid_t docid,
+                                               const vector<string>& attrs, Row& row)
 {
     const auto& schema = indexPartitionReader->GetSchema();
     const auto& attrSchema = schema->GetAttributeSchema();
 
     autil::mem_pool::Pool pool;
 
-    row.set_docid(docid);
     for (const auto& attr : attrs) {
         const auto& attrConfig = attrSchema->GetAttributeConfig(attr);
-        if (attrConfig->IsDisable() || attrConfig->IsDeleted()) {
+        if (attrConfig->IsDisabled() || attrConfig->IsDeleted()) {
             continue;
         }
         auto attrValue = row.add_attrvalues();
         const auto& packAttrConfig = attrConfig->GetPackAttributeConfig();
         if (packAttrConfig) {
-            const auto& packName = packAttrConfig->GetAttrName();
+            const auto& packName = packAttrConfig->GetPackName();
             const auto& packAttrReader = indexPartitionReader->GetPackAttributeReader(packName);
             auto attrRef = packAttrReader->GetSubAttributeReference(attr);
             const char* value = packAttrReader->GetBaseAddress(docid, &pool);
@@ -266,13 +297,51 @@ Status IndexTableExecutor::QueryRowByDocId(const IndexPartitionReaderPtr& indexP
     return Status::OK();
 }
 
+Status IndexTableExecutor::QueryRowSummaryByDocId(const IndexPartitionReaderPtr& indexPartitionReader,
+                                                  const docid_t docid, const vector<string>& summarys, Row& row)
+{
+    if (summarys.empty()) {
+        return Status::OK();
+    }
+    index::SummaryReaderPtr summaryReader = indexPartitionReader->GetSummaryReader();
+    if (!summaryReader) {
+        return Status::InternalError("get summary reader failed!");
+    }
+    auto schema = indexPartitionReader->GetSchema();
+    config::SummarySchemaPtr summarySchema = schema->GetSummarySchema();
+    if (!summarySchema) {
+        return Status::ConfigError("get summary schema failed!");
+    }
+    auto doc = std::make_unique<indexlib::document::SearchSummaryDocument>(nullptr, summarySchema->GetSummaryCount());
+    if (!summaryReader->GetDocument(docid, doc.get())) {
+        return Status::InternalError("read summary failed");
+    }
+    for (const auto& summary : summarys) {
+        fieldid_t fieldId = schema->GetFieldId(summary);
+        index::summaryfieldid_t summaryFieldId = summarySchema->GetSummaryFieldId(fieldId);
+        const autil::StringView* fieldValue = doc->GetFieldValue(summaryFieldId);
+        std::string value;
+        if (fieldValue != NULL && fieldValue->size() > 0) {
+            value.assign(fieldValue->data(), fieldValue->size());
+        }
+        auto summaryValue = row.add_summaryvalues();
+        summaryValue->set_fieldname(summary);
+        summaryValue->set_value(value);
+    }
+    return Status::OK();
+}
+
 Status IndexTableExecutor::QueryIndexByDocId(const IndexPartitionReaderPtr& indexPartitionReader,
-                                             const vector<string>& attrs, const vector<docid_t>& docids,
-                                             const int64_t limit, PartitionResponse& partitionResponse)
+                                             const vector<string>& attrs, const vector<string>& summarys,
+                                             const vector<docid_t>& docids, const int64_t limit,
+                                             PartitionResponse& partitionResponse)
 {
     for (int docCount = 0; docCount < min(docids.size(), size_t(limit)); ++docCount) {
-        RETURN_STATUS_DIRECTLY_IF_ERROR(
-            QueryRowByDocId(indexPartitionReader, docids[docCount], attrs, *partitionResponse.add_rows()));
+        auto docid = docids[docCount];
+        auto row = partitionResponse.add_rows();
+        row->set_docid(docid);
+        RETURN_STATUS_DIRECTLY_IF_ERROR(QueryRowAttrByDocId(indexPartitionReader, docid, attrs, *row));
+        RETURN_STATUS_DIRECTLY_IF_ERROR(QueryRowSummaryByDocId(indexPartitionReader, docid, summarys, *row));
     }
     if (partitionResponse.rows_size() > 0) {
         const auto& attrValues = partitionResponse.rows(0).attrvalues();
@@ -326,7 +395,10 @@ Status IndexTableExecutor::QueryIndex(const IndexPartitionReaderPtr& indexPartit
 
     auto attrs =
         ValidateAttrs(indexPartitionReader->GetSchema(), vector<string> {query.attrs().begin(), query.attrs().end()});
-    RETURN_STATUS_DIRECTLY_IF_ERROR(QueryIndexByDocId(indexPartitionReader, attrs, docids, limit, partitionResponse));
+    auto summarys = ValidateSummarys(indexPartitionReader->GetSchema(),
+                                     vector<string> {query.summarys().begin(), query.summarys().end()});
+    RETURN_STATUS_DIRECTLY_IF_ERROR(
+        QueryIndexByDocId(indexPartitionReader, attrs, summarys, docids, limit, partitionResponse));
 
     if (IndexTableQueryType::ByPk == queryType) {
         for (int i = 0; i < query.pk().size(); ++i) {

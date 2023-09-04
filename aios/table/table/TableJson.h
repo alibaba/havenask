@@ -23,18 +23,18 @@
 
 namespace table {
 
-class TableJson : public autil::legacy::Jsonizable
-{
+class TableJson : public autil::legacy::Jsonizable {
 public:
-    void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override {
+    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("data", data);
         json.Jsonize("column_name", columnName);
         json.Jsonize("column_type", columnType);
     }
+
 public:
     std::vector<std::vector<autil::legacy::Any>> data;
     std::vector<std::string> columnName;
     std::vector<std::string> columnType;
 };
 
-}
+} // namespace table

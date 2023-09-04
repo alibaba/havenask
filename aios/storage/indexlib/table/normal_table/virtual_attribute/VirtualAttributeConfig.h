@@ -18,33 +18,33 @@
 #include "autil/Log.h"
 #include "indexlib/config/IIndexConfig.h"
 
-namespace indexlibv2 { namespace config {
+namespace indexlibv2 { namespace index {
 class AttributeConfig;
-}} // namespace indexlibv2::config
+}} // namespace indexlibv2::index
 
 namespace indexlibv2::table {
 
 class VirtualAttributeConfig : public config::IIndexConfig
 {
 public:
-    VirtualAttributeConfig(const std::shared_ptr<indexlibv2::config::AttributeConfig>& attrConfig);
+    VirtualAttributeConfig(const std::shared_ptr<index::AttributeConfig>& attrConfig);
     ~VirtualAttributeConfig();
 
     const std::string& GetIndexType() const override;
     const std::string& GetIndexName() const override;
+    const std::string& GetIndexCommonPath() const override;
     std::vector<std::string> GetIndexPath() const override;
     void Check() const override;
     std::shared_ptr<config::IIndexConfig> GetAttributeConfig() const;
     void Deserialize(const autil::legacy::Any&, size_t idxInJsonArray,
-                     const indexlibv2::config::IndexConfigDeserializeResource&) override
-    {
-    }
-    void Serialize(autil::legacy::Jsonizable::JsonWrapper& json) const override {}
+                     const indexlibv2::config::IndexConfigDeserializeResource&) override;
+    void Serialize(autil::legacy::Jsonizable::JsonWrapper& json) const override;
     std::vector<std::shared_ptr<config::FieldConfig>> GetFieldConfigs() const override;
     Status CheckCompatible(const IIndexConfig* other) const override;
+    bool IsDisabled() const override;
 
 private:
-    std::shared_ptr<indexlibv2::config::AttributeConfig> _attrConfig;
+    std::shared_ptr<index::AttributeConfig> _attrConfig;
     AUTIL_LOG_DECLARE();
 };
 

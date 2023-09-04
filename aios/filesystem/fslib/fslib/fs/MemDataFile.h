@@ -17,22 +17,21 @@
 #define FSLIB_MEMDATAFILE_H
 
 #include "autil/Log.h"
-#include "fslib/fslib.h"
 #include "fslib/fs/File.h"
+#include "fslib/fslib.h"
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class MemDataFile : public File
-{
+class MemDataFile : public File {
 public:
-    MemDataFile(const std::string& filePath, const std::string& data);
+    MemDataFile(const std::string &filePath, const std::string &data);
     ~MemDataFile();
-    
+
 public:
-    ssize_t read(void* buffer, size_t length) override;
-    ssize_t write(const void* buffer, size_t length) override;
-    ssize_t pread(void* buffer, size_t length, off_t offset) override;
-    ssize_t pwrite(const void* buffer, size_t length, off_t offset) override;
+    ssize_t read(void *buffer, size_t length) override;
+    ssize_t write(const void *buffer, size_t length) override;
+    ssize_t pread(void *buffer, size_t length, off_t offset) override;
+    ssize_t pwrite(const void *buffer, size_t length, off_t offset) override;
 
     ErrorCode flush() override;
     ErrorCode close() override;
@@ -51,4 +50,4 @@ FSLIB_TYPEDEF_AUTO_PTR(MemDataFile);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_MEMDATAFILE_H
+#endif // FSLIB_MEMDATAFILE_H

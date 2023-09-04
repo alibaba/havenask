@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="testWithCorrelate">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+select i1, d3, ia from (select i1, d3, i9Array from t1 where i1 < 2), unnest(i9Array) as A(ia)
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"i1","d3","ia"</Resource>
+        <Resource name="column_types">int32,double,int32</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1,1.0,1
+1,1.0,2
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#5(type=api)
+    ExchangeOp#4(distribution={type:SINGLETON})
+        LimitOp#3(limit=100)
+            CalcOp#2(output_fields=[$i1,$d3,$ia])
+                ExecCorrelateOp#1(output_fields=[$i1,$d3,$i9Array,$ia],uncollect_attrs=[{nest_field_counts:[1],nest_field_names:[$i9Array],output_fields:[$ia],table_name:i9Array,with_ordinality:false}])
+                    TableScanOp#0(catalog_name=default,db_name=t1,limit=2147483647,output_fields=[$i1,$d3,$i9Array],push_down_ops=[{attrs:{condition:{op:<,params:[$i1,2],type:OTHER},output_fields:[$i1,$d3,$i9Array]},op_name:CalcOp}],table_name=t1,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

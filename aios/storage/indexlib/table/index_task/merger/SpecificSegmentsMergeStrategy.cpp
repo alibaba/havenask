@@ -32,7 +32,7 @@ AUTIL_LOG_SETUP(indexlib.table, SpecificSegmentsMergeStrategy);
 std::pair<Status, std::shared_ptr<MergePlan>>
 SpecificSegmentsMergeStrategy::CreateMergePlan(const framework::IndexTaskContext* context)
 {
-    auto mergeConfig = context->GetTabletOptions()->GetOfflineConfig().GetMergeConfig();
+    auto mergeConfig = context->GetMergeConfig();
     auto [status, segmentIds] = ExtractParams(mergeConfig.GetMergeStrategyParameter());
     RETURN2_IF_STATUS_ERROR(status, nullptr, "extract param SpecificSegmentsMergeStrategy failed");
 

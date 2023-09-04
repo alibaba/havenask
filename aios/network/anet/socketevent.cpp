@@ -20,10 +20,9 @@ namespace anet {
 /*
  * 构造函数
  */
-SocketEvent::SocketEvent() {
-}
+SocketEvent::SocketEvent() {}
 /*
  * 析构函数
  */
 SocketEvent::~SocketEvent() {}
-}
+} // namespace anet

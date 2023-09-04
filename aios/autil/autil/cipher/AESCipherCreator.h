@@ -17,17 +17,17 @@
 
 #include "autil/Log.h"
 #include "autil/cipher/AESCipherCommon.h"
-#include "autil/cipher/AESCipherEncrypter.h"
 #include "autil/cipher/AESCipherDecrypter.h"
-#include "autil/cipher/AESCipherStreamEncrypter.h"
+#include "autil/cipher/AESCipherEncrypter.h"
 #include "autil/cipher/AESCipherStreamDecrypter.h"
+#include "autil/cipher/AESCipherStreamEncrypter.h"
 
-namespace autil { namespace cipher {
+namespace autil {
+namespace cipher {
 
 class AESCipherUtility;
 
-class AESCipherCreator
-{
+class AESCipherCreator {
 public:
     AESCipherCreator();
     ~AESCipherCreator();
@@ -36,20 +36,22 @@ public:
     static std::unique_ptr<AESCipherEncrypter> createEncrypter(CipherOption option);
     static std::unique_ptr<AESCipherDecrypter> createDecrypter(CipherOption option);
 
-    static std::unique_ptr<AESCipherStreamEncrypter> createStreamEncrypter(CipherOption option,
-            size_t maxCapacity = std::numeric_limits<size_t>::max(), 
-            size_t readTimeoutInMs = 50 /* 50ms, set 0 will return immediately if no data */);
-    
-    static std::unique_ptr<AESCipherStreamDecrypter> createStreamDecrypter(CipherOption option,
-            size_t maxCapacity = std::numeric_limits<size_t>::max(), 
-            size_t readTimeoutInMs = 50 /* 50ms, set 0 will return immediately if no data */);
-    
+    static std::unique_ptr<AESCipherStreamEncrypter>
+    createStreamEncrypter(CipherOption option,
+                          size_t maxCapacity = std::numeric_limits<size_t>::max(),
+                          size_t readTimeoutInMs = 50 /* 50ms, set 0 will return immediately if no data */);
+
+    static std::unique_ptr<AESCipherStreamDecrypter>
+    createStreamDecrypter(CipherOption option,
+                          size_t maxCapacity = std::numeric_limits<size_t>::max(),
+                          size_t readTimeoutInMs = 50 /* 50ms, set 0 will return immediately if no data */);
+
 private:
-    static AESCipherUtility* createUtility(CipherOption option);
-    
+    static AESCipherUtility *createUtility(CipherOption option);
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
-}}
-
+} // namespace cipher
+} // namespace autil

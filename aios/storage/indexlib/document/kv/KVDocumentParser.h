@@ -41,7 +41,7 @@ public:
     ~KVDocumentParser();
 
 public:
-    Status Init(const std::shared_ptr<config::TabletSchema>& schema,
+    Status Init(const std::shared_ptr<config::ITabletSchema>& schema,
                 const std::shared_ptr<DocumentInitParam>& initParam) override;
 
     std::unique_ptr<IDocumentBatch> Parse(const std::string& docString, const std::string& docFormat) const override;
@@ -64,6 +64,7 @@ private:
     InitCounter(const std::shared_ptr<DocumentInitParam>& initParam) const;
 
 protected:
+    schemaid_t _schemaId = DEFAULT_SCHEMAID;
     std::shared_ptr<indexlib::util::AccumulativeCounter> _counter;
     std::vector<std::pair<size_t, std::unique_ptr<KVIndexDocumentParserBase>>> _indexDocParsers;
 

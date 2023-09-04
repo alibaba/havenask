@@ -15,37 +15,38 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <map>
+#include <stdint.h>
 
 #include "autil/Log.h"
 
 namespace autil {
 namespace codec {
 
-class NormalizeTable
-{
+class NormalizeTable {
 public:
     NormalizeTable(bool caseSensitive,
                    bool traditionalSensitive,
                    bool widthSensitive,
                    const std::map<uint16_t, uint16_t> *traditionalTablePatch);
     ~NormalizeTable();
+
 private:
     NormalizeTable(const NormalizeTable &rhs);
-    NormalizeTable& operator= (const NormalizeTable &rhs);
+    NormalizeTable &operator=(const NormalizeTable &rhs);
+
 public:
-    uint16_t operator[] (uint16_t u) const {
-        return _table[u];
-    }
+    uint16_t operator[](uint16_t u) const { return _table[u]; }
+
 private:
     uint16_t *_table;
+
 private:
     static const uint16_t CHN_T2S_SET[0x10000];
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
-}
-}
-
+} // namespace codec
+} // namespace autil

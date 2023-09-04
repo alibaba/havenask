@@ -1,0 +1,21 @@
+{
+    "table_name": "mainse_searcher",
+    "fields": [
+        {"field_name":"id", "field_type":"INT64"}
+    ],
+    "indexs": [
+        {
+            "index_name": "phrase",
+            "high_frequency_dictionary" : "phrase_dict",
+            "high_frequency_term_posting_type" : "both",
+            "index_type" : "EXPACK",
+            "position_list_flag" : 0,
+            "term_frequency_flag" : 0,
+            "first_occ_flag" : 0,
+            "index_fields": [
+		{"field_name":"id", "boost":1000}
+            ],
+	    "has_truncate" : true
+	}
+    ]
+}

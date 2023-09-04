@@ -1,0 +1,13 @@
+{
+    "databaseDeployment": {
+        "catalogName": "catalog",
+        "databaseName": "database",
+        "deploymentName": "test_deployment",
+        "bindings": [
+            {
+                "tableGroupName": "tg",
+                "clusterName": "searcher"
+            }
+        ]
+    }
+}

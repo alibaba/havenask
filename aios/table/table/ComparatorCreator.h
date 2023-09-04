@@ -18,36 +18,26 @@
 #include <string>
 #include <vector>
 
-#include "table/Common.h"
-#include "table/Table.h"
 #include "table/ComboComparator.h"
+#include "table/Table.h"
 
 namespace autil {
 namespace mem_pool {
 class Pool;
-}  // namespace mem_pool
-}  // namespace autil
+} // namespace mem_pool
+} // namespace autil
 
 namespace table {
 
-class ComparatorCreator
-{
+class ComparatorCreator {
 public:
-    ComparatorCreator() {}
-    ~ComparatorCreator() {}
-public:
-    static ComboComparatorPtr createOneDimColumnComparator(const TablePtr &table,
-            const std::string &refName, const bool order);
     static ComboComparatorPtr createComboComparator(const TablePtr &table,
-            const std::vector<std::string> &refNames,
-            const std::vector<bool> &orders,
-            autil::mem_pool::Pool *pool);
-private:
-    ComparatorCreator(const ComparatorCreator &);
-    ComparatorCreator& operator=(const ComparatorCreator &);
+                                                    const std::vector<std::string> &refNames,
+                                                    const std::vector<bool> &orders,
+                                                    autil::mem_pool::Pool *pool);
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
-}
-
+} // namespace table

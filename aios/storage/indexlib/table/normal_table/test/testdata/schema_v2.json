@@ -1,0 +1,195 @@
+{
+    "fields": [
+        {
+            "binary_field": false,
+            "field_name": "nid",
+            "field_type": "LONG"
+        },
+        {
+            "binary_field": false,
+            "field_name": "high_risk_level_c2c",
+            "field_type": "INTEGER"
+        },
+        {
+            "binary_field": false,
+            "field_name": "DUP_pidvid",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "analyzer": "multi_level_analyzer",
+            "binary_field": false,
+            "field_name": "selling_point_index_c2c",
+            "field_type": "TEXT"
+        },
+        {
+            "analyzer": "multi_level_analyzer",
+            "binary_field": false,
+            "field_name": "title",
+            "field_type": "TEXT"
+        },
+        {
+            "binary_field": false,
+            "field_name": "multimodal_item_emb1_c2c",
+            "field_type": "RAW"
+        },
+        {
+            "binary_field": false,
+            "field_name": "w_user_gmv_haixuan_c2c",
+            "field_type": "INTEGER",
+            "multi_value": true
+        }
+    ],
+    "indexes": {
+        "ann": [
+            {
+                "format_version_id": 0,
+                "index_fields": [
+                    {
+                        "boost": 1,
+                        "field_name": "nid"
+                    },
+                    {
+                        "boost": 1,
+                        "field_name": "multimodal_item_emb1_c2c"
+                    }
+                ],
+                "index_name": "multimodal_item_emb1_c2c",
+                "index_type": "CUSTOMIZED",
+                "indexer": "aitheta2_indexer",
+                "parameters": {
+                    "build_index_params": "{\"proxima.qc.builder.quantizer_class\":\"Int8QuantizerConverter\",\"proxima.qc.builder.quantize_by_centroid\":true,\"proxima.qc.builder.optimizer_params\":{\"proxima.linear.builder.column_major_order\":true},\"proxima.qc.builder.store_original_features\":false}",
+                    "builder_name": "QcBuilder",
+                    "dimension": "128",
+                    "distance_type": "SquaredEuclidean",
+                    "embedding_delimiter": " ",
+                    "enable_recall_report": "true",
+                    "enable_rt_build": "false",
+                    "is_alter_index": "false",
+                    "is_embedding_saved": "true",
+                    "linear_build_threshold": "1000",
+                    "major_order": "col",
+                    "min_scan_doc_cnt": "40000",
+                    "search_index_params": "{\"proxima.qc.searcher.scan_ratio\":0.02}",
+                    "searcher_name": "QcSearcher",
+                    "use_linear_in_full_build": "false"
+                }
+            }
+        ],
+        "attribute": [
+            {
+                "compress_type": "equal|patch_compress",
+                "field_name": "high_risk_level_c2c"
+            },
+            {
+                "compress_type": "uniq|equal|patch_compress",
+                "field_name": "w_user_gmv_haixuan_c2c",
+                "file_compressor": "combined_compressor",
+                "updatable": true
+            }
+        ],
+        "inverted_index": [
+            {
+                "doc_payload_flag": 1,
+                "file_compressor": "combined_compressor",
+                "format_version_id": 0,
+                "has_shortlist_vbyte_compress": false,
+                "high_frequency_adaptive_dictionary": "percent",
+                "high_frequency_term_posting_type": "both",
+                "index_analyzer": "multi_level_analyzer",
+                "index_fields": [
+                    {
+                        "boost": 1,
+                        "field_name": "selling_point_index_c2c"
+                    },
+                    {
+                        "boost": 1,
+                        "field_name": "title"
+                    }
+                ],
+                "index_name": "phrase",
+                "index_type": "EXPACK",
+                "position_list_flag": 0,
+                "position_payload_flag": 0,
+                "sharding_count": 4,
+                "term_frequency_bitmap": 0,
+                "term_frequency_flag": 0,
+                "term_payload_flag": 0
+            },
+            {
+                "doc_payload_flag": 0,
+                "format_version_id": 0,
+                "has_shortlist_vbyte_compress": false,
+                "high_frequency_adaptive_dictionary": "percent",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "DUP_pidvid",
+                "index_name": "pidvid",
+                "index_type": "STRING",
+                "index_updatable": true,
+                "sharding_count": 4,
+                "term_frequency_flag": 0,
+                "term_payload_flag": 0
+            }
+        ],
+        "primarykey": [
+            {
+                "format_version_id": 0,
+                "index_fields": "nid",
+                "index_name": "nid",
+                "index_type": "PRIMARYKEY64",
+                "pk_data_block_size": 4096,
+                "pk_hash_type": "default_hash",
+                "pk_storage_type": "sort_array"
+            }
+        ],
+        "summary": [
+            {
+                "parameter": {
+                    "doc_compressor": "zlib",
+                    "file_compressor": "zstd_compressor"
+                },
+                "summary_fields": [
+                    "high_risk_level_c2c"
+                ]
+            }
+        ]
+    },
+    "settings": {
+        "adaptive_dictionaries": [
+            {
+                "adaptive_dictionary_name": "percent",
+                "dict_type": "PERCENT",
+                "threshold": 5
+            },
+            {
+                "adaptive_dictionary_name": "size",
+                "dict_type": "INDEX_SIZE",
+                "threshold": -1
+            }
+        ],
+        "file_compressors": [
+            {
+                "name": "zstd_compressor",
+                "parameters": {
+                    "enable_hint_data": "true"
+                },
+                "type": "zstd"
+            },
+            {
+                "compressor_names": [
+                    "zstd_compressor",
+                    "zstd_compressor"
+                ],
+                "name": "combined_compressor",
+                "statistic_key": "segment_group",
+                "statistic_values": [
+                    "cold_order",
+                    "warm_order"
+                ],
+                "type": "combined"
+            }
+        ]
+    },
+    "table_name": "mainse_excellent_search",
+    "table_type": "normal"
+}

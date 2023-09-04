@@ -18,6 +18,7 @@
 #include "build_service/common/BuilderCheckpointAccessor.h"
 #include "build_service/common/CheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointFormatter.h"
+#include "build_service/config/CLIOptionNames.h"
 
 using namespace std;
 using namespace autil;
@@ -179,9 +180,31 @@ void IndexCheckpointAccessor::updateIndexInfo(bool isFullIndex, const string& cl
     }
 }
 
+bool IndexCheckpointAccessor::isIndexVisiable(const std::string& clusterName) const
+{
+    string ckptId = IndexCheckpointFormatter::getClusterCheckpointVisiableId(clusterName);
+    string ckptValue;
+    if (!_accessor->getCheckpoint(ckptId, ckptId, ckptValue, false)) {
+        return true;
+    }
+    return ckptValue == config::KV_TRUE;
+}
+
+void IndexCheckpointAccessor::setIndexVisiable(const std::string& clusterName, bool isVisiable)
+{
+    string ckptId = IndexCheckpointFormatter::getClusterCheckpointVisiableId(clusterName);
+    string ckptValue;
+    string value = isVisiable ? config::KV_TRUE : config::KV_FALSE;
+    BS_LOG(INFO, "change cluster [%s] visiablity to [%s]", clusterName.c_str(), value.c_str());
+    _accessor->addOrUpdateCheckpoint(ckptId, ckptId, value);
+}
+
 bool IndexCheckpointAccessor::getIndexInfo(bool isFull, const string& clusterName,
                                            ::google::protobuf::RepeatedPtrField<proto::IndexInfo>& indexInfos)
 {
+    if (!isIndexVisiable(clusterName)) {
+        return false;
+    }
     string ckpId = IndexCheckpointFormatter::getIndexInfoId(isFull, clusterName);
     string ckpName = ckpId;
     string checkpointValue;

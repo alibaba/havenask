@@ -16,8 +16,9 @@
 #pragma once
 
 #include <string>
-#include "aios/network/arpc/arpc/CommonMacros.h"
+
 #include "aios/autil/autil/ThreadPool.h"
+#include "aios/network/arpc/arpc/CommonMacros.h"
 
 ARPC_BEGIN_NAMESPACE(arpc)
 
@@ -27,26 +28,24 @@ ARPC_BEGIN_NAMESPACE(arpc)
  * Each thread pool will be defined with a pool name, thread
  * number that the pool can hold and the work item queue limit.
  */
-class ThreadPoolDescriptor
-{
+class ThreadPoolDescriptor {
 public:
-    ThreadPoolDescriptor() :
-        threadPoolName(DEFAULT_TREAHDPOOL_NAME)
-    {
+    ThreadPoolDescriptor() : threadPoolName(DEFAULT_TREAHDPOOL_NAME) {
         threadNum = 0;
         queueSize = 0;
         _allowSharedPoolOverride = true;
     }
 
-    ThreadPoolDescriptor(std::string thPoolName, size_t threadNum, size_t queueSize) : threadPoolName(thPoolName)
-    {
+    ThreadPoolDescriptor(std::string thPoolName, size_t threadNum, size_t queueSize) : threadPoolName(thPoolName) {
         this->threadNum = threadNum;
         this->queueSize = queueSize;
     }
 
-    ThreadPoolDescriptor(std::string thPoolName, size_t threadNum,
-        size_t queueSize, autil::WorkItemQueueFactoryPtr factory) : threadPoolName(thPoolName)
-    {
+    ThreadPoolDescriptor(std::string thPoolName,
+                         size_t threadNum,
+                         size_t queueSize,
+                         autil::WorkItemQueueFactoryPtr factory)
+        : threadPoolName(thPoolName) {
         this->threadNum = threadNum;
         this->queueSize = queueSize;
         this->factory = factory;

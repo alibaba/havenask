@@ -67,10 +67,10 @@ public:
 
 private:
     indexlib::index::ErrorCode seekSubDoc(docid_t docId,
-                                           docid_t subDocId,
-                                           docid_t subDocEnd,
-                                           bool needSubMatchdata,
-                                           docid_t &result) override;
+                                          docid_t subDocId,
+                                          docid_t subDocEnd,
+                                          bool needSubMatchdata,
+                                          docid_t &result) override;
 
 private:
     void initBufferedPostingIterator();

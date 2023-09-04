@@ -15,6 +15,7 @@
  */
 #include "indexlib/index/attribute/AttributeMemIndexer.h"
 
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocument.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/index/common/field_format/attribute/AttributeConvertorFactory.h"
@@ -27,7 +28,7 @@ Status AttributeMemIndexer::Init(const std::shared_ptr<config::IIndexConfig>& in
 {
     _allocator.reset(new indexlib::util::MMapAllocator);
     _pool.reset(new autil::mem_pool::Pool(_allocator.get(), DEFAULT_CHUNK_SIZE * 1024 * 1024));
-    _attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+    _attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
     assert(_attrConfig);
     _attrConvertor =
         std::shared_ptr<AttributeConvertor>(AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(_attrConfig));
@@ -60,11 +61,10 @@ Status AttributeMemIndexer::Build(const document::IIndexFields* indexFields, siz
 }
 Status AttributeMemIndexer::Build(document::IDocumentBatch* docBatch)
 {
-    for (size_t i = 0; i < docBatch->GetBatchSize(); ++i) {
-        if (!docBatch->IsDropped(i)) {
-            std::shared_ptr<document::IDocument> doc = (*docBatch)[i];
-            RETURN_STATUS_DIRECTLY_IF_ERROR(AddDocument(doc.get()));
-        }
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(docBatch);
+    while (iter->HasNext()) {
+        std::shared_ptr<document::IDocument> doc = iter->Next();
+        RETURN_STATUS_DIRECTLY_IF_ERROR(AddDocument(doc.get()));
     }
     return Status::OK();
 }

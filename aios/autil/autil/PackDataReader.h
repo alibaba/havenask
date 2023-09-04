@@ -38,25 +38,23 @@ public:
     }
 
     template <typename T>
-    static autil::MultiValueType<T> readFixedMultiValue(
-            const char *base, uint64_t offset, uint32_t fixedCount)
-    {
+    static autil::MultiValueType<T> readFixedMultiValue(const char *base, uint64_t offset, uint32_t fixedCount) {
         PackOffset pOffset;
         pOffset.fromUInt64(offset);
         return readFixedMultiValue<T>(base, pOffset, fixedCount);
     }
-    
+
     template <typename T>
-    static T read(const char *base, const PackOffset& pOffset) {
+    static T read(const char *base, const PackOffset &pOffset) {
         if (unlikely(base == nullptr)) {
             return T();
         }
         assert(!pOffset.isImpactFormat());
         return *(reinterpret_cast<const T *>(base + pOffset.getOffset()));
     }
-    
+
     template <typename T>
-    static autil::MultiValueType<T> readMultiValue(const char *base, const PackOffset& pOffset) {
+    static autil::MultiValueType<T> readMultiValue(const char *base, const PackOffset &pOffset) {
         if (unlikely(base == nullptr)) {
             return autil::MultiValueType<T>();
         }
@@ -72,9 +70,8 @@ public:
     }
 
     template <typename T>
-    static autil::MultiValueType<T> readFixedMultiValue(
-            const char *base, const PackOffset& pOffset, uint32_t fixedCount)
-    {
+    static autil::MultiValueType<T>
+    readFixedMultiValue(const char *base, const PackOffset &pOffset, uint32_t fixedCount) {
         if (unlikely(base == nullptr)) {
             return autil::MultiValueType<T>();
         }
@@ -83,4 +80,4 @@ public:
     }
 };
 
-}
+} // namespace autil

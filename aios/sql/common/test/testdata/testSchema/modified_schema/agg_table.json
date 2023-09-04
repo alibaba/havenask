@@ -1,0 +1,127 @@
+{
+"distribution":
+  {
+  "hash_fields":
+    [
+    ],
+  "hash_function":
+    "",
+  "hash_params":
+    {
+    },
+  "partition_cnt":
+    0
+  },
+"fields":
+  [
+    {
+    "field_name":
+      "id",
+    "field_type":
+      {
+      "extend_infos":
+        {
+        },
+      "type":
+        "INTEGER"
+      },
+    "index_name":
+      "detail",
+    "index_type":
+      "PRIMARY_KEY",
+    "is_attribute":
+      false
+    },
+    {
+    "field_name":
+      "company_id",
+    "field_type":
+      {
+      "extend_infos":
+        {
+        },
+      "type":
+        "LONG"
+      },
+    "is_attribute":
+      false
+    },
+    {
+    "field_name":
+      "keywords",
+    "field_type":
+      {
+      "extend_infos":
+        {
+        },
+      "type":
+        "STRING"
+      },
+    "is_attribute":
+      false
+    },
+    {
+    "field_name":
+      "visitor_id",
+    "field_type":
+      {
+      "extend_infos":
+        {
+        },
+      "type":
+        "LONG"
+      },
+    "is_attribute":
+      false
+    }
+  ],
+"indexes":
+  {
+  "aggregation":
+    [
+      {
+      "index_fields":
+        [
+          "company_id",
+          "keywords"
+        ],
+      "index_name":
+        "global_agg",
+      "index_type":
+        "aggregation",
+      "value_fields":
+        [
+          "visitor_id"
+        ]
+      }
+    ]
+  },
+"join_info":
+  [
+  ],
+"location":
+  {
+  "partition_cnt":
+    0,
+  "service_desc":
+    "",
+  "table_group_name":
+    ""
+  },
+"properties":
+  {
+  },
+"sort_desc":
+  [
+  ],
+"sub_tables":
+  [
+  ],
+"summary_fields":
+  [
+  ],
+"table_name":
+  "daogou",
+"table_type":
+  "aggregation"
+}

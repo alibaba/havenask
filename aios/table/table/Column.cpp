@@ -19,15 +19,11 @@ using namespace std;
 
 namespace table {
 
-Column::Column(ColumnSchema* columnSchema, ColumnDataBase* columnData)
-    : _schema(columnSchema)
-    , _data(columnData)
-{
-}
+Column::Column(ColumnSchema *columnSchema, ColumnDataBase *columnData) : _schema(columnSchema), _data(columnData) {}
 
 Column::~Column() {
     _schema = NULL;
     DELETE_AND_SET_NULL(_data);
 }
 
-}
+} // namespace table

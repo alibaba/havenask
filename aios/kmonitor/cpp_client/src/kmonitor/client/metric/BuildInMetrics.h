@@ -8,33 +8,31 @@
 #ifndef KMONITOR_CLIENT_BUILDINMETRICS_H_
 #define KMONITOR_CLIENT_BUILDINMETRICS_H_
 
+#include <map>
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
-#include "kmonitor/client/common/Common.h"
-#include "kmonitor/client/metric/Metric.h"
-#include "kmonitor/client/core/MetricsCollector.h"
-#include "kmonitor/client/core/MetricsTags.h"
-#include "kmonitor/client/MetricLevel.h"
+
 #include "autil/metric/ProcessCpu.h"
 #include "autil/metric/ProcessMemory.h"
-#include <map>
+#include "kmonitor/client/MetricLevel.h"
+#include "kmonitor/client/common/Common.h"
+#include "kmonitor/client/core/MetricsCollector.h"
+#include "kmonitor/client/core/MetricsTags.h"
+#include "kmonitor/client/metric/Metric.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 class BuildInMetrics {
 public:
-    BuildInMetrics(const std::string &metricName,
-                   const MetricsTagsPtr& metricsTags,
-                   MetricLevel level = NORMAL);
+    BuildInMetrics(const std::string &metricName, const MetricsTagsPtr &metricsTags, MetricLevel level = NORMAL);
     ~BuildInMetrics();
-    void Snapshot(MetricsCollector *collector, int64_t curTimeMs,
-                  const std::set<MetricLevel> *levels = NULL);
+    void Snapshot(MetricsCollector *collector, int64_t curTimeMs, const std::set<MetricLevel> *levels = NULL);
 
 private:
     void getProcCpu(MetricsCollector *collector, int64_t curTime);
     void getProcMem(MetricsCollector *collector, int64_t curTime);
-    
+
 private:
     autil::metric::ProcessCpu processCpu_;
     autil::metric::ProcessMemory procMem_;
@@ -43,7 +41,7 @@ private:
     MetricsTagsPtr metricsTags_;
     MetricLevel level_;
 
-    //for build once
+    // for build once
     MetricsInfoPtr cpuInfo_;
     MetricsInfoPtr memSizeInfo_;
     MetricsInfoPtr memRssInfo_;
@@ -54,4 +52,4 @@ private:
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_BUILDINMETRICS_H_
+#endif // KMONITOR_CLIENT_BUILDINMETRICS_H_

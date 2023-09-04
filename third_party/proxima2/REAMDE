@@ -1,0 +1,11 @@
+"""
+打包地址:
+    https://aone.alibaba-inc.com/ec/app/-1/rpm/cr/12052846/portal
+更新说明:
+    * t-mit-proxima2-be-2.5.2-20211202113659: fix #38248046
+    * t-mit-proxima2-be-2.5.1-20211201105502: fix #38203073
+    * t-mit-proxima2-be-263b058a-20220818155228.alios7.x86_64.rpm: fix #45211034 #39537479
+    * 添加oswg实时构建算法,支持实时删除invalid doc
+    * t-mit-proxima2-be-f01231c9-20221215104833.alios7.x86_64.rpm: fix #47036132
+    * t-mit-proxima2-be-7c31780e-20230201204330.alios7.x86_64.rpm: 支持gpu topk 8192
+"""

@@ -1,0 +1,80 @@
+{
+    "build_option_config" : {
+        "async_build" : true,
+        "async_queue_size" : 1000,
+        "document_filter" : true,
+        "max_recover_time" : 30,
+        "sort_build" : true,
+        "sort_descriptions" : [
+            {
+                "sort_field" : "service_id",
+                "sort_pattern" : "asc"
+            }
+        ],
+        "sort_queue_mem" : 8192,
+        "sort_queue_size" : 10000000 
+    },
+    "cluster_config" : {
+        "builder_rule_config" : {
+            "batch_mode" : false,
+            "build_parallel_num" : 1,
+            "inc_build_parallel_num" : 1,
+            "merge_parallel_num" : 1,
+            "partition_count" : 1
+        },
+        "keep_checkpoint_count" : 40,
+        "cluster_name" : "update2add",
+        "hash_mode" : {
+            "hash_field" : "pk",
+            "hash_function" : "HASH"
+        },
+        "table_name" : "update2add"
+    },
+    "offline_index_config" : {
+        "build_config" : {
+            "build_total_memory" : 16384,
+            "keep_version_count" : 80,
+            "enable_package_file": true
+        },
+        "customized_merge_config" : {
+            "app_reclaim": {
+                "merge_config": {
+                    "document_reclaim_config_path": "hdfs://xxxx/user/admin/opensearch_online/mainsearch/app_deletion/config/xxxxx/reclaim_config.json",
+                    "merge_strategy": "priority_queue",
+                    "merge_strategy_params": {
+                        "input_limits": "max-segment-size=20480",
+                        "output_limits": "max-merged-segment-size=13312;max-total-merged-size=15360",
+                        "strategy_conditions": "priority-feature=valid-doc-count#asc;conflict-segment-count=2;conflict-delete-percent=10"
+                    },
+                    "merge_thread_count": 4
+                }
+            }
+        }
+    },
+    "swift_config" : {
+        "topic_full" : {
+            "obsolete_file_interval" : 24,
+            "partition_count" : 32,
+            "partition_limit" : 1,
+            "partition_max_buffer_size" : 8192,
+            "partition_min_buffer_size" : 64,
+            "partition_resource" : 1,
+            "reserved_file_count" : 10,
+            "topic_mode":"normal",
+            "topic_group":"default",
+            "reader_config" : "oneRequestReadCount=1000;readBufferSize=50000;decompress=true",
+            "writer_config" : "functionChain=hashId2partId;compressThresholdInBytes=1024;mode=async|safe;maxBufferSize=2147483648;oneRequestSendByteCount=1048576;maxKeepInBufferTime=100000"
+        },
+        "topic_inc" : {
+            "obsolete_file_interval" : 24,
+            "partition_count" : 32,
+            "partition_limit" : 1, 
+            "partition_max_buffer_size" : 8192,
+            "partition_min_buffer_size" : 64,
+            "partition_resource" : 1,
+            "reserved_file_count" : 10,
+            "reader_config" : "oneRequestReadCount=1000;readBufferSize=50000;decompress=true",
+            "writer_config" : "functionChain=hashId2partId;compressThresholdInBytes=1024;mode=async|safe;maxBufferSize=2147483648;oneRequestSendByteCount=1048576;maxKeepInBufferTime=100000"
+        }     
+    }
+}

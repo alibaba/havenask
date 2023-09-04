@@ -1,0 +1,24 @@
+package(default_visibility=['//aios/sql/iquan/java:__subpackages__'])
+java_library(
+    name='iquan_core',
+    srcs=glob(['src/main/java/com/taobao/search/iquan/**/*.java']),
+    resources=glob(['src/main/resources/**']),
+    deps=[
+        '//aios/sql/iquan/java:immutables',
+        '@iquan_maven//:com_fasterxml_jackson_core_jackson_annotations',
+        '@iquan_maven//:com_fasterxml_jackson_core_jackson_core',
+        '@iquan_maven//:com_fasterxml_jackson_core_jackson_databind',
+        '@iquan_maven//:com_google_flatbuffers_flatbuffers_java',
+        '@iquan_maven//:com_google_guava_guava',
+        '@iquan_maven//:com_google_protobuf_protobuf_java',
+        '@iquan_maven//:com_google_protobuf_protobuf_java_util',
+        '@iquan_maven//:com_taobao_monitor_kmonitor_client',
+        '@iquan_maven//:org_apache_calcite_calcite_core',
+        '@iquan_maven//:org_apache_commons_commons_lang3',
+        '@iquan_maven//:org_apache_logging_log4j_log4j_api',
+        '@iquan_maven//:org_apache_logging_log4j_log4j_core',
+        '@iquan_maven//:org_apache_logging_log4j_log4j_slf4j_impl',
+        '@iquan_maven//:org_javatuples_javatuples',
+        '@iquan_maven//:org_slf4j_slf4j_api'
+    ]
+)

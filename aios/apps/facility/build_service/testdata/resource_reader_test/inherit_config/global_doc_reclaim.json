@@ -1,0 +1,8 @@
+{
+    "doc_reclaim_source" :
+    {
+        "swift_root" : "http://test/opensearch",
+        "topic_name" : "app_reclaim",
+        "swift_reader_config" : "hashByClusterName=true;clusterHashFunc=HASH;"
+    }
+}

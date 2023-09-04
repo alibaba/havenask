@@ -1,0 +1,44 @@
+#pragma once
+
+#define TOP_DIR "@TOP_SRCDIR@"
+#define TOP_BUILDDIR "@TOP_BUILDDIR@"
+#define BUILDDIR "@BUILDDIR@"
+#define TEST_DATA_PATH "@TOP_SRCDIR@/src/testdata"
+#define DOTEST_LOGGER_CONF "@DOTEST_LOGGER_CONF@"
+#define TEST_ZOOKEEPER_PATH "@TOP_SRCDIR@/src/testdata/zookeeper"
+#define INSTALLROOT "@INSTALLROOT@"
+#include <sstream>
+#include "gmock/gmock.h"
+
+using testing::_;
+using testing::Return;
+using testing::Throw;
+using testing::SetArgReferee;
+using testing::DoAll;
+using testing::Invoke;
+
+static std::string getTestDataPath() __attribute__((unused));
+
+static std::string getTestDataPath() {
+    std::string testDataPath = TEST_DATA_PATH;
+    if (*testDataPath.begin() == '/') {
+        return testDataPath;
+    }
+    std::string ret;
+    const char *testSrcDir = getenv("RUNFILES_DIR");
+    if (testSrcDir != nullptr) {
+        ret = testSrcDir;
+        if (!ret.empty() && *ret.rbegin() != '/') {
+            ret.append("/");
+        }
+    }
+    const char *testWorkspace = getenv("TEST_WORKSPACE");
+    if (testWorkspace != nullptr) {
+        ret.append(testWorkspace);
+        if (!ret.empty() && *ret.rbegin() != '/') {
+            ret.append("/");
+        }
+    }
+    ret.append(testDataPath);
+    return ret;
+}

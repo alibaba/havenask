@@ -15,31 +15,34 @@
  */
 #pragma once
 
+#include <memory>
 #include <vector>
 
-#include "table/Common.h"
+#include "table/Comparator.h"
 #include "table/Row.h"
 
 namespace table {
 class Comparator;
-}  // namespace table
+} // namespace table
 
 namespace table {
 
-class ComboComparator
-{
+class ComboComparator final : public Comparator {
 public:
     ComboComparator();
     virtual ~ComboComparator();
+
 public:
-    virtual bool compare(Row a, Row b) const;
+    bool compare(Row a, Row b) const override;
+
 public:
     void addComparator(const Comparator *cmp);
+
 private:
     typedef std::vector<const Comparator *> ComparatorVector;
     ComparatorVector _cmpVector;
 };
 
-TABLE_TYPEDEF_PTR(ComboComparator);
+using ComboComparatorPtr = std::shared_ptr<ComboComparator>;
 
-}
+} // namespace table

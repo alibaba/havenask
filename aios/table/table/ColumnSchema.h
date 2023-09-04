@@ -15,34 +15,28 @@
  */
 #pragma once
 
+#include <memory>
 #include <string>
 
-#include "table/Common.h"
-#include "table/DataCommon.h"
+#include "matchdoc/ValueType.h"
 
 namespace table {
+using ValueType = matchdoc::ValueType;
 
-class ColumnSchema
-{
+class ColumnSchema {
 public:
     ColumnSchema(std::string name, ValueType type);
     ~ColumnSchema();
+
 private:
     ColumnSchema(const ColumnSchema &);
-    ColumnSchema& operator=(const ColumnSchema &);
+    ColumnSchema &operator=(const ColumnSchema &);
+
 public:
-    const std::string &getName() const {
-        return _name;
-    }
-    ValueType getType() const {
-        return _type;
-    }
-    bool operator == (const ColumnSchema &other) const {
-        return _name == other._name && _type == other._type;
-    }
-    bool operator != (const ColumnSchema &other) const {
-        return !(*this == other);
-    }
+    const std::string &getName() const { return _name; }
+    ValueType getType() const { return _type; }
+    bool operator==(const ColumnSchema &other) const { return _name == other._name && _type == other._type; }
+    bool operator!=(const ColumnSchema &other) const { return !(*this == other); }
     std::string toString() const;
 
 private:
@@ -50,6 +44,6 @@ private:
     ValueType _type;
 };
 
-TABLE_TYPEDEF_PTR(ColumnSchema);
+using ColumnSchemaPtr = std::shared_ptr<ColumnSchema>;
 
-}
+} // namespace table

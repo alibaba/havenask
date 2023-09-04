@@ -1,0 +1,20 @@
+{
+    "tables" : [
+        {
+            "table_name" : "daogou",
+            "is_main_table" : true,
+            "data_path" : "data/daogou.dat"
+        },
+        {
+            "table_name" : "category",
+            "is_main_table" : false,
+            "data_path" : "data/category.dat"
+        },
+        {
+            "table_name" : "company",
+            "is_main_table" : false,
+            "data_path" : "data/company.dat"
+        }
+    ],
+    "config_path" : "config/config_multi_table"
+}

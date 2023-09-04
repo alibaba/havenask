@@ -1,0 +1,25 @@
+{
+    "swift_config" : {
+        "topic_full" : {
+            "partition_count" : 10,
+            "partition_resource" : 40,
+            "partition_buffer_size" : 1000,
+            "partition_file_buf_size" : 1000,
+            "obsolete_file_interval" : 3600,
+            "reserved_file_count" : 10
+        },
+        "topic_inc" : {
+            "partition_count" : 2,
+            "partition_resource" : 1,
+            "partition_buffer_size" : 1000,
+            "partition_file_buf_size" : 1000,
+            "obsolete_file_interval" : 3600,
+            "reserved_file_count" : 10
+        }, 
+        "reader_config" : "",
+        "writer_config" : "swift_writer_config_cluster1"
+    },
+        "cluster_config" : {
+	    "table_name" : "simple"
+	}
+}

@@ -18,12 +18,12 @@
 namespace autil {
 namespace mem_pool {
 class Pool;
-}  // namespace mem_pool
-}  // namespace autil
+} // namespace mem_pool
+} // namespace autil
 namespace matchdoc {
 class MatchDoc;
 class MatchDocAllocator;
-}  // namespace matchdoc
+} // namespace matchdoc
 
 namespace isearch {
 namespace search {
@@ -32,21 +32,23 @@ class QueryExecutor;
 class MatchDataCollectorBase {
 public:
     MatchDataCollectorBase() = default;
-    MatchDataCollectorBase(matchdoc::MatchDocAllocator* matchDocAllocator, autil::mem_pool::Pool *pool)
+    MatchDataCollectorBase(matchdoc::MatchDocAllocator *matchDocAllocator,
+                           autil::mem_pool::Pool *pool)
         : _matchDocAllocator(matchDocAllocator)
-        , _pool(pool) {
-    }
+        , _pool(pool) {}
     virtual ~MatchDataCollectorBase() = default;
-    void setMatchDocAllocator(matchdoc::MatchDocAllocator* matchDocAllocator) {
+    void setMatchDocAllocator(matchdoc::MatchDocAllocator *matchDocAllocator) {
         _matchDocAllocator = matchDocAllocator;
     }
     void setPool(autil::mem_pool::Pool *pool) {
         _pool = pool;
     }
+
 public:
-    virtual void collect(search::QueryExecutor* executor, const matchdoc::MatchDoc &matchDoc) = 0;
+    virtual void collect(search::QueryExecutor *executor, const matchdoc::MatchDoc &matchDoc) = 0;
+
 protected:
-    matchdoc::MatchDocAllocator* _matchDocAllocator = nullptr;
+    matchdoc::MatchDocAllocator *_matchDocAllocator = nullptr;
     autil::mem_pool::Pool *_pool = nullptr;
 };
 

@@ -51,7 +51,7 @@ extern const std::string REALTIME_MODE;
 extern const std::string REALTIME_SERVICE_MODE;
 extern const std::string REALTIME_JOB_MODE;
 extern const std::string REALTIME_SERVICE_RAWDOC_RT_BUILD_MODE;
-extern const std::string REALTIME_PROCESS_RAWDOC;
+extern const std::string REALTIME_SERVICE_NPC_MODE;
 
 // reader
 extern const std::string DATA_PATH; // required
@@ -225,4 +225,6 @@ extern const std::string MERGE_CONFIG_NAME;
 extern const std::string MERGE_TIMESTAMP;
 extern const std::string ALIGNED_VERSION_ID;
 extern const std::string TARGET_DESCRIPTION;
+
+extern const std::string DATA_LINK_MODE;
 }} // namespace build_service::config

@@ -31,12 +31,15 @@ AUTIL_DECLARE_AND_SETUP_LOGGER(fs, ExceptionTrigger);
 
 const size_t ExceptionTrigger::NO_EXCEPTION_COUNT = 1000000000;
 ExceptionTrigger::ExceptionTrigger()
-    : mIOCount(0), mNormalIOCount(NO_EXCEPTION_COUNT), mIsPause(false)
-    , mProbabilityMode(false), mTriggerOnceMode(false) {}
+    : mIOCount(0)
+    , mNormalIOCount(NO_EXCEPTION_COUNT)
+    , mIsPause(false)
+    , mProbabilityMode(false)
+    , mTriggerOnceMode(false) {}
 
 ExceptionTrigger::~ExceptionTrigger() {}
 
-bool ExceptionTrigger::TriggerExceptionByCondition(const string &operation, const string &path, ErrorCode* ec) {
+bool ExceptionTrigger::TriggerExceptionByCondition(const string &operation, const string &path, ErrorCode *ec) {
     // if conditions are not set, we should by default trigger.
     if (mPathToOperationEcMap.empty()) {
         return true;
@@ -62,14 +65,14 @@ bool ExceptionTrigger::TriggerExceptionByCondition(const string &operation, cons
     return foundOperation == operation || foundOperation == "";
 }
 
-bool ExceptionTrigger::TriggerException(const string &operation, const string &path, ErrorCode* ec) {
+bool ExceptionTrigger::TriggerException(const string &operation, const string &path, ErrorCode *ec) {
     ScopedLock lock(mLock);
     if (mIsPause) {
         return false;
     }
     bool canTriggerByCondition = true;
     *ec = EC_NOTSUP;
-    if(!operation.empty() || !path.empty()){
+    if (!operation.empty() || !path.empty()) {
         canTriggerByCondition = TriggerExceptionByCondition(operation, path, ec);
     }
     if (mProbabilityMode) {
@@ -121,7 +124,7 @@ void ExceptionTrigger::InitTrigger(size_t normalIOCount, bool probabilityMode, b
     trigger->Init(normalIOCount, probabilityMode, triggerOnceMode);
 }
 
-bool ExceptionTrigger::CanTriggerException(const string &operation, const string &fileName, ErrorCode* ec) {
+bool ExceptionTrigger::CanTriggerException(const string &operation, const string &fileName, ErrorCode *ec) {
     ExceptionTrigger *trigger = Singleton<ExceptionTrigger>::getInstance();
     return trigger->TriggerException(operation, fileName, ec);
 }
@@ -132,13 +135,13 @@ void ExceptionTrigger::PauseTrigger() { Singleton<ExceptionTrigger>::getInstance
 
 void ExceptionTrigger::ResumeTrigger() { Singleton<ExceptionTrigger>::getInstance()->Resume(); }
 
-void ExceptionTrigger::SetExceptionCondition(const string &operation, const string &path, const ErrorCode& ec) {
+void ExceptionTrigger::SetExceptionCondition(const string &operation, const string &path, const ErrorCode &ec) {
     ExceptionTrigger *trigger = Singleton<ExceptionTrigger>::getInstance();
     return trigger->SetExceptionConditionInternal(operation, path, ec);
 }
 
-void ExceptionTrigger::SetExceptionConditionInternal(const string &operation, const string &path, const ErrorCode& ec) {
-    if(path.empty() && operation.empty()){
+void ExceptionTrigger::SetExceptionConditionInternal(const string &operation, const string &path, const ErrorCode &ec) {
+    if (path.empty() && operation.empty()) {
         return;
     }
     mPathToOperationEcMap[PathUtil::normalizePath(path)] = std::make_pair(operation, ec);

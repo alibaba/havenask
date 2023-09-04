@@ -60,14 +60,14 @@ public:
     std::shared_ptr<index::InvertedIndexReader> GetInvertedIndexReader(const std::string& tableName,
                                                                        const std::string& indexName) const;
 
-    bool GetAttributeReaderInfo(const std::string& attrName, const std::string& tableName,
-                                AttributeReaderInfo& attrReaderInfo) const;
+    bool GetAttributeReaderInfoV1(const std::string& attrName, const std::string& tableName,
+                                  AttributeReaderInfo& attrReaderInfo) const;
     // for tablet
-    bool GetAttributeReaderInfo(const std::string& attrName, const std::string& tableName,
-                                AttributeReaderInfoV2& attrReaderInfo) const;
+    bool GetAttributeReaderInfoV2(const std::string& attrName, const std::string& tableName,
+                                  AttributeReaderInfoV2& attrReaderInfo) const;
 
-    bool GetAttributeReaderInfo(const std::string& attrName, const std::string& tableName,
-                                RawPointerAttributeReaderInfo& attrReaderInfo) const;
+    bool GetAttributeReaderInfoV1(const std::string& attrName, const std::string& tableName,
+                                  RawPointerAttributeReaderInfo& attrReaderInfo) const;
 
     virtual bool GetIndexPartitionReaderInfo(const std::string& attrName, const std::string& tableName,
                                              IndexPartitionReaderInfo& indexPartReaderInfo) const;
@@ -83,6 +83,10 @@ public:
 
     bool GetPackAttributeReaderInfo(const std::string& packAttrName, const std::string& tableName,
                                     PackAttributeReaderInfo& attrReaderInfo) const;
+
+    // for tbalet
+    bool GetPackAttributeReaderInfo(const std::string& packAttrName, const std::string& tableName,
+                                    PackAttributeReaderInfoV2& attrReaderInfo) const;
 
     std::string GetTableNameByAttribute(const std::string& attrName, const std::string& preferTableName);
 
@@ -178,7 +182,6 @@ public:
         return _tabletReaderInfos[idx].tabletReader;
     }
     bool isLeader(const std::string& tableName) const;
-    int64_t getBuildOffset(const std::string& tableName) const;
 
 private:
     bool InitAttributeJoinInfo(const std::string& mainTableName, const std::string& joinTableName,

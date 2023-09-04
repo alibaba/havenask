@@ -18,6 +18,7 @@
 
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common_define.h"
+#include "build_service/config/ProcessorAdaptiveScalingConfig.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace config {
@@ -51,6 +52,7 @@ public:
     uint32_t incParallelNum;
     int64_t incProcessorStartTs;
     DetectSlowConfigs detectSlowConfigs;
+    ProcessorAdaptiveScalingConfig adaptiveScalingConfig;
 
 private:
     BS_LOG_DECLARE();

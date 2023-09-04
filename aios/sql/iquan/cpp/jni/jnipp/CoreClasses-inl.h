@@ -29,8 +29,8 @@ static LocalRef<JC> newInstance(Args &&...args) {
     static auto cls = JC::javaClass();
     // the constructor return type should be JC instead of JC::jtype, cause
     // jtype may be jobject and lose type information
-    static auto constructor =
-        cls->template getConstructor<JC(jnipp_remove_ref_t<typename std::decay<Args>::type>...)>();
+    static auto constructor = cls->template getConstructor<JC(
+        jnipp_remove_ref_t<typename std::decay<Args>::type>...)>();
     return cls->newObject(constructor, args...);
 }
 
@@ -38,8 +38,8 @@ template <typename JC, typename C, typename... Args>
 static LocalRef<JC> newInstanceWithClassLoader(C clazz, Args &&...args) {
     // the constructor return type should be JC instead of JC::jtype, cause
     // jtype may be jobject and lose type information
-    static auto constructor =
-        clazz->template getConstructor<JC(jnipp_remove_ref_t<typename std::decay<Args>::type>...)>();
+    static auto constructor = clazz->template getConstructor<JC(
+        jnipp_remove_ref_t<typename std::decay<Args>::type>...)>();
     return clazz->newObject(constructor, args...);
 }
 
@@ -85,7 +85,8 @@ inline JMethod<F> JClass::getStaticMethod(const std::string &name) const {
 }
 
 template <typename F>
-inline JMethod<F> JClass::getStaticMethod(const std::string &name, const std::string &signature) const {
+inline JMethod<F> JClass::getStaticMethod(const std::string &name,
+                                          const std::string &signature) const {
     auto methodId = util::getStaticMethodID(self(), name, signature);
     return JMethod<F> {methodId};
 }
@@ -94,7 +95,9 @@ template <typename R, typename... Params, typename... Args>
 LocalRef<R> JClass::newObject(JConstructor<R(Params...)> constructor, Args &&...args) const {
     auto env = getIquanJNIEnv();
     auto jobj = env->NewObject(
-        self(), constructor.getId(), impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);
+        self(),
+        constructor.getId(),
+        impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);
     if (!jobj) {
         transJniException();
     }

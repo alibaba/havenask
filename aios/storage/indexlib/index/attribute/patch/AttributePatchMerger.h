@@ -25,7 +25,7 @@ namespace indexlibv2::index {
 class AttributePatchMerger : public PatchMerger
 {
 public:
-    AttributePatchMerger(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+    AttributePatchMerger(const std::shared_ptr<AttributeConfig>& attrConfig,
                          const std::shared_ptr<SegmentUpdateBitmap>& segUpdateBitmap)
         : _attrConfig(attrConfig)
         , _segUpdateBitmap(segUpdateBitmap)
@@ -38,7 +38,7 @@ public:
                                 segmentid_t srcSegmentId, segmentid_t targetSegmentId) override;
 
 protected:
-    std::shared_ptr<config::AttributeConfig> _attrConfig;
+    std::shared_ptr<AttributeConfig> _attrConfig;
     std::shared_ptr<SegmentUpdateBitmap> _segUpdateBitmap;
 
 private:

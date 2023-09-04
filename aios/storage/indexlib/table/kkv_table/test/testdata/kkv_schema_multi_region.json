@@ -1,0 +1,81 @@
+{
+    "table_name": "kkv_table",
+    "table_type": "kkv",
+    "fields": [
+        {
+            "field_name": "nick",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "nid",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "pidvid",
+            "field_type": "INT64",
+            "multi_value": true
+        },
+        {
+            "field_name": "timestamp",
+            "field_type": "INT64"
+        }
+    ],
+    "regions": [
+        {
+            "region_name": "in_region",
+            "indexs": [
+                {
+                    "index_name": "nick_nid",
+                    "index_type": "PRIMARY_KEY",
+                    "index_fields": [
+                        {
+                            "field_name": "nick",
+                            "key_type": "prefix"
+                        },
+                        {
+                            "field_name": "nid",
+                            "key_type": "suffix",
+                            "count_limits": 2000,
+                            "build_protection_threshold": 10000
+                        }
+                    ]
+                }
+            ],
+            "attributes": [
+                "nick",
+                "nid",
+                "pidvid"
+            ]
+        },
+        {
+            "region_name": "out_region",
+            "indexs": [
+                {
+                    "index_name": "nid_nick",
+                    "index_type": "PRIMARY_KEY",
+                    "index_fields": [
+                        {
+                            "field_name": "nid",
+                            "key_type": "prefix"
+                        },
+                        {
+                            "field_name": "nick",
+                            "key_type": "suffix",
+                            "count_limits": 3000,
+                            "build_protection_threshold": 5000
+                        }
+                    ]
+                }
+            ],
+            "attributes": [
+                "nick",
+                "nid",
+                "timestamp"
+            ]
+        }
+    ],
+    "global_region_index_preference": {
+        "type": "STORE",
+        "build_protection_threshold": 20000
+    }
+}

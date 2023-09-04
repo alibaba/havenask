@@ -1,0 +1,50 @@
+#import(Tool)
+#import(Log)
+
+function graphDef()
+   local clusterName = Graph.parameter["clusterName"]
+   local schemaId = Graph.parameter["schemaId"]
+   local flowParam = Tool.copyMap(Graph.parameter)
+   local cleanIndex = Graph.loadSimpleFlow("drop_building_index", "drop_building_index", flowParam)
+   local alterFieldTag = clusterName..":AlterField"
+   -- stop inc build flows                     
+   local incBuildTag = clusterName..":IncBuild"
+   local incBuildFlowIds = Graph.getFlowIdByTag(incBuildTag)
+   for i, v in ipairs(incBuildFlowIds)
+   do
+         local flow = Graph.getFlow(v)
+         if (flow ~= nil) 
+         then
+            flow:stopFlow()
+            Graph.setUpstream(cleanIndex, flow, "stopped|finish")
+         end
+   end
+   -- deal alter field flows
+   local alterFieldFlowIds = Graph.getFlowIdByTag(alterFieldTag)
+   for i, v in ipairs(alterFieldFlowIds)
+   do
+         local flow = Graph.getFlow(v)
+         if (flow ~= nil) 
+         then
+            flow:stopFlow(true) 
+            Graph.setUpstream(cleanIndex, flow, "stopped|finish")
+         end
+   end
+   cleanIndex:addTag(alterFieldTag)
+   local mergeCrontabTag = clusterName..":MergeCrontab" 
+   local mergeCrontabFlowId = Graph.getFlowIdByTag(mergeCrontabTag)
+   local mergeCrontabFlow = Graph.getFlow(mergeCrontabFlowId[1])
+   flowParam['mergeCrontabFlowId'] = mergeCrontabFlowId[1]
+   local incProcessor = Graph.loadSimpleFlow("processor", "incProcessor", flowParam)
+   incProcessor:addTag("BSIncProcess")
+   local incBuildFlow = Graph.loadFlow("IncBuild.flow", flowParam)
+   incBuildFlow:addTag(incBuildTag)
+   Graph.declareFriend(mergeCrontabFlow, incBuildFlow)
+   flowParam['schemaId'] = schemaId
+   local alterFieldFlow = Graph.loadFlow("AlterField.flow", flowParam)
+   alterFieldFlow:addTag(alterFieldTag)
+   Graph.setUpstream(alterFieldFlow, cleanIndex)
+   Graph.setUpstream(incProcessor, alterFieldFlow)
+   Graph.setUpstream(incBuildFlow, alterFieldFlow)
+   return true
+end

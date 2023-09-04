@@ -27,16 +27,15 @@ class AndNotQueryExecutor;
 class BitmapAndQueryExecutor;
 class OrQueryExecutor;
 class QueryExecutor;
-}  // namespace search
-}  // namespace isearch
+} // namespace search
+} // namespace isearch
 
 using namespace std;
 
 namespace isearch {
 namespace search {
 
-const ExecutorOutput& ExecutorMatched::getMatchedExecutor()
-{
+const ExecutorOutput &ExecutorMatched::getMatchedExecutor() {
     return _matchedInfo;
 }
 
@@ -48,8 +47,7 @@ void ExecutorMatched::visitAndExecutor(const AndQueryExecutor *executor) {
     _matchedInfo.matchedQueryExecutor = {executor->getQueryExecutor(0)};
 }
 
-void ExecutorMatched::visitOrExecutor(const OrQueryExecutor *executor) {
-}
+void ExecutorMatched::visitOrExecutor(const OrQueryExecutor *executor) {}
 
 void ExecutorMatched::visitOrV2Executor(const OrQueryMatchRowInfoExecutor *executor) {
     executor->getMatchedExecutor(_matchedInfo.matchedQueryExecutor);
@@ -60,11 +58,9 @@ void ExecutorMatched::visitTermExecutor(const TermQueryExecutor *executor) {
     _matchedInfo.leafId = executor->getLeafId();
 }
 
-void ExecutorMatched::visitAndNotExecutor(const AndNotQueryExecutor *executor) {
-}
+void ExecutorMatched::visitAndNotExecutor(const AndNotQueryExecutor *executor) {}
 
-void ExecutorMatched::visitBitmapAndExecutor(const BitmapAndQueryExecutor *executor) {
-}
+void ExecutorMatched::visitBitmapAndExecutor(const BitmapAndQueryExecutor *executor) {}
 
 } // namespace search
 } // namespace isearch

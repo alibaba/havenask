@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="testWithLimitIsZero">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT i1, i2 FROM t1 where i1 > 10 order by i2 limit 0
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"i1","i2"</Resource>
+        <Resource name="column_types">int64, int64</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#1(type=api)
+    ValuesOp#0(output_fields=[$i1,$i2],output_fields_type=[INTEGER,INTEGER])
+]]>
+</Resource>
+</TestCase>
+</Root>

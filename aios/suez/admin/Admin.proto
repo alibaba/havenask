@@ -1,0 +1,93 @@
+syntax = "proto2";
+import "arpc/proto/rpc_extensions.proto";
+import "hippo/proto/Common.proto";
+package suez;
+
+option cc_generic_services = true;
+
+message CreateRequest {
+    optional string nodePath = 1;
+    optional string nodeValue = 2;
+    optional bool recursive = 3 [default = false];
+}
+
+message UpdateRequest {
+    optional string nodePath = 1;
+    optional string nodeValue = 2;
+}
+
+message ReadRequest {
+    optional string nodePath = 1;
+    optional bool minimalGsMode = 2;
+}
+
+message DeleteRequest {
+    optional string nodePath = 1;
+}
+
+message ReadResponse {
+    optional string errorInfo = 1;
+    optional string nodeValue = 2;
+    optional bool format = 3 [default = false];
+}
+
+message Response {
+    optional string errorInfo = 1;
+}
+
+message BatchRequest {
+    repeated CreateRequest createRequests = 1;
+    repeated UpdateRequest updateRequests = 2;
+    repeated DeleteRequest deleteRequests = 3;
+}
+
+message ReleaseSlotRequest {
+    repeated hippo.proto.SlotId slotIds = 1;
+}
+
+message SetLoggerLevelRequest {
+    enum LogLevel {
+        DISABLE = 0;
+        FATAL   = 1;
+        ERROR   = 2;
+        WARN    = 3;
+        INFO    = 4;
+        DEBUG   = 5;
+        TRACE1  = 6;
+        TRACE2  = 7;
+        TRACE3  = 8;
+        NOTSET  = 9;
+    }
+    required string logger = 1;
+    required LogLevel level = 2;
+}
+
+message SetLoggerLevelResponse {
+    optional bytes errorInfo = 1;
+}
+
+service AdminService {
+    option (arpc.global_service_id) = 110;
+    rpc create(CreateRequest) returns(Response) {
+        option (arpc.local_method_id) = 112;
+    }
+    rpc update(UpdateRequest) returns(Response) {
+        option (arpc.local_method_id) = 113;
+    }
+    rpc read(ReadRequest) returns(ReadResponse) {
+        option (arpc.local_method_id) = 114;
+    }
+    rpc del(DeleteRequest) returns(Response) {
+        option (arpc.local_method_id) = 115;
+    }
+    rpc batch(BatchRequest) returns(Response) {
+        option (arpc.local_method_id) = 116;
+    }
+    rpc releaseSlot(ReleaseSlotRequest) returns(Response) {
+	option (arpc.local_method_id) = 118;
+    }
+    rpc setLoggerLevel(SetLoggerLevelRequest) returns (SetLoggerLevelResponse) {
+	option (arpc.local_method_id) = 119;
+    }
+}
+

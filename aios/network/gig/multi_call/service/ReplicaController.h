@@ -23,7 +23,8 @@ namespace multi_call {
 
 struct SnapshotBizInfo;
 
-class ReplicaController {
+class ReplicaController
+{
 public:
     ReplicaController(const SearchServiceProviderVector *serviceVector);
     ~ReplicaController();
@@ -45,8 +46,7 @@ public:
     void toString(std::string &debugStr) const;
 
 private:
-    void updateBestChain(ControllerChain *candidate,
-                         const MetricLimits &metricLimits);
+    void updateBestChain(ControllerChain *candidate, const MetricLimits &metricLimits);
     void setBestChain(ControllerChain *bestChain);
     void updateReplicaStat(int64_t currentTime);
     void updateWeightStat();

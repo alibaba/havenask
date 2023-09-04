@@ -17,7 +17,6 @@
 
 #include "indexlib/framework/SegmentDescriptions.h"
 #include "indexlib/framework/SegmentStatistics.h"
-#include "indexlib/framework/lifecycle/LifecycleTableCreator.h"
 
 using namespace std;
 
@@ -29,10 +28,8 @@ std::vector<std::pair<segmentid_t, std::string>> StaticLifecycleStrategy::GetSeg
     std::vector<std::pair<segmentid_t, std::string>> ret;
     const auto& segStatistics = segDescriptions->GetSegmentStatisticsVector();
     for (const auto& segStats : segStatistics) {
-        auto temperature = CalculateLifecycle(segStats);
-        if (!temperature.empty()) {
-            ret.emplace_back(segStats.GetSegmentId(), temperature);
-        }
+        auto temperature = LifecycleStrategy::CalculateLifecycle(segStats, _lifecycleConfig);
+        ret.emplace_back(segStats.GetSegmentId(), temperature);
     }
     return ret;
 }
@@ -40,7 +37,7 @@ std::vector<std::pair<segmentid_t, std::string>> StaticLifecycleStrategy::GetSeg
 std::string
 StaticLifecycleStrategy::CalculateLifecycle(const indexlibv2::framework::SegmentStatistics& segmentStatistic) const
 {
-    return indexlibv2::framework::LifecycleTableCreator::CalculateLifecycle(segmentStatistic, _lifecycleConfig);
+    return LifecycleStrategy::CalculateLifecycle(segmentStatistic, _lifecycleConfig);
 }
 
 } // namespace indexlib::framework

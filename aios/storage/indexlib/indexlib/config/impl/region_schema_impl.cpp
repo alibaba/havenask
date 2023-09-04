@@ -25,6 +25,7 @@
 #include "indexlib/config/field_config_loader.h"
 #include "indexlib/config/impl/index_partition_schema_impl.h"
 #include "indexlib/config/index_config_creator.h"
+#include "indexlib/config/pack_attribute_config.h"
 #include "indexlib/config/spatial_index_config.h"
 #include "indexlib/util/Exception.h"
 #include "indexlib/util/Status2Exception.h"
@@ -118,9 +119,9 @@ void RegionSchemaImpl::AddPackAttributeConfig(const string& attrName, const vect
         THROW_IF_STATUS_ERROR(status);
     }
 
-    if (valueFormat == PACK_ATTR_VALUE_FORMAT_IMPACT) {
+    if (valueFormat == indexlibv2::index::PackAttributeConfig::VALUE_FORMAT_IMPACT) {
         packAttrConfig->EnableImpact();
-    } else if (valueFormat == PACK_ATTR_VALUE_FORMAT_PLAIN) {
+    } else if (valueFormat == indexlibv2::index::PackAttributeConfig::VALUE_FORMAT_PLAIN) {
         packAttrConfig->EnablePlainFormat();
     }
 
@@ -344,6 +345,27 @@ void RegionSchemaImpl::OptimizeKKVSKeyStore(const KKVIndexConfigPtr& kkvIndexCon
     kkvIndexConfig->SetOptimizedStoreSKey(true);
 }
 
+void RegionSchemaImpl::ResolveEmptyProfileNamesForTruncateIndex()
+{
+    std::vector<std::string> usingTruncateNames;
+    for (auto iter = mTruncateProfileSchema->Begin(); iter != mTruncateProfileSchema->End(); iter++) {
+        if (iter->second->GetPayloadConfig().IsInitialized()) {
+            continue;
+        }
+        usingTruncateNames.push_back(iter->first);
+    }
+    for (auto it = mIndexSchema->Begin(); it != mIndexSchema->End(); ++it) {
+        const IndexConfigPtr& indexConfig = *it;
+        if (indexConfig->GetShardingType() == IndexConfig::IST_IS_SHARDING || !indexConfig->HasTruncate()) {
+            continue;
+        }
+        auto useTruncateProfiles = indexConfig->GetUseTruncateProfiles();
+        if (useTruncateProfiles.size() == 0) {
+            indexConfig->SetUseTruncateProfiles(usingTruncateNames);
+        }
+    }
+}
+
 void RegionSchemaImpl::InitTruncateIndexConfigs()
 {
     if (!mTruncateProfileSchema || mTruncateProfileSchema->Size() == 0) {
@@ -353,6 +375,7 @@ void RegionSchemaImpl::InitTruncateIndexConfigs()
     if (!mIndexSchema) {
         INDEXLIB_FATAL_ERROR(Schema, "no index schema!");
     }
+    ResolveEmptyProfileNamesForTruncateIndex();
     IndexSchema::Iterator it = mIndexSchema->Begin();
     for (; it != mIndexSchema->End(); ++it) {
         const IndexConfigPtr& indexConfig = *it;
@@ -684,7 +707,7 @@ void RegionSchemaImpl::LoadAttributeSchema(const Any& any)
 void RegionSchemaImpl::LoadAttributeConfig(const Any& any)
 {
     JsonMap attribute = AnyCast<JsonMap>(any);
-    auto packNameIter = attribute.find(PACK_ATTR_NAME_FIELD);
+    auto packNameIter = attribute.find(indexlibv2::index::PackAttributeConfig::PACK_NAME);
     if (packNameIter != attribute.end()) {
         LoadPackAttributeConfig(any);
     } else {
@@ -695,15 +718,15 @@ void RegionSchemaImpl::LoadAttributeConfig(const Any& any)
 void RegionSchemaImpl::LoadPackAttributeConfig(const Any& any)
 {
     JsonMap packAttr = AnyCast<JsonMap>(any);
-    if (packAttr.find(PACK_ATTR_NAME_FIELD) == packAttr.end()) {
+    if (packAttr.find(indexlibv2::index::PackAttributeConfig::PACK_NAME) == packAttr.end()) {
         INDEXLIB_FATAL_ERROR(Schema, "pack attribute name undefined.");
     }
-    if (packAttr.find(PACK_ATTR_SUB_ATTR_FIELD) == packAttr.end()) {
+    if (packAttr.find(indexlibv2::index::PackAttributeConfig::SUB_ATTRIBUTES) == packAttr.end()) {
         INDEXLIB_FATAL_ERROR(Schema, "sub attribute names undefined.");
     }
-    string packName = AnyCast<string>(packAttr[PACK_ATTR_NAME_FIELD]);
+    string packName = AnyCast<string>(packAttr[indexlibv2::index::PackAttributeConfig::PACK_NAME]);
     vector<string> subAttrNames;
-    JsonArray subAttrs = AnyCast<JsonArray>(packAttr[PACK_ATTR_SUB_ATTR_FIELD]);
+    JsonArray subAttrs = AnyCast<JsonArray>(packAttr[indexlibv2::index::PackAttributeConfig::SUB_ATTRIBUTES]);
     for (JsonArray::iterator it = subAttrs.begin(); it != subAttrs.end(); ++it) {
         string subAttrName = AnyCast<string>(*it);
         subAttrNames.push_back(subAttrName);
@@ -717,8 +740,8 @@ void RegionSchemaImpl::LoadPackAttributeConfig(const Any& any)
     }
 
     string valueFormat = "";
-    if (packAttr.find(PACK_ATTR_VALUE_FORMAT) != packAttr.end()) {
-        valueFormat = AnyCast<string>(packAttr[PACK_ATTR_VALUE_FORMAT]);
+    if (packAttr.find(indexlibv2::index::PackAttributeConfig::VALUE_FORMAT) != packAttr.end()) {
+        valueFormat = AnyCast<string>(packAttr[indexlibv2::index::PackAttributeConfig::VALUE_FORMAT]);
     }
 
     uint64_t defragSlicePercent = index::ATTRIBUTE_DEFAULT_DEFRAG_SLICE_PERCENT;
@@ -1493,14 +1516,14 @@ void RegionSchemaImpl::CheckAttributeConfig(TableType type, const AttributeConfi
 
     if (config->SupportNull() && config->GetPackAttributeConfig() != NULL) {
         INDEXLIB_FATAL_ERROR(Schema, "attribute [%s] in pack attribute [%s] not support enable null.",
-                             config->GetAttrName().c_str(), config->GetPackAttributeConfig()->GetAttrName().c_str());
+                             config->GetAttrName().c_str(), config->GetPackAttributeConfig()->GetPackName().c_str());
     }
 
     FieldType ft = config->GetFieldType();
     if ((ft == ft_date || ft == ft_time || ft == ft_timestamp) && config->GetPackAttributeConfig() != NULL) {
         INDEXLIB_FATAL_ERROR(Schema, "attribute [%s] with field type [%s] not support in pack attribute [%s].",
                              config->GetAttrName().c_str(), FieldConfig::FieldTypeToStr(ft),
-                             config->GetPackAttributeConfig()->GetAttrName().c_str());
+                             config->GetPackAttributeConfig()->GetPackName().c_str());
     }
 }
 

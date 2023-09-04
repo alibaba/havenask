@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='rewriter',
     srcs=[],
     hdrs=[],
@@ -10,16 +10,17 @@ indexlib_cc_library(
         ':SectionAttributeRewriter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalDocumentRewriterBase',
     deps=[
         '//aios/autil:log', '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/document:DocumentBatch',
         '//aios/storage/indexlib/document:interface',
         '//aios/storage/indexlib/document/document_rewriter:IDocumentRewriter',
         '//aios/storage/indexlib/document/normal:NormalDocument'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AddToUpdateDocumentRewriter',
     deps=[
         ':NormalDocumentRewriterBase', '//aios/autil:scope',
@@ -36,7 +37,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:ErrorLogCollector'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SectionAttributeAppender',
     deps=[
         '//aios/storage/indexlib/config:TabletSchema',
@@ -47,11 +48,11 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/config:PackageIndexConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SectionAttributeRewriter',
     deps=[':NormalDocumentRewriterBase', ':SectionAttributeAppender']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PackAttributeAppender',
     deps=[
         '//aios/autil:mem_pool_base',
@@ -64,7 +65,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:MemBuffer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PackAttributeRewriter',
     deps=[':NormalDocumentRewriterBase', ':PackAttributeAppender']
 )

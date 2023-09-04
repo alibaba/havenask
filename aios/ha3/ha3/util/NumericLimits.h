@@ -17,37 +17,51 @@
 
 #include <limits>
 
-#include "autil/MultiValueType.h"
-
 #include "autil/Log.h" // IWYU pragma: keep
+#include "autil/MultiValueType.h"
 
 namespace isearch {
 namespace util {
 
-template<typename T>
+template <typename T>
 struct NumericLimits {
-    static T min() {return std::numeric_limits<T>::min();} 
-    static T max() {return std::numeric_limits<T>::max();} 
+    static T min() {
+        return std::numeric_limits<T>::min();
+    }
+    static T max() {
+        return std::numeric_limits<T>::max();
+    }
 };
 
-template<>
+template <>
 struct NumericLimits<double> {
-    static double min() {return -std::numeric_limits<double>::max();} 
-    static double max() {return std::numeric_limits<double>::max();} 
+    static double min() {
+        return -std::numeric_limits<double>::max();
+    }
+    static double max() {
+        return std::numeric_limits<double>::max();
+    }
 };
 
-template<>
+template <>
 struct NumericLimits<float> {
-    static float min() {return -std::numeric_limits<float>::max();} 
-    static float max() {return std::numeric_limits<float>::max();} 
+    static float min() {
+        return -std::numeric_limits<float>::max();
+    }
+    static float max() {
+        return std::numeric_limits<float>::max();
+    }
 };
 
-template<>
+template <>
 struct NumericLimits<autil::MultiChar> {
-    static autil::MultiChar min() {return autil::MultiChar();} 
-    static autil::MultiChar max() {return autil::MultiChar();} 
+    static autil::MultiChar min() {
+        return autil::MultiChar();
+    }
+    static autil::MultiChar max() {
+        return autil::MultiChar();
+    }
 };
 
 } // namespace util
 } // namespace isearch
-

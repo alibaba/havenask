@@ -43,11 +43,10 @@
  *    GetExceptionChain(): Same as ToString(). Kept for backward compatibility.
  */
 
-
-#include <stddef.h>
 #include <exception> //IWYU pragma: export
-#include <string> //IWYU pragma: export
 #include <memory>
+#include <stddef.h>
+#include <string> //IWYU pragma: export
 
 namespace autil {
 namespace legacy {
@@ -79,65 +78,53 @@ class StreamCorruptedException;
 class TimeoutError;
 class UnexpectedEndOfStreamException;
 class UnimplementedException;
-}  // namespace legacy
-}  // namespace autil
+} // namespace legacy
+} // namespace autil
 
-#define AUTIL_LEGACY_THROW(ExClass, args...)                                  \
-    do                                                                  \
-    {                                                                   \
-        ExClass tmp_3d3079a0_61ec_48e6_abd6_8a33b0eb91f0(args);         \
-        tmp_3d3079a0_61ec_48e6_abd6_8a33b0eb91f0.Init(__FILE__, __PRETTY_FUNCTION__, __LINE__); \
-        throw tmp_3d3079a0_61ec_48e6_abd6_8a33b0eb91f0;                 \
+#define AUTIL_LEGACY_THROW(ExClass, args...)                                                                           \
+    do {                                                                                                               \
+        ExClass tmp_3d3079a0_61ec_48e6_abd6_8a33b0eb91f0(args);                                                        \
+        tmp_3d3079a0_61ec_48e6_abd6_8a33b0eb91f0.Init(__FILE__, __PRETTY_FUNCTION__, __LINE__);                        \
+        throw tmp_3d3079a0_61ec_48e6_abd6_8a33b0eb91f0;                                                                \
     } while (false)
 
-#define AUTIL_LEGACY_THROW_CHAIN(ExClass, cause, args...)                     \
-    do                                                                  \
-    {                                                                   \
-        ExClass tmp_3d3079a0_61ec_48e6_abd6_8a33b0eb91f0(args);         \
-        tmp_3d3079a0_61ec_48e6_abd6_8a33b0eb91f0.Init(__FILE__, __PRETTY_FUNCTION__, __LINE__); \
-        tmp_3d3079a0_61ec_48e6_abd6_8a33b0eb91f0.SetCause(cause);       \
-        throw tmp_3d3079a0_61ec_48e6_abd6_8a33b0eb91f0;                 \
+#define AUTIL_LEGACY_THROW_CHAIN(ExClass, cause, args...)                                                              \
+    do {                                                                                                               \
+        ExClass tmp_3d3079a0_61ec_48e6_abd6_8a33b0eb91f0(args);                                                        \
+        tmp_3d3079a0_61ec_48e6_abd6_8a33b0eb91f0.Init(__FILE__, __PRETTY_FUNCTION__, __LINE__);                        \
+        tmp_3d3079a0_61ec_48e6_abd6_8a33b0eb91f0.SetCause(cause);                                                      \
+        throw tmp_3d3079a0_61ec_48e6_abd6_8a33b0eb91f0;                                                                \
     } while (false)
 
+#define AUTIL_LEGACY_DEFINE_EXCEPTION(ExClass, Base)                                                                   \
+    ExClass(const std::string &strMsg = "") throw() : Base(strMsg) {}                                                  \
+                                                                                                                       \
+    ~ExClass() throw() {}                                                                                              \
+                                                                                                                       \
+    std::string GetClassName() const override { return #ExClass; }                                                     \
+                                                                                                                       \
+    std::shared_ptr<ExceptionBase> Clone() const override { return std::shared_ptr<ExceptionBase>(new ExClass(*this)); }
 
-#define AUTIL_LEGACY_DEFINE_EXCEPTION(ExClass, Base)          \
-    ExClass(const std::string& strMsg="") throw()       \
-        : Base(strMsg)                                  \
-    {}                                                  \
-                                                        \
-    ~ExClass() throw(){}                                      \
-                                                              \
-    std::string GetClassName() const override                 \
-    {                                                         \
-        return #ExClass;                                      \
-    }                                                         \
-                                                              \
-    std::shared_ptr<ExceptionBase> Clone() const   override             \
-    {                                                                   \
-        return std::shared_ptr<ExceptionBase>(new ExClass(*this));      \
-    }
+namespace autil {
+namespace legacy {
 
-namespace autil{ namespace legacy
-{
-
-class ExceptionBase : public std::exception
-{
+class ExceptionBase : public std::exception {
 public:
-    ExceptionBase(const std::string& message = "") throw();
+    ExceptionBase(const std::string &message = "") throw();
 
     virtual ~ExceptionBase() throw();
 
     virtual std::shared_ptr<ExceptionBase> Clone() const;
 
-    void Init(const char* file, const char* function, int line);
+    void Init(const char *file, const char *function, int line);
 
-    virtual void SetCause(const ExceptionBase& cause);
+    virtual void SetCause(const ExceptionBase &cause);
 
     virtual void SetCause(std::shared_ptr<ExceptionBase> cause);
 
     virtual std::shared_ptr<ExceptionBase> GetCause() const;
-   
-    // Return the root cause, if the exception has the root cause; else return itself 
+
+    // Return the root cause, if the exception has the root cause; else return itself
     virtual std::shared_ptr<ExceptionBase> GetRootCause() const;
 
     virtual std::string GetClassName() const;
@@ -148,27 +135,29 @@ public:
      * With a) detailed throw location (file + lineno) (if availabe), b) Exception class name, and
      * c) content of GetMessage() (if not empty)
      */
-    const char* what() const throw() override;
+    const char *what() const throw() override;
 
     /**
      * Synonym of what(), except for the return type.
      */
-    const std::string& ToString() const;
+    const std::string &ToString() const;
 
-    const std::string& GetExceptionChain() const;
+    const std::string &GetExceptionChain() const;
 
     std::string GetStackTrace() const;
+    std::string GetExceptionHeader() const;
+    void *const *GetStacks(size_t &size) const;
 
 public:
     enum { MAX_STACK_TRACE_SIZE = 50 };
     std::shared_ptr<ExceptionBase> mNestedException;
     std::string mMessage;
-    const char* mFile;
-    const char* mFunction;
+    const char *mFile;
+    const char *mFunction;
     int mLine;
 
 private:
-    void* mStackTrace[MAX_STACK_TRACE_SIZE];
+    void *mStackTrace[MAX_STACK_TRACE_SIZE];
     size_t mStackTraceSize;
 
     mutable std::string mWhat;
@@ -180,184 +169,156 @@ private:
     // friend void FromRapidValue(ExceptionBase& t, RapidValue& value);
 };
 
-class InvalidOperation : public ExceptionBase
-{
+class InvalidOperation : public ExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(InvalidOperation, ExceptionBase);
 };
 
-class RuntimeError : public ExceptionBase
-{
+class RuntimeError : public ExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(RuntimeError, ExceptionBase);
 };
 
-class TimeoutError : public ExceptionBase
-{
+class TimeoutError : public ExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(TimeoutError, ExceptionBase);
 };
 
-class LogicError : public ExceptionBase
-{
+class LogicError : public ExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(LogicError, ExceptionBase);
 };
 
-class OverflowError : public ExceptionBase
-{
+class OverflowError : public ExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(OverflowError, ExceptionBase);
 };
 
-class AlreadyExistException: public ExceptionBase
-{
+class AlreadyExistException : public ExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(AlreadyExistException, ExceptionBase);
 };
 
-class NotExistException: public ExceptionBase
-{
+class NotExistException : public ExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(NotExistException, ExceptionBase);
 };
 
-class NotImplementedException: public ExceptionBase
-{
+class NotImplementedException : public ExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(NotImplementedException, ExceptionBase);
 };
 
-
 // parameter invalid
-class ParameterInvalidException : public ExceptionBase
-{
+class ParameterInvalidException : public ExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(ParameterInvalidException, ExceptionBase);
 };
 
 // operation is denied
-class AuthenticationFailureException : public ExceptionBase
-{
+class AuthenticationFailureException : public ExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(AuthenticationFailureException, ExceptionBase);
 };
 
 // base class for all exceptions in storage system
-class StorageExceptionBase : public ExceptionBase
-{
+class StorageExceptionBase : public ExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(StorageExceptionBase, ExceptionBase);
 };
 
 // when create an exist file
-class FileExistException : public StorageExceptionBase
-{
+class FileExistException : public StorageExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(FileExistException, StorageExceptionBase);
 };
 
 // when open/delete/rename/... an non-exist file
-class FileNotExistException : public StorageExceptionBase
-{
+class FileNotExistException : public StorageExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(FileNotExistException, StorageExceptionBase);
 };
 
-class DirectoryExistException : public StorageExceptionBase
-{
+class DirectoryExistException : public StorageExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(DirectoryExistException, StorageExceptionBase);
 };
 
-class DirectoryNotExistException : public StorageExceptionBase
-{
+class DirectoryNotExistException : public StorageExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(DirectoryNotExistException, StorageExceptionBase);
 };
 
-class SameNameEntryExistException : public StorageExceptionBase
-{
-    public:
-        AUTIL_LEGACY_DEFINE_EXCEPTION(SameNameEntryExistException, StorageExceptionBase);
+class SameNameEntryExistException : public StorageExceptionBase {
+public:
+    AUTIL_LEGACY_DEFINE_EXCEPTION(SameNameEntryExistException, StorageExceptionBase);
 };
 
 // when append/delete a file that being appended
-class FileAppendingException : public StorageExceptionBase
-{
+class FileAppendingException : public StorageExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(FileAppendingException, StorageExceptionBase);
 };
 
 // when opening a file that cannot be overwritten
-class FileOverwriteException: public StorageExceptionBase
-{
+class FileOverwriteException : public StorageExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(FileOverwriteException, StorageExceptionBase);
 };
 
 // when append/delete a file that being appended
-class PangunNotEnoughChunkserverExcepion : public StorageExceptionBase
-{
+class PangunNotEnoughChunkserverExcepion : public StorageExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(PangunNotEnoughChunkserverExcepion, StorageExceptionBase);
 };
 
 // when read, data is unavailable due to internal error
-class DataUnavailableException : public StorageExceptionBase
-{
+class DataUnavailableException : public StorageExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(DataUnavailableException, StorageExceptionBase);
 };
 
 // when append/commit, data stream is corrupted due to internal error
-class StreamCorruptedException : public StorageExceptionBase
-{
+class StreamCorruptedException : public StorageExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(StreamCorruptedException, StorageExceptionBase);
 };
 
 // when end of stream comes unexpected
-class UnexpectedEndOfStreamException: public StorageExceptionBase
-{
+class UnexpectedEndOfStreamException : public StorageExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(UnexpectedEndOfStreamException, StorageExceptionBase);
 };
 
 // base class for all exceptions in service
-class ServiceExceptionBase : public ExceptionBase
-{
+class ServiceExceptionBase : public ExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(ServiceExceptionBase, ExceptionBase);
 };
 
 // can't get service connection
-class ServiceUnavailableException : public ServiceExceptionBase
-{
+class ServiceUnavailableException : public ServiceExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(ServiceUnavailableException, ServiceExceptionBase);
 };
 
 // internal server error
-class InternalServerErrorException : public ServiceExceptionBase
-{
+class InternalServerErrorException : public ServiceExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(InternalServerErrorException, ServiceExceptionBase);
 };
 
 // session expired
-class SessionExpireException : public ServiceExceptionBase
-{
+class SessionExpireException : public ServiceExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(SessionExpireException, ServiceExceptionBase);
 };
 
 // running into unimplemented code
-class UnimplementedException : public ExceptionBase
-{
+class UnimplementedException : public ExceptionBase {
 public:
     AUTIL_LEGACY_DEFINE_EXCEPTION(UnimplementedException, ExceptionBase);
 };
 
-}}//namespace autil{ namespace legacy
-
+} // namespace legacy
+} // namespace autil

@@ -1,0 +1,69 @@
+/*
+ * Copyright 2014-present Alibaba Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#pragma once
+
+#include <stdint.h>
+#include <string>
+#include <unordered_map>
+
+#include "autil/Lock.h"
+#include "autil/Log.h"
+#include "swift/common/Common.h"
+#include "swift/common/SingleTopicWriterController.h"
+#include "swift/protocol/ErrCode.pb.h"
+#include "swift/util/ZkDataAccessor.h"
+
+namespace swift {
+namespace protocol {
+class UpdateWriterVersionRequest;
+class UpdateWriterVersionResponse;
+} // namespace protocol
+
+namespace common {
+
+class TopicWriterController {
+private:
+    TopicWriterController(const TopicWriterController &);
+    TopicWriterController &operator=(const TopicWriterController &);
+
+public:
+    TopicWriterController(util::ZkDataAccessorPtr zkDataAccessor, const std::string &zkRoot);
+    ~TopicWriterController();
+
+    bool validateRequest(const protocol::UpdateWriterVersionRequest *request, std::string &errorMsg);
+    void updateWriterVersion(const protocol::UpdateWriterVersionRequest *request,
+                             protocol::UpdateWriterVersionResponse *response);
+
+private:
+    void setErrorInfo(protocol::UpdateWriterVersionResponse *response,
+                      protocol::ErrorCode ec,
+                      const std::string &msgStr = std::string());
+
+private:
+    autil::ThreadMutex _lock;
+    util::ZkDataAccessorPtr _zkDataAccessor;
+    std::string _zkRoot;
+    uint32_t _majorVersion = 0;
+    std::unordered_map<std::string, SingleTopicWriterControllerPtr> _writerVersionControllers;
+
+private:
+    AUTIL_LOG_DECLARE();
+};
+
+SWIFT_TYPEDEF_PTR(TopicWriterController);
+
+} // namespace common
+} // namespace swift

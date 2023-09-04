@@ -26,8 +26,8 @@ RecoverRtOperationRedoStrategy::RecoverRtOperationRedoStrategy(const index_base:
     : mRealtimeVersion(realtimeVersion)
     , mOptimizeRedo(true)
 {
-    char* envParam = getenv("disable_recover_rt_op_redo_optimize");
-    if (envParam && string(envParam) == "true") {
+    string envParam = autil::EnvUtil::getEnv("disable_recover_rt_op_redo_optimize");
+    if (envParam == "true") {
         mOptimizeRedo = false;
     } else {
         mOptimizeRedo = true;

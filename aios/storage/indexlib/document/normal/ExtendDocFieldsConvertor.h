@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 #pragma once
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/document/normal/IndexDocument.h"
 #include "indexlib/document/normal/NormalExtendDocument.h"
 #include "indexlib/document/normal/tokenize/TokenizeField.h"
@@ -25,9 +25,12 @@
 #include "indexlib/index/common/field_format/spatial/SpatialFieldEncoder.h"
 
 namespace indexlibv2::config {
-class AttributeConfig;
 class InvertedIndexConfig;
 } // namespace indexlibv2::config
+
+namespace indexlibv2::index {
+class AttributeConfig;
+}
 
 namespace indexlibv2 { namespace document {
 
@@ -37,7 +40,7 @@ public:
     const static uint32_t MAX_TOKEN_PER_SECTION;
 
 public:
-    ExtendDocFieldsConvertor(const std::shared_ptr<config::TabletSchema>& schema);
+    ExtendDocFieldsConvertor(const std::shared_ptr<config::ITabletSchema>& schema);
     virtual ~ExtendDocFieldsConvertor();
     void init();
 
@@ -59,7 +62,7 @@ public:
                              const std::shared_ptr<config::FieldConfig>& fieldConfig);
 
 protected:
-    virtual std::vector<std::shared_ptr<indexlibv2::config::AttributeConfig>> GetAttributeConfigs() const;
+    virtual std::vector<std::shared_ptr<index::AttributeConfig>> GetAttributeConfigs() const;
 
 private:
     void CreateIndexField(const config::FieldConfig& fieldConfig,
@@ -101,7 +104,7 @@ private:
                                indexlib::document::IndexDocument::TermOriginValueMap& termOriginValueMap) const;
 
 protected:
-    std::shared_ptr<config::TabletSchema> _schema;
+    std::shared_ptr<config::ITabletSchema> _schema;
 
 private:
     AttributeConvertorVector _attrConvertVec;

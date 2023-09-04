@@ -1,0 +1,18 @@
+package(default_visibility=['//aios/apps/facility/swift:__subpackages__'])
+cc_library(
+    name='swift_log',
+    include_prefix='swift/log',
+    srcs=glob(['*.cpp']),
+    hdrs=glob(['*.h']),
+    deps=['//aios/apps/facility/swift/monitor:swift_monitor']
+)
+cc_test(
+    name='swift_log_test',
+    srcs=glob(['test/*Test.cpp']),
+    data=[],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/unittest_framework:unittest_framework',
+        '//aios/apps/facility/swift/log:swift_log'
+    ]
+)

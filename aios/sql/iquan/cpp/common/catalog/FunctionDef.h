@@ -15,8 +15,10 @@
  */
 #pragma once
 
-#include <string>
+#include <map>
+#include <vector>
 
+#include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
 #include "iquan/common/catalog/FunctionCommonDef.h"
 
@@ -24,7 +26,8 @@ namespace iquan {
 
 class PrototypeDef : public autil::legacy::Jsonizable {
 public:
-    PrototypeDef() : variableArgs(false) {}
+    PrototypeDef()
+        : variableArgs(false) {}
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("returns", returnTypes);

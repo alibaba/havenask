@@ -20,9 +20,8 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GigArpcGenerator);
 
-
 RequestPtr GigArpcGenerator::generateRequest(const std::string &bodyStr,
-        const GigRequestPlan &requestPlan) {
+                                             const GigRequestPlan &requestPlan) {
     GigArpcRequestPtr request(new GigArpcRequest(getProtobufArena()));
     if (requestPlan.has_timeout()) {
         request->setTimeout(requestPlan.timeout());

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//config.h
+// config.h
 #ifndef fslib_plugin_hdfs_CONFIG_H_
 #define fslib_plugin_hdfs_CONFIG_H_
-#define HAVE_ALOG 
+#define HAVE_ALOG
 #define HADOOP_CDH
-//test
+// test
 #endif

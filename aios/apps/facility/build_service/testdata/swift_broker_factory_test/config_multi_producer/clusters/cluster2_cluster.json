@@ -1,0 +1,10 @@
+{
+    "swift_config" : {
+        "reader_config" : "swift_reader_config",
+        "writer_config" : "swift_writer_config_cluster2",
+        "swift_client_config" : "cluster2_default_client_config"
+    },
+        "cluster_config" : {
+	    "table_name" : "simple"
+	}
+}

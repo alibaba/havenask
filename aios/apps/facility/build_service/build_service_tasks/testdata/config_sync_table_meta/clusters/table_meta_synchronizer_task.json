@@ -1,0 +1,27 @@
+{
+    "partition_count":1,
+    "parallel_num":1,
+    "task_params" : {
+        "auto_exit_when_fatal_error" : "false"
+    },
+    "inputs": {
+        "default": {
+            "type" : "INDEXLIB_INDEX",
+            "params" : {
+                "input_index_root": "index_path"
+            }
+        }
+    },
+    "outputs": {
+        "default": {
+            "type" : "DB_MYSQL",
+            "params" : {
+                "hostname" : "anno.coronadb.alibaba.net",
+                "port" : "3306",
+                "user_name": "BUILD_SERVICE_TABLE_META_DB_APP",
+                "password": "123456",
+                "db_name": "BUILD_SERVICE_TABLE_META_DB_APP"
+            }
+        }
+    }
+}

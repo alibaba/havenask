@@ -1,0 +1,1 @@
+{"sqls": ["SELECT i1, min(i2) FROM t1 GROUP BY i1"],"sql_params" : {"iquan.optimizer.debug.enable":true,"iquan.plan.format.object.enable":true, "iquan.plan.format.version": "plan_version_0.0.1"},"default_catalog_name" : "default","default_database_name" : "db1", "query_hash_key": 1}

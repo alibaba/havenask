@@ -15,6 +15,8 @@
  */
 #include "build_service/proto/WorkerNode.h"
 
+#include "build_service/config/TaskTarget.h"
+
 using namespace std;
 
 namespace build_service { namespace proto {
@@ -38,5 +40,54 @@ bool operator==(const hippo::proto::AssignedSlot& l, const hippo::proto::Assigne
 }
 
 bool operator!=(const hippo::proto::AssignedSlot& l, const hippo::proto::AssignedSlot& r) { return !(l == r); }
+
+template <>
+std::string WorkerNode<ROLE_TASK>::getCurrentStatusJsonStr() const
+{
+    TaskCurrent current = getCurrentStatus();
+    if (current.has_statusdescription()) {
+        auto str = current.statusdescription();
+        try {
+            auto any = autil::legacy::json::ParseJson(str);
+        } catch (const autil::legacy::ExceptionBase& e) {
+            // parse to pb object for generalTask
+            proto::OperationCurrent opCurrent;
+            if (opCurrent.ParseFromString(str)) {
+                current.set_statusdescription(proto::ProtoJsonizer::toJsonString(opCurrent));
+            }
+        }
+    }
+    return proto::ProtoJsonizer::toJsonString(current);
+}
+
+template <>
+std::string WorkerNode<ROLE_TASK>::getTargetStatusJsonStr() const
+{
+    TaskTarget target = getTargetStatus();
+    if (target.has_targetdescription()) {
+        auto str = target.targetdescription();
+        config::TaskTarget taskTarget;
+        try {
+            autil::legacy::FromJsonString(taskTarget, str);
+        } catch (const autil::legacy::ExceptionBase& e) {
+            return proto::ProtoJsonizer::toJsonString(target);
+        }
+        std::string content;
+        if (taskTarget.getTargetDescription("general_task_operation_target", content)) {
+            try {
+                auto any = autil::legacy::json::ParseJson(content);
+            } catch (const autil::legacy::ExceptionBase& e) {
+                // parse to pb object for generalTask
+                proto::OperationTarget opTarget;
+                if (opTarget.ParseFromString(content)) {
+                    taskTarget.updateTargetDescription("general_task_operation_target",
+                                                       proto::ProtoJsonizer::toJsonString(opTarget));
+                    target.set_targetdescription(autil::legacy::ToJsonString(taskTarget));
+                }
+            }
+        }
+    }
+    return proto::ProtoJsonizer::toJsonString(target);
+}
 
 }} // namespace build_service::proto

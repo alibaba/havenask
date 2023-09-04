@@ -18,12 +18,13 @@
  * Author: huangrh
  * Create time: 2010-11-22 14:27:14
  * $Id$
- * 
+ *
  * Description: ***add description here***
- * 
+ *
  */
 
 #include "aios/network/anet/orderedpacketqueue.h"
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -32,11 +33,9 @@
 #include "aios/network/anet/packetqueue.h"
 
 BEGIN_ANET_NS();
-OrderedPacketQueue::OrderedPacketQueue() {
-}
+OrderedPacketQueue::OrderedPacketQueue() {}
 
-OrderedPacketQueue::~OrderedPacketQueue() {
-}
+OrderedPacketQueue::~OrderedPacketQueue() {}
 
 void OrderedPacketQueue::push(Packet *packet) {
     packet->_next = NULL;
@@ -61,10 +60,10 @@ void OrderedPacketQueue::push(Packet *packet) {
         _head = packet;
         return;
     }
-    
+
     Packet *p1 = _head;
     Packet *p2 = p1;
-    while(expireTime >= p1->getExpireTime()) {
+    while (expireTime >= p1->getExpireTime()) {
         p2 = p1;
         p1 = p1->_next;
     }
@@ -72,9 +71,7 @@ void OrderedPacketQueue::push(Packet *packet) {
     p2->_next = packet;
 }
 
-void OrderedPacketQueue::moveTo(PacketQueue *destQueue) {
-    destQueue->moveBack(this);
-}
+void OrderedPacketQueue::moveTo(PacketQueue *destQueue) { destQueue->moveBack(this); }
 
 void OrderedPacketQueue::moveBack(PacketQueue *srcQueue) {
     if (NULL == srcQueue->_head) {
@@ -91,22 +88,22 @@ void OrderedPacketQueue::moveBack(PacketQueue *srcQueue) {
         return;
     }
 
-    if(srcQueue->_tail->getExpireTime() <= _head->getExpireTime()) {
+    if (srcQueue->_tail->getExpireTime() <= _head->getExpireTime()) {
         srcQueue->_tail->_next = _head;
         _head = srcQueue->_head;
         srcQueue->_head = srcQueue->_tail = NULL;
         return;
-    } 
+    }
 
     Packet *head = _head;
     Packet *lIter = _head;
-    Packet *rIter= srcQueue->_head;
+    Packet *rIter = srcQueue->_head;
     if (lIter->getExpireTime() < rIter->getExpireTime()) {
         head = lIter;
         lIter = lIter->_next;
     } else {
         head = rIter;
-        rIter= rIter->_next;
+        rIter = rIter->_next;
     }
 
     Packet *currIter = head;
@@ -116,7 +113,7 @@ void OrderedPacketQueue::moveBack(PacketQueue *srcQueue) {
             lIter = lIter->_next;
         } else {
             currIter->_next = rIter;
-            rIter= rIter->_next;
+            rIter = rIter->_next;
         }
         currIter = currIter->_next;
     }

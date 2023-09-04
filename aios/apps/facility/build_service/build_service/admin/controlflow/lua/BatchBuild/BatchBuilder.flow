@@ -1,0 +1,64 @@
+#import(Log)
+#import(Tool)
+
+function stepRunFlow()
+   local processorFlowId = Flow.parameter['processorFlowId']
+   local processorName = Flow.parameter['processorTaskName']
+
+   local builder = Flow.createTask("builder", "builder", Flow.parameter)
+   if (builder == nil)
+   then
+      Log.log("ERROR", "create batch builder fail.")
+      return false
+   end
+
+   local flowState = Flow.getProperty("_flow_status_")
+   if (flowState == "")
+   then
+      -- flow not started && skip flag, just skip
+      local batchId = Flow.parameter["batchId"]
+      local clusterName = Flow.parameter["clusterName"]
+      local skipBuilder = Flow.getProperty("skipBuilder")
+
+      if (skipBuilder == "true")
+      then
+         Log.log("INFO", "skip inc builder for cluster["..clusterName.."], batchId("..batchId..")")
+         return true
+      end
+
+      local combinedBuilder = Flow.getProperty("combinedBuilder")
+      local builderParam = Tool.copyMap(Flow.parameter)
+      if (combinedBuilder == "true")
+      then
+         builderParam["batchMask"] = "-1"
+         Log.log("INFO", "combined batchs for cluster["..clusterName.."] into batchId("..batchId..")")
+      end
+      if (Flow.startTask(builder, builderParam))
+      then
+         Flow.setProperty("_flow_status_", "incBuilding")
+      end
+      return false
+   end
+
+   if (flowState == "incBuilding")
+   then
+      local processorFlowStatus = Flow.getFlowStatus(processorFlowId)
+      if (processorFlowStatus == "finish" or processorFlowStatus == "stopped")
+      then
+         local processorTask = Flow.getTaskInFlow(processorName, processorFlowId)
+         local stopTime = tostring(processorTask:getEndTime())
+         local kvParam = {}
+         kvParam["finishTimeInSecond"] = stopTime
+
+         -- time precision(second) is not enough, should let builder read more 1s
+         kvParam["readAfterFinishTsInSeconds"] = "1"
+         if (Flow.finishTask(builder, kvParam))
+         then
+            Log.log("INFO", "finish batch builder "..Flow.getFlowId().." at "..stopTime)
+            return true
+         end
+         Log.log("INFO", "finish batch builder "..Flow.getFlowId().." failed, at "..stopTime)
+      end
+   end
+   return false
+end

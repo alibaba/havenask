@@ -6579,5 +6579,5 @@ const uint16_t NormalizeTable::CHN_T2S_SET[0x10000] = {
 };
 // clang-format on
 
-}
-}
+} // namespace codec
+} // namespace autil

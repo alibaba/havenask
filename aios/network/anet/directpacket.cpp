@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 #include "aios/network/anet/directpacket.h"
-#include "aios/network/anet/log.h"
 
 #include "aios/network/anet/databuffer.h"
 #include "aios/network/anet/ilogger.h"
+#include "aios/network/anet/log.h"
 
 namespace anet {
 
 bool DirectPacket::decode(DataBuffer *input, DirectPacketHeader *header) {
     if (input->getDataLen() < header->_msgSize) {
-        ANET_LOG(ERROR, "invalid input to decode with dataLen:[%d] and header's msgSize:[%d]",
-                 input->getDataLen(), header->_msgSize);
+        ANET_LOG(ERROR,
+                 "invalid input to decode with dataLen:[%d] and header's msgSize:[%d]",
+                 input->getDataLen(),
+                 header->_msgSize);
         return false;
     }
     bool rc = setBody(input->getData(), header->_msgSize);
@@ -32,4 +34,4 @@ bool DirectPacket::decode(DataBuffer *input, DirectPacketHeader *header) {
     return rc;
 }
 
-}  // namespace anet
+} // namespace anet

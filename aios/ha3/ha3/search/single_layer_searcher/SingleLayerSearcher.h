@@ -16,13 +16,22 @@
 #pragma once
 
 #include <assert.h>
+#include <list>
 #include <stddef.h>
 #include <stdint.h>
-#include <list>
 #include <unordered_map>
 
 #include "autil/CommonMacros.h"
+#include "autil/HashUtil.h"
+#include "autil/Log.h" // IWYU pragma: keep
 #include "autil/mem_pool/PoolVector.h"
+#include "ha3/common/TimeoutTerminator.h"
+#include "ha3/isearch.h"
+#include "ha3/search/FilterWrapper.h"
+#include "ha3/search/HashJoinInfo.h"
+#include "ha3/search/LayerMetas.h"
+#include "ha3/search/MatchDataManager.h"
+#include "ha3/search/QueryExecutor.h"
 #include "indexlib/index/common/ErrorCode.h"
 #include "indexlib/index/normal/attribute/accessor/join_docid_attribute_iterator.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_reader_adaptor.h"
@@ -34,28 +43,18 @@
 #include "matchdoc/Reference.h"
 #include "suez/turing/expression/framework/JoinDocIdConverterBase.h"
 
-#include "ha3/search/HashJoinInfo.h"
-#include "ha3/common/TimeoutTerminator.h"
-#include "ha3/isearch.h"
-#include "ha3/search/FilterWrapper.h"
-#include "ha3/search/LayerMetas.h"
-#include "ha3/search/MatchDataManager.h"
-#include "ha3/search/QueryExecutor.h"
-#include "autil/HashUtil.h"
-#include "autil/Log.h" // IWYU pragma: keep
-
 namespace suez {
 namespace turing {
 class AttributeExpression;
-template <typename T> class AttributeExpressionTyped;
-}  // namespace turing
-}  // namespace suez
+template <typename T>
+class AttributeExpressionTyped;
+} // namespace turing
+} // namespace suez
 
 namespace isearch {
 namespace search {
 
-class SingleLayerSearcher
-{
+class SingleLayerSearcher {
 public:
     typedef indexlib::index::JoinDocidAttributeIterator DocMapAttrIterator;
 
@@ -69,29 +68,29 @@ public:
                         DocMapAttrIterator *main2subIt,
                         indexlib::index::DeletionMapReader *subDeletionMapReader,
                         MatchDataManager *manager = NULL,
-             	        bool getAllSubDoc = false,
-	const search::HashJoinInfo *hashJoinInfo = nullptr,
-	suez::turing::AttributeExpression *joinAttrExpr = nullptr
-	);
+                        bool getAllSubDoc = false,
+                        const search::HashJoinInfo *hashJoinInfo = nullptr,
+                        suez::turing::AttributeExpression *joinAttrExpr = nullptr);
     ~SingleLayerSearcher();
+
 private:
     SingleLayerSearcher(const SingleLayerSearcher &);
-    SingleLayerSearcher& operator=(const SingleLayerSearcher &);
+    SingleLayerSearcher &operator=(const SingleLayerSearcher &);
+
 public:
-    indexlib::index::ErrorCode seek(
-        bool needSubDoc, matchdoc::MatchDoc& matchDoc) __attribute__((always_inline));
+    indexlib::index::ErrorCode seek(bool needSubDoc, matchdoc::MatchDoc &matchDoc)
+        __attribute__((always_inline));
     template <typename T>
-    indexlib::index::ErrorCode
-    seekAndJoin(bool needSubDoc, matchdoc::MatchDoc &matchDocs);
+    indexlib::index::ErrorCode seekAndJoin(bool needSubDoc, matchdoc::MatchDoc &matchDocs);
 
     template <typename T>
     static void doJoin(matchdoc::MatchDocAllocator *matchDocAllocator,
-            matchdoc::MatchDoc matchDoc,
-            std::list<matchdoc::MatchDoc> &matchDocs,
-            const search::HashJoinInfo *hashJoinInfo,
-            suez::turing::AttributeExpressionTyped<T> *joinAttrExpr);
+                       matchdoc::MatchDoc matchDoc,
+                       std::list<matchdoc::MatchDoc> &matchDocs,
+                       const search::HashJoinInfo *hashJoinInfo,
+                       suez::turing::AttributeExpressionTyped<T> *joinAttrExpr);
 
-    matchdoc::MatchDocAllocator* getMatchDocAllocator() const {
+    matchdoc::MatchDocAllocator *getMatchDocAllocator() const {
         return _matchDocAllocator;
     }
     // only call it when seek to the end.
@@ -103,12 +102,14 @@ public:
     uint32_t getSeekDocCount() const {
         return _queryExecutor->getSeekDocCount();
     }
+
 private:
     bool moveToNextRange();
     bool moveBack();
     bool moveToCorrectRange(docid_t &docId);
     inline bool tryToMakeItInRange(docid_t &docId);
     indexlib::index::ErrorCode constructSubMatchDocs(matchdoc::MatchDoc matchDoc);
+
 private:
     docid_t _curDocId;
     docid_t _curBegin;
@@ -122,7 +123,7 @@ private:
     LayerMeta *_layerMeta;
     indexlib::index::DeletionMapReaderAdaptor *_deletionMapReader;
     matchdoc::MatchDocAllocator *_matchDocAllocator;
-    DocMapAttrIterator* _main2SubIt;
+    DocMapAttrIterator *_main2SubIt;
     indexlib::index::DeletionMapReader *_subDeletionMapReader;
     MatchDataManager *_matchDataManager;
     bool _getAllSubDoc;
@@ -133,6 +134,7 @@ private:
 
 private:
     friend class SingleLayerSearcherTest;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -155,11 +157,9 @@ inline uint32_t SingleLayerSearcher::getSeekedCount() const {
     uint32_t seekedDocCount = 0;
     for (size_t cousor = 0; cousor < _layerMeta->size(); ++cousor) {
         if (cousor != _rangeCousor) {
-            seekedDocCount += (*_layerMeta)[cousor].nextBegin -
-                              (*_layerMeta)[cousor].begin;
+            seekedDocCount += (*_layerMeta)[cousor].nextBegin - (*_layerMeta)[cousor].begin;
         } else {
-            seekedDocCount += _cousorNextBegin -
-                              (*_layerMeta)[cousor].begin;
+            seekedDocCount += _cousorNextBegin - (*_layerMeta)[cousor].begin;
         }
     }
 
@@ -174,8 +174,8 @@ inline bool SingleLayerSearcher::tryToMakeItInRange(docid_t &docId) {
     return moveToCorrectRange(docId);
 }
 
-inline indexlib::index::ErrorCode SingleLayerSearcher::seek(
-    bool needSubDoc, matchdoc::MatchDoc& matchDoc) {
+inline indexlib::index::ErrorCode SingleLayerSearcher::seek(bool needSubDoc,
+                                                            matchdoc::MatchDoc &matchDoc) {
     docid_t docId = _curDocId;
     assert(docId >= _curBegin);
     // if filter need MatchData, fetch MatchData before filter
@@ -183,7 +183,8 @@ inline indexlib::index::ErrorCode SingleLayerSearcher::seek(
     bool needMatchValues = _matchDataManager && _matchDataManager->hasMatchValues();
     bool needMatchDataBeforeFilter = needMatchData && _matchDataManager->filterNeedMatchData();
     bool needMatchDataAfterFilter = needMatchData && !_matchDataManager->filterNeedMatchData();
-    bool needMatchedRowInfo = _matchDataManager && !_matchDataManager->getMatchDataCollectorCenter().isEmpty();
+    bool needMatchedRowInfo
+        = _matchDataManager && !_matchDataManager->getMatchDataCollectorCenter().isEmpty();
     while (true) {
         if (_timeoutTerminator && _timeoutTerminator->checkTimeout()) {
             break;
@@ -237,8 +238,8 @@ inline indexlib::index::ErrorCode SingleLayerSearcher::seek(
             }
 
             if (needMatchedRowInfo) {
-                _matchDataManager->getMatchDataCollectorCenter().collectAll(
-                        _queryExecutor, matchDoc);
+                _matchDataManager->getMatchDataCollectorCenter().collectAll(_queryExecutor,
+                                                                            matchDoc);
             }
             return indexlib::index::ErrorCode::OK;
         }
@@ -250,8 +251,8 @@ inline indexlib::index::ErrorCode SingleLayerSearcher::seek(
 }
 
 template <typename T>
-indexlib::index::ErrorCode SingleLayerSearcher::seekAndJoin(
-        bool needSubDoc, matchdoc::MatchDoc &matchDoc) {
+indexlib::index::ErrorCode SingleLayerSearcher::seekAndJoin(bool needSubDoc,
+                                                            matchdoc::MatchDoc &matchDoc) {
     docid_t docId = _curDocId;
     assert(docId >= _curBegin);
     // if filter need MatchData, fetch MatchData before filter
@@ -263,8 +264,8 @@ indexlib::index::ErrorCode SingleLayerSearcher::seekAndJoin(
         if (_timeoutTerminator && _timeoutTerminator->checkTimeout()) {
             break;
         }
-	matchdoc::MatchDoc tmpMatchDoc;
-	if (_matchDocBuffer.empty()) {
+        matchdoc::MatchDoc tmpMatchDoc;
+        if (_matchDocBuffer.empty()) {
             ++_seekTimes;
             auto ec = _queryExecutor->seekWithoutCheck(docId, docId);
             IE_RETURN_CODE_IF_ERROR(ec);
@@ -279,7 +280,7 @@ indexlib::index::ErrorCode SingleLayerSearcher::seekAndJoin(
                 continue;
             }
             tmpMatchDoc = _matchDocAllocator->allocate(docId);
-	    docId++;
+            docId++;
             if (unlikely(needSubDoc)) {
                 auto ec = constructSubMatchDocs(tmpMatchDoc);
                 if (unlikely(ec != indexlib::index::ErrorCode::OK)) {
@@ -287,12 +288,15 @@ indexlib::index::ErrorCode SingleLayerSearcher::seekAndJoin(
                     return ec;
                 }
             }
-            doJoin<T>(_matchDocAllocator, tmpMatchDoc, _matchDocBuffer, _hashJoinInfo,
-                    (suez::turing::AttributeExpressionTyped<T> *)_joinAttrExpr);
+            doJoin<T>(_matchDocAllocator,
+                      tmpMatchDoc,
+                      _matchDocBuffer,
+                      _hashJoinInfo,
+                      (suez::turing::AttributeExpressionTyped<T> *)_joinAttrExpr);
         } else {
-	    tmpMatchDoc = _matchDocBuffer.front();
-	    _matchDocBuffer.pop_front();
-	}
+            tmpMatchDoc = _matchDocBuffer.front();
+            _matchDocBuffer.pop_front();
+        }
 
         if (needMatchDataBeforeFilter) {
             auto ec = _matchDataManager->fillMatchData(tmpMatchDoc);
@@ -319,7 +323,7 @@ indexlib::index::ErrorCode SingleLayerSearcher::seekAndJoin(
                     return ec;
                 }
             }
-	    matchDoc = tmpMatchDoc;
+            matchDoc = tmpMatchDoc;
             return indexlib::index::ErrorCode::OK;
         }
         _matchDocAllocator->deallocate(tmpMatchDoc);
@@ -331,30 +335,28 @@ indexlib::index::ErrorCode SingleLayerSearcher::seekAndJoin(
 
 template <typename T>
 void SingleLayerSearcher::doJoin(matchdoc::MatchDocAllocator *matchDocAllocator,
-        matchdoc::MatchDoc matchDoc,
-        std::list<matchdoc::MatchDoc> &matchDocs,
-        const search::HashJoinInfo *hashJoinInfo,
-        suez::turing::AttributeExpressionTyped<T> *joinAttrExpr) {
+                                 matchdoc::MatchDoc matchDoc,
+                                 std::list<matchdoc::MatchDoc> &matchDocs,
+                                 const search::HashJoinInfo *hashJoinInfo,
+                                 suez::turing::AttributeExpressionTyped<T> *joinAttrExpr) {
     T joinAttrValue = joinAttrExpr->evaluateAndReturn(matchDoc);
     auto hashKey = autil::HashUtil::calculateHashValue(joinAttrValue);
 
-    matchdoc::Reference<suez::turing::DocIdWrapper> *auxDocidRef =
-            hashJoinInfo->getAuxDocidRef();
+    matchdoc::Reference<suez::turing::DocIdWrapper> *auxDocidRef = hashJoinInfo->getAuxDocidRef();
 
     const auto &hashJoinMap = hashJoinInfo->getHashJoinMap();
     auto joinIter = hashJoinMap.find(hashKey);
     if (joinIter != hashJoinMap.end()) {
-	const auto &auxDocidVec = joinIter->second;
-	assert(auxDocidVec.size() >= 1);
-	auxDocidRef->set(matchDoc, auxDocidVec[0]);
+        const auto &auxDocidVec = joinIter->second;
+        assert(auxDocidVec.size() >= 1);
+        auxDocidRef->set(matchDoc, auxDocidVec[0]);
         for (size_t i = 1; i < auxDocidVec.size(); i++) {
-            matchdoc::MatchDoc joinMatchDoc =
-                    matchDocAllocator->allocateAndCloneWithSub(matchDoc);
+            matchdoc::MatchDoc joinMatchDoc = matchDocAllocator->allocateAndCloneWithSub(matchDoc);
             auxDocidRef->set(joinMatchDoc, auxDocidVec[i]);
             matchDocs.push_back(joinMatchDoc);
         }
     } else {
-	auxDocidRef->set(matchDoc, INVALID_DOCID);
+        auxDocidRef->set(matchDoc, INVALID_DOCID);
     }
 }
 

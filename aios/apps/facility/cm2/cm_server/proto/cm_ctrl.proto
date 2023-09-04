@@ -1,0 +1,462 @@
+syntax = "proto2";
+
+import "proto/cm_common.proto";
+import "proto/cm_subscriber.proto";
+import "arpc/proto/rpc_extensions.proto";
+import "shadow_cluster.proto";
+import "subset.proto";
+option cc_generic_services = true;
+option py_generic_services = true;
+option cc_enable_arenas = true;
+
+package cm_server;
+
+enum CMD_TYPE
+{
+	CMD_UNKNOWN=0;
+	CMD_SET_CLUSTER_CFG=1;
+    CMD_UPDATE_NODES=2;
+    CMD_DEL_NODES=3;
+	CMD_DEL_CLUSTER=4;
+	CMD_SET_CLUSTER_OFFLINE=5;
+	CMD_SET_CLUSTER_ONLINE=6;
+	CMD_SET_NODE_VALID=7;
+    CMD_SET_NODE_INVALID=8;
+	CMD_GET_ALL_CLUSTER_NODE=9;
+	CMD_GET_SOME_CLUSTER_NODE=10;
+	CMD_GET_SOME_GROUP_NODE=11;
+	CMD_GET_NODE=12;
+	CMD_GET_CONFIG_ALL=13;
+	CMD_GET_CLUSTER_CFG=14;
+	CMD_GET_SUB_LIST=15;
+	CMD_GET_BINLOG=16;
+	CMD_GET_CONFIGSERVER_CFG=17;
+	CMD_SET_CONFIGSERVER_CFG=18;
+	CMD_DEL_CONFIGSERVER=19;
+    CMD_SET_CASCADE_CFG=21;
+    CMD_DEL_CASCADE=22;
+    CMD_GET_CASCADE_CFG=23;
+    CMD_SET_SLAVE=24;
+    CMD_CLEAN_INVALID_BINLOG=25;
+    CMD_GET_INVALID_BINLOG=26;
+    CMD_SET_SYSCONFIG = 27;
+    CMD_GET_SYSCONFIG = 28;
+    CMD_SET_CMSERVER_ADDR = 29;
+    CMD_DEL_CMSERVER_ADDR = 30;
+    CMD_GET_CMSERVER_ADDRLIST = 31;
+    CMD_SET_SHADOW_CLUSTER_CONF = 32;
+    CMD_DEL_SHADOW_CLUSTER_CONF = 33;
+    CMD_GET_SHADOW_CLUSTER_CONF = 34;
+    CMD_GET_ALL_SHADOW_CLUSTER_CONF = 35;
+    CMD_GET_SHADOW_CLUSTER_STATUS = 36;
+	CMD_GET_SUBSET_CONF = 37;
+	CMD_GET_ALL_SUBSET_CONF = 38;
+	CMD_SET_SUBSET_CONF = 39;
+	CMD_DEL_SUBSET_CONF = 40;
+	CMD_GET_SUBSET = 41;
+	CMD_GET_SUBSET_LIST = 42;
+}
+
+message SysConfig
+{
+    optional bool health_check = 1 [default = true];
+    optional int32 protect_ratio = 2 [default = -1];
+    optional int32 reject_sub_idx = 3 [default = 0]; // [0, 100]
+}
+
+message BinLog
+{
+    repeated cm_basic.BinLogUnit bin_log=1;
+}
+
+message CMCascadeConfigUnit
+{
+    required int32 zk_timeout_limit = 1;
+    required string zk_hosts = 2;
+    required string zk_root=3;
+    required cm_basic.SubReqMsg.SubType sub_type = 4;
+    repeated string cluster_name_vec=5;
+}
+
+message CMCascadeConfig
+{
+    repeated CMCascadeConfigUnit cascade_config_vec = 1;
+}
+
+message NodeSpec
+{
+    required string         cluster_name        = 1;
+    required string         node_ip             = 2;
+    repeated cm_basic.ProtocolPort   proto_port = 3;
+}
+
+message CommonRespMsg
+{
+	required cm_basic.RespStatus		status=1 [default=RSP_SUCCESS];
+	optional bytes			error_msg=2; // 错误消息,返回状态码非 RS_SUCCESS 有效
+}
+
+//1.	根据配置文件增加一个集群
+//2.	根据配置文件向一个集群增加一个或多个 partition
+//3.	根据配置文件或命令向一个集群的某个 partition 增加一个或多个node
+//4.	根据命令删除某集群的一个或多个partition 
+//5.	根据配置文件或命令从某个集群中删除一个或多个node
+//6.	根据配置文件或命令修改某集群的一个或多个node的 metainfo
+//7.	根据配置文件或命令修改某集群的一个或多个node的 状态.
+message SetClusterCfgReqMsg
+{
+    // 在update_nodes操作时用到
+    message MutlNode
+    {
+        repeated cm_basic.CMNode nodes=1;
+    }
+    // 在delete node时用到，cmctrl会填充这个结构
+    // message MutlNodeSpec
+    // {
+    //     repeated NodeSpec node_specs=1;
+    // }
+	required CMD_TYPE	cmd_type=1 [default=CMD_SET_CLUSTER_CFG]; // CMD_SET_CLUSTER_CFG
+	required bytes		cfg_content=2;
+    optional bool       is_base64 = 3[default=false];
+}
+
+// message SetClusterCfgRespMsg use CommonRespMsg
+
+
+//8.	根据命令删除一个集群
+message DelClusterReqMsg
+{
+	required CMD_TYPE	cmd_type = 1 [default=CMD_DEL_CLUSTER];
+	required string		cluster_name = 2; //
+    optional bool       force = 3 [default = false];
+}
+
+// message DelClusterRespMsg use CommonRespMsg
+
+
+//9.	根据命令,设置一个集群为 OFFLINE /ONLINE 状态
+message SetClusterOfflineReqMsg
+{
+	required CMD_TYPE		cmd_type = 1 [default=CMD_SET_CLUSTER_OFFLINE]; 
+	required string			cluster_name = 2; //
+}
+
+message SetClusterOnlineReqMsg
+{
+	required CMD_TYPE		cmd_type = 1 [default=CMD_SET_CLUSTER_ONLINE]; 
+	required string			cluster_name = 2; //
+}
+
+// message SetClusterStateRespMsg use CommonRespMsg
+
+message SetNodeValidReqMsg
+{
+	required CMD_TYPE		cmd_type        = 1 [default=CMD_SET_NODE_VALID]; 
+    repeated NodeSpec       node_valid_vec  = 2;
+}
+
+message SetNodeInvalidReqMsg
+{
+	required CMD_TYPE		cmd_type        = 1 [default=CMD_SET_NODE_INVALID]; 
+    repeated NodeSpec       node_invalid_vec  = 2;
+}
+
+// message SetNodeValidRespMsg use CommonRespMsg
+
+//10.	根据命令，列出所有集群的节点状态。
+//11.	根据命令，列出某几个集群的节点状态
+//14.	根据命令，列出所有集群的offline/timeout节点。
+//15.	根据命令，列出某几个集群的offline/timeout节点。
+
+message GetClusterNodeReqMsg
+{
+	// CMD_GET_ALL_CLUSTER_NODE or CMD_GET_SOME_CLUSTER_NODE
+	// CMD_GET_CONFIG_ALL or CMD_GET_CLUSTER_CFG 
+	required CMD_TYPE	cmd_type=1; 
+	 // CMD_GET_SOME_CLUSTER_NODE 时指定的 clustername
+	repeated string		cluster_name_vec=2;
+}
+
+message GetClusterNodeRespMsg
+{
+	required cm_basic.RespStatus				status=1 [default=RSP_SUCCESS];
+	optional bytes					error_msg=2; // 错误消息
+	repeated cm_basic.CMCluster		cluster_vec=3; // 返回状态码是 RSP_SUCCESS 有效
+}
+
+//12.	根据命令，列出某个集群的某几个partition的节点状态
+message GetGroupNodeReqMsg
+{
+	required CMD_TYPE	cmd_type=1; // CMD_GET_SOME_GROUP_NODE 
+	required string     cluster_name=2; // 指定的 clustername
+	repeated uint32		group_id_vec=3; //要查的 partition_id
+}
+
+message GetGroupNodeRespMsg
+{
+	required cm_basic.RespStatus				status=1 [default=RSP_SUCCESS];
+	optional bytes					error_msg=2; // 错误消息
+    // repeated Status             return_status
+    repeated cm_basic.CMGroup		group_vec=3; // 返回状态码是 RSP_SUCCESS 有效
+}
+
+
+//13.	根据命令，列出某个的节点状态
+message GetNodeReqMsg
+{
+	required CMD_TYPE	cmd_type=1; // CMD_GET_NODE 
+	repeated NodeSpec 	node_spec_vec=2; //要查的 NodeSpec
+}
+
+message GetNodeRespMsg
+{
+	required cm_basic.RespStatus				status=1 [default=RSP_SUCCESS];
+	optional bytes					error_msg=2; // 错误消息
+	repeated cm_basic.CMNode		node_vec=3; // 返回状态码是 RSP_SUCCESS 有效
+
+}
+
+//16.	根据命令，获取某个或所有集群的配置信息。
+//17.	根据命令，获取所有订阅者的信息。
+//18.	根据命令，获取binlog 的信息。
+//19.	根据命令,获取同步 configserver 模块配置.
+
+message GetCfgReqMsg
+{
+	// or CMD_GET_SUB_LIST or CMD_GET_BINLOG or CMD_GET_CONFIGSERVER_CFG or CMD_GET_CASCADE_CFG
+	required CMD_TYPE	cmd_type=1; 
+}
+
+message GetCfgRespMsg
+{
+	required cm_basic.RespStatus		status=1 [default=RSP_SUCCESS];
+	optional bytes			error_msg=2; // 错误消息
+	optional bytes 			cfg_content=3; // 返回状态码是 RSP_SUCCESS 有效
+}
+
+//21 . 根据命令增加或更新一个Cascade对应的configitem
+//22 . 根据命令删除一个Cascade对应的configitem
+message SetCascadeConfigReqMsg
+{
+    // CMD_SET_CASCADE_CFG CMD_DEL_CASCADE
+	required CMD_TYPE		cmd_type=1 [default =CMD_SET_CASCADE_CFG ]; 
+	required CMCascadeConfigUnit 		cascade_config_unit=2;
+}
+// message SetCascadeConfigRespMsg use CommonRespMsg
+
+message SetCMServerSlaveReqMsg
+{
+    // CMD_SET_SLAVE
+	required CMD_TYPE		cmd_type=1 [default = CMD_SET_SLAVE]; 
+}
+// message SetCMServerSlaveRespMsg use CommonRespMsg
+
+message InvalidBinlogReqMsg
+{
+	required CMD_TYPE		cmd_type=1 [default = CMD_GET_INVALID_BINLOG]; 
+    optional string         cluster_name = 2;
+}
+
+message InvalidBinlogRespMsg
+{
+	required cm_basic.RespStatus    status=1 [default=RSP_SUCCESS];
+    repeated string                 log_keys=2;
+}
+
+message SysConfigReqMsg
+{
+	required CMD_TYPE		cmd_type=1 [default = CMD_SET_SYSCONFIG];
+    optional SysConfig      config = 2;
+}
+
+message GetSysConfigRespMsg
+{
+	required cm_basic.RespStatus    status=1 [default=RSP_SUCCESS];
+    optional SysConfig config = 2;
+}
+
+message UpdateCMServerReqMsg
+{
+    optional uint32 id = 1;
+    required string zk_addr = 2;
+    required string zk_root = 3;
+}
+
+message GetCMserverListRespMsg
+{
+	required cm_basic.RespStatus status = 1 [default = RSP_SUCCESS];
+    repeated CMServerAddr addrs = 2;
+}
+
+message StringMsg
+{
+    required string str = 1;
+}
+
+message UIntMsg
+{
+    required uint32 n = 1;
+}
+
+message GetShadowConfRespMsg
+{
+	required cm_basic.RespStatus status = 1 [default = RSP_SUCCESS];
+    repeated ShadowConf conf = 2;
+    repeated bool failover = 3;
+}
+
+message VoidMsg {}
+
+message GetSubsetConfRespMsg
+{
+	required cm_basic.RespStatus status = 1 [default = RSP_SUCCESS];
+	repeated SubsetConf confs = 2;
+}
+
+message GetSubsetReqMsg
+{
+	required SubsetSpec spec = 1;
+}
+
+message GetSubsetRespMsg
+{
+	required cm_basic.RespStatus status = 1 [default = RSP_SUCCESS]; 
+	optional SubsetStatus subset = 2;
+}
+
+message GetSubsetListRespMsg
+{
+	required cm_basic.RespStatus status = 1 [default = RSP_SUCCESS];
+	repeated string subsets = 2;
+}
+
+// 定义service
+service CMCmdProcService
+{
+    // 用户必须制定service id, 该值不要超过 2<<16, 貌似该值不能重复
+    option (arpc.global_service_id) = 2302; //2300~2319 for clustermap2
+
+    rpc SetClusterCfg(SetClusterCfgReqMsg) returns(CommonRespMsg) 
+    {
+        //用户必须制定method id, 该值不要超过 2<<16
+        option (arpc.local_method_id) = 1;
+    }
+    rpc DelCluster(DelClusterReqMsg) returns(CommonRespMsg) 
+	{
+		option (arpc.local_method_id) = 2;
+	}
+	rpc SetClusterOnline(SetClusterOnlineReqMsg) returns(CommonRespMsg) 
+	{
+		option (arpc.local_method_id) = 3;
+	}
+	rpc SetClusterOffline(SetClusterOfflineReqMsg) returns(CommonRespMsg) 
+	{
+		option (arpc.local_method_id) = 4;
+	}
+	rpc SetNodeValid(SetNodeValidReqMsg) returns(CommonRespMsg) 
+	{
+		option (arpc.local_method_id) = 5;
+	}
+	rpc SetNodeInvalid(SetNodeInvalidReqMsg) returns(CommonRespMsg) 
+	{
+		option (arpc.local_method_id) = 6;
+	}
+	rpc GetClusterNode(GetClusterNodeReqMsg) returns(GetClusterNodeRespMsg) 
+	{
+		option (arpc.local_method_id) = 7;
+	}
+	rpc GetGroupNode(GetGroupNodeReqMsg) returns(GetGroupNodeRespMsg) 
+	{
+		option (arpc.local_method_id) = 8;
+	}
+	rpc GetNode(GetNodeReqMsg) returns(GetNodeRespMsg) 
+	{
+		option (arpc.local_method_id) = 9;
+	}
+	rpc GetCfg(GetCfgReqMsg) returns(GetCfgRespMsg) 
+	{
+		option (arpc.local_method_id) = 10;
+	}
+	rpc SetCascadeConfig(SetCascadeConfigReqMsg) returns(CommonRespMsg) 
+	{
+		option (arpc.local_method_id) = 13;
+	} 
+	rpc SetCMServerSlave(SetCMServerSlaveReqMsg) returns(CommonRespMsg) 
+	{
+		option (arpc.local_method_id) = 14;
+	} 
+	rpc CleanInvalidBinlog(InvalidBinlogReqMsg) returns(InvalidBinlogRespMsg)
+	{
+		option (arpc.local_method_id) = 15;
+	} 
+	rpc GetInvalidBinlog(InvalidBinlogReqMsg) returns(InvalidBinlogRespMsg)
+	{
+		option (arpc.local_method_id) = 16;
+	} 
+	rpc SetSysConfig(SysConfigReqMsg) returns(CommonRespMsg)
+	{
+		option (arpc.local_method_id) = 17;
+	} 
+	rpc GetSysConfig(SysConfigReqMsg) returns(GetSysConfigRespMsg)
+	{
+		option (arpc.local_method_id) = 18;
+	} 
+    // 设置CM server列表，用于容灾备份集群功能
+    rpc SetCMServerAddr(UpdateCMServerReqMsg) returns (CommonRespMsg)
+    {
+		option (arpc.local_method_id) = 19;
+    }
+    rpc DelCMServerAddr(UIntMsg) returns (CommonRespMsg)
+    {
+		option (arpc.local_method_id) = 20;
+    }
+    rpc GetCMServerAddrList(VoidMsg) returns (GetCMserverListRespMsg)
+    {
+		option (arpc.local_method_id) = 21;
+    }
+    rpc SetShadowClusterConf(ShadowConf) returns (CommonRespMsg)
+    {
+		option (arpc.local_method_id) = 22;
+    }
+    rpc DelShadowClusterConf(StringMsg) returns (CommonRespMsg)
+    {
+		option (arpc.local_method_id) = 23;
+    }
+    rpc GetShadowClusterConf(StringMsg) returns (GetShadowConfRespMsg)
+    {
+		option (arpc.local_method_id) = 24;
+    }
+    rpc GetAllShadowClusterConf(VoidMsg) returns (GetShadowConfRespMsg)
+    {
+		option (arpc.local_method_id) = 25;
+    }
+    rpc GetShadowCluster(StringMsg) returns (GetClusterNodeRespMsg)
+    {
+		option (arpc.local_method_id) = 26;
+    }
+	rpc GetSubsetConf(StringMsg) returns (GetSubsetConfRespMsg)
+	{
+		option (arpc.local_method_id) = 27;
+	}
+	rpc GetAllSubsetConf(VoidMsg) returns (GetSubsetConfRespMsg)
+	{
+		option (arpc.local_method_id) = 28;
+	}
+	rpc SetSubsetConf(SubsetConf) returns (CommonRespMsg)
+	{
+		option (arpc.local_method_id) = 29;
+	}
+	rpc DelSubsetConf(StringMsg) returns (CommonRespMsg)
+	{
+		option (arpc.local_method_id) = 30;
+	}
+	rpc GetSubset(GetSubsetReqMsg) returns (GetSubsetRespMsg)
+	{
+		option (arpc.local_method_id) = 31;
+	}
+	rpc GetSubsetList(StringMsg) returns (GetSubsetListRespMsg)
+	{
+		option (arpc.local_method_id) = 32;
+	}
+}
+

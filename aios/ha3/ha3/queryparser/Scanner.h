@@ -32,26 +32,30 @@ class QueryFlexLexer;
 
 namespace isearch {
 namespace queryparser {
-class Scanner : public QueryFlexLexer
-{
+class Scanner : public QueryFlexLexer {
 public:
     Scanner(std::istream *input, std::ostream *output);
     virtual ~Scanner();
-public: 
+
+public:
     typedef isearch_bison::BisonParser::token token;
     typedef isearch_bison::BisonParser::token_type token_type;
     typedef isearch_bison::BisonParser::semantic_type semantic_type;
     typedef isearch_bison::BisonParser::location_type location_type;
+
 public:
-    virtual token_type lex(semantic_type* yylval, location_type* yylloc);
+    virtual token_type lex(semantic_type *yylval, location_type *yylloc);
+
 public:
     void setDebug(bool debug);
+
 private:
     std::ostringstream oss;
+
 private:
-    AUTIL_LOG_DECLARE();    
+    AUTIL_LOG_DECLARE();
 };
 
 } // namespace queryparser
 } // namespace isearch
-#endif 
+#endif

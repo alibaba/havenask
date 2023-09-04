@@ -1,0 +1,28 @@
+{
+  "exec_params" : { },
+  "optimize_infos" : { },
+  "rel_plan" : [ {
+    "attrs" : {
+      "output_fields" : [ "$i1", "$i2" ],
+      "output_fields_hash" : 1831636447,
+      "output_fields_type" : [ "INTEGER", "INTEGER" ]
+    },
+    "id" : 0,
+    "inputs" : {
+      "input" : [ ]
+    },
+    "op_name" : "ValuesOp",
+    "outputs" : [ 1 ]
+  }, {
+    "attrs" : {
+      "output_fields_hash" : 1831636447,
+      "type" : "api"
+    },
+    "id" : 1,
+    "inputs" : {
+      "input" : [ 2 ]
+    },
+    "op_name" : "SinkOp"
+  } ],
+  "rel_plan_version" : "plan_version_0.0.1"
+}

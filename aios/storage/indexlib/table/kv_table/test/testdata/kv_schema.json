@@ -1,0 +1,52 @@
+{
+    "attributes": [
+        "seller_id",
+        "sim_seller_id",
+        "sim_member_id",
+        "score"
+    ],
+    "default_ttl": 8796093022207,
+    "enable_temperature_layer": false,
+    "enable_ttl": true,
+    "fields": [
+        {
+            "binary_field": false,
+            "field_name": "seller_id",
+            "field_type": "LONG"
+        },
+        {
+            "binary_field": false,
+            "field_name": "member_id",
+            "field_type": "LONG"
+        },
+        {
+            "binary_field": false,
+            "field_name": "sim_seller_id",
+            "field_type": "LONG"
+        },
+        {
+            "binary_field": false,
+            "field_name": "sim_member_id",
+            "field_type": "LONG"
+        },
+        {
+            "binary_field": false,
+            "field_name": "score",
+            "field_type": "DOUBLE"
+        }
+    ],
+    "indexs": [
+        {
+            "format_version_id": 0,
+            "index_fields": "member_id",
+            "index_name": "member_id_sim_member_id",
+            "index_type": "PRIMARY_KEY",
+            "index_preference": {
+                "type": "PERF"
+            }
+        }
+    ],
+    "table_name": "shop_col_cart_alipay_sim_for_dmp_all_user",
+    "table_type": "kv",
+    "ttl_from_doc": false
+}

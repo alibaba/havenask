@@ -1,0 +1,30 @@
+package(default_visibility=['//visibility:private'])
+load('//bazel:defs.bzl', 'copy_target_to')
+copy_target_to(
+    name='iquan_client_jar',
+    copy_name='iquan_client.jar',
+    to_copy='//aios/sql/iquan/java/iquan_client:iquan_client_deploy.jar',
+    visibility=['//visibility:public']
+)
+copy_target_to(
+    name='iquan_boot_jar',
+    copy_name='iquan_boot.jar',
+    to_copy='//aios/sql/iquan/java/iquan_boot:iquan_boot.jar',
+    visibility=['//visibility:public']
+)
+java_plugin(
+    name='lombok_plugin',
+    processor_class='lombok.launch.AnnotationProcessorHider$AnnotationProcessor',
+    deps=['@iquan_maven//:org_projectlombok_lombok']
+)
+java_plugin(
+    name='immutables_plugin',
+    processor_class='org.immutables.processor.ProxyProcessor',
+    deps=['@iquan_maven//:org_immutables_value']
+)
+java_library(
+    name='immutables',
+    exported_plugins=[':immutables_plugin'],
+    visibility=['//visibility:public'],
+    exports=['@iquan_maven//:org_immutables_value']
+)

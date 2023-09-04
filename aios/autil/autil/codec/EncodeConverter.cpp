@@ -21,16 +21,13 @@ namespace autil {
 namespace codec {
 AUTIL_LOG_SETUP(autil::codec, EncodeConverter);
 
-EncodeConverter::EncodeConverter() {
-}
+EncodeConverter::EncodeConverter() {}
 
-EncodeConverter::~EncodeConverter() {
-}
+EncodeConverter::~EncodeConverter() {}
 
-int32_t EncodeConverter::utf8ToUtf16(const char *in, int32_t length, uint16_t *out)
-{
+int32_t EncodeConverter::utf8ToUtf16(const char *in, int32_t length, uint16_t *out) {
     int32_t ret = 0;
-    const unsigned char *b = reinterpret_cast<const unsigned char*>(in);
+    const unsigned char *b = reinterpret_cast<const unsigned char *>(in);
     const unsigned char *e = b + length;
     bool error = false;
     while (b < e) {
@@ -67,8 +64,7 @@ int32_t EncodeConverter::utf8ToUtf16(const char *in, int32_t length, uint16_t *o
     return ret;
 }
 
-int32_t EncodeConverter::utf16ToUtf8(const uint16_t *in, int32_t length, char *out)
-{
+int32_t EncodeConverter::utf16ToUtf8(const uint16_t *in, int32_t length, char *out) {
     int32_t ret = 0;
     const uint16_t *b = in;
     const uint16_t *e = b + length;
@@ -92,7 +88,7 @@ int32_t EncodeConverter::utf16ToUtf8(const uint16_t *in, int32_t length, char *o
 
 int32_t EncodeConverter::utf8ToUtf16Len(const char *in, int32_t length) {
     int32_t ret = 0;
-    const unsigned char *b = reinterpret_cast<const unsigned char*>(in);
+    const unsigned char *b = reinterpret_cast<const unsigned char *>(in);
     const unsigned char *e = b + length;
     bool error = false;
     while (b < e) {
@@ -133,5 +129,5 @@ int32_t EncodeConverter::utf8ToUtf16Len(const char *in, int32_t length) {
     return ret;
 }
 
-}
-}
+} // namespace codec
+} // namespace autil

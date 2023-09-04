@@ -1,0 +1,20 @@
+{
+    "processor_chain_config" : [{
+        "chain_name" : "chain1",
+        "clusters" : [
+            "simple_cluster"
+        ],
+        "document_processor_chain" : [{
+            "class_name" : "TokenizeDocumentProcessor"
+        }, {
+            "class_name" : "MultiPayloadProcessor",
+            "module_name" : "simple_document_processor"
+        }],
+        "modules" : [{
+            "module_name" : "simple_document_processor",
+            "module_path" : "libsimple_document_processor.so",
+            "parameters" : {
+            }
+        }]
+    }]
+}

@@ -16,15 +16,17 @@
 #ifndef ISEARCH_MULTI_CALL_GRPCCLIENTWORKER_H
 #define ISEARCH_MULTI_CALL_GRPCCLIENTWORKER_H
 
-#include "aios/network/gig/multi_call/grpc/CompletionQueueStatus.h"
-#include "aios/network/gig/multi_call/util/RandomGenerator.h"
-#include "autil/Thread.h"
 #include <grpc++/alarm.h>
 #include <grpc++/grpc++.h>
 
+#include "aios/network/gig/multi_call/grpc/CompletionQueueStatus.h"
+#include "aios/network/gig/multi_call/util/RandomGenerator.h"
+#include "autil/Thread.h"
+
 namespace multi_call {
 
-class GrpcClientWorker {
+class GrpcClientWorker
+{
 public:
     GrpcClientWorker(size_t threadNum);
     ~GrpcClientWorker();
@@ -41,7 +43,7 @@ private:
     void workLoop(size_t idx, CompletionQueueStatusPtr cqsPtr);
 
 private:
-    std::vector< ::grpc::Alarm *> _shutdownAlarms;
+    std::vector<::grpc::Alarm *> _shutdownAlarms;
     std::vector<autil::ThreadPtr> _workThreads;
     std::vector<CompletionQueueStatusPtr> _completionQueues;
 

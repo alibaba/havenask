@@ -1,5 +1,4 @@
 package(default_visibility=['//aios/network/gig:__subpackages__'])
-load('//bazel:defs.bzl', 'cc_proto')
 closure_headers = ['Closure.h']
 cc_library(
     name='closure_headers',
@@ -34,9 +33,4 @@ cc_library(
         '//aios/network/opentelemetry:opentelemetry'
     ],
     alwayslink=True
-)
-cc_proto(
-    name='test_proto',
-    srcs=['test/fake_search.proto'],
-    deps=['//aios/network/arpc:proto']
 )

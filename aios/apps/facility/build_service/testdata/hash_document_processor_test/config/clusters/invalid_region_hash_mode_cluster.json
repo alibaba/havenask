@@ -1,0 +1,7 @@
+{
+    "cluster_config" : {
+        "region_hash_mode" : [
+            {"region_name": "region1", "hash_field": "", "hash_function": "HASH64"}
+        ]
+    }
+}

@@ -47,5 +47,5 @@ public:
     }
 };
 
-} //namespace common
-} //namespace isearch
+} // namespace common
+} // namespace isearch

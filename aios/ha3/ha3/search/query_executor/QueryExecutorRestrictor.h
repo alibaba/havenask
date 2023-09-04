@@ -19,16 +19,15 @@
 #include <stdint.h>
 
 #include "autil/CommonMacros.h"
-#include "indexlib/indexlib.h"
-
-#include "ha3/common/TimeoutTerminator.h"
 #include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/common/TimeoutTerminator.h"
+#include "indexlib/indexlib.h"
 
 namespace isearch {
 namespace search {
 class LayerMeta;
-}  // namespace search
-}  // namespace isearch
+} // namespace search
+} // namespace isearch
 
 namespace isearch {
 namespace search {
@@ -37,25 +36,29 @@ class LayerMetaWrapper {
 public:
     LayerMetaWrapper(const LayerMeta *layerMeta);
     ~LayerMetaWrapper();
+
 private:
-    LayerMetaWrapper(const LayerMetaWrapper&);
-    LayerMetaWrapper& operator= (const LayerMetaWrapper &);
+    LayerMetaWrapper(const LayerMetaWrapper &);
+    LayerMetaWrapper &operator=(const LayerMetaWrapper &);
+
 public:
     docid_t seek(docid_t docId);
     void reset();
+
 private:
     const LayerMeta *_layerMeta;
     uint32_t _offset;
 };
 
-class QueryExecutorRestrictor
-{
+class QueryExecutorRestrictor {
 public:
     QueryExecutorRestrictor();
     ~QueryExecutorRestrictor();
+
 private:
     QueryExecutorRestrictor(const QueryExecutorRestrictor &);
-    QueryExecutorRestrictor& operator=(const QueryExecutorRestrictor &);
+    QueryExecutorRestrictor &operator=(const QueryExecutorRestrictor &);
+
 public:
     void setTimeoutTerminator(common::TimeoutTerminator *timeoutTerminator) {
         _timeoutTerminator = timeoutTerminator;
@@ -66,12 +69,14 @@ public:
             _layerMetaWrapper = new LayerMetaWrapper(layerMeta);
         }
     }
-    
+
     docid_t meetRestrict(docid_t curDocId);
     void reset();
+
 private:
     common::TimeoutTerminator *_timeoutTerminator;
     LayerMetaWrapper *_layerMetaWrapper;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -80,4 +85,3 @@ typedef std::shared_ptr<QueryExecutorRestrictor> QueryExecutorRestrictorPtr;
 
 } // namespace search
 } // namespace isearch
-

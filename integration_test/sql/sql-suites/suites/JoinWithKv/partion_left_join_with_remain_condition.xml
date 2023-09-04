@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="partion_left_join_with_remain_condition">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT id, company_id, category_name FROM normal LEFT JOIN kv1 ON (normal.id = kv1.cat_id AND kv1.cat_id > normal.company_id)
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"id", "company_id", "category_name"</Resource>
+        <Resource name="column_types">int32, int32, multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:normal;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1, 1, ""
+2, 1, "pad"
+3, 2, "tv"
+4, 2, "other"
+5, 3, ""
+6, 3, ""
+7, 4, ""
+8, 4, ""
+9, 5, ""
+10,5, ""
+11,6, ""
+12,6, ""
+13,8, ""
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#5(type=api)
+    ExchangeOp#4(distribution={type:SINGLETON})
+        LimitOp#3(limit=100)
+            CalcOp#2(output_fields=[$id,$company_id,$category_name])
+                LookupJoinOp#1(build_node={catalog_name:default,db_name:normal,limit:2147483647,output_fields:[$cat_id,$category_name],push_down_ops:[{attrs:{output_fields:[$cat_id,$category_name]},op_name:CalcOp}],table_name:kv1,table_type:kv,use_nest_table:false},condition=AND(=($id,$cat_id),>($cat_id,$company_id)),equi_condition==($id,$cat_id),is_equi_join=true,is_internal_build=false,join_type=LEFT,left_is_build=false,output_fields=[$id,$company_id,$cat_id,$category_name],remaining_condition=>($cat_id,$company_id),semi_join_type=LEFT)
+                    TableScanOp#0(catalog_name=default,db_name=normal,limit=2147483647,output_fields=[$id,$company_id],push_down_ops=[{attrs:{output_fields:[$id,$company_id]},op_name:CalcOp}],table_name=normal,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

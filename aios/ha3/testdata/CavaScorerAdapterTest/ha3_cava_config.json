@@ -19,11 +19,10 @@
 	]
     },
     "cavaPreLoads": [
-        "../../testdata/share/cava/ha3",
-        "../../testdata/share/cava/suez",
-        "../../testdata/share/cava/cava",
-        "../../testdata/share/cava/plugins",
-        "../../testdata/share/cava/unsafe"
+        "aios/ha3/cava/ha3",
+        "aios/ha3/cava/plugins",
+        "aios/cava/share",
+        "aios/suez_turing/suez/turing/expression/cava/api"
     ],
     "debugIR": false
 }

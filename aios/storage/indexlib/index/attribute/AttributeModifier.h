@@ -21,7 +21,7 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
 #include "indexlib/config/FieldConfig.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 
 namespace indexlibv2 { namespace framework {
 class TabletData;
@@ -31,7 +31,7 @@ namespace indexlibv2::index {
 class AttributeModifier : public autil::NoCopyable
 {
 public:
-    AttributeModifier(const std::shared_ptr<config::TabletSchema>& schema) : _schema(schema) {}
+    AttributeModifier(const std::shared_ptr<config::ITabletSchema>& schema) : _schema(schema) {}
 
     virtual ~AttributeModifier() = default;
 
@@ -47,7 +47,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<config::TabletSchema> _schema;
+    std::shared_ptr<config::ITabletSchema> _schema;
 };
 
 } // namespace indexlibv2::index

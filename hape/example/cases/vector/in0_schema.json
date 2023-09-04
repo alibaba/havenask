@@ -1,0 +1,103 @@
+{
+    "columns": [
+        {
+            "name": "id",
+            "type": "UINT32"
+        },
+        {
+            "name": "url",
+            "type": "STRING"
+        },
+        {
+            "name": "vector",
+            "type": "STRING"
+        },
+        {
+            "name": "DUP_vector",
+            "type": "RAW"
+        }
+    ],
+    "indexes": [
+        {
+            "name": "id",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "id"
+                    }
+                ]
+            },
+            "index_type": "PRIMARY_KEY64"
+        },
+        {
+            "name": "id",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "id"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
+        },
+        {
+            "name": "url",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "url"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
+        },
+        {
+            "name": "vector",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "vector"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
+        },
+        {
+            "name": "vector_index",
+            "index_type": "ANN",
+            "index_config": {
+                "index_fields": [
+                    {
+                        "boost": 1,
+                        "field_name": "id"
+                    },
+                    {
+                        "boost": 1,
+                        "field_name": "DUP_vector"
+                    }
+                ],
+                "index_params": {
+                    "indexer": "aitheta2_indexer",
+                    "parameters": "{\"enable_rt_build\":\"true\",\"min_scan_doc_cnt\":\"20000\",\"vector_index_type\":\"Qc\",\"major_order\":\"col\",\"builder_name\":\"QcBuilder\",\"distance_type\":\"SquaredEuclidean\",\"embedding_delimiter\":\",\",\"enable_recall_report\":\"true\",\"is_embedding_saved\":\"true\",\"linear_build_threshold\":\"5000\",\"dimension\":\"128\",\"search_index_params\":\"{\\\"proxima.qc.searcher.scan_ratio\\\":0.01}\",\"searcher_name\":\"QcSearcher\",\"build_index_params\":\"{\\\"proxima.qc.builder.quantizer_class\\\":\\\"Int8QuantizerConverter\\\",\\\"proxima.qc.builder.quantize_by_centroid\\\":true,\\\"proxima.qc.builder.optimizer_class\\\":\\\"BruteForceBuilder\\\",\\\"proxima.qc.builder.thread_count\\\":10,\\\"proxima.qc.builder.optimizer_params\\\":{\\\"proxima.linear.builder.column_major_order\\\":true},\\\"proxima.qc.builder.store_original_features\\\":false,\\\"proxima.qc.builder.train_sample_count\\\":3000000,\\\"proxima.qc.builder.train_sample_ratio\\\":0.5}\"}"
+                }
+            }
+        },
+        {
+            "name": "summary",
+            "index_type": "SUMMARY",
+            "index_config": {
+                "index_fields": [
+                    {
+                        "field_name": "id"
+                    },
+                    {
+                        "field_name": "url"
+                    },
+                    {
+                        "field_name": "vector"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,37 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+import "SuezHB.proto";
+package suez;
+
+option cc_generic_services = true;
+option cc_enable_arenas = true;
+
+enum DebugServiceErrorCode {
+    DBS_ERROR_NONE = 0;
+    DBS_ERROR_TARGET_PARSE_FAIL = 1;
+    DBS_ERROR_TARGET_VERSION = 2;
+    DBS_ERROR_UNKNOWN = 3;
+}
+
+message DebugCurrentResponse {
+    optional string tableInfo = 1;
+    optional string bizInfo = 2;
+    optional string appInfo = 3;
+    optional string serviceInfo = 4;
+    optional string errorInfo = 5;
+    optional string targetVersion = 6;
+}
+
+message NextStepResponse {
+    required DebugServiceErrorCode errCode = 1;
+    optional DebugCurrentResponse current = 2;
+    optional bool reachTarget = 3;
+}
+
+service DebugService {
+    option (arpc.global_service_id) = 900;
+    rpc nextStep ( TargetRequest ) returns ( NextStepResponse ) {
+        option (arpc.local_method_id) = 1;
+    }
+}

@@ -17,8 +17,8 @@
 
 #include "autil/StringUtil.h"
 #include "autil/legacy/jsonizable.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/TabletOptions.h"
-#include "indexlib/config/TabletSchema.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/IDocumentParser.h"
 #include "indexlib/framework/Tablet.h"

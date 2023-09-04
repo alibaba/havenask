@@ -35,6 +35,9 @@ private:
     CounterSynchronizer& operator=(const CounterSynchronizer&);
 
 public:
+    static bool needSyncCounter();
+    static void removeRoleZkCounter(const std::string& generationZkRoot, const proto::PartitionId& pid,
+                                    bool ignoreBackupId);
     static std::string getCounterZkRoot(const std::string& appZkRoot, const proto::BuildId& buildId);
     static bool getCounterZkFilePath(const std::string& appZkRoot, const proto::PartitionId& pid,
                                      std::string& counterFilePath, bool ignoreBackupId = false);

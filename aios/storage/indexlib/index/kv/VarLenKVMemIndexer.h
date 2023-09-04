@@ -72,10 +72,9 @@ private:
                          const std::shared_ptr<indexlib::file_system::FileWriter>& valueFileWriter,
                          const std::shared_ptr<indexlib::file_system::Directory>& directory);
 
-    void UpdateMemoryUsage(MemoryUsage& memoryUsage) const override;
+    void FillMemoryUsage(MemoryUsage& memoryUsage) const override;
     void DoFillStatistics(SegmentStatistics& stat) const override;
     std::pair<Status, std::unique_ptr<KeyWriter>> CreateKeyWriter(KVTypeId typeId, int32_t occupancyPct) const;
-    bool NeedCompress() const;
     bool TryFindCurrentValue(uint64_t key, offset_t& curValueOffset) const;
 
     offset_t DecodeOffset(const char* data) const;
@@ -97,7 +96,7 @@ private:
 public:
     static constexpr float DEFAULT_KEY_VALUE_MEM_RATIO = 0.01f;
     static constexpr float MIN_KEY_VALUE_MEM_RATIO = 0.001f;
-    static constexpr float MAX_KEY_VALUE_MEM_RATIO = 0.9f;
+    static constexpr float MAX_KEY_VALUE_MEM_RATIO = 0.5f; // attention to no doc or full of delete doc
     static constexpr float DEFAULT_VALUE_COMPRESSION_RATIO = 1.0f;
 };
 

@@ -23,24 +23,25 @@
 
 namespace autil {
 
-class NetUtil
-{
+class NetUtil {
 public:
-    static bool GetIp(std::vector<std::string>& ips);
-    static bool GetDefaultIp(std::string& ip);
-    static bool GetHostName(std::string& hostname);
+    static bool GetIp(std::vector<std::string> &ips);
+    static bool GetDefaultIp(std::string &ip);
+    static bool GetHostName(std::string &hostname);
     static uint16_t randomPort();
     static std::string inetNtoa(int32_t ip);
     static std::string getBindIp();
-    static bool isMacAddr(const std::string& addr);
-    static bool GetMachineName(std::string& host);
+    static bool isMacAddr(const std::string &addr);
+    static bool GetMachineName(std::string &host);
 
 private:
     static uint16_t getPort(uint16_t from = 1025, uint16_t to = 60001);
+
 private:
     static const std::string HOST_INFO_PATH;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
-}
+} // namespace autil

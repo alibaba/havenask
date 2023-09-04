@@ -22,13 +22,16 @@
 
 namespace multi_call {
 
-class WarmUpStrategy {
+class WarmUpStrategy
+{
 public:
     WarmUpStrategy(int64_t timeoutInSecond, int64_t queryCountLimit)
-        : _timeout(0), _queryCountLimit(0) {
+        : _timeout(0)
+        , _queryCountLimit(0) {
         update(timeoutInSecond, queryCountLimit);
     }
-    ~WarmUpStrategy() {}
+    ~WarmUpStrategy() {
+    }
 
 private:
     WarmUpStrategy(const WarmUpStrategy &);

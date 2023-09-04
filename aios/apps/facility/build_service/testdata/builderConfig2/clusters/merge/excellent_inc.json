@@ -1,0 +1,95 @@
+{
+    "merge_config" : {
+
+	"merge_strategy" : "balance_tree",
+        "max_merge_memory_use" : 22528,
+	"merge_strategy_param" : "conflict-segment-number=2;base-doc-count=102400;max-doc-count=1024000;conflict-delete-percent=80;max-valid-doc-count=20000000",
+	"merge_thread_count" : 3,
+	"truncate_strategy" : [
+	    {
+		"diversity_constrain" : {
+		    "filter_by_meta" : true,
+		    "filter_field" : "static_trans_score"
+		},
+		"limit" : 6000,
+		"strategy_name" : "static_trans_score_filter_by_meta",
+		"strategy_type" : "truncate_meta",
+		"truncate_profiles" : [
+		    "desc_static_trans_score"
+		]
+	    },
+	    {
+		"diversity_constrain" : {
+		    "filter_by_meta" : true,
+		    "filter_field" : "w_gmv_haixuan_c2c"
+		},
+		"limit" : 6000,
+		"strategy_name" : "w_gmv_haixuan_c2c_filter_by_meta",
+		"strategy_type" : "truncate_meta",
+		"truncate_profiles" : [
+		    "desc_w_gmv_haixuan_c2c"
+		]
+	    },
+	    {
+		"diversity_constrain" : {
+		    "filter_by_meta" : true,
+		    "filter_field" : "uvsum"
+		},
+		"limit" : 6000,
+		"strategy_name" : "uvsum_suc_filter_by_meta",
+		"strategy_type" : "truncate_meta",
+		"truncate_profiles" : [
+		    "desc_uvsum"
+		]
+	    },
+	    {
+		"diversity_constrain" : {
+		    "filter_by_meta" : true,
+		    "filter_field" : "uvsum_suc"
+		},
+		"limit" : 6000,
+		"strategy_name" : "uvsum_suc_filter_by_meta",
+		"strategy_type" : "truncate_meta",
+		"truncate_profiles" : [
+		    "desc_uvsum_suc"
+		]
+	    },
+	    {
+		"diversity_constrain" : {
+		    "filter_by_meta" : true,
+		    "filter_field" : "auc_money_score_c2c"
+		},
+		"limit" : 6000,
+		"strategy_name" : "auc_money_score_c2c_filter_by_meta",
+		"strategy_type" : "truncate_meta",
+		"truncate_profiles" : [
+		    "desc_auc_money_score_c2c",
+		    "desc_2_auc_money_score_c2c"
+		]
+	    },
+            {
+		"diversity_constrain" : {
+		    "filter_parameter" : "fieldName=ends_1;beginTime=now;adviseEndTime=23:59:59;minInterval=24",
+		    "filter_type" : "FilterByTimeStamp"
+		},
+		"strategy_name" : "ends_filter_by_timestamp",
+		"strategy_type" : "truncate_meta",
+		"truncate_profiles" : [
+		    "asc_ends_1"
+		]
+	    },
+            {
+		"diversity_constrain" : {
+		    "filter_by_meta" : true,
+		    "filter_field" : "biz30day"
+		},
+		"Limit" : 6000,
+		"strategy_name" : "biz30day_filter_by_meta",
+		"strategy_type" : "truncate_meta",
+		"truncate_profiles" : [
+		    "desc_biz30day"
+		]
+	    }
+	]
+    }
+}

@@ -23,8 +23,7 @@
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class ScopedFileLock
-{
+class ScopedFileLock {
 public:
     friend class FileSystem;
     friend class ScopedFileLockTest;
@@ -35,14 +34,14 @@ public:
 
 private:
     void release();
-    bool init(FileLock* lock);
+    bool init(FileLock *lock);
 
 private:
-    FileLock* _lock;
+    FileLock *_lock;
 };
 
 FSLIB_TYPEDEF_AUTO_PTR(ScopedFileLock);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_SCOPEDFILELOCK_H
+#endif // FSLIB_SCOPEDFILELOCK_H

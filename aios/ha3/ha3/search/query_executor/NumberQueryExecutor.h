@@ -17,37 +17,37 @@
 
 #include <string>
 
-#include "indexlib/misc/common.h"
-
-#include "ha3/search/TermQueryExecutor.h"
 #include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/search/TermQueryExecutor.h"
+#include "indexlib/misc/common.h"
 
 namespace indexlib {
 namespace index {
 class PostingIterator;
-}  // namespace index
-}  // namespace indexlib
+} // namespace index
+} // namespace indexlib
 namespace isearch {
 namespace common {
 class Term;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace search {
 
-class NumberQueryExecutor : public TermQueryExecutor
-{
+class NumberQueryExecutor : public TermQueryExecutor {
 public:
-    NumberQueryExecutor(indexlib::index::PostingIterator *iter,
-                        const common::Term &term);
+    NumberQueryExecutor(indexlib::index::PostingIterator *iter, const common::Term &term);
     ~NumberQueryExecutor();
+
 public:
-    const std::string getName() const { return "NumberQueryExecutor";}
+    const std::string getName() const {
+        return "NumberQueryExecutor";
+    }
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
 } // namespace search
 } // namespace isearch
-

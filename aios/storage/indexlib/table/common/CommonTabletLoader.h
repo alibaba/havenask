@@ -51,7 +51,6 @@ protected:
 
 protected:
     std::string _fenceName;
-    std::string _tabletName;
     framework::Version _newVersion;
     std::set<segmentid_t> _segmentIdsOnPreload;
     Segments _newSegments;

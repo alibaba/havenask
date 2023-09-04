@@ -1,0 +1,647 @@
+{
+  "plan": {
+    "exec_params": {}, 
+    "optimize_infos": {}, 
+    "plan_meta": {}, 
+    "rel_plan": [
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "t1", 
+          "limit": 2147483647, 
+          "location": {
+            "partition_cnt": 2, 
+            "table_group_name": "t1"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "id": "default.t1.tj_item.id", 
+              "sku_id": "default.t1.tj_item.sku_id"
+            }, 
+            "partition_cnt": 2, 
+            "type": "HASH_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$id", 
+            "$shop_id", 
+            "$reserve_price", 
+            "$category", 
+            "$title", 
+            "$desc", 
+            "$modify_time", 
+            "$status", 
+            "$sku"
+          ], 
+          "output_fields_hash": -1945445527, 
+          "output_fields_internal": [
+            "$id", 
+            "$shop_id", 
+            "$reserve_price", 
+            "$category", 
+            "$title", 
+            "$desc", 
+            "$modify_time", 
+            "$status", 
+            "$sku"
+          ], 
+          "output_fields_internal_type": [
+            "BIGINT", 
+            "BIGINT", 
+            "DOUBLE", 
+            "ARRAY(INTEGER)", 
+            "VARCHAR", 
+            "VARCHAR", 
+            "BIGINT", 
+            "TINYINT", 
+            "MULTISET"
+          ], 
+          "output_fields_type": [
+            "BIGINT", 
+            "BIGINT", 
+            "DOUBLE", 
+            "ARRAY(INTEGER)", 
+            "VARCHAR", 
+            "VARCHAR", 
+            "BIGINT", 
+            "TINYINT", 
+            "MULTISET"
+          ], 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "partition_cnt": 2
+          }, 
+          "table_meta": {
+            "field_meta": [
+              {
+                "field_name": "$id", 
+                "field_type": "int64", 
+                "index_name": "id", 
+                "index_type": "primarykey128", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$shop_id", 
+                "field_type": "int64", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$reserve_price", 
+                "field_type": "double", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$category", 
+                "field_type": "array", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$title", 
+                "field_type": "string", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$desc", 
+                "field_type": "string", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$modify_time", 
+                "field_type": "int64", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$status", 
+                "field_type": "int8", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$sku", 
+                "field_type": "multiset", 
+                "is_attribute": "false"
+              }
+            ]
+          }, 
+          "table_name": "tj_item", 
+          "table_type": "normal", 
+          "use_nest_table": false, 
+          "used_fields": [
+            "$id", 
+            "$shop_id", 
+            "$reserve_price", 
+            "$category", 
+            "$title", 
+            "$desc", 
+            "$modify_time", 
+            "$status", 
+            "$sku"
+          ], 
+          "used_fields_type": [
+            "BIGINT", 
+            "BIGINT", 
+            "DOUBLE", 
+            "ARRAY(INTEGER)", 
+            "VARCHAR", 
+            "VARCHAR", 
+            "BIGINT", 
+            "TINYINT", 
+            "MULTISET"
+          ]
+        }, 
+        "id": 0, 
+        "inputs": {
+          "input": []
+        }, 
+        "op_name": "TableScanOp", 
+        "outputs": [
+          2
+        ]
+      }, 
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "t1", 
+          "hints": {
+            "HASH_JOIN": {
+              "tj_relation": "tj_relation"
+            }
+          }, 
+          "limit": 2147483647, 
+          "location": {
+            "partition_cnt": 2, 
+            "table_group_name": "t1"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$item_id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "pk": "default.t1.tj_relation.pk"
+            }, 
+            "partition_cnt": 2, 
+            "type": "HASH_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$pk", 
+            "$item_id", 
+            "$shop_id", 
+            "$price", 
+            "$status"
+          ], 
+          "output_fields_hash": -916305048, 
+          "output_fields_internal": [
+            "$pk", 
+            "$item_id", 
+            "$shop_id", 
+            "$price", 
+            "$status"
+          ], 
+          "output_fields_internal_type": [
+            "BIGINT", 
+            "BIGINT", 
+            "BIGINT", 
+            "DOUBLE", 
+            "TINYINT"
+          ], 
+          "output_fields_type": [
+            "BIGINT", 
+            "BIGINT", 
+            "BIGINT", 
+            "DOUBLE", 
+            "TINYINT"
+          ], 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$item_id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "partition_cnt": 2
+          }, 
+          "table_meta": {
+            "field_meta": [
+              {
+                "field_name": "$pk", 
+                "field_type": "int64", 
+                "index_name": "pk", 
+                "index_type": "primarykey128", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$item_id", 
+                "field_type": "int64", 
+                "index_name": "item_id", 
+                "index_type": "number", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$shop_id", 
+                "field_type": "int64", 
+                "index_name": "shop_id", 
+                "index_type": "number", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$price", 
+                "field_type": "double", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$status", 
+                "field_type": "int8", 
+                "is_attribute": "true"
+              }
+            ]
+          }, 
+          "table_name": "tj_relation", 
+          "table_type": "normal", 
+          "use_nest_table": false, 
+          "used_fields": [
+            "$pk", 
+            "$item_id", 
+            "$shop_id", 
+            "$price", 
+            "$status"
+          ], 
+          "used_fields_type": [
+            "BIGINT", 
+            "BIGINT", 
+            "BIGINT", 
+            "DOUBLE", 
+            "TINYINT"
+          ]
+        }, 
+        "id": 1, 
+        "inputs": {
+          "input": []
+        }, 
+        "op_name": "TableScanOp", 
+        "outputs": [
+          2
+        ]
+      }, 
+      {
+        "attrs": {
+          "condition": {
+            "op": "=", 
+            "params": [
+              "$id", 
+              "$item_id"
+            ], 
+            "type": "OTHER"
+          }, 
+          "equi_condition": {
+            "op": "=", 
+            "params": [
+              "$id", 
+              "$item_id"
+            ], 
+            "type": "OTHER"
+          }, 
+          "is_equi_join": true, 
+          "join_type": "INNER", 
+          "left_input_fields": [
+            "$id", 
+            "$shop_id", 
+            "$reserve_price", 
+            "$category", 
+            "$title", 
+            "$desc", 
+            "$modify_time", 
+            "$status", 
+            "$sku"
+          ], 
+          "left_is_build": true, 
+          "left_table_meta": {
+            "field_meta": [
+              {
+                "field_name": "$id", 
+                "field_type": "int64", 
+                "index_name": "id", 
+                "index_type": "primarykey128", 
+                "is_attribute": "true"
+              }
+            ]
+          }, 
+          "location": {
+            "partition_cnt": 2, 
+            "table_group_name": "t1"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "equal_hash_fields": [
+              [
+                "item_id", 
+                "id"
+              ]
+            ], 
+            "hash_mode": {
+              "hash_fields": [
+                "$item_id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "id": "default.t1.tj_item.id", 
+              "pk": "default.t1.tj_relation.pk", 
+              "sku_id": "default.t1.tj_item.sku_id"
+            }, 
+            "partition_cnt": 2, 
+            "type": "HASH_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$id", 
+            "$shop_id", 
+            "$reserve_price", 
+            "$category", 
+            "$title", 
+            "$desc", 
+            "$modify_time", 
+            "$status", 
+            "$sku", 
+            "$pk", 
+            "$item_id", 
+            "$shop_id0", 
+            "$price", 
+            "$status0"
+          ], 
+          "output_fields_hash": -1413141949, 
+          "output_fields_internal": [
+            "$id", 
+            "$shop_id", 
+            "$reserve_price", 
+            "$category", 
+            "$title", 
+            "$desc", 
+            "$modify_time", 
+            "$status", 
+            "$sku", 
+            "$pk", 
+            "$item_id", 
+            "$shop_id0", 
+            "$price", 
+            "$status0"
+          ], 
+          "output_fields_type": [
+            "BIGINT", 
+            "BIGINT", 
+            "DOUBLE", 
+            "ARRAY(INTEGER)", 
+            "VARCHAR", 
+            "VARCHAR", 
+            "BIGINT", 
+            "TINYINT", 
+            "MULTISET", 
+            "BIGINT", 
+            "BIGINT", 
+            "BIGINT", 
+            "DOUBLE", 
+            "TINYINT"
+          ], 
+          "right_input_fields": [
+            "$pk", 
+            "$item_id", 
+            "$shop_id", 
+            "$price", 
+            "$status"
+          ], 
+          "right_table_meta": {
+            "field_meta": [
+              {
+                "field_name": "$item_id", 
+                "field_type": "int64", 
+                "index_name": "item_id", 
+                "index_type": "number", 
+                "is_attribute": "true"
+              }
+            ]
+          }, 
+          "semi_join_type": "INNER", 
+          "system_field_num": 0, 
+          "try_distinct_build_row": false
+        }, 
+        "id": 2, 
+        "inputs": {
+          "input0": [
+            0
+          ], 
+          "input1": [
+            1
+          ]
+        }, 
+        "op_name": "HashJoinOp", 
+        "outputs": [
+          3
+        ]
+      }, 
+      {
+        "attrs": {
+          "limit": 100, 
+          "location": {
+            "partition_cnt": 2, 
+            "table_group_name": "t1"
+          }, 
+          "offset": 0, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "equal_hash_fields": [
+              [
+                "item_id", 
+                "id"
+              ]
+            ], 
+            "hash_mode": {
+              "hash_fields": [
+                "$item_id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "id": "default.t1.tj_item.id", 
+              "pk": "default.t1.tj_relation.pk", 
+              "sku_id": "default.t1.tj_item.sku_id"
+            }, 
+            "partition_cnt": 2, 
+            "type": "HASH_DISTRIBUTED"
+          }, 
+          "output_fields_hash": -1413141949
+        }, 
+        "id": 3, 
+        "inputs": {
+          "input": [
+            2
+          ]
+        }, 
+        "op_name": "LimitOp", 
+        "outputs": [
+          4
+        ]
+      }, 
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "t1", 
+          "distribution": {
+            "type": "SINGLETON"
+          }, 
+          "input_fields": [
+            "$id", 
+            "$shop_id", 
+            "$reserve_price", 
+            "$category", 
+            "$title", 
+            "$desc", 
+            "$modify_time", 
+            "$status", 
+            "$sku", 
+            "$pk", 
+            "$item_id", 
+            "$shop_id0", 
+            "$price", 
+            "$status0"
+          ], 
+          "input_fields_type": [
+            "BIGINT", 
+            "BIGINT", 
+            "DOUBLE", 
+            "ARRAY(INTEGER)", 
+            "VARCHAR", 
+            "VARCHAR", 
+            "BIGINT", 
+            "TINYINT", 
+            "MULTISET", 
+            "BIGINT", 
+            "BIGINT", 
+            "BIGINT", 
+            "DOUBLE", 
+            "TINYINT"
+          ], 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": -1413141949, 
+          "output_prunable": 0, 
+          "table_distribution": {
+            "equal_hash_fields": [
+              [
+                "item_id", 
+                "id"
+              ]
+            ], 
+            "hash_mode": {
+              "hash_fields": [
+                "$item_id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "id": "default.t1.tj_item.id", 
+              "pk": "default.t1.tj_relation.pk", 
+              "sku_id": "default.t1.tj_item.sku_id"
+            }, 
+            "partition_cnt": 2, 
+            "type": "HASH_DISTRIBUTED"
+          }, 
+          "table_group_name": "t1"
+        }, 
+        "id": 4, 
+        "inputs": {
+          "input": [
+            3
+          ]
+        }, 
+        "op_name": "ExchangeOp", 
+        "outputs": [
+          5
+        ]
+      }, 
+      {
+        "attrs": {
+          "limit": 100, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "qrs"
+          }, 
+          "offset": 0, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": -1413141949
+        }, 
+        "id": 5, 
+        "inputs": {
+          "input": [
+            4
+          ]
+        }, 
+        "op_name": "LimitOp", 
+        "outputs": [
+          6
+        ]
+      }, 
+      {
+        "attrs": {
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "qrs"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": -1413141949, 
+          "type": "api"
+        }, 
+        "id": 6, 
+        "inputs": {
+          "input": [
+            5
+          ]
+        }, 
+        "op_name": "SinkOp"
+      }
+    ], 
+    "rel_plan_version": "plan_version_0.0.1"
+  }, 
+  "sql_params": {
+    "iquan.optimizer.debug.enable": "false", 
+    "iquan.plan.format.object.enable": "true", 
+    "iquan.plan.format.type": "json", 
+    "iquan.plan.format.version": "plan_version_0.0.1", 
+    "iquan.plan.output.exec_params": "false", 
+    "iquan.plan.prepare.level": "end"
+  }, 
+  "sqls": [
+    "SELECT /*+ HASH_JOIN(tj_relation)*/ * FROM tj_item join tj_relation on tj_item.id = tj_relation.item_id"
+  ]
+}

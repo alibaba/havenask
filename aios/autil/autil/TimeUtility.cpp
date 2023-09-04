@@ -28,25 +28,15 @@ int64_t TimeUtility::currentTime() {
     return (tval.tv_sec * 1000000LL + tval.tv_usec);
 }
 
-int64_t TimeUtility::currentTimeInNanoSeconds() {
-    return currentTime() * 1000;
-}
+int64_t TimeUtility::currentTimeInNanoSeconds() { return currentTime() * 1000; }
 
-int64_t TimeUtility::currentTimeInSeconds() {
-    return currentTime() / 1000000;
-}
+int64_t TimeUtility::currentTimeInSeconds() { return currentTime() / 1000000; }
 
-int64_t TimeUtility::currentTimeInMicroSeconds() {
-    return currentTime();
-}
+int64_t TimeUtility::currentTimeInMicroSeconds() { return currentTime(); }
 
-int64_t TimeUtility::currentTimeInMilliSeconds() {
-    return currentTime() / 1000;
-}
+int64_t TimeUtility::currentTimeInMilliSeconds() { return currentTime() / 1000; }
 
-int64_t TimeUtility::monotonicTimeUs() {
-    return monotonicTimeNs() / 1000;
-}
+int64_t TimeUtility::monotonicTimeUs() { return monotonicTimeNs() / 1000; }
 
 int64_t TimeUtility::monotonicTimeNs() {
     struct timespec spec;
@@ -54,9 +44,7 @@ int64_t TimeUtility::monotonicTimeNs() {
     return spec.tv_sec * 1000000000L + spec.tv_nsec;
 }
 
-int64_t TimeUtility::getTime(int64_t usecOffset) {
-    return currentTime() + usecOffset;
-}
+int64_t TimeUtility::getTime(int64_t usecOffset) { return currentTime() + usecOffset; }
 
 timeval TimeUtility::getTimeval(int64_t usecOffset) {
     timeval tval;
@@ -92,4 +80,4 @@ string TimeUtility::currentTimeString(const std::string &format) {
     return string(str);
 }
 
-}
+} // namespace autil

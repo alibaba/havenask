@@ -32,7 +32,7 @@ class VarNumAttributeDefragSliceArray : public util::DefragSliceArray
 {
 public:
     VarNumAttributeDefragSliceArray(const util::DefragSliceArray::SliceArrayPtr& sliceArray,
-                                    const std::string& attrName, float defragPercentThreshold);
+                                    const std::string& attrName, uint64_t defragPercentThreshold);
     ~VarNumAttributeDefragSliceArray();
 
 public:
@@ -55,7 +55,7 @@ private:
     AttributeMetrics* mAttributeMetrics;
     std::vector<int64_t> mUselessSliceIdxs;
     std::string mAttrName;
-    float mDefragPercentThreshold;
+    uint64_t mDefragPercentThreshold;
 
 private:
     friend class VarNumAttributeDefragSliceArrayTest;

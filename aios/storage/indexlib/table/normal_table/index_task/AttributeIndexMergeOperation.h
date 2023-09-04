@@ -32,7 +32,7 @@ public:
 private:
     std::pair<Status, std::shared_ptr<config::IIndexConfig>>
     GetIndexConfig(const framework::IndexOperationDescription& opDesc, const std::string& indexType,
-                   const std::string& indexName, const std::shared_ptr<config::TabletSchema>& schema) override;
+                   const std::string& indexName, const std::shared_ptr<config::ITabletSchema>& schema) override;
 
 private:
     indexlibv2::index::PatchInfos _allPatchInfos;

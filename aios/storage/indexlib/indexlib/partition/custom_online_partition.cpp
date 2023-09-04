@@ -26,6 +26,7 @@
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/IndexFileList.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/RemoveOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index_base/deploy_index_wrapper.h"
@@ -61,6 +62,7 @@
 #include "indexlib/table/table_plugin_loader.h"
 #include "indexlib/table/table_reader.h"
 #include "indexlib/util/PathUtil.h"
+#include "indexlib/util/Singleton.h"
 #include "indexlib/util/TaskScheduler.h"
 #include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/member_function_task_item.h"
@@ -1128,8 +1130,8 @@ void CustomOnlinePartition::InitResourceCleaner()
 void CustomOnlinePartition::AddOnDiskIndexCleaner()
 {
     // TODO: In future, suez will in controll of local index clean
-    char* envStr = getenv("INDEXLIB_ONLINE_CLEAN_ON_DISK_INDEX");
-    if (envStr && std::string(envStr) == "false") {
+    string envStr = autil::EnvUtil::getEnv("INDEXLIB_ONLINE_CLEAN_ON_DISK_INDEX");
+    if (envStr == "false") {
         return;
     }
     ExecutorPtr onDiskIndexCleaner(new OnDiskIndexCleaner(mOptions.GetOnlineConfig().onlineKeepVersionCount,

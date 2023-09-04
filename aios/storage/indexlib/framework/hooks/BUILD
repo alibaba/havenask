@@ -1,13 +1,13 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='hooks',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage:__subpackages__'],
     deps=[':TabletHooksCreator']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletHooksCreator',
     deps=[
         ':ITabletDeployerHook', '//aios/autil:NoCopyable',
@@ -15,7 +15,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:Singleton'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ITabletDeployerHook',
     srcs=[],
     deps=['//aios/autil:NoCopyable', '//aios/storage/indexlib/base:Types']

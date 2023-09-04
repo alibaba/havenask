@@ -1,0 +1,14 @@
+{
+    "table_name": "simple_table",
+    "table_type" : "raw_file",
+    "user_defined_param" : {
+        "file_name" : "data",
+	"need_reserve":"yes"
+    },
+    "fields":[],
+    "indexs":[],
+    "attributes": [],
+    "summarys":{
+        "summary_fields" : []
+    }
+}

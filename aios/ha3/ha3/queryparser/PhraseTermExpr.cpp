@@ -17,19 +17,18 @@
 
 #include <string>
 
+#include "autil/Log.h"
 #include "ha3/queryparser/QueryExprEvaluator.h"
 #include "ha3/queryparser/WordsTermExpr.h"
-#include "autil/Log.h"
 
 namespace isearch {
 namespace queryparser {
 AUTIL_LOG_SETUP(ha3, PhraseTermExpr);
 
-PhraseTermExpr::PhraseTermExpr(const std::string &text) : WordsTermExpr(text) {
-}
+PhraseTermExpr::PhraseTermExpr(const std::string &text)
+    : WordsTermExpr(text) {}
 
-PhraseTermExpr::~PhraseTermExpr() { 
-}
+PhraseTermExpr::~PhraseTermExpr() {}
 
 void PhraseTermExpr::evaluate(QueryExprEvaluator *qee) {
     qee->evaluatePhraseExpr(this);
@@ -37,4 +36,3 @@ void PhraseTermExpr::evaluate(QueryExprEvaluator *qee) {
 
 } // namespace queryparser
 } // namespace isearch
-

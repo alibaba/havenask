@@ -24,7 +24,8 @@ class RPCServerClosure;
 
 namespace multi_call {
 
-class ArpcClosure : public GigClosure {
+class ArpcClosure : public GigClosure
+{
 public:
     ArpcClosure(arpc::RPCServerClosure *closure, const QueryInfoPtr &queryInfo,
                 const CompatibleFieldInfo *info)
@@ -35,7 +36,9 @@ public:
         setNeedFinishQueryInfo(true);
         setCompatibleFieldInfo(info);
     }
-    ~ArpcClosure() { _closure = NULL; }
+    ~ArpcClosure() {
+        _closure = NULL;
+    }
 
 private:
     ArpcClosure(const ArpcClosure &);

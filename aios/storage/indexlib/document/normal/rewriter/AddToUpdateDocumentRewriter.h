@@ -26,7 +26,7 @@
 #include "indexlib/util/Bitmap.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 class IIndexConfig;
 } // namespace indexlibv2::config
 
@@ -42,7 +42,7 @@ public:
     ~AddToUpdateDocumentRewriter();
 
 public:
-    Status Init(const std::shared_ptr<config::TabletSchema>& schema,
+    Status Init(const std::shared_ptr<config::ITabletSchema>& schema,
                 const std::vector<std::shared_ptr<config::TruncateOptionConfig>>& truncateOptionConfigs,
                 const std::vector<config::SortDescriptions>& sortDescVec);
     std::function<void()> TryRewrite(const std::shared_ptr<NormalDocument>& doc);
@@ -67,7 +67,7 @@ private:
     bool IsSortField(const std::string& fieldName, const std::vector<config::SortDescriptions>& sortDescVec);
 
 private:
-    std::shared_ptr<config::TabletSchema> _schema;
+    std::shared_ptr<config::ITabletSchema> _schema;
     indexlib::util::Bitmap _attributeUpdatableFieldIds;
     indexlib::util::Bitmap _invertedIndexUpdatableFieldIds;
     indexlib::util::Bitmap _uselessFieldIds;

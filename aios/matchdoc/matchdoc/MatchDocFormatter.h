@@ -28,69 +28,66 @@ using flatbuffers::Vector;
 class MatchDocFormatter {
 
 public:
+    static flatbuffers::Offset<MatchRecords>
+    toFBResultRecordsByColumns(const std::string &tableName,
+                               const std::vector<std::string> &fieldNameVec,
+                               const matchdoc::ReferenceVector &refs,
+                               const std::vector<matchdoc::MatchDoc> &docs,
+                               const std::vector<Offset<flatbuffers::String>> &tracerOffsets,
+                               flatbuffers::FlatBufferBuilder &fbb);
 
-    static flatbuffers::Offset<MatchRecords> toFBResultRecordsByColumns(
-            const std::string &tableName,
-            const std::vector<std::string> &fieldNameVec,
-            const matchdoc::ReferenceVector &refs,
-            const std::vector<matchdoc::MatchDoc> &docs,
-            const std::vector<Offset<flatbuffers::String>> &tracerOffsets,
-            flatbuffers::FlatBufferBuilder &fbb);
+    static flatbuffers::Offset<MatchRecords> toFBResultRecordsByColumns(const std::string &tableName,
+                                                                        const std::vector<std::string> &fieldNameVec,
+                                                                        const matchdoc::ReferenceVector &refs,
+                                                                        const std::vector<matchdoc::MatchDoc> &docs,
+                                                                        flatbuffers::FlatBufferBuilder &fbb,
+                                                                        std::string &errMsg);
 
-    static flatbuffers::Offset<MatchRecords> toFBResultRecordsByColumns(
-            const std::string &tableName,
-            const std::vector<std::string> &fieldNameVec,
-            const matchdoc::ReferenceVector &refs,
-            const std::vector<matchdoc::MatchDoc> &docs,
-            flatbuffers::FlatBufferBuilder &fbb,
-            std::string &errMsg);
+    static flatbuffers::Offset<MatchRecords>
+    toFBResultRecordsByColumns(const std::string &tableName,
+                               const std::vector<std::string> &fieldNameVec,
+                               const matchdoc::ReferenceVector &refs,
+                               const std::vector<matchdoc::MatchDoc> &docs,
+                               const std::vector<Offset<flatbuffers::String>> &tracerOffsets,
+                               flatbuffers::FlatBufferBuilder &fbb,
+                               std::string &errMsg);
 
-    static flatbuffers::Offset<MatchRecords> toFBResultRecordsByColumns(
-            const std::string &tableName,
-            const std::vector<std::string> &fieldNameVec,
-            const matchdoc::ReferenceVector &refs,
-            const std::vector<matchdoc::MatchDoc> &docs,
-            const std::vector<Offset<flatbuffers::String>> &tracerOffsets,
-            flatbuffers::FlatBufferBuilder &fbb,
-            std::string &errMsg);
-
-    static flatbuffers::Offset<FieldValueColumnTable> toFBResultRecordsByColumn(
-            const matchdoc::ReferenceBase *base, const std::vector<matchdoc::MatchDoc> &docs,
-            flatbuffers::FlatBufferBuilder &fbb);
+    static flatbuffers::Offset<FieldValueColumnTable>
+    toFBResultRecordsByColumn(const matchdoc::ReferenceBase *base,
+                              const std::vector<matchdoc::MatchDoc> &docs,
+                              flatbuffers::FlatBufferBuilder &fbb);
 
     // for test
-    static flatbuffers::Offset<MatchRecords> createMatchRecords(
-            flatbuffers::FlatBufferBuilder &fbb,
-            const std::vector<std::string>&,
-            const std::vector<std::vector<int8_t>>&,
-            const std::vector<std::vector<uint8_t>>&,
-            const std::vector<std::vector<int16_t>>&,
-            const std::vector<std::vector<uint16_t>>&,
-            const std::vector<std::vector<int32_t>>&,
-            const std::vector<std::vector<uint32_t>>&,
-            const std::vector<std::vector<int64_t>>&,
-            const std::vector<std::vector<uint64_t>>&,
-            const std::vector<std::vector<float>>&,
-            const std::vector<std::vector<double>>&,
-            const std::vector<std::vector<std::string>>&,
-            const std::vector<std::vector<std::vector<int8_t>>>&,
-            const std::vector<std::vector<std::vector<uint8_t>>>&,
-            const std::vector<std::vector<std::vector<int16_t>>>&,
-            const std::vector<std::vector<std::vector<uint16_t>>>&,
-            const std::vector<std::vector<std::vector<int32_t>>>&,
-            const std::vector<std::vector<std::vector<uint32_t>>>&,
-            const std::vector<std::vector<std::vector<int64_t>>>&,
-            const std::vector<std::vector<std::vector<uint64_t>>>&,
-            const std::vector<std::vector<std::vector<float>>>&,
-            const std::vector<std::vector<std::vector<double>>>&,
-            const std::vector<std::vector<std::vector<std::string>>>&,
-            size_t docCount,
-            const std::vector<std::string>&);
+    static flatbuffers::Offset<MatchRecords>
+    createMatchRecords(flatbuffers::FlatBufferBuilder &fbb,
+                       const std::vector<std::string> &,
+                       const std::vector<std::vector<int8_t>> &,
+                       const std::vector<std::vector<uint8_t>> &,
+                       const std::vector<std::vector<int16_t>> &,
+                       const std::vector<std::vector<uint16_t>> &,
+                       const std::vector<std::vector<int32_t>> &,
+                       const std::vector<std::vector<uint32_t>> &,
+                       const std::vector<std::vector<int64_t>> &,
+                       const std::vector<std::vector<uint64_t>> &,
+                       const std::vector<std::vector<float>> &,
+                       const std::vector<std::vector<double>> &,
+                       const std::vector<std::vector<std::string>> &,
+                       const std::vector<std::vector<std::vector<int8_t>>> &,
+                       const std::vector<std::vector<std::vector<uint8_t>>> &,
+                       const std::vector<std::vector<std::vector<int16_t>>> &,
+                       const std::vector<std::vector<std::vector<uint16_t>>> &,
+                       const std::vector<std::vector<std::vector<int32_t>>> &,
+                       const std::vector<std::vector<std::vector<uint32_t>>> &,
+                       const std::vector<std::vector<std::vector<int64_t>>> &,
+                       const std::vector<std::vector<std::vector<uint64_t>>> &,
+                       const std::vector<std::vector<std::vector<float>>> &,
+                       const std::vector<std::vector<std::vector<double>>> &,
+                       const std::vector<std::vector<std::vector<std::string>>> &,
+                       size_t docCount,
+                       const std::vector<std::string> &);
 
 private:
-
     AUTIL_LOG_DECLARE();
-
 };
 
-}
+} // namespace matchdoc

@@ -16,13 +16,14 @@
 #ifndef FSLIB_FILE_H
 #define FSLIB_FILE_H
 
+#include <functional>
+#include <sys/mman.h>
 #include <sys/types.h>
+#include <sys/uio.h>
+
 #include "autil/Log.h"
 #include "fslib/common/common_define.h"
 #include "fslib/common/common_type.h"
-#include <functional>
-#include <sys/uio.h>
-#include <sys/mman.h>
 
 #if (__cplusplus >= 201703L)
 #include "fslib/fs/IOController.h"
@@ -30,47 +31,44 @@
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class File
-{
+class File {
 public:
-    File(const std::string& fileName, ErrorCode ec = EC_OK) {
+    File(const std::string &fileName, ErrorCode ec = EC_OK) {
         _fileName = fileName;
         _lastErrorCode = ec;
     }
 
-    virtual ~File() {
-    }
+    virtual ~File() {}
 
 public:
     /**
      * read read content from current file to buffer
      * @param buffer [in] buffer to store the content
-     * @param length [in] length in bytes of content to read 
+     * @param length [in] length in bytes of content to read
      * @return ssize_t, the length of content actually read, -1 indicates an error
      */
-    virtual ssize_t read(void* buffer, size_t length) = 0;
+    virtual ssize_t read(void *buffer, size_t length) = 0;
 
     /**
      * write write content from buffer to current file
-     * @param buffer [in] buffer to write from 
+     * @param buffer [in] buffer to write from
      * @param length [in] length in bytes of content to write
      * @return ssize_t, the length of content actually write, -1 indicates an error
      */
-    virtual ssize_t write(const void* buffer, size_t length) = 0;
+    virtual ssize_t write(const void *buffer, size_t length) = 0;
 
     /**
      * pread read content from current file to buffer, file offset is not changed
-     * @param buffer [in] buffer to store 
-     * @param length [in] length in bytes of content to read 
-     * @param offset [in] file offset from which to read in bytes 
+     * @param buffer [in] buffer to store
+     * @param length [in] length in bytes of content to read
+     * @param offset [in] file offset from which to read in bytes
      * @return ssize_t, the length of content actually read, -1 indicates an error
      */
-    virtual ssize_t pread(void* buffer, size_t length, off_t offset) = 0;
+    virtual ssize_t pread(void *buffer, size_t length, off_t offset) = 0;
 
 #if (__cplusplus >= 201703L)
-    virtual void pread(IOController* controller, void* buffer, size_t length, off_t offset,
-                  std::function<void()> callback)
-    {
+    virtual void
+    pread(IOController *controller, void *buffer, size_t length, off_t offset, std::function<void()> callback) {
         auto ret = pread(buffer, length, offset);
         if (ret < 0) {
             controller->setErrorCode(EC_UNKNOWN);
@@ -86,10 +84,10 @@ public:
      * preadv() reads iovcnt buffers from current file into the buffers described by iov
      * @param buffer [iov] points to an array of iovec structures, refer to preadv(2)
      * @param length [iovcnt] count of iovec
-     * @param offset [offset] file offset from which to read in bytes 
+     * @param offset [offset] file offset from which to read in bytes
      * @return ssize_t, the length of content actually read, -1 indicates an error
      */
-    virtual ssize_t preadv(const iovec* iov, int iovcnt, off_t offset) {
+    virtual ssize_t preadv(const iovec *iov, int iovcnt, off_t offset) {
         ssize_t readBytes = 0;
         for (int i = 0; i < iovcnt; ++i) {
             int ret = pread(iov[i].iov_base, iov[i].iov_len, offset + readBytes);
@@ -105,9 +103,8 @@ public:
     }
 
 #if (__cplusplus >= 201703L)
-    virtual void preadv(IOController* controller, const iovec* iov, int iovcnt, off_t offset,
-                        std::function<void()> callback)
-    {
+    virtual void
+    preadv(IOController *controller, const iovec *iov, int iovcnt, off_t offset, std::function<void()> callback) {
         auto ret = preadv(iov, iovcnt, offset);
         if (ret < 0) {
             controller->setErrorCode(EC_UNKNOWN);
@@ -120,16 +117,16 @@ public:
 #endif
     /**
      * pwrite write content from buffer to current file, file offset is not changed
-     * @param buffer [in] buffer to write from 
+     * @param buffer [in] buffer to write from
      * @param length [in] length in bytes of content to write
-     * @param offset [in] file offset from which to write in bytes 
+     * @param offset [in] file offset from which to write in bytes
      * @return ssize_t, the length of content actually write, -1 indicates an error
      */
-    virtual ssize_t pwrite(const void* buffer, size_t length, off_t offset) = 0;
+    virtual ssize_t pwrite(const void *buffer, size_t length, off_t offset) = 0;
 
 #if (__cplusplus >= 201703L)
-    virtual void pwrite(IOController* controller, void* buffer, size_t length, off_t offset,
-                        std::function<void()> callback) {
+    virtual void
+    pwrite(IOController *controller, void *buffer, size_t length, off_t offset, std::function<void()> callback) {
         auto ret = pwrite(buffer, length, offset);
         if (ret < 0) {
             controller->setErrorCode(_lastErrorCode);
@@ -140,7 +137,7 @@ public:
         callback();
     }
 #endif
-    virtual ssize_t pwritev(const iovec* iov, int iovcnt, off_t offset) {
+    virtual ssize_t pwritev(const iovec *iov, int iovcnt, off_t offset) {
         ssize_t writtenBytes = 0;
         for (int i = 0; i < iovcnt; ++i) {
             int ret = pwrite(iov[i].iov_base, iov[i].iov_len, offset + writtenBytes);
@@ -156,9 +153,8 @@ public:
     }
 
 #if (__cplusplus >= 201703L)
-    virtual void pwritev(IOController* controller, const iovec* iov, int iovcnt, off_t offset,
-                        std::function<void()> callback)
-    {
+    virtual void
+    pwritev(IOController *controller, const iovec *iov, int iovcnt, off_t offset, std::function<void()> callback) {
         auto ret = pwritev(iov, iovcnt, offset);
         if (ret < 0) {
             controller->setErrorCode(_lastErrorCode);
@@ -209,26 +205,22 @@ public:
      * getLastError return the error code of last operation
      * @return ErrorCode, error code of the last failed operation
      */
-    virtual ErrorCode getLastError() const {
-        return _lastErrorCode;
-    }
+    virtual ErrorCode getLastError() const { return _lastErrorCode; }
 
     /**
      * getFileName return the pointer to the name of the file
      * @return char*
      */
-    const char* getFileName() const {
-        return _fileName.c_str();
-    }
+    const char *getFileName() const { return _fileName.c_str(); }
 
     /**
-     * isOpened check whether the file is successfully opened 
+     * isOpened check whether the file is successfully opened
      * @return bool, true if the file is successfully opened, otherwise return false
      */
     virtual bool isOpened() const = 0;
 
     /**
-     * isEof check whether the file reaches the end 
+     * isEof check whether the file reaches the end
      * @return bool, true if the file reaches the end, otherwise return false
      */
     virtual bool isEof() = 0;
@@ -244,9 +236,8 @@ public:
         return ret;
     }
 
-    virtual ErrorCode ioctlImpl(IOCtlRequest request, va_list args) {
-        return EC_NOTSUP;
-    }
+    virtual ErrorCode ioctlImpl(IOCtlRequest request, va_list args) { return EC_NOTSUP; }
+
 private:
     friend class FileTest;
 
@@ -259,4 +250,4 @@ FSLIB_TYPEDEF_AUTO_PTR(File);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_FILE_H
+#endif // FSLIB_FILE_H

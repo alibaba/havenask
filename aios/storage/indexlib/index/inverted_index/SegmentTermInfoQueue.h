@@ -26,7 +26,7 @@
 #include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 namespace indexlib::index {
 class SingleFieldIndexPatchIterator;
@@ -54,7 +54,7 @@ public:
 
 private:
     Status AddOnDiskTermInfo(docid_t baseDocId, uint64_t docCount, segmentid_t segmentId,
-                             const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+                             const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                              const std::shared_ptr<file_system::Directory>& segmentDir);
     void AddQueueItem(size_t baseDocid, segmentid_t& segmentId, const std::shared_ptr<IndexIterator>& indexIt,
                       const std::shared_ptr<SingleFieldIndexSegmentPatchIterator>& patchIter,
@@ -65,7 +65,7 @@ private:
                                const std::shared_ptr<file_system::Directory>& indexDir) const;
 
     std::shared_ptr<IndexIterator>
-    CreateForDefaultValueIter(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema, uint64_t docCount,
+    CreateForDefaultValueIter(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema, uint64_t docCount,
                               segmentid_t segmentId) const;
 
     std::shared_ptr<file_system::Directory>

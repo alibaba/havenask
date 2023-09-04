@@ -33,6 +33,7 @@
 #include "indexlib/index/kkv/config/KKVIndexConfig.h"
 #include "indexlib/table/BuiltinDefine.h"
 #include "indexlib/table/common/CommonTabletValidator.h"
+#include "indexlib/table/common/CommonVersionImporter.h"
 #include "indexlib/table/common/LSMTabletLoader.h"
 #include "indexlib/table/kkv_table/KKVMemSegment.h"
 #include "indexlib/table/kkv_table/KKVReader.h"
@@ -71,12 +72,12 @@ std::unique_ptr<config::SchemaResolver> KKVTabletFactory::CreateSchemaResolver()
 }
 
 std::unique_ptr<framework::TabletWriter>
-KKVTabletFactory::CreateTabletWriter(const std::shared_ptr<config::TabletSchema>& schema)
+KKVTabletFactory::CreateTabletWriter(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     return std::make_unique<KKVTabletWriter>(schema, _options->GetTabletOptions());
 }
 
-std::unique_ptr<TabletReader> KKVTabletFactory::CreateTabletReader(const std::shared_ptr<config::TabletSchema>& schema)
+std::unique_ptr<TabletReader> KKVTabletFactory::CreateTabletReader(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     return std::make_unique<KKVTabletReader>(schema);
 }
@@ -107,9 +108,9 @@ KKVTabletFactory::CreateDiskSegment(const SegmentMeta& segmentMeta, const framew
 std::unique_ptr<framework::MemSegment> KKVTabletFactory::CreateMemSegment(const SegmentMeta& segmentMeta)
 {
     auto segmentInfo = segmentMeta.segmentInfo;
-    if (segmentInfo->GetShardCount() == framework::SegmentInfo::INVALID_COLUMN_COUNT) {
+    if (segmentInfo->GetShardCount() == framework::SegmentInfo::INVALID_SHARDING_COUNT) {
         segmentInfo->SetShardCount(_options->GetShardNum());
-        AUTIL_LOG(INFO, "set shard count from[%u] to[%u] ", framework::SegmentInfo::INVALID_COLUMN_COUNT,
+        AUTIL_LOG(INFO, "set shard count from[%u] to[%u] ", framework::SegmentInfo::INVALID_SHARDING_COUNT,
                   _options->GetShardNum());
     }
 
@@ -136,7 +137,7 @@ std::unique_ptr<framework::IIndexTaskResourceCreator> KKVTabletFactory::CreateIn
 }
 
 std::unique_ptr<framework::IIndexOperationCreator>
-KKVTabletFactory::CreateIndexOperationCreator(const std::shared_ptr<config::TabletSchema>& schema)
+KKVTabletFactory::CreateIndexOperationCreator(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     return std::make_unique<KKVTableTaskOperationCreator>(schema);
 }
@@ -152,9 +153,14 @@ std::unique_ptr<indexlib::framework::ITabletExporter> KKVTabletFactory::CreateTa
 }
 
 std::unique_ptr<document::IDocumentFactory>
-KKVTabletFactory::CreateDocumentFactory(const std::shared_ptr<config::TabletSchema>& schema)
+KKVTabletFactory::CreateDocumentFactory(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     return std::make_unique<document::KKVDocumentFactory>();
+}
+
+std::unique_ptr<framework::ITabletImporter> KKVTabletFactory::CreateTabletImporter(const std::string& type)
+{
+    return std::make_unique<table::CommonVersionImporter>();
 }
 
 std::unique_ptr<indexlib::framework::ITabletValidator> KKVTabletFactory::CreateTabletValidator()
@@ -162,6 +168,6 @@ std::unique_ptr<indexlib::framework::ITabletValidator> KKVTabletFactory::CreateT
     return std::make_unique<indexlib::table::CommonTabletValidator>();
 }
 
-REGISTER_FACTORY(kkv, KKVTabletFactory);
+REGISTER_TABLET_FACTORY(kkv, KKVTabletFactory);
 
 } // namespace indexlibv2::table

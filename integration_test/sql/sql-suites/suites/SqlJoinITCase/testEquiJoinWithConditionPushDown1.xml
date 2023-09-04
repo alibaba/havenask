@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="testEquiJoinWithConditionPushDown1">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT t1.id, t1.title, t2.id, t2.desc FROM tj_item AS t1 JOIN tj_shop AS t2 ON t1.id = t2.id AND t1.reserve_price > 10
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"id","title","id0","desc"</Resource>
+        <Resource name="column_types">int64, multi_char, int64, multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+3,"华为手机",3,"shop3's desc"
+4,"OPPO手机",4,"shop3's desc"
+2,"华为手机",2,"shop2's desc"
+5,"OPPO手机",5,"shop3's desc"
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#5(type=api)
+    LimitOp#4(limit=100)
+        ExchangeOp#3(distribution={type:SINGLETON})
+            LimitOp#2(limit=100)
+                LookupJoinOp#1(build_node={catalog_name:default,db_name:t1,limit:2147483647,output_fields:[$id,$title],push_down_ops:[{attrs:{condition:{op:>,params:[$reserve_price,10],type:OTHER},output_fields:[$id,$title]},op_name:CalcOp}],table_name:tj_item,table_type:normal,use_nest_table:false},condition==($id,$id0),equi_condition==($id,$id0),is_equi_join=true,is_internal_build=false,join_type=INNER,left_is_build=true,output_fields=[$id,$title,$id0,$desc],semi_join_type=INNER)
+                    TableScanOp#0(catalog_name=default,db_name=t1,limit=2147483647,output_fields=[$id,$desc],push_down_ops=[{attrs:{output_fields:[$id,$desc]},op_name:CalcOp}],table_name=tj_shop,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

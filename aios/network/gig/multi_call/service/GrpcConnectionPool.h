@@ -22,7 +22,8 @@
 
 namespace multi_call {
 
-class GrpcConnectionPool : public ConnectionPool {
+class GrpcConnectionPool : public ConnectionPool
+{
 public:
     GrpcConnectionPool();
     ~GrpcConnectionPool();

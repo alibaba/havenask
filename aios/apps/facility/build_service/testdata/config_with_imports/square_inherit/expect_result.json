@@ -1,0 +1,30 @@
+{
+    "aggregate_sampler_config" : {
+	"aggThreshold" : 1234
+    },
+    "inherit_from" : "square_inherit/cluster_common_config.json",
+    "summary_profile_config" : {
+	"modules" : [
+	],
+	"summary_profiles" : [
+            {
+                "inherit_from" : "square_inherit/profileA.json",
+                "summary_profile_name": "base",
+		"extractor":
+		{
+                    "module_name": "ProfileA",
+	            "extractor_name": "DefaultExtractor"
+		}
+            },
+            {
+                "inherit_from" : "square_inherit/profileB.json",
+                "summary_profile_name": "base",
+		"extractor":
+		{
+                    "module_name": "ProfileB",
+	            "extractor_name": "DefaultExtractor"
+		}
+            }
+	]
+    }
+}

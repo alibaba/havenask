@@ -23,6 +23,7 @@
 #include "autil/Log.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/framework/Fence.h"
+#include "indexlib/framework/ITabletImporter.h"
 #include "indexlib/framework/ImportOptions.h"
 #include "indexlib/framework/SegmentMeta.h"
 #include "indexlib/framework/TabletData.h"
@@ -48,10 +49,20 @@ private:
             op.SetSchemaId(schemaId);
             return op;
         }
-        static Operation ImportOp(const std::vector<Version>& versions, const ImportOptions& options)
+        static Operation ImportOp(const std::vector<Version>& versions,
+                                  const std::shared_ptr<ITabletImporter>& importer, const ImportOptions& options)
         {
             Operation op(INVALID_SEGMENTID, /*seal=*/false);
-            op.SetImportVersions(versions, options);
+            op.SetImportVersions(versions, importer, options);
+            return op;
+        }
+
+        static Operation IndexTaskOp(const std::string& taskType, const std::string& taskName,
+                                     const std::map<std::string, std::string>& params, Action action,
+                                     const std::string& comment)
+        {
+            Operation op(INVALID_SEGMENTID, /*seal=*/false);
+            op.SetIndexTask(taskType, taskName, params, action, comment);
             return op;
         }
 
@@ -60,6 +71,7 @@ private:
         bool IsDump() const { return _segId != INVALID_SEGMENTID; }
         bool IsAlterTable() const { return _schemaId.has_value(); }
         bool IsImport() const { return !(_versions.empty()); }
+        bool IsIndexTask() const { return _isIndexTaskOp; }
         segmentid_t GetSegmentId() const
         {
             assert(_segId != INVALID_SEGMENTID);
@@ -75,15 +87,36 @@ private:
             assert(IsImport());
             return _versions;
         }
+        // index task op
+        std::string GetTaskType() const { return _taskType; }
+        std::string GetTaskName() const { return _taskName; }
+        std::map<std::string, std::string> GetParams() const { return _params; }
+        Action GetAction() const { return _action; }
+        std::string GetComment() const { return _comment; }
+
+        std::shared_ptr<ITabletImporter> GetImporter() const { return _importer; }
         const ImportOptions& GetImportOptions() const { return _importOptions; }
 
     private:
         Operation(segmentid_t segId, bool seal) : _segId(segId), _seal(seal) {}
         void SetSchemaId(schemaid_t schemaId) { _schemaId = schemaId; }
-        void SetImportVersions(const std::vector<Version>& versions, const ImportOptions& options)
+        void SetImportVersions(const std::vector<Version>& versions, const std::shared_ptr<ITabletImporter>& importer,
+                               const ImportOptions& options)
         {
             _versions = versions;
+            _importer = importer;
             _importOptions = options;
+        }
+
+        void SetIndexTask(const std::string& taskType, const std::string& taskName,
+                          const std::map<std::string, std::string>& params, Action action, const std::string& comment)
+        {
+            _taskType = taskType;
+            _taskName = taskName;
+            _params = params;
+            _action = action;
+            _comment = comment;
+            _isIndexTaskOp = true;
         }
 
     private:
@@ -91,7 +124,15 @@ private:
         std::optional<schemaid_t> _schemaId;
         bool _seal;
         std::vector<Version> _versions;
+        std::shared_ptr<ITabletImporter> _importer;
         ImportOptions _importOptions;
+        // index task
+        std::string _taskType;
+        std::string _taskName;
+        std::map<std::string, std::string> _params;
+        Action _action;
+        std::string _comment;
+        bool _isIndexTaskOp = false;
     };
 
 public:
@@ -103,7 +144,10 @@ public:
     void Seal();
     void SetSealed(bool sealed);
     void AlterTable(schemaid_t schemaId);
-    void Import(const std::vector<Version>& versions, const ImportOptions& options);
+    void Import(const std::vector<Version>& versions, const std::shared_ptr<ITabletImporter>& importer,
+                const ImportOptions& options);
+    void HandleIndexTask(const std::string& taskType, const std::string& taskName,
+                         const std::map<std::string, std::string>& params, Action action, const std::string& comment);
     void SetLastPublicVersion(const Version& version);
     void SetDumpError(Status status);
     Status GetDumpError() const;
@@ -116,6 +160,10 @@ private:
     GenerateVersionWithoutId(const std::shared_ptr<TabletData>& tabletData, const Fence& fence,
                              std::shared_ptr<VersionMerger::MergedVersionInfo> mergedVersionInfo,
                              std::vector<std::string>& filteredDirs);
+    std::vector<std::shared_ptr<IndexTaskMeta>>
+    CalculateIndexTasks(const std::vector<std::shared_ptr<IndexTaskMeta>>& onDiskIndexTasks,
+                        const std::vector<std::shared_ptr<IndexTaskMeta>>& mergeVersionIndexTasks,
+                        int64_t currentTimeInSec = autil::TimeUtility::currentTimeInSeconds()) const;
 
 private:
     mutable std::mutex _mutex;

@@ -1,0 +1,65 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+import "hippo/proto/Common.proto";
+
+package carbon.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+message CarbonUnitId {
+    optional bytes groupId = 1;
+    optional bytes roleId = 2;
+    optional int32 hippoSlotId = 3;
+}
+
+message ReleaseSlotInfo {
+    optional CarbonUnitId carbonUnitId = 1;
+    optional uint64 leaseMs = 2[default = 3600000];
+}
+
+message ReleaseSlotsRequest {
+    repeated ReleaseSlotInfo releaseSlots = 1;
+    repeated hippo.proto.SlotId slotIds = 2;
+    optional uint64 leaseMs = 3[default = 3600000];
+}
+
+message ReleaseSlotsResponse {
+    optional bytes errorInfo = 1;
+}
+
+message SweepSlotsRequest {
+    repeated string tagIds = 1;
+}
+
+message SweepSlotsResponse {
+    optional bytes errorInfo = 1;
+}
+
+message SyncGroupRequest {
+    optional int32 fixCount = 1[default = 0];
+    optional bool dryRun = 2[default = false];
+}
+
+message SyncGroupResponse {
+    optional bytes errorInfo = 1;
+    optional bytes plans = 2;
+}
+
+service CarbonOpsService
+{
+    option (arpc.global_service_id) = 2000;
+
+    rpc releaseSlots(ReleaseSlotsRequest) returns (ReleaseSlotsResponse) {
+	option (arpc.local_method_id) = 2001;
+    }
+
+    rpc sweepTagSlots(SweepSlotsRequest) returns (SweepSlotsResponse) {
+	option (arpc.local_method_id) = 2002;
+    }
+
+    rpc syncGroupPlans(SyncGroupRequest) returns (SyncGroupResponse) {
+	option (arpc.local_method_id) = 2003;
+    }
+}

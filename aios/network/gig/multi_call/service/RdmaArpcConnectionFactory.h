@@ -22,13 +22,14 @@
 
 namespace multi_call {
 
-class RdmaArpcConnectionFactory : public ConnectionFactory {
+class RdmaArpcConnectionFactory : public ConnectionFactory
+{
 public:
     RdmaArpcConnectionFactory(const std::shared_ptr<arpc::RdmaRPCChannelManager> &channelManager,
                               size_t queueSize)
-            : ConnectionFactory(queueSize)
-            , _rpcChannelManager(channelManager) {
-            }
+        : ConnectionFactory(queueSize)
+        , _rpcChannelManager(channelManager) {
+    }
     ~RdmaArpcConnectionFactory() {
     }
 
@@ -41,4 +42,4 @@ private:
     std::shared_ptr<arpc::RdmaRPCChannelManager> _rpcChannelManager;
 };
 
-}
+} // namespace multi_call

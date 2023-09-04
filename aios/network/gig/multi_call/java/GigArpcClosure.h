@@ -20,10 +20,10 @@
 
 namespace multi_call {
 
-class GigArpcClosure : public GigJavaClosure {
+class GigArpcClosure : public GigJavaClosure
+{
 public:
-    GigArpcClosure(JavaCallback callback, long callbackId,
-                   const GigRequestGeneratorPtr &generator);
+    GigArpcClosure(JavaCallback callback, long callbackId, const GigRequestGeneratorPtr &generator);
     ~GigArpcClosure();
 
 private:
@@ -31,8 +31,7 @@ private:
     GigArpcClosure &operator=(const GigArpcClosure &);
 
 public:
-    virtual bool extractResponse(ResponsePtr response,
-                                 GigResponseHeader *responseHeader,
+    virtual bool extractResponse(ResponsePtr response, GigResponseHeader *responseHeader,
                                  const char *&body, size_t &bodySize) override;
 
 private:

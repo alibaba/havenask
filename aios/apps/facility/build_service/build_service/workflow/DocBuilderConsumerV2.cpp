@@ -17,6 +17,7 @@
 
 #include "build_service/document/ProcessedDocument.h"
 #include "indexlib/document/DocumentBatch.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/document.h"
 #include "indexlib/framework/Locator.h"
 
@@ -36,13 +37,25 @@ DocBuilderConsumerV2::~DocBuilderConsumerV2() {}
 FlowError DocBuilderConsumerV2::consume(const document::ProcessedDocumentVecPtr& item)
 {
     assert(item->size() == 1);
+    /*
+       AsyncBuilder build 把doc放进队列返回 FE_OK, 依赖下一篇doc把build异常信息透出
+       在后续没有 doc 的场景无法透出异常状态
+       把判断提前， 依赖没消息时发 skip doc 的行为
+     */
+    if (_builder->needReconstruct()) {
+        return FE_RECONSTRUCT;
+    }
+    if (_builder->hasFatalError()) {
+        return FE_FATAL;
+    }
     const document::ProcessedDocumentPtr& processedDoc = (*item)[0];
     std::shared_ptr<indexlibv2::document::IDocumentBatch> batch = processedDoc->getDocumentBatch();
     if (!batch) {
         return FE_OK;
     }
-    for (auto i = 0; i < batch->GetBatchSize(); ++i) {
-        auto doc = (*batch)[i];
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(batch.get());
+    while (iter->HasNext()) {
+        auto doc = iter->Next();
         doc->SetLocator(processedDoc->getLocator());
     }
 

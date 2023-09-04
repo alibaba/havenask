@@ -15,23 +15,21 @@
  */
 #ifndef ARPC_UTIL_FUN_H
 #define ARPC_UTIL_FUN_H
-#include <string>
 #include <memory>
+#include <string>
 
 #include "aios/network/anet/anet.h"
+#include "aios/network/arpc/arpc/ANetRPCController.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/arpc/arpc/MessageSerializable.h"
 #include "aios/network/arpc/arpc/proto/rpc_extensions.pb.h"
-#include "aios/network/arpc/arpc/ANetRPCController.h"
 
 ARPC_BEGIN_NAMESPACE(arpc);
 
-ErrorMsg *BuildErrorMsg(const std::string &errMsg, ErrorCode errCode,
-                        const std::shared_ptr<google::protobuf::Arena> &arena);
+ErrorMsg *
+BuildErrorMsg(const std::string &errMsg, ErrorCode errCode, const std::shared_ptr<google::protobuf::Arena> &arena);
 
-anet::DelayDecodePacket *BuildPacket(anet::PacketHeader *header,
-                                     MessageSerializable *pSeri,
-                                     bool ownSeri = true);
+anet::DelayDecodePacket *BuildPacket(anet::PacketHeader *header, MessageSerializable *pSeri, bool ownSeri = true);
 
 void DecodePacket(ANetRPCController *pController,
                   anet::DelayDecodePacket *pPacket,
@@ -41,4 +39,4 @@ void DecodePacket(ANetRPCController *pController,
 
 ARPC_END_NAMESPACE(arpc);
 
-#endif //ARPC_UTIL_FUN_H
+#endif // ARPC_UTIL_FUN_H

@@ -1,0 +1,20 @@
+{
+    "attributes": [
+        "string1"
+    ],
+    "fields": [
+        {
+            "field_type": "STRING",
+            "field_name": "string1"
+        }
+    ],
+    "indexs": [
+        {
+            "index_fields": "string1",
+            "index_type": "PRIMARYKEY64",
+            "index_name": "pk"
+        }
+    ],
+    "table_type": "orc",
+    "table_name": "orc"
+}

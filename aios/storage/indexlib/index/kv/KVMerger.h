@@ -75,14 +75,14 @@ protected:
     virtual Status AddRecord(const Record& record);
     virtual Status Dump() = 0;
     virtual void FillSegmentMetrics(indexlib::framework::SegmentMetrics* segMetrics) = 0;
-    virtual std::pair<int64_t, int64_t> EstimateMemoryUsage(const std::vector<SegmentStatistics>& statVec) const;
+    virtual std::pair<int64_t, int64_t> EstimateMemoryUsage(const std::vector<SegmentStatistics>& statVec);
 
 private:
     Status CreateRecordFilter(const std::string& currentTime);
     // virtual for test
     virtual Status LoadSegmentStatistics(const SegmentMergeInfos& segMergeInfos,
                                          std::vector<SegmentStatistics>& statVec) const;
-    std::shared_ptr<indexlib::file_system::Directory>
+    StatusOr<std::shared_ptr<indexlib::file_system::Directory>>
     PrepareTargetSegmentDirectory(const std::shared_ptr<indexlib::file_system::Directory>& root) const;
     Status CreateKeyWriter(autil::mem_pool::PoolBase* pool, int64_t maxKeyMemoryUse,
                            std::vector<SegmentStatistics>& statVec);

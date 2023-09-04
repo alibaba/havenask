@@ -27,18 +27,17 @@ class OrQueryExpr;
 class PhraseTermExpr;
 class RankQueryExpr;
 class WordsTermExpr;
-}  // namespace queryparser
-}  // namespace isearch
-
+} // namespace queryparser
+} // namespace isearch
 
 namespace isearch {
 namespace queryparser {
 
-class QueryExprEvaluator
-{
+class QueryExprEvaluator {
 public:
     QueryExprEvaluator() {}
     virtual ~QueryExprEvaluator() {}
+
 public:
     virtual void evaluateAndExpr(AndQueryExpr *andExpr) = 0;
     virtual void evaluateOrExpr(OrQueryExpr *orExpr) = 0;
@@ -49,6 +48,7 @@ public:
     virtual void evaluateNumberExpr(NumberTermExpr *numberExpr) = 0;
     virtual void evaluatePhraseExpr(PhraseTermExpr *phraseExpr) = 0;
     virtual void evaluateMultiTermExpr(MultiTermQueryExpr *multiTermExpr) = 0;
+
 private:
     AUTIL_LOG_DECLARE();
 };

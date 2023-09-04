@@ -1,0 +1,39 @@
+{
+    "analyzers": {
+        "multi_level_analyzer": {
+            "tokenizer_configs": {
+                "tokenizer_type": "multilevel_aliws",
+                "tokenizer_id": "TAOBAO_CHN"
+            },
+            "stopwords": [],
+            "normalize_options": {
+                "case_sensitive": true,
+                "traditional_sensitive": true,
+                "width_sensitive": true
+            }
+        },
+        "simple_analyzer": {
+            "tokenizer_configs": {
+                "tokenizer_type": "simple",
+                "delimiter": "\t"
+            },
+            "stopwords": [],
+            "normalize_options": {
+                "case_sensitive": true,
+                "traditional_sensitive": true,
+                "width_sensitive": true
+            }
+        },
+        "singlews_analyzer": {
+            "tokenizer_configs": {
+                "tokenizer_type": "singlews"
+            },
+            "stopwords": [],
+            "normalize_options": {
+                "case_sensitive": true,
+                "traditional_sensitive": true,
+                "width_sensitive": true
+            }
+        }
+    }
+}

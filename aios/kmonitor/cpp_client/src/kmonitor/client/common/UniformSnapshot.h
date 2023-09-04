@@ -9,24 +9,25 @@
 #define KMONITOR_CLIENT_COMMON_UNIFORMSNAPSHOT_H_
 
 #include <vector>
+
 #include "kmonitor/client/common/Common.h"
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 class UniformSnapshot {
- public:
+public:
     UniformSnapshot(const double *measurements, int32_t size);
     ~UniformSnapshot();
 
     double GetValue(double quantile);
 
- private:
+private:
     UniformSnapshot(const UniformSnapshot &);
-    UniformSnapshot& operator=(const UniformSnapshot &);
+    UniformSnapshot &operator=(const UniformSnapshot &);
 
- private:
+private:
     std::vector<double> *values_;
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_COMMON_UNIFORMSNAPSHOT_H_
+#endif // KMONITOR_CLIENT_COMMON_UNIFORMSNAPSHOT_H_

@@ -1,0 +1,75 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "simple_cluster"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+            ]
+        },
+        {
+            "clusters" : [
+                "simple_cluster"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "SimpleDocumentProcessor",
+                    "module_name" : "simple_document_processor",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+                {
+                    "module_name" : "simple_document_processor",
+                    "module_path" : "simple_document_processor.so",
+                    "parameters" : {
+                    }
+                }
+            ]
+        },
+        {
+            "clusters" : [
+                "simple_with_sub_cluster"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+                {
+                    "module_name" : "simple_document_processor",
+                    "module_path" : "simple_document_processor.so",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "sub_document_processor_chain" : [
+                {
+                    "class_name" : "SimpleDocumentProcessor",
+                    "module_name" : "simple_document_processor",
+                    "parameters" : {
+                    }
+                },
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ]
+        }
+    ]
+}

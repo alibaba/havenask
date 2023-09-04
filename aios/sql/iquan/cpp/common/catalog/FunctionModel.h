@@ -15,7 +15,6 @@
  */
 #pragma once
 
-#include <string>
 #include <vector>
 
 #include "autil/legacy/jsonizable.h"
@@ -33,7 +32,9 @@ public:
         json.Jsonize("function_content", functionContent);
     }
 
-    bool isValid() const { return FunctionModelBase::isValid() && functionContent.isValid(); }
+    bool isValid() const {
+        return FunctionModelBase::isValid() && functionContent.isValid();
+    }
 
 public:
     FunctionDef functionContent;
@@ -41,12 +42,11 @@ public:
 
 class FunctionModels : public autil::legacy::Jsonizable {
 public:
-    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override { json.Jsonize("functions", functions); }
+    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
+        json.Jsonize("functions", functions);
+    }
 
     bool isValid() const {
-        if (functions.empty()) {
-            return false;
-        }
         for (const auto &function : functions) {
             if (!function.isValid()) {
                 return false;

@@ -22,7 +22,7 @@ using namespace std;
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, KVTableMergeDescriptionCreator);
 
-KVTableMergeDescriptionCreator::KVTableMergeDescriptionCreator(const std::shared_ptr<config::TabletSchema>& schema)
+KVTableMergeDescriptionCreator::KVTableMergeDescriptionCreator(const std::shared_ptr<config::ITabletSchema>& schema)
     : CommonMergeDescriptionCreator(schema)
 {
 }

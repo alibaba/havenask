@@ -17,7 +17,8 @@
 
 #include <memory>
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/MutableJson.h"
 #include "indexlib/document/normal/ExtendDocFieldsConvertor.h"
 #include "indexlib/document/normal/SummaryFormatter.h"
 #include "indexlib/document/normal/rewriter/PackAttributeAppender.h"
@@ -46,13 +47,13 @@ SingleDocumentParser::SingleDocumentParser() : _hasPrimaryKey(false) {}
 
 SingleDocumentParser::~SingleDocumentParser() {}
 
-bool SingleDocumentParser::Init(const shared_ptr<TabletSchema>& schema,
+bool SingleDocumentParser::Init(const shared_ptr<ITabletSchema>& schema,
                                 shared_ptr<AccumulativeCounter>& attrConvertErrorCounter)
 {
     _schema = schema;
 
     const auto& pkConfig = _schema->GetPrimaryKeyIndexConfig();
-    const auto& invertedConfigs = _schema->GetIndexConfigs(indexlib::index::INVERTED_INDEX_TYPE_STR);
+    const auto& invertedConfigs = _schema->GetIndexConfigs(indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR);
     if (!pkConfig && invertedConfigs.empty()) {
         string errorMsg = "pk or inverted index config must be configured";
         ERROR_COLLECTOR_LOG(ERROR, "%s", errorMsg.c_str());
@@ -101,12 +102,14 @@ bool SingleDocumentParser::Init(const shared_ptr<TabletSchema>& schema,
             s.insert(fieldConfig->GetFieldId());
         }
     };
-    insertFieldIds(_schema->GetIndexFieldConfigs(indexlibv2::index::PRIMARY_KEY_INDEX_TYPE_STR), _invertedFieldIds);
-    insertFieldIds(_schema->GetIndexFieldConfigs(indexlib::index::INVERTED_INDEX_TYPE_STR), _invertedFieldIds);
-    insertFieldIds(_schema->GetIndexFieldConfigs(indexlibv2::GENERALIZED_VALUE_INDEX_TYPE_STR), _attributeFieldIds);
+    // pk + ann + inverted
+    insertFieldIds(_schema->GetIndexFieldConfigs(indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR), _invertedFieldIds);
+    // attribute + sub attribute in pack attribute
+    insertFieldIds(_schema->GetIndexFieldConfigs(indexlib::index::GENERAL_VALUE_INDEX_TYPE_STR), _attributeFieldIds);
     insertFieldIds(_schema->GetIndexFieldConfigs(indexlibv2::index::SUMMARY_INDEX_TYPE_STR), _summaryFieldIds);
 
-    auto [status1, orderPreservingField] = _schema->GetSetting<std::string>("order_preserving_field");
+    auto [status1, orderPreservingField] =
+        _schema->GetRuntimeSettings().GetValue<std::string>("order_preserving_field");
     if (status1.IsOK()) {
         _orderPreservingField = orderPreservingField;
     } else if (!status1.IsNotFound()) {
@@ -131,9 +134,9 @@ bool SingleDocumentParser::prepareIndexConfigMap()
     size_t fieldCount = _schema->GetFieldCount();
     _fieldIdToAttrConfigs.clear();
     _fieldIdToAttrConfigs.resize(fieldCount);
-    auto configs = _schema->GetIndexConfigs(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR);
+    auto configs = _schema->GetIndexConfigs(indexlib::index::GENERAL_VALUE_INDEX_TYPE_STR);
     for (auto indexConfig : configs) {
-        auto attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+        auto attrConfig = std::dynamic_pointer_cast<index::AttributeConfig>(indexConfig);
         if (!attrConfig) {
             AUTIL_LOG(ERROR, "index config[%s][%s] is not attribute config", indexConfig->GetIndexType().c_str(),
                       indexConfig->GetIndexName().c_str());
@@ -334,7 +337,7 @@ bool SingleDocumentParser::Validate(const NormalExtendDocument* document)
     return true;
 }
 
-const std::shared_ptr<indexlibv2::config::AttributeConfig>&
+const std::shared_ptr<indexlibv2::index::AttributeConfig>&
 SingleDocumentParser::GetAttributeConfig(fieldid_t fieldId) const
 {
     assert(fieldId >= 0 && static_cast<size_t>(fieldId) < _fieldIdToAttrConfigs.size());

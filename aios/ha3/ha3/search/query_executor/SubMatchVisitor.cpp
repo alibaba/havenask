@@ -16,8 +16,8 @@
 #include "ha3/search/SubMatchVisitor.h"
 
 #include <cstddef>
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "ha3/common/AndNotQuery.h"
@@ -32,7 +32,6 @@
 #include "ha3/common/TermQuery.h"
 #include "ha3/isearch.h"
 
-
 using namespace isearch::common;
 using namespace std;
 
@@ -41,20 +40,19 @@ namespace search {
 
 AUTIL_LOG_SETUP(ha3, SubMatchVisitor);
 
-#define VISIT_MID_QUERY(query) {                                \
-        if (query->getQueryLabel().empty()) {                   \
-            query->setMatchDataLevel(MDL_NONE);                 \
-        }                                                       \
-                                                                \
-        vector<QueryPtr>* childQuerys = query->getChildQuery(); \
-        for (size_t i = 0; i < childQuerys->size(); ++i) {      \
-            (*childQuerys)[i]->accept(this);                    \
-        }                                                       \
-    }                                                           \
+#define VISIT_MID_QUERY(query)                                                                     \
+    {                                                                                              \
+        if (query->getQueryLabel().empty()) {                                                      \
+            query->setMatchDataLevel(MDL_NONE);                                                    \
+        }                                                                                          \
+                                                                                                   \
+        vector<QueryPtr> *childQuerys = query->getChildQuery();                                    \
+        for (size_t i = 0; i < childQuerys->size(); ++i) {                                         \
+            (*childQuerys)[i]->accept(this);                                                       \
+        }                                                                                          \
+    }
 
-SubMatchVisitor::SubMatchVisitor()
-{
-}
+SubMatchVisitor::SubMatchVisitor() {}
 
 void SubMatchVisitor::visitTermQuery(TermQuery *query) {
     if (query->getQueryLabel().empty()) {
@@ -69,9 +67,9 @@ void SubMatchVisitor::visitMultiTermQuery(MultiTermQuery *query) {
 }
 
 void SubMatchVisitor::visitPhraseQuery(PhraseQuery *query) {
-   if (query->getQueryLabel().empty()) {
-       query->setMatchDataLevel(MDL_NONE);
-   }
+    if (query->getQueryLabel().empty()) {
+        query->setMatchDataLevel(MDL_NONE);
+    }
 }
 
 void SubMatchVisitor::visitAndQuery(AndQuery *query) {
@@ -96,5 +94,5 @@ void SubMatchVisitor::visitNumberQuery(NumberQuery *query) {
     }
 }
 
-}
-}
+} // namespace search
+} // namespace isearch

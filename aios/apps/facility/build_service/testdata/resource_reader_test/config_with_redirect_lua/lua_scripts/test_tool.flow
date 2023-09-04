@@ -1,0 +1,90 @@
+--[[
+Flow.parameter : flow related kv parameters 
+Flow.createTask(taskId, taskType, taskKvParam = nil) 
+Flow.getTaskProperty(taskId, key, flowId = nil) 
+Flow.getTaskInFlow(taskId, flowId) 
+Flow.setError(msg) 
+Flow.setFatalError(msg) 
+Flow.setProperty(key, value) 
+Flow.getProperty(key) 
+Flow.startTask(taskObj, kvParam = nil) 
+Flow.stopTask(taskObj, kvParam = nil) 
+######################################################### 
+function stepRunFlow() will be called by single TaskFlow, return true means eof of flow 
+--]]
+
+#import(Tool)
+
+function checkList(list1, list2)
+    local str1 = Tool.listToJson(list1)
+    print(str1)
+    local str2 = Tool.listToJson(list2)
+    print(str2)	
+    return str1 == str2
+end
+
+function checkMap(map1, map2)
+   local str1 = Tool.mapToJson(map1)
+   print(str1)
+   local str2 = Tool.mapToJson(map2)
+   print(str2)
+   return str1 == str2
+end
+
+function stepRunFlow()
+    list = { "1", "2", "3" }
+    map = { k1="v1" , k2="v2"}
+
+    local listJson = Tool.listToJson(list)
+    print("listJson:"..listJson)
+    local listStr = Tool.listToStr(list, ";")
+    print("listStr:"..listStr)
+
+    local newList1 = Tool.jsonToList(listJson)
+    local newList2 = Tool.strToList(listStr, ";")
+
+    if (not checkList(list, newList1)) then
+        print("check fail:1")
+        return false
+    end
+
+    if (not checkList(list, newList2)) then
+        print("check fail:2")
+        return false
+    end
+
+    copyList = Tool.copyList(list)
+    copyList[1] = "4"
+    if (checkList(copyList, list)) then
+        print("check fail:copy")
+        return false
+    end
+    
+    local mapJson = Tool.mapToJson(map)
+    print("mapJson:"..mapJson)	
+    local mapStr = Tool.mapToStr(map, "=", ";")
+    print("mapStr:"..mapStr)
+
+    local newMap1 = Tool.jsonToMap(mapJson)
+    local newMap2 = Tool.strToMap(mapStr, "=", ";")
+
+    if (not checkMap(map, newMap1)) then
+        print("check fail:1")    
+        return false
+    end
+
+    if (not checkMap(map, newMap2)) then
+        print("check fail:2")    
+        return false
+    end
+
+    copyMap = Tool.copyMap(map)
+    copyMap["k3"] = "v3"
+    if (checkMap(copyMap, map)) then
+        print("check fail:copy")        
+        return false
+    end
+
+    print("check success")        
+    return true
+end

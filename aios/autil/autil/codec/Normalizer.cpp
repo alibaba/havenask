@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdlib.h>
-#include <string.h>
+#include "autil/codec/Normalizer.h"
+
 #include <cstdint>
 #include <iosfwd>
 #include <map>
+#include <stdlib.h>
+#include <string.h>
 #include <string>
 #include <vector>
 
 #include "autil/Log.h"
+#include "autil/TimeUtility.h"
 #include "autil/codec/CodeConverter.h"
 #include "autil/codec/EncodeConverter.h"
 #include "autil/codec/NormalizeOptions.h"
 #include "autil/codec/NormalizeTable.h"
-#include "autil/codec/Normalizer.h"
-#include "autil/TimeUtility.h"
 
 namespace autil {
 namespace codec {
@@ -38,15 +39,9 @@ using namespace autil;
 
 Normalizer::Normalizer(const NormalizeOptions &options, const map<uint16_t, uint16_t> *traditionalTablePatch)
     : _options(options)
-    , _table(options.caseSensitive,
-             options.traditionalSensitive,
-             options.widthSensitive,
-             traditionalTablePatch)
-{
-}
+    , _table(options.caseSensitive, options.traditionalSensitive, options.widthSensitive, traditionalTablePatch) {}
 
-Normalizer::~Normalizer() {
-}
+Normalizer::~Normalizer() {}
 
 template <class T>
 class StackBuf {
@@ -65,12 +60,12 @@ public:
         }
     }
 
-    T* getBuf() const {
-        return _buf;
-    }
+    T *getBuf() const { return _buf; }
+
 private:
     StackBuf(const StackBuf &);
-    StackBuf& operator=(const StackBuf &);
+    StackBuf &operator=(const StackBuf &);
+
 private:
     static const size_t STACK_BUF_LEN = 4 * 1024 / sizeof(T);
     size_t _size;
@@ -92,9 +87,7 @@ void Normalizer::normalize(const string &word, string &normalizeWord) {
     normalizeWord.assign(buf8);
 }
 
-void Normalizer::normalizeUTF16(const uint16_t *in, size_t len,
-                                uint16_t *out)
-{
+void Normalizer::normalizeUTF16(const uint16_t *in, size_t len, uint16_t *out) {
     for (size_t i = 0; i < len; ++i) {
         out[i] = _table[in[i]];
     }
@@ -161,8 +154,8 @@ bool Normalizer::unicodeToUtf8(const string &input, string &output) const {
     return ret;
 }
 
-bool Normalizer::stringConverter(const string &input, string &output, TO_UNICODE_FUN to_unicode,
-                                 FROM_UNICODE_FUN from_unicode, unsigned op) const {
+bool Normalizer::stringConverter(
+    const string &input, string &output, TO_UNICODE_FUN to_unicode, FROM_UNICODE_FUN from_unicode, unsigned op) const {
     if (input.empty()) {
         return true;
     }
@@ -194,5 +187,5 @@ bool Normalizer::stringConverter(const string &input, string &output, TO_UNICODE
     return true;
 }
 
-}
-}
+} // namespace codec
+} // namespace autil

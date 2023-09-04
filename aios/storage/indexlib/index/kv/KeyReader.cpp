@@ -116,7 +116,7 @@ std::unique_ptr<KVKeyIterator> KeyReader::CreateIterator() const
 
 size_t KeyReader::EvaluateCurrentMemUsed()
 {
-    return _inMemory ? _keyFileReader->GetLength() : indexlib::file_system::ReaderOption::DEFAULT_BUFFER_SIZE;
+    return _keyFileReader->EvaluateCurrentMemUsed();
 }
 
 } // namespace indexlibv2::index

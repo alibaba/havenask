@@ -44,6 +44,7 @@ private:
     Status GetSegmentMergePlan(const framework::IndexTaskContext& context, SegmentMergePlan& segMergePlan) const;
 
 private:
+    Status RewriteMergeConfig(const indexlibv2::framework::IndexTaskContext& taskContext);
     const framework::IndexOperationDescription _description;
 
 private:

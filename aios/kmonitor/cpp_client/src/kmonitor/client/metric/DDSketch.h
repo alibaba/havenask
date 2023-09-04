@@ -8,24 +8,24 @@
 #ifndef KMONITOR_CLIENT_METRIC_DDSKETCH_H_
 #define KMONITOR_CLIENT_METRIC_DDSKETCH_H_
 
-#include <vector>
 #include <unordered_map>
+#include <vector>
+
+#include "autil/legacy/jsonizable.h"
 #include "kmonitor/client/common/Common.h"
 #include "kmonitor/client/metric/DenseStore.h"
 #include "kmonitor/client/metric/LogarithmicMapping.h"
-#include "autil/legacy/jsonizable.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
-class DDSketch : public autil::legacy::Jsonizable 
-{
+class DDSketch : public autil::legacy::Jsonizable {
 public:
     DDSketch(double relativeAccuracy, double minIndexedValue = 0);
     ~DDSketch() {}
     void accept(double value);
     void Flush();
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override;
-    
+
 private:
     LogarithmicMapping indexMapping_;
     DenseStore store_;
@@ -38,4 +38,4 @@ private:
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_METRIC_DDSKETCH_H_
+#endif // KMONITOR_CLIENT_METRIC_DDSKETCH_H_

@@ -37,6 +37,7 @@
 #include "indexlib/file_system/JsonUtil.h"
 #include "indexlib/file_system/LegacyVersion.h"
 #include "indexlib/file_system/LifecycleTable.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/load_config/LoadConfig.h"
 #include "indexlib/file_system/load_config/LoadConfigList.h"
@@ -44,7 +45,6 @@
 #include "indexlib/file_system/package/PackageFileMeta.h"
 #include "indexlib/file_system/package/VersionedPackageFileMeta.h"
 #include "indexlib/util/PathUtil.h"
-
 using indexlib::util::PathUtil;
 using std::string;
 
@@ -135,7 +135,7 @@ void EntryTableBuilder::MountDir(const string* pPhysicalRoot, const string& phys
 }
 
 ErrorCode EntryTableBuilder::MountVersion(const string& physicalRoot, versionid_t versionId, const string& logicalPath,
-                                          MountDirOption mountOption)
+                                          MountOption mountOption)
 {
     const string* pPhysicalRoot = _entryTable->GetPhysicalRootPointer(physicalRoot);
     bool isOwner = mountOption.mountType == FSMT_READ_WRITE;
@@ -600,7 +600,7 @@ bool EntryTableBuilder::CompareFile(const string& left, const string& right)
 }
 
 ErrorCode EntryTableBuilder::MountDirRecursive(const string& physicalRoot, const string& physicalPath,
-                                               const string& logicalPath, MountDirOption mountOption)
+                                               const string& logicalPath, MountOption mountOption)
 {
     const string* pPhysicalRoot = _entryTable->GetPhysicalRootPointer(physicalRoot);
     bool isOwner = mountOption.mountType == FSMT_READ_WRITE;
@@ -882,7 +882,7 @@ ErrorCode EntryTableBuilder::TEST_FromEntryTableString(const string& jsonStr, co
 const EntryMeta* EntryTableBuilder::GetLastEntryTableEntryMeta() const { return _lastEntryTableEntryMeta.get(); }
 
 ErrorCode EntryTableBuilder::MountDirLazy(const std::string& physicalRoot, const std::string& physicalPath,
-                                          const std::string& logicalPath, MountDirOption mountOption)
+                                          const std::string& logicalPath, MountOption mountOption)
 {
     assert(mountOption.conflictResolution == ConflictResolution::OVERWRITE);
 

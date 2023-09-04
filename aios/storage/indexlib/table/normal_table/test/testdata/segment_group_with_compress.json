@@ -1,0 +1,184 @@
+{
+    "attributes": [
+        {
+            "field_name": "price",
+            "file_compress": "combined_compressor"
+        },
+        {
+            "field_name": "string1",
+            "file_compress": "combined_compressor"
+        }
+    ],
+    "fields": [
+        {
+            "compress_type": "equal",
+            "field_name": "pk",
+            "field_type": "STRING"
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "string1",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "price",
+            "field_type": "UINT64"
+        },
+        {
+            "field_name": "string2",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "text",
+            "field_type": "TEXT",
+            "analyzer":"simple_analyzer"
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "geo_field",
+            "field_type": "LOCATION"
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "range_field",
+            "field_type": "INT64"
+        }
+    ],
+    "indexs": [
+        {
+            "index_fields": "pk",
+            "index_name": "pk",
+            "index_type": "PRIMARYKEY64",
+            "pk_hash_type": "default_hash"
+        },
+        {
+            "index_fields": "string1",
+            "index_name": "string1",
+            "index_type": "string",
+            "file_compress" : "combined_compressor"
+        },
+        {
+            "format_version_id" : 1,
+            "file_compress" : "combined_compressor",
+            "doc_payload_flag" : 1,
+            "index_fields" : [
+                {
+                    "boost" : 10,
+                    "field_name" : "text"
+                }
+            ],
+            "index_name" : "pack_index",
+            "index_type" : "PACK",
+            "position_payload_flag" : 1,
+            "term_payload_flag" : 1,
+            "term_frequency_flag" : 1,
+            "term_frequency_bitmap" : 0,
+            "has_section_attribute" : true,
+            "section_attribute_config" : {
+                "compress_type" : "uniq | equal",
+                "has_field_id" : false,
+                "has_section_weight" : true
+            }
+        },
+        {
+            "format_version_id" : 1,
+            "file_compress" : "combined_compressor",
+            "doc_payload_flag" : 1,
+            "index_fields" : [
+                {
+                    "boost" : 10,
+                    "field_name" : "text"
+                }
+            ],
+            "index_name" : "expack_index",
+            "index_type" : "EXPACK",
+            "position_payload_flag" : 1,
+            "term_payload_flag" : 1,
+            "term_frequency_flag" : 1,
+            "term_frequency_bitmap" : 0,
+            "has_section_attribute" : true,
+            "section_attribute_config" : {
+                "compress_type" : "uniq | equal",
+                "has_field_id" : false,
+                "has_section_weight" : true
+            }
+        },
+        {
+            "format_version_id" : 1,
+            "file_compress" : "combined_compressor",
+            "index_fields": "range_field",
+            "index_name": "range_index",
+            "index_type": "RANGE"
+        },
+        {
+            "format_version_id" : 1,
+            "file_compress" : "combined_compressor",
+            "index_fields": "geo_field",
+            "index_name": "geo_index",
+            "index_type": "SPATIAL"
+        }
+    ],
+    "settings": {
+        "file_compressors": [
+            {
+                "exclude_file_pattern": "$EXCLUE_FILE",
+                "name": "cold_compressor",
+                "parameters": {
+                    "enable_hint_data": "true"
+                },
+                "type": "zstd"
+            },
+            {
+                "exclude_file_pattern": "$EXCLUE_FILE",
+                "name": "warm_compressor",
+                "parameters": {
+                    "enable_hint_data": "true"
+                },
+                "type": "lz4"
+            },
+            {
+                "compressor_names": [
+                    "cold_compressor",
+                    "warm_compressor"
+                ],
+                "name": "combined_compressor",
+                "statistic_key": "segment_group",
+                "statistic_values": [
+                    "cold_order",
+                    "warm_order"
+                ],
+                "type": "combined"
+            }
+        ],
+        "function_configs": [
+            {
+                "expression": "price >=0 AND price <=10",
+                "name": "hot_order"
+            },
+            {
+                "expression": "price >=10 AND price <=99",
+                "name": "warm_order"
+            },
+            {
+                "expression": "price >=100 AND price <= 1000",
+                "name": "cold_order"
+            }
+        ],
+        "segment_group_config": {
+            "groups": [
+                "hot_order",
+                "warm_order",
+                "cold_order"
+            ]
+        }
+    },
+    "summarys": {
+        "parameter": {
+            "file_compress": "combined_compressor"
+        },
+        "summary_fields": [
+            "pk"
+        ]
+    },
+    "table_name": "simple"
+}

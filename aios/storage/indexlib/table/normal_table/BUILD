@@ -1,28 +1,28 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='table',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=[':NormalTableFactory', ':reader']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='reader',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=[':NormalTabletSessionReader']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTableFactory',
     visibility=['//aios/storage/indexlib/table:__subpackages__'],
     deps=[
         ':NormalDiskSegment', ':NormalMemSegment', ':NormalSchemaResolver',
-        ':NormalTabletBuiltinIndex', ':NormalTabletExportLoader',
-        ':NormalTabletExporter', ':NormalTabletLoader',
-        ':NormalTabletSessionReader', ':NormalTabletWriter',
-        '//aios/autil:NoCopyable', '//aios/future_lite',
+        ':NormalTabletBuiltinIndex', ':NormalTabletDeployerHook',
+        ':NormalTabletExportLoader', ':NormalTabletExporter',
+        ':NormalTabletLoader', ':NormalTabletSessionReader',
+        ':NormalTabletWriter', '//aios/autil:NoCopyable', '//aios/future_lite',
         '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/base:Types',
         '//aios/storage/indexlib/config:TabletSchema',
@@ -35,6 +35,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index:IIndexFactory',
         '//aios/storage/indexlib/index:interface',
         '//aios/storage/indexlib/table/common:CommonTabletValidator',
+        '//aios/storage/indexlib/table/common:CommonVersionImporter',
         '//aios/storage/indexlib/table/normal_table:NormalTabletValidator',
         '//aios/storage/indexlib/table/normal_table/index_task:NormalTableResourceCreator',
         '//aios/storage/indexlib/table/normal_table/index_task:NormalTableTaskOperationCreator',
@@ -42,7 +43,7 @@ indexlib_cc_library(
     ],
     alwayslink=True
 )
-indexlib_cc_library(
+strict_cc_library(
     name='normal_tablet_reader',
     srcs=['NormalTabletReader.cpp', 'NormalTabletSearcher.cpp'],
     hdrs=['NormalTabletReader.h', 'NormalTabletSearcher.h'],
@@ -58,22 +59,23 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/builtin_index/date:DateIndexReader',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/range:RangeIndexReader',
         '//aios/storage/indexlib/index/summary:reader',
-        '//aios/storage/indexlib/table/common:SearchUtil'
+        '//aios/storage/indexlib/table/common:SearchUtil',
+        '//aios/storage/indexlib/util:ProtoJsonizer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletSessionReader',
     deps=[
         ':normal_tablet_reader',
         '//aios/storage/indexlib/table/common:CommonTabletSessionReader'
     ]
 )
-indexlib_cc_library(name='NormalTabletInfoHolder', deps=[':NormalTabletInfo'])
-indexlib_cc_library(
+strict_cc_library(name='NormalTabletInfoHolder', deps=[':NormalTabletInfo'])
+strict_cc_library(
     name='DocRangePartitioner',
     deps=['//aios/autil:log', '//aios/storage/indexlib/base:constants']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletInfo',
     deps=[
         ':NormalTabletMeta', ':SegmentSortDecisionMaker',
@@ -81,26 +83,28 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/deletionmap:reader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='Common',
     srcs=[],
     deps=[
+        '//aios/storage/indexlib/index/ann:constants',
         '//aios/storage/indexlib/index/attribute:constants',
         '//aios/storage/indexlib/index/deletionmap:constants',
+        '//aios/storage/indexlib/index/inverted_index:constants',
         '//aios/storage/indexlib/index/operation_log:constants',
         '//aios/storage/indexlib/index/primary_key:constants',
         '//aios/storage/indexlib/index/summary:constants',
         '//aios/storage/indexlib/table/normal_table/virtual_attribute:Common'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SortedDocIdRangeSearcher',
     deps=[
         ':DimensionDescription', ':NormalTabletMeta',
         '//aios/storage/indexlib/index/attribute:reader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletMeta',
     deps=[
         '//aios/alog', '//aios/autil:NoCopyable', '//aios/autil:json',
@@ -111,7 +115,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletLoader',
     deps=[
         ':NormalTabletModifier', ':NormalTabletPatcher',
@@ -125,7 +129,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/normal_table/virtual_attribute:VirtualAttributeIndexFactory'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletExportLoader',
     deps=[
         ':NormalTabletModifier', ':NormalTabletPatcher',
@@ -134,7 +138,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/common:CommonTabletLoader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletWriter',
     deps=[
         ':NormalDocIdDispatcher', ':NormalDocumentRewriteChainCreator',
@@ -145,7 +149,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/common:CommonTabletWriter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletModifier',
     deps=[
         ':Common', '//aios/storage/indexlib/base:Types',
@@ -162,21 +166,23 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/primary_key:reader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletBuiltinIndex',
     srcs=[],
     hdrs=[],
     deps=[
+        '//aios/storage/indexlib/index/ann:factory',
         '//aios/storage/indexlib/index/attribute:factory',
         '//aios/storage/indexlib/index/deletionmap:factory',
         '//aios/storage/indexlib/index/inverted_index:factory',
         '//aios/storage/indexlib/index/operation_log:factory',
+        '//aios/storage/indexlib/index/pack_attribute:factory',
         '//aios/storage/indexlib/index/primary_key:factory',
         '//aios/storage/indexlib/index/statistics_term:factory',
         '//aios/storage/indexlib/index/summary:factory'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletPatcher',
     deps=[
         ':Common', ':NormalTabletModifier', '//aios/autil:log',
@@ -190,7 +196,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index:patch'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalMemSegment',
     deps=[
         ':NormalSchemaResolver', ':SegmentSortDecisionMaker',
@@ -200,7 +206,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/plain:PlainMemSegment'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalDiskSegment',
     deps=[
         ':NormalSchemaResolver',
@@ -208,7 +214,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/plain:PlainDiskSegment'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalDocumentRewriteChainCreator',
     deps=[
         ':Common', '//aios/storage/indexlib/config:TabletSchema',
@@ -220,7 +226,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/normal_table/virtual_attribute:VirtualAttributeConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalSchemaResolver',
     implementation_deps=['//aios/storage/indexlib/indexlib/config'],
     deps=[
@@ -246,14 +252,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/normal_table/virtual_attribute:VirtualAttributeConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletExporter',
     deps=[
         ':NormalTabletDocIterator',
         '//aios/storage/indexlib/framework:ITabletExporter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletValidator',
     deps=[
         ':NormalTabletSessionReader',
@@ -267,7 +273,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/primary_key:reader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletDocIterator',
     deps=[
         ':NormalTabletSessionReader',
@@ -284,19 +290,20 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/summary:reader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DimensionDescription',
     deps=['//aios/storage/indexlib/index/attribute:constants']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletMetrics',
     deps=[
         '//aios/autil:log', '//aios/storage/indexlib/config:schema',
         '//aios/storage/indexlib/framework:MetricsManager',
-        '//aios/storage/indexlib/index/attribute:constants'
+        '//aios/storage/indexlib/index/attribute:constants',
+        '//aios/storage/indexlib/index/inverted_index:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentSortDecisionMaker',
     deps=[
         '//aios/storage/indexlib/base:Types',
@@ -304,14 +311,15 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework:Segment'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalDocIdDispatcher',
     deps=['//aios/storage/indexlib/index/primary_key:reader']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletParallelBuilder',
     deps=[
         ':NormalMemSegment', '//aios/storage/indexlib/framework:OpenOptions',
+        '//aios/storage/indexlib/index/ann/aitheta2:AithetaBuildWorkItem',
         '//aios/storage/indexlib/index/attribute:AttributeBuildWorkItem',
         '//aios/storage/indexlib/index/common:BuildWorkItem',
         '//aios/storage/indexlib/index/deletionmap:DeletionMapBuildWorkItem',
@@ -321,6 +329,19 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/primary_key:reader',
         '//aios/storage/indexlib/index/summary:SummaryBuildWorkItem',
         '//aios/storage/indexlib/table/normal_table/virtual_attribute:VirtualAttributeBuildWorkItem',
-        '//aios/storage/indexlib/util:thread_pool'
+        '//aios/storage/indexlib/util:GroupedThreadPool'
     ]
+)
+strict_cc_library(
+    name='NormalTabletDeployerHook',
+    deps=[
+        '//aios/storage/indexlib/config:options',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework/hooks',
+        '//aios/storage/indexlib/index/attribute:constants',
+        '//aios/storage/indexlib/index/inverted_index:constants',
+        '//aios/storage/indexlib/index/source:constants',
+        '//aios/storage/indexlib/index/summary:constants'
+    ],
+    alwayslink=True
 )

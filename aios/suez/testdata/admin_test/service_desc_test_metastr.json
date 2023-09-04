@@ -1,0 +1,20 @@
+{
+    "service_desc" : {
+	"searcher" : {
+	    "name": "cm2",
+	    "type": "ST_CM2",
+	    "statusPath": "../role_proc/cm2.status",
+	    "configStr": {
+		"cm2_server_zookeeper_host": "10.101.83.215:2181,10.101.83.226:2181,10.101.83.227:2181",
+		"cm2_server_leader_path": "/cm_server_test",
+		"cm2_server_cluster_name": "sp_wireless_http2",
+		"signature": "sig2",
+		"tcpPort": 21009,
+		"httpPort": 20009,
+		"idc_type": 1,
+		"weight": 100,
+		"metaStr": 12
+	    }
+	}
+    }
+}

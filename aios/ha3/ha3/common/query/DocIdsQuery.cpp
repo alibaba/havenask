@@ -15,41 +15,36 @@
  */
 #include "ha3/common/DocIdsQuery.h"
 
-#include <stddef.h>
 #include <sstream>
+#include <stddef.h>
 
+#include "autil/Log.h"
 #include "ha3/common/ModifyQueryVisitor.h"
 #include "ha3/common/Query.h"
 #include "ha3/common/QueryVisitor.h"
-#include "autil/Log.h"
 
 using namespace std;
 namespace isearch {
 namespace common {
 AUTIL_LOG_SETUP(ha3, DocIdsQuery);
 
-DocIdsQuery::DocIdsQuery(const vector<docid_t>& docIds)
-    : _docIds(docIds)
-{
-}
+DocIdsQuery::DocIdsQuery(const vector<docid_t> &docIds)
+    : _docIds(docIds) {}
 
 DocIdsQuery::DocIdsQuery(const DocIdsQuery &other)
     : Query(other)
-    , _docIds(other._docIds)
-{
-}
+    , _docIds(other._docIds) {}
 
-DocIdsQuery::~DocIdsQuery() {
-}
+DocIdsQuery::~DocIdsQuery() {}
 
-bool DocIdsQuery::operator == (const Query& query) const {
+bool DocIdsQuery::operator==(const Query &query) const {
     if (&query == this) {
         return true;
     }
     if (query.getQueryName() != getQueryName()) {
         return false;
     }
-    return (_docIds == dynamic_cast<const DocIdsQuery&>(query)._docIds);
+    return (_docIds == dynamic_cast<const DocIdsQuery &>(query)._docIds);
 }
 
 std::string DocIdsQuery::toString() const {

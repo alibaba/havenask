@@ -1,0 +1,8 @@
+{
+    "partition_count":part_count,
+    "parallel_num":paral_num,
+    "task_params": {
+        "target_index_path": "repart_path",
+        "target_generation": "generationId"
+    }
+}

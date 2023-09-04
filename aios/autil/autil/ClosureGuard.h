@@ -29,8 +29,8 @@ public:
     }
 
 public:
-    ::google::protobuf::Closure* steal() {
-        ::google::protobuf::Closure* done = _done;
+    ::google::protobuf::Closure *steal() {
+        ::google::protobuf::Closure *done = _done;
         _done = nullptr;
         return done;
     }

@@ -20,7 +20,7 @@
 #include "indexlib/document/normal/rewriter/NormalDocumentRewriterBase.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2 { namespace document {
@@ -34,7 +34,7 @@ public:
     ~SectionAttributeRewriter();
 
 public:
-    bool Init(const std::shared_ptr<config::TabletSchema>& schema);
+    bool Init(const std::shared_ptr<config::ITabletSchema>& schema);
 
 private:
     Status RewriteOneDoc(const std::shared_ptr<NormalDocument>& doc) override;

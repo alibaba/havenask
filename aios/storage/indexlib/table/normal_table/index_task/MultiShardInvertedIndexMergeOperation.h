@@ -23,7 +23,7 @@ namespace framework {
 class IndexOperationDescription;
 }
 namespace config {
-class TabletSchema;
+class ITabletSchema;
 }
 } // namespace indexlibv2
 namespace indexlibv2::table {
@@ -37,7 +37,7 @@ public:
 protected:
     std::pair<Status, std::shared_ptr<config::IIndexConfig>>
     GetIndexConfig(const framework::IndexOperationDescription& opDesc, const std::string& indexType,
-                   const std::string& indexName, const std::shared_ptr<config::TabletSchema>& schema) override final;
+                   const std::string& indexName, const std::shared_ptr<config::ITabletSchema>& schema) override final;
 
 private:
     AUTIL_LOG_DECLARE();

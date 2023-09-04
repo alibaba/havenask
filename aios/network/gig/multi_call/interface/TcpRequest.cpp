@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/interface/TcpRequest.h"
+
 #include "autil/legacy/base64.h"
 
 using namespace std;
@@ -21,9 +22,12 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, TcpRequest);
 
-TcpRequest::~TcpRequest() {}
+TcpRequest::~TcpRequest() {
+}
 
-bool TcpRequest::serialize() { return serializeBody(_body); }
+bool TcpRequest::serialize() {
+    return serializeBody(_body);
+}
 
 anet::DefaultPacket *TcpRequest::makeTcpPacket() {
     unique_ptr<anet::DefaultPacket> packet(new anet::DefaultPacket());
@@ -35,7 +39,7 @@ anet::DefaultPacket *TcpRequest::makeTcpPacket() {
     if (_metaByTcp != META_BT_NONE && body.find(GIG_DATA_C) == std::string::npos) {
         std::string gigData = autil::legacy::Base64EncodeFast(getAgentQueryInfo());
 
-        switch(_metaByTcp) {
+        switch (_metaByTcp) {
         case META_BT_IGRAPH: {
             std::size_t pos = body.find("?config%7B");
             if (pos != std::string::npos) {

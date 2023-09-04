@@ -34,7 +34,7 @@ enum class CompressType {
 };
 
 extern CompressType convertCompressType(const std::string &str);
-extern const char* CompressType_Name(CompressType type);
+extern const char *CompressType_Name(CompressType type);
 
 class CompressionUtil {
 public:
@@ -42,8 +42,7 @@ public:
     static bool compress(const StringType &input,
                          CompressType type,
                          std::string &compressedResult,
-                         autil::mem_pool::Pool *pool = nullptr)
-    {
+                         autil::mem_pool::Pool *pool = nullptr) {
         return compressInternal(input.data(), input.size(), type, compressedResult, pool);
     }
 
@@ -51,10 +50,10 @@ public:
     static bool decompress(const StringType &input,
                            CompressType type,
                            std::string &decompressedResult,
-                           autil::mem_pool::Pool *pool = nullptr)
-    {
+                           autil::mem_pool::Pool *pool = nullptr) {
         return decompressInternal(input.data(), input.size(), type, decompressedResult, pool);
     }
+
 private:
     static bool compressInternal(const char *data,
                                  size_t len,
@@ -68,4 +67,4 @@ private:
                                    autil::mem_pool::Pool *pool = nullptr);
 };
 
-}
+} // namespace autil

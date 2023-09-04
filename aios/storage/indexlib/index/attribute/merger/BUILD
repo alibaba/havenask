@@ -1,4 +1,4 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 load('//bazel:defs.bzl', 'gen_cpp_code')
 package(
     default_visibility=[
@@ -56,7 +56,7 @@ gen_cpp_code(
     template_header=template_header,
     template_tail=template_tail
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeMerger',
     srcs=((((['AttributeMerger.cpp', 'AttributeMergerFactoryRegister.cpp'] +
              [':gen_simple_single_value_merger']) +
@@ -85,12 +85,10 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute/patch:AttributePatchReaderCreator',
         '//aios/storage/indexlib/index/attribute/patch:DedupPatchFileMerger',
         '//aios/storage/indexlib/index/common:FileCompressParamHelper',
-        '//aios/storage/indexlib/index/common/patch:PatchMerger',
-        '//aios/storage/indexlib/index/inverted_index:Common',
-        '//aios/storage/indexlib/index/inverted_index:MultiShardInvertedDiskIndexer'
+        '//aios/storage/indexlib/index/common/patch:PatchMerger'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DocumentMergeInfo',
     srcs=[],
     deps=[
@@ -98,7 +96,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DocumentMergeInfoHeap',
     deps=[
         ':DocumentMergeInfo', '//aios/autil:NoCopyable', '//aios/autil:log',
@@ -108,7 +106,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index:IIndexMerger'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentOutputMapper',
     srcs=[],
     deps=[

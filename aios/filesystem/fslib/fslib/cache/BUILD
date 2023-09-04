@@ -1,5 +1,4 @@
 package(default_visibility=['//aios/filesystem/fslib:__subpackages__'])
-load('//bazel:defs.bzl', 'nosandbox_test')
 cc_library(
     name='cache',
     srcs=glob(['*.cpp']),
@@ -11,9 +10,4 @@ cc_library(
         '//aios/kmonitor:kmonitor_client_cpp',
         '//aios/kmonitor:kmonitor_cpp_adapter'
     ]
-)
-nosandbox_test(
-    name='cache_directio_test',
-    tags=['no-remote-exec'],
-    deps=[':cache_directio_test_lib']
 )

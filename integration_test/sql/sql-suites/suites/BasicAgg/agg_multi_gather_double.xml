@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="agg_multi_gather_double">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT brand, MULTIGATHER(field_double) FROM phone GROUP BY (brand)
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"brand", "MULTIGATHER(field_double)"</Resource>
+        <Resource name="column_types">multi_char, multi_double</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+"Huawei", [100.0,221.123,500.3333333,100.0,221.123,500.3333333]
+"Meizu", [100.0,221.123,500.3333333]
+"Samsung", [100.0,221.123,500.3333333]
+"Nokia", [100.0,221.123,500.3333333]
+"Apple", [100.0,221.123,500.3333333,100.0,221.123,500.3333333,100.0,221.123,500.3333333]
+"Xiaomi", [100.0,221.123,500.3333333]
+"OPPO", [100.0,221.123,500.3333333]
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#4(type=api)
+    ExchangeOp#3(distribution={type:SINGLETON})
+        LimitOp#2(limit=100)
+            AggregateOp#1(agg_funcs=[{approximate:false,distinct:false,filter_arg:-1,input:[$field_double],name:MULTIGATHER,output:[$MULTIGATHER(field_double)],type:NORMAL}],group_fields=[$brand],scope=NORMAL)
+                TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$brand,$field_double],push_down_ops=[{attrs:{output_fields:[$brand,$field_double]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

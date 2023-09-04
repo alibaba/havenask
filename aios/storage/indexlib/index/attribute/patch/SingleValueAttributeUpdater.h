@@ -22,7 +22,6 @@
 #include "autil/mem_pool/pool_allocator.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/index/BuildingIndexMemoryUseUpdater.h"
-#include "indexlib/index/attribute/config/PackAttributeConfig.h"
 #include "indexlib/index/attribute/format/SingleValueAttributePatchFormatter.h"
 #include "indexlib/index/attribute/patch/AttributeUpdater.h"
 #include "indexlib/index/attribute/patch/AttributeUpdaterCreator.h"
@@ -117,10 +116,10 @@ Status SingleValueAttributeUpdater<T>::Dump(const std::shared_ptr<indexlib::file
         return SingleValueAttributePatchFormatter::CompareDocId(left, right);
     });
 
-    auto packAttrConfig = _attrConfig->GetPackAttributeConfig();
-    std::string attrDir = packAttrConfig != NULL ? packAttrConfig->GetAttrName() + "/" + _attrConfig->GetAttrName()
-                                                 : _attrConfig->GetAttrName();
-
+    // auto packAttrConfig = _attrConfig->GetPackAttributeConfig();
+    // std::string attrDir = packAttrConfig != NULL ? packAttrConfig->GetPackName() + "/" + _attrConfig->GetAttrName()
+    //                                              : _attrConfig->GetAttrName();
+    std::string attrDir = _attrConfig->GetAttrName();
     auto [status, dir] = attributeDir->MakeDirectory(attrDir, indexlib::file_system::DirectoryOption()).StatusWith();
     RETURN_IF_STATUS_ERROR(status, "make attribute directory failed.");
 

@@ -37,13 +37,24 @@ struct KKVReadOptions;
 class KKVTabletReader : public framework::TabletReader
 {
 public:
-    KKVTabletReader(const std::shared_ptr<config::TabletSchema>& schema) : TabletReader(schema) {}
+    KKVTabletReader(const std::shared_ptr<config::ITabletSchema>& schema) : TabletReader(schema) {}
     ~KKVTabletReader() = default;
 
     Status Open(const std::shared_ptr<framework::TabletData>& tabletData,
                 const framework::ReadResource& readResource) override;
 
 public:
+    /* protobuf query.proto:PartitionQuery to json
+    jsonQuery format:
+      {
+         "pk" : [ "chaos" ],
+         "pkNumber" : [ 123456, 623445 ],
+         "attrs" : ["attr1", "attr2", ...],
+         "skey" : ["42", "24", ...]
+      }
+     */
+    Status Search(const std::string& jsonQuery, std::string& result) const override;
+
     // for ut or debug
     Status QueryIndex(const std::shared_ptr<config::IIndexConfig>& indexConfig, const base::PartitionQuery& query,
                       base::PartitionResponse& partitionResponse) const;

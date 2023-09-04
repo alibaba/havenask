@@ -10,8 +10,8 @@
 
 #include "autil/Lock.h"
 #include "kmonitor/client/common/Common.h"
-#include "kmonitor/client/metric/Metric.h"
 #include "kmonitor/client/core/MetricsCache.h"
+#include "kmonitor/client/metric/Metric.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
@@ -20,33 +20,30 @@ class MetricsData;
 enum MetricType : unsigned int;
 
 class MutableMetric {
- public:
-    explicit MutableMetric(MetricsData *metric_data,
-                           const std::string& metric_name,
-                           MetricsTagsManager *tags_manager);
+public:
+    explicit MutableMetric(MetricsData *metric_data, const std::string &metric_name, MetricsTagsManager *tags_manager);
     ~MutableMetric();
 
     void Report(double value);
-    void Report(const MetricsTags* tags, double value);
+    void Report(const MetricsTags *tags, double value);
 
-    void Report(const MetricsTagsPtr& tagsPtr, double value);
-    MetricsTagsPtr GetMetricsTags(
-            const std::map<std::string, std::string>& tags_map);
-    Metric* DeclareMetric(const MetricsTags *tags);
-    bool UndeclareMetric(Metric* metric);
+    void Report(const MetricsTagsPtr &tagsPtr, double value);
+    MetricsTagsPtr GetMetricsTags(const std::map<std::string, std::string> &tags_map);
+    Metric *DeclareMetric(const MetricsTags *tags);
+    bool UndeclareMetric(Metric *metric);
     MetricType GetMetricType();
 
- private:
+private:
     MutableMetric(const MutableMetric &);
-    MutableMetric& operator=(const MutableMetric &);
-    Metric* declareMetric(const MetricsTags *tags);
+    MutableMetric &operator=(const MutableMetric &);
+    Metric *declareMetric(const MetricsTags *tags);
 
- private:
+private:
     MetricsData *metric_data_ = nullptr;
     std::string metric_name_;
     MetricsTagsManager *tags_manager_ = nullptr;
 
- private:
+private:
     AUTIL_LOG_DECLARE();
 };
 
@@ -54,4 +51,4 @@ typedef std::shared_ptr<MutableMetric> MutableMetricPtr;
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_CORE_MUTABLEMETRIC_H_
+#endif // KMONITOR_CLIENT_CORE_MUTABLEMETRIC_H_

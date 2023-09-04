@@ -5,8 +5,10 @@
  * Author Email: xsank.mz@alibaba-inc.com
  */
 
-#include <string>
 #include "kmonitor/client/metric/SummaryMetric.h"
+
+#include <string>
+
 #include "kmonitor/client/core/MetricsInfo.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
@@ -15,8 +17,7 @@ using namespace std;
 
 const double SummaryMetric::RELATIVE_ACCURACY = 0.01;
 
-SummaryMetric::SummaryMetric(const string &name)
-    : Metric(name) {
+SummaryMetric::SummaryMetric(const string &name) : Metric(name) {
     const string fullMetric = name + ".summary";
     summary_info_ = MetricsInfoPtr(new MetricsInfo(fullMetric, fullMetric, {{Metric::HEADER_FORMAT, "ddsketch"}}));
     ddsketch_ = new DDSketch(RELATIVE_ACCURACY);
@@ -49,4 +50,3 @@ SummaryMetric::~SummaryMetric() {
 }
 
 END_KMONITOR_NAMESPACE(kmonitor);
-

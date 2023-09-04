@@ -80,7 +80,7 @@ bool AttributeExpressionCreator::registerVirtualAttribute(
         AUTIL_LOG(WARN, "regisiter duplicate virtual attribute[%s]", name.c_str());
         return false;
     }
-    
+
     SyntaxExpr *syntaxExpr = SyntaxParser::parseSyntax(exprStr);
     if (syntaxExpr == NULL) {
         AUTIL_LOG(WARN, "parse virtual attribute [%s:%s] failed",
@@ -170,7 +170,7 @@ bool AttributeExpressionCreator::beginRequest(SessionResource*resource) {
     {
         return true;
     }
-    
+
     if (_funcExprCreator != NULL) {
         FunctionResource functinResource(*resource, this);
         if (!_funcExprCreator->beginRequest(functinResource)) {
@@ -178,11 +178,11 @@ bool AttributeExpressionCreator::beginRequest(SessionResource*resource) {
             return false;
         }
     }
-    
+
     if (resource->location == FL_UNKNOWN) {
         return false;
     }
-    
+
     vector<AttributeExpression*> allExprInSession;
     if (!getAllExpressionInCurrentSession(allExprInSession)) {
         return false;
@@ -279,6 +279,10 @@ void AttributeExpressionCreator::getExpressionsByType(
 AttributeExpression* AttributeExpressionCreator::create(
         const SyntaxExpr *syntaxExpr, bool tryPool) {
     assert(syntaxExpr);
+    if (MAX_SYNTAX_DEPTH < syntaxExpr->getSyntaxDepth()) {
+        AUTIL_LOG(WARN, "attribute expression [%s] depth reach max limit", syntaxExpr->getExprString().c_str());
+        return nullptr;
+    }
     if (tryPool) {
         const string& syntaxStr = syntaxExpr->getExprString();
         AttributeExpression *expr = tryGetFromContextExpr(syntaxStr);
@@ -294,7 +298,7 @@ AttributeExpression* AttributeExpressionCreator::create(
             return expr;
         }
     }
-    
+
     SyntaxExpr2AttrExpr visitor(_atomicExprCreator, _funcExprCreator,
                                 _exprPool, _virtualAttributes, _pool);
     syntaxExpr->accept(&visitor);
@@ -320,13 +324,13 @@ bool AttributeExpressionCreator::getAllExpressionInCurrentSession(
         AttributeExpression *expr = _curSessionExprs[i];
         assert(expr);
 
-        const vector<expressionid_t>& exprIds = 
+        const vector<expressionid_t>& exprIds =
             expr->getDependentExpressionIds();
         uniqExprIdSet.insert(exprIds.begin(), exprIds.end());
     }
 
     attrExpr.reserve(uniqExprIdSet.size());
-    tr1::unordered_set<expressionid_t>::const_iterator iter = uniqExprIdSet.begin(); 
+    tr1::unordered_set<expressionid_t>::const_iterator iter = uniqExprIdSet.begin();
     for (; iter != uniqExprIdSet.end(); ++iter)
     {
         assert(_exprPool);

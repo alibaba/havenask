@@ -30,6 +30,21 @@ public:
     ~ControlConfig() {}
 
 public:
+    /**
+        NORMAL_MODE: full-build with processor + inc build with processor
+        NPC_MODE: disable processor-chain, and no processors in full-build and inc-build
+        FP_INP_MODE: full-build with processor + inc build without processor, processor chain is running in builder
+     **/
+    enum struct DataLinkMode : int {
+        NORMAL_MODE = 0,
+        NPC_MODE = 1,
+        FP_INP_MODE = 2,
+    };
+    static constexpr DataLinkMode DEFAULT_DATA_LINK_MODE = DataLinkMode::NORMAL_MODE;
+    static bool parseDataLinkStr(const std::string& inStr, DataLinkMode& dataLinkMode);
+    static std::string dataLinkModeToStr(DataLinkMode dataLinkMode);
+
+public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override;
 
     bool useIndexV2() const { return _useIndexV2; }
@@ -42,13 +57,19 @@ public:
         return _isIncProcessorExistByDefault;
     }
 
+    DataLinkMode getDataLinkMode() const { return _dataLinkMode; }
     bool isAllClusterNeedIncProcessor(const std::vector<std::string>& clusterNames) const;
     bool isAnyClusterNeedIncProcessor(const std::vector<std::string>& clusterNames) const;
+    void setIsInc(bool isInc) { _isIncProcessorExistByDefault = isInc; }
 
 private:
     bool _isIncProcessorExistByDefault = true;
     bool _useIndexV2 = false;
+    DataLinkMode _dataLinkMode = DEFAULT_DATA_LINK_MODE;
     std::map<std::string, bool> _clusterInfoMap; /* KEY: clusterName, VALUE: if hasIncProcessor */
+
+private:
+    BS_LOG_DECLARE();
 };
 
 }} // namespace build_service::config

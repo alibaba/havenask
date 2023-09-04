@@ -227,4 +227,11 @@ std::shared_ptr<BufferCompressor> CompressDataDumper::CreateCompressor(const str
     return compressor;
 }
 
+size_t CompressDataDumper::EstimateCompressBufferSize(const std::string& compressorName, size_t bufferSize,
+                                                      const util::KeyValueMap& compressorParam) noexcept
+{
+    // BufferInLen + BufferOutLen
+    return bufferSize * 2;
+}
+
 }} // namespace indexlib::file_system

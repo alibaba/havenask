@@ -1,25 +1,25 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(
     default_visibility=[
         '//aios/storage/indexlib/index/attribute/expression:__subpackages__'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='evaluator',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':DocumentEvaluator', ':DocumentEvaluatorMaintainer']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='config',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':FunctionConfig']
 )
-indexlib_cc_library(name='FunctionConfig', deps=['//aios/autil:json'])
-indexlib_cc_library(
+strict_cc_library(name='FunctionConfig', deps=['//aios/autil:json'])
+strict_cc_library(
     name='DocumentEvaluator',
     srcs=[],
     deps=[
@@ -28,7 +28,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:Types'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DocumentEvaluatorMaintainer',
     deps=[
         ':AtomicExpressionCreator', ':BuiltinFunctionFactory',
@@ -39,12 +39,12 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletSessionResource',
     srcs=[],
     deps=['//aios/expression', '//aios/storage/indexlib/framework:Segment']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AtomicExpressionCreator',
     hdrs=['AtomicExpressionCreator.h', 'TabletSessionResource.h'],
     deps=[
@@ -55,14 +55,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AtomicAttributeExpression',
     srcs=[],
     deps=[
         ':AttributePrefetcher', ':TabletSessionResource', '//aios/expression'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributePrefetcher',
     srcs=[],
     deps=[
@@ -72,12 +72,12 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute:reader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BuiltinFunctionFactory',
     deps=[
         ':BuiltinFunctionInterface', '//aios/autil:time', '//aios/expression'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BuiltinFunctionInterface', srcs=[], deps=['//aios/expression']
 )

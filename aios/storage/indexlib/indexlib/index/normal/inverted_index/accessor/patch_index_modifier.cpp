@@ -100,7 +100,7 @@ bool PatchIndexModifier::UpdateField(docid_t docId, const document::ModifiedToke
     const std::vector<indexid_t>& indexIdList = _schema->GetIndexSchema()->GetIndexIdList(fieldId);
     for (indexid_t indexId : indexIdList) {
         const auto& indexConfig = _schema->GetIndexSchema()->GetIndexConfig(indexId);
-        if (!indexConfig || indexConfig->IsDisable() || indexConfig->IsDeleted()) {
+        if (!indexConfig || indexConfig->IsDisabled() || indexConfig->IsDeleted()) {
             continue;
         }
         if (!indexConfig->GetNonTruncateIndexName().empty()) {

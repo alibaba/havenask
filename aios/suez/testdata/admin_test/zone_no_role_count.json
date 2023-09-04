@@ -1,0 +1,33 @@
+{
+    "table_info" : {
+        "table1" :{
+	    "g1": {
+		"partitions": {
+                    "0_65535" : {
+                        "inc_version" : 10,
+                        "load_state" : "LOADED"
+                    }
+		}
+	    }
+        },
+        "table2" :{
+	    "g1": {
+		"partitions": {
+                    "0_2" : {
+                        "inc_version" : 10,
+                        "load_state" : "LOADED"
+                    },
+                    "3_5" : {
+                        "inc_version" : 10,
+                        "load_state" : "LOADED"
+                    },
+                    "4_5" : {
+                        "inc_version" : 10,
+                        "load_state" : "LOADED"
+                    }
+		}
+	    }
+        }
+    }
+
+}

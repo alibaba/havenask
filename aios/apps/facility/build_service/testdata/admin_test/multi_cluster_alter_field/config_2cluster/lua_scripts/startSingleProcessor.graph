@@ -1,0 +1,7 @@
+function graphDef()
+   local clusterName = Graph.parameter["clusterName"]
+   local incProcessor = Graph.loadSimpleFlow("processor", "incProcessor", Graph.parameter)
+   incProcessor:addTag("BSIncProcess")
+   incProcessor:addTag(clusterName..":BSIncProcess")
+   return true
+end

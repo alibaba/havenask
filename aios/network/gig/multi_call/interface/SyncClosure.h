@@ -22,7 +22,8 @@
 
 namespace multi_call {
 
-class SyncClosure : public Closure {
+class SyncClosure : public Closure
+{
 public:
     SyncClosure();
     virtual ~SyncClosure();

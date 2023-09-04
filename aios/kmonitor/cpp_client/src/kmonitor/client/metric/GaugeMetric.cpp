@@ -5,26 +5,22 @@
  * Author Email: xsank.mz@alibaba-inc.com
  */
 
-#include <vector>
-#include <string>
-#include <math.h>
 #include "kmonitor/client/metric/GaugeMetric.h"
+
+#include <math.h>
+#include <string>
+#include <vector>
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
-using std::vector;
 using std::string;
+using std::vector;
 
-GaugeMetric::GaugeMetric(const string &name)
-    : Metric(name) {
-}
+GaugeMetric::GaugeMetric(const string &name) : Metric(name) {}
 
-GaugeMetric::~GaugeMetric() {
-}
+GaugeMetric::~GaugeMetric() {}
 
-void GaugeMetric::doUpdate(double value) {
-    calculator_.Add(value);
-}
+void GaugeMetric::doUpdate(double value) { calculator_.Add(value); }
 
 void GaugeMetric::doSnapshot(MetricsRecord *record, int64_t period) {
     if (calculator_.Count() == 0) {

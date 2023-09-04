@@ -15,66 +15,37 @@
  */
 #include "indexlib/framework/lifecycle/LifecycleTableCreator.h"
 
-#include "autil/StringUtil.h"
-#include "autil/TimeUtility.h"
 #include "indexlib/file_system/LifecycleTable.h"
-#include "indexlib/framework/SegmentDescriptions.h"
-#include "indexlib/framework/SegmentStatistics.h"
+#include "indexlib/framework/lifecycle/LifecycleStrategyFactory.h"
 
 namespace indexlibv2::framework {
 AUTIL_LOG_SETUP(indexlib.framework, LifecycleTableCreator);
 
 std::shared_ptr<indexlib::file_system::LifecycleTable>
 LifecycleTableCreator::CreateLifecycleTable(const indexlibv2::framework::Version& version,
-                                            const indexlib::file_system::LifecycleConfig& lifecycleConfig)
+                                            const indexlib::file_system::LifecycleConfig& lifecycleConfig,
+                                            const std::map<std::string, std::string>& parameters)
 {
+    auto lifecycleStrategy = indexlib::framework::LifecycleStrategyFactory::CreateStrategy(lifecycleConfig, parameters);
+    if (lifecycleStrategy == nullptr) {
+        AUTIL_LOG(ERROR, "Create LifecycleStrategy failed for version[%d]", version.GetVersionId());
+        return nullptr;
+    }
+    auto segLifecycles = lifecycleStrategy->GetSegmentLifecycles(version.GetSegmentDescriptions());
     auto lifecycleTable = std::make_shared<indexlib::file_system::LifecycleTable>();
-    const auto& segStatistics = version.GetSegmentDescriptions()->GetSegmentStatisticsVector();
-    for (const auto& segStats : segStatistics) {
-        auto lifecycle = CalculateLifecycle(segStats, lifecycleConfig);
-        if (!lifecycle.empty()) {
-            auto segDir = version.GetSegmentDirName(segStats.GetSegmentId());
-            lifecycleTable->AddDirectory(segDir, lifecycle);
+    std::set<std::string> segmentsWithLifecycle;
+    for (const auto& kv : segLifecycles) {
+        std::string segmentDir = version.GetSegmentDirName(kv.first);
+        lifecycleTable->AddDirectory(segmentDir, kv.second);
+        segmentsWithLifecycle.insert(segmentDir);
+    }
+    for (auto it = version.begin(); it != version.end(); it++) {
+        std::string segmentDir = version.GetSegmentDirName(it->segmentId);
+        if (segmentsWithLifecycle.find(segmentDir) == segmentsWithLifecycle.end()) {
+            lifecycleTable->AddDirectory(segmentDir, "");
         }
     }
     return lifecycleTable;
-}
-
-std::string LifecycleTableCreator::CalculateLifecycle(const SegmentStatistics& segmentStatistic,
-                                                      const indexlib::file_system::LifecycleConfig& lifecycleConfig)
-{
-    for (const auto& pattern : lifecycleConfig.GetPatterns()) {
-        const std::string& statisticField = pattern->statisticField;
-        if (pattern->statisticType == indexlib::file_system::LifecyclePatternBase::INTEGER_TYPE) {
-            std::pair<int64_t, int64_t> segRange;
-            if (!segmentStatistic.GetStatistic(statisticField, segRange)) {
-                continue;
-            }
-            auto typedPattern = std::dynamic_pointer_cast<indexlib::file_system::IntegerLifecyclePattern>(pattern);
-            assert(typedPattern);
-            std::pair<int64_t, int64_t> configRange = typedPattern->range;
-            if (pattern->isOffset) {
-                configRange.first += typedPattern->baseValue;
-                configRange.second += typedPattern->baseValue;
-            }
-            if (indexlib::file_system::LifecycleConfig::IsRangeOverLapped(configRange, segRange)) {
-                return pattern->lifecycle;
-            }
-        } else if (pattern->statisticType == indexlib::file_system::LifecyclePatternBase::STRING_TYPE) {
-            std::string segValue;
-            if (!segmentStatistic.GetStatistic(statisticField, segValue)) {
-                continue;
-            }
-            auto typedPattern = std::dynamic_pointer_cast<indexlib::file_system::StringLifecyclePattern>(pattern);
-            assert(typedPattern);
-            auto iter = std::find(typedPattern->range.begin(), typedPattern->range.end(), segValue);
-            if (iter != typedPattern->range.end()) {
-                return pattern->lifecycle;
-            }
-        }
-        // TODO: 如果类型超>=3种则考虑在pattern基类加一个match方法
-    }
-    return "";
 }
 
 } // namespace indexlibv2::framework

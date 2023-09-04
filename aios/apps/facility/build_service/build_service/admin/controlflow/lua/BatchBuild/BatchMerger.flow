@@ -1,0 +1,25 @@
+#import(Log)
+
+function stepRunFlow()
+   local skipMerger = Flow.getProperty("skipMerger")
+   if (skipMerger == "true")
+   then
+      local clusterName = Flow.parameter["clusterName"]
+      local batchId = Flow.parameter["batchId"]
+      Log.log("INFO", "skip inc merger for cluster["..clusterName.."], batchId("..batchId..")")
+      return true
+   end
+   
+   local task = Flow.createTask("incMerger", "merger", Flow.parameter)
+   if (not task:isValid())
+   then
+      Flow.setFatalError("create Task id:incMerger, type:merger fail!")
+      return false
+   end
+   if (not Flow.startTask(task, Flow.parameter))
+   then
+      Flow.setFatalError("start Task id:incMerger fail!")
+      return false
+   end
+   return true
+end

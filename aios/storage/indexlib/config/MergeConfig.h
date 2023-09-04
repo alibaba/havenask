@@ -15,6 +15,9 @@
  */
 #pragma once
 
+#include <any>
+#include <functional>
+
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
 
@@ -23,7 +26,6 @@ class PackageFileTagConfigList;
 }
 namespace indexlibv2::config {
 class MergeStrategyParameter;
-class TruncateStrategy;
 
 class MergeConfig : public autil::legacy::Jsonizable
 {
@@ -45,8 +47,18 @@ public:
     bool EnablePatchFileArchive() const;
     bool IsPackageFileEnabled() const;
     uint32_t GetPackageFileSizeThresholdBytes() const;
+    uint32_t GetMergePackageThreadCount() const;
     const indexlib::file_system::PackageFileTagConfigList& GetPackageFileTagConfigList() const;
-    const std::vector<TruncateStrategy>& GetTruncateStrategys() const;
+
+public:
+    // hook
+    typedef std::function<void(std::map<std::string, std::any>&)> OptionInitHook;
+    typedef std::function<void(autil::legacy::Jsonizable::JsonWrapper&, std::map<std::string, std::any>&)>
+        OptionJsonHook;
+    static void RegisterOptionHook(const std::string& hookName, const OptionInitHook& initHook,
+                                   const OptionJsonHook& jsonHook);
+    const std::any* GetHookOption(const std::string& name) const;
+    std::any* TEST_GetHookOption(const std::string& name);
 
 public:
     void TEST_SetMergeStrategyStr(const std::string& mergeStrategyStr);
@@ -58,10 +70,8 @@ public:
     void TEST_SetEnablePatchFileArchive(bool enabled);
     void TEST_SetEnablePackageFile(bool enable);
     void TEST_SetPackageFileSizeThresholdBytes(uint32_t bytes);
+    void TEST_SetMergePackageThreadCount(uint32_t count);
     void TEST_SetPackageFileTagConfigList(const indexlib::file_system::PackageFileTagConfigList& list);
-    void TEST_SetTruncateStrategy(const std::string& truncateStrategyStr);
-    void TEST_AddTruncateStrategy(const TruncateStrategy& strategy);
-    void TEST_SetTruncateStrategys(const std::vector<TruncateStrategy>& truncateStrategyVec);
 
 public:
     struct Impl;

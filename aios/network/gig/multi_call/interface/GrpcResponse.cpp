@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/interface/GrpcResponse.h"
+
 #include "aios/network/gig/multi_call/util/ProtobufByteBufferUtil.h"
 
 using namespace std;
@@ -21,7 +22,8 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GrpcResponse);
 
-GrpcResponse::GrpcResponse() : _messageBuffer(nullptr), _message(nullptr) {}
+GrpcResponse::GrpcResponse() : _messageBuffer(nullptr), _message(nullptr) {
+}
 
 GrpcResponse::~GrpcResponse() {
     DELETE_AND_SET_NULL(_messageBuffer);
@@ -52,8 +54,7 @@ void GrpcResponse::init(void *data) {
     _messageBuffer = response;
 }
 
-grpc::protobuf::Message *
-GrpcResponse::getMessage(google::protobuf::Message *response) {
+grpc::protobuf::Message *GrpcResponse::getMessage(google::protobuf::Message *response) {
     if (_message) {
         freeProtoMessage(_message);
     }
@@ -61,14 +62,15 @@ GrpcResponse::getMessage(google::protobuf::Message *response) {
     if (!response || !_messageBuffer) {
         return NULL;
     }
-    if (ProtobufByteBufferUtil::deserializeFromBuffer(*_messageBuffer,
-                                                      response)) {
+    if (ProtobufByteBufferUtil::deserializeFromBuffer(*_messageBuffer, response)) {
         return response;
     } else {
         return NULL;
     }
 }
 
-grpc::ByteBuffer *GrpcResponse::getMessageBuffer() { return _messageBuffer; }
+grpc::ByteBuffer *GrpcResponse::getMessageBuffer() {
+    return _messageBuffer;
+}
 
 } // namespace multi_call

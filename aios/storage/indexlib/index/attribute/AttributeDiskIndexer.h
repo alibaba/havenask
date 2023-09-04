@@ -56,6 +56,10 @@ public:
     };
 
 public:
+    size_t EstimateMemUsed(const std::shared_ptr<config::IIndexConfig>& indexConfig,
+                           const std::shared_ptr<indexlib::file_system::IDirectory>& attrDirectory) override;
+
+public:
     virtual bool IsInMemory() const = 0;
     virtual bool UpdateField(docid_t docId, const autil::StringView& value, bool isNull, const uint64_t* hashKey) = 0;
 
@@ -76,9 +80,6 @@ public:
     }
     virtual bool Read(docid_t docId, const std::shared_ptr<ReadContextBase>& ctx, uint8_t* buf, uint32_t bufLen,
                       uint32_t& dataLen, bool& isNull) = 0;
-    size_t EstimateMemUsed(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                           const std::shared_ptr<indexlib::file_system::IDirectory>& attrDirectory) override;
-
     virtual Status SetPatchReader(const std::shared_ptr<AttributePatchReader>& patchReader, docid_t patchBaseDocId);
     virtual bool Read(docid_t docId, std::string* value, autil::mem_pool::Pool* pool) = 0;
     virtual AttributeDataInfo GetAttributeDataInfo() const { return _dataInfo; }
@@ -93,9 +94,10 @@ public:
     {
         return UpdateField(docId, value, isNull, hashKey);
     }
+    std::shared_ptr<AttributeMetrics> TEST_GetAttributeMetrics() const { return _attributeMetrics; }
 
 protected:
-    virtual std::string GetAttributePath(const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    virtual std::string GetAttributePath(const std::shared_ptr<AttributeConfig>& attrConfig);
 
 protected:
     std::shared_ptr<AttributeMetrics> _attributeMetrics;
@@ -106,7 +108,7 @@ protected:
     bool _enableAccessCountors;
     std::shared_ptr<autil::mem_pool::Pool> _globalCtxPool;
     std::shared_ptr<ReadContextBase> _globalCtx;
-    std::shared_ptr<config::AttributeConfig> _attrConfig;
+    std::shared_ptr<AttributeConfig> _attrConfig;
     std::shared_ptr<AttributeFieldPrinter> _fieldPrinter;
     AttributeDataInfo _dataInfo;
 

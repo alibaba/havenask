@@ -1,0 +1,19 @@
+{
+    "cluster_config" : {
+	"builder_rule_config" : {
+            "partition_count" : 3
+	}
+    },
+    "offline_index_config" : {
+        "customized_merge_config" : {
+	    "full" : {
+                "merge_config" : {},
+	        "period" : "daytime=04:40"
+	    },
+	    "inc" : {
+                "merge_config" : {},
+	        "period" : "period=1800"
+	    }
+        }
+    }
+}

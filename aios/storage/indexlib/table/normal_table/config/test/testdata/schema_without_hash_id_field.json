@@ -1,0 +1,26 @@
+{
+    "attributes": [
+        "string1",
+        "price"
+    ],
+    "fields": [
+        {
+        "field_name": "string1",
+        "field_type": "STRING"
+    },
+        {
+        "field_name": "price",
+        "field_type": "UINT32"
+    }
+    ],
+    "indexs": [
+        {
+        "has_primary_key_attribute": true,
+        "index_fields": "string1",
+        "index_name": "pk",
+        "index_type": "PRIMARYKEY64"
+    }
+    ],
+    "table_name": "noname",
+    "enable_hash_id": true
+}

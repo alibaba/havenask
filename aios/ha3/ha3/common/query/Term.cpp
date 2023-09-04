@@ -18,10 +18,9 @@
 #include <stddef.h>
 
 #include "autil/DataBuffer.h"
+#include "autil/Log.h"
 #include "build_service/analyzer/Token.h"
 #include "indexlib/document/extend_document/tokenize/analyzer_token.h"
-
-#include "autil/Log.h"
 
 using namespace std;
 
@@ -30,13 +29,10 @@ namespace common {
 AUTIL_LOG_SETUP(ha3, Term);
 
 bool RequiredFields::operator==(const RequiredFields &other) const {
-    if ((fields.size() != other.fields.size())
-        ||(isRequiredAnd != other.isRequiredAnd))
-    {
+    if ((fields.size() != other.fields.size()) || (isRequiredAnd != other.isRequiredAnd)) {
         return false;
     }
-    for (size_t i = 0; i < fields.size(); ++i)
-    {
+    for (size_t i = 0; i < fields.size(); ++i) {
         if (fields[i] != other.fields[i]) {
             return false;
         }
@@ -44,12 +40,9 @@ bool RequiredFields::operator==(const RequiredFields &other) const {
     return true;
 }
 
-bool Term::operator == (const Term& term) const {
-    return  _token == term._token
-        && _indexName == term._indexName
-        && _boost == term._boost
-        && _truncateName == term._truncateName
-        && _requiredFields == term._requiredFields;
+bool Term::operator==(const Term &term) const {
+    return _token == term._token && _indexName == term._indexName && _boost == term._boost
+           && _truncateName == term._truncateName && _requiredFields == term._requiredFields;
 }
 
 std::string Term::toString() const {
@@ -64,8 +57,8 @@ void Term::formatString(std::stringstream &ss) const {
     bool isFirstField = true;
     string delimiter = _requiredFields.isRequiredAnd ? " and " : " or ";
     for (vector<string>::const_iterator it = _requiredFields.fields.begin();
-         it != _requiredFields.fields.end(); ++it)
-    {
+         it != _requiredFields.fields.end();
+         ++it) {
         if (isFirstField) {
             ss << *it;
             isFirstField = false;
@@ -75,16 +68,14 @@ void Term::formatString(std::stringstream &ss) const {
     }
     ss << "|";
 
-    ss << _token.getNormalizedText().c_str() << "|" << _boost << "|" <<
-        _truncateName;
+    ss << _token.getNormalizedText().c_str() << "|" << _boost << "|" << _truncateName;
 }
 
-std::ostream& operator <<(std::ostream &os, const Term& term) {
+std::ostream &operator<<(std::ostream &os, const Term &term) {
     return os << term.toString();
 }
 
-void Term::serialize(autil::DataBuffer &dataBuffer) const
-{
+void Term::serialize(autil::DataBuffer &dataBuffer) const {
     dataBuffer.write(_token);
     dataBuffer.write(_indexName);
     dataBuffer.write(_requiredFields.fields);
@@ -93,8 +84,7 @@ void Term::serialize(autil::DataBuffer &dataBuffer) const
     dataBuffer.write(_truncateName);
 }
 
-void Term::deserialize(autil::DataBuffer &dataBuffer)
-{
+void Term::deserialize(autil::DataBuffer &dataBuffer) {
     dataBuffer.read(_token);
     dataBuffer.read(_indexName);
     dataBuffer.read(_requiredFields.fields);

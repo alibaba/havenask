@@ -67,8 +67,15 @@ std::shared_ptr<IKVSegmentReader> VarLenKVMemIndexer::CreateInMemoryReader() con
 
 Status VarLenKVMemIndexer::DoInit()
 {
-    _pool = std::make_shared<autil::mem_pool::UnsafePool>(1024 * 1024);
-
+    const size_t poolChunkSize = 1024 * 1024;
+    _pool = std::make_shared<autil::mem_pool::UnsafePool>(poolChunkSize);
+    int64_t originalMaxMemoryUse = _maxMemoryUse;
+    if (_sortDataCollector) {
+        // T = K + V ==> T = 2K + V, for SortKey
+        // K = r * T, V = (1 - r) * T, so V / K = (1 - r) / r
+        // when T = 2K + V, K = r / (r + 1) * T, so new T = T - K = T / (1 + r)
+        _maxMemoryUse /= (1 + _keyValueSizeRatio);
+    }
     // init sort collector
     if (!_sortDescriptions.empty()) {
         _sortDataCollector = std::make_shared<KVSortDataCollector>();
@@ -97,12 +104,15 @@ Status VarLenKVMemIndexer::DoInit()
             std::min(hashParams.GetMaxValueSizeForShortOffset(), static_cast<size_t>(maxValueMemoryUse));
     }
     auto valueWriter = std::make_unique<InMemoryValueWriter>(_indexConfig);
-    RETURN_STATUS_DIRECTLY_IF_ERROR(valueWriter->Init(_pool.get(), maxValueMemoryUse, _memReclaimer));
+    RETURN_STATUS_DIRECTLY_IF_ERROR(
+        valueWriter->Init(_pool.get(), maxValueMemoryUse, _valueCompressRatio, _memReclaimer));
     _valueWriter = std::move(valueWriter);
 
     AUTIL_LOG(INFO,
-              "key buffer size: %lu, value buffer size: %ld, sort descriptions size: %ld, enable memory reclaim: %d",
-              maxKeyMemoryUse, maxValueMemoryUse, _sortDescriptions.size(), (_memReclaimer != nullptr));
+              "key size [%lu], value size [%ld], total size [%ld, %ld], ratio [%f], sort description [%lu],"
+              "memory reclaim [%d]",
+              maxKeyMemoryUse, maxValueMemoryUse, _maxMemoryUse, originalMaxMemoryUse, _keyValueSizeRatio,
+              _sortDescriptions.size(), (_memReclaimer != nullptr));
     return Status::OK();
 }
 
@@ -331,23 +341,18 @@ Status VarLenKVMemIndexer::DumpAfterSort(const std::unique_ptr<KeyWriter>& keyWr
     return Status::OK();
 }
 
-void VarLenKVMemIndexer::UpdateMemoryUsage(MemoryUsage& memoryUsage) const
+void VarLenKVMemIndexer::FillMemoryUsage(MemoryUsage& memoryUsage) const
 {
-    _keyWriter->UpdateMemoryUsage(memoryUsage);
+    _keyWriter->FillMemoryUsage(memoryUsage);
 
     MemoryUsage valueMemUsage;
-    _valueWriter->UpdateMemoryUsage(valueMemUsage);
-    if (NeedCompress()) {
-        valueMemUsage.dumpedFileSize *= _valueCompressRatio;
-        valueMemUsage.dumpMemory += valueMemUsage.dumpedFileSize;
-    }
+    _valueWriter->FillMemoryUsage(valueMemUsage);
     valueMemUsage.buildMemory += _memBuffer.GetBufferSize();
-
     memoryUsage += valueMemUsage;
 
     if (_sortDataCollector) {
         MemoryUsage sortDataMemUsage;
-        _sortDataCollector->UpdateMemoryUsage(sortDataMemUsage);
+        _sortDataCollector->FillMemoryUsage(sortDataMemUsage);
         memoryUsage += sortDataMemUsage;
     }
 }
@@ -358,12 +363,6 @@ void VarLenKVMemIndexer::DoFillStatistics(SegmentStatistics& stat) const
     _valueWriter->FillStatistics(stat);
     stat.totalMemoryUse = stat.keyMemoryUse + stat.valueMemoryUse;
     stat.keyValueSizeRatio = 1.0f * stat.keyMemoryUse / stat.totalMemoryUse;
-}
-
-bool VarLenKVMemIndexer::NeedCompress() const
-{
-    const auto& valueParam = _indexConfig->GetIndexPreference().GetValueParam();
-    return valueParam.EnableFileCompress();
 }
 
 std::pair<Status, std::unique_ptr<KeyWriter>> VarLenKVMemIndexer::CreateKeyWriter(KVTypeId typeId,

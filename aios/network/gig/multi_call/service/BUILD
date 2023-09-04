@@ -14,7 +14,6 @@ cc_library(
         '//aios/network/gig/multi_call/config:config_headers',
         '//aios/network/gig/multi_call/controller:controller_headers',
         '//aios/network/gig/multi_call/grpc:grpc_headers',
-        '//aios/network/gig/multi_call/heartbeat:heartbeat_headers',
         '//aios/network/gig/multi_call/interface:interface_headers',
         '//aios/network/gig/multi_call/metric:metric_headers',
         '//aios/network/gig/multi_call/new_heartbeat:new_heartbeat_headers',
@@ -28,7 +27,6 @@ cc_library(
     deps=([
         '//aios/network/gig/multi_call/java:java_headers',
         '//aios/network/gig/multi_call/rpc:rpc',
-        '//aios/network/gig/multi_call/heartbeat:heartbeat',
         '//aios/network/gig/multi_call/new_heartbeat:new_heartbeat',
         '//aios/network/gig/multi_call/controller:controller',
         '//aios/network/gig/multi_call/metric:metric',

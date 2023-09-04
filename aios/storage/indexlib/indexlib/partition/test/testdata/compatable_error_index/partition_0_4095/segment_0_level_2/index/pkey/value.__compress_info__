@@ -1,0 +1,12 @@
+{
+"block_count":
+  895,
+"block_size":
+  4096,
+"compress_file_length":
+  1044352,
+"compressor":
+  "zstd",
+"decompress_file_length":
+  3665038
+}

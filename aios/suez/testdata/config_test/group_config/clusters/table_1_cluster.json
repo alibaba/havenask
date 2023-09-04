@@ -1,0 +1,8 @@
+{
+    "online_index_config": {
+        "online_keep_version_count": 12,
+        "build_config" : {
+            "build_total_memory": 1234567
+        }
+    }    
+}

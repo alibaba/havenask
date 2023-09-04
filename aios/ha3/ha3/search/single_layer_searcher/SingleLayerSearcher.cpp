@@ -32,8 +32,8 @@
 namespace suez {
 namespace turing {
 class AttributeExpression;
-}  // namespace turing
-}  // namespace suez
+} // namespace turing
+} // namespace suez
 
 using namespace isearch::common;
 namespace isearch {
@@ -41,17 +41,18 @@ namespace search {
 AUTIL_LOG_SETUP(ha3, SingleLayerSearcher);
 
 SingleLayerSearcher::SingleLayerSearcher(
-        QueryExecutor *queryExecutor, LayerMeta *layerMeta,
-        FilterWrapper *filterWrapper,
-        indexlib::index::DeletionMapReaderAdaptor *deletionMapReader,
-        matchdoc::MatchDocAllocator *matchDocAllocator,
-        TimeoutTerminator *timeoutTerminator,
-        DocMapAttrIterator *main2subIt,
-        indexlib::index::DeletionMapReader *subDeletionMapReader,
-        MatchDataManager *matchDataManager,
-        bool getAllSubDoc,
-        const search::HashJoinInfo *hashJoinInfo,
-        suez::turing::AttributeExpression *joinAttrExpr)
+    QueryExecutor *queryExecutor,
+    LayerMeta *layerMeta,
+    FilterWrapper *filterWrapper,
+    indexlib::index::DeletionMapReaderAdaptor *deletionMapReader,
+    matchdoc::MatchDocAllocator *matchDocAllocator,
+    TimeoutTerminator *timeoutTerminator,
+    DocMapAttrIterator *main2subIt,
+    indexlib::index::DeletionMapReader *subDeletionMapReader,
+    MatchDataManager *matchDataManager,
+    bool getAllSubDoc,
+    const search::HashJoinInfo *hashJoinInfo,
+    suez::turing::AttributeExpression *joinAttrExpr)
     : _curDocId((*layerMeta)[0].nextBegin)
     , _curBegin((*layerMeta)[0].nextBegin)
     , _curEnd((*layerMeta)[0].end)
@@ -70,8 +71,7 @@ SingleLayerSearcher::SingleLayerSearcher(
     , _getAllSubDoc(getAllSubDoc)
     , _seekTimes(0)
     , _hashJoinInfo(hashJoinInfo)
-    , _joinAttrExpr(joinAttrExpr)
-{
+    , _joinAttrExpr(joinAttrExpr) {
     if (layerMeta->quotaMode == QM_PER_LAYER) {
         _curQuota = layerMeta->maxQuota;
     } else {
@@ -79,8 +79,7 @@ SingleLayerSearcher::SingleLayerSearcher(
     }
 }
 
-SingleLayerSearcher::~SingleLayerSearcher() {
-}
+SingleLayerSearcher::~SingleLayerSearcher() {}
 
 bool SingleLayerSearcher::moveToCorrectRange(docid_t &docId) {
     while (true) {
@@ -156,18 +155,20 @@ indexlib::index::ErrorCode SingleLayerSearcher::constructSubMatchDocs(matchdoc::
     docid_t curSubDocId;
     if (docId != 0) {
         bool ret = mainToSubIter->Seek(docId - 1, curSubDocId);
-        assert(ret); (void)ret;
+        assert(ret);
+        (void)ret;
     } else {
         curSubDocId = 0;
     }
 
     docid_t endSubDocId;
     bool ret = mainToSubIter->Seek(docId, endSubDocId);
-    assert(ret); (void)ret;
+    assert(ret);
+    (void)ret;
     QueryExecutor *queryExecutor = _queryExecutor;
     bool hasSubDocExecutor = queryExecutor->hasSubDocExecutor();
     bool isMainDocHit = !hasSubDocExecutor;
-    if(hasSubDocExecutor) {
+    if (hasSubDocExecutor) {
         isMainDocHit = _queryExecutor->isMainDocHit(docId);
     }
     JoinFilter *joinFilter = _filterWrapper ? _filterWrapper->getJoinFilter() : NULL;
@@ -176,14 +177,16 @@ indexlib::index::ErrorCode SingleLayerSearcher::constructSubMatchDocs(matchdoc::
     matchdoc::MatchDoc lastDoc;
     // if filter need MatchData, fetch MatchData before filter
     bool needSubMatchData = _matchDataManager && _matchDataManager->hasSubMatchData();
-    bool needSubMatchDataBeforeFilter = needSubMatchData && _matchDataManager->filterNeedMatchData();
-    bool needSubMatchDataAfterFilter = needSubMatchData && !_matchDataManager->filterNeedMatchData();
+    bool needSubMatchDataBeforeFilter
+        = needSubMatchData && _matchDataManager->filterNeedMatchData();
+    bool needSubMatchDataAfterFilter
+        = needSubMatchData && !_matchDataManager->filterNeedMatchData();
     bool needSubSeek = !isMainDocHit || needSubMatchData;
     docid_t preSubDocId = curSubDocId;
     while (true) {
         if (needSubSeek) {
-            auto ec = queryExecutor->seekSub(docId, curSubDocId, endSubDocId,
-                    needSubMatchData, curSubDocId);
+            auto ec = queryExecutor->seekSub(
+                docId, curSubDocId, endSubDocId, needSubMatchData, curSubDocId);
             IE_RETURN_CODE_IF_ERROR(ec);
         }
         if (unlikely(_getAllSubDoc)) {
@@ -200,12 +203,13 @@ indexlib::index::ErrorCode SingleLayerSearcher::constructSubMatchDocs(matchdoc::
         }
 
         if (!deletionMapReader || !deletionMapReader->IsDeleted(curSubDocId)) {
-            auto &newSubDoc =
-                _matchDocAllocator->allocateSubReturnRef(matchDoc, curSubDocId);
+            auto &newSubDoc = _matchDocAllocator->allocateSubReturnRef(matchDoc, curSubDocId);
 
-            auto releaseSubDoc = [] (const matchdoc::MatchDocAllocator* allocator,
-                    bool getAllSubDoc, matchdoc::MatchDoc& matchDoc,
-                    matchdoc::MatchDoc& newSubDoc, matchdoc::MatchDoc& lastSubDoc) {
+            auto releaseSubDoc = [](const matchdoc::MatchDocAllocator *allocator,
+                                    bool getAllSubDoc,
+                                    matchdoc::MatchDoc &matchDoc,
+                                    matchdoc::MatchDoc &newSubDoc,
+                                    matchdoc::MatchDoc &lastSubDoc) {
                 if (unlikely(getAllSubDoc)) {
                     newSubDoc.setDeleted();
                 } else {
@@ -214,8 +218,8 @@ indexlib::index::ErrorCode SingleLayerSearcher::constructSubMatchDocs(matchdoc::
                 }
             };
             if (needSubMatchDataBeforeFilter) {
-                auto ec = _matchDataManager->fillSubMatchData(matchDoc, newSubDoc,
-                        curSubDocId, endSubDocId);
+                auto ec = _matchDataManager->fillSubMatchData(
+                    matchDoc, newSubDoc, curSubDocId, endSubDocId);
                 if (unlikely(ec != indexlib::index::ErrorCode::OK)) {
                     releaseSubDoc(_matchDocAllocator, _getAllSubDoc, matchDoc, newSubDoc, lastDoc);
                     return ec;
@@ -224,10 +228,11 @@ indexlib::index::ErrorCode SingleLayerSearcher::constructSubMatchDocs(matchdoc::
             bool needReserve = !joinFilter || joinFilter->passSubDoc(matchDoc);
             if (needReserve && (!filter || filter->pass(matchDoc))) {
                 if (needSubMatchDataAfterFilter) {
-                    auto ec = _matchDataManager->fillSubMatchData(matchDoc, newSubDoc,
-                            curSubDocId, endSubDocId);
+                    auto ec = _matchDataManager->fillSubMatchData(
+                        matchDoc, newSubDoc, curSubDocId, endSubDocId);
                     if (unlikely(ec != indexlib::index::ErrorCode::OK)) {
-                        releaseSubDoc(_matchDocAllocator, _getAllSubDoc, matchDoc, newSubDoc, lastDoc);
+                        releaseSubDoc(
+                            _matchDocAllocator, _getAllSubDoc, matchDoc, newSubDoc, lastDoc);
                         return ec;
                     }
                 }

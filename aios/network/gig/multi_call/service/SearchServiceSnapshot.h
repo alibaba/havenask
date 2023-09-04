@@ -31,11 +31,9 @@ namespace multi_call {
 
 typedef std::pair<SearchServiceProviderPtr, SearchServiceReplicaPtr> ProviderReplicaPair;
 typedef std::unordered_map<std::string, ProviderReplicaPair> ProviderMap;
-typedef std::unordered_map<std::string, std::vector<SearchServiceProviderPtr> >
-    ProviderAddressMap;
-typedef std::map<std::string, SearchServiceSnapshotInVersionPtr>
-    BizVersionSnapshotMap;
-typedef std::map<std::string, std::vector<SearchServiceSnapshotInVersionPtr> >
+typedef std::unordered_map<std::string, std::vector<SearchServiceProviderPtr>> ProviderAddressMap;
+typedef std::map<std::string, SearchServiceSnapshotInVersionPtr> BizVersionSnapshotMap;
+typedef std::map<std::string, std::vector<SearchServiceSnapshotInVersionPtr>>
     BizMultiVersionSnapshotMap;
 
 class SearchServiceSnapshot;
@@ -44,7 +42,8 @@ MULTI_CALL_TYPEDEF_PTR(SearchServiceSnapshot);
 class LatencyTimeSnapshot;
 MULTI_CALL_TYPEDEF_PTR(LatencyTimeSnapshot);
 
-class SearchServiceSnapshot {
+class SearchServiceSnapshot
+{
 public:
     SearchServiceSnapshot(const ConnectionManagerPtr &connectionManager,
                           const MetricReporterManagerPtr &metricReporterManager,
@@ -56,28 +55,29 @@ private:
     SearchServiceSnapshot &operator=(const SearchServiceSnapshot &);
 
 public:
-    bool init(const BizInfoMap &bizInfoMap,
-              const SearchServiceSnapshotPtr &oldSnapshot);
+    bool init(const BizInfoMap &bizInfoMap, const SearchServiceSnapshotPtr &oldSnapshot);
 
     void getSpecSet(std::set<std::string> &specSet) const;
     const ProviderMap &getProviderMap() const;
     ProviderAddressMap &getAddressProviderMap(); // may update provider
     const BizSnapshotMap &getBizSnapshotMap() const;
-    const MiscConfigPtr &getMiscConfig() const { return _miscConfig; }
+    const MiscConfigPtr &getMiscConfig() const {
+        return _miscConfig;
+    }
     const ConnectionManagerPtr &getConnectionManager() const {
         return _connectionManager;
     }
     std::vector<std::string> getBizNames() const;
     bool hasCluster(const std::string &clusterName) const;
     bool hasBiz(const std::string &bizName) const;
-    bool hasVersion(const std::string &bizName, VersionTy version,
-                    VersionInfo &info) const;
+    bool hasVersion(const std::string &bizName, VersionTy version, VersionInfo &info) const;
+    void getBizMetaInfos(std::vector<BizMetaInfo> &bizMetaInfos) const;
     void fillSnapshotInfo(SnapshotInfoCollector &collector);
     SourceIdTy getRandomSourceId();
     void toString(std::string &debugStr);
     SearchServiceSnapshotInBizPtr getBizSnapshot(const std::string &bizName);
-    SearchServiceSnapshotInVersionPtr
-    getBizVersionSnapshot(const std::string &bizName, const VersionTy version);
+    SearchServiceSnapshotInVersionPtr getBizVersionSnapshot(const std::string &bizName,
+                                                            const VersionTy version);
     std::vector<VersionTy> getBizVersion(const std::string &bizName) const;
     std::set<VersionTy> getBizProtocalVersion(const std::string &bizName) const;
     bool disableBizNotExistLog() const;
@@ -85,24 +85,23 @@ public:
     void setLatencyTimeSnapshot(const LatencyTimeSnapshotPtr &snapshot) {
         _latencyTimeSnapshot = snapshot;
     }
+
 private:
     // virtual for ut
-    virtual void getDiffBiz(const BizInfoMap &bizInfoMap,
-                            BizInfoMap &newBizInfoMap,
+    virtual void getDiffBiz(const BizInfoMap &bizInfoMap, BizInfoMap &newBizInfoMap,
                             BizSnapshotMap &keepBizSnapshot);
     virtual bool constructFromBizMap(const BizInfoMap &newBizInfoMap,
                                      const ProviderMap &oldProviderMap);
     virtual void addBizSnapshot(const BizSnapshotMap &keepBizSnapshot,
                                 const ProviderMap &oldProviderMap);
-    bool addProvider(const TopoNode &topoNode,
-                     const ProviderMap &oldProviderMap);
+    bool addProvider(const TopoNode &topoNode, const ProviderMap &oldProviderMap);
     SearchServiceProviderPtr createProvider(const TopoNode &topoNode,
                                             const ProviderMap &oldProviderMap);
     bool constructConsistentHash();
     void finishCreateSnapshot(const BizInfoMap &bizInfoMap) const;
+
 private:
-    void updateProviderStatus(const SearchServiceProviderPtr &provider,
-                              const TopoNode &topoNode);
+    void updateProviderStatus(const SearchServiceProviderPtr &provider, const TopoNode &topoNode);
     void updateProviderFromOld(const SearchServiceProviderPtr &oldProvider,
                                const SearchServiceProviderPtr &newProvider);
 

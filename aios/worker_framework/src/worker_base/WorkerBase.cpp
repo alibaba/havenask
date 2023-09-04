@@ -26,10 +26,8 @@
 #include "autil/StringUtil.h"
 #include "fslib/fs/FileSystem.h"
 #include "fslib/fslib.h"
-#include "worker_framework/PathUtil.h"
 #include "fslib/util/FileUtil.h"
-#include <sys/stat.h>
-
+#include "worker_framework/PathUtil.h"
 
 using namespace std;
 using namespace fslib;
@@ -71,10 +69,14 @@ static void registerSignalHandler() {
 }
 
 static void resetSignalHandler() {
-    if (__func_int != nullptr) signal(SIGINT, __func_int);
-    if (__func_term != nullptr) signal(SIGTERM, __func_term);
-    if (__func_user1 != nullptr) signal(SIGUSR1, __func_user1);
-    if (__func_user2 != nullptr) signal(SIGUSR2, __func_user2);
+    if (__func_int != nullptr)
+        signal(SIGINT, __func_int);
+    if (__func_term != nullptr)
+        signal(SIGTERM, __func_term);
+    if (__func_user1 != nullptr)
+        signal(SIGUSR1, __func_user1);
+    if (__func_user2 != nullptr)
+        signal(SIGUSR2, __func_user2);
 }
 
 class WorkerBaseImpl {

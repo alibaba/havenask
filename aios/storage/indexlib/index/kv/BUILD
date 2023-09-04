@@ -1,42 +1,42 @@
 load('//bazel:defs.bzl', 'gen_cpp_code')
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=[':__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='factory',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':KVIndexFactory']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='reader',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':kv_reader', ':reader_interface']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='config',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=['//aios/storage/indexlib/index/kv/config']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='constants',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':Common', ':Constant']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='merger',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':kv_merger']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='metrics',
     srcs=[],
     hdrs=[],
@@ -88,7 +88,7 @@ gen_cpp_code(
     template_header=template_header4,
     template_tail=template_tail
 )
-indexlib_cc_library(
+strict_cc_library(
     name='kv_common',
     srcs=(((([
         'FixedLenHashTableCreator.cpp', 'KVCommonDefine.cpp',
@@ -122,16 +122,16 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kv/config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='reader_interface',
     srcs=[],
     hdrs=['IKVIterator.h', 'IKVSegmentReader.h', 'KVMetricsCollector.h'],
     deps=[':kv_common']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='kv_metrics', srcs=[], hdrs=['KVMetricsCollector.h'], deps=[]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='writer_common',
     srcs=[
         'KeyWriter.cpp', 'RecordComparator.cpp', 'SegmentStatistics.cpp',
@@ -146,18 +146,18 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format/pack_attribute:PackValueComparator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='kv_mem_indexer',
     srcs=[
         'FixedLenKVMemIndexer.cpp', 'FixedLenKVMemoryReader.cpp',
         'InMemoryValueWriter.cpp', 'KVMemIndexerBase.cpp',
-        'KVSortDataCollector.cpp', 'KVTimestamp.cpp', 'VarLenKVMemIndexer.cpp',
+        'KVSortDataCollector.cpp', 'VarLenKVMemIndexer.cpp',
         'VarLenKVMemoryReader.cpp'
     ],
     hdrs=[
         'FixedLenKVMemIndexer.h', 'FixedLenKVMemoryReader.h',
         'InMemoryValueWriter.h', 'KVMemIndexerBase.h', 'KVSortDataCollector.h',
-        'KVTimestamp.h', 'ReclaimedValueCollector.h', 'VarLenKVMemIndexer.h',
+        'ReclaimedValueCollector.h', 'VarLenKVMemIndexer.h',
         'VarLenKVMemoryReader.h'
     ],
     deps=[
@@ -172,7 +172,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/data_structure:ExpandableValueAccessor'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='kv_merger',
     srcs=[
         'DFSValueWriter.cpp', 'FixedLenKVMerger.cpp', 'KVMerger.cpp',
@@ -189,7 +189,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index:IIndexMerger'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVIndexFactory',
     deps=[
         ':KVIndexFieldsParser', ':KVShardRecordIterator', ':kv_mem_indexer',
@@ -202,7 +202,7 @@ indexlib_cc_library(
     ],
     alwayslink=True
 )
-indexlib_cc_library(
+strict_cc_library(
     name='kv_reader',
     srcs=[
         'AdapterIgnoreFieldCalculator.cpp', 'AdapterKVSegmentIterator.cpp',
@@ -235,11 +235,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index:IIndexReader'
     ]
 )
-indexlib_cc_library(name='Common', srcs=[])
-indexlib_cc_library(name='Types', srcs=[])
-indexlib_cc_library(name='Constant', srcs=[], deps=[':Types'])
-indexlib_cc_library(name='KVShardRecordIterator', deps=[':kv_merger'])
-indexlib_cc_library(
+strict_cc_library(name='Common', srcs=[])
+strict_cc_library(name='Types', srcs=[])
+strict_cc_library(name='Constant', srcs=[], deps=[':Types'])
+strict_cc_library(
+    name='KVShardRecordIterator',
+    deps=[':kv_merger', '//aios/storage/indexlib/index:IShardRecordIterator']
+)
+strict_cc_library(
     name='KVIndexFields',
     visibility=['//aios/storage/indexlib/index:__subpackages__'],
     deps=[
@@ -249,7 +252,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:PooledContainer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVIndexFieldsParser',
     visibility=['//aios/storage/indexlib/index:__subpackages__'],
     deps=[

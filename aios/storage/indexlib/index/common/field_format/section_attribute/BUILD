@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='SectionMeta',
     srcs=[],
     deps=[
@@ -9,7 +9,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:Types'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiSectionMeta',
     srcs=[],
     deps=[
@@ -18,7 +18,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index:Types'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InDocSectionMeta',
     srcs=[],
     deps=[
@@ -26,7 +26,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:Types'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SectionAttributeEncoder',
     deps=[
         ':SectionMeta', '//aios/storage/indexlib/base:Status',
@@ -36,7 +36,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/numeric_compress:S16Compressor'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SectionAttributeFormatter',
     deps=[
         ':SectionAttributeEncoder', '//aios/storage/indexlib/base:Status',

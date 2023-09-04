@@ -279,7 +279,7 @@ int64_t OnDiskSegmentSizeCalculator::GetSegmentAttributeSize(const DirectoryPtr&
     auto packIter = packAttrConfigs->Begin();
     for (; packIter != packAttrConfigs->End(); packIter++) {
         const PackAttributeConfigPtr& packConfig = *packIter;
-        string attrName = packConfig->GetAttrName();
+        string attrName = packConfig->GetPackName();
         singleAttrSize = CalculateSingleAttributeSize(segDir, attrName);
         totalSize += singleAttrSize;
         singleAttrPatchSize = CalculateSingleAttributePatchSize(segDir, attrName);

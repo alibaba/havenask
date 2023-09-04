@@ -21,8 +21,7 @@
 
 ARPC_BEGIN_NAMESPACE(arpc)
 
-class ANetRPCServerWorkItem : public RPCServerWorkItem
-{
+class ANetRPCServerWorkItem : public RPCServerWorkItem {
 public:
     ANetRPCServerWorkItem(RPCService *pService,
                           RPCMethodDescriptor *pMethodDes,

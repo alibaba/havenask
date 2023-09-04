@@ -22,7 +22,7 @@
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, KVMemSegment);
 
-KVMemSegment::KVMemSegment(const config::TabletOptions* options, const std::shared_ptr<config::TabletSchema>& schema,
+KVMemSegment::KVMemSegment(const config::TabletOptions* options, const std::shared_ptr<config::ITabletSchema>& schema,
                            const framework::SegmentMeta& segmentMeta, bool enableMemoryReclaim)
     : plain::PlainMemSegment(options, schema, segmentMeta)
     , _enableMemoryReclaim(enableMemoryReclaim)

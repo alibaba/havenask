@@ -21,14 +21,12 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/index/common/data_structure/EqualValueCompressDumper.h"
 
-namespace indexlib::config {
-class AttributeConfig;
-}
 namespace indexlib::file_system {
 class FileWriter;
 }
 
 namespace indexlibv2::index {
+class AttributeConfig;
 
 class AdaptiveAttributeOffsetDumper
 {

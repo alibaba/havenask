@@ -28,13 +28,11 @@ namespace multi_call {
 
 AUTIL_LOG_SETUP(multi_call, QuerySession);
 
-QuerySession::QuerySession(const SearchServicePtr &searchService,
-                           const QueryInfoPtr &queryInfo,
+QuerySession::QuerySession(const SearchServicePtr &searchService, const QueryInfoPtr &queryInfo,
                            const opentelemetry::SpanContextPtr &parent,
                            opentelemetry::SpanKind kind)
     : _searchService(searchService)
-    , _sessionContext(new QuerySessionContext(queryInfo, kind))
-{
+    , _sessionContext(new QuerySessionContext(queryInfo, kind)) {
     if (_searchService) {
         _loadBalancerContext.reset(new LoadBalancerContext(_searchService));
     }
@@ -44,8 +42,7 @@ QuerySession::QuerySession(const SearchServicePtr &searchService,
 QuerySession::QuerySession(const SearchServicePtr &searchService,
                            const std::shared_ptr<QuerySessionContext> &context)
     : _searchService(searchService)
-    , _sessionContext(context)
-{
+    , _sessionContext(context) {
     if (_searchService) {
         _loadBalancerContext.reset(new LoadBalancerContext(_searchService));
     }
@@ -68,13 +65,12 @@ QuerySessionPtr QuerySession::get(google::protobuf::Closure *doneClosure) {
 }
 
 QuerySessionPtr QuerySession::createWithOrigin(const SearchServicePtr &searchService,
-        const QuerySessionPtr &origin) {
+                                               const QuerySessionPtr &origin) {
     return std::make_shared<QuerySession>(searchService,
-            origin ? origin->getSessionContext() : nullptr);
+                                          origin ? origin->getSessionContext() : nullptr);
 }
 
-void QuerySession::selectBiz(const RequestGeneratorPtr &generator,
-                             BizInfo &bizInfo) {
+void QuerySession::selectBiz(const RequestGeneratorPtr &generator, BizInfo &bizInfo) {
     if (!generator) {
         AUTIL_LOG(ERROR, "request generator is null when select biz!");
         bizInfo.set_status(GIG_NULL_GENERATOR);
@@ -92,13 +88,11 @@ void QuerySession::selectBiz(const RequestGeneratorPtr &generator,
     bizInfo.set_cluster_name(generator->getClusterName());
     auto versionSelector = _loadBalancerContext->getVersionSelector(bizName);
     if (!versionSelector) {
-        AUTIL_LOG(ERROR, "create version selector failed, bizName:[%s]",
-                  bizName.c_str());
+        AUTIL_LOG(ERROR, "create version selector failed, bizName:[%s]", bizName.c_str());
         bizInfo.set_status(GIG_REPLY_ERROR_VERSION_NOT_EXIST);
     } else {
         auto cachedGenerator = std::make_shared<CachedRequestGenerator>(generator);
-        versionSelector->select(cachedGenerator,
-                                _searchService->getSearchServiceSnapshot());
+        versionSelector->select(cachedGenerator, _searchService->getSearchServiceSnapshot());
         const SearchServiceSnapshotInVersionPtr &versionSnapshot =
             versionSelector->getBizVersionSnapshot();
         if (versionSnapshot != nullptr) {

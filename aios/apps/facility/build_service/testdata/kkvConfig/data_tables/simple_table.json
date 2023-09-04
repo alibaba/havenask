@@ -1,0 +1,41 @@
+{
+    "data_descriptions" : [
+        {
+            "data" : "hdfs://data",
+            "document_format" : "isearch",
+            "field_separator" : "",
+            "kv_separator" : "=",
+            "separator_prefix" : "<doc>",
+            "separator_suffix" : "</doc>",
+            "src" : "file",
+            "type" : "file",
+            "trace_field" : "nid"
+        },
+        {
+            "need_field_filter" : "false",
+            "reader_config" : "",
+            "src" : "swift",
+            "swift_root" : "zfs://root",
+            "topic_name" : "raw_doc",
+            "type" : "swift",
+            "parser_config": [
+                {
+                    "type": "indexlib_parser"
+                }
+            ]
+        }
+    ],
+    "processor_chain_config" : [
+    ],
+    "processor_config" : {
+        "processor_queue_size" : 1000,
+        "processor_thread_num" : 10
+    },
+    "processor_rule_config" : {
+        "parallel_num" : 2,
+        "partition_count" : 2
+    },
+    "control_config" : {
+        "is_inc_processor_exist" : false
+    }
+}

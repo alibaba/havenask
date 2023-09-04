@@ -1,0 +1,71 @@
+{
+    "build_option_config": {
+        "DocumentProcessQueueSize": 1000,
+        "DocumentProcessThreadNum": 10,
+        "IndexDocumentQueueSize": 1000,
+        "MapBufferSize": 256,
+        "MapReduceRatio": 1,
+        "sort_build": false,
+        "max_recover_time": 1,
+        "sort_descriptions": [
+            {
+                "sort_field": "company_id",
+                "sort_pattern": "desc"
+            }
+        ],
+        "inconsistent_mode_build_thread_count": 2,
+        "consistent_mode_build_thread_count": 2
+    },
+    "cluster_config": {
+        "builder_rule_config": {
+            "need_partition": true
+        },
+        "cluster_name": "simple",
+        "cluster_type": "realtime",
+        "hash_mode": {
+            "hash_field": "id",
+            "hash_function": "HASH"
+        },
+        "swift_topic_name": "",
+        "swift_zookeeper_root": "",
+        "table_name": "simple"
+    },
+    "realtime": false,
+    "online_index_config": {
+        "need_read_remote_index": true,
+        "need_deploy_index": false,
+        "build_config": {
+            "max_doc_count": 1
+        }
+    },
+    "offline_index_config": {
+        "build_config": {
+            "keep_version_count": 200,
+            "max_memory_use": 1024,
+            "max_doc_count": 1,
+            "enable_package_file": true
+        },
+        "merge_config": {
+            "keep_version_count": 2,
+            "merge_strategy": "optimize",
+            "merge_strategy_param": ""
+        }
+    },
+    "merge_controller": {
+        "mode": "remote"
+    },
+    "swift_config": {
+        "topic_full": {
+            "partition_max_buffer_size": 12288,
+            "partition_count": 8,
+            "partition_resource": 10
+        },
+        "topic_inc": {
+            "partition_max_buffer_size": 12288,
+            "partition_count": 8,
+            "partition_resource": 10
+        },
+        "reader_config": "oneRequestReadCount=50000;readBufferSize=50000;decompress=true;retryGetMsgInterval=1000000",
+        "writer_config": "functionChain=hashId2partId;compressMsg=true;compressThresholdInBytes=50;mode=async|safe;maxBufferSize=4294967296"
+    }
+}

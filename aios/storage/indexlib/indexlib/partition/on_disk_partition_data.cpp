@@ -20,6 +20,7 @@
 #include "indexlib/file_system/FileSystemCreator.h"
 #include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/LocalDirectory.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
 #include "indexlib/index/partition_info.h"
 #include "indexlib/index_base/index_meta/version_loader.h"
@@ -164,10 +165,10 @@ uint32_t OnDiskPartitionData::GetIndexShardingColumnNum(const IndexPartitionOpti
         return 1;
     }
 
-    uint32_t inSegColumnNum = SegmentInfo::INVALID_COLUMN_COUNT;
+    uint32_t inSegColumnNum = SegmentInfo::INVALID_SHARDING_COUNT;
     for (Iterator iter = Begin(); iter != End(); iter++) {
         const std::shared_ptr<const SegmentInfo>& segInfo = (*iter).GetSegmentInfo();
-        if (inSegColumnNum != SegmentInfo::INVALID_COLUMN_COUNT && inSegColumnNum != segInfo->shardCount) {
+        if (inSegColumnNum != SegmentInfo::INVALID_SHARDING_COUNT && inSegColumnNum != segInfo->shardCount) {
             INDEXLIB_FATAL_ERROR(InconsistentState, "segments with different shardCount for version[%d]!",
                                  GetOnDiskVersion().GetVersionId());
         }
@@ -175,7 +176,7 @@ uint32_t OnDiskPartitionData::GetIndexShardingColumnNum(const IndexPartitionOpti
     }
 
     uint32_t inVersionColumnNum = GetOnDiskVersion().GetLevelInfo().GetShardCount();
-    if (inSegColumnNum != SegmentInfo::INVALID_COLUMN_COUNT && inSegColumnNum != inVersionColumnNum) {
+    if (inSegColumnNum != SegmentInfo::INVALID_SHARDING_COUNT && inSegColumnNum != inVersionColumnNum) {
         INDEXLIB_FATAL_ERROR(InconsistentState, "inSegColumnNum [%u] not equal with inVersionColumnNum [%u]!",
                              inSegColumnNum, inVersionColumnNum);
     }

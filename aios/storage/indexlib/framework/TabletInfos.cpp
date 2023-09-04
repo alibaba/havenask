@@ -15,6 +15,7 @@
  */
 #include "indexlib/framework/TabletInfos.h"
 
+#include "indexlib/framework/VersionDeployDescription.h"
 #include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/counter/StateCounter.h"
 
@@ -61,6 +62,11 @@ Version TabletInfos::GetLoadedPrivateVersion() const
 {
     autil::ScopedReadLock lock(_rwlock);
     return _loadedPrivateVersion.Clone();
+}
+std::shared_ptr<VersionDeployDescription> TabletInfos::GetLoadedVersionDeployDescription() const
+{
+    autil::ScopedReadLock lock(_rwlock);
+    return _loadedVersionDpDesc;
 }
 Locator TabletInfos::GetBuildLocator() const
 {
@@ -110,6 +116,11 @@ void TabletInfos::SetLoadedPublishVersion(const Version& version)
 {
     autil::ScopedWriteLock lock(_rwlock);
     _loadedPublishVersion = version.Clone();
+}
+void TabletInfos::SetLoadedVersionDeployDescription(const std::shared_ptr<VersionDeployDescription>& versionDpDesc)
+{
+    autil::ScopedWriteLock lock(_rwlock);
+    _loadedVersionDpDesc = versionDpDesc;
 }
 void TabletInfos::SetLoadedPrivateVersion(const Version& version)
 {

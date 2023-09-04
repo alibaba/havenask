@@ -58,7 +58,7 @@ IndexTaskResourceManager::LoadResource(const std::string& name, const IndexTaskR
     RETURN2_IF_STATUS_ERROR(status, nullptr, "is exist [%s] failed", linkFileName.c_str());
     if (!isExist) {
         AUTIL_LOG(INFO, "link file [%s/%s] not exist", _resourceRoot->GetLogicalPath().c_str(), linkFileName.c_str());
-        return std::make_pair(Status::NoEntry(linkFileName.c_str()), nullptr);
+        return std::make_pair(Status::NotFound(linkFileName.c_str()), nullptr);
     }
 
     std::string targetWorkPrefix;
@@ -108,6 +108,12 @@ Status IndexTaskResourceManager::AddExtendResource(const std::shared_ptr<IndexTa
     return Status::OK();
 }
 
+std::map<std::string, std::shared_ptr<IndexTaskResource>> IndexTaskResourceManager::TEST_GetExtendResources() const
+{
+    std::lock_guard<std::mutex> lock(_mutex);
+    return _extendResources;
+}
+
 std::pair<Status, std::shared_ptr<IndexTaskResource>>
 IndexTaskResourceManager::CreateResource(const std::string& name, const IndexTaskResourceType& type,
                                          IIndexTaskResourceCreator* creator)
@@ -144,7 +150,7 @@ Status IndexTaskResourceManager::CommitResource(const std::string& name)
         auto iter = _resources.find(name);
         if (iter == _resources.end()) {
             AUTIL_LOG(ERROR, "resource [%s] not exist", name.c_str());
-            return Status::NoEntry(name.c_str());
+            return Status::NotFound(name.c_str());
         }
         resource = iter->second;
     }
@@ -184,7 +190,7 @@ Status IndexTaskResourceManager::ReleaseResource(const std::string& name)
     auto iter = _resources.find(name);
     if (iter == _resources.end()) {
         AUTIL_LOG(ERROR, "no resource [%s] found", name.c_str());
-        return Status::NoEntry(name.c_str());
+        return Status::NotFound(name.c_str());
     }
     _resources.erase(iter);
     return Status::OK();
@@ -200,6 +206,11 @@ std::string IndexTaskResourceManager::GetResourceDirName(const std::string& name
 {
     // eg. resource__bucketmap/
     return std::string("resource__") + name + "/";
+}
+
+void IndexTaskResourceManager::TEST_AddResource(const std::shared_ptr<IndexTaskResource>& resource)
+{
+    _resources[resource->GetName()] = resource;
 }
 
 } // namespace indexlibv2::framework

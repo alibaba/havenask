@@ -1,0 +1,494 @@
+{
+  "plan": {
+    "exec_params": {}, 
+    "optimize_infos": {}, 
+    "plan_meta": {}, 
+    "rel_plan": [
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "normal", 
+          "limit": 2147483647, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "normal"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "id": "default.normal.normal.id"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$id", 
+            "$company_id"
+          ], 
+          "output_fields_hash": 1911031006, 
+          "output_fields_internal": [
+            "$id", 
+            "$company_id"
+          ], 
+          "output_fields_internal_type": [
+            "INTEGER", 
+            "INTEGER"
+          ], 
+          "output_fields_type": [
+            "INTEGER", 
+            "INTEGER"
+          ], 
+          "push_down_ops": [
+            {
+              "attrs": {
+                "output_fields": [
+                  "$id", 
+                  "$company_id"
+                ], 
+                "output_fields_type": [
+                  "INTEGER", 
+                  "INTEGER"
+                ]
+              }, 
+              "op_name": "CalcOp"
+            }
+          ], 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "partition_cnt": 1
+          }, 
+          "table_meta": {
+            "field_meta": [
+              {
+                "field_name": "$id", 
+                "field_type": "int32", 
+                "index_name": "id", 
+                "index_type": "primarykey64", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$company_id", 
+                "field_type": "int32", 
+                "index_name": "company_id", 
+                "index_type": "number", 
+                "is_attribute": "true"
+              }
+            ]
+          }, 
+          "table_name": "normal", 
+          "table_type": "normal", 
+          "use_nest_table": false, 
+          "used_fields": [
+            "$id", 
+            "$company_id"
+          ], 
+          "used_fields_type": [
+            "INTEGER", 
+            "INTEGER"
+          ]
+        }, 
+        "id": 0, 
+        "inputs": {
+          "input": []
+        }, 
+        "op_name": "TableScanOp", 
+        "outputs": [
+          1
+        ]
+      }, 
+      {
+        "attrs": {
+          "build_node": {
+            "catalog_name": "default", 
+            "db_name": "normal", 
+            "limit": 2147483647, 
+            "output_fields": [
+              "$company_id", 
+              "$company_name"
+            ], 
+            "output_fields_internal": [
+              "$company_id", 
+              "$company_name"
+            ], 
+            "output_fields_internal_type": [
+              "INTEGER", 
+              "VARCHAR"
+            ], 
+            "output_fields_type": [
+              "INTEGER", 
+              "VARCHAR"
+            ], 
+            "push_down_ops": [
+              {
+                "attrs": {
+                  "output_fields": [
+                    "$company_id", 
+                    "$company_name"
+                  ], 
+                  "output_fields_type": [
+                    "INTEGER", 
+                    "VARCHAR"
+                  ]
+                }, 
+                "op_name": "CalcOp"
+              }
+            ], 
+            "table_distribution": {
+              "hash_mode": {
+                "hash_fields": [
+                  "$company_id"
+                ], 
+                "hash_function": "HASH"
+              }, 
+              "partition_cnt": 1
+            }, 
+            "table_meta": {
+              "field_meta": [
+                {
+                  "field_name": "$company_id", 
+                  "field_type": "int32", 
+                  "index_name": "company_id", 
+                  "index_type": "primary_key", 
+                  "is_attribute": "false"
+                }, 
+                {
+                  "field_name": "$company_name", 
+                  "field_type": "string", 
+                  "index_name": "company_name", 
+                  "index_type": "secondary_key", 
+                  "is_attribute": "true"
+                }
+              ]
+            }, 
+            "table_name": "kkv1", 
+            "table_type": "kkv", 
+            "use_nest_table": false, 
+            "used_fields": [
+              "$company_id", 
+              "$company_name"
+            ], 
+            "used_fields_type": [
+              "INTEGER", 
+              "VARCHAR"
+            ]
+          }, 
+          "condition": {
+            "op": "AND", 
+            "params": [
+              {
+                "op": "=", 
+                "params": [
+                  "$id", 
+                  "$company_id0"
+                ], 
+                "type": "OTHER"
+              }, 
+              {
+                "op": ">", 
+                "params": [
+                  {
+                    "op": "+", 
+                    "params": [
+                      "$id", 
+                      "$company_id0"
+                    ], 
+                    "type": "OTHER"
+                  }, 
+                  5
+                ], 
+                "type": "OTHER"
+              }
+            ], 
+            "type": "OTHER"
+          }, 
+          "equi_condition": {
+            "op": "=", 
+            "params": [
+              "$id", 
+              "$company_id0"
+            ], 
+            "type": "OTHER"
+          }, 
+          "is_equi_join": true, 
+          "is_internal_build": false, 
+          "join_type": "LEFT", 
+          "left_input_fields": [
+            "$id", 
+            "$company_id"
+          ], 
+          "left_is_build": false, 
+          "left_table_meta": {
+            "field_meta": [
+              {
+                "field_name": "$id", 
+                "field_type": "int32", 
+                "index_name": "id", 
+                "index_type": "primarykey64", 
+                "is_attribute": "true"
+              }
+            ]
+          }, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "normal"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$company_id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "company_id0": "default.normal.kkv1.company_id", 
+              "id": "default.normal.normal.id"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$id", 
+            "$company_id", 
+            "$company_id0", 
+            "$company_name"
+          ], 
+          "output_fields_hash": 1687805257, 
+          "output_fields_internal": [
+            "$id", 
+            "$company_id", 
+            "$company_id0", 
+            "$company_name"
+          ], 
+          "output_fields_type": [
+            "INTEGER", 
+            "INTEGER", 
+            "INTEGER", 
+            "VARCHAR"
+          ], 
+          "remaining_condition": {
+            "op": ">", 
+            "params": [
+              {
+                "op": "+", 
+                "params": [
+                  "$id", 
+                  "$company_id0"
+                ], 
+                "type": "OTHER"
+              }, 
+              5
+            ], 
+            "type": "OTHER"
+          }, 
+          "right_input_fields": [
+            "$company_id", 
+            "$company_name"
+          ], 
+          "right_table_meta": {
+            "field_meta": [
+              {
+                "field_name": "$company_id", 
+                "field_type": "int32", 
+                "index_name": "company_id", 
+                "index_type": "primary_key", 
+                "is_attribute": "false"
+              }
+            ]
+          }, 
+          "semi_join_type": "LEFT", 
+          "system_field_num": 0
+        }, 
+        "id": 1, 
+        "inputs": {
+          "input": [
+            0
+          ]
+        }, 
+        "op_name": "LookupJoinOp", 
+        "outputs": [
+          2
+        ]
+      }, 
+      {
+        "attrs": {
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "normal"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$company_id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "id": "default.normal.normal.id"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$id", 
+            "$company_id", 
+            "$company_name"
+          ], 
+          "output_fields_hash": -1766942416, 
+          "output_fields_type": [
+            "INTEGER", 
+            "INTEGER", 
+            "VARCHAR"
+          ]
+        }, 
+        "id": 2, 
+        "inputs": {
+          "input": [
+            1
+          ]
+        }, 
+        "op_name": "CalcOp", 
+        "outputs": [
+          3
+        ]
+      }, 
+      {
+        "attrs": {
+          "limit": 100, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "normal"
+          }, 
+          "offset": 0, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$company_id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "id": "default.normal.normal.id"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields_hash": -1766942416
+        }, 
+        "id": 3, 
+        "inputs": {
+          "input": [
+            2
+          ]
+        }, 
+        "op_name": "LimitOp", 
+        "outputs": [
+          4
+        ]
+      }, 
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "normal", 
+          "distribution": {
+            "type": "SINGLETON"
+          }, 
+          "input_fields": [
+            "$id", 
+            "$company_id", 
+            "$company_name"
+          ], 
+          "input_fields_type": [
+            "INTEGER", 
+            "INTEGER", 
+            "VARCHAR"
+          ], 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": -1766942416, 
+          "output_prunable": 0, 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$company_id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "id": "default.normal.normal.id"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "table_group_name": "normal"
+        }, 
+        "id": 4, 
+        "inputs": {
+          "input": [
+            3
+          ]
+        }, 
+        "op_name": "ExchangeOp", 
+        "outputs": [
+          5
+        ]
+      }, 
+      {
+        "attrs": {
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "qrs"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": -1766942416, 
+          "type": "api"
+        }, 
+        "id": 5, 
+        "inputs": {
+          "input": [
+            4
+          ]
+        }, 
+        "op_name": "SinkOp"
+      }
+    ], 
+    "rel_plan_version": "plan_version_0.0.1"
+  }, 
+  "sql_params": {
+    "iquan.optimizer.debug.enable": "false", 
+    "iquan.plan.format.object.enable": "true", 
+    "iquan.plan.format.type": "json", 
+    "iquan.plan.format.version": "plan_version_0.0.1", 
+    "iquan.plan.output.exec_params": "false", 
+    "iquan.plan.prepare.level": "end"
+  }, 
+  "sqls": [
+    "SELECT id, normal.company_id, company_name FROM normal LEFT JOIN kkv1 ON normal.id = kkv1.company_id AND normal.id + kkv1.company_id > 5"
+  ]
+}

@@ -15,7 +15,7 @@
  */
 #include "indexlib/table/plain/SegmentMetricsDumpItem.h"
 
-#include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/IDirectory.h"
 #include "indexlib/index/IMemIndexer.h"
 
 namespace indexlibv2::plain {
@@ -23,7 +23,7 @@ AUTIL_LOG_SETUP(indexlib.plain, SegmentMetricsDumpItem);
 
 SegmentMetricsDumpItem::SegmentMetricsDumpItem(
     const std::shared_ptr<indexlib::framework::SegmentMetrics>& segmentMetrics,
-    const std::shared_ptr<indexlib::file_system::Directory>& dir)
+    const std::shared_ptr<indexlib::file_system::IDirectory>& dir)
     : _segmentMetrics(segmentMetrics)
     , _dir(dir)
     , _dumped(false)
@@ -32,8 +32,8 @@ SegmentMetricsDumpItem::SegmentMetricsDumpItem(
 
 Status SegmentMetricsDumpItem::Dump() noexcept
 {
-    AUTIL_LOG(INFO, "begin dump segment metrics");
-    auto status = _segmentMetrics->StoreSegmentMetrics(_dir->GetIDirectory());
+    AUTIL_LOG(INFO, "begin dump segment metrics [%s]", _dir->GetLogicalPath().c_str());
+    auto status = _segmentMetrics->StoreSegmentMetrics(_dir);
     RETURN_IF_STATUS_ERROR(status, "store segment metrics failed");
     AUTIL_LOG(INFO, "end dump segment metrics");
     return status;

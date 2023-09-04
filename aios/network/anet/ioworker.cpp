@@ -13,27 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <signal.h>
-#include "aios/network/anet/log.h"
+#include "aios/network/anet/ioworker.h"
+
 #include <assert.h>
-#include <sched.h>
-#include <stdint.h>
 #include <cstddef>
 #include <iosfwd>
+#include <sched.h>
+#include <signal.h>
+#include <stdint.h>
 #include <string>
-#include <vector>
 #include <unistd.h>
+#include <vector>
 
-#include "aios/network/anet/threadmutex.h"
-#include "aios/network/anet/ioworker.h"
-#include "aios/network/anet/timeutil.h"
-#include "aios/network/anet/tcpcomponent.h"
 #include "aios/network/anet/connection.h"
 #include "aios/network/anet/epollsocketevent.h"
 #include "aios/network/anet/ilogger.h"
 #include "aios/network/anet/iocomponent.h"
+#include "aios/network/anet/log.h"
 #include "aios/network/anet/socketevent.h"
+#include "aios/network/anet/tcpcomponent.h"
 #include "aios/network/anet/thread.h"
+#include "aios/network/anet/threadmutex.h"
+#include "aios/network/anet/timeutil.h"
 #include "aios/network/anet/transport.h"
 #include "autil/EnvUtil.h"
 
@@ -48,8 +49,7 @@ IoWorker::IoWorker() {
     _epollWaitTimeoutMs = autil::EnvUtil::getEnv("ANET_EPOLL_WAIT_TIMEOUT", _epollWaitTimeoutMs);
 }
 
-IoWorker::~IoWorker() {
-}
+IoWorker::~IoWorker() {}
 
 bool IoWorker::start(bool promotePriority) {
     MutexGuard guard(&_stopMutex);
@@ -87,19 +87,13 @@ void IoWorker::run(Thread *thread, void *arg) {
 }
 
 void IoWorker::setPriorityByEnv() {
-    const char* str = getenv("ANET_IO_WORKER_NICE_INC");
-    if (str) {
-        char* endPtr = NULL;
-        errno = 0;
-        int value = (int32_t)strtol(str, &endPtr, 10);
-        if (errno == 0 && endPtr && *endPtr == 0)
-        {
-            int ret = nice(value);
-            if (ret == -1) {
-                ANET_LOG(ERROR, "inc anet io worker nice value %d falied.", value);
-            } else {
-                ANET_LOG(INFO, "inc anet io worker nice value %d success, new nice %d.", value, ret);
-            }
+    int niceValue = autil::EnvUtil::getEnv("ANET_IO_WORKER_NICE_INC", 0);
+    if (niceValue != 0) {
+        int ret = nice(niceValue);
+        if (ret == -1) {
+            ANET_LOG(ERROR, "inc anet io worker nice value %d falied.", niceValue);
+        } else {
+            ANET_LOG(INFO, "inc anet io worker nice value %d success, new nice %d.", niceValue, ret);
         }
     }
 }
@@ -135,8 +129,7 @@ void IoWorker::step(int64_t timeStamp) {
     processCommands();
 }
 
-void IoWorker::postCommand(const Transport::CommandType type,
-                                 IOComponent *ioc) {
+void IoWorker::postCommand(const Transport::CommandType type, IOComponent *ioc) {
     assert(ioc);
 
     Transport::TransportCommand tc;
@@ -162,9 +155,7 @@ void IoWorker::processCommands() {
         return;
 
     MutexGuard guard(&_mutex);
-    for (std::vector<Transport::TransportCommand>::iterator it = _commands.begin();
-         it != _commands.end();
-         ++it) {
+    for (std::vector<Transport::TransportCommand>::iterator it = _commands.begin(); it != _commands.end(); ++it) {
         switch (it->type) {
         case Transport::TC_ADD_IOC:
             addComponent(it->ioc);
@@ -225,17 +216,15 @@ void IoWorker::closeComponents() {
     list = _iocListHead;
     while (list) {
         ioc = list;
-        ANET_LOG(DEBUG,"IOC(%p)->subRef(), [%d]", ioc, ioc->getRef());
+        ANET_LOG(DEBUG, "IOC(%p)->subRef(), [%d]", ioc, ioc->getRef());
         list = list->_next;
         ioc->close();
         ioc->subRef();
     }
     _iocListHead = _iocListTail = NULL;
 
-    for (std::vector<Transport::TransportCommand>::iterator it = _commands.begin();
-         it != _commands.end();
-         ++it) {
-        ANET_LOG(DEBUG,"IOC(%p)->subRef(), [%d]", it->ioc, it->ioc->getRef());
+    for (std::vector<Transport::TransportCommand>::iterator it = _commands.begin(); it != _commands.end(); ++it) {
+        ANET_LOG(DEBUG, "IOC(%p)->subRef(), [%d]", it->ioc, it->ioc->getRef());
         it->ioc->subRef();
     }
     _commands.clear();
@@ -261,7 +250,7 @@ void IoWorker::getTcpConnStats(vector<ConnStat> &connStats) {
     IOComponent *ioc;
     ioc = _iocListHead;
     while (ioc) {
-        TCPComponent *tcpIoc = dynamic_cast<TCPComponent*>(ioc);
+        TCPComponent *tcpIoc = dynamic_cast<TCPComponent *>(ioc);
         if (tcpIoc == NULL) {
             ioc = ioc->_next;
             continue;
@@ -275,12 +264,8 @@ void IoWorker::getTcpConnStats(vector<ConnStat> &connStats) {
     }
 }
 
-SocketEvent* IoWorker::getSocketEvent() {
-    return &_socketEvent;
-}
+SocketEvent *IoWorker::getSocketEvent() { return &_socketEvent; }
 
-void IoWorker::setName(const char *name) {
-    _ioThread.setName(name);
-}
+void IoWorker::setName(const char *name) { _ioThread.setName(name); }
 
 } // namespace anet

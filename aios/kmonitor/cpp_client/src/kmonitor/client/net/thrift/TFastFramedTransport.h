@@ -17,7 +17,7 @@ BEGIN_KMONITOR_NAMESPACE(kmonitor);
 class TSocket;
 
 class TFastFramedTransport {
- public:
+public:
     TFastFramedTransport(TSocket *socket, uint32_t buffer_size = 10485760);
     ~TFastFramedTransport();
 
@@ -25,32 +25,30 @@ class TFastFramedTransport {
     void Open();
 
     int32_t ReadAll();
-    uint32_t Read(uint8_t* buf, uint32_t len);
-    int Write(const uint8_t* buf, uint32_t len);
+    uint32_t Read(uint8_t *buf, uint32_t len);
+    int Write(const uint8_t *buf, uint32_t len);
     void Flush();
     uint32_t ReadEnd();
-    uint32_t WriteEnd() {
-        return 0;
-    }
-    
- private:
+    uint32_t WriteEnd() { return 0; }
+
+private:
     TFastFramedTransport(const TFastFramedTransport &);
-    TFastFramedTransport& operator=(const TFastFramedTransport &);
+    TFastFramedTransport &operator=(const TFastFramedTransport &);
     void EncodeFrameSize(int frameSize, uint8_t buf[4]);
 
- private:
+private:
     TSocket *socket_;
-    uint8_t* write_buf_;
+    uint8_t *write_buf_;
     uint32_t buffer_size_;
     uint32_t write_buf_pos_;
-    uint8_t* read_buf_;
+    uint8_t *read_buf_;
     uint32_t read_buf_pos_;
     uint32_t read_buf_total_;
 
- private:
+private:
     AUTIL_LOG_DECLARE();
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_NET_THRIFT_TFASTFRAMEDTRANSPORT_H_
+#endif // KMONITOR_CLIENT_NET_THRIFT_TFASTFRAMEDTRANSPORT_H_

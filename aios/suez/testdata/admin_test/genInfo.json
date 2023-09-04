@@ -1,0 +1,12 @@
+{
+    "partitions": {
+        "4_36000" : {
+            "inc_version" : 10,
+            "load_state" : "LOADED"
+        },
+        "36001_40000" : {
+            "inc_version" : 10,
+            "load_state" : "LOADED"
+        }
+    }
+}

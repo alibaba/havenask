@@ -21,8 +21,8 @@ using namespace autil;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, IstioSubscribeService);
 
-IstioSubscribeService::IstioSubscribeService(
-    const IstioConfig &config, const IstioMetricReporterPtr reporter) {
+IstioSubscribeService::IstioSubscribeService(const IstioConfig &config,
+                                             const IstioMetricReporterPtr reporter) {
 
     _xdsStore = make_shared<XdsStore>(config, reporter);
     _xdsClient = make_shared<XdsClient>(config, reporter, _xdsStore);
@@ -59,7 +59,8 @@ bool IstioSubscribeService::clusterInfoNeedUpdate() {
     return _xdsStore->clusterInfoNeedUpdate();
 };
 
-bool IstioSubscribeService::getClusterInfoMap(TopoNodeVec &topoNodeVec, HeartbeatSpecVec &heartbeatSpecs) {
+bool IstioSubscribeService::getClusterInfoMap(TopoNodeVec &topoNodeVec,
+                                              HeartbeatSpecVec &heartbeatSpecs) {
     // first check in client if there is full data.
     if (_xdsClient->isSynced() == false) {
         AUTIL_LOG(WARN, "XdsClient is not synced.");
@@ -72,12 +73,10 @@ bool IstioSubscribeService::getClusterInfoMap(TopoNodeVec &topoNodeVec, Heartbea
     return _xdsStore->getClusterInfoMap(&topoNodeVec);
 };
 
-bool IstioSubscribeService::addSubscribe(
-    const std::vector<std::string> &names) {
+bool IstioSubscribeService::addSubscribe(const std::vector<std::string> &names) {
     return _xdsClient->addSubscribe(names);
 };
-bool IstioSubscribeService::deleteSubscribe(
-    const std::vector<std::string> &names) {
+bool IstioSubscribeService::deleteSubscribe(const std::vector<std::string> &names) {
     return _xdsClient->deleteSubscribe(names);
 };
 

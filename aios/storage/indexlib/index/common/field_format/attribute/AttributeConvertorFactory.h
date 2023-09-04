@@ -18,27 +18,24 @@
 #include "autil/Log.h"
 #include "indexlib/util/Singleton.h"
 
-namespace indexlibv2::config {
-class AttributeConfig;
-class PackAttributeConfig;
-} // namespace indexlibv2::config
-
 namespace indexlibv2::index {
 class AttributeConvertor;
+class AttributeConfig;
+class PackAttributeConfig;
+
 class AttributeConvertorFactory : public indexlib::util::Singleton<AttributeConvertorFactory>
 {
 public:
     AttributeConvertorFactory() = default;
     ~AttributeConvertorFactory() = default;
 
-    AttributeConvertor*
-    CreatePackAttrConvertor(const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& packAttrConfig);
-    AttributeConvertor* CreateAttrConvertor(const std::shared_ptr<config::AttributeConfig>& field);
-    AttributeConvertor* CreateAttrConvertor(const std::shared_ptr<config::AttributeConfig>& field, bool encodeEmpty);
+    AttributeConvertor* CreatePackAttrConvertor(const std::shared_ptr<PackAttributeConfig>& packAttrConfig);
+    AttributeConvertor* CreateAttrConvertor(const std::shared_ptr<AttributeConfig>& field);
+    AttributeConvertor* CreateAttrConvertor(const std::shared_ptr<AttributeConfig>& field, bool encodeEmpty);
 
 private:
-    AttributeConvertor* CreateSingleAttrConvertor(const std::shared_ptr<config::AttributeConfig>& attrConfig);
-    AttributeConvertor* CreateMultiAttrConvertor(const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    AttributeConvertor* CreateSingleAttrConvertor(const std::shared_ptr<AttributeConfig>& attrConfig);
+    AttributeConvertor* CreateMultiAttrConvertor(const std::shared_ptr<AttributeConfig>& attrConfig);
 
 private:
     AUTIL_LOG_DECLARE();

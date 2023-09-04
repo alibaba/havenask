@@ -15,19 +15,17 @@
  */
 #pragma once
 
-#include <stddef.h>
+#include <algorithm>
+#include <cstdint>
 #include <map>
+#include <stddef.h>
 #include <string>
 #include <vector>
-#include <cstdint>
-#include <algorithm>
-
 
 namespace autil {
 
-//Note! this is not multi-thread safe!
-class OptionParser
-{
+// Note! this is not multi-thread safe!
+class OptionParser {
 public:
     enum OptionType {
         OPT_STRING = 0,
@@ -41,48 +39,56 @@ public:
         STORE_TRUE,
         STORE_FALSE,
     };
+
 public:
     typedef std::map<std::string, std::string> StrOptMap;
     typedef std::map<std::string, bool> BoolOptMap;
     typedef std::map<std::string, int32_t> IntOptMap;
-    typedef std::map<std::string, std::vector<std::string> > MultiValueStrOptMap;
+    typedef std::map<std::string, std::vector<std::string>> MultiValueStrOptMap;
 
 public:
     OptionParser(const std::string &usageDescription = "");
     ~OptionParser();
 
-    void addOption(const std::string &shortOpt, const std::string &longOpt,
-                   const std::string& optName,
-                   const OptionType type = OPT_STRING, bool isRequired = false);
+    void addOption(const std::string &shortOpt,
+                   const std::string &longOpt,
+                   const std::string &optName,
+                   const OptionType type = OPT_STRING,
+                   bool isRequired = false);
 
-    void addOption(const std::string &shortOpt, const std::string &longOpt,
-                   const std::string& optName,
+    void addOption(const std::string &shortOpt,
+                   const std::string &longOpt,
+                   const std::string &optName,
                    const OptionAction &action,
-                   const OptionType type = OPT_BOOL, bool isRequired = false);
+                   const OptionType type = OPT_BOOL,
+                   bool isRequired = false);
 
-    //the following functions are for optional options
-    void addOption(const std::string &shortOpt, const std::string &longOpt,
-                   const std::string& optName,
-                   const char* defaultValue);
+    // the following functions are for optional options
+    void addOption(const std::string &shortOpt,
+                   const std::string &longOpt,
+                   const std::string &optName,
+                   const char *defaultValue);
 
-    void addOption(const std::string &shortOpt, const std::string &longOpt,
-                   const std::string& optName,
-                   const std::string& defaultValue);
+    void addOption(const std::string &shortOpt,
+                   const std::string &longOpt,
+                   const std::string &optName,
+                   const std::string &defaultValue);
 
-
-    void addOption(const std::string &shortOpt, const std::string &longOpt,
-                   const std::string& optName,
+    void addOption(const std::string &shortOpt,
+                   const std::string &longOpt,
+                   const std::string &optName,
                    const uint32_t defaultValue);
 
-    void addOption(const std::string &shortOpt, const std::string &longOpt,
-                   const std::string& optName,
+    void addOption(const std::string &shortOpt,
+                   const std::string &longOpt,
+                   const std::string &optName,
                    const int32_t defaultValue);
 
-    void addOption(const std::string &shortOpt, const std::string &longOpt,
-                   const std::string& optName,
+    void addOption(const std::string &shortOpt,
+                   const std::string &longOpt,
+                   const std::string &optName,
                    const bool defaultValue);
-    void addMultiValueOption(const std::string &shortOpt, const std::string &longOpt,
-                             const std::string& optName);
+    void addMultiValueOption(const std::string &shortOpt, const std::string &longOpt, const std::string &optName);
 
     bool parseArgs(int argc, char **argv);
     bool parseArgs(const std::string &commandString);
@@ -96,10 +102,12 @@ public:
     void updateUsageDescription(const std::string &usageDescription);
 
 private:
-    class OptionInfo{
+    class OptionInfo {
     public:
-        OptionInfo(const std::string &optionName, OptionType type,
-                   OptionAction action, bool required,
+        OptionInfo(const std::string &optionName,
+                   OptionType type,
+                   OptionAction action,
+                   bool required,
                    const std::string &defaultValue = "",
                    bool multiValue = false)
             : optionType(type)
@@ -112,7 +120,8 @@ private:
             isSet = false;
         }
         ~OptionInfo() {}
-        bool hasValue() {return optionAction == STORE;}
+        bool hasValue() { return optionAction == STORE; }
+
     public:
         OptionType optionType;
         OptionAction optionAction;
@@ -123,8 +132,7 @@ private:
     };
 
 private:
-    void addOptionInfo(const OptionInfo &optionInfo,
-                       const std::string& shortOpt, const std::string& longOpt);
+    void addOptionInfo(const OptionInfo &optionInfo, const std::string &shortOpt, const std::string &longOpt);
 
     // results:
 private:
@@ -142,12 +150,13 @@ private:
     ShortOpt2InfoMap _shortOpt2InfoMap;
     LongOpt2InfoMap _longOpt2InfoMap;
     OptionInfos _optionInfos;
+
 private:
     void init();
     bool isValidArgs();
+
 private:
     friend class OptionParserTest;
 };
 
-
-}
+} // namespace autil

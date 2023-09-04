@@ -24,6 +24,7 @@
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/framework/ITablet.h"
 #include "indexlib/framework/TabletInfos.h"
+#include "indexlib/framework/TabletMetrics.h"
 #include "indexlib/framework/VersionLoader.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
@@ -79,8 +80,14 @@ bool BuilderV2Impl::init(const config::BuilderConfig& builderConfig,
             TABLET_LOG(ERROR, "Set build mode in tablet failed");
             return false;
         }
+        auto tabletDocCount = _tablet->GetTabletInfos()->GetTabletDocCount();
+        if (_totalDocCountCounter) {
+            _totalDocCountCounter->Increase(tabletDocCount);
+        }
     }
-    return _builderMetrics.declareMetrics(metricProvider);
+
+    // _builderMetrics.declareMetrics(metricProvider);
+    return true;
 }
 
 bool BuilderV2Impl::build(const std::shared_ptr<indexlibv2::document::IDocumentBatch>& batch)
@@ -128,7 +135,8 @@ bool BuilderV2Impl::build(const std::shared_ptr<indexlibv2::document::IDocumentB
         } else if (status.IsNoMem()) {
             ec = proto::BUILDER_ERROR_REACH_MAX_RESOURCE;
         }
-        REPORT_ERROR_WITH_ADVICE(ec, status.ToString(), proto::BS_RETRY);
+        std::string errorMsg = status.ToString() + ". build id : " + _buildId.ShortDebugString();
+        REPORT_ERROR_WITH_ADVICE(ec, errorMsg, proto::BS_RETRY);
         if (!status.IsNoMem()) {
             TABLET_LOG(ERROR, "build error: %s", status.ToString().c_str());
             setFatalError();
@@ -137,7 +145,8 @@ bool BuilderV2Impl::build(const std::shared_ptr<indexlibv2::document::IDocumentB
             sleep(2);
         }
     } else {
-        ReportMetrics(batch);
+        // ReportMetrics should be done in indexlib BuildDocumentMetrics now.
+        ReportCounters(batch);
     }
     return status.IsOK();
 }
@@ -185,8 +194,6 @@ bool BuilderV2Impl::merge()
     std::string taskName = indexlibv2::table::DESIGNATE_BATCH_MODE_MERGE_TASK_NAME;
 
     std::map<std::string, std::string> params;
-    params[indexlibv2::table::IS_DESIGNATE_TASK] = "true";
-
     indexlibv2::framework::ReopenOptions reopenOptions;
     auto s = _tablet->Reopen(
         reopenOptions, indexlibv2::framework::VersionCoord(sourceVersion.GetVersionId(), sourceVersion.GetFenceName()));
@@ -215,47 +222,30 @@ bool BuilderV2Impl::merge()
     return true;
 }
 
-void BuilderV2Impl::ReportMetrics(const std::shared_ptr<indexlibv2::document::IDocumentBatch>& batch)
+void BuilderV2Impl::ReportCounters(const std::shared_ptr<indexlibv2::document::IDocumentBatch>& batch)
 {
-    size_t addDocCount = 0, addSuccessCount = 0;
-    size_t updateDocCount = 0, updateSuccessCount = 0;
-    size_t deleteDocCount = 0, deleteSuccessCount = 0;
-    size_t deleteSubDocCount = 0, deleteSubSuccessCount = 0;
-    for (size_t i = 0; i < batch->GetBatchSize(); ++i) {
-        bool success = !(batch->IsDropped(i));
-        switch ((*batch)[i]->GetDocOperateType()) {
-        case ADD_DOC:
-            addDocCount++;
-            addSuccessCount += success;
-            break;
-        case DELETE_DOC:
-            deleteDocCount++;
-            deleteSubSuccessCount += success;
-            break;
-        case UPDATE_FIELD:
-            updateDocCount++;
-            updateSuccessCount += success;
-            break;
-        case DELETE_SUB_DOC:
-            deleteSubDocCount++;
-            deleteSubSuccessCount += success;
-            break;
-        default:
-            break;
-        }
-    }
-    _builderMetrics.reportMetrics(addDocCount, addSuccessCount, ADD_DOC);
-    _builderMetrics.reportMetrics(deleteDocCount, deleteSuccessCount, DELETE_DOC);
-    _builderMetrics.reportMetrics(updateDocCount, updateSuccessCount, UPDATE_FIELD);
-    _builderMetrics.reportMetrics(deleteSubDocCount, deleteSubSuccessCount, DELETE_SUB_DOC);
-
     auto validMessageCount = batch->GetValidDocCount();
     if (validMessageCount > 0) {
         if (_totalDocCountCounter) {
             _totalDocCountCounter->Increase(validMessageCount);
         }
         if (_builderDocCountCounter) {
-            _builderDocCountCounter->Set(_builderMetrics.getTotalDocCount());
+            if (!_tablet) {
+                return;
+            }
+            auto tabletInfos = _tablet->GetTabletInfos();
+            if (!tabletInfos) {
+                return;
+            }
+            auto tabletMetrics = tabletInfos->GetTabletMetrics();
+            if (!tabletMetrics) {
+                return;
+            }
+            auto buildMetrics = tabletMetrics->GetBuildDocumentMetrics();
+            if (!buildMetrics) {
+                return;
+            }
+            _builderDocCountCounter->Set(buildMetrics->GetTotalDocCount());
         }
     }
 }
@@ -294,12 +284,10 @@ void BuilderV2Impl::stop(std::optional<int64_t> stopTimestamp, bool needSeal, bo
     TABLET_LOG(INFO, "builder stop end");
 }
 
-std::pair<indexlib::Status, indexlibv2::framework::VersionMeta> BuilderV2Impl::commit()
+std::pair<indexlib::Status, indexlibv2::framework::VersionMeta>
+BuilderV2Impl::commit(const indexlibv2::framework::CommitOptions& options)
 {
-    bool needReopen = _tablet->GetTabletOptions()->FlushLocal();
-    auto commitOptions = indexlibv2::framework::CommitOptions().SetNeedPublish(true).SetNeedReopenInCommit(needReopen);
-    commitOptions.AddVersionDescription("generation", autil::StringUtil::toString(_buildId.generationid()));
-    return _tablet->Commit(commitOptions);
+    return _tablet->Commit(options);
 }
 
 int64_t BuilderV2Impl::getIncVersionTimestamp() const

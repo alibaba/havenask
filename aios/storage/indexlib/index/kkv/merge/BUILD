@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=[':__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='kkv_index_merger',
     srcs=[
         'KKVMerger.cpp', 'OnDiskKKVIterator.cpp',

@@ -1,0 +1,25 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+strict_cc_fast_test(
+    name='PlainTableTest',
+    srcs=glob(['*.cpp']),
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/base:MemoryQuotaController',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework:SegmentMeta',
+        '//aios/storage/indexlib/framework/mock:MockTabletSchema',
+        '//aios/storage/indexlib/index:IIndexFactory',
+        '//aios/storage/indexlib/index/mock:MockDiskIndexer',
+        '//aios/storage/indexlib/index/mock:MockIndexConfig',
+        '//aios/storage/indexlib/index/mock:MockIndexFactory',
+        '//aios/storage/indexlib/index/mock:MockMemIndexer',
+        '//aios/storage/indexlib/table/plain:MultiShardDiskSegment',
+        '//aios/storage/indexlib/table/plain:MultiShardMemSegment',
+        '//aios/storage/indexlib/table/plain:PlainDiskSegment',
+        '//aios/storage/indexlib/table/plain:PlainMemSegment',
+        '//aios/storage/indexlib/util/testutil:unittest',
+        '//aios/unittest_framework'
+    ]
+)

@@ -23,8 +23,8 @@
 #include "iquan/common/Status.h"
 #include "iquan/common/catalog/CatalogInfo.h"
 #include "iquan/common/catalog/FunctionModel.h"
-#include "iquan/common/catalog/TableModel.h"
 #include "iquan/common/catalog/LayerTableModel.h"
+#include "iquan/common/catalog/TableModel.h"
 #include "iquan/common/catalog/TvfFunctionModel.h"
 #include "iquan/config/ClientConfig.h"
 #include "iquan/config/ExecConfig.h"
@@ -60,7 +60,8 @@ public:
     // TODO impl
     // merge updateTables and updateFunctions
     Status updateCatalog(const CatalogInfo &catalog);
-    Status query(IquanDqlRequest &request, IquanDqlResponse &response, PlanCacheStatus &planCacheStatus);
+    Status
+    query(IquanDqlRequest &request, IquanDqlResponse &response, PlanCacheStatus &planCacheStatus);
     Status dumpCatalog(std::string &result);
     Status warmup(const WarmupConfig &warmupConfig);
     uint64_t getPlanCacheKeyCount();
@@ -89,8 +90,10 @@ public:
     // 5. catalog function
     Status listCatalogs(std::string &result);
     Status listDatabases(const std::string &catalogName, std::string &result);
-    Status listTables(const std::string &catalogName, const std::string &dbName, std::string &result);
-    Status listFunctions(const std::string &catalogName, const std::string &dbName, std::string &result);
+    Status
+    listTables(const std::string &catalogName, const std::string &dbName, std::string &result);
+    Status
+    listFunctions(const std::string &catalogName, const std::string &dbName, std::string &result);
     Status getTableDetails(const std::string &catalogName,
                            const std::string &dbName,
                            const std::string &tableName,
@@ -99,7 +102,7 @@ public:
                               const std::string &dbName,
                               const std::string &functionName,
                               std::string &result);
-                            
+
 private:
     std::unique_ptr<IquanImpl> _impl;
 };

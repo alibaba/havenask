@@ -1,0 +1,67 @@
+--[[
+Flow.parameter : flow related kv parameters 
+Flow.createTask(taskId, taskType, taskKvParam = nil) 
+Flow.getTaskProperty(taskId, key, flowId = nil) 
+Flow.getTaskInFlow(taskId, flowId) 
+Flow.setError(msg) 
+Flow.setFatalError(msg) 
+Flow.setProperty(key, value) 
+Flow.getProperty(key) 
+Flow.startTask(taskObj, kvParam = nil) 
+Flow.stopTask(taskObj, kvParam = nil) 
+######################################################### 
+function stepRunFlow() will be called by single TaskFlow, return true means eof of flow 
+--]]
+
+--#import(Tool)
+
+function stepRunFlow()
+   local incBuilder = Flow.createTask("incBuilder", "builder", Flow.parameter)
+   local incMerger = Flow.createTask("incMerger", "merger", Flow.parameter)
+   local flowState = Flow.getProperty("_flow_status_")
+   if (flowState == "")
+   then
+      if (Flow.startTask(incBuilder))
+      then
+            Flow.setProperty("_flow_status_", "incBuilding")
+      end
+      return false
+   end
+   
+   if (flowState == "incBuilding")
+   then
+      if (Flow.finishTask(incBuilder, nil))
+      then
+            Flow.setProperty("_flow_status_", "incBuildStopping")
+      end
+      return false
+   end
+   
+   if (flowState == "incBuildStopping")
+   then
+      if (incBuilder:isTaskFinish())
+      then
+         local mergeParam = {}
+         mergeParam["mergeConfigName"] = "alter_field"
+         mergeParam["schemaId"] = Flow.parameter["schemaId"]
+         if (Flow.startTask(incMerger, mergeParam))
+         then
+               Flow.setProperty("_flow_status_", "incMerging")
+         end
+         return false
+      end
+      return false
+   end
+   
+   if (flowState == "incMerging")
+   then
+      if (incMerger:isTaskFinish())
+      then
+         Flow.setProperty("_flow_status_", "alter_field_done")
+         return true
+      end
+      return false
+   end
+   
+   return false
+end

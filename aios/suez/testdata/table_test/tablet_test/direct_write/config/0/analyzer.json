@@ -1,0 +1,26 @@
+{
+    "analyzers": {
+        "simple_analyzer" : {
+            "tokenizer_name" : "simple_tokenzier",
+            "stopwords" : [],
+            "normalize_options" :
+            {
+                "case_sensitive" : true,
+                "traditional_sensitive" : true,
+                "width_sensitive" : true
+            }
+        }
+    },
+    "tokenizer_config" : {
+        "tokenizers" : [
+            {
+                "tokenizer_name" : "simple_tokenzier",
+                "tokenizer_type" : "simple",
+                "module_name"    : "",
+                "parameters": {
+                    "delimiter" : "\t"
+                }
+            }
+        ]
+    }
+}

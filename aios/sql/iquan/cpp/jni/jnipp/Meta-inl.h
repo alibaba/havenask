@@ -28,19 +28,23 @@ template <typename... Args>
 inline void JMethod<void(Params...)>::operator()(AliasRef<jobject> self, Args &&...args) {
     JNIEnv *env = getIquanJNIEnv();
     env->CallVoidMethod(
-        self.get(), getId(), impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);
+        self.get(),
+        getId(),
+        impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);
     transJniException();
 }
 
-#define DEFINE_PRIMITIVE_METHOD_CALL(TYPE, METHOD)                                                                     \
-    template <typename... Params>                                                                                      \
-    template <typename... Args>                                                                                        \
-    inline TYPE JMethod<TYPE(Params...)>::operator()(AliasRef<jobject> self, Args &&...args) {                         \
-        JNIEnv *env = getIquanJNIEnv();                                                                                \
-        auto result = env->Call##METHOD##Method(                                                                       \
-            self.get(), getId(), impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);        \
-        transJniException();                                                                                           \
-        return (TYPE)result;                                                                                           \
+#define DEFINE_PRIMITIVE_METHOD_CALL(TYPE, METHOD)                                                 \
+    template <typename... Params>                                                                  \
+    template <typename... Args>                                                                    \
+    inline TYPE JMethod<TYPE(Params...)>::operator()(AliasRef<jobject> self, Args &&...args) {     \
+        JNIEnv *env = getIquanJNIEnv();                                                            \
+        auto result = env->Call##METHOD##Method(                                                   \
+            self.get(),                                                                            \
+            getId(),                                                                               \
+            impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);         \
+        transJniException();                                                                       \
+        return (TYPE)result;                                                                       \
     }
 
 DEFINE_PRIMITIVE_METHOD_CALL(jboolean, Boolean)
@@ -58,22 +62,29 @@ DEFINE_PRIMITIVE_METHOD_CALL(bool, Boolean)
 
 template <typename... Params>
 template <typename... Args>
-inline std::string JMethod<std::string(Params...)>::operator()(AliasRef<jobject> self, Args &&...args) {
+inline std::string JMethod<std::string(Params...)>::operator()(AliasRef<jobject> self,
+                                                               Args &&...args) {
     JNIEnv *env = getIquanJNIEnv();
     jstring js = (jstring)env->CallObjectMethod(
-        self.get(), getId(), impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);
+        self.get(),
+        getId(),
+        impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);
     transJniException();
-    return LocalRef<jstring> { js }
-    ->toStdString();
+    return LocalRef<jstring> {
+        js
+        } -> toStdString();
 }
 
 template <typename R, typename... Params>
 template <typename... Args>
-inline auto JMethod<R(Params...)>::operator()(AliasRef<jobject> self, Args &&...args) -> LocalRef<cret> {
+inline auto JMethod<R(Params...)>::operator()(AliasRef<jobject> self, Args &&...args)
+    -> LocalRef<cret> {
     static_assert(sizeof...(Params) == sizeof...(Args), "Params and Args number must match");
     JNIEnv *env = getIquanJNIEnv();
     auto result = env->CallObjectMethod(
-        self.get(), getId(), impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);
+        self.get(),
+        getId(),
+        impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);
     transJniException();
     return {static_cast<jret>(result)};
 }
@@ -83,19 +94,23 @@ template <typename... Args>
 inline void JStaticMethod<void(Params...)>::operator()(AliasRef<jclass> cls, Args &&...args) {
     const auto env = getIquanJNIEnv();
     env->CallStaticVoidMethod(
-        cls.get(), getId(), impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);
+        cls.get(),
+        getId(),
+        impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);
     transJniException();
 }
 
-#define DEFINE_PRIMITIVE_STATIC_METHOD_CALL(TYPE, METHOD)                                                              \
-    template <typename... Params>                                                                                      \
-    template <typename... Args>                                                                                        \
-    inline TYPE JStaticMethod<TYPE(Params...)>::operator()(AliasRef<jclass> cls, Args &&...args) {                     \
-        JNIEnv *env = getIquanJNIEnv();                                                                                \
-        auto result = env->CallStatic##METHOD##Method(                                                                 \
-            cls.get(), getId(), impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);         \
-        transJniException();                                                                                           \
-        return (TYPE)result;                                                                                           \
+#define DEFINE_PRIMITIVE_STATIC_METHOD_CALL(TYPE, METHOD)                                          \
+    template <typename... Params>                                                                  \
+    template <typename... Args>                                                                    \
+    inline TYPE JStaticMethod<TYPE(Params...)>::operator()(AliasRef<jclass> cls, Args &&...args) { \
+        JNIEnv *env = getIquanJNIEnv();                                                            \
+        auto result = env->CallStatic##METHOD##Method(                                             \
+            cls.get(),                                                                             \
+            getId(),                                                                               \
+            impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);         \
+        transJniException();                                                                       \
+        return (TYPE)result;                                                                       \
     }
 
 DEFINE_PRIMITIVE_STATIC_METHOD_CALL(jboolean, Boolean)
@@ -113,21 +128,28 @@ DEFINE_PRIMITIVE_STATIC_METHOD_CALL(bool, Boolean)
 
 template <typename... Params>
 template <typename... Args>
-inline std::string JStaticMethod<std::string(Params...)>::operator()(AliasRef<jclass> cls, Args &&...args) {
+inline std::string JStaticMethod<std::string(Params...)>::operator()(AliasRef<jclass> cls,
+                                                                     Args &&...args) {
     const auto env = getIquanJNIEnv();
     jstring js = (jstring)env->CallStaticObjectMethod(
-        cls.get(), getId(), impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);
+        cls.get(),
+        getId(),
+        impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);
     transJniException();
-    return LocalRef<jstring> { js }
-    ->toStdString();
+    return LocalRef<jstring> {
+        js
+        } -> toStdString();
 }
 
 template <typename R, typename... Params>
 template <typename... Args>
-inline auto JStaticMethod<R(Params...)>::operator()(AliasRef<jclass> cls, Args &&...args) -> LocalRef<cret> {
+inline auto JStaticMethod<R(Params...)>::operator()(AliasRef<jclass> cls, Args &&...args)
+    -> LocalRef<cret> {
     const auto env = getIquanJNIEnv();
     auto result = env->CallStaticObjectMethod(
-        cls.get(), getId(), impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);
+        cls.get(),
+        getId(),
+        impl::callToJni(Convert<typename std::decay<Params>::type>::toCall(args))...);
     transJniException();
     return {static_cast<jret>(result)};
 }

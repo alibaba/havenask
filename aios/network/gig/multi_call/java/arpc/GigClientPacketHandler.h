@@ -26,7 +26,8 @@ namespace multi_call {
 
 class GigRPCChannel;
 
-class GigClientPacketHandler : public arpc::ClientPacketHandler {
+class GigClientPacketHandler : public arpc::ClientPacketHandler
+{
 public:
     GigClientPacketHandler();
     ~GigClientPacketHandler();
@@ -36,24 +37,23 @@ private:
     GigClientPacketHandler &operator=(const GigClientPacketHandler &);
 
 public:
-    anet::IPacketHandler::HPRetCode handlePacket(anet::Packet *packet,
-                                                 void *args);
+    anet::IPacketHandler::HPRetCode handlePacket(anet::Packet *packet, void *args);
     void addRef();
     void subRef();
     void cleanChannel();
-    void setGigRpcChannel(GigRPCChannel *channel) { _gigRpcChannel = channel; }
+    void setGigRpcChannel(GigRPCChannel *channel) {
+        _gigRpcChannel = channel;
+    }
 
 private:
     IPacketHandler::HPRetCode doHandlePacket(anet::Packet *packet, void *args);
-    IPacketHandler::HPRetCode handleCmdPacket(anet::Packet *packet,
-                                              GigRpcReqArg *pArgs);
+    IPacketHandler::HPRetCode handleCmdPacket(anet::Packet *packet, GigRpcReqArg *pArgs);
     void decodePacket(arpc::ANetRPCController *controller, anet::Packet *packet,
                       std::string *response,
                       const std::shared_ptr<google::protobuf::Arena> &arenaPtr);
-    anet::DataBufferSerializable *createSerializable(
-        int32_t pcode, std::string *response, arpc::TraceInfo *traceInfo,
-        version_t version,
-        const std::shared_ptr<google::protobuf::Arena> &arenaPtr);
+    anet::DataBufferSerializable *
+    createSerializable(int32_t pcode, std::string *response, arpc::TraceInfo *traceInfo,
+                       version_t version, const std::shared_ptr<google::protobuf::Arena> &arenaPtr);
 
 private:
     GigRPCChannel *_gigRpcChannel;

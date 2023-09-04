@@ -1,0 +1,158 @@
+{
+    "processor_chain_config" : [
+        {
+            "chain_name" : "chain1",
+            "clusters" : [
+                "simple_cluster"
+            ],
+            "document_processor_chain" : [
+		{
+                    "class_name" : "ReusedDocumentProcessor",
+                    "module_name" : "simple_document_processor",
+                    "parameters" : {
+                    }
+                },
+                {
+                    "class_name" : "EraseFieldProcessor",
+                    "module_name" : "simple_document_processor",
+                    "parameters" : {
+                        "erase_fields" : "price2"
+                    }
+                },
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+	    "sub_document_processor_chain" : [
+		{
+                    "class_name" : "ReusedDocumentProcessor",
+                    "module_name" : "simple_document_processor",
+                    "parameters" : {
+			"field_name" : "sub_need_process_fail"
+                    }
+                },
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+                {
+                    "module_name" : "simple_document_processor",
+                    "module_path" : "libsimple_document_processor.so",
+                    "parameters" : {
+                    }
+                }
+            ]
+        },
+        {
+            "chain_name" : "chain2",
+            "clusters" : [
+                "simple_no_summary_cluster"
+            ],
+            "document_processor_chain" : [
+		{
+                    "class_name" : "ReusedDocumentProcessor",
+                    "module_name" : "simple_document_processor",
+                    "parameters" : {
+                    }
+                },
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+	    "sub_document_processor_chain" : [
+		{
+                    "class_name" : "ReusedDocumentProcessor",
+                    "module_name" : "simple_document_processor",
+                    "parameters" : {
+			"field_name" : "sub_need_process_fail"
+                    }
+                },
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+		{
+                    "module_name" : "simple_document_processor",
+                    "module_path" : "libsimple_document_processor.so",
+                    "parameters" : {
+                    }
+                }
+            ]
+        },
+        {
+            "chain_name" : "chain3",
+            "clusters" : [
+                "simple_no_summary_cluster"
+            ],
+            "document_processor_chain" : [
+		{
+                    "class_name" : "ReusedDocumentProcessor",
+                    "module_name" : "simple_document_processor",
+                    "parameters" : {
+                    }
+                },
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+	    "sub_document_processor_chain" : [
+		{
+                    "class_name" : "ReusedDocumentProcessor",
+                    "module_name" : "simple_document_processor",
+                    "parameters" : {
+			"field_name" : "sub_need_process_fail"
+                    }
+                },
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+		{
+                    "module_name" : "simple_document_processor",
+                    "module_path" : "libsimple_document_processor.so",
+                    "parameters" : {
+                    }
+                }
+            ]
+        }
+    ],
+    "processor_chain_selector_config" :
+    {
+        "select_fields": ["field", "section"],
+        "select_rules": [
+            { 
+                "matcher": {"field": "f1", "section": "s1"},
+                "dest_chains": ["chain1"]
+            },
+            { 
+                "matcher": {"field": "f2", "section": "s2"},
+                "dest_chains": ["chain2", "chain1"]
+            },
+            { 
+                "matcher": {"field": "f3", "section": "s3"},
+                "dest_chains": ["chain3"]
+            }
+        ]
+    }
+}

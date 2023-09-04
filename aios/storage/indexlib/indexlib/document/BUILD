@@ -11,37 +11,6 @@ cc_library(
     include_prefix='indexlib/document',
     deps=['@flatbuffers']
 )
-filegroup(
-    name='document_headers',
-    srcs=(
-        glob([
-            '*.h', 'index_document/*.h', 'kv_document/*.h',
-            'kv_document/legacy/*.h', 'index_document/normal_document/*.h',
-            'query/*.h'
-        ]) + [
-            'document_parser/normal_parser/normal_document_parser.h',
-            'document_parser/kv_parser/kv_raw_document_parser.h',
-            'document_parser/kv_parser/kv_document_parser.h',
-            'document_parser/source_schema_parser/source_schema_parser.h',
-            'document_parser/source_schema_parser/source_schema_parser_factory.h',
-            'document_parser/source_schema_parser/source_schema_parser_factory_group.h',
-            'document_parser/source_schema_parser/source_schema_parser_factory_wrapper.h',
-            'document_rewriter/document_rewriter_creator.h',
-            'document_rewriter/document_rewriter.h',
-            'document_rewriter/pack_attribute_rewriter.h',
-            'extend_document/classified_document.h',
-            'extend_document/indexlib_extend_document.h',
-            'extend_document/tokenize/analyzer_token.h',
-            'extend_document/tokenize_document.h',
-            'extend_document/tokenize/tokenize_field.h',
-            'extend_document/tokenize/tokenize_section.h',
-            'raw_document/default_raw_document.h', 'raw_document/key_map.h',
-            'raw_document/key_map_manager.h',
-            'raw_document/raw_document_define.h'
-        ]
-    ),
-    visibility=['//aios/storage/indexlib:__subpackages__']
-)
 cc_library(
     name='document',
     visibility=['//visibility:public'],

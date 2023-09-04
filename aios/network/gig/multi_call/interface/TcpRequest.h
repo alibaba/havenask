@@ -23,13 +23,13 @@
 
 namespace multi_call {
 
-class TcpRequest : public Request {
+class TcpRequest : public Request
+{
 public:
     TcpRequest(const std::shared_ptr<google::protobuf::Arena> &arena =
-               std::shared_ptr<google::protobuf::Arena>())
+                   std::shared_ptr<google::protobuf::Arena>())
         : Request(MC_PROTOCOL_TCP, arena)
-        , _metaByTcp(META_BT_NONE)
-    {
+        , _metaByTcp(META_BT_NONE) {
     }
     ~TcpRequest();
 
@@ -42,11 +42,19 @@ public:
 
 public:
     bool serialize() override;
-    size_t size() const override { return _body.size(); }
-    void setBody(const std::string &body) { _body = body; }
-    const std::string &getBody() const { return _body; }
+    size_t size() const override {
+        return _body.size();
+    }
+    void setBody(const std::string &body) {
+        _body = body;
+    }
+    const std::string &getBody() const {
+        return _body;
+    }
     void fillSpan() override;
-    void setMetaByTcp(GigMetaByTcp type) { _metaByTcp = type; }
+    void setMetaByTcp(GigMetaByTcp type) {
+        _metaByTcp = type;
+    }
 
 public:
     anet::DefaultPacket *makeTcpPacket();

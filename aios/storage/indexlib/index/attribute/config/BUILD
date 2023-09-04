@@ -1,13 +1,13 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib/index:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='config',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
-    deps=[':AttributeConfig', ':PackAttributeConfig']
+    deps=[':AttributeConfig']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeConfig',
     deps=[
         '//aios/storage/indexlib/config:CompressTypeOption',
@@ -18,7 +18,6 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute:constants',
         '//aios/storage/indexlib/index/common:FieldTypeTraits',
         '//aios/storage/indexlib/index/common:constants',
-        '//aios/storage/indexlib/index/inverted_index:constants'
+        '//aios/storage/indexlib/util:path_util'
     ]
 )
-indexlib_cc_library(name='PackAttributeConfig', deps=[':AttributeConfig'])

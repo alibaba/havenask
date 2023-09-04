@@ -39,14 +39,14 @@ public:
     }
     virtual ~IndexMergeOperation() = default;
 
-    virtual Status Init(const std::shared_ptr<config::TabletSchema> schema);
+    virtual Status Init(const std::shared_ptr<config::ITabletSchema> schema);
     Status Execute(const framework::IndexTaskContext& context) override;
     virtual std::string GetDebugString() const override;
 
 protected:
     virtual std::pair<Status, std::shared_ptr<config::IIndexConfig>>
     GetIndexConfig(const framework::IndexOperationDescription& opDesc, const std::string& indexType,
-                   const std::string& indexName, const std::shared_ptr<config::TabletSchema>& schema);
+                   const std::string& indexName, const std::shared_ptr<config::ITabletSchema>& schema);
     virtual std::pair<Status, index::IIndexMerger::SegmentMergeInfos>
     PrepareSegmentMergeInfos(const framework::IndexTaskContext& context, bool prepareTaretSegDir);
     Status StoreMergedSegmentMetricsLegacy(const index::IIndexMerger::SegmentMergeInfos& segMergeInfos);

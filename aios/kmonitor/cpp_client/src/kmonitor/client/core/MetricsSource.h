@@ -10,21 +10,22 @@
 
 #include <set>
 #include <string>
-#include "kmonitor/client/common/Common.h"
+
 #include "kmonitor/client/MetricLevel.h"
+#include "kmonitor/client/common/Common.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 class MetricsCollector;
 
 class MetricsSource {
- public:
+public:
     MetricsSource() {}
     virtual ~MetricsSource() {}
     virtual const std::string &Name() = 0;
-    virtual void GetMetrics(MetricsCollector *collector, const std::set<MetricLevel>& levels, int64_t curTime) = 0;
+    virtual void GetMetrics(MetricsCollector *collector, const std::set<MetricLevel> &levels, int64_t curTime) = 0;
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_CORE_METRICSSOURCE_H_
+#endif // KMONITOR_CLIENT_CORE_METRICSSOURCE_H_

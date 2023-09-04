@@ -1,0 +1,47 @@
+{
+"attributes":
+  [
+    "feature",
+    "weight"
+  ],
+"fields":
+  [
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "feature",
+    "field_type":
+      "STRING"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "weight",
+    "field_type":
+      "DOUBLE"
+    }
+  ],
+"indexs":
+  [
+    {
+    "index_fields":
+      "feature",
+    "index_name":
+      "model_pk",
+    "index_type":
+      "PRIMARYKEY64"
+    }
+  ],
+"summarys":
+  {
+  "summary_fields":
+    [
+      "feature",
+      "weight"
+    ]
+  },
+"table_name":
+  "model_table"
+}

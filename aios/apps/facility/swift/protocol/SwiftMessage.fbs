@@ -1,0 +1,17 @@
+namespace swift.protocol.flat;
+
+table Message {
+    msgId:long;
+    timestamp:long;
+    data:string;
+    uint16Payload:ushort = 0;
+    uint8MaskPayload:ubyte = 0;
+    compress:bool = false;
+    merged:bool = false;
+}
+
+table Messages {
+      msgs:[Message];
+}
+
+root_type Messages;

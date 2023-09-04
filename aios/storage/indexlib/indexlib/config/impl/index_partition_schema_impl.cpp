@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "indexlib/config/impl/index_partition_schema_impl.h"
 
 #include <assert.h>
@@ -31,7 +30,6 @@ using namespace std;
 using namespace autil;
 using namespace autil::legacy;
 using namespace autil::legacy::json;
-using namespace indexlib::util;
 
 namespace indexlib { namespace config {
 IE_LOG_SETUP(config, IndexPartitionSchemaImpl);
@@ -129,7 +127,7 @@ void IndexPartitionSchemaImpl::Jsonize(autil::legacy::Jsonizable::JsonWrapper& j
 
         // mUserDefinedParam
         if (!mUserDefinedParam.empty()) {
-            json.Jsonize(TABLE_USER_DEFINED_PARAM, mUserDefinedParam);
+            json.Jsonize(TABLE_USER_DEFINED_PARAM, mUserDefinedParam.GetMap());
         }
 
         // mGlobalRegionIndexPreference
@@ -275,7 +273,7 @@ void IndexPartitionSchemaImpl::AssertCompatible(const IndexPartitionSchemaImpl& 
 {
     try {
         DoAssertCompatible(other);
-    } catch (const AssertCompatibleException& e) {
+    } catch (const util::AssertCompatibleException& e) {
         IE_LOG(ERROR, "Schema is not compatible: %s", e.GetMessage().c_str());
         if (mThrowAssertCompatibleException) {
             throw e;
@@ -414,7 +412,7 @@ void IndexPartitionSchemaImpl::CheckSubSchema() const
         for (packattrid_t packId = 0; packId < packCount; ++packId) {
             const PackAttributeConfigPtr& subPackConfig = subAttrSchema->GetPackAttributeConfig(packId);
             assert(subPackConfig);
-            const string& subPackName = subPackConfig->GetAttrName();
+            const string& subPackName = subPackConfig->GetPackName();
             // duplicate pack name in main schema
             if (mainAttrSchema->GetPackAttributeConfig(subPackName)) {
                 INDEXLIB_FATAL_ERROR(Schema, "duplicate pack attribute name [%s] in sub schema", subPackName.c_str());

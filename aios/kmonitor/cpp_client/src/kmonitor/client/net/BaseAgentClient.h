@@ -8,16 +8,17 @@
 #ifndef KMONITOR_CLIENT_NET_BASEAGENTCLIENT_H_
 #define KMONITOR_CLIENT_NET_BASEAGENTCLIENT_H_
 
-#include <vector>
 #include <string>
-#include "kmonitor/client/common/Common.h"
+#include <vector>
+
 #include "autil/Log.h"
+#include "kmonitor/client/common/Common.h"
 #include "kmonitor/client/net/BatchFlumeEvent.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 class BaseAgentClient {
- public:
+public:
     virtual ~BaseAgentClient() {}
 
     virtual bool AppendBatch(const BatchFlumeEventPtr &events) = 0;
@@ -26,10 +27,10 @@ class BaseAgentClient {
     virtual void Close() = 0;
     virtual bool ReConnect() = 0;
 
- private:
+private:
     AUTIL_LOG_DECLARE();
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_NET_BASEAGENTCLIENT_H_
+#endif // KMONITOR_CLIENT_NET_BASEAGENTCLIENT_H_

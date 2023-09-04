@@ -56,7 +56,7 @@ public:
         return _impl->GetIndexReader(indexType, indexName);
     }
 
-    std::shared_ptr<config::TabletSchema> GetSchema() const override { return _impl->GetSchema(); }
+    std::shared_ptr<config::ITabletSchema> GetSchema() const override { return _impl->GetSchema(); }
 
     Status Search(const std::string& jsonQuery, std::string& result) const override
     {

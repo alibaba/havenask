@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "fslib/fs/ErrorGenerator.h"
+
+#include <fstream>
 #include <sys/stat.h>
+
+#include "autil/EnvUtil.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
-#include <fstream>
-#include "fslib/fs/ErrorGenerator.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/jsonizable.h"
 #include "fslib/common/common_define.h"
 #include "fslib/util/SafeBuffer.h"
-#include "autil/legacy/jsonizable.h"
-#include "autil/legacy/exception.h"
 
 using namespace std;
 using namespace autil;
@@ -34,39 +37,31 @@ AUTIL_DECLARE_AND_SETUP_LOGGER(fs, ErrorGenerator);
 
 const size_t ErrorGenerator::NO_EXCEPTION_COUNT = 1000000000;
 
-bool ErrorTrigger::triggerError()
-{
+bool ErrorTrigger::triggerError() {
     ScopedLock lock(mLock);
-    if (mIOCount >= mNormalIOCount)
-    {
+    if (mIOCount >= mNormalIOCount) {
         return true;
     }
     mIOCount++;
     return false;
 }
 
-ErrorGenerator::ErrorGenerator()
-    : _needGenerateError(false)
-{
-    init();
-}
+ErrorGenerator::ErrorGenerator() : _needGenerateError(false) { init(); }
 
-ErrorGenerator::~ErrorGenerator() {
-}
+ErrorGenerator::~ErrorGenerator() {}
 
-ErrorGenerator* ErrorGenerator::getInstance() {
-    static ErrorGenerator* ptr = 0;
+ErrorGenerator *ErrorGenerator::getInstance() {
+    static ErrorGenerator *ptr = 0;
     static autil::ThreadMutex gLock;
 
-    if (!ptr)
-    {
+    if (!ptr) {
         autil::ScopedLock lock(gLock);
         if (!ptr) {
             ptr = new ErrorGenerator;
             static std::unique_ptr<ErrorGenerator> destroyer(ptr);
         }
     }
-    return const_cast<ErrorGenerator*>(ptr);
+    return const_cast<ErrorGenerator *>(ptr);
 }
 
 void ErrorGenerator::clearMethodVisitCounter() {
@@ -85,8 +80,8 @@ void ErrorGenerator::setErrorMap(FileSystemErrorMap map) {
 }
 
 void ErrorGenerator::init() {
-    char* errorFile = getenv(FSLIB_ERROR_CONFIG_PATH);
-    if (errorFile == NULL) {
+    string errorFile = autil::EnvUtil::getEnv(FSLIB_ERROR_CONFIG_PATH);
+    if (errorFile.empty()) {
         AUTIL_LOG(INFO, "Environment variable FSLIB_ERROR_CONFIG_PATH not set.");
         return;
     }
@@ -112,9 +107,7 @@ void ErrorGenerator::init() {
     }
 }
 
-ErrorCode ErrorGenerator::generateFileSystemError(
-        const string& operate, const string& targetPath)
-{
+ErrorCode ErrorGenerator::generateFileSystemError(const string &operate, const string &targetPath) {
     if (_errorTrigger && _errorTrigger->triggerError()) {
         return EC_UNKNOWN;
     }
@@ -122,8 +115,7 @@ ErrorCode ErrorGenerator::generateFileSystemError(
     string parsePath = targetPath;
     {
         autil::ScopedLock lock(mMutex);
-        MethodVisitCount::iterator it =
-            _methodVisitCounter.find(make_pair(parsePath, operate));
+        MethodVisitCount::iterator it = _methodVisitCounter.find(make_pair(parsePath, operate));
         if (it == _methodVisitCounter.end()) {
             _methodVisitCounter[make_pair(parsePath, operate)] = 1;
         } else {
@@ -134,7 +126,7 @@ ErrorCode ErrorGenerator::generateFileSystemError(
             return EC_OK;
         }
     }
-    const FileSystemError& fsError = opIt->second;
+    const FileSystemError &fsError = opIt->second;
     doDelay(fsError.delay);
     if (fsError.until > 0 && !reachUntil(parsePath, fsError.until)) {
         return EC_OK;
@@ -142,14 +134,11 @@ ErrorCode ErrorGenerator::generateFileSystemError(
     if (fsError.retryCount > 0 && !needRetry(parsePath, fsError.retryCount)) {
         return EC_OK;
     }
-    AUTIL_LOG(INFO, "file [%s] operate [%s] trigger error", targetPath.c_str(),
-              operate.c_str());
+    AUTIL_LOG(INFO, "file [%s] operate [%s] trigger error", targetPath.c_str(), operate.c_str());
     return fsError.ec;
 }
 
-ErrorCode ErrorGenerator::generateFileError(const string& operate,
-        const string& targetPath, uint64_t offset)
-{
+ErrorCode ErrorGenerator::generateFileError(const string &operate, const string &targetPath, uint64_t offset) {
     if (_errorTrigger && _errorTrigger->triggerError()) {
         return EC_UNKNOWN;
     }
@@ -157,8 +146,7 @@ ErrorCode ErrorGenerator::generateFileError(const string& operate,
     string parsePath = targetPath;
     {
         autil::ScopedLock lock(mMutex);
-        MethodVisitCount::iterator it =
-            _methodVisitCounter.find(make_pair(parsePath, operate));
+        MethodVisitCount::iterator it = _methodVisitCounter.find(make_pair(parsePath, operate));
         if (it == _methodVisitCounter.end()) {
             _methodVisitCounter[make_pair(parsePath, operate)] = 1;
         } else {
@@ -169,7 +157,7 @@ ErrorCode ErrorGenerator::generateFileError(const string& operate,
             return EC_OK;
         }
     }
-    const FileSystemError& fsError = opIt->second;
+    const FileSystemError &fsError = opIt->second;
     doDelay(fsError.delay);
     if (fsError.until > 0 && !reachUntil(parsePath, fsError.until)) {
         return EC_OK;
@@ -178,8 +166,7 @@ ErrorCode ErrorGenerator::generateFileError(const string& operate,
         return EC_OK;
     }
     if (offset >= fsError.offset) {
-        AUTIL_LOG(INFO, "file [%s] operate [%s] trigger error", targetPath.c_str(),
-                  operate.c_str());
+        AUTIL_LOG(INFO, "file [%s] operate [%s] trigger error", targetPath.c_str(), operate.c_str());
         return fsError.ec;
     }
     return EC_OK;
@@ -196,7 +183,7 @@ void ErrorGenerator::resetPathVisitCount() {
     _pathVisitCount.clear();
 }
 
-bool ErrorGenerator::needRetry(const string& parsePath, uint32_t retry) {
+bool ErrorGenerator::needRetry(const string &parsePath, uint32_t retry) {
     autil::ScopedLock lock(mMutex);
     if ((_pathVisitCount[parsePath] % retry) == 0) {
         return false;
@@ -204,7 +191,7 @@ bool ErrorGenerator::needRetry(const string& parsePath, uint32_t retry) {
     return true;
 }
 
-bool ErrorGenerator::reachUntil(const string& parsePath, uint32_t until) {
+bool ErrorGenerator::reachUntil(const string &parsePath, uint32_t until) {
     autil::ScopedLock lock(mMutex);
     if (_pathVisitCount[parsePath] != until) {
         return false;
@@ -212,9 +199,8 @@ bool ErrorGenerator::reachUntil(const string& parsePath, uint32_t until) {
     return true;
 }
 
-ErrorGenerator::FileSystemErrorMap::const_iterator ErrorGenerator::getError(
-        const string& operate, const string& parsePath)
-{
+ErrorGenerator::FileSystemErrorMap::const_iterator ErrorGenerator::getError(const string &operate,
+                                                                            const string &parsePath) {
     FileSystemErrorMap::const_iterator opIt = _fileSystemErrorMap.find(make_pair(parsePath, operate));
     if (opIt == _fileSystemErrorMap.end()) {
         return _fileSystemErrorMap.end();
@@ -230,19 +216,16 @@ ErrorGenerator::FileSystemErrorMap::const_iterator ErrorGenerator::getError(
     return opIt;
 }
 
-bool ErrorGenerator::parseErrorString(const string& errStr, string& method,
-                                      FileSystemError& fsError) const
-{
-    StringTokenizer st(errStr, " ", StringTokenizer::TOKEN_IGNORE_EMPTY
-                       | StringTokenizer::TOKEN_TRIM);
+bool ErrorGenerator::parseErrorString(const string &errStr, string &method, FileSystemError &fsError) const {
+    StringTokenizer st(errStr, " ", StringTokenizer::TOKEN_IGNORE_EMPTY | StringTokenizer::TOKEN_TRIM);
     for (size_t i = 0; i < st.getNumTokens(); ++i) {
-        const string& error = st[i];
+        const string &error = st[i];
         size_t pos = error.find('=');
         if (pos == string::npos) {
             return false;
         }
         string type = error.substr(0, pos);
-        string value = error.substr(pos+1);
+        string value = error.substr(pos + 1);
         if (type == ERROR_TYPE_METHOD) {
             method = value;
         } else if (type == ERROR_TYPE_ERROR_CODE) {

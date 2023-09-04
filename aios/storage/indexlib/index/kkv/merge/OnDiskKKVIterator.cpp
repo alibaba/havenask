@@ -47,20 +47,13 @@ OnDiskKKVIterator<SKeyType>::~OnDiskKKVIterator()
     _curPkeySegIterInfo.clear();
     IE_POOL_COMPATIBLE_DELETE_CLASS(&_pool, _curPkeyIterator);
     _curPkeyIterator = nullptr;
-    while (!_heap.empty()) {
-        OnDiskKKVSegmentIteratorTyped* iter = _heap.top();
-        DELETE_AND_SET_NULL(iter);
-        _heap.pop();
-    }
-    for (size_t i = 0; i < _toDeleteSegIterVec.size(); i++) {
-        DELETE_AND_SET_NULL(_toDeleteSegIterVec[i]);
-    }
 }
 
 template <typename SKeyType>
-void OnDiskKKVIterator<SKeyType>::Init(const std::vector<IIndexMerger::SourceSegment>& segments)
+Status OnDiskKKVIterator<SKeyType>::Init(const std::vector<IIndexMerger::SourceSegment>& segments)
 {
     _totalProgress = 0;
+    _segIters.reserve(segments.size());
     for (size_t i = 0; i < segments.size(); i++) {
         if (IsEmptySegment(segments[i].segment)) {
             continue;
@@ -69,28 +62,22 @@ void OnDiskKKVIterator<SKeyType>::Init(const std::vector<IIndexMerger::SourceSeg
         OnDiskKKVSegmentIteratorTyped* segIter = new OnDiskKKVSegmentIteratorTyped(i);
         segIter->Init(_kkvConfig, segments[i].segment);
         segIter->ResetBufferParam(_ioConfig.readBufferSize, _ioConfig.enableAsyncRead);
-        _segIters.push_back(segIter);
+        _segIters.push_back(std::unique_ptr<OnDiskKKVSegmentIteratorTyped>(segIter));
         _totalProgress += segIter->GetPkeyCount();
     }
-
-    if (!CheckSortSequence(_segIters)) {
-        for (OnDiskKKVSegmentIteratorTyped* segIter : _segIters) {
-            DELETE_AND_SET_NULL(segIter);
-        }
-        INDEXLIB_FATAL_ERROR(UnSupported, "check sort sequence fail!");
-    }
-
+    RETURN_STATUS_DIRECTLY_IF_ERROR(CheckSortSequence(_segIters));
     _estimatedPkCount = DoEstimatePKeyCount(_segIters);
-
     for (size_t i = 0; i < _segIters.size(); i++) {
         _segIters[i]->Reset();
-        PushBackToHeap(_segIters[i]);
+        PushBackToHeap(_segIters[i].get());
     }
     MoveToNext();
+    return Status::OK();
 }
 
 template <typename SKeyType>
-bool OnDiskKKVIterator<SKeyType>::CheckSortSequence(const vector<OnDiskKKVSegmentIteratorTyped*>& segIters)
+Status
+OnDiskKKVIterator<SKeyType>::CheckSortSequence(const vector<std::unique_ptr<OnDiskKKVSegmentIteratorTyped>>& segIters)
 {
     size_t sortSegmentCount = 0;
     for (size_t i = 0; i < segIters.size(); i++) {
@@ -100,18 +87,18 @@ bool OnDiskKKVIterator<SKeyType>::CheckSortSequence(const vector<OnDiskKKVSegmen
     }
 
     if (sortSegmentCount == 0) {
-        return true;
+        return Status::OK();
     }
     if (sortSegmentCount == 1 && segIters.size() == 1) {
-        return true;
+        return Status::OK();
     }
 
-    AUTIL_LOG(ERROR, "not support mix more than one sort segment & unsort segment");
-    return false;
+    return Status::Unimplement("not support mix more than one sort segment & unsort segment");
 }
 
 template <typename SKeyType>
-size_t OnDiskKKVIterator<SKeyType>::DoEstimatePKeyCount(const vector<OnDiskKKVSegmentIteratorTyped*>& segIters)
+size_t
+OnDiskKKVIterator<SKeyType>::DoEstimatePKeyCount(const vector<std::unique_ptr<OnDiskKKVSegmentIteratorTyped>>& segIters)
 {
     bool mergeUsePreciseCount = _kkvConfig->GetIndexPreference().GetHashDictParam().UsePreciseCountWhenMerge();
     size_t count = 0;
@@ -126,7 +113,7 @@ size_t OnDiskKKVIterator<SKeyType>::DoEstimatePKeyCount(const vector<OnDiskKKVSe
     for (size_t i = 0; i < segIters.size(); i++) {
         segIters[i]->Reset();
         if (segIters[i]->IsValid()) {
-            heap.push(segIters[i]);
+            heap.push(segIters[i].get());
         }
     }
 
@@ -232,8 +219,6 @@ void OnDiskKKVIterator<SKeyType>::PushBackToHeap(OnDiskKKVSegmentIteratorTyped* 
 {
     if (segIter->IsValid()) {
         _heap.push(segIter);
-    } else {
-        _toDeleteSegIterVec.push_back(segIter);
     }
 }
 

@@ -1,27 +1,39 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='interface',
     srcs=[],
-    hdrs=[
-        'IDiskIndexer.h', 'IIndexReader.h', 'IIndexer.h', 'IMemIndexer.h',
-        'IShardRecordIterator.h'
-    ],
+    hdrs=[],
     visibility=['//aios/storage:__subpackages__'],
+    deps=[':IDiskIndexer', ':IIndexReader', ':IMemIndexer']
+)
+strict_cc_library(name='IIndexer', srcs=[])
+strict_cc_library(
+    name='IMemIndexer',
+    srcs=[],
     deps=[
-        '//aios/autil:mem_pool_base', '//aios/storage/indexlib/base:Status',
-        '//aios/storage/indexlib/config:IIndexConfig',
-        '//aios/storage/indexlib/document:DocumentBatch',
-        '//aios/storage/indexlib/document/extractor:IDocumentInfoExtractor'
+        ':IIndexer', '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/document:interface'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
+    name='IDiskIndexer',
+    srcs=[],
+    deps=[':IIndexer', '//aios/storage/indexlib/base:Status']
+)
+strict_cc_library(
     name='IIndexReader', srcs=[], deps=['//aios/storage/indexlib/base:Status']
 )
-indexlib_cc_library(
-    name='IIndexMerger', srcs=[], deps=['//aios/storage/indexlib/base:Status']
+strict_cc_library(
+    name='IIndexMerger',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/base:Types'
+    ]
 )
-indexlib_cc_library(
+strict_cc_library(name='IShardRecordIterator', srcs=[])
+strict_cc_library(
     name='IIndexFactory',
     srcs=[],
     deps=[
@@ -34,7 +46,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index:interface'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexFactoryCreator',
     hdrs=['IIndexFactory.h', 'IndexFactoryCreator.h'],
     deps=[
@@ -43,11 +55,11 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:Singleton'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BuildingIndexMemoryUseUpdater',
     deps=['//aios/storage/indexlib/util/memory_control']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DocMapper',
     srcs=[],
     deps=[
@@ -55,7 +67,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework/index_task:task_execute'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexerParameter',
     srcs=[],
     deps=[
@@ -64,7 +76,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework:MetricsManager'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexerDirectories',
     deps=[
         '//aios/autil:log', '//aios/storage/indexlib/base:Status',
@@ -74,7 +86,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system:interface'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DocMapDumpParams',
     srcs=[],
     deps=['//aios/storage/indexlib/framework:DumpParams']

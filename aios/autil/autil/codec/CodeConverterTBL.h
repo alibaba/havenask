@@ -23301,5 +23301,5 @@ const uint32_t unicode2gbk_size = 65535;
 /**
  * unicode to gbk table
  **/
-}
-}
+} // namespace codec
+} // namespace autil

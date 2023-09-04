@@ -22,6 +22,7 @@
 #include "build_service/config/ConfigReaderAccessor.h"
 #include "build_service/config/ResourceReaderManager.h"
 #include "build_service/proto/GeneralTaskInfo.h"
+#include "build_service/proto/ProtoUtil.h"
 #include "fslib/util/FileUtil.h"
 #include "future_lite/coro/Sleep.h"
 #include "indexlib/base/PathUtil.h"
@@ -139,16 +140,6 @@ RemoteTabletMergeController::CreateRpcChannelManager(const std::string& serviceA
     return rpcChannelManager;
 }
 
-bool RemoteTabletMergeController::NeedSetDesignateTask(const std::map<std::string, std::string>& params) const
-{
-    auto iter = params.find(indexlibv2::table::IS_DESIGNATE_TASK);
-    if (iter == params.end()) {
-        return false;
-    }
-    bool value = false;
-    return autil::StringUtil::fromString(iter->second, value) && value;
-}
-
 std::unique_ptr<IndexTaskContext>
 RemoteTabletMergeController::CreateTaskContext(indexlibv2::versionid_t baseVersionId, const std::string& taskType,
                                                const std::string& taskName,
@@ -175,7 +166,7 @@ RemoteTabletMergeController::CreateTaskContext(indexlibv2::versionid_t baseVersi
                           .AddSourceVersion(sourceVersionRoot, baseVersionId)
                           .AddParameter(/*key=*/"_task_id_", std::to_string(taskId))
                           .AddParameter(indexlibv2::table::BRANCH_ID, std::to_string(_branchId));
-    if (NeedSetDesignateTask(params)) {
+    if (!taskType.empty()) {
         ctxCreator.SetDesignateTask(taskType, taskName);
     }
     return ctxCreator.CreateContext();
@@ -833,8 +824,8 @@ void RemoteTabletMergeController::FillBuildId(proto::BuildId* buildId) const
         buildId->set_datatable(_initParam.dataTable);
     }
     buildId->set_generationid(_initParam.generationId);
-    std::string appName =
-        _initParam.tableName + "_" + std::to_string(_initParam.rangeFrom) + "_" + std::to_string(_initParam.rangeTo);
+    std::string appName = proto::ProtoUtil::getGeneralTaskAppName(_initParam.appName, _initParam.tableName,
+                                                                  _initParam.rangeFrom, _initParam.rangeTo);
     buildId->set_appname(appName);
 }
 

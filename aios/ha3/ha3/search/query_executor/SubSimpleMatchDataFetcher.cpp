@@ -36,33 +36,26 @@ AUTIL_LOG_SETUP(ha3, SubSimpleMatchDataFetcher);
 using namespace matchdoc;
 
 SubSimpleMatchDataFetcher::SubSimpleMatchDataFetcher()
-    : _ref(NULL)
-{
-}
+    : _ref(NULL) {}
 
-SubSimpleMatchDataFetcher::~SubSimpleMatchDataFetcher() {
-}
+SubSimpleMatchDataFetcher::~SubSimpleMatchDataFetcher() {}
 
-ReferenceBase *SubSimpleMatchDataFetcher::require(
-        MatchDocAllocator *allocator,
-        const std::string &refName, uint32_t termCount)
-{
+ReferenceBase *SubSimpleMatchDataFetcher::require(MatchDocAllocator *allocator,
+                                                  const std::string &refName,
+                                                  uint32_t termCount) {
     _ref = createSubReference<SimpleMatchData>(allocator, refName, termCount);
     _termCount = termCount;
     return _ref;
 }
 
 indexlib::index::ErrorCode SubSimpleMatchDataFetcher::fillMatchData(
-        const SingleLayerExecutors &singleLayerExecutors,
-        MatchDoc matchDoc, MatchDoc subDoc) const
-{
+    const SingleLayerExecutors &singleLayerExecutors, MatchDoc matchDoc, MatchDoc subDoc) const {
     docid_t docId = matchDoc.getDocId();
     docid_t subDocId = subDoc.getDocId();
     rank::SimpleMatchData &data = _ref->getReference(matchDoc);
     for (uint32_t i = 0; i < _termCount; ++i) {
         int32_t idx = (int32_t)i - (int32_t)_accTermCount;
-        bool isMatch = idx >= 0
-                       && ((uint32_t)idx < singleLayerExecutors.size())
+        bool isMatch = idx >= 0 && ((uint32_t)idx < singleLayerExecutors.size())
                        && singleLayerExecutors[idx]
                        && singleLayerExecutors[idx]->getDocId() == docId
                        && singleLayerExecutors[idx]->getSubDocId() == subDocId;

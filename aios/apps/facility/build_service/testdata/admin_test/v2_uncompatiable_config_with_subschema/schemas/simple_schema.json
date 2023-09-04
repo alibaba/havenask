@@ -1,0 +1,43 @@
+{
+    "fields": [
+        {
+            "field_name": "id",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "attributes",
+            "field_type": "STRING"
+        }
+    ],
+    "indexs": [
+        {
+            "has_primary_key_attribute": true,
+            "index_fields": "id",
+            "index_name": "id",
+            "index_type": "PRIMARYKEY64"
+        }
+    ],
+    "attributes": ["id", "attributes"],
+    "table_name": "simple",
+    "table_type": "normal",
+    "sub_schema": {
+        "fields":[
+	        {
+	            "compress_type":"equal",
+	            "field_type":"INT64",
+	            "field_name":"biz_order_id"
+	        }
+        ],
+        "indexs":[
+	        {
+	            "has_primary_key_attribute":false,
+	            "index_fields":"biz_order_id",
+	            "is_primary_key_sorted":true,
+	            "index_name":"biz_order_id",
+	            "index_type":"PRIMARYKEY64"
+	        }
+        ],
+        "table_name": "simple_sub",
+        "table_type": "normal"
+    }
+}

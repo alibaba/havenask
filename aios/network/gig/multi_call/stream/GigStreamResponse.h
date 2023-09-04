@@ -20,7 +20,8 @@
 
 namespace multi_call {
 
-class GigStreamResponse : public Response {
+class GigStreamResponse : public Response
+{
 public:
     GigStreamResponse();
     ~GigStreamResponse();
@@ -37,8 +38,10 @@ public:
     void setTotalSize(size_t size) {
         _totalSize = size;
     }
+
 private:
     size_t _totalSize = 0;
+
 private:
     AUTIL_LOG_DECLARE();
 };

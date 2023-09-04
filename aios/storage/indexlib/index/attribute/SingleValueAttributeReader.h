@@ -71,7 +71,7 @@ public:
     bool GetSortedDocIdRange(const indexlib::index::RangeDescription& range, const DocIdRange& rangeLimit,
                              DocIdRange& resultRange) const override;
     std::string GetAttributeName() const override;
-    std::shared_ptr<AttributeDiskIndexer> GetIndexer(docid_t docId) const override;
+    std::shared_ptr<AttributeDiskIndexer> TEST_GetIndexer(docid_t docId) const override;
     void EnableAccessCountors() override;
     void EnableGlobalReadContext() override;
     DECLARE_ATTRIBUTE_READER_IDENTIFIER(single);
@@ -106,11 +106,10 @@ template <typename T>
 Status SingleValueAttributeReader<T>::DoOpen(const std::shared_ptr<config::IIndexConfig>& indexConfig,
                                              const std::vector<IndexerInfo>& indexers)
 {
-    auto attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+    auto attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
     assert(attrConfig != nullptr);
-    return InitAllIndexers<SingleValueAttributeDiskIndexer<T>, SingleValueAttributeMemIndexer<T>,
-                           SingleValueAttributeMemReader<T>>(attrConfig, indexers, _onDiskIndexers, _memReaders,
-                                                             _defaultValueReader);
+    return InitAllIndexers<SingleValueAttributeDiskIndexer<T>, SingleValueAttributeMemReader<T>>(
+        attrConfig, indexers, _onDiskIndexers, _memReaders, _defaultValueReader);
 }
 
 template <typename T>
@@ -174,7 +173,7 @@ std::string SingleValueAttributeReader<T>::GetAttributeName() const
 }
 
 template <typename T>
-std::shared_ptr<AttributeDiskIndexer> SingleValueAttributeReader<T>::GetIndexer(docid_t docId) const
+std::shared_ptr<AttributeDiskIndexer> SingleValueAttributeReader<T>::TEST_GetIndexer(docid_t docId) const
 {
     docid_t baseDocId = 0;
     for (size_t i = 0; i < _segmentDocCount.size(); i++) {

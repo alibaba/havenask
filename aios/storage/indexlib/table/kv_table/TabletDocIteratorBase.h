@@ -22,7 +22,7 @@
 #include "indexlib/index/IShardRecordIterator.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 class ValueConfig;
 } // namespace indexlibv2::config
 namespace indexlibv2::document {
@@ -58,6 +58,7 @@ public:
     Status Init(const std::shared_ptr<framework::TabletData>& tabletData,
                 std::pair<uint32_t /*0-100*/, uint32_t /*0-100*/> rangeInRatio,
                 const std::shared_ptr<indexlibv2::framework::MetricsManager>&,
+                const std::vector<std::string>& requiredFields,
                 const std::map<std::string, std::string>& params) override;
     Status Next(indexlibv2::document::RawDocument* rawDocument, std::string* checkpoint,
                 document::IDocument::DocInfo* docInfo) override;
@@ -93,7 +94,6 @@ protected:
     static const size_t MAX_RESET_POOL_MEMORY_THRESHOLD = 5 * 1024 * 1024;
     static const size_t MAX_RELEASE_POOL_MEMORY_THRESHOLD = 10 * 1024 * 1024;
     static const uint32_t RANGE_UPPER_BOUND = 100;
-    static const std::string USER_REQUIRED_FIELDS;
     static const std::string READER_TIMESTAMP;
     int64_t _timeStamp = 0;
     size_t _shardIterId = 0;
@@ -103,7 +103,7 @@ protected:
     std::vector<std::string> _fieldNames;
     std::pair<uint32_t, uint32_t> _targetShardRange;
     std::shared_ptr<config::ValueConfig> _valueConfig;
-    std::shared_ptr<config::TabletSchema> _tabletSchema;
+    std::shared_ptr<config::ITabletSchema> _tabletSchema;
     std::shared_ptr<index::PackAttributeFormatter> _formatter;
     std::shared_ptr<index::PackAttributeFormatter> _pkFormatter;
     std::shared_ptr<index::PlainFormatEncoder> _plainFormatEncoder;

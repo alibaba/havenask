@@ -15,18 +15,21 @@
  */
 #include "indexlib/table/index_task/merger/MergedVersionCommitOperation.h"
 
+#include <memory>
+
 #include "autil/EnvUtil.h"
 #include "indexlib/base/PathUtil.h"
 #include "indexlib/config/BackgroundTaskConfig.h"
 #include "indexlib/config/BuildConfig.h"
 #include "indexlib/config/IIndexConfig.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/MergeConfig.h"
 #include "indexlib/config/OfflineConfig.h"
 #include "indexlib/config/TabletOptions.h"
-#include "indexlib/config/TabletSchema.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/JsonUtil.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/package/MergePackageUtil.h"
 #include "indexlib/file_system/package/PackageFileMeta.h"
 #include "indexlib/file_system/package/PackageFileTagConfigList.h"
@@ -41,8 +44,8 @@
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/inverted_index/config/TruncateIndexNameMapper.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
+#include "indexlib/table/index_task/VersionResource.h"
 #include "indexlib/table/index_task/merger/MergePlan.h"
-#include "indexlib/table/index_task/merger/MergeUtil.h"
 #include "indexlib/util/PathUtil.h"
 
 namespace indexlibv2 { namespace table {
@@ -89,6 +92,14 @@ framework::IndexOperationDescription MergedVersionCommitOperation::CreateOperati
     return opDesc;
 }
 
+framework::IndexOperationDescription
+MergedVersionCommitOperation::CreateOperationDescription(framework::IndexOperationId opId, versionid_t versionId)
+{
+    framework::IndexOperationDescription opDesc(opId, OPERATION_TYPE);
+    opDesc.AddParameter(PARAM_TARGET_VERSION_ID, versionId);
+    return opDesc;
+}
+
 Status MergedVersionCommitOperation::CollectInfoInDir(const std::shared_ptr<indexlib::file_system::IDirectory>& dir,
                                                       indexlib::file_system::MergePackageMeta* mergePackageMeta)
 {
@@ -119,11 +130,14 @@ Status MergedVersionCommitOperation::ConvertResourceDirToPackage(
     indexlib::file_system::MergePackageMeta mergePackageMeta;
     RETURN_IF_STATUS_ERROR(CollectInfoInDir(resourceDir, &mergePackageMeta), "collect resource in dir[%s] failed",
                            resourceDir->GetPhysicalPath("").c_str());
-    auto mergeConfig = context.GetTabletOptions()->GetOfflineConfig().GetMergeConfig();
+    auto mergeConfig = context.GetMergeConfig();
+    auto [st, workingDirectory] =
+        currentOpFenceDir->MakeDirectory(resourceDirName, indexlib::file_system::DirectoryOption()).StatusWith();
+    RETURN_IF_STATUS_ERROR(st, "make dir[%s] failed", resourceDirName.c_str());
     RETURN_IF_STATUS_ERROR(indexlib::file_system::MergePackageUtil::ConvertDirToPackage(
-                               /*workingDirectory=*/currentOpFenceDir,
+                               workingDirectory,
                                /*outputDirectory=*/resourceDir, /*parentDirName=*/resourceDirName, mergePackageMeta,
-                               mergeConfig.GetPackageFileSizeThresholdBytes())
+                               mergeConfig.GetPackageFileSizeThresholdBytes(), mergeConfig.GetMergePackageThreadCount())
                                .Status(),
                            "convert resource[%s] to package failed", resourceDir->GetPhysicalPath("").c_str());
     return Status::OK();
@@ -135,7 +149,7 @@ Status MergedVersionCommitOperation::MountAndMaybePackageResourceDir(const frame
     auto indexRoot = context.GetIndexRoot();
     auto status = MountResourceDir(indexRoot, resourceDirName);
     RETURN_IF_STATUS_ERROR(status, "mount resource dir[%s] failed", resourceDirName.c_str());
-    auto mergeConfig = context.GetTabletOptions()->GetOfflineConfig().GetMergeConfig();
+    auto mergeConfig = context.GetMergeConfig();
     if (!mergeConfig.IsPackageFileEnabled()) {
         return Status::OK();
     }
@@ -172,16 +186,30 @@ Status MergedVersionCommitOperation::MountAndMaybePackageResourceDir(const frame
 
 Status MergedVersionCommitOperation::Execute(const framework::IndexTaskContext& context)
 {
-    RETURN_IF_STATUS_ERROR(MergeUtil::RewriteMergeConfig(context), "rewrite merge config failed");
-
     std::string versionStr;
-    if (!_desc.GetParameter(PARAM_TARGET_VERSION, versionStr)) {
+    framework::Version version;
+    versionid_t versionId = INVALID_VERSIONID;
+    if (_desc.GetParameter(PARAM_TARGET_VERSION, versionStr)) {
+        auto result = indexlib::file_system::JsonUtil::FromString(versionStr, &version);
+        RETURN_IF_STATUS_ERROR(result.Status(), "parse version [%s] failed", versionStr.c_str());
+    } else if (_desc.GetParameter(PARAM_TARGET_VERSION_ID, versionId)) {
+        auto resourceManager = context.GetResourceManager();
+        if (resourceManager == nullptr) {
+            auto s = Status::Corruption("get resource manager failed");
+            AUTIL_LOG(ERROR, "%s", s.ToString().c_str());
+            return s;
+        }
+        std::shared_ptr<VersionResource> versionResource;
+        RETURN_IF_STATUS_ERROR(resourceManager->LoadResource(framework::Version::GetVersionFileName(versionId),
+                                                             VERSION_RESOURCE, versionResource),
+                               "load resource failed, resource name[%s], resource type[%s].",
+                               framework::Version::GetVersionFileName(versionId).c_str(), VERSION_RESOURCE);
+        version = versionResource->GetVersion();
+    } else {
         AUTIL_LOG(ERROR, "get target segment dir from desc failed");
         return Status::Corruption("get target segment dir from desc failed");
     }
-    framework::Version version;
-    auto result = indexlib::file_system::JsonUtil::FromString(versionStr, &version);
-    RETURN_IF_STATUS_ERROR(result.Status(), "parse version [%s] failed", versionStr.c_str());
+
     RETURN_IF_STATUS_ERROR(UpdateSegmentDescriptions(context.GetResourceManager(), &version),
                            "update segment description failed");
     auto indexRoot = context.GetIndexRoot();
@@ -286,7 +314,7 @@ MergedVersionCommitOperation::MountPatchIndexDir(const std::shared_ptr<indexlib:
     std::shared_ptr<indexlib::file_system::Directory> dir(new indexlib::file_system::Directory(patchDirectory));
     status = framework::VersionLoader::ListSegment(dir, &fileList);
     RETURN_IF_STATUS_ERROR(status, "list segment failed");
-    auto mountOption = indexlib::file_system::MountDirOption(indexlib::file_system::FSMT_READ_WRITE);
+    auto mountOption = indexlib::file_system::MountOption(indexlib::file_system::FSMT_READ_WRITE);
     mountOption.conflictResolution = indexlib::file_system::ConflictResolution::SKIP;
     for (auto segmentDir : fileList) {
         std::string segmentPath = PathUtil::JoinPath(patchIndexDir, segmentDir);
@@ -298,10 +326,11 @@ MergedVersionCommitOperation::MountPatchIndexDir(const std::shared_ptr<indexlib:
 }
 
 Status MergedVersionCommitOperation::ValidateVersion(const std::string& indexRootPath,
-                                                     const std::shared_ptr<config::TabletSchema>& schema,
+                                                     const std::shared_ptr<config::ITabletSchema>& schema,
                                                      versionid_t versionId)
 {
-    if (!autil::EnvUtil::getEnv<bool>("VALIDATE_MERGED_VERSION", /*defaultValue*/ "true")) {
+    bool validateMergedVersion = autil::EnvUtil::getEnv("VALIDATE_MERGED_VERSION", true);
+    if (!validateMergedVersion) {
         AUTIL_LOG(INFO, "skip merged version validation");
         return Status::OK();
     }
@@ -318,7 +347,7 @@ Status MergedVersionCommitOperation::UpdateSegmentDescriptions(
     }
     std::shared_ptr<MergePlan> mergePlan;
     auto status = resourceManager->LoadResource<MergePlan>(/*name=*/MERGE_PLAN, /*type=*/MERGE_PLAN, mergePlan);
-    if (status.IsNoEntry()) {
+    if (status.IsNotFound()) {
         AUTIL_LOG(INFO, "merge pkan not found");
         return Status::OK();
     }

@@ -1,0 +1,7 @@
+{
+    "offline_index_config" : {
+        "customized_merge_config" : {
+            "zzz" : {"period":"period=2000"}
+        }
+    }
+}

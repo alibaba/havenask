@@ -15,7 +15,7 @@
  */
 #include "indexlib/framework/TabletData.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/MemSegment.h"
 #include "indexlib/framework/ResourceMap.h"
 #include "indexlib/framework/Segment.h"
@@ -139,6 +139,19 @@ TabletData::SegmentPtr TabletData::GetSegment(segmentid_t segmentId) const
     return nullptr;
 }
 
+std::pair<SegmentPtr, docid_t> TabletData::GetSegmentWithBaseDocid(segmentid_t segmentId)
+{
+    docid_t baseDocId = 0;
+    auto slice = CreateSlice(framework::Segment::SegmentStatus::ST_UNSPECIFY);
+    for (auto iter = slice.begin(); iter != slice.end(); iter++) {
+        if (segmentId == (*iter)->GetSegmentId()) {
+            return std::make_pair(*iter, baseDocId);
+        }
+        baseDocId += (*iter)->GetSegmentInfo()->docCount;
+    }
+    return std::make_pair(nullptr, INVALID_DOCID);
+}
+
 uint64_t TabletData::GetTabletDocCount() const { return _tabletDataInfo->GetDocCount(); }
 
 size_t TabletData::GetIncSegmentCount() const
@@ -189,7 +202,7 @@ TabletDataSchemaGroup* TabletData::GetTabletDataSchemaGroup() const
     return schemaGroup;
 }
 
-std::shared_ptr<config::TabletSchema> TabletData::GetOnDiskVersionReadSchema() const
+std::shared_ptr<config::ITabletSchema> TabletData::GetOnDiskVersionReadSchema() const
 {
     auto schemaGroup = GetTabletDataSchemaGroup();
     if (!schemaGroup) {
@@ -198,7 +211,7 @@ std::shared_ptr<config::TabletSchema> TabletData::GetOnDiskVersionReadSchema() c
     return schemaGroup->onDiskReadSchema;
 }
 
-std::shared_ptr<config::TabletSchema> TabletData::GetOnDiskVersionWriteSchema() const
+std::shared_ptr<config::ITabletSchema> TabletData::GetOnDiskVersionWriteSchema() const
 {
     auto schemaGroup = GetTabletDataSchemaGroup();
     if (!schemaGroup) {
@@ -207,7 +220,7 @@ std::shared_ptr<config::TabletSchema> TabletData::GetOnDiskVersionWriteSchema() 
     return schemaGroup->onDiskWriteSchema;
 }
 
-std::shared_ptr<config::TabletSchema> TabletData::GetWriteSchema() const
+std::shared_ptr<config::ITabletSchema> TabletData::GetWriteSchema() const
 {
     auto schemaGroup = GetTabletDataSchemaGroup();
     if (!schemaGroup) {
@@ -236,7 +249,7 @@ bool TabletData::CheckSchemaIdLegal(schemaid_t schemaId) const
     return false;
 }
 
-std::shared_ptr<config::TabletSchema> TabletData::GetTabletSchema(schemaid_t schemaId) const
+std::shared_ptr<config::ITabletSchema> TabletData::GetTabletSchema(schemaid_t schemaId) const
 {
     if (!CheckSchemaIdLegal(schemaId)) {
         return nullptr;
@@ -249,11 +262,11 @@ std::shared_ptr<config::TabletSchema> TabletData::GetTabletSchema(schemaid_t sch
     return nullptr;
 }
 
-std::vector<std::shared_ptr<config::TabletSchema>> TabletData::GetAllTabletSchema(schemaid_t beginSchemaId,
-                                                                                  schemaid_t endSchemaId) const
+std::vector<std::shared_ptr<config::ITabletSchema>> TabletData::GetAllTabletSchema(schemaid_t beginSchemaId,
+                                                                                   schemaid_t endSchemaId) const
 {
     assert(endSchemaId >= beginSchemaId);
-    std::vector<std::shared_ptr<config::TabletSchema>> result;
+    std::vector<std::shared_ptr<config::ITabletSchema>> result;
     auto schemaGroup = GetTabletDataSchemaGroup();
     if (!schemaGroup) {
         return result;
@@ -281,6 +294,18 @@ void TabletData::DeclareTaskConfig(const std::string& taskName, const std::strin
         TABLET_LOG(INFO, "declare new task config, taskName [%s], taskType [%s]", taskName.c_str(), taskType.c_str());
     }
 }
+
+void TabletData::TEST_PushSegment(SegmentPtr segment)
+{
+    _segments.push_back(segment);
+    if (_hasBuildingSegment) {
+        ++_dumpingSegmentCount;
+    } else {
+        _hasBuildingSegment = true;
+    }
+}
+void TabletData::TEST_SetOnDiskVersion(Version version) { _onDiskVersion = version; }
+const std::vector<std::shared_ptr<Segment>>& TabletData::TEST_GetSegments() { return _segments; }
 
 #undef TABLET_LOG
 

@@ -26,10 +26,6 @@
 #include "build_service/reader/SwiftFieldFilterRawDocumentParser.h"
 #include "build_service/reader/SwiftSchemaBasedRawDocumentParser.h"
 
-#ifndef AIOS_OPEN_SOURCE
-#include "build_service/reader/HologresClient.h"
-#include "build_service/reader/HologresRawDocumentParser.h"
-#endif
 
 using namespace std;
 
@@ -58,7 +54,7 @@ bool ParserCreator::createParserConfigs(const KeyValueMap& kvMap, vector<ParserC
         _lastErrorStr = "Invalid json string for dataDescription[" + dsJsonStr + "] : error [" + string(e.what()) + "]";
         return false;
     }
-    if (ds.getParserConfigCount() == 0) {
+    if (ds.getParserConfigCount() == 0 || !_supportIndexParser) {
         ParserConfig parserConfig;
         if (!createParserConfigForLegacyConfig(kvMap, parserConfig)) {
             return false;
@@ -73,6 +69,9 @@ bool ParserCreator::createParserConfigs(const KeyValueMap& kvMap, vector<ParserC
 RawDocumentParser* ParserCreator::create(const KeyValueMap& kvMap)
 {
     _lastErrorStr = "";
+    // NOTE
+    // BS_SUPPORT_INDEX_PARSER是临时方案，为了解决v2不支持index_parser的问题。v2实现index_parser时应该删除本commit。
+    _supportIndexParser = autil::EnvUtil::getEnv("BS_SUPPORT_INDEX_PARSER", true);
     vector<ParserConfig> parserConfigs;
     if (!createParserConfigs(kvMap, parserConfigs)) {
         return NULL;
@@ -121,7 +120,8 @@ bool ParserCreator::createParserConfigForLegacyConfig(const KeyValueMap& kvMap, 
         return true;
     }
 
-    if (format == RAW_DOCUMENT_FORMAT_SELF_EXPLAIN) {
+    if (format == RAW_DOCUMENT_FORMAT_SELF_EXPLAIN ||
+        (format == RAW_DOCUMENT_FORMAT_INDEXLIB_PARSER && !_supportIndexParser)) {
         string fieldName = getValueFromKeyValueMap(kvMap, DOC_STRING_FIELD_NAME);
         if (fieldName == "") {
             fieldName = DOC_STRING_FIELD_NAME_DEFAULT;
@@ -186,14 +186,6 @@ RawDocumentParser* ParserCreator::createSingleParser(const ParserConfig& parserC
         return new SwiftSchemaBasedRawDocumentParser();
     }
 
-#ifndef AIOS_OPEN_SOURCE
-    if (parserConfig.type == RAW_DOCUMENT_FORMAT_HOLOGRES) {
-        if (_hologresInterface == nullptr) {
-            _hologresInterface = std::make_shared<Hologres>();
-        }
-        return new HologresRawDocumentParser(_hologresInterface);
-    }
-#endif
 
     if (parserConfig.type == RAW_DOCUMENT_FORMAT_INDEXLIB_PARSER) {
         RawDocumentParser* parser = nullptr;

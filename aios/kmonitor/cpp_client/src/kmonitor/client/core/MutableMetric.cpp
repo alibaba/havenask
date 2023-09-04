@@ -5,20 +5,21 @@
  * Author Email: beifei@taobao.com
  */
 
-#include "kmonitor/client/core/MetricsData.h"
-#include "kmonitor/client/core/MetricsConfig.h"
 #include "kmonitor/client/core/MutableMetric.h"
-#include "kmonitor/client/KMonitor.h"
-#include "kmonitor/client/core/MetricsTagsManager.h"
 
 #include <map>
+
+#include "kmonitor/client/KMonitor.h"
+#include "kmonitor/client/core/MetricsConfig.h"
+#include "kmonitor/client/core/MetricsData.h"
+#include "kmonitor/client/core/MetricsTagsManager.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 AUTIL_LOG_SETUP(kmonitor, MutableMetric);
 
-MutableMetric::MutableMetric(MetricsData *metric_data, const std::string& metric_name,
-                             MetricsTagsManager *tags_manager)
-{
+MutableMetric::MutableMetric(MetricsData *metric_data,
+                             const std::string &metric_name,
+                             MetricsTagsManager *tags_manager) {
     metric_data_ = metric_data;
     tags_manager_ = tags_manager;
     metric_name_ = metric_name;
@@ -29,36 +30,30 @@ MutableMetric::~MutableMetric() {
     metric_data_ = NULL;
 }
 
-void MutableMetric::Report(double value) {
-    Report(NULL, value);
-}
+void MutableMetric::Report(double value) { Report(NULL, value); }
 
-void MutableMetric::Report(const MetricsTags* tags, double value)
-{
-    Metric* metric = metric_data_->GetMetric(tags);
+void MutableMetric::Report(const MetricsTags *tags, double value) {
+    Metric *metric = metric_data_->GetMetric(tags);
     if (metric != NULL) {
         metric->Update(value);
     }
 }
 
-void MutableMetric::Report(const MetricsTagsPtr& tagsPtr, double value)
-{
-    Metric* metric = metric_data_->GetMetric(tagsPtr);
+void MutableMetric::Report(const MetricsTagsPtr &tagsPtr, double value) {
+    Metric *metric = metric_data_->GetMetric(tagsPtr);
     if (metric != NULL) {
         metric->Update(value);
     }
 }
 
-MetricsTagsPtr MutableMetric::GetMetricsTags(const std::map<std::string,
-                                             std::string>& tags_map)
-{
+MetricsTagsPtr MutableMetric::GetMetricsTags(const std::map<std::string, std::string> &tags_map) {
     if (tags_manager_ == NULL) {
         return MetricsTagsPtr();
     }
     return tags_manager_->GetMetricsTags(tags_map);
 }
 
-Metric* MutableMetric::declareMetric(const MetricsTags *tags) {
+Metric *MutableMetric::declareMetric(const MetricsTags *tags) {
     Metric *metric = metric_data_->GetMetric(tags);
     if (metric == NULL) {
         AUTIL_LOG(DEBUG, "tags[%s] can't match", tags != nullptr ? tags->ToString().c_str() : "null");
@@ -67,16 +62,15 @@ Metric* MutableMetric::declareMetric(const MetricsTags *tags) {
     return metric;
 }
 
-Metric* MutableMetric::DeclareMetric(const MetricsTags *tags)
-{
-    Metric* metric = declareMetric(tags);
+Metric *MutableMetric::DeclareMetric(const MetricsTags *tags) {
+    Metric *metric = declareMetric(tags);
     if (metric != NULL) {
         metric->Acquire();
     }
     return metric;
 }
 
-bool MutableMetric::UndeclareMetric(Metric* metric) {
+bool MutableMetric::UndeclareMetric(Metric *metric) {
     if (metric == NULL) {
         return false;
     }
@@ -86,8 +80,6 @@ bool MutableMetric::UndeclareMetric(Metric* metric) {
     return true;
 }
 
-MetricType MutableMetric::GetMetricType() {
-    return metric_data_->GetMetricType();
-}
+MetricType MutableMetric::GetMetricType() { return metric_data_->GetMetricType(); }
 
 END_KMONITOR_NAMESPACE(kmonitor);

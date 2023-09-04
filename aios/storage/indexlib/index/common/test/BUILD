@@ -1,0 +1,67 @@
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+strict_cc_fast_test(
+    name='atomic_value_typed_test',
+    srcs=['AtomicValueTypedTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/index/common:AtomicValueTyped',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='short_buffer_test',
+    srcs=['ShortBufferTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/index/common:ShortBuffer',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='file_compress_param_helper_test',
+    srcs=['FileCompressParamHelperTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/index/common:FileCompressParamHelper',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='dict_test',
+    srcs=[
+        'DictHasherTest.cpp', 'DictKeyInfoTest.cpp', 'KeyHasherWrapperTest.cpp'
+    ],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/index/common:DictHasher',
+        '//aios/storage/indexlib/index/common:DictKeyInfo',
+        '//aios/storage/indexlib/index/common:KeyHasherWrapper',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='term_test',
+    srcs=['NumberTermTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/index/common:NumberTerm',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='radix_tree_test',
+    srcs=[
+        'RadixTreeNodeTest.cpp', 'RadixTreePerfTest.cpp', 'RadixTreeTest.cpp'
+    ],
+    deps=[
+        '//aios/storage/indexlib/index/common:radix_tree',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='typed_slice_list_test',
+    srcs=['TypedSliceListTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/index/common:typed_slice_list',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)

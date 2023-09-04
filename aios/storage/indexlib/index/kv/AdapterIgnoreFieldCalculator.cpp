@@ -15,7 +15,7 @@
  */
 #include "indexlib/index/kv/AdapterIgnoreFieldCalculator.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
 #include "indexlib/index/kv/config/KVIndexConfig.h"

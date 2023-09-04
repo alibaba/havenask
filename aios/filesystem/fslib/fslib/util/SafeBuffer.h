@@ -22,15 +22,10 @@
 
 FSLIB_BEGIN_NAMESPACE(util);
 
-class SafeBuffer
-{
+class SafeBuffer {
 public:
-    SafeBuffer(int64_t size)
-        : _size(size)
-    {
-        _buffer = new char[size];
-    }
-    
+    SafeBuffer(int64_t size) : _size(size) { _buffer = new char[size]; }
+
     ~SafeBuffer() {
         if (_buffer) {
             delete[] _buffer;
@@ -39,16 +34,12 @@ public:
     }
 
 public:
-    char* getBuffer() const {
-        return _buffer;
-    }
+    char *getBuffer() const { return _buffer; }
 
-    int64_t getSize() const {
-        return _size;
-    }
+    int64_t getSize() const { return _size; }
 
 private:
-    char* _buffer;
+    char *_buffer;
     int64_t _size;
 };
 
@@ -56,4 +47,4 @@ FSLIB_TYPEDEF_AUTO_PTR(SafeBuffer);
 
 FSLIB_END_NAMESPACE(util);
 
-#endif //FSLIB_SAFEBUFFER_H
+#endif // FSLIB_SAFEBUFFER_H

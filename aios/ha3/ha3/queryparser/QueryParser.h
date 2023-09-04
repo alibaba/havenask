@@ -18,53 +18,62 @@
 #include <string>
 #include <vector>
 
-#include "ha3/isearch.h"
 #include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/isearch.h"
 
 namespace isearch {
 namespace queryparser {
 class AtomicQueryExpr;
 class ParserContext;
 class QueryExpr;
-}  // namespace queryparser
-}  // namespace isearch
+} // namespace queryparser
+} // namespace isearch
 
 namespace isearch {
 namespace queryparser {
 
-class QueryParser
-{
+class QueryParser {
 public:
-    QueryParser(const char *defaultIndex,
-                QueryOperator defaultOP = OP_AND,
-                bool flag = false);
+    QueryParser(const char *defaultIndex, QueryOperator defaultOP = OP_AND, bool flag = false);
     ~QueryParser();
+
 public:
-    typedef std::vector<std::string*> TextVec;
+    typedef std::vector<std::string *> TextVec;
 
-    ParserContext* parse(const char *queryText);
-    ParserContext* parseExpr(const char *queryText);
+    ParserContext *parse(const char *queryText);
+    ParserContext *parseExpr(const char *queryText);
 
-    QueryExpr* createDefaultOpExpr(QueryExpr *exprA, QueryExpr *exprB);
-    QueryExpr* createAndExpr(QueryExpr *exprA, QueryExpr *exprB);
-    QueryExpr* createOrExpr(QueryExpr *exprA, QueryExpr *exprB);
-    QueryExpr* createAndNotExpr(QueryExpr *exprA, QueryExpr *exprB);
-    QueryExpr* createRankExpr(QueryExpr *exprA, QueryExpr *exprB);
+    QueryExpr *createDefaultOpExpr(QueryExpr *exprA, QueryExpr *exprB);
+    QueryExpr *createAndExpr(QueryExpr *exprA, QueryExpr *exprB);
+    QueryExpr *createOrExpr(QueryExpr *exprA, QueryExpr *exprB);
+    QueryExpr *createAndNotExpr(QueryExpr *exprA, QueryExpr *exprB);
+    QueryExpr *createRankExpr(QueryExpr *exprA, QueryExpr *exprB);
     AtomicQueryExpr *createWordsTermExpr(std::string *text);
-    AtomicQueryExpr *createWordsWithIndexTermExpr(char* indexName, char* text);
+    AtomicQueryExpr *createWordsWithIndexTermExpr(char *indexName, char *text);
     AtomicQueryExpr *createPhraseTermExpr(std::string *text);
-    AtomicQueryExpr *createNumberTermExpr(std::string *leftNumber, bool leftInclusive,
-            std::string *rightNumber, bool rightInclusive, ParserContext *ctx);
-    AtomicQueryExpr* createOrTermExpr(AtomicQueryExpr *exprA, AtomicQueryExpr *exprB);
-    AtomicQueryExpr* createAndTermExpr(AtomicQueryExpr *exprA, AtomicQueryExpr *exprB);
-    AtomicQueryExpr* createMultiTermQueryExpr(AtomicQueryExpr *exprA,
-            AtomicQueryExpr *exprB, QueryOperator opExpr);
-    void setDefaultOP(QueryOperator defaultOP) {_defaultOP = defaultOP;}
-    void evaluateQuery(ParserContext* ctx);
+    AtomicQueryExpr *createNumberTermExpr(std::string *leftNumber,
+                                          bool leftInclusive,
+                                          std::string *rightNumber,
+                                          bool rightInclusive,
+                                          ParserContext *ctx);
+    AtomicQueryExpr *createOrTermExpr(AtomicQueryExpr *exprA, AtomicQueryExpr *exprB);
+    AtomicQueryExpr *createAndTermExpr(AtomicQueryExpr *exprA, AtomicQueryExpr *exprB);
+    AtomicQueryExpr *
+    createMultiTermQueryExpr(AtomicQueryExpr *exprA, AtomicQueryExpr *exprB, QueryOperator opExpr);
+    void setDefaultOP(QueryOperator defaultOP) {
+        _defaultOP = defaultOP;
+    }
+    void evaluateQuery(ParserContext *ctx);
 
-    std::string getDefaultIndex() const { return _defaultIndex;}
-    void setCurrentIndex(const std::string &currentIndex) { _currentIndex = currentIndex; }
-    std::string getCurrentIndex() const { return _currentIndex;}
+    std::string getDefaultIndex() const {
+        return _defaultIndex;
+    }
+    void setCurrentIndex(const std::string &currentIndex) {
+        _currentIndex = currentIndex;
+    }
+    std::string getCurrentIndex() const {
+        return _currentIndex;
+    }
 
 private:
     bool isTerminalTermExpr(AtomicQueryExpr *expr);
@@ -76,6 +85,7 @@ private:
     std::string _currentIndex;
     QueryOperator _defaultOP;
     bool _enableMultiTermQuery;
+
 private:
     AUTIL_LOG_DECLARE();
 };

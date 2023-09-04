@@ -15,11 +15,10 @@
  */
 #include "ha3/search/BitmapTermQueryExecutor.h"
 
-#include "indexlib/index/inverted_index/TermPostingInfo.h"
-
+#include "autil/Log.h"
 #include "ha3/common/Term.h"
 #include "ha3/search/TermQueryExecutor.h"
-#include "autil/Log.h"
+#include "indexlib/index/inverted_index/TermPostingInfo.h"
 
 using namespace indexlib::index;
 using namespace isearch::common;
@@ -28,15 +27,12 @@ namespace isearch {
 namespace search {
 AUTIL_LOG_SETUP(ha3, BitmapTermQueryExecutor);
 
-BitmapTermQueryExecutor::BitmapTermQueryExecutor(PostingIterator *iter,
-        const Term &term)
-    : TermQueryExecutor(iter, term)
-{
+BitmapTermQueryExecutor::BitmapTermQueryExecutor(PostingIterator *iter, const Term &term)
+    : TermQueryExecutor(iter, term) {
     initBitmapIterator();
 }
 
-BitmapTermQueryExecutor::~BitmapTermQueryExecutor() {
-}
+BitmapTermQueryExecutor::~BitmapTermQueryExecutor() {}
 
 void BitmapTermQueryExecutor::reset() {
     TermQueryExecutor::reset();

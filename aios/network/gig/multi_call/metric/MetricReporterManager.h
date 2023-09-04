@@ -16,6 +16,9 @@
 #ifndef ISEARCH_MULTI_CALL_METRICREPORTERMANAGER_H
 #define ISEARCH_MULTI_CALL_METRICREPORTERMANAGER_H
 
+#include <mutex>
+#include <unordered_map>
+
 #include "aios/network/gig/multi_call/common/MetaEnv.h"
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/metric/BizMapMetricReporter.h"
@@ -25,12 +28,11 @@
 #include "aios/network/gig/multi_call/metric/ReplyInfoCollector.h"
 #include "aios/network/gig/multi_call/metric/SnapshotInfoCollector.h"
 #include "aios/network/gig/multi_call/metric/WorkerMetricReporter.h"
-#include <unordered_map>
-#include <mutex>
 
 namespace multi_call {
 
-class MetricReporterManager {
+class MetricReporterManager
+{
 public:
     MetricReporterManager();
     virtual ~MetricReporterManager();
@@ -52,13 +54,16 @@ public:
     const HeartbeatMetricReporterPtr &getHeartbeatMetricReporter() const;
     const IstioMetricReporterPtr &getIstioMetricReporter() const;
 
-    const MetaEnv &getMetaEnv() const { return _metaEnv; }
-    void setMetaEnv(MetaEnv &metaEnv) { _metaEnv = metaEnv; }
+    const MetaEnv &getMetaEnv() const {
+        return _metaEnv;
+    }
+    void setMetaEnv(MetaEnv &metaEnv) {
+        _metaEnv = metaEnv;
+    }
 
     void reportLinkMetric(const MetaEnv &targetMetaEnv, const std::string &biz,
                           const std::string &targetBiz, const std::string &src,
-                          const std::string &srcAb,
-                          const std::string &stressTest, int64_t latency,
+                          const std::string &srcAb, const std::string &stressTest, int64_t latency,
                           bool timeout, bool error);
 
     void setReportSampling(int32_t sampling);

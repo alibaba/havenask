@@ -76,6 +76,7 @@ public:
     bool isFinished() const;
     bool hasFatalError() const;
     bool needReconstruct() const;
+    FlowError getLastFlowError() const { return _workflowItem->getFlowError(); };
 
     ProducerBase* getProducer() const { return _workflowItem->getProducer(); }
     ConsumerBase* getConsumer() const { return _workflowItem->getConsumer(); }

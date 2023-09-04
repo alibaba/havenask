@@ -15,9 +15,9 @@
  */
 #pragma once
 
+#include <memory>
 #include <stddef.h>
 #include <stdint.h>
-#include <memory>
 
 #include "autil/Allocators.h"
 #include "autil/BlockAllocator.h"
@@ -27,17 +27,19 @@
 
 namespace autil {
 
-class MmapBlockAllocator : public BlockAllocator
-{
+class MmapBlockAllocator : public BlockAllocator {
 public:
     MmapBlockAllocator(uint32_t blockSize, size_t blockCount);
     ~MmapBlockAllocator();
+
 private:
     MmapBlockAllocator(const MmapBlockAllocator &);
-    MmapBlockAllocator& operator = (const MmapBlockAllocator &);
+    MmapBlockAllocator &operator=(const MmapBlockAllocator &);
+
 public:
-    /* override */ Block* allocBlock();
-    /* override */ void freeBlock(Block* block);
+    /* override */ Block *allocBlock();
+    /* override */ void freeBlock(Block *block);
+
 private:
     ThreadMutex _lock;
     FixedSizeAllocator _blockHeaderAllocator;
@@ -46,5 +48,4 @@ private:
 
 typedef std::shared_ptr<MmapBlockAllocator> MmapBlockAllocatorPtr;
 
-}
-
+} // namespace autil

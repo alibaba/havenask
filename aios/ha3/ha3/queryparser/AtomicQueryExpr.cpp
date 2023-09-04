@@ -15,21 +15,19 @@
  */
 #include "ha3/queryparser/AtomicQueryExpr.h"
 
-#include "ha3/isearch.h"
 #include "autil/Log.h"
+#include "ha3/isearch.h"
 
 namespace isearch {
 namespace queryparser {
 AUTIL_LOG_SETUP(ha3, AtomicQueryExpr);
 
-AtomicQueryExpr::AtomicQueryExpr() { 
+AtomicQueryExpr::AtomicQueryExpr() {
     _boost = DEFAULT_BOOST_VALUE;
     _secondaryChain = "";
     _text = "";
 }
 
-AtomicQueryExpr::~AtomicQueryExpr() { 
-}
+AtomicQueryExpr::~AtomicQueryExpr() {}
 } // namespace queryparser
 } // namespace isearch
-

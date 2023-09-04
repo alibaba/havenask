@@ -1,0 +1,8 @@
+{
+    "partition_count":3,
+    "parallel_num":2,
+    "task_params": {
+        "target_index_path": "hdfs://nonexist/",
+        "target_generation": "1"
+    }
+}

@@ -1,0 +1,37 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+strict_cc_fast_test(
+    name='indexlib_kkv_test',
+    srcs=['KKVIndexFactoryTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/config:schema',
+        '//aios/storage/indexlib/index/kkv:factory',
+        '//aios/storage/indexlib/index/kkv/config/test:kkv_index_config_builder',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KKVIndexFileTest',
+    srcs=['KKVIndexFileTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/kkv:constants',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KKVShardRecordIteratorTest',
+    srcs=['KKVShardRecordIteratorTest.cpp'],
+    copts=['-fno-access-control'],
+    data=[
+        'testdata/kkv_schema_for_pk_value.json',
+        'testdata/kkv_schema_record_iterator.json'
+    ],
+    deps=[
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/table/kkv_table/test:KKVTabletSchemaMaker',
+        '//aios/storage/indexlib/table/kkv_table/test:kkv_table_test_helper',
+        '//aios/unittest_framework'
+    ]
+)

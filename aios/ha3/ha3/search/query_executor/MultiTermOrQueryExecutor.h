@@ -24,8 +24,7 @@
 namespace isearch {
 namespace search {
 
-class MultiTermOrQueryExecutor : public OrQueryExecutor
-{
+class MultiTermOrQueryExecutor : public OrQueryExecutor {
 public:
     MultiTermOrQueryExecutor();
     ~MultiTermOrQueryExecutor();
@@ -35,6 +34,7 @@ public:
         return "MultiTermOrQueryExecutor";
     }
     std::string toString() const override;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -43,4 +43,3 @@ typedef std::shared_ptr<MultiTermOrQueryExecutor> MultiTermOrQueryExecutorPtr;
 
 } // namespace search
 } // namespace isearch
-

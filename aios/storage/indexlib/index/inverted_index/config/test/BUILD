@@ -1,0 +1,71 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+strict_cc_library(
+    name='InvertedIndexConfigCreator',
+    testonly=True,
+    deps=['//aios/storage/indexlib/index/inverted_index/config']
+)
+strict_cc_fast_test(
+    name='inverted_config_test',
+    srcs=[
+        'AdaptiveDictionaryConfigTest.cpp', 'DateIndexConfigTest.cpp',
+        'DiversityConstrainTest.cpp', 'HighFrequencyVocabularyTest.cpp',
+        'PackageIndexConfigTest.cpp', 'SingleFieldIndexConfigTest.cpp',
+        'SpatialIndexConfigTest.cpp', 'TruncateProfileConfigTest.cpp',
+        'TruncateStrategyTest.cpp', 'TruncateTermVocabularyTest.cpp'
+    ],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/file_system:interface',
+        '//aios/storage/indexlib/index/inverted_index:InvertedIndexFactory',
+        '//aios/storage/indexlib/index/inverted_index/config:AdaptiveDictionaryConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:DiversityConstrain',
+        '//aios/storage/indexlib/index/inverted_index/config:HighFrequencyVocabulary',
+        '//aios/storage/indexlib/index/inverted_index/config:SingleFieldIndexConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateProfileConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateStrategy',
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateTermVocabulary',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='TruncateOptionConfigTest',
+    srcs=['TruncateOptionConfigTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['testdata/truncate_option_config.json'],
+    deps=[
+        '//aios/storage/indexlib/base:Types',
+        '//aios/storage/indexlib/config:IIndexConfig',
+        '//aios/storage/indexlib/config:MergeConfig',
+        '//aios/storage/indexlib/index/inverted_index:InvertedIndexFactory',
+        '//aios/storage/indexlib/index/inverted_index/config:SingleFieldIndexConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateOptionConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateProfileConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateStrategy',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='TruncateIndexConfigTest',
+    srcs=['TruncateIndexConfigTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateIndexConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateIndexProperty',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='TruncateIndexNameMapperTest',
+    srcs=['TruncateIndexNameMapperTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/base:Types',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/inverted_index:InvertedIndexFactory',
+        '//aios/storage/indexlib/index/inverted_index/config:SingleFieldIndexConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateIndexNameMapper',
+        '//aios/unittest_framework'
+    ]
+)

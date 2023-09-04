@@ -21,14 +21,14 @@
 namespace indexlib::document {
 class ModifiedTokens;
 class IndexDocument;
-namespace extractor {
-class IDocumentInfoExtractor;
-}
 } // namespace indexlib::document
+namespace indexlibv2::document::extractor {
+class IDocumentInfoExtractor;
+} // namespace indexlibv2::document::extractor
 
 namespace indexlibv2::index {
 class AttributeMemReader;
-}
+} // namespace indexlibv2::index
 
 namespace indexlib::index {
 class InvertedIndexMetrics;
@@ -41,7 +41,7 @@ public:
 
     virtual void UpdateTokens(docid_t docId, const document::ModifiedTokens& modifiedTokens) = 0;
     virtual std::shared_ptr<InvertedIndexMetrics> GetMetrics() const = 0;
-    virtual std::shared_ptr<indexlibv2::index::AttributeMemReader> CreateSectionAttributeMemReader() const = 0;    
+    virtual std::shared_ptr<indexlibv2::index::AttributeMemReader> CreateSectionAttributeMemReader() const = 0;
 
 public:
     virtual indexlibv2::document::extractor::IDocumentInfoExtractor* GetDocInfoExtractor() const = 0;

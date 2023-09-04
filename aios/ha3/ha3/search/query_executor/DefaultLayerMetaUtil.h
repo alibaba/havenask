@@ -20,30 +20,31 @@
 namespace autil {
 namespace mem_pool {
 class Pool;
-}  // namespace mem_pool
-}  // namespace autil
+} // namespace mem_pool
+} // namespace autil
 
 namespace isearch {
 namespace search {
 class IndexPartitionReaderWrapper;
-}  // namespace search
-}  // namespace isearch
+} // namespace search
+} // namespace isearch
 
 namespace isearch {
 namespace search {
 
-class DefaultLayerMetaUtil
-{
+class DefaultLayerMetaUtil {
 public:
     DefaultLayerMetaUtil();
     ~DefaultLayerMetaUtil();
     DefaultLayerMetaUtil(const DefaultLayerMetaUtil &) = delete;
-    DefaultLayerMetaUtil& operator=(const DefaultLayerMetaUtil &) = delete;
+    DefaultLayerMetaUtil &operator=(const DefaultLayerMetaUtil &) = delete;
+
 public:
-    static LayerMetas* createDefaultLayerMetas(autil::mem_pool::Pool *pool,
-            IndexPartitionReaderWrapper *reader);
+    static LayerMetas *createDefaultLayerMetas(autil::mem_pool::Pool *pool,
+                                               IndexPartitionReaderWrapper *reader);
     static LayerMeta createFullRange(autil::mem_pool::Pool *pool,
-            IndexPartitionReaderWrapper *reader);
+                                     IndexPartitionReaderWrapper *reader);
+
 private:
     AUTIL_LOG_DECLARE();
 };

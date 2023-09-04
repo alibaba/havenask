@@ -15,52 +15,46 @@
  */
 #pragma once
 
+#include <memory>
 #include <stddef.h>
 #include <string>
 
-#include "table/Common.h"
 #include "table/ColumnData.h"
 
 namespace table {
 class ColumnSchema;
-}  // namespace table
+} // namespace table
 
 namespace table {
 
-class Column
-{
+class Column {
 public:
     Column(ColumnSchema *columnSchema, ColumnDataBase *columnData);
     ~Column();
+
 private:
     Column(const Column &);
-    Column& operator=(const Column &);
+    Column &operator=(const Column &);
+
 public:
-    template<typename T>
+    template <typename T>
     ColumnData<T> *getColumnData() {
         return dynamic_cast<ColumnData<T> *>(_data);
     }
 
-    ColumnSchema *getColumnSchema() const {
-        return _schema;
-    }
+    ColumnSchema *getColumnSchema() const { return _schema; }
 
-    std::string toString(size_t row) const {
-        return _data->toString(row);
-    }
+    std::string toString(size_t row) const { return _data->toString(row); }
 
-    std::string toOriginString(size_t row) const {
-        return _data->toOriginString(row);
-    }
+    std::string toOriginString(size_t row) const { return _data->toOriginString(row); }
 
-    inline size_t getRowCount() const {
-        return _data->getRowCount();
-    }
+    inline size_t getRowCount() const { return _data->getRowCount(); }
+
 private:
     ColumnSchema *_schema;
     ColumnDataBase *_data;
 };
 
-TABLE_TYPEDEF_PTR(Column);
+using ColumnPtr = std::shared_ptr<Column>;
 
-}
+} // namespace table

@@ -93,7 +93,7 @@ void AttributeModifier::DumpPackAttributeUpdateInfo(const file_system::Directory
     for (size_t i = 0; packIter != packAttrConfigs->End(); ++packIter, ++i) {
         const PackAttributeConfigPtr& packAttrConfig = *packIter;
         const AttributeUpdateBitmapPtr& packAttrUpdateBitmap = packUpdateBitmapVec[i];
-        const string& packName = packAttrConfig->GetAttrName();
+        const string& packName = packAttrConfig->GetPackName();
         DirectoryPtr packAttrDir = attrDirectory->MakeDirectory(packName);
         packAttrUpdateBitmap->Dump(packAttrDir);
     }

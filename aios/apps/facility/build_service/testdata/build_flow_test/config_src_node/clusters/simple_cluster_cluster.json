@@ -1,0 +1,31 @@
+{
+    "cluster_config" : {
+	"table_name" : "simple_table",
+	"hash_mode" : {
+            "hash_function" : "HASH",
+            "hash_field" : "id"
+	},
+        "builder_rule_config": {
+            "partition_count":2
+        }
+    },
+    "online_index_config": {
+        "online_keep_version_count": 1,
+        "build_config": {
+            "build_total_memory": 6144
+        },
+        "max_realtime_memory_use": 16394,
+        "load_config": [
+            {
+                "file_patterns": [
+                    ".*"
+                ],
+                "load_strategy": "cache"
+            }
+        ]
+    },
+    "build_option_config" : {
+         "async_build" : true,
+	 "async_queue_size" : 1
+    }
+}

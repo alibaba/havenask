@@ -1,0 +1,17 @@
+{
+"region_infos":
+  [
+    {
+    "item_count":
+      3,
+    "region_id":
+      0
+    },
+    {
+    "item_count":
+      2,
+    "region_id":
+      1
+    }
+  ]
+}

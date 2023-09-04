@@ -1,0 +1,30 @@
+{
+    "aggregate_sampler_config" : {
+	"aggThreshold" : 1234
+    },
+    "summary_profile_config" : {
+	"modules" : [
+	],
+	"summary_profiles" : [
+            {
+		"summary_profile_name": "DefaultProfile",
+		"extractor":
+		{
+                    "extractor_name": "DefaultSummaryExtractor",
+                    "module_name": ""
+		}
+            }
+	]
+    },
+     "cluster_config" : {
+	 "cluster_type" : "inc_with_realtime",
+	 "searcher_rule": {
+	     "inherit_from" : "deep_inherit/subsection.json",
+             "replica_count" : 2,
+             "specified_machine_type": "xxxxx"
+	 },
+	 "dispatch_config": {
+             "min_searcher_replica" : 123
+	 }
+     }
+}

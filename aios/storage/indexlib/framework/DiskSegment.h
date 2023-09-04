@@ -19,7 +19,7 @@
 #include "indexlib/framework/Segment.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 class TabletOptions;
 } // namespace indexlibv2::config
 
@@ -39,12 +39,11 @@ public:
 
 public:
     DiskSegment(const SegmentMeta& segmentMeta) : Segment(SegmentStatus::ST_BUILT) { SetSegmentMeta(segmentMeta); }
-
     virtual ~DiskSegment() = default;
 
     virtual Status Open(const std::shared_ptr<MemoryQuotaController>& memoryQuotaController, OpenMode mode) = 0;
     // schemas: from current schema to target schema list
-    virtual Status Reopen(const std::vector<std::shared_ptr<config::TabletSchema>>& schemas) = 0;
+    virtual Status Reopen(const std::vector<std::shared_ptr<config::ITabletSchema>>& schemas) = 0;
 };
 
 } // namespace indexlibv2::framework

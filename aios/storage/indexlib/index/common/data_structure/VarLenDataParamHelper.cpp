@@ -33,7 +33,7 @@ VarLenDataParamHelper::VarLenDataParamHelper() {}
 VarLenDataParamHelper::~VarLenDataParamHelper() {}
 
 VarLenDataParam
-VarLenDataParamHelper::MakeParamForAttribute(const std::shared_ptr<indexlibv2::config::AttributeConfig>& attrConfig)
+VarLenDataParamHelper::MakeParamForAttribute(const std::shared_ptr<indexlibv2::index::AttributeConfig>& attrConfig)
 {
     assert(attrConfig);
     VarLenDataParam param;

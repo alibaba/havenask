@@ -27,7 +27,7 @@ class MemoryQuotaController;
 }
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlib::util {
@@ -38,6 +38,7 @@ namespace indexlibv2::framework {
 class Segment;
 class Version;
 class TabletData;
+class Locator;
 
 class TabletLoader : public ITabletLoader
 {
@@ -47,24 +48,36 @@ public:
     TabletLoader() = default;
     virtual ~TabletLoader() = default;
     void Init(const std::shared_ptr<MemoryQuotaController>& memoryQuotaController,
-              const std::shared_ptr<config::TabletSchema>& schema,
+              const std::shared_ptr<config::ITabletSchema>& schema,
               const std::shared_ptr<indexlib::util::MemoryReserver>& memReserver, bool isOnline) override;
 
     Status PreLoad(const TabletData& lastTabletData, const SegmentPairs& onDiskSegmentPairs,
                    const Version& newOnDiskVersion) override;
-    size_t EvaluateCurrentMemUsed(const std::vector<framework::Segment*>& segments) override;
+    size_t EvaluateCurrentMemUsed(const std::vector<Segment*>& segments) override;
+
+protected:
+    // 只有实时比增量快的场景可以调用这个函数
+    // 如果是building segment，且实时增量相同的情况，building segment会被保留
+    std::pair<Status, std::vector<std::shared_ptr<Segment>>>
+    GetRemainSegments(const TabletData& tabletData, const std::vector<std::shared_ptr<Segment>>& diskSegmemts,
+                      const Version& version) const;
 
 private:
     virtual Status DoPreLoad(const TabletData& lastTabletData,
                              std::vector<std::shared_ptr<Segment>> newOnDiskVersionSegments,
                              const Version& newOnDiskVersion) = 0;
-    virtual size_t EstimateMemUsed(const std::shared_ptr<config::TabletSchema>& schema,
-                                   const std::vector<framework::Segment*>& segments);
-    std::vector<framework::Segment*> GetNeedOpenSegments(const SegmentPairs& onDiskSegments) const;
+    virtual size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema,
+                                   const std::vector<Segment*>& segments);
+    std::vector<Segment*> GetNeedOpenSegments(const SegmentPairs& onDiskSegments) const;
+
+    static Status
+    ValidatePreloadParams(const std::vector<std::shared_ptr<framework::Segment>>& newOnDiskVersionSegments,
+                          const framework::Version& newOnDiskVersion);
 
 protected:
+    std::string _tabletName;
     std::shared_ptr<MemoryQuotaController> _memoryQuotaController;
-    std::shared_ptr<config::TabletSchema> _schema;
+    std::shared_ptr<config::ITabletSchema> _schema;
     std::shared_ptr<indexlib::util::MemoryReserver> _memReserver;
     bool _isOnline = true;
 

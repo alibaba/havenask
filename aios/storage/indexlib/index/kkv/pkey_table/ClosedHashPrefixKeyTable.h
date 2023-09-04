@@ -226,8 +226,7 @@ bool ClosedHashPrefixKeyTable<ValueType, Type>::Open(const std::shared_ptr<index
         _fileReader = dir->CreateFileReader(PREFIX_KEY_FILE_NAME, indexlib::file_system::FSOT_LOAD_CONFIG).GetOrThrow();
         _tableBaseAddr = (char*)_fileReader->GetBaseAddress();
         if (!_tableBaseAddr) {
-            // _maxMemUse = _fileReader->GetLength(); // TODO
-            _maxMemUse = indexlib::file_system::ReaderOption::DEFAULT_BUFFER_SIZE;
+            _maxMemUse = _fileReader->EvaluateCurrentMemUsed();
             std::unique_ptr<RTableReader> table(new RTableReader);
             if (!table->Init(dir, _fileReader)) {
                 return false;

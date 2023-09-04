@@ -15,10 +15,10 @@
  */
 #include "ha3/search/DefaultLayerMetaUtil.h"
 
-#include <stdint.h>
 #include <cstddef>
 #include <limits>
 #include <memory>
+#include <stdint.h>
 
 #include "autil/TimeUtility.h"
 #include "autil/mem_pool/Pool.h"
@@ -38,15 +38,12 @@ namespace isearch {
 namespace search {
 AUTIL_LOG_SETUP(ha3, DefaultLayerMetaUtil);
 
-DefaultLayerMetaUtil::DefaultLayerMetaUtil() {
-}
+DefaultLayerMetaUtil::DefaultLayerMetaUtil() {}
 
-DefaultLayerMetaUtil::~DefaultLayerMetaUtil() {
-}
+DefaultLayerMetaUtil::~DefaultLayerMetaUtil() {}
 
-LayerMetas* DefaultLayerMetaUtil::createDefaultLayerMetas(autil::mem_pool::Pool *pool,
-        IndexPartitionReaderWrapper *reader)
-{
+LayerMetas *DefaultLayerMetaUtil::createDefaultLayerMetas(autil::mem_pool::Pool *pool,
+                                                          IndexPartitionReaderWrapper *reader) {
     LayerMetas *layerMetas = POOL_NEW_CLASS(pool, LayerMetas, pool);
     LayerMeta layerMeta = createFullRange(pool, reader);
     layerMeta.quota = numeric_limits<uint32_t>::max();
@@ -55,15 +52,14 @@ LayerMetas* DefaultLayerMetaUtil::createDefaultLayerMetas(autil::mem_pool::Pool 
 }
 
 LayerMeta DefaultLayerMetaUtil::createFullRange(autil::mem_pool::Pool *pool,
-        IndexPartitionReaderWrapper *reader)
-{
+                                                IndexPartitionReaderWrapper *reader) {
     const shared_ptr<PartitionInfoWrapper> &partInfo = reader->getPartitionInfo();
     LayerMeta layerMeta(pool);
 
     indexlib::DocIdRangeVector ranges;
     if (partInfo->GetOrderedDocIdRanges(ranges)) {
         for (size_t i = 0; i < ranges.size(); ++i) {
-            indexlib::DocIdRange& range = ranges[i];
+            indexlib::DocIdRange &range = ranges[i];
             --range.second;
             if (range.second >= range.first) {
                 layerMeta.push_back({range, DocIdRangeMeta::OT_ORDERED});

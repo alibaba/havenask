@@ -5,5 +5,6 @@ cc_library(
     srcs=glob(['*.cpp']),
     hdrs=glob(['*.h']),
     deps=['//aios/alog:alog', '//aios/autil:env_util'],
-    copts=['-Wformat-truncation=0']
+    copts=['-Wformat-truncation=0'],
+    alwayslink=True
 )

@@ -1,0 +1,143 @@
+{
+    "columns": [
+        {
+            "name": "pk",
+            "type": "STRING"
+        },
+        {
+            "name": "embedding",
+            "type": "STRING"
+        },
+        {
+            "name": "content",
+            "type": "STRING"
+        },
+        {
+            "name": "source_id",
+            "type": "STRING"
+        },
+        {
+            "name": "url",
+            "type": "STRING"
+        },
+        {
+            "name": "DUP_pk",
+            "type": "RAW"
+        },
+        {
+            "name": "DUP_embedding",
+            "type": "RAW"
+        }
+    ],
+    "indexes": [
+        {
+            "name": "pk",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "pk"
+                    }
+                ]
+            },
+            "index_type": "PRIMARY_KEY64"
+        },
+        {
+            "name": "pk",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "pk"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
+        },
+        {
+            "name": "embedding",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "embedding"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
+        },
+        {
+            "name": "content",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "content"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
+        },
+        {
+            "name": "source_id",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "source_id"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
+        },
+        {
+            "name": "url",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "url"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
+        },
+        {
+            "name": "embedding_index",
+            "index_type": "CUSTOMIZED",
+            "index_config": {
+                "index_fields": [
+                    {
+                        "boost": 1,
+                        "field_name": "DUP_pk"
+                    },
+                    {
+                        "boost": 1,
+                        "field_name": "DUP_embedding"
+                    }
+                ],
+                "index_params": {
+                    "indexer": "aitheta2_indexer",
+                    "parameters": "{\"enable_rt_build\":\"true\",\"min_scan_doc_cnt\":\"20000\",\"vector_index_type\":\"Qc\",\"major_order\":\"col\",\"builder_name\":\"QcBuilder\",\"distance_type\":\"SquaredEuclidean\",\"embedding_delimiter\":\",\",\"enable_recall_report\":\"true\",\"is_embedding_saved\":\"true\",\"linear_build_threshold\":\"5000\",\"dimension\":\"128\",\"search_index_params\":\"{\\\"proxima.qc.searcher.scan_ratio\\\":0.01}\",\"searcher_name\":\"QcSearcher\",\"build_index_params\":\"{\\\"proxima.qc.builder.quantizer_class\\\":\\\"Int8QuantizerConverter\\\",\\\"proxima.qc.builder.quantize_by_centroid\\\":true,\\\"proxima.qc.builder.optimizer_class\\\":\\\"BruteForceBuilder\\\",\\\"proxima.qc.builder.thread_count\\\":10,\\\"proxima.qc.builder.optimizer_params\\\":{\\\"proxima.linear.builder.column_major_order\\\":true},\\\"proxima.qc.builder.store_original_features\\\":false,\\\"proxima.qc.builder.train_sample_count\\\":3000000,\\\"proxima.qc.builder.train_sample_ratio\\\":0.5}\"}"
+                }
+            }
+        },
+        {
+            "name": "summary",
+            "index_type": "SUMMARY",
+            "index_config": {
+                "index_fields": [
+                    {
+                        "field_name": "pk"
+                    },
+                    {
+                        "field_name": "embedding"
+                    },
+                    {
+                        "field_name": "content"
+                    },
+                    {
+                        "field_name": "source_id"
+                    },
+                    {
+                        "field_name": "url"
+                    }
+                ]
+            }
+        }
+    ]
+}

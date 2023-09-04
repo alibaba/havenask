@@ -1,0 +1,6 @@
+function graphDef()
+   local clusterName = Graph.parameter["clusterName"]
+   local stopProcessorIds = Graph.getFlowIdByTag(clusterName..":BSIncProcessor")
+   Graph.batchStopFlows(stopProcessorIds)
+   return true
+end

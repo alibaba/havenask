@@ -26,7 +26,7 @@ BS_LOG_SETUP(workflow, MultiSwiftProcessedDocProducerV2);
 #define LOG_PREFIX _buildIdStr.c_str()
 
 MultiSwiftProcessedDocProducerV2::MultiSwiftProcessedDocProducerV2(
-    std::vector<common::SwiftParam> params, const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    std::vector<common::SwiftParam> params, const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
     const proto::PartitionId& partitionId, const indexlib::util::TaskSchedulerPtr& taskScheduler)
     : _parallelNum(params.size())
     , _stopedSingleProducerCount(0)
@@ -39,7 +39,8 @@ MultiSwiftProcessedDocProducerV2::MultiSwiftProcessedDocProducerV2(
     for (auto& param : params) {
         assert(param.reader);
         _singleProducers.push_back(new SingleSwiftProcessedDocProducerV2(param, schema, partitionId, taskScheduler));
-        indexlibv2::base::Progress progress = indexlibv2::base::Progress(param.from, param.to, INVALID_TIMESTAMP);
+        indexlibv2::base::Progress progress =
+            indexlibv2::base::Progress(param.from, param.to, indexlibv2::base::Progress::INVALID_OFFSET);
         _progress.push_back({progress});
     }
 }
@@ -77,13 +78,19 @@ bool MultiSwiftProcessedDocProducerV2::init(indexlib::util::MetricProviderPtr me
         }
     }
     for (size_t i = 0; i < _parallelNum; i++) {
-        _progress[i][0].offset = startTimestamp;
+        _progress[i][0].offset = {startTimestamp, 0};
     }
     return true;
 }
 
 void MultiSwiftProcessedDocProducerV2::StartWork()
 {
+    _threadPool->setThreadStopHook([this]() {
+        // the stop hook here does not work as intended. The actual _stopedSingleProducerCount is incremented below in
+        // the lambda. TODO: Remove this stop hook.
+        ++_stopedSingleProducerCount;
+        BS_PREFIX_LOG(INFO, " swift meet eof, exit stopped single producer %u", _stopedSingleProducerCount.load());
+    });
     for (size_t parallelIdx = 0; parallelIdx < _parallelNum; ++parallelIdx) {
         _threadPool->pushTask([this, parallelIdx] {
             document::ProcessedDocumentVecPtr processedDocVec;
@@ -95,6 +102,7 @@ void MultiSwiftProcessedDocProducerV2::StartWork()
                 switch (flowError) {
                 case FE_EOF:
                     BS_PREFIX_LOG(INFO, "parallel id [%lu] read from swift meet eof, exit", parallelIdx);
+                    ++_stopedSingleProducerCount;
                     return;
                 case FE_OK:
                     assert(processedDocVec->size() == 1);
@@ -112,13 +120,14 @@ void MultiSwiftProcessedDocProducerV2::StartWork()
                 case FE_FATAL:
                     _hasFatalError = true;
                     break;
+                case FE_SKIP:
+                    break;
                 default:
                     usleep(5000);
                 }
             }
         });
     }
-    _threadPool->setThreadStopHook([this]() { ++_stopedSingleProducerCount; });
     _threadPool->start();
 }
 
@@ -167,15 +176,19 @@ bool MultiSwiftProcessedDocProducerV2::seek(const common::Locator& locator)
         uint32_t to = singleProgressVec[singleProgressVec.size() - 1].to;
         auto seekLocator = locator;
         if (!seekLocator.ShrinkToRange(from, to)) {
-            BS_LOG(ERROR, "seek producer idx [%lu] locator [%s] failed, range from [%u] to [%u]", parallelId,
-                   seekLocator.DebugString().c_str(), from, to);
+            BS_LOG(ERROR, "seek producer [%lu/%u][%u ~ %u] locator [%s] failed", parallelId, _parallelNum, from, to,
+                   seekLocator.DebugString().c_str());
             return false;
+        }
+        if (seekLocator.GetProgress().empty()) {
+            BS_LOG(ERROR, "skip seek producer [%lu/%u][%u ~ %u], empty progress", parallelId, _parallelNum, from, to);
+            continue;
         }
         auto [success, actualLocator] = _singleProducers[parallelId]->seekAndGetLocator(seekLocator);
         if (success) {
             _progress[parallelId] = actualLocator.GetProgress();
         } else {
-            BS_LOG(ERROR, "seek producer idx [%lu] failed", parallelId);
+            BS_LOG(ERROR, "seek producer [%lu/%u][%u ~ %u] failed", parallelId, _parallelNum, from, to);
             return false;
         }
     }
@@ -221,7 +234,7 @@ bool MultiSwiftProcessedDocProducerV2::needUpdateCommittedCheckpoint() const
     return true;
 }
 
-bool MultiSwiftProcessedDocProducerV2::updateCommittedCheckpoint(int64_t checkpoint)
+bool MultiSwiftProcessedDocProducerV2::updateCommittedCheckpoint(const indexlibv2::base::Progress::Offset& checkpoint)
 {
     assert(_singleProducers.size() == _parallelNum);
 

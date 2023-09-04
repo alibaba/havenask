@@ -15,36 +15,25 @@
  */
 #include "autil/ZlibCompressor.h"
 
-#include <zconf.h>
 #include <cassert>
 #include <sstream>
+#include <zconf.h>
 
 using namespace std;
 
 namespace autil {
 
-ZlibCompressor::ZlibCompressor(const int type)
-    : _compressType(type)
-{
-}
+ZlibCompressor::ZlibCompressor(const int type) : _compressType(type) {}
 
-ZlibCompressor::ZlibCompressor(const ZlibCompressor& src)
-    : _compressType(src._compressType)
-{
-}
+ZlibCompressor::ZlibCompressor(const ZlibCompressor &src) : _compressType(src._compressType) {}
 
-ZlibCompressor::~ZlibCompressor()
-{
-}
+ZlibCompressor::~ZlibCompressor() {}
 
-bool ZlibCompressor::compress()
-{
-    if(_bufferIn.getDataLen() == 0)
-    {
+bool ZlibCompressor::compress() {
+    if (_bufferIn.getDataLen() == 0) {
         return false;
     }
-    if (_bufferOut.getDataLen() == 0)
-    {
+    if (_bufferOut.getDataLen() == 0) {
         _bufferOut.reserve(DEFAULT_BUFFER_SIZE);
     }
 
@@ -56,30 +45,26 @@ bool ZlibCompressor::compress()
     strm.zfree = Z_NULL;
     strm.opaque = Z_NULL;
     ret = deflateInit(&strm, _compressType);
-    if (ret != Z_OK)
-    {
+    if (ret != Z_OK) {
         return false;
     }
 
     strm.avail_in = _bufferIn.getDataLen();
-    strm.next_in = (Bytef*)_bufferIn.getBuffer();
+    strm.next_in = (Bytef *)_bufferIn.getBuffer();
     flush = Z_FINISH;
-    
-    do 
-    {
-        uint32_t remain = _bufferOut.remaining(); 
+
+    do {
+        uint32_t remain = _bufferOut.remaining();
         strm.avail_out = remain;
-        strm.next_out = (Bytef*)_bufferOut.getPtr();
+        strm.next_out = (Bytef *)_bufferOut.getPtr();
         ret = deflate(&strm, flush);
-        if(ret == Z_STREAM_ERROR)
-        {
+        if (ret == Z_STREAM_ERROR) {
             return false;
         }
-        
+
         have = remain - strm.avail_out;
         _bufferOut.movePtr(have);
-        if (strm.avail_out == 0)
-        {
+        if (strm.avail_out == 0) {
             _bufferOut.reserve((_bufferOut.getTotalSize() << 1) - _bufferOut.getDataLen());
         }
     } while (strm.avail_out == 0);
@@ -90,38 +75,33 @@ bool ZlibCompressor::compress()
     return true;
 }
 
-bool ZlibCompressor::decompress()
-{
+bool ZlibCompressor::decompress() {
     int ret;
     unsigned have;
     z_stream strm;
 
-    if (_bufferOut.getDataLen() == 0)
-    {
+    if (_bufferOut.getDataLen() == 0) {
         _bufferOut.reserve(DEFAULT_BUFFER_SIZE);
     }
-    
+
     strm.zalloc = Z_NULL;
     strm.zfree = Z_NULL;
     strm.opaque = Z_NULL;
     ret = inflateInit(&strm);
-    if (ret != Z_OK)
-    {
+    if (ret != Z_OK) {
         return false;
     }
 
     strm.avail_in = _bufferIn.getDataLen();
-    strm.next_in = (Bytef*)_bufferIn.getBuffer();
+    strm.next_in = (Bytef *)_bufferIn.getBuffer();
 
-    do 
-    {
-        uint32_t remain = _bufferOut.remaining(); 
+    do {
+        uint32_t remain = _bufferOut.remaining();
         strm.avail_out = remain;
-        strm.next_out = (Bytef*)_bufferOut.getPtr();
+        strm.next_out = (Bytef *)_bufferOut.getPtr();
 
         ret = inflate(&strm, Z_NO_FLUSH);
-        switch (ret) 
-        {
+        switch (ret) {
         case Z_STREAM_ERROR:
         case Z_NEED_DICT:
         case Z_DATA_ERROR:
@@ -131,8 +111,7 @@ bool ZlibCompressor::decompress()
         }
         have = remain - strm.avail_out;
         _bufferOut.movePtr(have);
-        if(have == remain)
-        {
+        if (have == remain) {
             _bufferOut.reserve((_bufferOut.getTotalSize() << 1) - _bufferOut.getDataLen());
         }
     } while (strm.avail_out == 0);
@@ -141,8 +120,7 @@ bool ZlibCompressor::decompress()
     return true;
 }
 
-void ZlibCompressor::reset()
-{
+void ZlibCompressor::reset() {
     _bufferIn.reset();
     _bufferOut.reset();
 }
@@ -179,5 +157,4 @@ bool ZlibCompressor::decompress(const string &input, string &output) {
     return true;
 }
 
-}
-
+} // namespace autil

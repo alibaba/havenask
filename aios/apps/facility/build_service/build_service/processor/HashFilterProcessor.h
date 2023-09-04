@@ -27,6 +27,7 @@ class HashFilterProcessor : public DocumentProcessor
 {
 public:
     static const std::string PROCESSOR_NAME;
+    static const std::string KEEP_DOC_PERCENT;
 
 public:
     HashFilterProcessor();
@@ -54,6 +55,7 @@ private:
 private:
     std::vector<std::string> _clusterNames;
     std::unordered_map<std::string, ClusterRange> _clusterRanges;
+    uint32_t _keepDocPercent;
 
 private:
     BS_LOG_DECLARE();

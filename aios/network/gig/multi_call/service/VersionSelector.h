@@ -16,21 +16,25 @@
 #ifndef ISEARCH_MULTI_CALL_VERSIONSELECTOR_H
 #define ISEARCH_MULTI_CALL_VERSIONSELECTOR_H
 
+#include <string>
+#include <vector>
+
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/service/CachedRequestGenerator.h"
 #include "aios/network/gig/multi_call/service/SearchServiceSnapshot.h"
 #include "aios/network/gig/multi_call/util/RandomGenerator.h"
-#include <string>
-#include <vector>
 
 namespace multi_call {
 
-class VersionSelector {
+class VersionSelector
+{
 public:
     VersionSelector(const std::string &bizName)
-        : _bizName(bizName),
-          _randomGenerator(autil::TimeUtility::currentTimeInMicroSeconds()) {}
-    virtual ~VersionSelector() {}
+        : _bizName(bizName)
+        , _randomGenerator(autil::TimeUtility::currentTimeInMicroSeconds()) {
+    }
+    virtual ~VersionSelector() {
+    }
 
 private:
     VersionSelector(const VersionSelector &) = delete;
@@ -40,14 +44,11 @@ public:
     virtual bool select(const std::shared_ptr<CachedRequestGenerator> &generator,
                         const SearchServiceSnapshotPtr &snapshot) = 0;
 
-    virtual const SearchServiceSnapshotInVersionPtr &
-    getBizVersionSnapshot() = 0;
+    virtual const SearchServiceSnapshotInVersionPtr &getBizVersionSnapshot() = 0;
 
-    virtual const SearchServiceSnapshotInVersionPtr &
-    getProbeBizVersionSnapshot() = 0;
+    virtual const SearchServiceSnapshotInVersionPtr &getProbeBizVersionSnapshot() = 0;
 
-    virtual const std::vector<SearchServiceSnapshotInVersionPtr> &
-    getCopyBizVersionSnapshots() = 0;
+    virtual const std::vector<SearchServiceSnapshotInVersionPtr> &getCopyBizVersionSnapshots() = 0;
 
 protected:
     bool needCopy(size_t copyProviderCount, size_t normalProviderCount);

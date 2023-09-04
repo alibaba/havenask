@@ -178,6 +178,17 @@ int64_t TabletReaderContainer::GetLatestIncVersionTimestamp() const
     return tabletData->GetOnDiskVersion().GetTimestamp();
 }
 
+int64_t TabletReaderContainer::GetLatestIncVersionTaskLogTimestamp() const
+{
+    std::lock_guard<std::mutex> guard(_mutex);
+    if (_tabletReaderVec.empty()) {
+        return INVALID_TIMESTAMP;
+    }
+    auto tabletData = std::get<0>(_tabletReaderVec.back());
+    assert(tabletData != nullptr);
+    return tabletData->GetOnDiskVersion().GetIndexTaskHistory().GetLatestTaskLogTimestamp();
+}
+
 std::vector<std::shared_ptr<TabletData>> TabletReaderContainer::GetTabletDatas() const
 {
     std::vector<std::shared_ptr<TabletData>> tabletDatas;
@@ -188,23 +199,32 @@ std::vector<std::shared_ptr<TabletData>> TabletReaderContainer::GetTabletDatas()
     return tabletDatas;
 }
 
-void TabletReaderContainer::GetNeedKeepFilesAndSegmentIds(std::set<std::string>* keepFiles,
-                                                          std::set<segmentid_t>* keepSegments)
+bool TabletReaderContainer::GetNeedKeepFiles(std::set<std::string>* keepFiles)
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    for (const auto& [tabletData, _, versionDelpoyDescription] : _tabletReaderVec) {
-        if (!versionDelpoyDescription ||
-            !versionDelpoyDescription->SupportFeature(VersionDeployDescription::FeatureType::DEPLOY_META_MANIFEST)) {
-            const auto& version = tabletData->GetOnDiskVersion();
-            for (auto segment : version) {
-                keepSegments->insert(segment.segmentId);
-            }
-            continue;
+    for (const auto& [tabletData, _, versionDeployDescription] : _tabletReaderVec) {
+        if (!versionDeployDescription ||
+            !versionDeployDescription->SupportFeature(VersionDeployDescription::FeatureType::DEPLOY_META_MANIFEST)) {
+            TABLET_LOG(INFO, "versionDpDesc is null or disable meta manifest, don't need clean, versionId[%d]",
+                       tabletData->GetOnDiskVersion().GetVersionId());
+            return false;
         }
-        for (const auto& deployMeta : versionDelpoyDescription->localDeployIndexMetas) {
+        for (const auto& deployMeta : versionDeployDescription->localDeployIndexMetas) {
             for (const auto& fileMeta : deployMeta->deployFileMetas) {
                 keepFiles->insert(fileMeta.filePath);
             }
+        }
+    }
+    return true;
+}
+
+void TabletReaderContainer::GetNeedKeepSegments(std::set<segmentid_t>* keepSegments)
+{
+    std::lock_guard<std::mutex> guard(_mutex);
+    for (const auto& [tabletData, _, versionDeployDescription] : _tabletReaderVec) {
+        const auto& version = tabletData->GetOnDiskVersion();
+        for (auto segment : version) {
+            keepSegments->insert(segment.segmentId);
         }
     }
 }

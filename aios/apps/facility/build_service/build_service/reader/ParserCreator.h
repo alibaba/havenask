@@ -54,6 +54,7 @@ private:
     bool createParserConfigForLegacyConfig(const KeyValueMap& kvMap, proto::ParserConfig& parserConfig);
 
 private:
+    bool _supportIndexParser = true;
     std::string _lastErrorStr;
     indexlib::document::DocumentFactoryWrapperPtr _wrapper;
     std::shared_ptr<HologresInterface> _hologresInterface = nullptr;

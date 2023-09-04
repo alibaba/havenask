@@ -15,12 +15,12 @@
  */
 #include "autil/metric/Network.h"
 
-#include <string.h>
-#include <stdlib.h>
 #include <fstream>
+#include <stdlib.h>
+#include <string.h>
 
-#include "autil/metric/MetricUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/metric/MetricUtil.h"
 
 #define DELTA 0.000001
 
@@ -31,20 +31,19 @@ namespace metric {
 
 const string Network::NET_PROC_STAT("/proc/net/dev");
 
-Network::Network() { 
+Network::Network() {
     _netStatFile = NET_PROC_STAT;
     _timeDiff = 0;
 }
 
-Network::~Network() { 
-}
+Network::~Network() {}
 
 void Network::update() {
     _prevStat = _curStat;
     _curStat.reset();
     _curStat.updateTime = TimeUtility::currentTime();
     ifstream fin(_netStatFile.c_str());
-    
+
     string line;
     while (std::getline(fin, line)) {
         parseNetStatLine(line.c_str(), _curStat);
@@ -75,24 +74,23 @@ void Network::adjust() {
   /proc/net/dev
 
   Inter-|   Receive                                                |  Transmit
-  face  |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
-  eth0:32962464219 121148329    0    0    0     0          0       988 6042136006 75411586    0    0    0     0       0          0
+  face  |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier
+  compressed eth0:32962464219 121148329    0    0    0     0          0       988 6042136006 75411586    0    0    0 0
+  0          0
 */
 void Network::parseNetStatLine(const char *str, NetStat &netStat) {
-    if (strstr(str, "lo") || strstr(str, "bond")
-        || strstr(str, "docker") || strstr(str, "veth")
-        || strstr(str, "vlan")) 
-    {
+    if (strstr(str, "lo") || strstr(str, "bond") || strstr(str, "docker") || strstr(str, "veth") ||
+        strstr(str, "vlan")) {
         return;
     }
-    
+
     const char *p = strstr(str, ":");
     if (p == NULL) {
         return;
     }
-    
-    p ++; // skip the ":"
-    
+
+    p++; // skip the ":"
+
     netStat.bytesin += strtod(p, NULL);
     p = MetricUtil::skipToken(p);
 
@@ -103,20 +101,15 @@ void Network::parseNetStatLine(const char *str, NetStat &netStat) {
     for (int i = 0; i < 6; i++) {
         p = MetricUtil::skipToken(p);
     }
-    
+
     netStat.bytesout += strtod(p, NULL);
     p = MetricUtil::skipToken(p);
 
     netStat.pksout += strtod(p, NULL);
 }
 
-void Network::setNetStatFile(const string &statFile) {
-    _netStatFile = statFile;
-}
-void Network::setTimeDiff(double diff) {
-    _timeDiff = diff;
-}
+void Network::setNetStatFile(const string &statFile) { _netStatFile = statFile; }
+void Network::setTimeDiff(double diff) { _timeDiff = diff; }
 
-}
-}
-
+} // namespace metric
+} // namespace autil

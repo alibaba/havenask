@@ -27,6 +27,7 @@
 #include "indexlib/framework/Fence.h"
 #include "indexlib/framework/VersionDeployDescription.h"
 #include "indexlib/framework/VersionLoader.h"
+#include "indexlib/util/PathUtil.h"
 
 namespace indexlibv2::framework {
 AUTIL_LOG_SETUP(indexlib.framework, OnDiskIndexCleaner);
@@ -54,6 +55,7 @@ static std::set<versionid_t> VersionVecToVersionSet(const std::vector<Version>& 
     }
     return versionIds;
 }
+
 Status OnDiskIndexCleaner::Clean(const std::vector<versionid_t>& reservedVersions)
 {
     autil::ScopedTime2 timer;
@@ -110,46 +112,6 @@ Status OnDiskIndexCleaner::Clean(const std::vector<versionid_t>& reservedVersion
     return Status::OK();
 }
 
-Status OnDiskIndexCleaner::CleanFiles(const std::vector<std::string>& allFileList,
-                                      const std::shared_ptr<indexlib::file_system::IDirectory>& rootDir,
-                                      const std::vector<std::string>& needCleanFileList)
-{
-    //将文件列表分为文件和目录
-    std::vector<std::string> files, dirs;
-    for (const auto& filePath : needCleanFileList) {
-        auto result = rootDir->IsDir(filePath);
-        RETURN_IF_STATUS_ERROR(result.Status(), "IsDir failed, filePath[%s]", filePath.c_str());
-        if (result.Value()) {
-            dirs.push_back(filePath);
-        } else {
-            files.push_back(filePath);
-        }
-    }
-    std::set<std::string> allFileSet(allFileList.begin(), allFileList.end());
-    //先清理文件
-    for (const auto& filePath : files) {
-        allFileSet.erase(filePath);
-        RETURN_IF_STATUS_ERROR(
-            rootDir->RemoveFile(filePath, indexlib::file_system::RemoveOption::MayNonExist()).Status(),
-            "remove file failed, filePath[%s]", filePath.c_str());
-    }
-    std::sort(dirs.begin(), dirs.end());
-    std::reverse(dirs.begin(), dirs.end());
-    //再清理空目录
-    for (const auto& dir : dirs) {
-        auto iter = allFileSet.upper_bound(dir);
-        if (iter != allFileSet.end() && autil::StringUtil::startsWith(*iter, dir)) {
-            TABLET_LOG(DEBUG, "do not remove dir [%s] because child [%s]", dir.c_str(), iter->c_str());
-        } else {
-            RETURN_IF_STATUS_ERROR(
-                rootDir->RemoveDirectory(dir, indexlib::file_system::RemoveOption::MayNonExist()).Status(),
-                "remove directory failed, filePath[%s]", dir.c_str());
-            allFileSet.erase(dir);
-        }
-    }
-    return Status::OK();
-}
-
 std::set<std::string> MergeKeepFiles(const std::set<std::string>& keepFiles, const std::set<versionid_t>& keepVersions)
 {
     std::set<std::string> ret = keepFiles;
@@ -190,6 +152,187 @@ bool IsKeepedByVersion(const std::string& path, const std::set<versionid_t>& kee
         return false;
     }
     return keepVersions.find(versionId) != keepVersions.end();
+}
+
+Status OnDiskIndexCleaner::Clean(const std::shared_ptr<indexlib::file_system::Directory>& rootDirInFs,
+                                 const indexlibv2::framework::Version& targetVersion,
+                                 const std::set<std::string>& toKeepFiles)
+{
+    if (targetVersion.GetVersionId() == INVALID_VERSIONID || targetVersion.GetSegmentCount() == 0) {
+        TABLET_LOG(INFO,
+                   "invalid version id or target version has no segment, doesn't need clean local disk, versionId[%d]",
+                   static_cast<int>(targetVersion.GetVersionId()));
+        return Status::OK();
+    }
+    try {
+        std::set<std::string> whiteList;
+        if (_tabletReaderContainer) {
+            if (!_tabletReaderContainer->GetNeedKeepFiles(&whiteList)) {
+                return Status::OK();
+            }
+        }
+        whiteList.insert(toKeepFiles.begin(), toKeepFiles.end());
+        auto physicalRootDir = indexlib::file_system::Directory::GetPhysicalDirectory(_localIndexRoot)->GetIDirectory();
+        if (!CleanUnreferencedSegments(rootDirInFs, physicalRootDir, targetVersion, whiteList) ||
+            !CleanUnreferencedLocalFiles(rootDirInFs, physicalRootDir, targetVersion, whiteList)) {
+            return Status::IOError();
+        }
+    } catch (const indexlib::util::ExceptionBase& e) {
+        TABLET_LOG(WARN, "error occurred when clean local index [%s], [%s]", _localIndexRoot.c_str(),
+                   e.GetMessage().c_str());
+        return Status::Unknown();
+    } catch (...) {
+        TABLET_LOG(WARN, "error occurred when clean local index [%s]", _localIndexRoot.c_str());
+        return Status::Unknown();
+    }
+    return Status::OK();
+}
+
+bool OnDiskIndexCleaner::CleanUnreferencedSegments(
+    const std::shared_ptr<indexlib::file_system::Directory>& rootDirInFs,
+    const std::shared_ptr<indexlib::file_system::IDirectory>& physicalRootDir,
+    const indexlibv2::framework::Version& targetVersion, const std::set<std::string>& toKeepFiles)
+{
+    // clean segments in best effort
+    // return false if any error occurs
+    size_t segCount = targetVersion.GetSegmentCount();
+    bool hasError = false;
+    auto localRootPhysicalPath = physicalRootDir->GetRootDir();
+    for (size_t i = 0; i < segCount; i++) {
+        auto segDirName = targetVersion.GetSegmentDirName(targetVersion[i]);
+        auto segPhsicalPath = rootDirInFs->GetPhysicalPath(segDirName);
+        auto fenceSegDir = indexlib::file_system::FslibWrapper::JoinPath(
+            indexlibv2::framework::Fence::GetFenceNameFromSegDir(segPhsicalPath), segDirName);
+        if (!PrefixMatchAny(fenceSegDir, toKeepFiles)) {
+            if (auto status =
+                    physicalRootDir->RemoveDirectory(fenceSegDir, indexlib::file_system::RemoveOption::MayNonExist())
+                        .Status();
+                !status.IsOK()) {
+                TABLET_LOG(WARN, "[%s] removed failed, error = [%s]", fenceSegDir.c_str(), status.ToString().c_str());
+                hasError = true;
+                continue;
+            }
+            TABLET_LOG(INFO, "[%s] removed", fenceSegDir.c_str());
+        }
+    }
+    return hasError == false;
+}
+
+bool OnDiskIndexCleaner::CleanUnreferencedLocalFiles(
+    const std::shared_ptr<indexlib::file_system::Directory>& rootDirInFs,
+    const std::shared_ptr<indexlib::file_system::IDirectory>& physicalRootDir,
+    const indexlibv2::framework::Version& targetVersion, const std::set<std::string>& toKeepFiles)
+{
+    std::set<std::string> localFiles;
+    if (!ListFilesInSegmentDirs(rootDirInFs, physicalRootDir, targetVersion, &localFiles)) {
+        TABLET_LOG(WARN, "list files in target version's segments failed, target versionId[%d]",
+                   static_cast<int>(targetVersion.GetVersionId()));
+        return false;
+    }
+    std::set<std::string> toRemoveFiles;
+    std::set_difference(localFiles.begin(), localFiles.end(), toKeepFiles.begin(), toKeepFiles.end(),
+                        inserter(toRemoveFiles, toRemoveFiles.begin()));
+
+    bool hasError = false;
+
+    TABLET_LOG(INFO, "begin clean unreference files is Root[%s]", _localIndexRoot.c_str());
+    for (const auto& file : toRemoveFiles) {
+        if (auto status =
+                physicalRootDir->RemoveFile(file, indexlib::file_system::RemoveOption::MayNonExist()).Status();
+            !status.IsOK()) {
+            TABLET_LOG(WARN, "[%s] removed failed, ec = [%s]", file.c_str(), status.ToString().c_str());
+            hasError = true;
+            continue;
+        }
+        TABLET_LOG(INFO, "[%s] removed", file.c_str());
+    }
+    TABLET_LOG(INFO, "end clean unreference files is Root[%s]", _localIndexRoot.c_str());
+    return hasError == false;
+}
+
+bool OnDiskIndexCleaner::ListFilesInSegmentDirs(
+    const std::shared_ptr<indexlib::file_system::Directory>& rootDirInFs,
+    const std::shared_ptr<indexlib::file_system::IDirectory>& physicalRootDir,
+    const indexlibv2::framework::Version& targetVersion, std::set<std::string>* files)
+{
+    size_t segCount = targetVersion.GetSegmentCount();
+    std::vector<std::string> segmentFileList;
+    auto localRootPhysicalPath = physicalRootDir->GetRootDir();
+    for (size_t i = 0; i < segCount; i++) {
+        segmentFileList.clear();
+        auto segDirName = targetVersion.GetSegmentDirName(targetVersion[i]);
+        auto segAbsPhysicalPath = rootDirInFs->GetPhysicalPath(segDirName);
+        auto segRelPhysicalPath = indexlib::file_system::FslibWrapper::JoinPath(
+            indexlibv2::framework::Fence::GetFenceNameFromSegDir(segAbsPhysicalPath), segDirName);
+        auto res = physicalRootDir->ListDir(segRelPhysicalPath, {true}, segmentFileList);
+        if (res.Code() == indexlib::file_system::ErrorCode::FSEC_NOTDIR ||
+            res.Code() == indexlib::file_system::ErrorCode::FSEC_NOENT) {
+            continue;
+        }
+        if (!res.Status().IsOK()) {
+            TABLET_LOG(ERROR, "list dir[%s] failed with ec = [%u]", segRelPhysicalPath.c_str(), res.Code());
+            return false;
+        }
+        for (const auto& path : segmentFileList) {
+            if (!path.empty() && path.back() != '/') {
+                files->insert(indexlib::file_system::FslibWrapper::JoinPath(segRelPhysicalPath, path));
+            }
+        }
+    }
+    return true;
+}
+
+bool OnDiskIndexCleaner::PrefixMatchAny(const std::string& prefix, const std::set<std::string>& candidates)
+{
+    for (const auto& item : candidates) {
+        if (item.size() < prefix.size()) {
+            continue;
+        }
+        if (item.find(prefix) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+Status OnDiskIndexCleaner::CleanFiles(const std::vector<std::string>& allFileList,
+                                      const std::shared_ptr<indexlib::file_system::IDirectory>& rootDir,
+                                      const std::vector<std::string>& needCleanFileList)
+{
+    //将文件列表分为文件和目录
+    std::vector<std::string> files, dirs;
+    for (const auto& filePath : needCleanFileList) {
+        auto result = rootDir->IsDir(filePath);
+        RETURN_IF_STATUS_ERROR(result.Status(), "IsDir failed, filePath[%s]", filePath.c_str());
+        if (result.Value()) {
+            dirs.push_back(filePath);
+        } else {
+            files.push_back(filePath);
+        }
+    }
+    std::set<std::string> allFileSet(allFileList.begin(), allFileList.end());
+    //先清理文件
+    for (const auto& filePath : files) {
+        allFileSet.erase(filePath);
+        RETURN_IF_STATUS_ERROR(
+            rootDir->RemoveFile(filePath, indexlib::file_system::RemoveOption::MayNonExist()).Status(),
+            "remove file failed, filePath[%s]", filePath.c_str());
+    }
+    std::sort(dirs.begin(), dirs.end());
+    std::reverse(dirs.begin(), dirs.end());
+    //再清理空目录
+    for (const auto& dir : dirs) {
+        auto iter = allFileSet.upper_bound(dir);
+        if (iter != allFileSet.end() && autil::StringUtil::startsWith(*iter, dir)) {
+            TABLET_LOG(DEBUG, "do not remove dir [%s] because child [%s]", dir.c_str(), iter->c_str());
+        } else {
+            RETURN_IF_STATUS_ERROR(
+                rootDir->RemoveDirectory(dir, indexlib::file_system::RemoveOption::MayNonExist()).Status(),
+                "remove directory failed, filePath[%s]", dir.c_str());
+            allFileSet.erase(dir);
+        }
+    }
+    return Status::OK();
 }
 
 std::vector<std::string> OnDiskIndexCleaner::CaculateNeedCleanFileList(const std::vector<std::string>& allFileList,
@@ -285,7 +428,7 @@ OnDiskIndexCleaner::CollectReservedFilesAndDirs(const std::shared_ptr<indexlib::
     }
 
     // 4. 从reader contain中取要保留的文件和目录
-    _tabletReaderContainer->GetNeedKeepFilesAndSegmentIds(keepFiles, keepSegments);
+    _tabletReaderContainer->GetNeedKeepSegments(keepSegments);
 
     // 5. 收集完整保留的segment目录
     for (const auto& version : releatedVersions) {

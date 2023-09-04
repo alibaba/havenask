@@ -1,0 +1,49 @@
+{
+    "fields":
+    [
+        {
+            "analyzer" : "taobao_analyzer",
+            "field_name" : "text1",
+            "field_type" : "TEXT"
+        },
+        {
+            "field_name" : "nid",
+            "field_type" : "STRING"
+        }
+    ],
+    "file_compress":
+    [
+        {
+            "compress_buffer_size" : 4096,
+            "name" : "compressor",
+            "type" : "zstd"
+        }
+    ],
+    "indexs":
+    [
+        {
+            "file_compress": "compressor",
+            "index_analyzer":"taobao_analyzer",
+            "index_fields":
+            [
+                {
+                    "boost":
+                    0,
+                    "field_name":
+                    "text1"
+                }
+            ],
+            "index_name":"pack1",
+            "index_type":"PACK"
+        },
+        {
+			"index_fields":"nid",
+			"index_name":"pk",
+			"index_type":"PRIMARYKEY64"
+        }
+    ],
+    "table_name":
+    "noname",
+    "table_type":
+    "normal"
+}

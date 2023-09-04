@@ -25,7 +25,7 @@ class Segment;
 class TabletData;
 } // namespace indexlibv2::framework
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::table {
@@ -39,34 +39,41 @@ public:
 public:
     static Status LoadPatch(const std::vector<std::shared_ptr<framework::Segment>>& segments,
                             const framework::TabletData& newTabletData,
-                            const std::shared_ptr<config::TabletSchema>& schema,
+                            const std::shared_ptr<config::ITabletSchema>& schema,
                             const std::shared_ptr<indexlib::file_system::IDirectory>& opLog2PatchRootDir,
                             NormalTabletModifier* modifier);
+    static size_t CalculatePatchLoadExpandSize(const std::shared_ptr<config::ITabletSchema>& schema,
+                                               const std::vector<std::shared_ptr<framework::Segment>>& segments);
 
 private:
+    static docid_t GetSegmentBaseDocId(const std::shared_ptr<framework::Segment>& segment,
+                                       const framework::TabletData& newTabletData);
     // TODO: @qingran 倒排，相对老架构，这里似乎没有支持并行打Patch
     static Status LoadPatchForDeletionMap(const std::vector<std::shared_ptr<framework::Segment>>& segments,
                                           const framework::TabletData& newTabletData,
-                                          const std::shared_ptr<config::TabletSchema>& schema);
-    static Status LoadPatchForAttribute(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                                        const std::shared_ptr<config::TabletSchema>& schema,
-                                        const std::shared_ptr<indexlib::file_system::IDirectory>& opLog2PatchRootDir,
-                                        NormalTabletModifier* modifier);
-    static Status LoadAttributePatchWithModifier(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                                                 const std::shared_ptr<config::TabletSchema>& schema,
-                                                 NormalTabletModifier* modifier);
-    static Status LoadAttributePatch(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                                     const std::shared_ptr<config::TabletSchema>& schema,
-                                     const std::shared_ptr<indexlib::file_system::IDirectory>& opLog2PatchRootDir);
+                                          const std::shared_ptr<config::ITabletSchema>& schema);
+    static Status
+    LoadPatchForAttribute(const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& segments,
+                          const std::shared_ptr<config::ITabletSchema>& schema,
+                          const std::shared_ptr<indexlib::file_system::IDirectory>& opLog2PatchRootDir,
+                          NormalTabletModifier* modifier);
+    static Status
+    LoadAttributePatchWithModifier(const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& segments,
+                                   const std::shared_ptr<config::ITabletSchema>& schema,
+                                   NormalTabletModifier* modifier);
+    static Status
+    LoadAttributePatch(const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& segments,
+                       const std::shared_ptr<config::ITabletSchema>& schema,
+                       const std::shared_ptr<indexlib::file_system::IDirectory>& opLog2PatchRootDir);
     static Status LoadPatchForInveredIndex(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                                           const std::shared_ptr<config::TabletSchema>& schema,
+                                           const std::shared_ptr<config::ITabletSchema>& schema,
                                            const std::shared_ptr<indexlib::file_system::IDirectory>& opLog2PatchRootDir,
                                            NormalTabletModifier* modifier);
     static Status LoadInvertedIndexPatchWithModifier(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                                                     const std::shared_ptr<config::TabletSchema>& schema,
+                                                     const std::shared_ptr<config::ITabletSchema>& schema,
                                                      NormalTabletModifier* modifier);
     static Status LoadInvertedIndexPatch(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                                         const std::shared_ptr<config::TabletSchema>& schema,
+                                         const std::shared_ptr<config::ITabletSchema>& schema,
                                          const std::shared_ptr<indexlib::file_system::IDirectory>& opLog2PatchRootDir);
 
 private:

@@ -17,6 +17,7 @@
 
 #include <cassert>
 
+#include "autil/EnvUtil.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
 #include "build_service/config/ResourceReader.h"
@@ -109,12 +110,15 @@ Module* PlugInManager::getModule()
 
 std::string PlugInManager::getPluginPath(const std::string& moduleFileName)
 {
-    char* env = getenv("LD_LIBRARY_PATH");
     string paths;
-    if (NULL == env) {
-        paths = _pluginPath + ":" + _resourceReaderPtr->getPluginPath() + ":./";
-    } else {
-        paths = _pluginPath + ":" + _resourceReaderPtr->getPluginPath() + ":./:" + string(env);
+    string pluginSearchPath = autil::EnvUtil::getEnv("BS_PLUGIN_SEARCH_PATH");
+    if (!pluginSearchPath.empty()) {
+        paths = pluginSearchPath + ":";
+    }
+    paths += _pluginPath + ":" + _resourceReaderPtr->getPluginPath() + ":./";
+    string env = autil::EnvUtil::getEnv("LD_LIBRARY_PATH");
+    if (!env.empty()) {
+        paths += ":" + string(env);
     }
 
     AUTIL_LOG(INFO, "scan path: [%s]", paths.c_str());

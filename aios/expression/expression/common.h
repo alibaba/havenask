@@ -119,6 +119,7 @@ typedef int32_t expressionid_t;
 #define INVALID_EXPRESSION_ID expressionid_t(-1)
 const std::string BUILD_IN_JOIN_DOCID_REF_PREIX = "_@_join_docid_";
 const std::string PROVIDER_VAR_NAME_PREFIX = "_@_user_data_";
+const size_t MAX_SYNTAX_DEPTH = 5000;
 
 } // end namespace expression
 

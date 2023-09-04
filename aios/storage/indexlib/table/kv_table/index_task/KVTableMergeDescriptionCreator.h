@@ -23,7 +23,7 @@ namespace indexlibv2::table {
 class KVTableMergeDescriptionCreator : public CommonMergeDescriptionCreator
 {
 public:
-    KVTableMergeDescriptionCreator(const std::shared_ptr<config::TabletSchema>& schema);
+    KVTableMergeDescriptionCreator(const std::shared_ptr<config::ITabletSchema>& schema);
     ~KVTableMergeDescriptionCreator();
 
 protected:

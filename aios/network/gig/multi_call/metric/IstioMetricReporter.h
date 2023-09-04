@@ -24,17 +24,16 @@ using namespace kmonitor;
 
 namespace multi_call {
 
-class IstioMetricReporter {
+class IstioMetricReporter
+{
 public:
     explicit IstioMetricReporter(kmonitor::KMonitor *kMonitor);
     ~IstioMetricReporter();
     IstioMetricReporter(const IstioMetricReporter &) = delete;
     IstioMetricReporter &operator=(const IstioMetricReporter &) = delete;
 
-    kmonitor::MetricsTagsPtr
-    GetMetricsTags(const std::map<std::string, std::string> &tags_map) {
-        return _kMonitor != NULL ? _kMonitor->GetMetricsTags(tags_map)
-                                 : kmonitor::MetricsTagsPtr();
+    kmonitor::MetricsTagsPtr GetMetricsTags(const std::map<std::string, std::string> &tags_map) {
+        return _kMonitor != NULL ? _kMonitor->GetMetricsTags(tags_map) : kmonitor::MetricsTagsPtr();
     }
 
 private:

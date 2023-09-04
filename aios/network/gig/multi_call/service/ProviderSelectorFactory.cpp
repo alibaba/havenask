@@ -19,8 +19,7 @@ namespace multi_call {
 
 AUTIL_LOG_SETUP(multi_call, ProviderSelectorFactory);
 
-ProviderSelectorPtr
-ProviderSelectorFactory::create(const std::string &bizName) {
+ProviderSelectorPtr ProviderSelectorFactory::create(const std::string &bizName) {
     return ProviderSelectorPtr(new ProviderSelector(bizName));
 }
 
