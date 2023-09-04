@@ -15,24 +15,24 @@
  */
 #ifndef ANET_TRANSPORT_H_
 #define ANET_TRANSPORT_H_
-#include <stdint.h>
-#include <queue>
-#include <vector>
-#include <list>
 #include <iosfwd>
+#include <list>
+#include <queue>
+#include <stdint.h>
 #include <string>
+#include <vector>
 
-#include "aios/network/anet/thread.h"
-#include "aios/network/anet/threadcond.h"
+#include "aios/network/anet/connection.h"
+#include "aios/network/anet/connectionpriority.h"
 #include "aios/network/anet/epollsocketevent.h"
+#include "aios/network/anet/iocomponent.h"
 #include "aios/network/anet/ipacketstreamer.h"
 #include "aios/network/anet/iserveradapter.h"
-#include "aios/network/anet/connection.h"
-#include "aios/network/anet/iocomponent.h"
 #include "aios/network/anet/itransport.h"
-#include "aios/network/anet/socket.h"
-#include "aios/network/anet/connectionpriority.h"
 #include "aios/network/anet/runnable.h"
+#include "aios/network/anet/socket.h"
+#include "aios/network/anet/thread.h"
+#include "aios/network/anet/threadcond.h"
 #include "aios/network/anet/threadmutex.h"
 #include "aios/network/anet/timeutil.h"
 
@@ -41,18 +41,18 @@ namespace anet {
 class IoWorker;
 
 /**
- * This class controls behavior of ANET. There are two work modes: 
+ * This class controls behavior of ANET. There are two work modes:
  * Multi-Thread and Single-Thread. In Multi-Thread: socket read/write
- * and timeout checking working in different threads. In 
+ * and timeout checking working in different threads. In
  * Single-Thread, all these jobs working in single threads.
- * When using Multi-Thread, its recommend to start by start(bool) 
+ * When using Multi-Thread, its recommend to start by start(bool)
  * and stop by stop(). When using Single-Thread, its recommend
  * to call runIteration() explicit. (More samples in anet/util/)
  */
 
 enum ListenFdThreadModeEnum {
-    SHARE_THREAD,   // default: share thread with normal fd
-    EXCLUSIVE_LISTEN_THREAD, 
+    SHARE_THREAD, // default: share thread with normal fd
+    EXCLUSIVE_LISTEN_THREAD,
 };
 
 class Transport : public Runnable, public ITransport {
@@ -70,6 +70,7 @@ class Transport : public Runnable, public ITransport {
     friend class TransportTest_testRun_Test;
     friend class TransportTest_testParseLocalAddr_Test;
     friend class TransportTest_testBindLocalAddress_Test;
+
 public:
     enum CommandType {
         TC_ADD_IOC = 1,
@@ -84,12 +85,12 @@ public:
     Transport();
 
     explicit Transport(int ioThreadNum, ListenFdThreadModeEnum mode = SHARE_THREAD);
-	
+
     ~Transport();
 
     /**
      * Run ANET in multi thread.
-     * It will start two threads, one for read/write, one for 
+     * It will start two threads, one for read/write, one for
      * timeout checking
      *
      * @param promotePriority promote the proproty of ANET thread
@@ -101,12 +102,12 @@ public:
      * Stop ANET. It will stop all threads of ANET.
      * In this function, _stopMutex will be locked.
      *
-     * @return Return true if stop success, else return false. 
+     * @return Return true if stop success, else return false.
      */
     bool stop();
 
     /**
-     * Waiting for read/write thread and timeout checking thread 
+     * Waiting for read/write thread and timeout checking thread
      * exit. It's not used in single thread mode.
      *
      * @return Return true if wait success, else return false.
@@ -121,7 +122,7 @@ public:
     void run(Thread *thread, void *arg);
 
     /**
-     * Run iteration in single thread. In this function, 
+     * Run iteration in single thread. In this function,
      * eventIteration and timeoutIteration will be called.
      *
      * @param now: execute time
@@ -137,33 +138,29 @@ public:
     /* override */ void run();
 
     /**
-     * Stop anet when using single thread. It's very simple in this 
+     * Stop anet when using single thread. It's very simple in this
      * function. Just modigy _stop to true.
      */
     void stopRun();
-    
+
     /**
-     * Implement ITranport interfaces. 
+     * Implement ITranport interfaces.
      * @ret always return 0 in ANET case.
      */
-    /* override */ void runOnce(){
-       int64_t now = TimeUtil::getTime();
-       runIteration(now);
+    /* override */ void runOnce() {
+        int64_t now = TimeUtil::getTime();
+        runIteration(now);
     }
 
     /**
      * Implement ITranport interfaces. Reset() is not valid for ANET.
      */
-    /* override */ void reset(){
-        ;
-    }
+    /* override */ void reset() { ; }
 
     /*
      * Implement ITranport interfaces.
      */
-    /* override */ void runInThread(){
-        start();
-    }
+    /* override */ void runInThread() { start(); }
 
     /**
      * listen to an address
@@ -178,12 +175,11 @@ public:
      * @return an iocomponent
      */
     IOComponent *listen(const char *spec,
-                        IPacketStreamer *streamer, 
+                        IPacketStreamer *streamer,
                         IServerAdapter *serverAdapter,
                         int postPacketTimeout = DEFAULT_POSTPACKET_TIMEOUT,
-                        int maxIdleTime = MAX_IDLE_TIME_IN_MILLSECONDS, 
-                        int backlog = LISTEN_BACKLOG
-                        );
+                        int maxIdleTime = MAX_IDLE_TIME_IN_MILLSECONDS,
+                        int backlog = LISTEN_BACKLOG);
 
     /**
      * connect to server at address spec
@@ -192,18 +188,20 @@ public:
      * @param streamer: streamer to encode/decode packets
      * @return an iocomponent
      */
-    Connection *connect(const char *spec, IPacketStreamer *streamer, 
-                        bool autoReconn = false, CONNPRIORITY prio = ANET_PRIORITY_NORMAL);
+    Connection *connect(const char *spec,
+                        IPacketStreamer *streamer,
+                        bool autoReconn = false,
+                        CONNPRIORITY prio = ANET_PRIORITY_NORMAL);
 
     /**
      * min 10ms, max 10000ms, default 100ms
      */
     void setTimeoutLoopInterval(int64_t ms);
 
-    /** 
+    /**
      * Add ioc to timeout thread's checking list.
      *
-     * @param ioc IOComponent to be checked periodically by 
+     * @param ioc IOComponent to be checked periodically by
      * timeout thread
      */
     void addToCheckingList(IOComponent *ioc);
@@ -231,37 +229,39 @@ public:
      */
     void dump(std::ostringstream &buf);
 
-    Connection *connectWithAddr(const char *localSpec, const char *remoteSpec, 
-                                IPacketStreamer *streamer, bool autoReconn = false, CONNPRIORITY prio = ANET_PRIORITY_NORMAL);
+    Connection *connectWithAddr(const char *localSpec,
+                                const char *remoteSpec,
+                                IPacketStreamer *streamer,
+                                bool autoReconn = false,
+                                CONNPRIORITY prio = ANET_PRIORITY_NORMAL);
 
     /**
      * determine which ioworker will own the @param ioc
      */
-    IoWorker* getBelongedWorker(const IOComponent *ioc);
+    IoWorker *getBelongedWorker(const IOComponent *ioc);
     virtual void getTcpConnStats(std::vector<ConnStat> &connStats);
 
     void setName(const std::string &name);
-    const std::string& getName() const {return _name;}
+    const std::string &getName() const { return _name; }
 
 protected:
-/**
- * parse [upd|tcp]:ip:port address
- *
- * @param src: address to be parsed
- * @param args: place to store pointers to parsed results
- * @param   cnt: capacity of args
- * @return  size of parsed results
- */
+    /**
+     * parse [upd|tcp]:ip:port address
+     *
+     * @param src: address to be parsed
+     * @param args: place to store pointers to parsed results
+     * @param   cnt: capacity of args
+     * @return  size of parsed results
+     */
     int parseAddr(char *src, char **args, int cnt);
 
     /**
      * Time out checking.
      */
     void timeoutLoop();
-    Connection *doConnect(const char *localIp, const char *remoteSpec, 
-                          IPacketStreamer *streamer, bool autoReconn, CONNPRIORITY prio);
-    void parseLocalAddr(const char *localAddr, char *ipStr, int ipStrBufLen,
-                        uint16_t &port);
+    Connection *doConnect(
+        const char *localIp, const char *remoteSpec, IPacketStreamer *streamer, bool autoReconn, CONNPRIORITY prio);
+    void parseLocalAddr(const char *localAddr, char *ipStr, int ipStrBufLen, uint16_t &port);
     bool bindLocalAddress(Socket *socket, const char *localAddr);
 
 private:
@@ -274,30 +274,29 @@ private:
      * if more complicated strategy needed.
      */
     inline int getChunkId(const IOComponent *ioc) const;
- 
+
 private:
     ThreadMutex _mutex;
     ThreadMutex _stopMutex;
     int _ioThreadNum;
-    IoWorker* _ioWorkers;
+    IoWorker *_ioWorkers;
     const ListenFdThreadModeEnum _listenFdThreadMode;
     int _listenThreadNum;
-    
+
     Thread _timeoutThread;
     ThreadCond _timeoutCond;
-    bool _stop;              // stopping flag
+    bool _stop; // stopping flag
     bool _started;
     bool _promotePriority;
-    int64_t _nextCheckTime; 
+    int64_t _nextCheckTime;
     int64_t _timeoutLoopInterval;
 
-    std::list<IOComponent*> _checkingList;      // timeout checking list
-    std::vector<IOComponent*> _newCheckingList; // new timeout checking list
+    std::list<IOComponent *> _checkingList;      // timeout checking list
+    std::vector<IOComponent *> _newCheckingList; // new timeout checking list
 
     std::string _name;
 };
 
-
-}
+} // namespace anet
 
 #endif /*TRANSPORT_H_*/

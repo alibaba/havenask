@@ -24,7 +24,6 @@
 #include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/FileSystemMetrics.h"
-#include "indexlib/file_system/MountDirOption.h"
 
 namespace indexlib::util {
 class MemoryReserver;
@@ -39,12 +38,15 @@ struct ListOption;
 struct RemoveOption;
 struct ReaderOption;
 struct WriterOption;
+struct MergeDirsOption;
+struct MountOption;
 class Storage;
 class FileWriter;
 class FileReader;
 class ResourceFile;
 class FileSystemMetricsReporter;
 class LifecycleTable;
+
 class IFileSystem : autil::NoMoveable
 {
 public:
@@ -66,12 +68,12 @@ public:
     // [physicalRoot]/... -> [logicalPath]/...
     virtual FSResult<void>
     MountVersion(const std::string& physicalRoot, versionid_t versionId, const std::string& logicalPath,
-                 MountDirOption mountOption,
+                 MountOption mountOption,
                  const std::shared_ptr<indexlib::file_system::LifecycleTable>& lifecycleTable) noexcept = 0;
 
     // [physicalRoot + physicalPath]/... -->  [logicalPath]/...
     virtual FSResult<void> MountDir(const std::string& physicalRoot, const std::string& physicalPath,
-                                    const std::string& logicalPath, MountDirOption mountOption,
+                                    const std::string& logicalPath, MountOption mountOption,
                                     bool enableLazyMount) noexcept = 0;
     // [physicalRoot + physicalPath] -->  [logicalPath]
     virtual FSResult<void> MountFile(const std::string& physicalRoot, const std::string& physicalPath,
@@ -80,7 +82,7 @@ public:
     virtual FSResult<void> MountSegment(const std::string& logicalPath) noexcept = 0;
 
     virtual FSResult<void> MergeDirs(const std::vector<std::string>& physicalDirs, const std::string& logicalPath,
-                                     bool mergePackageFiles, FenceContext* fenceContext) noexcept = 0;
+                                     const MergeDirsOption& mergeDirsOption) noexcept = 0;
     // copy logicalFile to physicalRoot
     virtual FSResult<void> CopyToOutputRoot(const std::string& logicalPath, bool mayNonExist) noexcept = 0;
 
@@ -99,7 +101,6 @@ public:
     virtual FSResult<void> RemoveDirectory(const std::string& rawPath, const RemoveOption& removeOption) noexcept = 0;
     virtual FSResult<void> Rename(const std::string& rawSrcPath, const std::string& rawDestPath,
                                   FenceContext* fenceContext) noexcept = 0;
-
     virtual FSResult<bool> IsExist(const std::string& path) const noexcept = 0;
     virtual FSResult<bool> IsDir(const std::string& path) const noexcept = 0;
     virtual FSResult<size_t> GetFileLength(const std::string& filePath) const noexcept = 0;

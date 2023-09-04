@@ -1,0 +1,20 @@
+[
+  {
+    "catalog_name": "default", 
+    "databases": [
+      {
+        "database_name": "phone", 
+        "functions": [
+          "catalogs/default/phone/functions/buildtin_udaf.json", 
+          "catalogs/default/phone/functions/builtin_udf.json", 
+          "catalogs/default/phone/functions/udaf.json", 
+          "catalogs/default/phone/functions/udf.json", 
+          "catalogs/default/phone/functions/udtf.json"
+        ], 
+        "tables": [
+          "catalogs/default/phone/tables/phone.json"
+        ]
+      }
+    ]
+  }
+]

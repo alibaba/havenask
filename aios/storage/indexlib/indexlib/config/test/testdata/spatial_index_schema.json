@@ -1,0 +1,28 @@
+{
+    "table_name": "auction",
+    "fields": 
+    [
+        {"field_name":"location", "field_type":"location"},
+        {"field_name":"pk", "field_type":"uint64"}
+    ],
+    "indexs": 
+    [
+     	{
+	    "index_name": "spatial_index",
+            "index_type" : "SPATIAL",
+	    "index_fields": "location",
+	    "max_search_dist" : 10000,
+	    "max_dist_err" : 20,
+	    "dist_calculator" : "haversine"
+	},
+	{
+	    "index_name": "pk",
+            "index_type": "PRIMARYKEY64",
+            "index_fields": "pk"
+        }
+    ],
+    "attributes": [],
+    "summarys":{ 
+        "summary_fields": []
+    }
+}

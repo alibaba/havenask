@@ -1,0 +1,23 @@
+package(default_visibility=['//aios/sql:__subpackages__'])
+load(
+    '@rules_cc//examples:experimental_cc_shared_library.bzl',
+    'cc_shared_library'
+)
+cc_library(
+    name='libsql_test_agg_plugin_lib',
+    srcs=glob(['*.cpp']),
+    hdrs=glob(['*.h']),
+    deps=[
+        '//aios/sql/ops/agg:sql_ops_agg_base',
+        '//aios/sql/ops/util:sql_ops_util'
+    ]
+)
+cc_shared_library(
+    name='libsql_test_agg_plugin_lib.so',
+    preloaded_deps=[
+        '//aios/sql/ops/agg:sql_ops_agg_base',
+        '//aios/sql/ops/util:sql_ops_util'
+    ],
+    roots=[':libsql_test_agg_plugin_lib'],
+    static_deps=[]
+)

@@ -67,11 +67,7 @@ void VirtualAttributeDataAppender::AppendData(const PartitionDataPtr& partitionD
         return;
     }
     uint32_t threadCount = 1;
-    char* threadCountEnv = secure_getenv("APPEND_VIRTUAL_ATTRIBUTE_THREAD_COUNT");
-    uint32_t envThreadCount = 1;
-    if (threadCountEnv != nullptr && StringUtil::strToUInt32(threadCountEnv, envThreadCount)) {
-        threadCount = envThreadCount;
-    }
+    threadCount = autil::EnvUtil::getEnv("APPEND_VIRTUAL_ATTRIBUTE_THREAD_COUNT", threadCount);
     autil::ThreadPoolPtr threadPool;
     if (threadCount > 1) {
         threadPool.reset(new autil::ThreadPool(threadCount, mVirtualAttrSchema->GetAttributeCount()));

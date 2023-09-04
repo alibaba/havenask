@@ -1,0 +1,91 @@
+{
+    "analyzers":
+    {
+	      "taobao_analyzer":
+	      {
+	          "tokenizer_configs" :
+	          {
+		            "tokenizer_type" : "aliws",
+		            "tokenizer_id" : "TAOBAO_CHN"
+	          },
+	          "stopwords" : [".", "mm", "-"],
+	          "normalize_options" :
+	          {
+		            "case_sensitive" : false,
+		            "traditional_sensitive" : true,
+		            "width_sensitive" : true
+	          }
+	      },
+	      "internet_analyzer":
+	      {
+	          "tokenizer_configs" :
+	          {
+		            "tokenizer_type" : "aliws",
+		            "tokenizer_id" : "INTERNET_CHN"
+	          },
+	          "stopwords" : [".", "mm", "-"],
+	          "normalize_options" :
+	          {
+		            "case_sensitive" : true,
+		            "traditional_sensitive" : true,
+		            "width_sensitive" : true
+	          }
+	      },
+	      "simple_analyzer":
+	      {
+	          "tokenizer_configs" :
+	          {
+		            "tokenizer_type" : "simple",
+		            "delimiter" : "\t"
+	          },
+	          "stopwords" : [".", "mm", "-"],
+	          "normalize_options" :
+	          {
+		            "case_sensitive" : true,
+		            "traditional_sensitive" : true,
+		            "width_sensitive" : true
+	          }
+	      },
+	      "singlews_analyzer":
+	      {
+	          "tokenizer_configs" :
+	          {
+		            "tokenizer_type" : "singlews"
+	          },
+	          "stopwords" : [],
+	          "normalize_options" :
+	          {
+		            "case_sensitive" : true,
+		            "traditional_sensitive" : true,
+		            "width_sensitive" : true
+	          }
+	      },
+	      "extend_retrieve_analyzer":
+	      {
+	          "tokenizer_configs" :
+	          {
+		            "tokenizer_type" : "aliws",
+		            "tokenizer_id" : "TAOBAO_CHN",
+		            "use_extend_retrieve" : "true"
+	          },
+	          "stopwords" : [".", "mm", "-"],
+	          "normalize_options" :
+	          {
+		            "case_sensitive" : false,
+		            "traditional_sensitive" : true,
+		            "width_sensitive" : true,
+		            "traditional_table_name" : "table_name"
+	          }
+	      }
+    },
+    "traditional_tables" :
+    [
+	      {
+	      "table_name" : "table_name",
+	      "transform_table" : {
+		        "0x1" : "0x2",
+		        "0x2" : "0x3"
+	      }
+	  }
+    ]
+}

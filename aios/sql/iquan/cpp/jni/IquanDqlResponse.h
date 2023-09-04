@@ -15,18 +15,19 @@
  */
 #pragma once
 
-#include "iquan/jni/DynamicParams.h"
 #include <string>
 
 #include "autil/legacy/jsonizable.h"
 #include "iquan/common/Common.h"
 #include "iquan/common/Status.h"
+#include "iquan/jni/DynamicParams.h"
 #include "iquan/jni/SqlPlan.h"
 
 namespace iquan {
 class ResponseHeader : public autil::legacy::Jsonizable {
 public:
-    ResponseHeader() : errorCode(0) {}
+    ResponseHeader()
+        : errorCode(0) {}
 
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
@@ -51,7 +52,8 @@ public:
 class IquanDqlResponse : public ResponseHeader {
 public:
     IquanDqlResponse() = default;
-    IquanDqlResponse(const SqlPlan &plan) : sqlPlan(plan) {}
+    IquanDqlResponse(const SqlPlan &plan)
+        : sqlPlan(plan) {}
     ~IquanDqlResponse() {}
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {

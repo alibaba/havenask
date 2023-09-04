@@ -116,7 +116,8 @@ ConfigDownloader::DownloadErrorCode ConfigDownloader::doDownloadConfig(const str
             ret = DEC_NORMAL_ERROR;
         } else {
             BS_LOG(INFO, "rename [%s] to [%s]", tmpPath.c_str(), localPath.c_str());
-            BS_LOG(INFO, "download config use [%ld] seconds", timeAfterDownload - timeBeforeDownload);
+            BS_LOG(INFO, "download config from [%s] use [%ld] seconds", remotePath.c_str(),
+                   timeAfterDownload - timeBeforeDownload);
             ret = DEC_NONE;
         }
     } else if (wfCode == DataClientWrapper::ERROR_DEST || wfCode == DataClientWrapper::ERROR_FILEIO) {

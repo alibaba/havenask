@@ -23,13 +23,16 @@
 
 namespace multi_call {
 
-class GigTcpGenerator : public GigRequestGenerator {
+class GigTcpGenerator : public GigRequestGenerator
+{
 public:
     GigTcpGenerator(const std::string &clusterName, const std::string &bizName,
                     const std::shared_ptr<google::protobuf::Arena> &arena =
-                    std::shared_ptr<google::protobuf::Arena>())
-        : GigRequestGenerator(clusterName, bizName, arena) {}
-    ~GigTcpGenerator() {}
+                        std::shared_ptr<google::protobuf::Arena>())
+        : GigRequestGenerator(clusterName, bizName, arena) {
+    }
+    ~GigTcpGenerator() {
+    }
 
 private:
     GigTcpGenerator(const GigTcpGenerator &);

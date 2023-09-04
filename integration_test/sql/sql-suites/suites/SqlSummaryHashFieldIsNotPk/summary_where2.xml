@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="summary_where2">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT nid, brand, price, size FROM phone_summary_ WHERE nid in (4, 5) and price > 1500 or nid = 3
+]]>
+</Element>
+        </Resource>
+        <Resource name="kvpair">
+          databaseName:phone;
+        </Resource>
+        <Resource name="column_names">"nid", "brand", "price", "size"</Resource>
+        <Resource name="column_types">uint64, multi_char, double, double</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+3, "Xiaomi", 899, 5.0
+4, "OPPO", 2999, 5.5
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#3(type=api)
+    LimitOp#2(limit=100)
+        ExchangeOp#1(distribution={type:SINGLETON})
+            TableScanOp#0(catalog_name=default,db_name=phone,limit=100,output_fields=[$nid,$brand,$price,$size],push_down_ops=[{attrs:{condition:{op:OR,params:[{op:AND,params:[{op:IN,params:[$nid,4,5],type:OTHER},{op:>,params:[$price,1500],type:OTHER}],type:OTHER},{op:=,params:[$nid,3],type:OTHER}],type:OTHER},output_fields:[$nid,$brand,$price,$size]},op_name:CalcOp}],table_name=phone,table_type=summary,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

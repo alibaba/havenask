@@ -69,36 +69,22 @@ BuildConfigBase::~BuildConfigBase() {}
 
 bool BuildConfigBase::GetEnvBuildTotalMemUse(int64_t& mem)
 {
-    char* memStr = getenv("BUILD_TOTAL_MEM");
-    if (!memStr) {
+    if (!autil::EnvUtil::getEnvWithoutDefault("BUILD_TOTAL_MEM", mem)) {
         return false;
     }
-    if (!StringUtil::fromString(string(memStr), mem)) {
-        return false;
-    }
-
     if (mem > 0) {
         return true;
     }
-
     return false;
 }
 
 double BuildConfigBase::GetDefaultBuildResourceMemoryLimitRatio()
 {
-    char* memRatioStr = getenv("DEFAULT_BUILD_RESOURCE_MEM_LIMIT_RATIO");
     double memRatio = DEFAULT_BUILD_RESOURCE_MEM_LIMIT_RATIO;
-    if (!memRatioStr) {
-        return memRatio;
-    }
-    if (!StringUtil::fromString(string(memRatioStr), memRatio)) {
-        return DEFAULT_BUILD_RESOURCE_MEM_LIMIT_RATIO;
-    }
-
+    memRatio = autil::EnvUtil::getEnv("DEFAULT_BUILD_RESOURCE_MEM_LIMIT_RATIO", memRatio);
     if (memRatio > 0) {
         return memRatio;
     }
-
     return DEFAULT_BUILD_RESOURCE_MEM_LIMIT_RATIO;
 }
 

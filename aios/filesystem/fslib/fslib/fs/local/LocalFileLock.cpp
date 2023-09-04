@@ -13,35 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <sys/file.h>
-#include <signal.h>
-#include <errno.h>
 #include "fslib/fs/local/LocalFileLock.h"
+
+#include <errno.h>
+#include <signal.h>
+#include <sys/file.h>
+
 #include "fslib/util/LongIntervalLog.h"
 
 using namespace std;
 FSLIB_BEGIN_NAMESPACE(fs);
 AUTIL_DECLARE_AND_SETUP_LOGGER(fs, LocalFileLock);
 
-LocalFileLock::LocalFileLock(const string& fileName) { 
+LocalFileLock::LocalFileLock(const string &fileName) {
     _fd = open(fileName.c_str(), O_RDWR | O_CREAT, 0666);
     if (_fd == -1) {
         AUTIL_LOG(ERROR, "create file lock fail, %s.", strerror(errno));
     }
 }
 
-LocalFileLock::~LocalFileLock() { 
+LocalFileLock::~LocalFileLock() {
     if (_fd != -1) {
         close(_fd);
     }
 }
 
-void LocalFileLock::emptyHander(int signo) {
-    return;
-}
+void LocalFileLock::emptyHander(int signo) { return; }
 
-int LocalFileLock::lock_reg(int fd, int operation, uint32_t timeout)
-{
+int LocalFileLock::lock_reg(int fd, int operation, uint32_t timeout) {
     FSLIB_LONG_INTERVAL_LOG("fd[%d]", fd);
     if (_fd == -1) {
         AUTIL_LOG(ERROR, "operation fail, file description invalid.");
@@ -68,8 +67,8 @@ int LocalFileLock::lock_reg(int fd, int operation, uint32_t timeout)
     if (timeout != 0) {
         alarm(sec);
         sigaction(SIGALRM, &oact, NULL);
-    }    
-    
+    }
+
     return ret;
 }
 
@@ -84,4 +83,3 @@ int LocalFileLock::unlock() {
 }
 
 FSLIB_END_NAMESPACE(fs);
-

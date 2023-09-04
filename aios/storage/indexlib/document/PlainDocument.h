@@ -68,7 +68,7 @@ public:
     void serialize(autil::DataBuffer& dataBuffer) const override;
     void deserialize(autil::DataBuffer& dataBuffer) override; // for test
     void deserialize(autil::DataBuffer& dataBuffer,
-                     const std::unordered_map<autil::StringView, std::unique_ptr<IIndexFieldsParser>>& parsers);
+                     const std::unordered_map<autil::StringView, std::unique_ptr<const IIndexFieldsParser>>& parsers);
 
 public:
     autil::mem_pool::Pool* GetPool() const { return _pool.get(); }

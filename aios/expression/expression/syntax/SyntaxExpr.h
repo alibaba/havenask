@@ -55,40 +55,44 @@ public:
         : _syntaxType(type)
         , _pool(pool)
     {}
-    
+
     virtual ~SyntaxExpr() {}
 public:
     virtual bool operator == (const SyntaxExpr *expr) const { return true; }
     virtual void accept(SyntaxExprVisitor *visitor) const {}
-    
+
     const std::string& getExprString() const {
         return _exprString;
     }
     SyntaxExprType getSyntaxType() const {
         return _syntaxType;
-    }    
+    }
     void setSyntaxType(SyntaxExprType syntaxType) {
         _syntaxType = syntaxType;
+    }
+    const size_t& getSyntaxDepth() const {
+        return _syntaxDepth;
     }
 public:
     virtual void serialize(autil::DataBuffer &dataBuffer) const = 0;
     virtual void deserialize(autil::DataBuffer &dataBuffer) = 0;
-    
+
 public:
     static SyntaxExpr *createSyntax(SyntaxExprType type);
     static SyntaxExpr *createSyntax(SyntaxExprType type, autil::mem_pool::Pool* pool);
 
     autil::mem_pool::Pool* getPool() const { return _pool; }
-    
+
 protected:
     void setExprString(const std::string &exprStr) { _exprString = exprStr; }
-    
+
     void setExprString(const autil::StringView &exprStr)
     { _exprString.assign(exprStr.data(), exprStr.size()); }
-    
+
 protected:
     SyntaxExprType _syntaxType;
     std::string _exprString;
+    size_t _syntaxDepth = 1;
     autil::mem_pool::Pool *_pool;
 private:
     AUTIL_LOG_DECLARE();

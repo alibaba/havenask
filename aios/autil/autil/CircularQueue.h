@@ -16,33 +16,32 @@
 #pragma once
 
 #include <assert.h>
+#include <cstddef>
 #include <stdint.h>
 #include <utility>
-#include <cstddef>
 
 namespace autil {
 
-template<typename T>
-class CircularQueue
-{
+template <typename T>
+class CircularQueue {
 public:
-    CircularQueue(size_t capacity = 4 * 1024)
-    {
+    CircularQueue(size_t capacity = 4 * 1024) {
         assert(capacity < ((1L << 31) - 1));
         _items = new T[capacity];
         _capacity = capacity;
         _size = 0;
-        _front = 0; 
+        _front = 0;
         _back = 0;
     }
-    ~CircularQueue() {delete []_items;}
+    ~CircularQueue() { delete[] _items; }
+
 private:
     CircularQueue(const CircularQueue &);
-    CircularQueue& operator = (const CircularQueue &);
-public:
+    CircularQueue &operator=(const CircularQueue &);
 
-    template<typename Value>
-    inline void push_front(Value&& t) {
+public:
+    template <typename Value>
+    inline void push_front(Value &&t) {
         assert(_size < _capacity);
         if (_size == 0) {
             _front = 0;
@@ -56,8 +55,8 @@ public:
         _items[_front] = std::forward<Value>(t);
     }
 
-    template<typename Value>
-    inline void push_back(Value&& t) {
+    template <typename Value>
+    inline void push_back(Value &&t) {
         assert(_size < _capacity);
         if (_size == 0) {
             _front = 0;
@@ -70,7 +69,7 @@ public:
         ++_size;
         _items[_back] = std::forward<Value>(t);
     }
-    
+
     inline void pop_front() {
         assert(_size);
         if (++_front == _capacity) {
@@ -78,7 +77,7 @@ public:
         }
         --_size;
     }
-    
+
     inline void pop_back() {
         assert(_size);
         if (--_back == -1) {
@@ -86,16 +85,17 @@ public:
         }
         --_size;
     }
-    
-    inline T& front() {return _items[_front];} 
-    inline T& back() {return _items[_back];}
-    
-    inline const T& front() const {return _items[_front];} 
-    inline const T& back() const {return _items[_back];} 
-    
-    inline size_t size() const {return _size;}
-    inline size_t capacity() const {return _capacity;}
-    inline bool empty() const {return _size == 0;}
+
+    inline T &front() { return _items[_front]; }
+    inline T &back() { return _items[_back]; }
+
+    inline const T &front() const { return _items[_front]; }
+    inline const T &back() const { return _items[_back]; }
+
+    inline size_t size() const { return _size; }
+    inline size_t capacity() const { return _capacity; }
+    inline bool empty() const { return _size == 0; }
+
 private:
     T *_items;
     int32_t _capacity;
@@ -104,5 +104,4 @@ private:
     int32_t _back;
 };
 
-}
-
+} // namespace autil

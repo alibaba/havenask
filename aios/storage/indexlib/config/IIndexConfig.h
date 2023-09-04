@@ -22,8 +22,6 @@
 #include "indexlib/config/FieldConfig.h"
 
 namespace indexlibv2::config {
-
-class MutableJson;
 class IndexConfigDeserializeResource;
 
 class IIndexConfig
@@ -32,16 +30,19 @@ public:
     IIndexConfig() = default;
     virtual ~IIndexConfig() = default;
 
+public:
     virtual const std::string& GetIndexType() const = 0;
     virtual const std::string& GetIndexName() const = 0;
+    virtual const std::string& GetIndexCommonPath() const = 0; // only related to index type
     virtual std::vector<std::string> GetIndexPath() const = 0; //获取index从segment开始的相对路径
     virtual std::vector<std::shared_ptr<FieldConfig>> GetFieldConfigs() const = 0;
-    virtual void Check() const = 0;
     virtual void Deserialize(const autil::legacy::Any& any, size_t idxInJsonArray,
                              const IndexConfigDeserializeResource& resource) = 0;
     virtual void Serialize(autil::legacy::Jsonizable::JsonWrapper& json) const = 0;
+    virtual void Check() const = 0;
     // check compatible when alter table
     virtual Status CheckCompatible(const IIndexConfig* other) const = 0;
+    virtual bool IsDisabled() const = 0;
 };
 
 } // namespace indexlibv2::config

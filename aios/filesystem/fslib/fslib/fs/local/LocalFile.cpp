@@ -13,29 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <unistd.h>
-#include <errno.h>
 #include "fslib/fs/local/LocalFile.h"
-#include "fslib/fs/local/LocalFileSystem.h"
-#include "fslib/util/LongIntervalLog.h"
-#include <aio.h>
-#include <fcntl.h>
 
+#include <aio.h>
+#include <condition_variable>
+#include <errno.h>
+#include <fcntl.h>
 #include <iostream>
 #include <mutex>
-#include <condition_variable>
+#include <unistd.h>
+
+#include "fslib/fs/local/LocalFileSystem.h"
+#include "fslib/util/LongIntervalLog.h"
 
 using namespace std;
 FSLIB_BEGIN_NAMESPACE(fs);
 AUTIL_DECLARE_AND_SETUP_LOGGER(fs, LocalFile);
 
-LocalFile::LocalFile(const string& fileName, FILE* file, ErrorCode ec)
-    : File(fileName, ec)
-    ,_file(file)
-{
-}
+LocalFile::LocalFile(const string &fileName, FILE *file, ErrorCode ec) : File(fileName, ec), _file(file) {}
 
-LocalFile::~LocalFile() { 
+LocalFile::~LocalFile() {
     if (_file) {
         FSLIB_LONG_INTERVAL_LOG("fileName[%s]", _fileName.c_str());
         fclose(_file);
@@ -43,13 +40,12 @@ LocalFile::~LocalFile() {
     }
 }
 
-ssize_t LocalFile::read(void* buffer, size_t length) {
+ssize_t LocalFile::read(void *buffer, size_t length) {
     if (_file) {
         FSLIB_LONG_INTERVAL_LOG("fileName[%s], length[%ld]", _fileName.c_str(), length);
         ssize_t more = (ssize_t)length;
         if (more < 0) {
-            AUTIL_LOG(ERROR, "read file %s fail, length overflow ssize_t",
-                      _fileName.c_str());
+            AUTIL_LOG(ERROR, "read file %s fail, length overflow ssize_t", _fileName.c_str());
             _lastErrorCode = EC_BADARGS;
             return -1;
         }
@@ -57,10 +53,10 @@ ssize_t LocalFile::read(void* buffer, size_t length) {
         ssize_t ret = 0;
         off_t off = 0;
         while (more > 0) {
-            ret = fread((char*)buffer + off, 1, more, _file);
+            ret = fread((char *)buffer + off, 1, more, _file);
             if (ferror(_file) != 0) {
-                AUTIL_LOG(ERROR, "read file %s fail at off %ld, with error %s!", 
-                        _fileName.c_str(), off, strerror(errno));
+                AUTIL_LOG(
+                    ERROR, "read file %s fail at off %ld, with error %s!", _fileName.c_str(), off, strerror(errno));
                 _lastErrorCode = LocalFileSystem::convertErrno(errno);
                 return -1;
             }
@@ -73,19 +69,17 @@ ssize_t LocalFile::read(void* buffer, size_t length) {
         return off;
     }
 
-    AUTIL_LOG(ERROR, "read file %s fail, can not read file which is opened fail!",
-              _fileName.c_str());
+    AUTIL_LOG(ERROR, "read file %s fail, can not read file which is opened fail!", _fileName.c_str());
     _lastErrorCode = EC_BADF;
     return -1;
 }
 
-ssize_t LocalFile::write(const void* buffer, size_t length) {
+ssize_t LocalFile::write(const void *buffer, size_t length) {
     if (_file) {
         FSLIB_LONG_INTERVAL_LOG("fileName[%s], length[%ld]", _fileName.c_str(), length);
         ssize_t more = (ssize_t)length;
         if (more < 0) {
-            AUTIL_LOG(ERROR, "write file %s fail, length overflow ssize_t",
-                      _fileName.c_str());
+            AUTIL_LOG(ERROR, "write file %s fail, length overflow ssize_t", _fileName.c_str());
             _lastErrorCode = EC_BADARGS;
             return -1;
         }
@@ -93,10 +87,9 @@ ssize_t LocalFile::write(const void* buffer, size_t length) {
         ssize_t ret = 0;
         off_t off = 0;
         while (more > 0) {
-            ret = fwrite((char*)buffer + off, 1, more, _file);
+            ret = fwrite((char *)buffer + off, 1, more, _file);
             if (ferror(_file) != 0) {
-                AUTIL_LOG(ERROR, "write file %s fail, with error %s!", 
-                        _fileName.c_str(), strerror(errno));
+                AUTIL_LOG(ERROR, "write file %s fail, with error %s!", _fileName.c_str(), strerror(errno));
                 _lastErrorCode = LocalFileSystem::convertErrno(errno);
                 return -1;
             }
@@ -105,18 +98,16 @@ ssize_t LocalFile::write(const void* buffer, size_t length) {
         }
         return off;
     }
-    
-    AUTIL_LOG(ERROR, "write file %s fail, can not write file which is opened fail!",
-              _fileName.c_str());
+
+    AUTIL_LOG(ERROR, "write file %s fail, can not write file which is opened fail!", _fileName.c_str());
     _lastErrorCode = EC_BADF;
     return -1;
 }
 
-ssize_t LocalFile::pread(void* buffer, size_t length, off_t offset) {
+ssize_t LocalFile::pread(void *buffer, size_t length, off_t offset) {
     if (NULL == _file) {
         FSLIB_LONG_INTERVAL_LOG("fileName[%s], length[%ld]", _fileName.c_str(), length);
-        AUTIL_LOG(ERROR, "pread file %s fail, can not read file which is opened fail!",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "pread file %s fail, can not read file which is opened fail!", _fileName.c_str());
         _lastErrorCode = EC_BADF;
         return -1;
     }
@@ -124,8 +115,7 @@ ssize_t LocalFile::pread(void* buffer, size_t length, off_t offset) {
     int fd = fileno(_file);
     ssize_t more = (ssize_t)length;
     if (more < 0) {
-        AUTIL_LOG(ERROR, "pread file %s fail, length overflow ssize_t",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "pread file %s fail, length overflow ssize_t", _fileName.c_str());
         _lastErrorCode = EC_BADARGS;
         return -1;
     }
@@ -133,10 +123,9 @@ ssize_t LocalFile::pread(void* buffer, size_t length, off_t offset) {
     off_t off = 0;
     ssize_t ret = 0;
     while (more > 0) {
-        ret = ::pread(fd, (char*)buffer + off, more, offset + off);
+        ret = ::pread(fd, (char *)buffer + off, more, offset + off);
         if (ret == -1) {
-            AUTIL_LOG(ERROR, "pread file %s  fail, with error %s!", 
-                      _fileName.c_str(), strerror(errno));
+            AUTIL_LOG(ERROR, "pread file %s  fail, with error %s!", _fileName.c_str(), strerror(errno));
             _lastErrorCode = LocalFileSystem::convertErrno(errno);
             return ret;
         }
@@ -149,24 +138,18 @@ ssize_t LocalFile::pread(void* buffer, size_t length, off_t offset) {
     return off;
 }
 
-namespace
-{
+namespace {
 
 #if (__cplusplus >= 201703L)
-struct AioSigval
-{
+struct AioSigval {
     aiocb aioCb;
-    IOController* controller;
+    IOController *controller;
     std::function<void()> callback;
 
-    AioSigval(IOController *IOController)
-        : controller(IOController)
-    {
-        bzero((char*)&aioCb, sizeof(aioCb));
-    }
+    AioSigval(IOController *IOController) : controller(IOController) { bzero((char *)&aioCb, sizeof(aioCb)); }
 };
 #endif
-}
+} // namespace
 
 // void LocalFile::pread(IOController* controller, void* buffer, size_t length, off_t offset,
 //                       std::function<void()> callback)
@@ -206,11 +189,10 @@ struct AioSigval
 //     }
 // }
 
-ssize_t LocalFile::preadv(const iovec* iov, int iovcnt, off_t offset) {
+ssize_t LocalFile::preadv(const iovec *iov, int iovcnt, off_t offset) {
     if (NULL == _file) {
         FSLIB_LONG_INTERVAL_LOG("fileName[%s], iovcnt[%d]", _fileName.c_str(), iovcnt);
-        AUTIL_LOG(ERROR, "preadv file %s fail, can not read file which is opened fail!",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "preadv file %s fail, can not read file which is opened fail!", _fileName.c_str());
         _lastErrorCode = EC_BADF;
         return -1;
     }
@@ -218,8 +200,7 @@ ssize_t LocalFile::preadv(const iovec* iov, int iovcnt, off_t offset) {
     int fd = fileno(_file);
     ssize_t ret = ::preadv(fd, iov, iovcnt, offset);
     if (ret == -1) {
-        AUTIL_LOG(ERROR, "preadv file %s  fail, with error %s!",
-                  _fileName.c_str(), strerror(errno));
+        AUTIL_LOG(ERROR, "preadv file %s  fail, with error %s!", _fileName.c_str(), strerror(errno));
         _lastErrorCode = LocalFileSystem::convertErrno(errno);
         return ret;
     }
@@ -239,32 +220,28 @@ ssize_t LocalFile::preadv(const iovec* iov, int iovcnt, off_t offset) {
     // return controller.getErrorCode() == EC_OK ? controller.getIoSize() : -1;
 }
 
-ssize_t LocalFile::pwrite(const void* buffer, size_t length, off_t offset) {
+ssize_t LocalFile::pwrite(const void *buffer, size_t length, off_t offset) {
     if (NULL == _file) {
         FSLIB_LONG_INTERVAL_LOG("fileName[%s], length[%ld]", _fileName.c_str(), length);
-        AUTIL_LOG(ERROR, "pwrite file %s fail, can not write file which is opened fail!", 
-                  _fileName.c_str());
-        _lastErrorCode = EC_BADF;    
+        AUTIL_LOG(ERROR, "pwrite file %s fail, can not write file which is opened fail!", _fileName.c_str());
+        _lastErrorCode = EC_BADF;
         return -1;
     }
 
     int fd = fileno(_file);
     ssize_t more = (ssize_t)length;
     if (more < 0) {
-        AUTIL_LOG(ERROR, "pwrite file %s fail, length overflow ssize_t",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "pwrite file %s fail, length overflow ssize_t", _fileName.c_str());
         _lastErrorCode = EC_BADARGS;
         return -1;
     }
 
     off_t off = 0;
     ssize_t ret = 0;
-    while(more > 0) {
-        ret = ::pwrite(fd, (char*)buffer + off, more, offset + off);
+    while (more > 0) {
+        ret = ::pwrite(fd, (char *)buffer + off, more, offset + off);
         if (ret == -1) {
-            AUTIL_LOG(ERROR, "pwrite file %s fail, with error %s!", 
-                      _fileName.c_str(),
-                      strerror(errno));
+            AUTIL_LOG(ERROR, "pwrite file %s fail, with error %s!", _fileName.c_str(), strerror(errno));
             _lastErrorCode = LocalFileSystem::convertErrno(errno);
             return ret;
         }
@@ -283,18 +260,16 @@ ErrorCode LocalFile::flush() {
         if (0 == ret) {
             int fd = fileno(_file);
             ret |= fsync(fd);
-        }        
+        }
         if (0 != ret) {
-            AUTIL_LOG(ERROR, "flush file %s fail, with error %s!", _fileName.c_str(),
-                      strerror(errno));
+            AUTIL_LOG(ERROR, "flush file %s fail, with error %s!", _fileName.c_str(), strerror(errno));
             _lastErrorCode = LocalFileSystem::convertErrno(errno);
             return _lastErrorCode;
         }
         return EC_OK;
     }
 
-    AUTIL_LOG(ERROR, "flush file %s fail, can not flush file which is opened fail!",
-              _fileName.c_str());
+    AUTIL_LOG(ERROR, "flush file %s fail, can not flush file which is opened fail!", _fileName.c_str());
     _lastErrorCode = EC_BADF;
     return EC_BADF;
 }
@@ -304,16 +279,14 @@ ErrorCode LocalFile::sync() {
         FSLIB_LONG_INTERVAL_LOG("fileName[%s]", _fileName.c_str());
         int fd = fileno(_file);
         if (fsync(fd) != 0) {
-            AUTIL_LOG(ERROR, "sync file %s fail, with error %s!",
-                      _fileName.c_str(), strerror(errno));
+            AUTIL_LOG(ERROR, "sync file %s fail, with error %s!", _fileName.c_str(), strerror(errno));
             _lastErrorCode = LocalFileSystem::convertErrno(errno);
             return _lastErrorCode;
         }
         return EC_OK;
     }
 
-    AUTIL_LOG(ERROR, "sync file %s fail, can not sync file which is opened fail!",
-              _fileName.c_str());
+    AUTIL_LOG(ERROR, "sync file %s fail, can not sync file which is opened fail!", _fileName.c_str());
     _lastErrorCode = EC_BADF;
     return EC_BADF;
 }
@@ -322,8 +295,7 @@ ErrorCode LocalFile::close() {
     if (_file) {
         FSLIB_LONG_INTERVAL_LOG("fileName[%s]", _fileName.c_str());
         if (fclose(_file) != 0) {
-            AUTIL_LOG(ERROR, "close file %s fail, with error %s!", _fileName.c_str(),
-                      strerror(errno));
+            AUTIL_LOG(ERROR, "close file %s fail, with error %s!", _fileName.c_str(), strerror(errno));
             _lastErrorCode = LocalFileSystem::convertErrno(errno);
             _file = NULL;
             return _lastErrorCode;
@@ -332,8 +304,7 @@ ErrorCode LocalFile::close() {
         return EC_OK;
     }
 
-    AUTIL_LOG(ERROR, "close file %s fail, can not close file which is opened fail!",
-              _fileName.c_str());
+    AUTIL_LOG(ERROR, "close file %s fail, can not close file which is opened fail!", _fileName.c_str());
     _lastErrorCode = EC_BADF;
     return EC_BADF;
 }
@@ -342,7 +313,7 @@ ErrorCode LocalFile::seek(int64_t offset, SeekFlag flag) {
     if (_file) {
         FSLIB_LONG_INTERVAL_LOG("fileName[%s]", _fileName.c_str());
         int ret = 0;
-        switch(flag) {
+        switch (flag) {
         case FILE_SEEK_SET:
             ret = fseek(_file, offset, SEEK_SET);
             break;
@@ -353,24 +324,21 @@ ErrorCode LocalFile::seek(int64_t offset, SeekFlag flag) {
             ret = fseek(_file, offset, SEEK_END);
             break;
         default:
-            AUTIL_LOG(ERROR, "seek file %s fail, SeekFlag %d is not supported.", 
-                      _fileName.c_str(), flag);
+            AUTIL_LOG(ERROR, "seek file %s fail, SeekFlag %d is not supported.", _fileName.c_str(), flag);
             _lastErrorCode = EC_NOTSUP;
             return _lastErrorCode;
         };
-        
+
         if (ret != 0) {
-            AUTIL_LOG(ERROR, "seek file %s fail, with error %s!", _fileName.c_str(),
-                      strerror(errno));
+            AUTIL_LOG(ERROR, "seek file %s fail, with error %s!", _fileName.c_str(), strerror(errno));
             _lastErrorCode = LocalFileSystem::convertErrno(errno);
             return _lastErrorCode;
         }
-        
+
         return EC_OK;
     }
 
-    AUTIL_LOG(ERROR, "seek file %s fail, can not seek file which is opened fail!",
-              _fileName.c_str());
+    AUTIL_LOG(ERROR, "seek file %s fail, can not seek file which is opened fail!", _fileName.c_str());
     _lastErrorCode = EC_BADF;
     return EC_BADF;
 }
@@ -380,22 +348,18 @@ int64_t LocalFile::tell() {
         FSLIB_LONG_INTERVAL_LOG("fileName[%s]", _fileName.c_str());
         int64_t ret = ftell(_file);
         if (ret < 0) {
-            AUTIL_LOG(ERROR, "tell file %s fail, with error %s!", _fileName.c_str(),
-                      strerror(errno));
+            AUTIL_LOG(ERROR, "tell file %s fail, with error %s!", _fileName.c_str(), strerror(errno));
             _lastErrorCode = LocalFileSystem::convertErrno(errno);
         }
         return ret;
     }
 
-    AUTIL_LOG(ERROR, "tell file %s fail, can not tell file which is opened fail!",
-              _fileName.c_str());
+    AUTIL_LOG(ERROR, "tell file %s fail, can not tell file which is opened fail!", _fileName.c_str());
     _lastErrorCode = EC_BADF;
     return -1;
 }
 
-bool LocalFile::isOpened() const {
-    return (_file != NULL);
-}
+bool LocalFile::isOpened() const { return (_file != NULL); }
 
 bool LocalFile::isEof() {
     if (_file) {
@@ -403,11 +367,9 @@ bool LocalFile::isEof() {
         return feof(_file) != 0;
     }
 
-    AUTIL_LOG(ERROR, "isEof fail, can not tell whether the file %s reaches end!",
-              _fileName.c_str());
+    AUTIL_LOG(ERROR, "isEof fail, can not tell whether the file %s reaches end!", _fileName.c_str());
     _lastErrorCode = EC_BADF;
     return true;
 }
 
 FSLIB_END_NAMESPACE(fs);
-

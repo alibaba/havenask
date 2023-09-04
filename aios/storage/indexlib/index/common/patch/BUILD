@@ -1,11 +1,11 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(
     default_visibility=[
         '//aios/storage/indexlib/index:__subpackages__',
         '//aios/storage/indexlib/table:__subpackages__'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PatchFileFinder',
     deps=[
         ':PatchFileInfos', '//aios/storage/indexlib/config:IIndexConfig',
@@ -14,7 +14,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/config:PackageIndexConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PatchFileInfo',
     deps=[
         '//aios/storage/indexlib/base:Types',
@@ -22,7 +22,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PatchFileInfos',
     deps=[
         ':PatchFileInfo', '//aios/storage/indexlib/base:Types',
@@ -30,7 +30,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PatchFileMerger',
     deps=[
         '//aios/autil:NoCopyable', '//aios/autil:log',
@@ -46,10 +46,10 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/patch:PatchMerger'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PatchMerger', deps=[':PatchFileInfos', '//aios/autil:NoCopyable']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PatchWriter',
     srcs=[],
     deps=[
@@ -57,7 +57,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:DictKeyInfo'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SrcDestPatchFileFinder',
     deps=[
         ':PatchFileFinder', '//aios/storage/indexlib/config:IIndexConfig',

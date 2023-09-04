@@ -44,8 +44,9 @@ const std::string NormalTableReclaimPlanCreator::TASK_TYPE = RECLAIM_TASK_TYPE;
 const std::string NormalTableReclaimPlanCreator::DEFAULT_TASK_NAME = "__default_reclaim__";
 const std::string NormalTableReclaimPlanCreator::DEFAULT_TASK_PERIOD = "period=18000"; // 5h
 
-NormalTableReclaimPlanCreator::NormalTableReclaimPlanCreator(const std::string& taskName)
-    : SimpleIndexTaskPlanCreator(taskName)
+NormalTableReclaimPlanCreator::NormalTableReclaimPlanCreator(const std::string& taskName,
+                                                             const std::map<std::string, std::string>& params)
+    : SimpleIndexTaskPlanCreator(taskName, params)
 {
 }
 
@@ -115,7 +116,7 @@ NormalTableReclaimPlanCreator::CreateOperationDescriptions(const framework::Inde
         }
     }
 
-    auto [status, enableTTL] = taskContext->GetTabletSchema()->GetSetting<bool>("enable_ttl");
+    auto [status, enableTTL] = taskContext->GetTabletSchema()->GetRuntimeSettings().GetValue<bool>("enable_ttl");
     if (status.IsOK() && enableTTL) {
         needReclaim = true;
     }
@@ -266,7 +267,7 @@ std::string NormalTableReclaimPlanCreator::ConstructLogTaskId(const framework::I
 Status NormalTableReclaimPlanCreator::AppendDefaultConfigIfNecessary(const framework::IndexTaskContext* context,
                                                                      std::vector<config::IndexTaskConfig>* configs)
 {
-    auto [status, enableTTL] = context->GetTabletSchema()->GetSetting<bool>("enable_ttl");
+    auto [status, enableTTL] = context->GetTabletSchema()->GetRuntimeSettings().GetValue<bool>("enable_ttl");
     if (!status.IsOK() && !status.IsNotFound()) {
         return status;
     }

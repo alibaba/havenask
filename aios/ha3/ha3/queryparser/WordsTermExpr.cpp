@@ -15,20 +15,18 @@
  */
 #include "ha3/queryparser/WordsTermExpr.h"
 
-#include "ha3/queryparser/QueryExprEvaluator.h"
 #include "autil/Log.h"
+#include "ha3/queryparser/QueryExprEvaluator.h"
 
 namespace isearch {
 namespace queryparser {
 AUTIL_LOG_SETUP(ha3, WordsTermExpr);
 
-WordsTermExpr::WordsTermExpr(const std::string &text) { 
+WordsTermExpr::WordsTermExpr(const std::string &text) {
     setText(text);
 }
 
-WordsTermExpr::~WordsTermExpr() { 
-}
-
+WordsTermExpr::~WordsTermExpr() {}
 
 void WordsTermExpr::evaluate(QueryExprEvaluator *qee) {
     qee->evaluateWordsExpr(this);
@@ -36,4 +34,3 @@ void WordsTermExpr::evaluate(QueryExprEvaluator *qee) {
 
 } // namespace queryparser
 } // namespace isearch
-

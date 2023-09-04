@@ -67,6 +67,10 @@ public:
     std::shared_ptr<FileWriter> GetDataFileWriter() const noexcept;
     const std::string& GetCompressorName() const noexcept { return _compressorName; }
 
+public:
+    static size_t EstimateCompressBufferSize(const std::string& compressorName, size_t bufferSize,
+                                             const KeyValueMap& compressorParam) noexcept;
+
 private:
     std::shared_ptr<CompressDataDumper> _dumper;
     std::string _compressorName;

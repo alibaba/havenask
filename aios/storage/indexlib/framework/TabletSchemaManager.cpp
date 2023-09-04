@@ -39,7 +39,7 @@ TabletSchemaManager::TabletSchemaManager(const std::shared_ptr<ITabletFactory>& 
 
 TabletSchemaManager::~TabletSchemaManager() {}
 
-std::shared_ptr<config::TabletSchema> TabletSchemaManager::GetSchema(schemaid_t schemaId) const
+std::shared_ptr<config::ITabletSchema> TabletSchemaManager::GetSchema(schemaid_t schemaId) const
 {
     std::lock_guard<std::mutex> guard(_schemaCacheMutex);
     auto iter = _tabletSchemaCache.find(schemaId);
@@ -49,14 +49,14 @@ std::shared_ptr<config::TabletSchema> TabletSchemaManager::GetSchema(schemaid_t 
     return nullptr;
 }
 
-void TabletSchemaManager::InsertSchemaToCache(const std::shared_ptr<config::TabletSchema>& schema)
+void TabletSchemaManager::InsertSchemaToCache(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     std::lock_guard<std::mutex> guard(_schemaCacheMutex);
     _tabletSchemaCache[schema->GetSchemaId()] = schema;
 }
 
 Status TabletSchemaManager::GetSchemaList(schemaid_t baseSchema, schemaid_t targetSchema, const Version& version,
-                                          std::vector<std::shared_ptr<config::TabletSchema>>& schemaList)
+                                          std::vector<std::shared_ptr<config::ITabletSchema>>& schemaList)
 {
     const auto& schemaIdList = version.GetSchemaVersionRoadMap();
     for (auto schemaId : schemaIdList) {
@@ -75,7 +75,7 @@ Status TabletSchemaManager::GetSchemaList(schemaid_t baseSchema, schemaid_t targ
     return Status::OK();
 }
 
-Status TabletSchemaManager::StoreSchema(const config::TabletSchema& schema)
+Status TabletSchemaManager::StoreSchema(const config::ITabletSchema& schema)
 {
     auto rootDirectory = indexlib::file_system::IDirectory::GetPhysicalDirectory(_globalRoot);
     std::string schemaFileName = schema.GetSchemaFileName();
@@ -132,7 +132,7 @@ Status TabletSchemaManager::LoadSchema(schemaid_t schemaId)
     return status;
 }
 
-std::map<schemaid_t, std::shared_ptr<config::TabletSchema>> TabletSchemaManager::GetTabletSchemaCache() const
+std::map<schemaid_t, std::shared_ptr<config::ITabletSchema>> TabletSchemaManager::GetTabletSchemaCache() const
 {
     std::lock_guard<std::mutex> guard(_schemaCacheMutex);
     return _tabletSchemaCache;

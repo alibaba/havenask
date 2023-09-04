@@ -26,7 +26,9 @@ namespace {
 
 AUTIL_LOG_SETUP(indexlib.index, OperationBlock);
 
-OperationBlock::OperationBlock(size_t maxBlockSize) : _minTimestamp(INVALID_TIMESTAMP), _maxTimestamp(INVALID_TIMESTAMP)
+OperationBlock::OperationBlock(size_t maxBlockSize)
+    : _minOffset(indexlibv2::base::Progress::INVALID_OFFSET)
+    , _maxOffset(indexlibv2::base::Progress::INVALID_OFFSET)
 {
     _allocator.reset(new util::MMapAllocator);
     const static int64_t OPERATION_POOL_CHUNK_SIZE = DEFAULT_CHUNK_SIZE * 1024 * 1024; // 10M
@@ -38,15 +40,16 @@ OperationBlock::OperationBlock(size_t maxBlockSize) : _minTimestamp(INVALID_TIME
 }
 OperationBlock::OperationBlock(const OperationBlock& other)
     : _operations(other._operations)
-    , _minTimestamp(other._minTimestamp)
-    , _maxTimestamp(other._maxTimestamp)
+    , _minOffset(other._minOffset)
+    , _maxOffset(other._maxOffset)
     , _pool(other._pool)
     , _allocator(other._allocator)
 {
 }
 OperationBlock::~OperationBlock() { Reset(); }
 
-Status OperationBlock::Dump(const file_system::FileWriterPtr& fileWriter, size_t maxOpSerializeSize)
+Status OperationBlock::Dump(const file_system::FileWriterPtr& fileWriter, size_t maxOpSerializeSize,
+                            bool hasConcurrentIdx)
 {
     assert(fileWriter);
     std::vector<char> buffer;
@@ -54,7 +57,7 @@ Status OperationBlock::Dump(const file_system::FileWriterPtr& fileWriter, size_t
     for (size_t i = 0; i < Size(); ++i) {
         assert(_operations);
         OperationBase* op = (*_operations)[i];
-        size_t dumpSize = DumpSingleOperation(op, (char*)buffer.data(), buffer.size());
+        size_t dumpSize = DumpSingleOperation(op, (char*)buffer.data(), buffer.size(), hasConcurrentIdx);
         auto [status, writeSize] = fileWriter->Write(buffer.data(), dumpSize).StatusWith();
         RETURN_IF_STATUS_ERROR(status, "write dump buffer failed");
     }
@@ -86,7 +89,8 @@ void OperationBlock::AddOperation(OperationBase* operation)
 {
     assert(operation);
     assert(_operations);
-    UpdateTimestamp(operation->GetTimestamp());
+    auto docInfo = operation->GetDocInfo();
+    UpdateOffset({docInfo.timestamp, docInfo.concurrentIdx});
     _operations->PushBack(operation);
 }
 
@@ -114,23 +118,23 @@ const OperationBlock::OperationVec& OperationBlock::GetOperations() const
     return emptyOpVec;
 }
 
-void OperationBlock::UpdateTimestamp(int64_t ts)
+void OperationBlock::UpdateOffset(const indexlibv2::base::Progress::Offset& offset)
 {
     assert(_operations);
-    assert(_minTimestamp <= _maxTimestamp);
+    assert(_minOffset <= _maxOffset);
     if (unlikely(_operations->Empty())) {
-        _maxTimestamp = ts;
-        _minTimestamp = ts;
+        _maxOffset = offset;
+        _minOffset = offset;
         return;
     }
 
-    if (ts > _maxTimestamp) {
-        _maxTimestamp = ts;
+    if (offset > _maxOffset) {
+        _maxOffset = offset;
         return;
     }
 
-    if (ts < _minTimestamp) {
-        _minTimestamp = ts;
+    if (offset < _minOffset) {
+        _minOffset = offset;
     }
 }
 
@@ -141,22 +145,27 @@ OperationBlock::CreateOperationBlockForRead(const OperationFactory& mOpFactory)
 }
 
 autil::mem_pool::Pool* OperationBlock::GetPool() const { return _pool.get(); }
-int64_t OperationBlock::GetMinTimestamp() const { return _minTimestamp; }
-int64_t OperationBlock::GetMaxTimestamp() const { return _maxTimestamp; }
+const indexlibv2::base::Progress::Offset& OperationBlock::GetMinOffset() const { return _minOffset; }
+const indexlibv2::base::Progress::Offset& OperationBlock::GetMaxOffset() const { return _maxOffset; }
 
-size_t OperationBlock::DumpSingleOperation(OperationBase* op, char* buffer, size_t bufLen)
+size_t OperationBlock::DumpSingleOperation(OperationBase* op, char* buffer, size_t bufLen, bool hasConcurrentIdx)
 {
     char* begin = buffer;
     char* cur = begin;
     uint8_t opType = (uint8_t)op->GetSerializedType();
     *(uint8_t*)cur = opType;
     cur += sizeof(uint8_t);
-    int64_t timestamp = op->GetTimestamp();
+    // TODO(tianxiao) serialize
+    int64_t timestamp = op->GetDocInfo().timestamp;
     *(int64_t*)cur = timestamp;
     cur += sizeof(timestamp);
-    uint16_t hashId = op->GetHashId();
+    uint16_t hashId = op->GetDocInfo().hashId;
     *(uint16_t*)cur = hashId;
     cur += sizeof(hashId);
+    if (hasConcurrentIdx) {
+        *(uint32_t*)cur = op->GetDocInfo().concurrentIdx;
+        cur += sizeof(op->GetDocInfo().concurrentIdx);
+    }
     size_t dataLen = op->Serialize(cur, bufLen - (cur - begin));
     return (cur - begin) + dataLen;
 }

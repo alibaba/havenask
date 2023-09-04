@@ -16,6 +16,8 @@
 #ifndef ISEARCH_MULTI_CALL_WORKERNODEINFO_H
 #define ISEARCH_MULTI_CALL_WORKERNODEINFO_H
 
+#include <unordered_map>
+
 #include "aios/apps/facility/cm2/cm_basic/basic_struct/proto/cm_common.pb.h"
 #include "aios/network/gig/multi_call/common/HbInfo.h"
 #include "aios/network/gig/multi_call/common/MetaEnv.h"
@@ -24,7 +26,6 @@
 #include "autil/StringConvertor.h"
 #include "autil/StringUtil.h"
 #include "autil/legacy/jsonizable.h"
-#include <unordered_map>
 
 namespace multi_call {
 
@@ -65,8 +66,9 @@ public:
     bool validate() const;
     WeightTy getNodeWeight() const;
     void fillNodeMeta(const cm_basic::NodeMetaInfo &metaInfo);
+
 public:
-    friend std::ostream& operator<<(std::ostream& os, const TopoNode& node);
+    friend std::ostream &operator<<(std::ostream &os, const TopoNode &node);
 
 public:
     std::string nodeId;
@@ -88,7 +90,7 @@ public:
     std::shared_ptr<ClientTopoInfo> clientInfo;
 };
 
-typedef std::unordered_map<std::string, std::set<TopoNode> > BizInfoMap;
+typedef std::unordered_map<std::string, std::set<TopoNode>> BizInfoMap;
 typedef std::vector<TopoNode> TopoNodeVec;
 MULTI_CALL_TYPEDEF_PTR(TopoNodeVec);
 

@@ -15,7 +15,7 @@
  */
 #include "indexlib/document/kv/KVDocumentFactory.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/document/ExtendDocument.h"
 #include "indexlib/document/IRawDocumentParser.h"
 #include "indexlib/document/RawDocument.h"
@@ -30,7 +30,7 @@ KVDocumentFactory::KVDocumentFactory() {}
 KVDocumentFactory::~KVDocumentFactory() {}
 
 std::unique_ptr<IDocumentParser>
-KVDocumentFactory::CreateDocumentParser(const std::shared_ptr<config::TabletSchema>& schema,
+KVDocumentFactory::CreateDocumentParser(const std::shared_ptr<config::ITabletSchema>& schema,
                                         const std::shared_ptr<DocumentInitParam>& initParam)
 {
     auto kvParser = std::make_unique<KVDocumentParser>();

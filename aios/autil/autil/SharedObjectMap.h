@@ -27,8 +27,7 @@ namespace autil {
 extern const std::string VIRTUAL_ATTRIBUTES;
 extern const std::string FILTER_SYNTAX_EXPR;
 
-class SharedObjectBase
-{
+class SharedObjectBase {
 public:
     virtual ~SharedObjectBase() = default;
 };
@@ -39,18 +38,19 @@ enum DeleteLevel {
     PoolDelete
 };
 
-class SharedObjectMap
-{
+class SharedObjectMap {
 public:
     SharedObjectMap();
     ~SharedObjectMap();
+
 private:
     SharedObjectMap(const SharedObjectMap &);
-    SharedObjectMap& operator=(const SharedObjectMap &);
+    SharedObjectMap &operator=(const SharedObjectMap &);
+
 public:
     bool setWithoutDelete(const std::string &name, void *object);
     bool setWithDelete(const std::string &name, SharedObjectBase *object, DeleteLevel level);
-    template<typename T>
+    template <typename T>
     bool get(const std::string &name, T *&object) const {
         ScopedReadLock lock(_lock);
         auto it = _objectMap.find(name);
@@ -63,8 +63,9 @@ public:
     void remove(const std::string &name);
     void reset();
     size_t size() const;
+
 private:
-    std::unordered_map<std::string, std::pair<void *, DeleteLevel> > _objectMap;
+    std::unordered_map<std::string, std::pair<void *, DeleteLevel>> _objectMap;
     mutable ReadWriteLock _lock;
 };
-}
+} // namespace autil

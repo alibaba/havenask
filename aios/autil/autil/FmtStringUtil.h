@@ -30,7 +30,7 @@ struct FormatterWithDefaultParse {
     }
 };
 
-}
+} // namespace autil
 
 template <typename T>
 struct fmt::formatter<std::vector<T>> : autil::FormatterWithDefaultParse {

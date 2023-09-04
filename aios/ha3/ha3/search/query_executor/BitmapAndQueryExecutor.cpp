@@ -15,21 +15,20 @@
  */
 #include "ha3/search/BitmapAndQueryExecutor.h"
 
-#include <assert.h>
 #include <algorithm>
+#include <assert.h>
 #include <cstddef>
 #include <limits>
 
 #include "autil/CommonMacros.h"
+#include "autil/Log.h"
 #include "autil/mem_pool/Pool.h"
 #include "autil/mem_pool/PoolBase.h"
-
 #include "ha3/isearch.h"
 #include "ha3/search/AndQueryExecutor.h"
 #include "ha3/search/BitmapTermQueryExecutor.h"
 #include "ha3/search/ExecutorVisitor.h"
 #include "ha3/search/MultiQueryExecutor.h"
-#include "autil/Log.h"
 
 using namespace std;
 
@@ -43,21 +42,20 @@ BitmapAndQueryExecutor::BitmapAndQueryExecutor(autil::mem_pool::Pool *pool) {
     _firstExecutor = NULL;
 }
 
-BitmapAndQueryExecutor::~BitmapAndQueryExecutor() { 
-}
+BitmapAndQueryExecutor::~BitmapAndQueryExecutor() {}
 
 void BitmapAndQueryExecutor::accept(ExecutorVisitor *visitor) const {
     visitor->visitBitmapAndExecutor(this);
 }
 
-void BitmapAndQueryExecutor::addQueryExecutors(const vector<QueryExecutor*> &queryExecutors) {
+void BitmapAndQueryExecutor::addQueryExecutors(const vector<QueryExecutor *> &queryExecutors) {
     assert(queryExecutors.size() >= 2);
-    vector<QueryExecutor*> seekQueryExecutors;
+    vector<QueryExecutor *> seekQueryExecutors;
     for (size_t i = 0; i < queryExecutors.size(); ++i) {
         QueryExecutor *queryExecutor = queryExecutors[i];
         if (queryExecutor->getName() == "BitmapTermQueryExecutor") {
-            BitmapTermQueryExecutor *bitmapTermExecutor =
-                dynamic_cast<BitmapTermQueryExecutor*>(queryExecutor);
+            BitmapTermQueryExecutor *bitmapTermExecutor
+                = dynamic_cast<BitmapTermQueryExecutor *>(queryExecutor);
             assert(bitmapTermExecutor);
             _bitmapTermExecutors.push_back(bitmapTermExecutor);
         } else {
@@ -72,8 +70,7 @@ void BitmapAndQueryExecutor::addQueryExecutors(const vector<QueryExecutor*> &que
     if (seekQueryExecutors.size() == 1) {
         _seekQueryExecutor = seekQueryExecutors[0];
     } else {
-        AndQueryExecutor *andQueryExecutor = POOL_NEW_CLASS(_pool,
-                AndQueryExecutor);
+        AndQueryExecutor *andQueryExecutor = POOL_NEW_CLASS(_pool, AndQueryExecutor);
         andQueryExecutor->addQueryExecutors(seekQueryExecutors);
         _seekQueryExecutor = andQueryExecutor;
     }
@@ -84,10 +81,11 @@ void BitmapAndQueryExecutor::addQueryExecutors(const vector<QueryExecutor*> &que
     _firstExecutor = &_bitmapTermExecutors[0];
     // add all query executor to multi query executor for deconstruct,unpack,getMetaInfo.
     _queryExecutors.push_back(_seekQueryExecutor);
-    _queryExecutors.insert(_queryExecutors.end(), _bitmapTermExecutors.begin(), _bitmapTermExecutors.end());
+    _queryExecutors.insert(
+        _queryExecutors.end(), _bitmapTermExecutors.begin(), _bitmapTermExecutors.end());
 }
 
-indexlib::index::ErrorCode BitmapAndQueryExecutor::doSeek(docid_t docId, docid_t& result) {
+indexlib::index::ErrorCode BitmapAndQueryExecutor::doSeek(docid_t docId, docid_t &result) {
     BitmapTermQueryExecutor **firstExecutor = _firstExecutor;
     BitmapTermQueryExecutor **endExecutor = firstExecutor + _bitmapTermExecutors.size();
     while (true) {
@@ -114,9 +112,7 @@ indexlib::index::ErrorCode BitmapAndQueryExecutor::doSeek(docid_t docId, docid_t
 }
 
 indexlib::index::ErrorCode BitmapAndQueryExecutor::seekSubDoc(
-        docid_t docId, docid_t subDocId,
-        docid_t subDocEnd, bool needSubMatchdata, docid_t& result)
-{
+    docid_t docId, docid_t subDocId, docid_t subDocEnd, bool needSubMatchdata, docid_t &result) {
     QueryExecutor **firstExecutor = &_queryExecutors[0];
     QueryExecutor **currentExecutor = firstExecutor;
     QueryExecutor **endExecutor = firstExecutor + _queryExecutors.size();
@@ -142,7 +138,7 @@ bool BitmapAndQueryExecutor::isMainDocHit(docid_t docId) const {
         return false;
     }
     for (size_t i = 0; i < _bitmapTermExecutors.size(); i++) {
-        if(!_bitmapTermExecutors[i]->isMainDocHit(docId)){
+        if (!_bitmapTermExecutors[i]->isMainDocHit(docId)) {
             return false;
         }
     }
@@ -158,10 +154,9 @@ df_t BitmapAndQueryExecutor::getDF(GetDFType type) const {
 }
 
 std::string BitmapAndQueryExecutor::toString() const {
-    return "BITMAPAND(" + _seekQueryExecutor->toString()
-        + ",TEST" + MultiQueryExecutor::convertToString(_bitmapTermExecutors) + ")";
+    return "BITMAPAND(" + _seekQueryExecutor->toString() + ",TEST"
+           + MultiQueryExecutor::convertToString(_bitmapTermExecutors) + ")";
 }
 
 } // namespace search
 } // namespace isearch
-

@@ -47,17 +47,17 @@ AUTIL_LOG_SETUP(indexlib.table, KVTableMergePlanCreator);
 
 const std::string KVTableMergePlanCreator::TASK_TYPE = MERGE_TASK_TYPE;
 
-KVTableMergePlanCreator::KVTableMergePlanCreator(const std::string& taskName) : SimpleIndexTaskPlanCreator(taskName) {}
+KVTableMergePlanCreator::KVTableMergePlanCreator(const std::string& taskName,
+                                                 const std::map<std::string, std::string>& params)
+    : SimpleIndexTaskPlanCreator(taskName, params)
+{
+}
 
 KVTableMergePlanCreator::~KVTableMergePlanCreator() {}
 
 std::pair<Status, std::unique_ptr<framework::IndexTaskPlan>>
 KVTableMergePlanCreator::CreateTaskPlan(const framework::IndexTaskContext* taskContext)
 {
-    auto backupOptions = taskContext->GetTabletOptions();
-    auto status = RewriteMergeConfig(taskContext);
-    RETURN2_IF_STATUS_ERROR(status, nullptr, "rewrite merge config fail.");
-
     bool optimize = false;
     if (!taskContext->GetParameter(IS_OPTIMIZE_MERGE, optimize)) {
         optimize = false;
@@ -75,11 +75,10 @@ KVTableMergePlanCreator::CreateTaskPlan(const framework::IndexTaskContext* taskC
     auto mergePlan = mergePlanPair.second;
     if (mergePlan->Size() == 0) {
         // no merge plan create, restore tablet options
-        const_cast<framework::IndexTaskContext*>(taskContext)->SetTabletOptions(backupOptions);
         return std::make_pair(Status::OK(), nullptr);
     }
 
-    status = CommitTaskLogToVersion(taskContext, mergePlan->GetTargetVersion());
+    auto status = CommitTaskLogToVersion(taskContext, mergePlan->GetTargetVersion());
     if (!status.IsOK()) {
         return std::pair(status, nullptr);
     }
@@ -119,7 +118,7 @@ Status KVTableMergePlanCreator::CommitMergePlans(const std::shared_ptr<MergePlan
     auto resourceManager = taskContext->GetResourceManager();
     std::shared_ptr<MergePlan> mergePlanResource;
     auto status = resourceManager->LoadResource(/*name*/ MERGE_PLAN, /*type*/ MERGE_PLAN, mergePlanResource);
-    if (status.IsNoEntry()) {
+    if (status.IsNotFound()) {
         status = resourceManager->CreateResource(/*name*/ MERGE_PLAN, /*type*/ MERGE_PLAN, mergePlanResource);
     }
     RETURN_IF_STATUS_ERROR(status, "load or create resource failed");
@@ -135,7 +134,7 @@ Status KVTableMergePlanCreator::CommitMergePlans(const std::shared_ptr<MergePlan
 std::unique_ptr<MergeStrategy>
 KVTableMergePlanCreator::CreateMergeStrategy(const framework::IndexTaskContext* taskContext)
 {
-    auto mergeConfig = taskContext->GetTabletOptions()->GetOfflineConfig().GetMergeConfig();
+    auto mergeConfig = taskContext->GetMergeConfig();
     bool optimize = false;
     if (!taskContext->GetParameter(IS_OPTIMIZE_MERGE, optimize)) {
         optimize = false;
@@ -165,26 +164,6 @@ std::string KVTableMergePlanCreator::ConstructLogTaskId(const framework::IndexTa
     taskId += "_to_";
     taskId += autil::StringUtil::toString(targetVersion.GetVersionId());
     return taskId;
-}
-
-Status KVTableMergePlanCreator::RewriteMergeConfig(const framework::IndexTaskContext* taskContext)
-{
-    auto taskConfig = taskContext->GetTabletOptions()->GetIndexTaskConfig(TASK_TYPE, _taskName);
-    if (taskConfig == std::nullopt) {
-        AUTIL_LOG(INFO, "target IndexTaskConfig for taskName [%s] not exist, use default merge config.",
-                  _taskName.c_str());
-        return Status::OK();
-    }
-
-    auto [status, taskMergeConfig] = taskConfig.value().GetSetting<config::MergeConfig>("merge_config");
-    RETURN_IF_STATUS_ERROR(status, "get merge config from indexTaskConfig fail.");
-    AUTIL_LOG(INFO, "rewrite merge config in taskContext from IndexTaskConfig [taskType:%s,taskName:%s]",
-              TASK_TYPE.c_str(), _taskName.c_str());
-    std::shared_ptr<config::TabletOptions> newOption =
-        std::make_shared<config::TabletOptions>(*taskContext->GetTabletOptions());
-    newOption->MutableMergeConfig() = taskMergeConfig;
-    const_cast<framework::IndexTaskContext*>(taskContext)->SetTabletOptions(newOption);
-    return Status::OK();
 }
 
 } // namespace indexlibv2::table

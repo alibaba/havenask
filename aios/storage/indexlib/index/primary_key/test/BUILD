@@ -1,0 +1,45 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+strict_cc_library(
+    name='primary_key_reader_test_helper',
+    testonly=True,
+    srcs=['PrimaryKeyReaderTesthelper.cpp'],
+    hdrs=['PrimaryKeyReaderTesthelper.h'],
+    deps=[
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:Tablet',
+        '//aios/storage/indexlib/index:interface',
+        '//aios/storage/indexlib/table/normal_table/test:NormalTabletSchemaMaker',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='PrimaryKeyWriterTest',
+    srcs=['PrimaryKeyWriterTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':primary_key_reader_test_helper',
+        '//aios/storage/indexlib/framework/mock:FakeDiskSegment',
+        '//aios/storage/indexlib/index:IndexFactoryCreator',
+        '//aios/storage/indexlib/index/primary_key:PrimaryKeyIndexFactory',
+        '//aios/storage/indexlib/index/primary_key:primary_key_indexer',
+        '//aios/storage/indexlib/index/primary_key:primary_key_reader',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='PrimaryKeyIndexFactoryTest',
+    srcs=['PrimaryKeyIndexFactoryTest.cpp'],
+    deps=[
+        ':primary_key_reader_test_helper',
+        '//aios/storage/indexlib/index:IndexFactoryCreator',
+        '//aios/storage/indexlib/index/primary_key:PrimaryKeyIndexFactory',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='PrimaryKeyIndexFileTest',
+    srcs=['PrimaryKeyIndexFileTest.cpp'],
+    deps=['//aios/storage/indexlib/file_system', '//aios/unittest_framework']
+)

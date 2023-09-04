@@ -40,4 +40,5 @@ const std::string IQUAN_DYNAMIC_PARAMS_SIMD_PADDING(128, '\0');
 // hint params
 const std::string IQUAN_HINT_PARAMS_PREFIX = "[hint_params[";
 const std::string IQUAN_HINT_PARAMS_SUFFIX = "]hint_params]";
-const size_t IQUAN_HINT_PARAMS_MIN_SIZE = IQUAN_HINT_PARAMS_PREFIX.size() + IQUAN_HINT_PARAMS_SUFFIX.size();
+const size_t IQUAN_HINT_PARAMS_MIN_SIZE
+    = IQUAN_HINT_PARAMS_PREFIX.size() + IQUAN_HINT_PARAMS_SUFFIX.size();

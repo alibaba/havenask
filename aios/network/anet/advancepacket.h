@@ -16,22 +16,22 @@
 #ifndef ADVANCED_PACKET_H
 #define ADVANCED_PACKET_H
 
-#include <stdint.h>
-#include <stddef.h>
 #include <arpa/inet.h>
-#include <netinet/in.h>
-#include <stdio.h>
 #include <iostream>
+#include <netinet/in.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
 
-#include "aios/network/anet/packet.h"
-#include "aios/network/anet/debug.h"
-#include "aios/network/anet/crc.h"
-#include "aios/network/anet/log.h"
-#include "aios/network/anet/globalflags.h"
-#include "aios/network/anet/databuffer.h"
 #include "aios/network/anet/common.h"
 #include "aios/network/anet/connectionpriority.h"
+#include "aios/network/anet/crc.h"
+#include "aios/network/anet/databuffer.h"
+#include "aios/network/anet/debug.h"
+#include "aios/network/anet/globalflags.h"
 #include "aios/network/anet/ilogger.h"
+#include "aios/network/anet/log.h"
+#include "aios/network/anet/packet.h"
 
 BEGIN_ANET_NS();
 
@@ -78,27 +78,19 @@ BEGIN_ANET_NS();
  * 1 means the addon header is required. 0 means the addon header is optional,
  * which can be ignored. */
 const uint8_t ADDON_ATTR_MASK = 0x80;
-typedef enum
-{
-  ADDON_ATTR_OPTIONAL = 0x00,
-  ADDON_ATTR_REQUIRED = 0x80
+typedef enum {
+    ADDON_ATTR_OPTIONAL = 0x00,
+    ADDON_ATTR_REQUIRED = 0x80
 } ADDON_HEADER_ATTR;
 
-typedef enum
-{
+typedef enum {
     HEADER_NO_ADDON = 0
     /* Add new addon header type below */
 } HEADER_ADDON_TYPE;
 
-inline bool HasAddon(uint8_t addonType)
-{
-    return (addonType == HEADER_NO_ADDON);
-}
+inline bool HasAddon(uint8_t addonType) { return (addonType == HEADER_NO_ADDON); }
 
-inline bool IsAddonRequired(uint8_t addonType)
-{
-    return ((addonType & ADDON_ATTR_MASK) == ADDON_ATTR_REQUIRED);
-}
+inline bool IsAddonRequired(uint8_t addonType) { return ((addonType & ADDON_ATTR_MASK) == ADDON_ATTR_REQUIRED); }
 
 /******************************************************************************/
 /*                      packet flags definitions                              */
@@ -126,15 +118,13 @@ inline bool IsAddonRequired(uint8_t addonType)
  * 10 - compression method 2
  * 11 - compressoin method 3
  */
-typedef enum
-{
+typedef enum {
     PACKET_FLAGS_EOR_MASK = 0x01,
     PACKET_FLAGS_COMPRESSION_MASK = 0x06,
     PACKET_FLAGS_CHECKSUM_MASK = 0x18
 } PACKET_FLAGS;
 
-typedef enum
-{
+typedef enum {
     PACKET_FLAGS_NOCOMPRESSION = 0x00,
     PACKET_FLAGS_COMPRESSION_1 = 0x02,
     PACKET_FLAGS_COMPRESSION_2 = 0x04,
@@ -142,33 +132,23 @@ typedef enum
 } PACKET_FLAGS_COMPRESSION;
 
 /* We can have up to 3 checksum algorithms. */
-typedef enum
-{
+typedef enum {
     PACKET_FLAGS_NOCHECKSUM = 0x00,
     PACKET_FLAGS_CHECKSUM_CRC32C = 0x08,
     PACKET_FLAGS_CHECKSUM_2 = 0x10,
     PACKET_FLAGS_CHECKSUM_3 = 0x18
 } PACKET_FLAGS_CHECKSUM;
 
-inline bool IsEndOfReply(uint8_t flags)
-{
-    return(flags & PACKET_FLAGS_EOR_MASK);
+inline bool IsEndOfReply(uint8_t flags) { return (flags & PACKET_FLAGS_EOR_MASK); }
+
+inline bool IsCompressedPacket(uint8_t flags) {
+    return ((flags & PACKET_FLAGS_COMPRESSION_MASK) != PACKET_FLAGS_NOCOMPRESSION);
 }
 
-inline bool IsCompressedPacket(uint8_t flags)
-{
-    return ((flags & PACKET_FLAGS_COMPRESSION_MASK)
-             != PACKET_FLAGS_NOCOMPRESSION);
-}
+inline int GetChecksumMethod(uint8_t flags) { return (flags & PACKET_FLAGS_CHECKSUM_MASK); }
 
-inline int GetChecksumMethod(uint8_t flags)
-{
-    return (flags & PACKET_FLAGS_CHECKSUM_MASK);
-}
-
-inline uint8_t SetChecksumMethod(PACKET_FLAGS_CHECKSUM checksumMethod, uint8_t flags)
-{
-    return ((flags & ~PACKET_FLAGS_CHECKSUM_MASK ) | (uint8_t)checksumMethod);
+inline uint8_t SetChecksumMethod(PACKET_FLAGS_CHECKSUM checksumMethod, uint8_t flags) {
+    return ((flags & ~PACKET_FLAGS_CHECKSUM_MASK) | (uint8_t)checksumMethod);
 }
 /******************************************************************************/
 /*                      Advance Packet Header                                 */
@@ -176,11 +156,10 @@ inline uint8_t SetChecksumMethod(PACKET_FLAGS_CHECKSUM checksumMethod, uint8_t f
 /* AddonHeaderBase
  * All addon headers should inherit from the AddonHeaderBase class and implement
  * encode, decode virtual functions. */
-class AddonHeaderBase
-{
+class AddonHeaderBase {
 public:
-    AddonHeaderBase() { }
-    virtual ~AddonHeaderBase() { }
+    AddonHeaderBase() {}
+    virtual ~AddonHeaderBase() {}
 
     virtual bool encode(DataBuffer *output) = 0;
     virtual bool decode(DataBuffer *input, PacketHeader *header) = 0;
@@ -189,31 +168,28 @@ public:
     uint8_t GetNextHeaderType() { return nextHeaderType; }
 
 protected:
-    uint8_t  nextHeaderType;
+    uint8_t nextHeaderType;
     uint16_t thisHeaderLen;
 };
 
 /* AdvancePacketHeader defination. */
-class  AdvancePacketHeader
-{
+class AdvancePacketHeader {
 public:
     uint32_t ttlInMs;
     uint32_t packetChecksum;
     uint32_t chidHigh;
 
     /* Anonymous union to make the value accessible in encode. */
-    union
-    {
+    union {
         int8_t flagsData;
-        struct
-        {
-            uint8_t  priority : 3;
-            uint8_t  packetFlags : 5;
+        struct {
+            uint8_t priority    : 3;
+            uint8_t packetFlags : 5;
         };
     };
-    uint8_t  packetVersion;
-    uint8_t  nextHeaderType;
-    uint8_t  reserved;
+    uint8_t packetVersion;
+    uint8_t nextHeaderType;
+    uint8_t reserved;
 
     /* Addon header, currently 0 */
     /* AddonHeaderBase addonHeaders[0]; */
@@ -223,9 +199,8 @@ public:
 /*                      Advance Packet Definations                            */
 /******************************************************************************/
 template <class T>
-class AdvancePacket : public T
-{
-friend class AdvancePacketTest_testEncodeDecode_Test;
+class AdvancePacket : public T {
+    friend class AdvancePacketTest_testEncodeDecode_Test;
 
 public:
     static const int CHID_HIGH_OFFSET = 32;
@@ -239,16 +214,12 @@ public:
      * make sure that the highest bit is reserved, that is the highest error code
      * is 32768.
      */
-     #define ADVANCE_PACKET_MASK 0x8000L
-
+#define ADVANCE_PACKET_MASK 0x8000L
 
     /* Class level public functions. */
     /* Tool function to judge if the packet is an advance packet or not by the
      * pcode field of this packet. */
-    static bool IsAdvancePacket(int pcode)
-    {
-        return (pcode & ADVANCE_PACKET_MASK);
-    }
+    static bool IsAdvancePacket(int pcode) { return (pcode & ADVANCE_PACKET_MASK); }
 
     /* Constructor and destructor */
     AdvancePacket();
@@ -261,8 +232,7 @@ public:
 
     /* Get channel id by combing the chid field in Packet and chidHigh field
      * in AdvancePacket. */
-    virtual uint64_t getChannelId( void )
-    {
+    virtual uint64_t getChannelId(void) {
         /* magic number MAX_CHANNELID_OFFSET means that the chid field in Packet only reserves
          * MAX_CHANNELID_OFFSET bit for chid. */
         uint64_t chid = Packet::getChannelId();
@@ -270,8 +240,7 @@ public:
         return chid;
     }
 
-    virtual void setChannelId(uint64_t chid)
-    {
+    virtual void setChannelId(uint64_t chid) {
         /* We would spit the 64 bit number into two parts, low MAX_CHANNELID_OFFSET bit will
          * stored in the chid field in Packet header, high 32 bit in chidHigh
          * field in AdvancePacket. The highest 4 bit is reserved for HTTP channel ID and
@@ -283,37 +252,24 @@ public:
         Packet::setChannelId(chid - (chidHigh << CHID_HIGH_OFFSET));
     }
 
-    virtual void setDataLen(int32_t len){
-        Packet::setDataLen(len);
-    }
+    virtual void setDataLen(int32_t len) { Packet::setDataLen(len); }
 
-    virtual int32_t getDataLen()
-    {
-        return Packet::getDataLen();
-    }
+    virtual int32_t getDataLen() { return Packet::getDataLen(); }
 
     /* Packet priority setting .*/
-    virtual CONNPRIORITY getPriority(void) { return((CONNPRIORITY)mAdvHeader.priority); }
-    virtual void setPriority(CONNPRIORITY prio)
-    {
-        DBGASSERT( prio > ANET_PRIORITY_DEFAULT && prio <= ANET_PRIORITY_HIGH);
+    virtual CONNPRIORITY getPriority(void) { return ((CONNPRIORITY)mAdvHeader.priority); }
+    virtual void setPriority(CONNPRIORITY prio) {
+        DBGASSERT(prio > ANET_PRIORITY_DEFAULT && prio <= ANET_PRIORITY_HIGH);
         mAdvHeader.priority = prio;
     }
 
     /* Cleanup the advance packet flags from pcode field in packet header,
      * before the packet is passed to the higher logic. */
-    virtual void cleanupFlags(void)
-    {
-        Packet::setPcode( Packet::getPcode() & (~ADVANCE_PACKET_MASK));
-    }
+    virtual void cleanupFlags(void) { Packet::setPcode(Packet::getPcode() & (~ADVANCE_PACKET_MASK)); }
 
-    virtual uint8_t getPacketVersion() {
-        return mAdvHeader.packetVersion;
-    }
+    virtual uint8_t getPacketVersion() { return mAdvHeader.packetVersion; }
 
-    virtual void setPacketVersion(uint8_t version) {
-        mAdvHeader.packetVersion = version;
-    }
+    virtual void setPacketVersion(uint8_t version) { mAdvHeader.packetVersion = version; }
     /*************************************************************************/
 
     /* Packet TTL operations. */
@@ -322,59 +278,40 @@ public:
 
     /* Packet channel id, high 32 bit. */
     uint32_t getChidHigh(void) { return mAdvHeader.chidHigh; }
-    void setChidHigh(uint32_t chidHigh)
-    {
-        mAdvHeader.chidHigh = chidHigh;
-    }
+    void setChidHigh(uint32_t chidHigh) { mAdvHeader.chidHigh = chidHigh; }
 
     /* Mark the packet as advance packet by updating the pcode field. */
-    void markAdvancePacket()
-    {
-        Packet::setPcode( Packet::getPcode() | ADVANCE_PACKET_MASK );
-    }
-    bool isAdvancePacket()
-    {
-        return( AdvancePacket<T>::IsAdvancePacket(AdvancePacket<T>::getPcode()));
-    }
+    void markAdvancePacket() { Packet::setPcode(Packet::getPcode() | ADVANCE_PACKET_MASK); }
+    bool isAdvancePacket() { return (AdvancePacket<T>::IsAdvancePacket(AdvancePacket<T>::getPcode())); }
 
     /* Packet flag */
-    uint8_t getPacketFlags(void) { return  mAdvHeader.packetFlags; }
-    void setPacketFlags(uint8_t flags)
-    {
-        mAdvHeader.packetFlags = flags;
-    }
+    uint8_t getPacketFlags(void) { return mAdvHeader.packetFlags; }
+    void setPacketFlags(uint8_t flags) { mAdvHeader.packetFlags = flags; }
 
     /* Checksum functions. */
     uint32_t getChecksum(void) { return mAdvHeader.packetChecksum; }
     void setChecksum(uint32_t crc) { mAdvHeader.packetChecksum = crc; }
-    bool isChecksumEnabled(void)
-    {
-        return GetChecksumMethod( mAdvHeader.packetFlags )
-               !=  PACKET_FLAGS_NOCHECKSUM;
+    bool isChecksumEnabled(void) { return GetChecksumMethod(mAdvHeader.packetFlags) != PACKET_FLAGS_NOCHECKSUM; }
+
+    PACKET_FLAGS_CHECKSUM getChecksumMethod() {
+        return static_cast<PACKET_FLAGS_CHECKSUM>(GetChecksumMethod(mAdvHeader.packetFlags));
     }
 
-    PACKET_FLAGS_CHECKSUM getChecksumMethod()
-    {
-	return static_cast<PACKET_FLAGS_CHECKSUM>(GetChecksumMethod( mAdvHeader.packetFlags ));
-    }
-
-    void setChecksumMethod(PACKET_FLAGS_CHECKSUM c)
-    {
+    void setChecksumMethod(PACKET_FLAGS_CHECKSUM c) {
         mAdvHeader.packetFlags = SetChecksumMethod(c, mAdvHeader.packetFlags);
     }
 
     /* Debugging assistant functions. */
-    virtual void dump()
-    {
+    virtual void dump() {
         Packet::dump();
         printf("====== Dumping AdvancePacket Header =======\n");
         printf("uint32_t ttlInMs        %u\n", mAdvHeader.ttlInMs);
         printf("uint32_t packetChecksum %u\n", mAdvHeader.packetChecksum);
-        printf( "uint32_t chidHigh       %u\n", mAdvHeader.chidHigh);
-        printf( "uint8_t  priority       %d\n", mAdvHeader.priority);
-        printf( "uint8_t  packetFlags    0x%x\n", mAdvHeader.packetFlags);
-        printf( "uint8_t  packetVersion  %d\n", mAdvHeader.packetVersion);
-        printf( "uint8_t  nextHeaderType %d\n", mAdvHeader.nextHeaderType);
+        printf("uint32_t chidHigh       %u\n", mAdvHeader.chidHigh);
+        printf("uint8_t  priority       %d\n", mAdvHeader.priority);
+        printf("uint8_t  packetFlags    0x%x\n", mAdvHeader.packetFlags);
+        printf("uint8_t  packetVersion  %d\n", mAdvHeader.packetVersion);
+        printf("uint8_t  nextHeaderType %d\n", mAdvHeader.nextHeaderType);
     }
 
 private:
@@ -383,9 +320,8 @@ private:
 
 /*****************************************************************************/
 /*****************************************************************************/
-template<class T>
-AdvancePacket<T>::AdvancePacket()
-{
+template <class T>
+AdvancePacket<T>::AdvancePacket() {
     mAdvHeader.ttlInMs = 0;
     mAdvHeader.packetChecksum = 0;
     mAdvHeader.flagsData = 0;
@@ -395,14 +331,11 @@ AdvancePacket<T>::AdvancePacket()
     mAdvHeader.reserved = 0;
 }
 
-template<class T>
-AdvancePacket<T>::~AdvancePacket()
-{
-}
+template <class T>
+AdvancePacket<T>::~AdvancePacket() {}
 
-template<class T>
-bool AdvancePacket<T>::encode(DataBuffer *output)
-{
+template <class T>
+bool AdvancePacket<T>::encode(DataBuffer *output) {
     bool rc = false;
     int oldLen = output->getDataLen();
     int checksumOffset = 0;
@@ -429,8 +362,7 @@ bool AdvancePacket<T>::encode(DataBuffer *output)
     output->writeInt8(mAdvHeader.reserved);
 
     /* Encode advance packet addon header. */
-    if (HasAddon(mAdvHeader.nextHeaderType))
-    {
+    if (HasAddon(mAdvHeader.nextHeaderType)) {
         /* Encode addon header here. */
         ;
     }
@@ -456,20 +388,17 @@ bool AdvancePacket<T>::encode(DataBuffer *output)
         /* Fill in checksum */
         unsigned char *ptr = (unsigned char *)(output->getData() + checksumOffset);
         output->fillInt32(ptr, getChecksum());
-   }
+    }
 
     return rc;
 }
 
-template<class T>
-bool AdvancePacket<T>::decode(DataBuffer *input, PacketHeader *header)
-{
+template <class T>
+bool AdvancePacket<T>::decode(DataBuffer *input, PacketHeader *header) {
     /* Tricky part. The assumption is that the advance packet header
      * is encoded as big endian numbers. */
-    uint32_t * p = (uint32_t *)(input->getData() + offsetof(AdvancePacketHeader,
-                                                            packetChecksum));
-    uint8_t * pFlags = (uint8_t *) (input->getData() +
-                       offsetof(AdvancePacketHeader, flagsData));
+    uint32_t *p = (uint32_t *)(input->getData() + offsetof(AdvancePacketHeader, packetChecksum));
+    uint8_t *pFlags = (uint8_t *)(input->getData() + offsetof(AdvancePacketHeader, flagsData));
 
     /* Store the checksum value and pkt flags comes from the packet so that
      * we can verify it later. */
@@ -477,9 +406,7 @@ bool AdvancePacket<T>::decode(DataBuffer *input, PacketHeader *header)
     /* low 3 bits are for priority */
     uint8_t pktFlags = *pFlags >> 3;
 
-    if (flags::getChecksumState() && GetChecksumMethod(pktFlags)
-            != PACKET_FLAGS_NOCHECKSUM && header != NULL)
-    {
+    if (flags::getChecksumState() && GetChecksumMethod(pktFlags) != PACKET_FLAGS_NOCHECKSUM && header != NULL) {
         /*calculate packet checksum to verify the correctness of the packet.*/
         /*We need to reset the checksum field to 0 in DataBuffer since that
          * is the way when we do the calculation while sending out packet. */
@@ -489,19 +416,21 @@ bool AdvancePacket<T>::decode(DataBuffer *input, PacketHeader *header)
         uint32_t checkSum = 0;
         if (GetChecksumMethod(pktFlags) == PACKET_FLAGS_CHECKSUM_CRC32C) {
             checkSum = DoCrc32c(0, data, header->_dataLen);
-        }
-        else {
-            ANET_LOG(ERROR, "Unknown checksum method flags %d for message chid %d",
-                             pktFlags, header->_chid);
+        } else {
+            ANET_LOG(ERROR, "Unknown checksum method flags %d for message chid %d", pktFlags, header->_chid);
         }
 
         /* Verify the checksum is ok .*/
         uint32_t pktCRC = ntohl(pktCRCBigEndian);
-        if (pktCRC != checkSum)
-        {
-            ANET_LOG(ERROR, "Drop pkt. Checksum verification error for pkt, pkt header crc %u, "
-                     "actual crc %u, dataLen %d, chid %d, pkgFlags %d", pktCRC, checkSum,
-                      header->_dataLen, header->_chid, pktFlags);
+        if (pktCRC != checkSum) {
+            ANET_LOG(ERROR,
+                     "Drop pkt. Checksum verification error for pkt, pkt header crc %u, "
+                     "actual crc %u, dataLen %d, chid %d, pkgFlags %d",
+                     pktCRC,
+                     checkSum,
+                     header->_dataLen,
+                     header->_chid,
+                     pktFlags);
 
             /* need to throw away all the trash data before returns. */
             input->drainData(header->_dataLen);
@@ -513,23 +442,22 @@ bool AdvancePacket<T>::decode(DataBuffer *input, PacketHeader *header)
     }
 
     mAdvHeader.ttlInMs = input->readInt32();
-    mAdvHeader.packetChecksum  =  input->readInt32();
-    mAdvHeader.chidHigh =  input->readInt32();
+    mAdvHeader.packetChecksum = input->readInt32();
+    mAdvHeader.chidHigh = input->readInt32();
     mAdvHeader.flagsData = input->readInt8();
     mAdvHeader.packetVersion = input->readInt8();
     mAdvHeader.nextHeaderType = input->readInt8();
-    mAdvHeader.reserved  = input->readInt8();
+    mAdvHeader.reserved = input->readInt8();
 
     /* Decode addon headers */
-    if (HasAddon(mAdvHeader.nextHeaderType))
-    {
+    if (HasAddon(mAdvHeader.nextHeaderType)) {
         /* Decode addon header here. */
         ;
     }
 
     /* Reset the packet length since we already decoded the advance header
      * above. So the header size should be substracted. */
-    setDataLen( getDataLen() -  sizeof(AdvancePacketHeader) );
+    setDataLen(getDataLen() - sizeof(AdvancePacketHeader));
 
     return T::decode(input, header);
 }

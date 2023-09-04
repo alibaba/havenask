@@ -28,35 +28,26 @@ using namespace std;
 namespace autil {
 AUTIL_DECLARE_AND_SETUP_LOGGER(autil, ThreadPoolManager);
 
-ThreadPoolManager::ThreadPoolManager() {
-}
+ThreadPoolManager::ThreadPoolManager() {}
 
 ThreadPoolManager::~ThreadPoolManager() {
-    for (map<string, ThreadPool*>::iterator it = _pools.begin();
-         it != _pools.end(); ++it)
-    {
+    for (map<string, ThreadPool *>::iterator it = _pools.begin(); it != _pools.end(); ++it) {
         delete it->second;
     }
     _pools.clear();
 }
 
-bool ThreadPoolManager::addThreadPool(const string& threadPoolsConfigStr) {
-    StringTokenizer st1(threadPoolsConfigStr, ";",
-                        StringTokenizer::TOKEN_IGNORE_EMPTY |
-                        StringTokenizer::TOKEN_TRIM);
+bool ThreadPoolManager::addThreadPool(const string &threadPoolsConfigStr) {
+    StringTokenizer st1(threadPoolsConfigStr, ";", StringTokenizer::TOKEN_IGNORE_EMPTY | StringTokenizer::TOKEN_TRIM);
     for (StringTokenizer::Iterator iter = st1.begin(); iter != st1.end(); iter++) {
-        StringTokenizer st2(*iter, "|",
-                            StringTokenizer::TOKEN_IGNORE_EMPTY |
-                            StringTokenizer::TOKEN_TRIM);
+        StringTokenizer st2(*iter, "|", StringTokenizer::TOKEN_IGNORE_EMPTY | StringTokenizer::TOKEN_TRIM);
         if (st2.getNumTokens() != 3) {
-            AUTIL_LOG(ERROR, "parse threadPoolConfigStr[%s] failed!",
-                    threadPoolsConfigStr.c_str());
+            AUTIL_LOG(ERROR, "parse threadPoolConfigStr[%s] failed!", threadPoolsConfigStr.c_str());
             return false;
         }
         string poolName = st2[0];
         if (_pools.end() != _pools.find(poolName)) {
-            AUTIL_LOG(ERROR, "parse threadPoolConfigStr[%s] failed!",
-                    threadPoolsConfigStr.c_str());
+            AUTIL_LOG(ERROR, "parse threadPoolConfigStr[%s] failed!", threadPoolsConfigStr.c_str());
             return false;
         }
 
@@ -64,14 +55,11 @@ bool ThreadPoolManager::addThreadPool(const string& threadPoolsConfigStr) {
         uint32_t threadNum;
         if (!(StringUtil::fromString<uint32_t>(st2[1], taskQueueSize) &&
               StringUtil::toString(taskQueueSize) == st2[1])) {
-            AUTIL_LOG(ERROR, "parse threadPoolConfigStr[%s] failed!",
-                    threadPoolsConfigStr.c_str());
+            AUTIL_LOG(ERROR, "parse threadPoolConfigStr[%s] failed!", threadPoolsConfigStr.c_str());
             return false;
         }
-        if (!(StringUtil::fromString<uint32_t>(st2[2], threadNum) &&
-              StringUtil::toString(threadNum) == st2[2])) {
-            AUTIL_LOG(ERROR, "parse threadPoolConfigStr[%s] failed!",
-                    threadPoolsConfigStr.c_str());
+        if (!(StringUtil::fromString<uint32_t>(st2[2], threadNum) && StringUtil::toString(threadNum) == st2[2])) {
+            AUTIL_LOG(ERROR, "parse threadPoolConfigStr[%s] failed!", threadPoolsConfigStr.c_str());
             return false;
         }
 
@@ -81,12 +69,9 @@ bool ThreadPoolManager::addThreadPool(const string& threadPoolsConfigStr) {
     return true;
 }
 
-bool ThreadPoolManager::addThreadPool(const string&poolName,
-                                       int32_t queueSize, int32_t threadNum)
-{
+bool ThreadPoolManager::addThreadPool(const string &poolName, int32_t queueSize, int32_t threadNum) {
     if (_pools.end() != _pools.find(poolName)) {
-        AUTIL_LOG(ERROR, "add thread pool[%s] failed, pool name already existed.",
-                poolName.c_str());
+        AUTIL_LOG(ERROR, "add thread pool[%s] failed, pool name already existed.", poolName.c_str());
         return false;
     }
 
@@ -97,9 +82,7 @@ bool ThreadPoolManager::addThreadPool(const string&poolName,
 
 bool ThreadPoolManager::start() {
     bool ret = true;
-    for (map<string, ThreadPool*>::iterator it = _pools.begin();
-         it != _pools.end(); ++it)
-    {
+    for (map<string, ThreadPool *>::iterator it = _pools.begin(); it != _pools.end(); ++it) {
         AUTIL_LOG(INFO, "start pool [%s]", it->first.c_str());
         bool success = it->second->start(it->first);
         ret = ret && success;
@@ -108,18 +91,14 @@ bool ThreadPoolManager::start() {
 }
 
 void ThreadPoolManager::stop(ThreadPool::STOP_TYPE stopType) {
-    for (map<string, ThreadPool*>::iterator it = _pools.begin();
-         it != _pools.end(); ++it)
-    {
+    for (map<string, ThreadPool *>::iterator it = _pools.begin(); it != _pools.end(); ++it) {
         it->second->stop(stopType);
     }
 }
 
 size_t ThreadPoolManager::getItemCount() const {
     size_t itemCount = 0;
-    for (map<string, ThreadPool*>::const_iterator it = _pools.begin();
-         it != _pools.end(); ++it)
-    {
+    for (map<string, ThreadPool *>::const_iterator it = _pools.begin(); it != _pools.end(); ++it) {
         itemCount += it->second->getItemCount();
     }
     return itemCount;
@@ -127,9 +106,7 @@ size_t ThreadPoolManager::getItemCount() const {
 
 size_t ThreadPoolManager::getTotalThreadNum() const {
     size_t threadNum = 0;
-    for (map<string, ThreadPool*>::const_iterator it = _pools.begin();
-         it != _pools.end(); ++it)
-    {
+    for (map<string, ThreadPool *>::const_iterator it = _pools.begin(); it != _pools.end(); ++it) {
         threadNum += it->second->getThreadNum();
     }
     return threadNum;
@@ -137,9 +114,7 @@ size_t ThreadPoolManager::getTotalThreadNum() const {
 
 size_t ThreadPoolManager::getTotalQueueSize() const {
     size_t queueSize = 0;
-    for (map<string, ThreadPool*>::const_iterator it = _pools.begin();
-         it != _pools.end(); ++it)
-    {
+    for (map<string, ThreadPool *>::const_iterator it = _pools.begin(); it != _pools.end(); ++it) {
         queueSize += it->second->getQueueSize();
     }
     return queueSize;
@@ -161,28 +136,28 @@ std::map<std::string, size_t> ThreadPoolManager::getItemCountMap() const {
     return ret;
 }
 
-std::map<std::string, size_t> ThreadPoolManager::getActiveThreadCount() const{
+std::map<std::string, size_t> ThreadPoolManager::getActiveThreadCount() const {
     std::map<std::string, size_t> ret;
-    for (auto&& poolItem : _pools) {
+    for (auto &&poolItem : _pools) {
         ret[poolItem.first] = poolItem.second->getActiveThreadNum();
     }
     return ret;
 }
 
-std::map<std::string, size_t> ThreadPoolManager::getTotalThreadCount() const{
+std::map<std::string, size_t> ThreadPoolManager::getTotalThreadCount() const {
     std::map<std::string, size_t> ret;
-    for (auto&& poolItem : _pools) {
+    for (auto &&poolItem : _pools) {
         ret[poolItem.first] = poolItem.second->getThreadNum();
     }
     return ret;
 }
 
-ThreadPool* ThreadPoolManager::getThreadPool(const string&poolName) {
-    map<string, ThreadPool*>::iterator it = _pools.find(poolName);
+ThreadPool *ThreadPoolManager::getThreadPool(const string &poolName) {
+    map<string, ThreadPool *>::iterator it = _pools.find(poolName);
     if (_pools.end() == it) {
         return NULL;
     }
     return it->second;
 }
 
-}
+} // namespace autil

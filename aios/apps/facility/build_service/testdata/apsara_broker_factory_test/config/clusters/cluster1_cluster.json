@@ -1,0 +1,11 @@
+{
+    "cluster_config" : {
+	"builder_rule_config" : {
+            "partition_count" : 5,
+            "build_parallel_num" : 1,
+            "merge_parallel_num" : 1,
+            "map_reduce_ratio" : 1,
+            "need_partition" : false
+	}
+    }
+}

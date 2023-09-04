@@ -1,0 +1,12 @@
+package(default_visibility=['//aios/sql:__subpackages__'])
+cc_library(
+    name='sql_ops_run_sql_graph_kernel',
+    srcs=glob(['*.cpp']),
+    hdrs=glob(['*.h']),
+    include_prefix='sql/ops/runSqlGraph',
+    deps=[
+        '//aios/sql/ops/metaCollect:sql_meta_collector',
+        '//aios/sql/ops/runSqlGraph:sql_ops_run_sql_graph'
+    ],
+    alwayslink=True
+)

@@ -1,0 +1,9 @@
+{
+    "user_name" : "user_name",
+    "service_name" : "service_name",
+    "full_builder_tmp_root": "hdfs://tmp/root/",
+    "index_root" : "hdfs://index/root/",
+    "swift_root" : "zfs://root/",
+    "hippo_root" : "path/to/hippo/leader/elector/root",
+    "zookeeper_root" : "path/to/zk/root"
+}

@@ -18,6 +18,7 @@
 #include "indexlib/document/extractor/IDocumentInfoExtractor.h"
 #include "indexlib/document/extractor/plain/AttrFieldInfoExtractor.h"
 #include "indexlib/document/extractor/plain/InvertedIndexDocInfoExtractor.h"
+#include "indexlib/document/extractor/plain/PackAttrFieldInfoExtractor.h"
 #include "indexlib/document/extractor/plain/PrimaryKeyInfoExtractor.h"
 #include "indexlib/document/extractor/plain/SummaryDocInfoExtractor.h"
 
@@ -40,6 +41,15 @@ DocumentInfoExtractorFactory::CreateDocumentInfoExtractor(const std::shared_ptr<
     case DocumentInfoExtractorType::ATTRIBUTE_FIELD: {
         if (fieldid_t* fieldId = std::any_cast<fieldid_t>(&fieldHint)) {
             return std::make_unique<AttrFieldInfoExtractor>(*fieldId);
+        } else {
+            AUTIL_LOG(ERROR, "un-support filed type: [docExtractorType: %s, FiledType: %s]",
+                      DocumentInfoExtractorTypeToStr(docExtractorType).c_str(), fieldHint.type().name());
+        }
+        return nullptr;
+    }
+    case DocumentInfoExtractorType::PACK_ATTRIBUTE_FIELD: {
+        if (packattrid_t* packAttrId = std::any_cast<packattrid_t>(&fieldHint)) {
+            return std::make_unique<PackAttrFieldInfoExtractor>(*packAttrId);
         } else {
             AUTIL_LOG(ERROR, "un-support filed type: [docExtractorType: %s, FiledType: %s]",
                       DocumentInfoExtractorTypeToStr(docExtractorType).c_str(), fieldHint.type().name());

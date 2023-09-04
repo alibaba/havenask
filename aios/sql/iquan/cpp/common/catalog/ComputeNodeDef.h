@@ -27,9 +27,11 @@ public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("db_name", dbName, dbName);
         json.Jsonize("location", location);
-     }
+    }
 
-    bool isValid() const { return true; }
+    bool isValid() const {
+        return true;
+    }
 
 public:
     std::string dbName;

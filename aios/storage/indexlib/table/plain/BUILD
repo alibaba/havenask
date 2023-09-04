@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='PlainMemSegment',
     deps=[
         ':SegmentMetricsDumpItem', '//aios/autil:NoCopyable',
@@ -19,7 +19,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:simple_pool'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PlainDiskSegment',
     deps=[
         '//aios/autil:NoCopyable', '//aios/storage/indexlib/base:Status',
@@ -33,20 +33,15 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index:interface'
     ]
 )
-indexlib_cc_library(name='SingleShardMemSegment', deps=[':PlainMemSegment'])
-indexlib_cc_library(
-    name='SingleShardDiskSegment',
-    deps=[':PlainDiskSegment', '//aios/storage/indexlib/base:PathUtil']
-)
-indexlib_cc_library(
+strict_cc_library(
     name='MultiShardDiskSegment',
     deps=[
         ':MultiShardSegmentMetrics', ':PlainDiskSegment',
         '//aios/storage/indexlib/base:PathUtil'
     ]
 )
-indexlib_cc_library(name='MultiShardSegmentMetrics', srcs=[], deps=[])
-indexlib_cc_library(
+strict_cc_library(name='MultiShardSegmentMetrics', srcs=[], deps=[])
+strict_cc_library(
     name='MultiShardMemSegment',
     deps=[
         ':MultiShardSegmentMetrics', ':PlainMemSegment',
@@ -55,7 +50,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:ShardPartitioner'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentMetricsDumpItem',
     deps=[
         '//aios/storage/indexlib/base:Status',
@@ -63,7 +58,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index:interface'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PlainDumpItem',
     deps=[
         '//aios/storage/indexlib/base:Status',

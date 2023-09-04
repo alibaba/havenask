@@ -15,13 +15,10 @@
  */
 #pragma once
 
-#include "table/Common.h"
 #include "matchdoc/MatchDoc.h"
 
 namespace table {
 
 typedef matchdoc::MatchDoc Row;
 
-TABLE_TYPEDEF_PTR(Row);
-
-}
+} // namespace table

@@ -34,7 +34,7 @@ class SegmentInfo : public autil::legacy::Jsonizable
 {
 public:
     static const uint32_t INVALID_SHARDING_ID = std::numeric_limits<uint32_t>::max();
-    static const uint32_t INVALID_COLUMN_COUNT = std::numeric_limits<uint32_t>::max();
+    static const uint32_t INVALID_SHARDING_COUNT = std::numeric_limits<uint32_t>::max();
 
 public:
     SegmentInfo();

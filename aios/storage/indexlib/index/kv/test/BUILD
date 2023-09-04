@@ -1,0 +1,255 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+strict_cc_library(
+    name='kv_index_config_builder',
+    testonly=True,
+    srcs=['KVIndexConfigBuilder.cpp'],
+    hdrs=['KVIndexConfigBuilder.h'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/config:schema',
+        '//aios/storage/indexlib/table/kv_table/test:KVTabletSchemaMaker'
+    ]
+)
+strict_cc_fast_test(
+    name='kv_index_factory_test',
+    srcs=['KVIndexFactoryTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':kv_index_config_builder',
+        '//aios/storage/indexlib/index/kv:KVIndexFactory',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='kv_common_test',
+    srcs=[
+        'KVTimestampTest.cpp', 'KVTypeIdTest.cpp',
+        'VarLenHashTableCreatorTest.cpp'
+    ],
+    copts=['-fno-access-control'],
+    deps=[
+        ':kv_index_config_builder',
+        '//aios/storage/indexlib/index/kv:kv_common',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='FieldValueExtractorTest',
+    srcs=[
+        'AdapterIgnoreFieldCalculatorTest.cpp', 'FieldValueExtractorTest.cpp'
+    ],
+    copts=['-fno-access-control'],
+    deps=[
+        ':kv_index_config_builder',
+        '//aios/future_lite/future_lite/executors:simple_executor',
+        '//aios/storage/indexlib/document/test:KVDocumentBatchMaker',
+        '//aios/storage/indexlib/framework/mock:FakeSegment',
+        '//aios/storage/indexlib/index/kv:reader',
+        '//aios/storage/indexlib/table/kv_table/test:KVTabletSchemaMaker',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='fixed_len_mem_indexer_test',
+    srcs=['FixedLenKVMemIndexerTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':kv_index_config_builder',
+        '//aios/storage/indexlib/document/test:KVDocumentBatchMaker',
+        '//aios/storage/indexlib/index/kv:kv_mem_indexer',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='kv_data_sort',
+    srcs=['KVSortDataCollectorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':kv_index_config_builder',
+        '//aios/storage/indexlib/document/test:KVDocumentBatchMaker',
+        '//aios/storage/indexlib/index/kv:kv_mem_indexer',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_library(
+    name='varlen_read_write_test_base',
+    testonly=True,
+    srcs=[],
+    hdrs=['VarLenIndexerReadWriteTestBase.h'],
+    deps=[
+        '//aios/future_lite/future_lite/executors:simple_executor',
+        '//aios/storage/indexlib/document/test:KVDocumentBatchMaker',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/index/kv:kv_mem_indexer',
+        '//aios/storage/indexlib/index/kv:kv_reader',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_library(
+    name='fixedlen_read_write_test_base',
+    testonly=True,
+    srcs=[],
+    hdrs=['FixedLenIndexerReadWriteTestBase.h'],
+    deps=[
+        '//aios/future_lite/future_lite/executors:simple_executor',
+        '//aios/storage/indexlib/document/test:KVDocumentBatchMaker',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/index/kv:kv_mem_indexer',
+        '//aios/storage/indexlib/index/kv:kv_reader',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='FixedLenOffsetNoTTLTest',
+    srcs=['FixedLenOffsetNoTTLTest.cpp'],
+    deps=[':fixedlen_read_write_test_base', ':kv_index_config_builder']
+)
+strict_cc_fast_test(
+    name='FixedLenOffsetTTLTest',
+    srcs=['FixedLenOffsetTTLTest.cpp'],
+    deps=[':fixedlen_read_write_test_base', ':kv_index_config_builder']
+)
+strict_cc_fast_test(
+    name='FixedLenValueCompressTest',
+    srcs=['FixedLenValueCompressTest.cpp'],
+    deps=[':fixedlen_read_write_test_base', ':kv_index_config_builder']
+)
+strict_cc_fast_test(
+    name='VarLenShortOffsetNoTTLTest',
+    srcs=['VarLenShortOffsetNoTTLTest.cpp'],
+    deps=[':kv_index_config_builder', ':varlen_read_write_test_base']
+)
+strict_cc_fast_test(
+    name='VarLenShortOffsetTTLTest',
+    srcs=['VarLenShortOffsetTTLTest.cpp'],
+    deps=[':kv_index_config_builder', ':varlen_read_write_test_base']
+)
+strict_cc_fast_test(
+    name='VarLenOffsetNoTTLTest',
+    srcs=['VarLenOffsetNoTTLTest.cpp'],
+    deps=[':kv_index_config_builder', ':varlen_read_write_test_base']
+)
+strict_cc_fast_test(
+    name='VarLenOffsetTTLTest',
+    srcs=['VarLenOffsetTTLTest.cpp'],
+    deps=[':kv_index_config_builder', ':varlen_read_write_test_base']
+)
+strict_cc_fast_test(
+    name='VarLenValueCompressionTest',
+    srcs=['VarLenValueCompressionTest.cpp'],
+    deps=[':kv_index_config_builder', ':varlen_read_write_test_base']
+)
+strict_cc_fast_test(
+    name='KVMergerTest',
+    srcs=['KVMergerTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/document',
+        '//aios/storage/indexlib/document/test:KVDocumentBatchMaker',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/index/kv:kv_merger',
+        '//aios/storage/indexlib/table/kv_table/test:KVTabletSchemaMaker',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='FixedLenKVMergerTest',
+    srcs=['FixedLenKVMergerTest.cpp'],
+    deps=[
+        ':kv_index_config_builder',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/index/kv:kv_merger',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVDiskIndexerTest',
+    srcs=['KVDiskIndexerTest.cpp'],
+    deps=[':kv_index_config_builder', ':varlen_read_write_test_base']
+)
+strict_cc_fast_test(
+    name='ReclaimedValueCollectorTest',
+    srcs=['ReclaimedValueCollectorTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/index/kv:kv_mem_indexer',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='VarLenValueOffsetReclaimTest',
+    srcs=['VarLenValueOffsetReclaimTest.cpp'],
+    deps=[':kv_index_config_builder', ':varlen_read_write_test_base']
+)
+strict_cc_library(
+    name='MultiSegmentKVIteratorTestBase',
+    testonly=True,
+    srcs=['MultiSegmentKVIteratorTestBase.cpp'],
+    hdrs=['MultiSegmentKVIteratorTestBase.h'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':kv_index_config_builder',
+        '//aios/storage/indexlib/document/test:KVDocumentBatchMaker',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework/mock:FakeSegment',
+        '//aios/storage/indexlib/index/kv:KVIndexFactory',
+        '//aios/storage/indexlib/index/kv:kv_reader',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='simple_multi_segment_iterator_test',
+    srcs=['SimpleMultiSegmentKVIteratorTest.cpp'],
+    copts=['-fno-access-control'],
+    shard_count=2,
+    deps=[':MultiSegmentKVIteratorTestBase', '//aios/unittest_framework']
+)
+strict_cc_fast_test(
+    name='sorted_multi_segment_iterator_test',
+    srcs=['SortedMultiSegmentKVIteratorTest.cpp'],
+    copts=['-fno-access-control'],
+    shard_count=2,
+    deps=[':MultiSegmentKVIteratorTestBase', '//aios/unittest_framework']
+)
+strict_cc_fast_test(
+    name='kv_sort_merge_test',
+    srcs=['KVSortMergeTest.cpp'],
+    copts=['-fno-access-control'],
+    shard_count=2,
+    deps=[
+        ':MultiSegmentKVIteratorTestBase',
+        '//aios/storage/indexlib/index/kv:kv_merger',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVIndexFileTest',
+    srcs=['KVIndexFileTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/kv:constants',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVShardRecordIteratorTest',
+    srcs=['KVShardRecordIteratorTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['testdata/kv_schema_for_pk_value.json'],
+    deps=[
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/table/kv_table:table',
+        '//aios/storage/indexlib/table/kv_table/test:KVTabletSchemaMaker',
+        '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='kv_indexs_fields_test',
+    srcs=['KVIndexFieldsTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/document/raw_document/test:RawDocumentMaker',
+        '//aios/storage/indexlib/index/kv:KVIndexFields',
+        '//aios/storage/indexlib/index/kv:KVIndexFieldsParser',
+        '//aios/unittest_framework'
+    ]
+)

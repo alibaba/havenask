@@ -24,10 +24,8 @@ namespace indexlibv2::config {
 AUTIL_LOG_SETUP(indexlib.config, IndexConfigDeserializeResource);
 
 IndexConfigDeserializeResource::IndexConfigDeserializeResource(
-    const std::vector<std::shared_ptr<FieldConfig>>& fieldConfigs, const autil::legacy::json::JsonMap& settings,
-    MutableJson& runtimeSettings)
-    : _settings(settings)
-    , _runtimeSettings(runtimeSettings)
+    const std::vector<std::shared_ptr<FieldConfig>>& fieldConfigs, MutableJson& runtimeSettings)
+    : _runtimeSettings(runtimeSettings)
 {
     for (const auto& fieldConfig : fieldConfigs) {
         _fieldConfigs[fieldConfig->GetFieldName()] = fieldConfig;
@@ -48,7 +46,7 @@ std::shared_ptr<config::FileCompressConfigV2>
 IndexConfigDeserializeResource::GetFileCompressConfig(const std::string& compressName) const
 {
     if (!_fileCompressVec) {
-        auto fileCompressVec = GetSetting<std::shared_ptr<std::vector<config::SingleFileCompressConfig>>>(
+        auto fileCompressVec = GetRuntimeSetting<std::shared_ptr<std::vector<config::SingleFileCompressConfig>>>(
             config::SingleFileCompressConfig::FILE_COMPRESS_CONFIG_KEY);
         if (!fileCompressVec || !*fileCompressVec) {
             AUTIL_LOG(ERROR, "get [%s] failed from settings",

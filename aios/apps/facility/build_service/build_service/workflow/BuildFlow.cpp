@@ -65,7 +65,7 @@ BuildFlow::BuildFlow(const util::SwiftClientCreatorPtr& swiftClientCreator,
 }
 
 BuildFlow::BuildFlow(const util::SwiftClientCreatorPtr& swiftClientCreator,
-                     std::shared_ptr<indexlibv2::config::TabletSchema> schema,
+                     std::shared_ptr<indexlibv2::config::ITabletSchema> schema,
                      const BuildFlowThreadResource& threadResource)
     : _schema(nullptr)
     , _schemav2(schema)
@@ -108,7 +108,8 @@ bool BuildFlow::buildFlowWorkLoop(const ResourceReaderPtr& resourceReader, const
                                   WorkflowMode workflowMode, indexlib::util::MetricProviderPtr metricProvider)
 {
     if (!isStarted()) {
-        BS_LOG(INFO, "[%s] start BuildFlow", partitionId.buildid().ShortDebugString().c_str());
+        BS_LOG(INFO, "[%s] start BuildFlow, buildFlowMode[%d], workflowMode[%d]",
+               partitionId.buildid().ShortDebugString().c_str(), buildFlowMode, workflowMode);
         if (!startBuildFlow(resourceReader, partitionId, kvMap, brokerFactory, buildFlowMode, workflowMode,
                             metricProvider)) {
             BS_LOG(INFO, "[%s] BuildFlow failed, retry later", partitionId.buildid().ShortDebugString().c_str());
@@ -180,7 +181,8 @@ bool BuildFlow::startBuildFlow(const ResourceReaderPtr& resourceReader, const pr
         if (resourceReader->getDataTableConfigWithJsonPath(partitionId.buildid().datatable(), "control_config",
                                                            controlConfig)) {
             const string& clusterName = partitionId.clusternames(0);
-            if (!controlConfig.isIncProcessorExist(clusterName)) {
+            if (controlConfig.getDataLinkMode() == ControlConfig::DataLinkMode::FP_INP_MODE &&
+                !controlConfig.isIncProcessorExist(clusterName)) {
                 kvMap[INPUT_DOC_TYPE] = INPUT_DOC_RAW;
                 if (_mode & BuildFlowMode::PROCESSOR) {
                     assert(_mode == BuildFlowMode::ALL);
@@ -261,8 +263,8 @@ bool BuildFlow::seek(std::vector<std::unique_ptr<Workflow>>& dataFlow, const pro
                     BS_LOG(ERROR, "not support diff src seek");
                     return false;
                 }
-                minLocator.SetProgress(
-                    util::LocatorUtil::ComputeMinProgress(minLocator.GetProgress(), currentLocator.GetProgress()));
+                minLocator.SetProgress(util::LocatorUtil::ComputeProgress(
+                    minLocator.GetProgress(), currentLocator.GetProgress(), util::LocatorUtil::minOffset));
             }
         }
         locators.push_back(minLocator);

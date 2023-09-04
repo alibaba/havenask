@@ -18,53 +18,53 @@
 #include <string>
 
 #ifdef JVM_DEBUG
-#define JVM_START_OPTS                                                                                                 \
-    " -server -Xrs -Xms4g -Xmx4g -Xss6m -XX:MetaspaceSize=416m -XX:MaxMetaspaceSize=512m "                             \
-    "-XX:HeapBaseMinAddress=256g "                                                                                     \
-    "-XX:MinMetaspaceFreeRatio=0 "                                                                                     \
-    "-XX:MaxMetaspaceFreeRatio=20"                                                                                     \
-    " -XX:MaxDirectMemorySize=256m -XX:ReservedCodeCacheSize=512m"                                                     \
-    " -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:InitiatingHeapOccupancyPercent=45 "                                    \
-    "-XX:G1ReservePercent=10"                                                                                          \
-    " -XX:ConcGCThreads=4 -XX:ParallelGCThreads=8 -XX:+ExplicitGCInvokesConcurrent"                                    \
-    " -XX:+TieredCompilation -Xloggc:./logs/gc.log"                                                                    \
-    " -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+DisableExplicitGC -XX:+UseAsyncGCLog"                            \
-    " -Dsun.rmi.dgc.server.gcInterval=2592000000 -Dsun.rmi.dgc.client.gcInterval=2592000000"                           \
-    " -XX:+MetaspaceDumpOnOutOfMemoryError -XX:MetaspaceDumpPath=./logs/java.mprof"                                    \
-    " -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./logs/java.hprof"                                              \
-    " -Dio.netty.noPreferDirect=true -Dio.netty.allocator.type=unpooled"                                               \
-    " -Dio.netty.noUnsafe=true -Dio.netty.allocator.maxOrder=8"                                                        \
-    " -Dsun.net.client.defaultConnectTimeout=10000 -Dsun.net.client.defaultReadTimeout=30000"                          \
-    " -XX:-UseBiasedLocking -Dfile.encoding=UTF-8 -Djava.awt.headless=true"                                            \
-    " -Djava.security.egd=file:/dev/./urandom -Djdk.tls.ephemeralDHKeySize=2048"                                       \
-    " -XX:+AlwaysCompileLoopMethods -XX:-DontCompileHugeMethod"                                                        \
-    " -XX:+PrintCompilation -XX:+PrintDeoptReason -verbose:gc"                                                         \
-    " -XX:+UnlockDiagnosticVMOptions -XX:+MetaspaceDumpOnOutOfMemoryError "                                            \
-    "-XX:+MetaspaceDumpBeforeFullGC "                                                                                  \
-    "-XX:+MetaspaceDumpAfterFullGC"                                                                                    \
-    " -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCApplicationConcurrentTime "                                       \
-    "-XX:+PrintAdaptiveSizePolicy "                                                                                    \
+#define JVM_START_OPTS                                                                             \
+    " -server -Xrs -Xms4g -Xmx4g -Xss6m -XX:MetaspaceSize=416m -XX:MaxMetaspaceSize=512m "         \
+    "-XX:HeapBaseMinAddress=256g "                                                                 \
+    "-XX:MinMetaspaceFreeRatio=0 "                                                                 \
+    "-XX:MaxMetaspaceFreeRatio=20"                                                                 \
+    " -XX:MaxDirectMemorySize=256m -XX:ReservedCodeCacheSize=512m"                                 \
+    " -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:InitiatingHeapOccupancyPercent=45 "                \
+    "-XX:G1ReservePercent=10"                                                                      \
+    " -XX:ConcGCThreads=4 -XX:ParallelGCThreads=8 -XX:+ExplicitGCInvokesConcurrent"                \
+    " -XX:+TieredCompilation -Xloggc:./logs/gc.log"                                                \
+    " -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+DisableExplicitGC -XX:+UseAsyncGCLog"        \
+    " -Dsun.rmi.dgc.server.gcInterval=2592000000 -Dsun.rmi.dgc.client.gcInterval=2592000000"       \
+    " -XX:+MetaspaceDumpOnOutOfMemoryError -XX:MetaspaceDumpPath=./logs/java.mprof"                \
+    " -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./logs/java.hprof"                          \
+    " -Dio.netty.noPreferDirect=true -Dio.netty.allocator.type=unpooled"                           \
+    " -Dio.netty.noUnsafe=true -Dio.netty.allocator.maxOrder=8"                                    \
+    " -Dsun.net.client.defaultConnectTimeout=10000 -Dsun.net.client.defaultReadTimeout=30000"      \
+    " -XX:-UseBiasedLocking -Dfile.encoding=UTF-8 -Djava.awt.headless=true"                        \
+    " -Djava.security.egd=file:/dev/./urandom -Djdk.tls.ephemeralDHKeySize=2048"                   \
+    " -XX:+AlwaysCompileLoopMethods -XX:-DontCompileHugeMethod"                                    \
+    " -XX:+PrintCompilation -XX:+PrintDeoptReason -verbose:gc"                                     \
+    " -XX:+UnlockDiagnosticVMOptions -XX:+MetaspaceDumpOnOutOfMemoryError "                        \
+    "-XX:+MetaspaceDumpBeforeFullGC "                                                              \
+    "-XX:+MetaspaceDumpAfterFullGC"                                                                \
+    " -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCApplicationConcurrentTime "                   \
+    "-XX:+PrintAdaptiveSizePolicy "                                                                \
     "-XX:+PrintTenuringDistribution -XX:+PrintReferenceGC -XX:+G1SummarizeConcMark"
 #else
-#define JVM_START_OPTS                                                                                                 \
-    " -server -Xrs -Xms4g -Xmx4g -Xss6m -XX:MetaspaceSize=416m -XX:MaxMetaspaceSize=512m "                             \
-    "-XX:HeapBaseMinAddress=256g "                                                                                     \
-    "-XX:MinMetaspaceFreeRatio=0 "                                                                                     \
-    "-XX:MaxMetaspaceFreeRatio=20"                                                                                     \
-    " -XX:MaxDirectMemorySize=256m -XX:ReservedCodeCacheSize=512m"                                                     \
-    " -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:InitiatingHeapOccupancyPercent=45 "                                    \
-    "-XX:G1ReservePercent=10"                                                                                          \
-    " -XX:ConcGCThreads=4 -XX:ParallelGCThreads=8 -XX:+ExplicitGCInvokesConcurrent"                                    \
-    " -XX:+TieredCompilation -Xloggc:./logs/gc.log"                                                                    \
-    " -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+DisableExplicitGC -XX:+UseAsyncGCLog"                            \
-    " -Dsun.rmi.dgc.server.gcInterval=2592000000 -Dsun.rmi.dgc.client.gcInterval=2592000000"                           \
-    " -XX:+MetaspaceDumpOnOutOfMemoryError -XX:MetaspaceDumpPath=./logs/java.mprof"                                    \
-    " -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./logs/java.hprof"                                              \
-    " -Dio.netty.noPreferDirect=true -Dio.netty.allocator.type=unpooled"                                               \
-    " -Dio.netty.noUnsafe=true -Dio.netty.allocator.maxOrder=8"                                                        \
-    " -Dsun.net.client.defaultConnectTimeout=10000 -Dsun.net.client.defaultReadTimeout=30000"                          \
-    " -XX:-UseBiasedLocking -Dfile.encoding=UTF-8 -Djava.awt.headless=true"                                            \
-    " -Djava.security.egd=file:/dev/./urandom -Djdk.tls.ephemeralDHKeySize=2048"                                       \
+#define JVM_START_OPTS                                                                             \
+    " -server -Xrs -Xms4g -Xmx4g -Xss6m -XX:MetaspaceSize=416m -XX:MaxMetaspaceSize=512m "         \
+    "-XX:HeapBaseMinAddress=256g "                                                                 \
+    "-XX:MinMetaspaceFreeRatio=0 "                                                                 \
+    "-XX:MaxMetaspaceFreeRatio=20"                                                                 \
+    " -XX:MaxDirectMemorySize=256m -XX:ReservedCodeCacheSize=512m"                                 \
+    " -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:InitiatingHeapOccupancyPercent=45 "                \
+    "-XX:G1ReservePercent=10"                                                                      \
+    " -XX:ConcGCThreads=4 -XX:ParallelGCThreads=8 -XX:+ExplicitGCInvokesConcurrent"                \
+    " -XX:+TieredCompilation -Xloggc:./logs/gc.log"                                                \
+    " -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+DisableExplicitGC -XX:+UseAsyncGCLog"        \
+    " -Dsun.rmi.dgc.server.gcInterval=2592000000 -Dsun.rmi.dgc.client.gcInterval=2592000000"       \
+    " -XX:+MetaspaceDumpOnOutOfMemoryError -XX:MetaspaceDumpPath=./logs/java.mprof"                \
+    " -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./logs/java.hprof"                          \
+    " -Dio.netty.noPreferDirect=true -Dio.netty.allocator.type=unpooled"                           \
+    " -Dio.netty.noUnsafe=true -Dio.netty.allocator.maxOrder=8"                                    \
+    " -Dsun.net.client.defaultConnectTimeout=10000 -Dsun.net.client.defaultReadTimeout=30000"      \
+    " -XX:-UseBiasedLocking -Dfile.encoding=UTF-8 -Djava.awt.headless=true"                        \
+    " -Djava.security.egd=file:/dev/./urandom -Djdk.tls.ephemeralDHKeySize=2048"                   \
     " -XX:+AlwaysCompileLoopMethods -XX:-DontCompileHugeMethod"
 #endif
 

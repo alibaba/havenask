@@ -20,7 +20,7 @@
 #include "indexlib/base/Types.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlib::framework {
@@ -33,7 +33,8 @@ public:
 
 public:
     virtual Status Validate(const std::string& indexRootPath,
-                            const std::shared_ptr<indexlibv2::config::TabletSchema>& schema, versionid_t versionId) = 0;
+                            const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
+                            versionid_t versionId) = 0;
 };
 
 } // namespace indexlib::framework

@@ -1,0 +1,145 @@
+{
+    "attributes": [
+        "user_id",
+        "user_name",
+        {
+            "field_name": "body",
+            "file_compress": "compress1"
+        },
+        {
+            "pack_name": "product_price",
+            "sub_attributes": [
+                "price2",
+                "price3"
+            ]
+        },
+        {
+            "field_name": "b2b_body",
+            "file_compress": "compress2"
+        },
+        {
+            "compress_type": "equal",
+            "file_compress": "compress1",
+            "pack_name": "product_info",
+            "sub_attributes": [
+                "product_id",
+                "category"
+            ]
+        },
+        {
+            "pack_name": "product_price2",
+            "sub_attributes": [
+                "price4",
+                "price5"
+            ]
+        }
+    ],
+    "fields": [
+        {
+            "analyzer": "taobao_analyzer",
+            "field_name": "title",
+            "field_type": "TEXT"
+        },
+        {
+            "field_name": "user_name",
+            "field_type": "STRING",
+            "uniq_encode": true
+        },
+        {
+            "field_name": "user_id",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "price",
+            "field_type": "INTEGER"
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "category",
+            "field_type": "INTEGER",
+            "multi_value": true,
+            "uniq_encode": true
+        },
+        {
+            "field_name": "auction_type",
+            "field_type": "ENUM",
+            "valid_values": [
+                "sale",
+                "buy"
+            ]
+        },
+        {
+            "field_name": "product_id",
+            "field_type": "LONG"
+        },
+        {
+            "field_name": "body",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "b2b_body",
+            "field_type": "STRING"
+        },
+        {
+            "analyzer": "taobao_analyzer",
+            "field_name": "taobao_body1",
+            "field_type": "TEXT"
+        },
+        {
+            "analyzer": "taobao_analyzer",
+            "field_name": "taobao_body2",
+            "field_type": "TEXT"
+        },
+        {
+            "compress_type": "equal",
+            "field_name": "price2",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "price3",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "price4",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "price5",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "categoryp",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "catmap",
+            "field_type": "INTEGER"
+        }
+    ],
+    "file_compress": [
+        {
+            "name": "compress1",
+            "parameters": {
+                "level": "10"
+            },
+            "type": "zstd"
+        },
+        {
+            "name": "compress2",
+            "parameters": {
+                "level": "10"
+            },
+            "type": "snappy"
+        }
+    ],
+    "indexs": [
+        {
+            "has_primary_key_attribute": true,
+            "index_fields": "product_id",
+            "index_name": "product_id",
+            "index_type": "PRIMARYKEY64",
+            "pk_hash_optimize": true
+        }
+    ],
+    "table_name": "auction"
+}

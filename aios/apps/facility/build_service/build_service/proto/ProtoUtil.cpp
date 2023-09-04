@@ -46,6 +46,22 @@ bool ProtoUtil::partitionIdToRoleGroupId(const PartitionId& pid, string& roleGro
     return roleIdToRoleGroupId(roleId, roleGroupId);
 }
 
+std::string ProtoUtil::getGeneralTaskAppName(const std::string& appName, const std::string& clusterName,
+                                             uint16_t rangeFrom, int16_t rangeTo)
+{
+    return appName + "#" + clusterName + "_" + std::to_string(rangeFrom) + "_" + std::to_string(rangeTo);
+}
+
+std::string ProtoUtil::getOriginalAppName(const std::string& appName)
+{
+    std::vector<std::string> splitAppNames;
+    autil::StringUtil::fromString(appName, splitAppNames, "#");
+    if (splitAppNames.size() == 2) {
+        return splitAppNames[0];
+    }
+    return std::string();
+}
+
 bool ProtoUtil::partitionIdToRoleId(const PartitionId& pid, string& roleId, bool ignoreBackupId)
 {
     if (pid.role() == ROLE_UNKNOWN) {
@@ -204,22 +220,38 @@ bool ProtoUtil::partitionIdToCounterFileName(const PartitionId& pid, string& cou
     strVec.push_back(StringUtil::toString(pid.buildid().appname()));
     strVec.push_back(StringUtil::toString(pid.buildid().datatable()));
     strVec.push_back(StringUtil::toString(pid.buildid().generationid()));
-    strVec.push_back(toRoleString(pid.role()));
+    TaskIdentifier taskIdentifier;
+    if (pid.role() == ROLE_TASK) {
+        if (!taskIdentifier.fromString(pid.taskid())) {
+            return false;
+        }
+    }
+    std::string taskName;
+    if (taskIdentifier.getTaskName(taskName) && taskName == "builderV2") {
+        strVec.push_back(toRoleString(ROLE_BUILDER));
+        if (taskIdentifier.getTaskId() == "fullBuilder") {
+            strVec.push_back("full");
+        } else {
+            strVec.push_back("inc");
+        }
+    } else {
+        strVec.push_back(toRoleString(pid.role()));
 
-    switch (pid.role()) {
-    case ROLE_PROCESSOR:
-    case ROLE_BUILDER:
-    case ROLE_JOB: {
-        strVec.push_back(toStepString(pid));
-        break;
-    }
-    case ROLE_MERGER:
-    case ROLE_TASK: {
-        strVec.push_back(pid.mergeconfigname());
-        break;
-    }
-    default:
-        break;
+        switch (pid.role()) {
+        case ROLE_PROCESSOR:
+        case ROLE_BUILDER:
+        case ROLE_JOB: {
+            strVec.push_back(toStepString(pid));
+            break;
+        }
+        case ROLE_MERGER:
+        case ROLE_TASK: {
+            strVec.push_back(pid.mergeconfigname());
+            break;
+        }
+        default:
+            break;
+        }
     }
 
     strVec.push_back(StringUtil::toString(pid.range().from()));

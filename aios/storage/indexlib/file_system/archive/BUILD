@@ -1,8 +1,8 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(
     default_visibility=['//aios/storage/indexlib/file_system:__subpackages__']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='interface',
     srcs=[],
     hdrs=[
@@ -10,7 +10,7 @@ indexlib_cc_library(
         'ArchiveFileWriter.h', 'ArchiveFolder.h', 'LineReader.h', 'LogFile.h'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='archive',
     srcs=[
         'ArchiveDirectory.cpp', 'ArchiveFile.cpp', 'ArchiveFolder.cpp',

@@ -35,14 +35,18 @@ static const bool ENABLE_SIMPLE_TAG_INFO_DECODE = []() {
 namespace indexlibv2 { namespace document {
 AUTIL_LOG_SETUP(indexlib.document, NormalDocument);
 
-NormalDocument::NormalDocument() : _pool(std::make_shared<autil::mem_pool::Pool>(1024)), _docInfo(0, INVALID_TIMESTAMP)
+NormalDocument::NormalDocument()
+    : _pool(std::make_shared<autil::mem_pool::Pool>(1024))
+    , _docInfo(0, INVALID_TIMESTAMP, 0)
+    , _deletedDocId(INVALID_DOCID)
 {
     assert(_pool);
 }
 
 NormalDocument::NormalDocument(const std::shared_ptr<autil::mem_pool::Pool>& pool)
     : _pool(pool)
-    , _docInfo(0, INVALID_TIMESTAMP)
+    , _docInfo(0, INVALID_TIMESTAMP, 0)
+    , _deletedDocId(INVALID_DOCID)
 {
     assert(_pool);
 }
@@ -182,10 +186,7 @@ bool NormalDocument::operator==(const NormalDocument& doc) const
     if (_tagInfo != doc._tagInfo) {
         return false;
     }
-    if (_locatorV2.IsFasterThan(doc._locatorV2, false) !=
-            indexlibv2::framework::Locator::LocatorCompareResult::LCR_FULLY_FASTER ||
-        doc._locatorV2.IsFasterThan(_locatorV2, false) !=
-            indexlibv2::framework::Locator::LocatorCompareResult::LCR_FULLY_FASTER) {
+    if (_locatorV2 != doc._locatorV2) {
         return false;
     }
     if (_opType != doc._opType) {

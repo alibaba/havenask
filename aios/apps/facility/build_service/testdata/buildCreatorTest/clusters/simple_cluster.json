@@ -1,0 +1,15 @@
+{
+    "cluster_config" : {
+	"table_name" : "simple"
+    },
+    "build_option_config" : {
+	"sort_build" : true,
+	"async_build" : false,
+	"sort_descriptions" : [
+	    {
+		"sort_field" : "id",
+		"sort_pattern" : "desc"
+	    }
+	]
+    }
+}

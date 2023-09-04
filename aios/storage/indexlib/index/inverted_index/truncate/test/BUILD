@@ -1,0 +1,291 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+strict_cc_fast_test(
+    name='BucketMapTest',
+    srcs=['BucketMapTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':TruncateTestHelper', '//aios/autil:string_helper',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='TruncateAttributeReaderTest',
+    srcs=['TruncateAttributeReaderTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/index/inverted_index/truncate:TruncateAttributeReader',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='SortWorkItemTest',
+    srcs=['SortWorkItemTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        'FakeResource',
+        '//aios/storage/indexlib/index/inverted_index/truncate:SortWorkItem',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_library(
+    name='TruncateTestHelper',
+    testonly=True,
+    deps=['//aios/storage/indexlib/index/inverted_index/truncate:BucketMap']
+)
+strict_cc_library(
+    name='FakeResource',
+    srcs=[],
+    hdrs=['FakePostingIterator.h', 'FakeTruncateAttributeReader.h'],
+    deps=[
+        ':MockHelper',
+        '//aios/storage/indexlib/index/inverted_index:PostingIterator',
+        '//aios/storage/indexlib/index/inverted_index/truncate:TruncateAttributeReader'
+    ]
+)
+strict_cc_fast_test(
+    name='BucketMapCreatorTest',
+    srcs=['BucketMapCreatorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateProfile',
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateProfileConfig',
+        '//aios/storage/indexlib/index/inverted_index/config:TruncateStrategy',
+        '//aios/storage/indexlib/index/inverted_index/truncate:BucketMapCreator',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='TruncateAttributeReaderCreatorTest',
+    srcs=['TruncateAttributeReaderCreatorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':TruncateIndexUtil', '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/config:UnresolvedSchema',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:SegmentInfo',
+        '//aios/storage/indexlib/framework:SegmentMeta',
+        '//aios/storage/indexlib/framework/mock:FakeSegment',
+        '//aios/storage/indexlib/index:IIndexMerger',
+        '//aios/storage/indexlib/index/attribute/config:AttributeConfig',
+        '//aios/storage/indexlib/index/inverted_index/truncate:TruncateAttributeReaderCreator',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='TruncateMetaReaderTest',
+    srcs=['TruncateMetaReaderTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/inverted_index/truncate:TruncateMetaReader',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='DocInfoAllocatorTest',
+    srcs=['DocInfoAllocatorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/autil:mem_pool_base',
+        '//aios/storage/indexlib/index/inverted_index/truncate:DocInfoAllocator',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='TimeStrategyTruncateMetaReaderTest',
+    srcs=['TimeStrategyTruncateMetaReaderTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/inverted_index/truncate:TimeStrategyTruncateMetaReader',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='DocInfoTest',
+    srcs=['DocInfoTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/index/inverted_index/truncate:DocInfo',
+        '//aios/storage/indexlib/index/inverted_index/truncate:ReferenceTyped',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='ReferenceTest',
+    srcs=['ReferenceTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/index/inverted_index/truncate:DocInfo',
+        '//aios/storage/indexlib/index/inverted_index/truncate:ReferenceTyped',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='EvaluatorTest',
+    srcs=['EvaluatorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':FakeResource', '//aios/storage/indexlib/index/attribute:indexer',
+        '//aios/storage/indexlib/index/inverted_index/truncate:AttributeEvaluator',
+        '//aios/storage/indexlib/index/inverted_index/truncate:DocInfo',
+        '//aios/storage/indexlib/index/inverted_index/truncate:DocInfoAllocator',
+        '//aios/storage/indexlib/index/inverted_index/truncate:DocPayloadEvaluator',
+        '//aios/storage/indexlib/index/inverted_index/truncate:MultiAttributeEvaluator',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='TruncateTriggerCreatorTest',
+    srcs=['TruncateTriggerCreatorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/inverted_index/truncate:TruncateTriggerCreator',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_library(
+    name='MockHelper',
+    srcs=[],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/index/attribute:indexer',
+        '//aios/storage/indexlib/index/inverted_index:PostingIteratorImpl',
+        '//aios/storage/indexlib/index/inverted_index:TermMatchData',
+        '//aios/storage/indexlib/index/inverted_index/truncate:ITruncateWriterScheduler',
+        '//aios/storage/indexlib/index/inverted_index/truncate:TimeStrategyTruncateMetaReader',
+        '//aios/storage/indexlib/index/inverted_index/truncate:TruncateAttributeReader',
+        '//aios/storage/indexlib/index/inverted_index/truncate:TruncateIndexWriter',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='EvaluatorCreatorTest',
+    srcs=['EvaluatorCreatorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':TruncateIndexUtil', '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:SegmentInfo',
+        '//aios/storage/indexlib/framework:SegmentMeta',
+        '//aios/storage/indexlib/index/attribute:indexer',
+        '//aios/storage/indexlib/index/attribute/config:AttributeConfig',
+        '//aios/storage/indexlib/index/inverted_index:PostingIteratorImpl',
+        '//aios/storage/indexlib/index/inverted_index:TermMatchData',
+        '//aios/storage/indexlib/index/inverted_index/truncate:AttributeEvaluator',
+        '//aios/storage/indexlib/index/inverted_index/truncate:DocInfo',
+        '//aios/storage/indexlib/index/inverted_index/truncate:DocInfoAllocator',
+        '//aios/storage/indexlib/index/inverted_index/truncate:DocPayloadEvaluator',
+        '//aios/storage/indexlib/index/inverted_index/truncate:EvaluatorCreator',
+        '//aios/storage/indexlib/index/inverted_index/truncate:MultiAttributeEvaluator',
+        '//aios/storage/indexlib/index/inverted_index/truncate:ReferenceTyped',
+        '//aios/storage/indexlib/index/inverted_index/truncate:TruncateAttributeReader',
+        '//aios/storage/indexlib/index/inverted_index/truncate:TruncateAttributeReaderCreator',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='DocFilterProcessorTypedTest',
+    srcs=['DocFilterProcessorTypedTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':FakeResource',
+        '//aios/storage/indexlib/index/inverted_index/truncate:DocFilterProcessorTyped',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='NoSortTruncateCollectorTest',
+    srcs=['NoSortTruncateCollectorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':FakeResource',
+        '//aios/storage/indexlib/index/inverted_index/truncate:NoSortTruncateCollector',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='DocPayloadFilterProcessorTest',
+    srcs=['DocPayloadFilterProcessorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':FakeResource',
+        '//aios/storage/indexlib/index/inverted_index/truncate:DocPayloadFilterProcessor',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='SortTruncateCollectorTest',
+    srcs=['SortTruncateCollectorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':FakeResource',
+        '//aios/storage/indexlib/index/inverted_index/truncate:BucketMap',
+        '//aios/storage/indexlib/index/inverted_index/truncate:SortTruncateCollector',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='DocDistinctorTest',
+    srcs=['DocDistinctorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':FakeResource',
+        '//aios/storage/indexlib/index/inverted_index/truncate:DocDistinctor',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='DocCollectorCreatorTest',
+    srcs=['DocCollectorCreatorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':TruncateIndexUtil',
+        '//aios/storage/indexlib/index/inverted_index/truncate:BucketMap',
+        '//aios/storage/indexlib/index/inverted_index/truncate:DocCollectorCreator',
+        '//aios/storage/indexlib/index/inverted_index/truncate:NoSortTruncateCollector',
+        '//aios/storage/indexlib/index/inverted_index/truncate:SortTruncateCollector',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_library(
+    name='TruncateIndexUtil',
+    srcs=['TruncateIndexUtil.cpp'],
+    hdrs=['TruncateIndexUtil.h'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/autil:NoCopyable', '//aios/autil:log',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/index:IIndexMerger',
+        '//aios/storage/indexlib/index/attribute:indexer'
+    ]
+)
+strict_cc_fast_test(
+    name='SingleTruncateIndexWriterTest',
+    srcs=['SingleTruncateIndexWriterTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        'FakeResource',
+        '//aios/storage/indexlib/index/inverted_index/config:PackageIndexConfig',
+        '//aios/storage/indexlib/index/inverted_index/truncate:AttributeEvaluator',
+        '//aios/storage/indexlib/index/inverted_index/truncate:NoSortTruncateCollector',
+        '//aios/storage/indexlib/index/inverted_index/truncate:SingleTruncateIndexWriter',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='MultiTruncateIndexWriterTest',
+    srcs=['MultiTruncateIndexWriterTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        'FakeResource',
+        '//aios/storage/indexlib/index/inverted_index/config:PackageIndexConfig',
+        '//aios/storage/indexlib/index/inverted_index/truncate:AttributeEvaluator',
+        '//aios/storage/indexlib/index/inverted_index/truncate:MultiTruncateIndexWriter',
+        '//aios/storage/indexlib/index/inverted_index/truncate:NoSortTruncateCollector',
+        '//aios/storage/indexlib/index/inverted_index/truncate:SingleTruncateIndexWriter',
+        '//aios/unittest_framework'
+    ]
+)

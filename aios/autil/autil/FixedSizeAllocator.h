@@ -15,17 +15,17 @@
  */
 #pragma once
 
-#include <vector>
-#include <stdlib.h>
 #include <cassert>
 #include <memory>
+#include <stdlib.h>
+#include <vector>
 
 namespace autil {
 
-class FixedSizeAllocator
-{
+class FixedSizeAllocator {
 public:
     static const size_t COUNT_PER_BLOCK = 4 * 1024;
+
 public:
     FixedSizeAllocator(size_t fixedSize) {
         _fixedSize = fixedSize > sizeof(void *) ? fixedSize : sizeof(void *);
@@ -40,13 +40,14 @@ public:
         assert(_count == 0);
         clear();
     }
+
 public:
-    void* allocate() {
+    void *allocate() {
         void *ret;
         _count++;
         if (_freeList) {
             ret = _freeList;
-            _freeList  = *static_cast<void **>(_freeList);
+            _freeList = *static_cast<void **>(_freeList);
         } else if (_free < _end) {
             ret = _free;
             _free += _fixedSize;
@@ -60,21 +61,19 @@ public:
             _free = _start + _fixedSize;
             _bufVec.push_back(_start);
             ret = _start;
-        } 
-        
+        }
+
         return ret;
     }
-    void free(void* t) {
+    void free(void *t) {
         _count--;
         *reinterpret_cast<void **>(t) = _freeList;
         _freeList = t;
     }
-    size_t getCount() const {return _count;}
+    size_t getCount() const { return _count; }
 
     void clear() {
-        for (std::vector<char *>::const_iterator it = _bufVec.begin();
-             it != _bufVec.end(); ++it)
-        {
+        for (std::vector<char *>::const_iterator it = _bufVec.begin(); it != _bufVec.end(); ++it) {
             ::free(*it);
         }
         _bufVec.clear();
@@ -94,11 +93,11 @@ private:
     void *_freeList;
     size_t _count;
     std::vector<char *> _bufVec;
+
 private:
     friend class FixedSizeAllocatorTest;
 };
 
 typedef std::shared_ptr<FixedSizeAllocator> FixedSizeAllocatorPtr;
 
-}
-
+} // namespace autil

@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 #include <string>
 #include <vector>
 
@@ -31,25 +31,30 @@
 namespace isearch {
 namespace search {
 
-class WeakAndQueryExecutor : public MultiQueryExecutor
-{
+class WeakAndQueryExecutor : public MultiQueryExecutor {
 public:
     WeakAndQueryExecutor(uint32_t minShouldMatch);
     ~WeakAndQueryExecutor();
+
 public:
     const std::string getName() const override {
         return "WeakAndQueryExecutor";
     }
-    indexlib::index::ErrorCode doSeek(docid_t id, docid_t& result) override;
-    indexlib::index::ErrorCode seekSubDoc(docid_t docId, docid_t subDocId,
-                       docid_t subDocEnd, bool needSubMatchdata, docid_t& result) override;
+    indexlib::index::ErrorCode doSeek(docid_t id, docid_t &result) override;
+    indexlib::index::ErrorCode seekSubDoc(docid_t docId,
+                                          docid_t subDocId,
+                                          docid_t subDocEnd,
+                                          bool needSubMatchdata,
+                                          docid_t &result) override;
     df_t getDF(GetDFType type) const override;
     bool isMainDocHit(docid_t docId) const override;
-    void addQueryExecutors(const std::vector<QueryExecutor*> &queryExecutors) override;
+    void addQueryExecutors(const std::vector<QueryExecutor *> &queryExecutors) override;
     void reset() override;
     std::string toString() const override;
+
 private:
-    void doNthElement(std::vector<QueryExecutorEntry>& heap);
+    void doNthElement(std::vector<QueryExecutorEntry> &heap);
+
 private:
     std::vector<QueryExecutorEntry> _sortNHeap;
     std::vector<QueryExecutorEntry> _sortNHeapSub;
@@ -62,4 +67,3 @@ typedef std::shared_ptr<WeakAndQueryExecutor> WeakAndQueryExecutorPtr;
 
 } // namespace search
 } // namespace isearch
-

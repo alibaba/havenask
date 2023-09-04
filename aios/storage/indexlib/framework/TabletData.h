@@ -56,7 +56,6 @@ public:
         auto cend() const { return _cEnd; }
         auto crbegin() const { return _cRbegin; }
         auto crend() const { return _cRend; }
-
         bool empty() const { return _cBegin == _cEnd; }
 
     private:
@@ -66,46 +65,40 @@ public:
         const_reverse_iterator _cRend;
     };
 
+public:
     explicit TabletData(std::string tabletName);
     ~TabletData();
 
+public:
+    Status Init(Version onDiskVersion, std::vector<SegmentPtr> segments,
+                const std::shared_ptr<ResourceMap>& resourceMap);
     std::string GetTabletName() const { return _tabletName; }
     const Version& GetOnDiskVersion() const;
     Slice CreateSlice(Segment::SegmentStatus segmentStatus) const;
     // return all segments
     Slice CreateSlice() const { return CreateSlice(Segment::SegmentStatus::ST_UNSPECIFY); };
     SegmentPtr GetSegment(segmentid_t segmentId) const;
-
-    Status Init(Version onDiskVersion, std::vector<SegmentPtr> segments,
-                const std::shared_ptr<ResourceMap>& resourceMap);
+    std::pair<SegmentPtr, docid_t> GetSegmentWithBaseDocid(segmentid_t segmentId);
     uint64_t GetTabletDocCount() const;
     size_t GetIncSegmentCount() const;
     size_t GetSegmentCount() const { return _segments.size(); }
-
     void DeclareTaskConfig(const std::string& taskName, const std::string& taskType);
-
     Locator GetLocator() const;
     const std::shared_ptr<ResourceMap>& GetResourceMap() const { return _resourceMap; }
     void ReclaimSegmentResource();
     std::shared_ptr<const TabletDataInfo> GetTabletDataInfo() const { return _tabletDataInfo; }
-    void TEST_PushSegment(SegmentPtr segment)
-    {
-        _segments.push_back(segment);
-        if (_hasBuildingSegment) {
-            ++_dumpingSegmentCount;
-        } else {
-            _hasBuildingSegment = true;
-        }
-    }
-    void TEST_SetOnDiskVersion(Version version) { _onDiskVersion = version; }
-    const std::vector<std::shared_ptr<Segment>>& TEST_GetSegments() { return _segments; }
     void RefreshDocCount();
-    std::shared_ptr<config::TabletSchema> GetOnDiskVersionReadSchema() const;
-    std::shared_ptr<config::TabletSchema> GetOnDiskVersionWriteSchema() const;
-    std::shared_ptr<config::TabletSchema> GetWriteSchema() const;
-    std::shared_ptr<config::TabletSchema> GetTabletSchema(schemaid_t schemaId) const;
-    std::vector<std::shared_ptr<config::TabletSchema>> GetAllTabletSchema(schemaid_t beginSchemaId,
-                                                                          schemaid_t endSchemaId) const;
+    std::shared_ptr<config::ITabletSchema> GetOnDiskVersionReadSchema() const;
+    std::shared_ptr<config::ITabletSchema> GetOnDiskVersionWriteSchema() const;
+    std::shared_ptr<config::ITabletSchema> GetWriteSchema() const;
+    std::shared_ptr<config::ITabletSchema> GetTabletSchema(schemaid_t schemaId) const;
+    std::vector<std::shared_ptr<config::ITabletSchema>> GetAllTabletSchema(schemaid_t beginSchemaId,
+                                                                           schemaid_t endSchemaId) const;
+
+public:
+    void TEST_PushSegment(SegmentPtr segment);
+    void TEST_SetOnDiskVersion(Version version);
+    const std::vector<std::shared_ptr<Segment>>& TEST_GetSegments();
 
 private:
     TabletDataSchemaGroup* GetTabletDataSchemaGroup() const;
@@ -122,6 +115,7 @@ private:
     std::shared_ptr<TabletDataInfo> _tabletDataInfo;
     bool _hasBuildingSegment;
 
+private:
     AUTIL_LOG_DECLARE();
 };
 

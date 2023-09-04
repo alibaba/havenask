@@ -16,20 +16,21 @@
 #ifndef ISEARCH_MULTI_CALL_GRPCCALLDATA_H
 #define ISEARCH_MULTI_CALL_GRPCCALLDATA_H
 
-#include "aios/network/gig/multi_call/grpc/server/GigGrpcClosure.h"
-#include "aios/network/gig/multi_call/interface/SearchService.h"
-#include "autil/Lock.h"
 #include <grpc++/generic/async_generic_service.h>
 #include <grpc++/grpc++.h>
 #include <grpc++/impl/codegen/byte_buffer.h>
+
+#include "aios/network/gig/multi_call/grpc/server/GigGrpcClosure.h"
+#include "aios/network/gig/multi_call/interface/SearchService.h"
+#include "autil/Lock.h"
 
 namespace multi_call {
 
 typedef std::shared_ptr<grpc::ServerCompletionQueue> ServerCompletionQueuePtr;
 
 struct ServerCompletionQueueStatus {
-    ServerCompletionQueueStatus(const ServerCompletionQueuePtr &cq_)
-        : stopped(false), cq(cq_) {}
+    ServerCompletionQueueStatus(const ServerCompletionQueuePtr &cq_) : stopped(false), cq(cq_) {
+    }
     volatile bool stopped;
     autil::ReadWriteLock enqueueLock;
     ServerCompletionQueuePtr cq;
@@ -58,9 +59,8 @@ private:
     void beginQuery();
     void call();
     void initQueryInfo(const std::string &infoStr);
-    void
-    initQueryInfoByCompatibleField(google::protobuf::Message *request,
-                                   const std::shared_ptr<GigRpcMethodArg> &arg);
+    void initQueryInfoByCompatibleField(google::protobuf::Message *request,
+                                        const std::shared_ptr<GigRpcMethodArg> &arg);
     void initQuerySession(google::protobuf::Message *request,
                           const std::shared_ptr<GigRpcMethodArg> &arg);
 

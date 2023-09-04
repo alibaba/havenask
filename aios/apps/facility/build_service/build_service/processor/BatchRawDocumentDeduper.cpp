@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "build_service/processor/BatchRawDocumentDeduper.h"
+
 #include "build_service/util/Monitor.h"
 #include "indexlib/util/metrics/Metric.h"
 #include "indexlib/util/metrics/MetricProvider.h"
@@ -22,24 +23,20 @@ using namespace std;
 using namespace build_service::document;
 using namespace indexlib::util;
 
-namespace build_service {
-namespace processor {
+namespace build_service { namespace processor {
 BS_LOG_SETUP(processor, BatchRawDocumentDeduper);
 
 BatchRawDocumentDeduper::BatchRawDocumentDeduper(const std::string& dedupField,
-        const indexlib::util::MetricProviderPtr& metricProvider)
+                                                 const indexlib::util::MetricProviderPtr& metricProvider)
     : _dedupField(dedupField)
 {
     if (metricProvider) {
-        _dedupDocQpsMetric = DECLARE_METRIC(
-                metricProvider, "perf/batchDedupDocQps", kmonitor::QPS, "qps");
-        _dedupProcessLatencyMetric = DECLARE_METRIC(
-                metricProvider, "perf/batchDedupLatency", kmonitor::GAUGE, "ms");        
+        _dedupDocQpsMetric = DECLARE_METRIC(metricProvider, "perf/batchDedupDocQps", kmonitor::QPS, "qps");
+        _dedupProcessLatencyMetric = DECLARE_METRIC(metricProvider, "perf/batchDedupLatency", kmonitor::GAUGE, "ms");
     }
 }
 
-BatchRawDocumentDeduper::~BatchRawDocumentDeduper() {
-}
+BatchRawDocumentDeduper::~BatchRawDocumentDeduper() {}
 
 // TODO: support merge update & add doc, with modify_fields & modify_values updated
 void BatchRawDocumentDeduper::process(const document::RawDocumentVecPtr& docQueue)
@@ -49,7 +46,7 @@ void BatchRawDocumentDeduper::process(const document::RawDocumentVecPtr& docQueu
         return;
     }
 
-    ScopeLatencyReporter scopeTime(_dedupProcessLatencyMetric.get());    
+    ScopeLatencyReporter scopeTime(_dedupProcessLatencyMetric.get());
     autil::StringView fieldName = autil::StringView(_dedupField);
     unordered_map<autil::StringView, std::pair<int32_t, int32_t>> uniqMap;
     for (int i = docQueue->size() - 1; i >= 0; i--) {
@@ -68,7 +65,7 @@ void BatchRawDocumentDeduper::process(const document::RawDocumentVecPtr& docQueu
         auto iter = uniqMap.find(constStr);
         if (iter != uniqMap.end()) {
             iter->second.first = i;
-            rawDoc->setDocOperateType(indexlib::SKIP_DOC);  // skip duplicated doc
+            rawDoc->setDocOperateType(indexlib::SKIP_DOC); // skip duplicated doc
             INCREASE_QPS(_dedupDocQpsMetric);
             continue;
         }
@@ -86,7 +83,7 @@ void BatchRawDocumentDeduper::process(const document::RawDocumentVecPtr& docQueu
         if (iter->second.first == iter->second.second) {
             continue; // no deplicated doc to skip
         }
-        RawDocumentPtr& lastDoc = (*docQueue)[iter->second.second];        
+        RawDocumentPtr& lastDoc = (*docQueue)[iter->second.second];
         if (lastDoc->getDocOperateType() != indexlib::ADD_DOC) {
             continue;
         }
@@ -100,5 +97,4 @@ void BatchRawDocumentDeduper::process(const document::RawDocumentVecPtr& docQueu
     }
 }
 
-}
-}
+}} // namespace build_service::processor

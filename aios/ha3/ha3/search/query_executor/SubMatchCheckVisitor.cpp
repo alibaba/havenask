@@ -16,22 +16,21 @@
 #include "ha3/search/SubMatchCheckVisitor.h"
 
 #include <cstddef>
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "ha3/common/AndNotQuery.h"
 #include "ha3/common/AndQuery.h"
-#include "ha3/common/QueryVisitor.h"
 #include "ha3/common/MultiTermQuery.h"
 #include "ha3/common/NumberQuery.h"
 #include "ha3/common/OrQuery.h"
 #include "ha3/common/PhraseQuery.h"
 #include "ha3/common/Query.h"
+#include "ha3/common/QueryVisitor.h"
 #include "ha3/common/RankQuery.h"
 #include "ha3/common/TermQuery.h"
 #include "ha3/isearch.h"
-
 
 using namespace isearch::common;
 using namespace std;
@@ -41,23 +40,22 @@ namespace search {
 
 AUTIL_LOG_SETUP(ha3, SubMatchCheckVisitor);
 
-#define VISIT_MID_QUERY(query) {                                        \
-        if (!query->getQueryLabel().empty()) {                          \
-            _needSubMatch = true;                                       \
-        } else {                                                        \
-            const vector<QueryPtr>* childQuerys = query->getChildQuery(); \
-            for (size_t i = 0; i < childQuerys->size(); ++i) {          \
-                if (!_needSubMatch) {                                   \
-                    (*childQuerys)[i]->accept(this);                    \
-                }                                                       \
-            }                                                           \
-        }                                                               \
+#define VISIT_MID_QUERY(query)                                                                     \
+    {                                                                                              \
+        if (!query->getQueryLabel().empty()) {                                                     \
+            _needSubMatch = true;                                                                  \
+        } else {                                                                                   \
+            const vector<QueryPtr> *childQuerys = query->getChildQuery();                          \
+            for (size_t i = 0; i < childQuerys->size(); ++i) {                                     \
+                if (!_needSubMatch) {                                                              \
+                    (*childQuerys)[i]->accept(this);                                               \
+                }                                                                                  \
+            }                                                                                      \
+        }                                                                                          \
     }
 
 SubMatchCheckVisitor::SubMatchCheckVisitor()
-    : _needSubMatch(false)
-{
-}
+    : _needSubMatch(false) {}
 
 void SubMatchCheckVisitor::visitTermQuery(const TermQuery *query) {
     if (!query->getQueryLabel().empty()) {
@@ -72,9 +70,9 @@ void SubMatchCheckVisitor::visitMultiTermQuery(const MultiTermQuery *query) {
 }
 
 void SubMatchCheckVisitor::visitPhraseQuery(const PhraseQuery *query) {
-   if (!query->getQueryLabel().empty()) {
+    if (!query->getQueryLabel().empty()) {
         _needSubMatch = true;
-   }
+    }
 }
 
 void SubMatchCheckVisitor::visitAndQuery(const AndQuery *query) {
@@ -99,5 +97,5 @@ void SubMatchCheckVisitor::visitNumberQuery(const NumberQuery *query) {
     }
 }
 
-}
-}
+} // namespace search
+} // namespace isearch

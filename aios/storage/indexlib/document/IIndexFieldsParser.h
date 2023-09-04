@@ -46,9 +46,9 @@ public:
     virtual Status Init(const std::vector<std::shared_ptr<config::IIndexConfig>>& indexConfigs,
                         const std::shared_ptr<document::DocumentInitParam>& initParam) = 0;
     virtual indexlib::util::PooledUniquePtr<IIndexFields> Parse(const ExtendDocument& extendDoc,
-                                                                autil::mem_pool::Pool* pool) = 0;
+                                                                autil::mem_pool::Pool* pool) const = 0;
     virtual indexlib::util::PooledUniquePtr<IIndexFields> Parse(autil::StringView serializedData,
-                                                                autil::mem_pool::Pool* pool) = 0;
+                                                                autil::mem_pool::Pool* pool) const = 0;
 };
 
 } // namespace indexlibv2::document

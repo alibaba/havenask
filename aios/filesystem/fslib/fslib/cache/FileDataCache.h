@@ -16,40 +16,36 @@
 #ifndef FSLIB_FILEDATACACHE_H
 #define FSLIB_FILEDATACACHE_H
 
+#include "autil/Lock.h"
 #include "autil/Log.h"
 #include "autil/LruCache.h"
-#include "autil/Lock.h"
 #include "fslib/fslib.h"
 
 FSLIB_BEGIN_NAMESPACE(cache);
 
-class FileDataCache
-{
+class FileDataCache {
 public:
     FileDataCache(int64_t totalCacheSize);
     ~FileDataCache();
 
 public:
-    bool put(const std::string& filePath, const std::string& content);
-    bool get(const std::string& filePath, std::string& content, int64_t& ts);
+    bool put(const std::string &filePath, const std::string &content);
+    bool get(const std::string &filePath, std::string &content, int64_t &ts);
 
-    void removeFile(const std::string& filePath);
-    void removeDirectory(const std::string& path);
+    void removeFile(const std::string &filePath);
+    void removeDirectory(const std::string &path);
 
     int64_t getCacheMemUse() const;
     int64_t getCachedFileCount() const;
 
 private:
-    class MemDataGetSizeCallBack
-    {
+    class MemDataGetSizeCallBack {
     public:
-        uint32_t operator()(const std::string& str)
-        {
-            return str.length();
-        }
+        uint32_t operator()(const std::string &str) { return str.length(); }
     };
 
     typedef autil::LruCache<std::string, std::string, MemDataGetSizeCallBack> MemDataCache;
+
 private:
     // key: path, value: ts
     typedef std::map<std::string, int64_t> CacheMetaMap;
@@ -63,4 +59,4 @@ FSLIB_TYPEDEF_SHARED_PTR(FileDataCache);
 
 FSLIB_END_NAMESPACE(cache);
 
-#endif //FSLIB_FILEDATACACHE_H
+#endif // FSLIB_FILEDATACACHE_H

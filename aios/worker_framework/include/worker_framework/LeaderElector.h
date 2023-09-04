@@ -77,6 +77,7 @@ public:
     cm_basic::ZkWrapper *getZkWrapper() const { return _zkWrapper; }
     LeaderState getLeaderState() const { return _state; };
     void setForbidCampaignLeaderTimeMs(uint64_t forbitTime);
+
 private:
     void workLoop(int64_t currentTime); // for test
 private:

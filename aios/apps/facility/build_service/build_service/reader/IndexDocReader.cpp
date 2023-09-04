@@ -44,12 +44,15 @@
 namespace build_service { namespace reader {
 BS_LOG_SETUP(reader, IndexDocReader);
 
+const std::string IndexDocReader::USER_REQUIRED_FIELDS = "read_index_required_fields";
+
 class NoDataTabletDocIterator : public indexlibv2::framework::ITabletDocIterator
 {
 public:
     indexlib::Status Init(const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData,
                           std::pair<uint32_t /*0-99*/, uint32_t /*0-99*/>,
                           const std::shared_ptr<indexlibv2::framework::MetricsManager>&,
+                          const std::vector<std::string>& requiredFields,
                           const std::map<std::string, std::string>&) override
     {
         if (tabletData->GetSegmentCount() > 0) {
@@ -236,7 +239,7 @@ indexlib::Status IndexDocReader::switchTablet(int32_t iterId)
     RETURN_IF_STATUS_ERROR(status, "load version [%d] from [%s] failed", versionId, sourceRoot.c_str());
 
     auto schemaId = srcVersion.GetReadSchemaId();
-    auto schema = std::shared_ptr<indexlibv2::config::TabletSchema>(
+    auto schema = std::shared_ptr<indexlibv2::config::ITabletSchema>(
         indexlibv2::framework::TabletSchemaLoader::GetSchema(versionRootDir->GetIDirectory(), schemaId));
     if (!schema) {
         RETURN_IF_STATUS_ERROR(indexlibv2::Status::InternalError(), "get schema [%d] failed from [%s]", schemaId,
@@ -288,8 +291,23 @@ indexlib::Status IndexDocReader::switchTablet(int32_t iterId)
 
     _iter = createTabletDocIterator(tabletExporter.get(), tablet->GetTabletData()->GetSegmentCount());
     _currentTablet = std::move(tablet);
-
-    status = _iter->Init(_currentTablet->GetTabletData(), range, _metricsManager, _parameters.kvMap);
+    std::vector<std::string> requiredFields;
+    std::string requiredFieldsStr = getValueFromKeyValueMap(_parameters.kvMap, USER_REQUIRED_FIELDS);
+    if (requiredFieldsStr.empty()) {
+        // 如果用户不指定需要的字段则导出schema里的所有字段
+        auto fieldConfigs = schema->GetFieldConfigs();
+        for (const auto& fieldConfig : fieldConfigs) {
+            requiredFields.push_back(fieldConfig->GetFieldName());
+        }
+    } else {
+        try {
+            autil::legacy::FromJsonString(requiredFields, requiredFieldsStr);
+            AUTIL_LOG(INFO, "required [%lu] fields [%s]", requiredFields.size(), requiredFieldsStr.c_str());
+        } catch (const autil::legacy::ExceptionBase& e) {
+            RETURN_STATUS_ERROR(InvalidArgs, "parse required fields [%s] failed", requiredFieldsStr.c_str());
+        }
+    }
+    status = _iter->Init(_currentTablet->GetTabletData(), range, _metricsManager, requiredFields, _parameters.kvMap);
     RETURN_IF_STATUS_ERROR(status, "init iter failed, _currentIterId [%d]", _currentIterId);
     AUTIL_LOG(INFO,
               "end load tablet idx is [%d] sourceRoot is [%s], versionId is [%d],"
@@ -341,14 +359,12 @@ RawDocumentReader::ErrorCode IndexDocReader::getNextRawDoc(document::RawDocument
 
         if (_iter->HasNext()) {
             std::string ckpt;
-            indexlibv2::document::IDocument::DocInfo indexlibDocInfo;
-            auto status = _iter->Next(&rawDoc, &ckpt, &indexlibDocInfo);
+            auto status = _iter->Next(&rawDoc, &ckpt, &docInfo);
             if (!status.IsOK()) {
                 BS_LOG(ERROR, "iter get next doc failed");
                 return ERROR_EXCEPTION;
             }
             setCheckpoint(ckpt, checkpoint);
-            docInfo = {indexlibDocInfo.hashId, indexlibDocInfo.timestamp};
             return ERROR_NONE;
         }
 

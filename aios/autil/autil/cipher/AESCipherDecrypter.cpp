@@ -14,27 +14,25 @@
  * limitations under the License.
  */
 #include "autil/cipher/AESCipherDecrypter.h"
-#include "autil/cipher/AESCipherUtility.h"
-#include "openssl/err.h"
+
 #include <unistd.h>
 
-namespace autil { namespace cipher {
+#include "autil/cipher/AESCipherUtility.h"
+#include "openssl/err.h"
+
+namespace autil {
+namespace cipher {
 AUTIL_LOG_SETUP(autil, AESCipherDecrypter);
 
-AESCipherDecrypter::AESCipherDecrypter(std::unique_ptr<AESCipherUtility> utility)
-    : _utility(std::move(utility))
-{
+AESCipherDecrypter::AESCipherDecrypter(std::unique_ptr<AESCipherUtility> utility) : _utility(std::move(utility)) {
     assert(_utility);
     _useRandomSalt = _utility->needSaltHeader();
 }
 
-AESCipherDecrypter::~AESCipherDecrypter() 
-{
-}
+AESCipherDecrypter::~AESCipherDecrypter() {}
 
-bool AESCipherDecrypter::decryptMessage(const std::string& cipherText, std::string& plainText)
-{
-    unsigned char* cipherData = (unsigned char*)cipherText.data();
+bool AESCipherDecrypter::decryptMessage(const std::string &cipherText, std::string &plainText) {
+    unsigned char *cipherData = (unsigned char *)cipherText.data();
     int cipherDataLen = (int)cipherText.size();
     if (_useRandomSalt) {
         if (cipherDataLen < _utility->getSaltHeaderLen()) {
@@ -70,16 +68,14 @@ bool AESCipherDecrypter::decryptMessage(const std::string& cipherText, std::stri
     }
 
     plainText.resize(cipherText.size() + _utility->getCipherBlockSize());
-    unsigned char* plainBuffer = (unsigned char*)plainText.data();
+    unsigned char *plainBuffer = (unsigned char *)plainText.data();
     EVP_CIPHER_CTX ctx;
     EVP_CIPHER_CTX_init(&ctx);
     size_t len;
-    if (EVP_DecryptInit_ex(&ctx, _utility->getCipher(), nullptr,
-                           _utility->getKey(len), _utility->getIv(len)) <= 0)
-    {
-        AUTIL_LOG(ERROR, "Failed to initialize decryption operation, error:[%s].",
-                  toErrorString(ERR_get_error()).c_str());
-        EVP_CIPHER_CTX_cleanup(&ctx);        
+    if (EVP_DecryptInit_ex(&ctx, _utility->getCipher(), nullptr, _utility->getKey(len), _utility->getIv(len)) <= 0) {
+        AUTIL_LOG(
+            ERROR, "Failed to initialize decryption operation, error:[%s].", toErrorString(ERR_get_error()).c_str());
+        EVP_CIPHER_CTX_cleanup(&ctx);
         return false;
     }
 
@@ -103,27 +99,17 @@ bool AESCipherDecrypter::decryptMessage(const std::string& cipherText, std::stri
     return true;
 }
 
-std::string AESCipherDecrypter::toErrorString(unsigned long err)
-{
+std::string AESCipherDecrypter::toErrorString(unsigned long err) {
     char errBuf[256];
     ERR_error_string(err, errBuf);
     return std::string(errBuf);
 }
 
-std::string AESCipherDecrypter::getKeyHexString() const
-{
-    return _utility->getKeyHexString();
-}
+std::string AESCipherDecrypter::getKeyHexString() const { return _utility->getKeyHexString(); }
 
-std::string AESCipherDecrypter::getIvHexString() const
-{
-    return _utility->getIvHexString();
-}
+std::string AESCipherDecrypter::getIvHexString() const { return _utility->getIvHexString(); }
 
-std::string AESCipherDecrypter::getSaltHexString() const
-{
-    return _utility->getSaltHexString();
-}
+std::string AESCipherDecrypter::getSaltHexString() const { return _utility->getSaltHexString(); }
 
-}}
-
+} // namespace cipher
+} // namespace autil

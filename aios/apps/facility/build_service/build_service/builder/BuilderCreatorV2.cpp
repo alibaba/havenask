@@ -90,10 +90,9 @@ std::unique_ptr<BuilderV2> BuilderCreatorV2::create(const config::ResourceReader
         // online build
         builder = std::make_unique<BuilderV2Impl>(_tablet, _partitionId.buildid());
     }
-    if (clusterConfig.builderConfig.asyncBuild) {
-        auto impl = std::move(builder);
-        builder = std::make_unique<AsyncBuilderV2>(std::move(impl));
-    }
+    // v2 build use asnyc build as default
+    auto impl = std::move(builder);
+    builder = std::make_unique<AsyncBuilderV2>(std::move(impl));
     if (!builder->init(clusterConfig.builderConfig, metricProvider)) {
         TABLET_LOG(ERROR, "init builder failed");
         return nullptr;

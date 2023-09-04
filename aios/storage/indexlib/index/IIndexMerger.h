@@ -49,7 +49,6 @@ public:
     struct SegmentMergeInfos {
         std::vector<SourceSegment> srcSegments;
         std::vector<std::shared_ptr<framework::SegmentMeta>> targetSegments;
-        std::vector<std::shared_ptr<framework::Segment>> baseVersionSegments;
         std::shared_ptr<indexlib::file_system::RelocatableFolder> relocatableGlobalRoot;
     };
 

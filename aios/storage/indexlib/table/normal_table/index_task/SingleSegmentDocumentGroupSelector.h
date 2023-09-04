@@ -29,7 +29,7 @@ class TabletData;
 class Segment;
 } // namespace indexlibv2::framework
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 namespace indexlibv2::index {
 template <typename T>
@@ -63,7 +63,7 @@ public:
     SingleSegmentDocumentGroupSelector();
     ~SingleSegmentDocumentGroupSelector();
     Status Init(const std::shared_ptr<framework::Segment>& segment,
-                const std::shared_ptr<config::TabletSchema>& schema);
+                const std::shared_ptr<config::ITabletSchema>& schema);
 
     Status Init(segmentid_t segmentId, const std::shared_ptr<framework::IndexTaskResourceManager>& resourceManager);
     Status Dump(const std::shared_ptr<framework::IndexTaskResourceManager>& resourceManager);

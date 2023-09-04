@@ -22,18 +22,18 @@ namespace opentelemetry {
 class EagleeyeUtil {
 
 public:
-    static bool validSpan(const SpanPtr& span);
-    static const std::string& getETraceId(const SpanPtr& span);
-    static const std::string& getERpcId(const SpanPtr& span);
-    static const std::string& getEAppId(const SpanPtr& span);
-    static void setEAppId(const SpanPtr& span, const std::string& appid);
-    static void putEUserData(const SpanPtr& span, const std::string& k, const std::string& v);
-    static void putEUserData(const SpanPtr& span, const std::map<std::string, std::string>& dataMap);
-    static const std::string& getEUserData(const SpanPtr& span, const std::string& k);
-    static const std::map<std::string, std::string>& getEUserDatas(const SpanPtr& span);
-    static void splitUserData(const std::string &userData, std::map<std::string, std::string>& datas);
+    static bool validSpan(const SpanPtr &span);
+    static const std::string &getETraceId(const SpanPtr &span);
+    static const std::string &getERpcId(const SpanPtr &span);
+    static const std::string &getEAppId(const SpanPtr &span);
+    static void setEAppId(const SpanPtr &span, const std::string &appid);
+    static void putEUserData(const SpanPtr &span, const std::string &k, const std::string &v);
+    static void putEUserData(const SpanPtr &span, const std::map<std::string, std::string> &dataMap);
+    static const std::string &getEUserData(const SpanPtr &span, const std::string &k);
+    static const std::map<std::string, std::string> &getEUserDatas(const SpanPtr &span);
+    static void splitUserData(const std::string &userData, std::map<std::string, std::string> &datas);
     static std::string joinUserData(const std::map<std::string, std::string> &m);
-    static bool isSampled(const SpanContextPtr& context);
+    static bool isSampled(const SpanContextPtr &context);
 };
 
-}
+} // namespace opentelemetry

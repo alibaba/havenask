@@ -1,0 +1,9 @@
+{
+    "merge_config": {
+        "max_merge_memory_use": 15528,
+        "merge_thread_count": 10,
+        "merge_strategy_param": "",
+        "merge_strategy": "optimize",
+        "keep_version_count": 100
+    }
+}

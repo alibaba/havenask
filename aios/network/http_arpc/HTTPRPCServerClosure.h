@@ -16,15 +16,16 @@
 #ifndef HTTP_ARPC_HTTPRPCSERVERCLOSURE_H
 #define HTTP_ARPC_HTTPRPCSERVERCLOSURE_H
 
+#include <map>
+
 #include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/http_arpc/HTTPRPCController.h"
 #include "aios/network/http_arpc/ProtoJsonizer.h"
-#include <map>
 
 namespace anet {
 class Connection;
 class HTTPPacket;
-}
+} // namespace anet
 
 namespace http_arpc {
 
@@ -33,14 +34,12 @@ struct EagleInfo {
     std::string rpcid;
     std::string udata;
     std::string gigdata;
+
 public:
-    bool isEmpty() const {
-        return traceid.empty() && rpcid.empty() && udata.empty();
-    }
+    bool isEmpty() const { return traceid.empty() && rpcid.empty() && udata.empty(); }
 };
 
-class HTTPRPCServerClosure : public RPCClosure
-{
+class HTTPRPCServerClosure : public RPCClosure {
 public:
     HTTPRPCServerClosure(anet::Connection *connection,
                          RPCMessage *requestMessage,
@@ -53,15 +52,11 @@ public:
 
 public:
     /* override */ void Run();
-    HTTPRPCController *getController() {
-        return &_httpController;
-    }
+    HTTPRPCController *getController() { return &_httpController; }
     // for case
     void setProtoJsonizer(ProtoJsonizerPtr protoJsonizer);
     ProtoJsonizerPtr getProtoJsonizer() const;
-    const EagleInfo& getEagleInfo() const {
-        return _eagleInfo;
-    }
+    const EagleInfo &getEagleInfo() const { return _eagleInfo; }
     std::string getResponseHeader(const std::string &key) {
         auto iter = _responseHeader.find(key);
         if (iter != _responseHeader.end()) {
@@ -75,8 +70,10 @@ public:
         }
         _responseHeader[key] = value;
     }
+
 private:
-    anet::HTTPPacket* buildPacket();
+    anet::HTTPPacket *buildPacket();
+
 private:
     anet::Connection *_connection;
     RPCMessage *_requestMessage;
@@ -89,6 +86,6 @@ private:
     std::map<std::string, std::string> _responseHeader;
 };
 
-}
+} // namespace http_arpc
 
-#endif //HTTP_ARPC_HTTPRPCSERVERCLOSURE_H
+#endif // HTTP_ARPC_HTTPRPCSERVERCLOSURE_H

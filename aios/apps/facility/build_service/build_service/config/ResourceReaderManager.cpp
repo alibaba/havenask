@@ -15,6 +15,7 @@
  */
 #include "build_service/config/ResourceReaderManager.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 
 using namespace std;
@@ -31,9 +32,9 @@ ResourceReaderManager::ResourceReaderManager()
     _clearLoopInterval = 60 * 1000000;
     _cacheExpireTime = 3600;
     {
-        const char* param = getenv(BS_ENV_ENABLE_RESOURCE_READER_CACHE.c_str());
+        string param = autil::EnvUtil::getEnv(BS_ENV_ENABLE_RESOURCE_READER_CACHE.c_str());
         bool enableCache;
-        if (param != NULL && StringUtil::fromString(string(param), enableCache)) {
+        if (!param.empty() && StringUtil::fromString(param, enableCache)) {
             _enableCache = enableCache;
         }
     }
@@ -42,18 +43,18 @@ ResourceReaderManager::ResourceReaderManager()
     }
 
     {
-        const char* param = getenv(BS_ENV_ENABLE_RESOURCE_READER_CACHE_EXPIRE_TIME.c_str());
+        string param = autil::EnvUtil::getEnv(BS_ENV_ENABLE_RESOURCE_READER_CACHE_EXPIRE_TIME.c_str());
         int64_t expireTime;
-        if (param != NULL && StringUtil::fromString(string(param), expireTime)) {
+        if (!param.empty() && StringUtil::fromString(param, expireTime)) {
             _cacheExpireTime = expireTime;
         }
     }
 
 #ifdef NDEBUG
     {
-        const char* param = getenv(BS_ENV_ENABLE_RESOURCE_READER_CACHE_CLEAR_INTERVAL.c_str());
+        string param = autil::EnvUtil::getEnv(BS_ENV_ENABLE_RESOURCE_READER_CACHE_CLEAR_INTERVAL.c_str());
         int64_t clearInterval;
-        if (param != NULL && StringUtil::fromString(string(param), clearInterval)) {
+        if (!param.empty() && StringUtil::fromString(param, clearInterval)) {
             _clearLoopInterval = clearInterval * 1000000;
         }
     }

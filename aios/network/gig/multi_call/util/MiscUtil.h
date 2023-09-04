@@ -21,7 +21,8 @@
 
 namespace multi_call {
 
-class MiscUtil {
+class MiscUtil
+{
 public:
     MiscUtil();
     ~MiscUtil();
@@ -31,8 +32,7 @@ private:
     MiscUtil &operator=(const MiscUtil &);
 
 public:
-    static std::string createBizName(const std::string &cluster,
-                                     const std::string &biz);
+    static std::string createBizName(const std::string &cluster, const std::string &biz);
     static float scaleLinear(uint32_t begin, uint32_t end, float pos);
     static std::string getBackTrace();
 

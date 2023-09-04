@@ -1,0 +1,4 @@
+leak:PyMem_Malloc
+leak:PyObject_Malloc
+leak:PyObject_Realloc
+leak:python3.6m

@@ -13,47 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_MOUNTINFO_H
-#define ISEARCH_MOUNTINFO_H
+#pragma once
 
-#include "matchdoc/CommonDefine.h"
 #include <map>
-#include <string>
 #include <memory>
+#include <string>
+#include <type_traits>
+
+#include "autil/MultiValueType.h"
+#include "matchdoc/CommonDefine.h"
 
 namespace matchdoc {
+
+template <typename T>
+struct IsMountable {
+    // maybe derive this value from indexlib
+    static constexpr bool value = std::is_arithmetic<T>::value || autil::IsMultiType<T>::value;
+};
 
 struct MountMeta {
     uint32_t mountId;
     uint64_t mountOffset;
-    MountMeta()
-        : mountId(INVALID_MOUNT_ID)
-        , mountOffset(INVALID_OFFSET)
-    {}
+    MountMeta() : mountId(INVALID_MOUNT_ID), mountOffset(INVALID_OFFSET) {}
 
-    MountMeta(uint32_t id, uint64_t offset)
-        : mountId(id), mountOffset(offset)
-    {}
+    MountMeta(uint32_t id, uint64_t offset) : mountId(id), mountOffset(offset) {}
 };
 
 class MountInfo {
 public:
     MountInfo() {}
     ~MountInfo() {}
-    MountInfo(const MountInfo& other)
-        : _mountMap(other._mountMap)
-    {}
+    MountInfo(const MountInfo &other) : _mountMap(other._mountMap) {}
 
 private:
     typedef std::map<std::string, MountMeta> MountMap;
+
 public:
     // variables with same mountId will share the same baseAddress
-    bool insert(const std::string& fieldName, uint32_t mountId, uint64_t mountOffset) {
-        return _mountMap.insert(std::make_pair(
-                        fieldName, MountMeta(mountId, mountOffset))).second;
+    bool insert(const std::string &fieldName, uint32_t mountId, uint64_t mountOffset) {
+        return _mountMap.insert(std::make_pair(fieldName, MountMeta(mountId, mountOffset))).second;
     }
 
-    const MountMeta* get(const std::string& fieldName) const{
+    const MountMeta *get(const std::string &fieldName) const {
         MountMap::const_iterator it = _mountMap.find(fieldName);
         if (it == _mountMap.end()) {
             return NULL;
@@ -61,7 +62,7 @@ public:
         return &(it->second);
     }
 
-    bool erase(const std::string& fieldName) {
+    bool erase(const std::string &fieldName) {
         auto it = _mountMap.find(fieldName);
         if (it == _mountMap.end()) {
             return false;
@@ -70,7 +71,13 @@ public:
         return true;
     }
 
-    const MountMap& getMountMap() const { return _mountMap; }
+    const MountMap &getMountMap() const { return _mountMap; }
+
+public:
+    static std::string generateMountGroupName(uint32_t mountId) {
+        static const std::string PREFIX = "__mounted_";
+        return PREFIX + std::to_string(mountId);
+    }
 
 private:
     MountMap _mountMap;
@@ -78,6 +85,4 @@ private:
 
 typedef std::shared_ptr<MountInfo> MountInfoPtr;
 
-}
-
-#endif //ISEARCH_MOUNTINFO_H
+} // namespace matchdoc

@@ -15,6 +15,7 @@
  */
 #include "build_service/task_base/RestartIntervalController.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 
 using namespace std;
@@ -47,10 +48,10 @@ void RestartIntervalController::wait()
 
 void RestartIntervalController::getMaxRetryIntervalTime()
 {
-    const char* param = getenv("max_retry_interval");
+    string param = autil::EnvUtil::getEnv("max_retry_interval");
     int64_t maxRetryIntervalTime = 1800 * 1000 * 1000;
     _maxRetryIntervalTime = maxRetryIntervalTime;
-    if (param && StringUtil::fromString(string(param), maxRetryIntervalTime)) {
+    if (!param.empty() && StringUtil::fromString(param, maxRetryIntervalTime)) {
         _maxRetryIntervalTime = maxRetryIntervalTime * 1000 * 1000;
     }
 }

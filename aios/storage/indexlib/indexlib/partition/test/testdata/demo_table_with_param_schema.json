@@ -1,0 +1,36 @@
+{
+    "table_name": "auction",
+    "table_type": "customized",
+    "customized_table_config" : {
+        "plugin_name" : "demoTable",
+        "params" : {
+            "create_new_version_threshold" : "15"
+        }
+    },    
+    "fields": 
+    [
+        {"field_name":"cfield1", "field_type":"raw"},
+        {"field_name":"cfield2", "field_type":"raw"},        
+        {"field_name":"pk", "field_type":"string"}
+    ],
+    "indexs": 
+    [
+	{
+	    "index_name": "pk",
+            "index_type": "PRIMARYKEY64",
+            "index_fields": "pk",
+            "has_primary_key_attribute": false
+        },
+	{
+	    "index_name": "pack_index",
+            "index_type": "customized",
+            "index_fields": [
+                {"field_name" : "cfield1", "boost":1},
+                {"field_name" : "cfield2", "boost":1} 
+            ]
+        }        
+    ],
+    "summarys":{ 
+        "summary_fields": []
+    }
+}

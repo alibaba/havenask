@@ -18,8 +18,10 @@
 namespace indexlibv2::framework {
 AUTIL_LOG_SETUP(indexlibv2.framework, IndexOperationMetrics);
 
-IndexOperationMetrics::IndexOperationMetrics(const std::shared_ptr<kmonitor::MetricsReporter>& metricsReporter)
+IndexOperationMetrics::IndexOperationMetrics(const std::shared_ptr<kmonitor::MetricsReporter>& metricsReporter,
+                                             const kmonitor::MetricsTags& tags)
     : _metricsReporter(metricsReporter)
+    , _tags(tags)
 {
 }
 
@@ -33,9 +35,11 @@ void IndexOperationMetrics::RegisterMetrics()
     REGISTER_INDEX_OP_METRIC(operationExecuteTime);
 }
 
-void IndexOperationMetrics::ReportOpExecuteTime(const kmonitor::MetricsTags& tags, int64_t executeTimeInUs)
+void IndexOperationMetrics::ReportMetrics()
 {
-    INDEXLIB_FM_REPORT_METRIC_WITH_TAGS_AND_VALUE(&tags, operationExecuteTime, executeTimeInUs);
+    INDEXLIB_FM_REPORT_METRIC_WITH_TAGS_AND_VALUE(&_tags, operationExecuteTime, _timer.done_us());
 }
+
+int64_t IndexOperationMetrics::GetTimerDoneUs() { return _timer.done_us(); }
 
 } // namespace indexlibv2::framework

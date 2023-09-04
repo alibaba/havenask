@@ -26,50 +26,53 @@ namespace multi_call {
 
 struct GigInstance;
 struct GigAgentInstance;
-#define GIG_INSTANCE_CHECK()                                                   \
-    GigInstance *gigInstance = (GigInstance *)instancePtr;                     \
-    if (!gigInstance) {                                                        \
-        return GIG_ERROR_INVALID_PARAM;                                        \
-    }                                                                          \
-    SearchServicePtr searchService = gigInstance->getSearchServicePtr();       \
-    if (!searchService) {                                                      \
-        return GIG_ERROR_INVALID_PARAM;                                        \
-    }                                                                          \
-    JavaCallback callback = gigInstance->getJavaCallback();                    \
-    if (!callback) {                                                           \
-        return GIG_ERROR_INVALID_PARAM;                                        \
+#define GIG_INSTANCE_CHECK()                                                                       \
+    GigInstance *gigInstance = (GigInstance *)instancePtr;                                         \
+    if (!gigInstance) {                                                                            \
+        return GIG_ERROR_INVALID_PARAM;                                                            \
+    }                                                                                              \
+    SearchServicePtr searchService = gigInstance->getSearchServicePtr();                           \
+    if (!searchService) {                                                                          \
+        return GIG_ERROR_INVALID_PARAM;                                                            \
+    }                                                                                              \
+    JavaCallback callback = gigInstance->getJavaCallback();                                        \
+    if (!callback) {                                                                               \
+        return GIG_ERROR_INVALID_PARAM;                                                            \
     }
 
-#define AGENT_INSTANCE_CHECK()                                                 \
-    GigAgentInstance *gigAgentInstance = (GigAgentInstance *)agent;            \
-    GigAgent *gigAgent = gigAgentInstance->agent;                              \
-    if (!gigAgent) {                                                           \
-        return GIG_ERROR_INVALID_PARAM;                                        \
-    }                                                                          \
-    JavaCallback callback = gigAgentInstance->callback;                        \
-    if (!callback) {                                                           \
-        return GIG_ERROR_INVALID_PARAM;                                        \
+#define AGENT_INSTANCE_CHECK()                                                                     \
+    GigAgentInstance *gigAgentInstance = (GigAgentInstance *)agent;                                \
+    GigAgent *gigAgent = gigAgentInstance->agent;                                                  \
+    if (!gigAgent) {                                                                               \
+        return GIG_ERROR_INVALID_PARAM;                                                            \
+    }                                                                                              \
+    JavaCallback callback = gigAgentInstance->callback;                                            \
+    if (!callback) {                                                                               \
+        return GIG_ERROR_INVALID_PARAM;                                                            \
     }
 
-#define GIG_QUERY_SESSION_CHECK()                                              \
-    GigSession *gigSession = reinterpret_cast<GigSession *>(sessionPtr);       \
-    if (!gigSession) {                                                         \
-        return GIG_ERROR_INVALID_PARAM;                                        \
-    }                                                                          \
-    QuerySessionPtr &session = gigSession->session;                            \
-    if (!session) {                                                            \
-        return GIG_ERROR_INVALID_PARAM;                                        \
-    }                                                                          \
-    JavaCallback sessionCallback = gigSession->callback;                       \
-    if (!sessionCallback) {                                                    \
-        return GIG_ERROR_INVALID_PARAM;                                        \
+#define GIG_QUERY_SESSION_CHECK()                                                                  \
+    GigSession *gigSession = reinterpret_cast<GigSession *>(sessionPtr);                           \
+    if (!gigSession) {                                                                             \
+        return GIG_ERROR_INVALID_PARAM;                                                            \
+    }                                                                                              \
+    QuerySessionPtr &session = gigSession->session;                                                \
+    if (!session) {                                                                                \
+        return GIG_ERROR_INVALID_PARAM;                                                            \
+    }                                                                                              \
+    JavaCallback sessionCallback = gigSession->callback;                                           \
+    if (!sessionCallback) {                                                                        \
+        return GIG_ERROR_INVALID_PARAM;                                                            \
     }
 
 struct GigInstance {
 public:
     GigInstance(SearchServicePtr &searchService, JavaCallback &callback)
-        : _searchService(searchService), _callback(callback) {}
-    ~GigInstance() {}
+        : _searchService(searchService)
+        , _callback(callback) {
+    }
+    ~GigInstance() {
+    }
 
 public:
     static bool isInited();
@@ -97,15 +100,19 @@ private:
 
 struct GigSession {
 public:
-    GigSession(QuerySessionPtr s, JavaCallback cb) : session(s), callback(cb) {}
+    GigSession(QuerySessionPtr s, JavaCallback cb) : session(s), callback(cb) {
+    }
     QuerySessionPtr session;
     JavaCallback callback;
 };
 
 struct GigAgentInstance {
 public:
-    GigAgentInstance(GigAgent *a, JavaCallback cb) : agent(a), callback(cb) {}
-    ~GigAgentInstance() { DELETE_AND_SET_NULL(agent); }
+    GigAgentInstance(GigAgent *a, JavaCallback cb) : agent(a), callback(cb) {
+    }
+    ~GigAgentInstance() {
+        DELETE_AND_SET_NULL(agent);
+    }
     GigAgent *agent;
     JavaCallback callback;
 };

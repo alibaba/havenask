@@ -23,16 +23,15 @@ AUTIL_LOG_SETUP(indexlib.table, NormalTableMergeStrategyUtil);
 
 std::pair<Status, int64_t> NormalTableMergeStrategyUtil::GetDeleteDocCount(framework::Segment* segment)
 {
-    auto indexPair =
+    auto [status, indexer] =
         segment->GetIndexer(indexlibv2::index::DELETION_MAP_INDEX_TYPE_STR, indexlibv2::index::DELETION_MAP_INDEX_NAME);
-    if (!indexPair.first.IsOK()) {
-        if (indexPair.first.IsNotFound()) {
+    if (!status.IsOK()) {
+        if (status.IsNotFound()) {
             return std::make_pair(Status::OK(), 0);
         }
-        return std::make_pair(indexPair.first, 0);
+        return std::make_pair(status, 0);
     }
-    auto deletionmapDiskIndexer =
-        std::dynamic_pointer_cast<indexlibv2::index::DeletionMapDiskIndexer>(indexPair.second);
+    auto deletionmapDiskIndexer = std::dynamic_pointer_cast<indexlibv2::index::DeletionMapDiskIndexer>(indexer);
     assert(deletionmapDiskIndexer);
     return std::make_pair(Status::OK(), deletionmapDiskIndexer->GetDeletedDocCount());
 }

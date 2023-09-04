@@ -15,10 +15,12 @@
  */
 #include "indexlib/document/normal/rewriter/PackAttributeAppender.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/document/normal/AttributeDocument.h"
 #include "indexlib/index/kv/config/KVIndexConfig.h"
 #include "indexlib/index/kv/config/ValueConfig.h"
+#include "indexlib/index/pack_attribute/Common.h"
+#include "indexlib/index/pack_attribute/PackAttributeConfig.h"
 #include "indexlib/table/BuiltinDefine.h"
 #include "indexlib/util/ErrorLogCollector.h"
 
@@ -30,7 +32,7 @@ using namespace indexlibv2::config;
 namespace indexlibv2 { namespace document {
 AUTIL_LOG_SETUP(indexlib.document, PackAttributeAppender);
 
-pair<Status, bool> PackAttributeAppender::Init(const shared_ptr<TabletSchema>& schema)
+pair<Status, bool> PackAttributeAppender::Init(const shared_ptr<ITabletSchema>& schema)
 {
     const auto& tableType = schema->GetTableType();
     if (tableType == indexlib::table::TABLE_TYPE_KV || tableType == indexlib::table::TABLE_TYPE_KKV) {
@@ -59,32 +61,35 @@ pair<Status, bool> PackAttributeAppender::Init(const shared_ptr<TabletSchema>& s
         auto [status, packAttrConfig] = valueConfig->CreatePackAttributeConfig();
         RETURN2_IF_STATUS_ERROR(status, false, "value config create pack attribute config failed");
         return {Status::OK(), InitOnePackAttr(packAttrConfig)};
+    } else if (tableType == indexlib::table::TABLE_TYPE_NORMAL) {
+        const auto& indexConfigs = schema->GetIndexConfigs(indexlibv2::index::PACK_ATTRIBUTE_INDEX_TYPE_STR);
+        _packFormatters.reserve(indexConfigs.size());
+        for (const auto& indexConfig : indexConfigs) {
+            const auto& packAttributeConfig =
+                std::dynamic_pointer_cast<indexlibv2::index::PackAttributeConfig>(indexConfig);
+            if (!packAttributeConfig) {
+                assert(false);
+                return {Status::Corruption(), false};
+            }
+            if (!InitOnePackAttr(packAttributeConfig)) {
+                auto status = Status::InternalError("init pack attribute appender for [%s] failed",
+                                                    indexConfig->GetIndexName().c_str());
+                AUTIL_LOG(ERROR, "%s", status.ToString().c_str());
+                return {status, false};
+            }
+        }
+        return {Status::OK(), true};
     }
-
-    // TODO: normal table support pack attribute
     return {Status::OK(), false};
-    // size_t packConfigCount = attrSchema->GetPackAttributeCount();
-    // if (packConfigCount == 0) {
-    //     return false;
-    // }
-
-    // _packFormatters.reserve(packConfigCount);
-
-    // for (packattrid_t packId = 0; (size_t)packId < packConfigCount; ++packId) {
-    //     if (!InitOnePackAttr(attrSchema->GetPackAttributeConfig(packId))) {
-    //         return false;
-    //     }
-    // }
-    // return true;
 }
 
-bool PackAttributeAppender::InitOnePackAttr(const shared_ptr<PackAttributeConfig>& packAttrConfig)
+bool PackAttributeAppender::InitOnePackAttr(const shared_ptr<index::PackAttributeConfig>& packAttrConfig)
 {
     assert(packAttrConfig);
     const auto& subAttrConfs = packAttrConfig->GetAttributeConfigVec();
 
     for (size_t i = 0; i < subAttrConfs.size(); ++i) {
-        _inPackFields.push_back(subAttrConfs[i]->GetFieldId());
+        //_inPackFields.push_back(subAttrConfs[i]->GetFieldId());
         _clearFields.push_back(subAttrConfs[i]->GetFieldId());
     }
 

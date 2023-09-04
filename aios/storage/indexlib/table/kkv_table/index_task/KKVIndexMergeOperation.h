@@ -30,6 +30,12 @@ public:
     Status Execute(const framework::IndexTaskContext& context) override;
 
 private:
+    std::pair<Status, bool> GetStoreTs(const framework::IndexTaskContext& context);
+
+public:
+    std::pair<Status, bool> Test_GetStoreTs(const framework::IndexTaskContext& context) { return GetStoreTs(context); }
+
+private:
     AUTIL_LOG_DECLARE();
 };
 

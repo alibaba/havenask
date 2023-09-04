@@ -40,7 +40,6 @@
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, NormalTabletDocIterator);
 
-const std::string NormalTabletDocIterator::USER_REQUIRED_FIELDS = "read_index_required_fields";
 const std::string NormalTabletDocIterator::USER_DEFINE_INDEX_PARAM = "user_define_index_param";
 const std::string NormalTabletDocIterator::BUILDIN_KEEP_DELETED_DOC = "__buildin_reserve_deleted_doc__";
 const std::string NormalTabletDocIterator::BUILDIN_DOCID_RANGE = "__buildin_docid_range__";
@@ -53,6 +52,7 @@ NormalTabletDocIterator::~NormalTabletDocIterator() {}
 Status NormalTabletDocIterator::Init(const std::shared_ptr<framework::TabletData>& tabletData,
                                      std::pair<uint32_t /*0-99*/, uint32_t /*0-99*/> rangeInRatio,
                                      const std::shared_ptr<indexlibv2::framework::MetricsManager>& metricsManager,
+                                     const std::vector<std::string>& requiredFields,
                                      const std::map<std::string, std::string>& params)
 {
     _tryBestExport = autil::EnvUtil::getEnv("INDEXLIB_TRY_BEST_EXPORT_INDEX", false);
@@ -87,9 +87,9 @@ Status NormalTabletDocIterator::Init(const std::shared_ptr<framework::TabletData
     bool keepDeletedDoc = indexlib::util::GetTypeValueFromKeyValueMap(params, BUILDIN_KEEP_DELETED_DOC, false);
     _deletionMapReader = keepDeletedDoc ? nullptr : _tabletReader->GetDeletionMapReader();
 
-    std::string requiredFieldsStr = indexlib::util::GetValueFromKeyValueMap(params, USER_REQUIRED_FIELDS);
-    status = InitFieldReaders(requiredFieldsStr);
-    RETURN_IF_STATUS_ERROR(status, "init field readers failed for requiredFieldsStr [%s]", requiredFieldsStr.c_str());
+    status = InitFieldReaders(requiredFields);
+    RETURN_IF_STATUS_ERROR(status, "init field readers failed for requiredFields [%s]",
+                           autil::legacy::ToJsonString(requiredFields).c_str());
 
     std::string userDefineIndexParamStr = indexlib::util::GetValueFromKeyValueMap(params, USER_DEFINE_INDEX_PARAM);
     status = InitPostingExecutor(userDefineIndexParamStr);
@@ -215,22 +215,9 @@ NormalTabletDocIterator::CreateTermPostingExecutor(const indexlib::index::IndexT
     return std::make_shared<indexlib::index::TermPostingExecutor>(iter);
 }
 
-Status NormalTabletDocIterator::InitFieldReaders(const std::string& requiredFieldsStr)
+Status NormalTabletDocIterator::InitFieldReaders(const std::vector<std::string>& fieldNames)
 {
     auto readSchema = _tabletReader->GetSchema();
-    std::vector<std::string> fieldNames;
-    if (!requiredFieldsStr.empty()) {
-        try {
-            autil::legacy::FromJsonString(fieldNames, requiredFieldsStr);
-            AUTIL_LOG(INFO, "required [%lu] fields [%s]", fieldNames.size(), requiredFieldsStr.c_str());
-        } catch (const autil::legacy::ExceptionBase& e) {
-            RETURN_STATUS_ERROR(InvalidArgs, "parse required fields [%s] failed", requiredFieldsStr.c_str());
-        }
-    } else {
-        for (const auto& fieldConfig : readSchema->GetFieldConfigs()) {
-            fieldNames.push_back(fieldConfig->GetFieldName());
-        }
-    }
 
     auto summaryConfig = std::dynamic_pointer_cast<config::SummaryIndexConfig>(
         readSchema->GetIndexConfig(index::SUMMARY_INDEX_TYPE_STR, index::SUMMARY_INDEX_NAME));

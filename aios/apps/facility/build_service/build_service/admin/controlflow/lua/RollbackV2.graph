@@ -1,0 +1,42 @@
+#import(Tool)
+#import(Log)
+
+function graphDef()
+    local clusterName = Graph.parameter["clusterName"]
+    local incParam = Tool.copyMap(Graph.parameter)
+    -- create inc build
+    local incBuild = nil
+    -- prepare inc processor
+    if (Graph.parameter['hasIncProcessor'] == 'false')
+    then
+      local dsJson = Graph.parameter["realtimeDataDescription"]
+      incParam["data_description"] = dsJson
+      incBuild = Graph.loadSimpleFlow("builderV2", "incBuilder", incParam)
+      Log.log("INFO", "start SimpleIncBuildV2.flow "..clusterName.." for rollback")
+    else
+      local incProcessorFlowIds = Graph.getFlowIdByTag(clusterName..":BSIncProcessor")
+      local incProcessorFlowId = incProcessorFlowIds[#incProcessorFlowIds]
+      incParam['processorFlowId'] = incProcessorFlowId
+      local incProcessorFlow = Graph.getFlow(incProcessorFlowId)
+      incBuild = Graph.loadSimpleFlow("builderV2", "incBuilder", incParam)
+      Graph.declareFriend(incProcessorFlow, incBuild);
+      incBuild:setProperty("_is_first_finish_builder_", "false")
+      Log.log("INFO", "start IncBuildV2.flow "..clusterName.." for rollback")
+    end
+    -- suspend old flow
+    local incBuildTag = clusterName..":IncBuild"
+    local incBuildFlowIds = Graph.getFlowIdByTag(incBuildTag)
+    for i, v in ipairs(incBuildFlowIds)
+    do
+          local flow = Graph.getFlow(v)
+          if (flow ~= nil)
+          then
+            flow:stopFlow()
+            flow:setProperty("IsRollingBack", "true")
+            Graph.setUpstream(incBuild, flow, "stopped|finish")
+          end
+    end
+    incBuild:addTag(incBuildTag)
+    incBuild:addTag("BSBuildV2")
+    return true
+end

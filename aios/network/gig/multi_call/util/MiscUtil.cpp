@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/util/MiscUtil.h"
+
 #include "aios/network/arpc/arpc/common/Exception.h"
 
 using namespace std;
@@ -22,12 +23,13 @@ using namespace autil;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, MiscUtil);
 
-MiscUtil::MiscUtil() {}
+MiscUtil::MiscUtil() {
+}
 
-MiscUtil::~MiscUtil() {}
+MiscUtil::~MiscUtil() {
+}
 
-std::string MiscUtil::createBizName(const std::string &cluster,
-                                    const std::string &biz) {
+std::string MiscUtil::createBizName(const std::string &cluster, const std::string &biz) {
     if (cluster.empty()) {
         return biz;
     } else if (biz.empty()) {

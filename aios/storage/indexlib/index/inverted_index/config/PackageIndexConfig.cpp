@@ -140,7 +140,7 @@ Status PackageIndexConfig::AddFieldConfig(const std::shared_ptr<FieldConfig>& fi
 
     if (_impl->indexFields.size() >= maxFieldNum) {
         stringstream ss;
-        ss << "Only support at last " << maxFieldNum << " fields in package index";
+        ss << "Only support at most " << maxFieldNum << " fields in package index";
         RETURN_IF_STATUS_ERROR(Status::ConfigError(), "%s", ss.str().c_str());
     }
 
@@ -320,6 +320,7 @@ std::vector<std::string> PackageIndexConfig::GetIndexPath() const
     auto sectionAttributeConfig = GetSectionAttributeConfig();
     if (sectionAttributeConfig) {
         auto attributeConfig = sectionAttributeConfig->CreateAttributeConfig(GetIndexName());
+        assert(attributeConfig);
         auto attrPaths = attributeConfig->GetIndexPath();
         paths.insert(paths.end(), attrPaths.begin(), attrPaths.end());
     }
@@ -345,6 +346,14 @@ void PackageIndexConfig::SetFileCompressConfig(const std::shared_ptr<FileCompres
     InvertedIndexConfig::SetFileCompressConfig(compressConfig);
     if (_impl->sectionAttributeConfig) {
         _impl->sectionAttributeConfig->SetFileCompressConfig(compressConfig);
+    }
+}
+
+void PackageIndexConfig::SetFileCompressConfigV2(const std::shared_ptr<config::FileCompressConfigV2>& compressConfigV2)
+{
+    InvertedIndexConfig::SetFileCompressConfigV2(compressConfigV2);
+    if (_impl->sectionAttributeConfig) {
+        _impl->sectionAttributeConfig->SetFileCompressConfigV2(compressConfigV2);
     }
 }
 

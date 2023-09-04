@@ -15,30 +15,32 @@
  */
 #pragma once
 
-#include <vector>
 #include <string>
-#include "kmonitor/client/common/Common.h"
+#include <vector>
+
 #include "autil/Log.h"
-#include "kmonitor/client/net/BatchFlumeEvent.h"
+#include "kmonitor/client/common/Common.h"
 #include "kmonitor/client/net/BaseAgentClient.h"
+#include "kmonitor/client/net/BatchFlumeEvent.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
-class LogFileAgentClient : public BaseAgentClient{
- public:
-   LogFileAgentClient();
-   ~LogFileAgentClient();
+class LogFileAgentClient : public BaseAgentClient {
+public:
+    LogFileAgentClient();
+    ~LogFileAgentClient();
 
-   bool AppendBatch(const BatchFlumeEventPtr &events) override;
-   bool Started() const override;
-   bool Init() override;
-   void Close() override;
-   bool ReConnect() override;
-private:
-   bool started_;
+    bool AppendBatch(const BatchFlumeEventPtr &events) override;
+    bool Started() const override;
+    bool Init() override;
+    void Close() override;
+    bool ReConnect() override;
 
 private:
-   AUTIL_LOG_DECLARE();
+    bool started_;
+
+private:
+    AUTIL_LOG_DECLARE();
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);

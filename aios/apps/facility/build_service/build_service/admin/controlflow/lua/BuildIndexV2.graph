@@ -1,0 +1,84 @@
+--[[
+   Graph.parameter : graph related kv parameters
+   Graph.loadSimpleFlow(taskType, taskIdentifier, taskKVParam = nil) : return flowObject
+   Graph.loadFlow(flowFileName, flowKVParam = nil) : return flowObject
+   Graph.loadSubGraph(graphId, graphFileName, graphKVParam = nil) : return true : false
+   Graph.setUpstream(flow, upstreamFlow, waitStatus = "finish"|"stop"|"xxx")
+   Graph.declareFriend(flow, friendFlow)
+   Graph.getFlowIdByTag(tag) : return flowId list
+   Graph.getFlow(flowId) : return flowObject
+--]]
+
+#import(Tool)
+#import(Log)
+
+function isParamDisabledCluster(disableClusters, clusterName)
+   if (disableClusters == nil)
+   then
+      return false
+   end
+
+   for i, v in ipairs(disableClusters)
+   do
+      if (v == clusterName)
+      then
+	 return true
+      end
+   end
+   return false
+end
+
+
+function graphDef()
+   local clusterNames = Tool.jsonToList(Graph.parameter["clusterNames"])
+   local schemaIdMap = Tool.jsonToMap(Graph.parameter["schemaIdMap"])
+   local hasIncProcessorMap = Tool.jsonToMap(Graph.parameter["hasIncProcessorMap"])
+
+   -- prepare data source
+   local hasFullBuild = (Graph.parameter["buildStep"] == "full")
+   local prepareDataSource = nil
+   if (hasFullBuild)
+   then
+      local prepareDataSourceTag = "prepare_data_source"
+      local kvMap = KVParamUtil()
+      kvMap:setValue("dataSource", Graph.parameter["dataDescriptions"])
+      local fullParam = Tool.copyMap(Graph.parameter)
+      fullParam["taskParam"] = kvMap:toJsonString()
+      fullParam["clusterName"] = "AllCluster"
+      prepareDataSource = Graph.loadSimpleFlow(prepareDataSourceTag, "0", fullParam)
+      if (prepareDataSource == nil)
+      then
+         Log.log("ERROR", "initialize prepareDataSource flow fail.")
+         return false
+      end
+   end
+
+   --foreach cluster load cluster graph
+   for i, v in ipairs(clusterNames)
+   do
+      local clusterParam = {}
+      if (prepareDataSource ~= nil)
+      then
+         clusterParam["prepareDataSourceFlowId"] = prepareDataSource:getFlowId()
+      end
+      clusterParam["clusterName"] = v
+      clusterParam["schemaId"] = schemaIdMap[v]
+      clusterParam["dataDescriptions"] = Graph.parameter["dataDescriptions"]
+      clusterParam["realtimeDataDescription"] = Graph.parameter["realtimeDataDescription"]
+      clusterParam["buildId"] = Graph.parameter["buildId"]
+      clusterParam["buildStep"] = Graph.parameter["buildStep"]
+      clusterParam["fullBuildProcessLastSwiftSrc"] = Graph.parameter["fullBuildProcessLastSwiftSrc"]
+      clusterParam["disableIncBuilder"] = Graph.parameter["disableIncBuilder"]
+      clusterParam["disableIncProcessor"] = Graph.parameter["disableIncProcessor"]
+      clusterParam["hasIncProcessor"] = hasIncProcessorMap[v]
+      clusterParam["isTablet"] = "true"
+      loadClusterSuccess = Graph.loadSubGraph(v, "SingleClusterBuildIndexV2.graph", clusterParam)
+      if (not loadClusterSuccess)
+      then
+         local errorStr = string.format("load %s fail for cluster:%s", subGraphName, v)
+         Log.log("ERROR", errorStr)
+         return false
+      end
+   end
+   return true
+end

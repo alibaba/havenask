@@ -18,13 +18,14 @@
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/config/MultiCallConfig.h"
 #include "aios/network/gig/multi_call/config/SubscribeClustersConfig.h"
+#include "aios/network/gig/multi_call/interface/Closure.h"
 #include "aios/network/gig/multi_call/metric/WorkerMetricReporter.h"
+#include "aios/network/gig/multi_call/new_heartbeat/HeartbeatClientManager.h"
 #include "aios/network/gig/multi_call/service/ConnectionManager.h"
 #include "aios/network/gig/multi_call/service/SearchServiceProvider.h"
 #include "aios/network/gig/multi_call/service/SearchServiceSnapshot.h"
 #include "aios/network/gig/multi_call/service/SearchServiceSnapshotInBiz.h"
 #include "aios/network/gig/multi_call/subscribe/SubscribeServiceManager.h"
-#include "aios/network/gig/multi_call/new_heartbeat/HeartbeatClientManager.h"
 #include "autil/Lock.h"
 #include "autil/LoopThread.h"
 #include "autil/legacy/json.h"
@@ -36,7 +37,8 @@ class SearchService;
 class LatencyTimeSnapshot;
 MULTI_CALL_TYPEDEF_PTR(LatencyTimeSnapshot);
 
-class SearchServiceManager {
+class SearchServiceManager
+{
 public:
     SearchServiceManager(SearchService *searchService = nullptr);
     // virtual for ut
@@ -50,27 +52,30 @@ public:
     // virtual for ut
     virtual bool init(const MultiCallConfig &mcConfig);
     SearchServiceSnapshotPtr getSearchServiceSnapshot() const;
-    void setMetricReporterManager(
-        const MetricReporterManagerPtr &metricReporterManager) {
+    void setMetricReporterManager(const MetricReporterManagerPtr &metricReporterManager) {
         _metricReporterManager = metricReporterManager;
-        _subscribeServiceManager->setMetricReporterManager(
-            metricReporterManager);
+        _subscribeServiceManager->setMetricReporterManager(metricReporterManager);
     }
     void setLatencyTimeSnapshot(const LatencyTimeSnapshotPtr &snapshot) {
         _latencyTimeSnapshot = snapshot;
     }
     void stop();
     void startLogThread();
-    void stopLogThread();    
+    void stopLogThread();
     SubscribeServiceManagerPtr getSubscribeServiceManager() const {
         return _subscribeServiceManager;
     }
     void notifyUpdate() const;
+    bool setSnapshotChangeCallback(SnapshotChangeCallback *callback);
+    void stealSnapshotChangeCallback();
+
 public:
     // for java client
     bool createSnapshot(const TopoNodeVec &topoNodeVec);
     void updateStaticParam();
-    const MiscConfigPtr &getMiscConfig() const { return _miscConfig; }
+    const MiscConfigPtr &getMiscConfig() const {
+        return _miscConfig;
+    }
     bool addSubscribeService(const SubscribeConfig &subServiceConf);
     bool addSubscribe(const SubscribeClustersConfig &gigSubConf);
     bool deleteSubscribe(const SubscribeClustersConfig &gigSubConf);
@@ -84,18 +89,15 @@ public:
     virtual void enableSubscribeService(SubscribeType ssType);
     virtual void disableSubscribeService(SubscribeType ssType);
     virtual void stopSubscribeService(SubscribeType ssType);
-    virtual void
-    waitCreateSnapshotLoop(int64_t waitTime = UPDATE_TIME_INTERVAL);
+    virtual void waitCreateSnapshotLoop(int64_t waitTime = UPDATE_TIME_INTERVAL);
 
 private:
     // virtual for ut
     virtual void update();
-    virtual bool initConnectionManager(const ConnectionConfig &conf,
-                                       const MiscConfig &miscConf);
+    virtual bool initConnectionManager(const ConnectionConfig &conf, const MiscConfig &miscConf);
     bool initHeartbeat();
     virtual bool waitCreateSnapshot(int64_t waitTime);
-    void setSearchServiceSnapshot(
-        const SearchServiceSnapshotPtr &searchServiceSnapshotPtr);
+    void setSearchServiceSnapshot(const SearchServiceSnapshotPtr &searchServiceSnapshotPtr);
     bool needReCreateSnapshot();
     void createSnapshot();
     SearchServiceSnapshotPtr constructSnapshot(const BizInfoMap &bizInfoMap,
@@ -107,9 +109,12 @@ private:
     void stopUpdateThread();
     void setUpdateThread(const autil::LoopThreadPtr &updateThread);
     autil::LoopThreadPtr getUpdateThread() const;
+    void runSnapshotChangeCallback();
+
 private:
     static void constructBizInfoMap(const TopoNodeVec &topoNodeVec, BizInfoMap &bizInfoMap);
     static ConnectionConfig addDefaultGrpcConfig(const ConnectionConfig &conf);
+
 private:
     mutable autil::ReadWriteLock _commonLock;
     mutable autil::ReadWriteLock _snapshotLock;
@@ -128,6 +133,9 @@ private:
     HeartbeatClientManagerPtr _heartbeatClientManager;
     bool _onlyHeartbeatSub;
     VersionTy _heartbeatVersion;
+    mutable autil::ThreadMutex _callbackLock;
+    SnapshotChangeCallback *_callback;
+
 private:
     AUTIL_LOG_DECLARE();
 };

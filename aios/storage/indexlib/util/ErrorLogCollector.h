@@ -18,6 +18,7 @@
 #include <atomic>
 #include <memory>
 
+#include "autil/EnvUtil.h"
 #include "autil/Log.h"
 
 #define ERROR_COLLECTOR_LOG(level, format, args...)                                                                    \
@@ -36,8 +37,8 @@
 
 #define DECLARE_ERROR_COLLECTOR_IDENTIFIER(identifier)                                                                 \
     indexlib::util::ErrorLogCollector::SetIdentifier(identifier);                                                      \
-    char* envStr = getenv("COLLECT_ERROR_LOG");                                                                        \
-    if (!envStr || std::string(envStr) != "false") {                                                                   \
+    string envStr = autil::EnvUtil::getEnv("COLLECT_ERROR_LOG");                                                       \
+    if (envStr.empty() || envStr != "false") {                                                                         \
         indexlib::util::ErrorLogCollector::EnableErrorLogCollect();                                                    \
     }
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "iquan/jni/DynamicParams.h"
+
 #include "iquan/common/IquanException.h"
 
 using namespace autil::legacy::json;
@@ -83,8 +84,8 @@ bool DynamicParams::findParamWithKey(const string &key, std::size_t sql_idx) con
 }
 
 bool DynamicParams::empty(size_t sql_idx) const {
-    if ((sql_idx >= _array.size() || _array[sql_idx].empty()) &&
-        (sql_idx >= _map.size() || _map[sql_idx].empty())) {
+    if ((sql_idx >= _array.size() || _array[sql_idx].empty())
+        && (sql_idx >= _map.size() || _map[sql_idx].empty())) {
         return true;
     } else {
         return false;
@@ -109,7 +110,7 @@ string DynamicParams::getHintParam(const string &key) const {
 }
 
 void DynamicParams::reserveOneSqlParams() {
-    _map.emplace_back(map<string, Any>{});
+    _map.emplace_back(map<string, Any> {});
 }
 
 } // namespace iquan

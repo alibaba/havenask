@@ -15,12 +15,12 @@
  */
 #include "autil/RoutingHashFunction.h"
 
-#include <stdio.h>
+#include <cmath>
 #include <cstdint>
 #include <iosfwd>
 #include <memory>
 #include <set>
-#include <cmath>
+#include <stdio.h>
 
 #include "autil/CommonMacros.h"
 #include "autil/HashAlgorithm.h"
@@ -82,8 +82,7 @@ bool RoutingHashFunction::init() {
         if (!parseHotValues(iter1->second, iter2->second)) {
             return false;
         } else {
-            AUTIL_LOG(DEBUG, "add hot values [%s], ratio [%s]",
-                      iter1->second.c_str(), iter2->second.c_str());
+            AUTIL_LOG(DEBUG, "add hot values [%s], ratio [%s]", iter1->second.c_str(), iter2->second.c_str());
         }
     }
     iter1 = _params.find(HOT_RANGES_KEY);
@@ -92,19 +91,17 @@ bool RoutingHashFunction::init() {
         if (!parseHotRanges(iter1->second, iter2->second)) {
             return false;
         } else {
-            AUTIL_LOG(DEBUG, "add hot ranges [%s], ratio [%s]",
-                      iter1->second.c_str(), iter2->second.c_str());
+            AUTIL_LOG(DEBUG, "add hot ranges [%s], ratio [%s]", iter1->second.c_str(), iter2->second.c_str());
         }
     }
     return true;
 }
 
-bool RoutingHashFunction::parseHotValues(const string& key, const string& value) {
+bool RoutingHashFunction::parseHotValues(const string &key, const string &value) {
     const vector<string> &hotValuesVec = StringUtil::split(key, VALUES_SEP);
     vector<string> hotValuesRatioVec = StringUtil::split(value, VALUES_SEP);
     if (hotValuesVec.size() != hotValuesRatioVec.size()) {
-        AUTIL_LOG(WARN, "size of hot values/ratios not equal [%s, %s]",
-                  key.c_str(), value.c_str());
+        AUTIL_LOG(WARN, "size of hot values/ratios not equal [%s, %s]", key.c_str(), value.c_str());
         return false;
     }
     for (size_t i = 0; i < hotValuesVec.size(); i++) {
@@ -127,12 +124,11 @@ bool RoutingHashFunction::parseHotValues(const string& key, const string& value)
     return true;
 }
 
-bool RoutingHashFunction:: parseHotRanges(const string& key, const string& value) {
+bool RoutingHashFunction::parseHotRanges(const string &key, const string &value) {
     const vector<string> &hotRangesVec = StringUtil::split(key, VALUES_SEP);
     vector<string> hotRangesRatioVec = StringUtil::split(value, VALUES_SEP);
     if (hotRangesVec.size() != hotRangesRatioVec.size()) {
-        AUTIL_LOG(WARN, "size of hot ranges/ratios not equal [%s, %s]",
-                  key.c_str(), value.c_str());
+        AUTIL_LOG(WARN, "size of hot ranges/ratios not equal [%s, %s]", key.c_str(), value.c_str());
         return false;
     }
     for (size_t i = 0; i < hotRangesVec.size(); i++) {
@@ -155,11 +151,11 @@ bool RoutingHashFunction:: parseHotRanges(const string& key, const string& value
                 AUTIL_LOG(WARN, "parse hot ranges [%s] faild.", hotRanges[j].c_str());
                 return false;
             }
-            if (start > end ) {
+            if (start > end) {
                 AUTIL_LOG(WARN, "range start [%u] greater than end [%u].", start, end);
                 return false;
             }
-            if (end >= _hashSize ) {
+            if (end >= _hashSize) {
                 AUTIL_LOG(WARN, "end [%u] greater than hash size [%u].", end, _hashSize);
                 return false;
             }
@@ -171,7 +167,7 @@ bool RoutingHashFunction:: parseHotRanges(const string& key, const string& value
     return true;
 }
 
-bool RoutingHashFunction::initFuncBase(const std::string& funcName) {
+bool RoutingHashFunction::initFuncBase(const std::string &funcName) {
     string name = funcName;
     StringUtil::trim(name);
     if (name.empty() || name == MY_HASH_FUNC_NAME) {
@@ -181,15 +177,11 @@ bool RoutingHashFunction::initFuncBase(const std::string& funcName) {
     return _funcBase != nullptr;
 }
 
-uint32_t RoutingHashFunction::getHashId(const string& str) const {
-    return getLogicId(str);
-}
+uint32_t RoutingHashFunction::getHashId(const string &str) const { return getLogicId(str); }
 
-uint32_t RoutingHashFunction::getHashId(const char *buf, size_t len) const {
-    return getLogicId(buf, len);
-}
+uint32_t RoutingHashFunction::getHashId(const char *buf, size_t len) const { return getLogicId(buf, len); }
 
-uint32_t RoutingHashFunction::getHashId(const vector<string>& strVec) const {
+uint32_t RoutingHashFunction::getHashId(const vector<string> &strVec) const {
     if (strVec.size() == 0) {
         return 0;
     } else if (strVec.size() == 1) {
@@ -197,14 +189,13 @@ uint32_t RoutingHashFunction::getHashId(const vector<string>& strVec) const {
     } else if (strVec.size() == 2) {
         return getHashId(strVec[0], strVec[1]);
     } else {
-        if (strVec[2].empty()){ 
+        if (strVec[2].empty()) {
             return getHashId(strVec[0], strVec[1]);
         } else {
             float routingRatio = 0;
             if (!StringUtil::fromString(strVec[2], routingRatio)) {
                 routingRatio = _routingRatio;
-                AUTIL_LOG(WARN, "parse ratio [%s] failed, use default ratio [%f]",
-                        strVec[2].c_str(), routingRatio);
+                AUTIL_LOG(WARN, "parse ratio [%s] failed, use default ratio [%f]", strVec[2].c_str(), routingRatio);
             }
             if (routingRatio < 0) {
                 AUTIL_LOG(WARN, "ratio [%f] is less than 0, use 0.", routingRatio);
@@ -219,7 +210,7 @@ uint32_t RoutingHashFunction::getHashId(const vector<string>& strVec) const {
     }
 }
 
-uint32_t RoutingHashFunction::getHashId(const string& str1, const string& str2) const {
+uint32_t RoutingHashFunction::getHashId(const string &str1, const string &str2) const {
     uint32_t first = getLogicId(str1);
     uint32_t secondLogicId = getLogicId(str2);
     uint32_t second = floor(secondLogicId * _hotRangeVec[first]);
@@ -230,13 +221,13 @@ uint32_t RoutingHashFunction::getHashId(const string& str1, const string& str2) 
     return (first + second) % _hashSize;
 }
 
-uint32_t RoutingHashFunction::getHashId(const string& str1, const string& str2, float ratio) const {
+uint32_t RoutingHashFunction::getHashId(const string &str1, const string &str2, float ratio) const {
     uint32_t first = getLogicId(str1);
     uint32_t second = floor(getLogicId(str2) * ratio);
     return (first + second) % _hashSize;
 }
 
-vector<pair<uint32_t, uint32_t> > RoutingHashFunction::getHashRange(uint32_t partId) const {
+vector<pair<uint32_t, uint32_t>> RoutingHashFunction::getHashRange(uint32_t partId) const {
     if (partId >= _hashSize) {
         return {};
     }
@@ -244,16 +235,14 @@ vector<pair<uint32_t, uint32_t> > RoutingHashFunction::getHashRange(uint32_t par
     return getInnerHashRange(partId, ratio);
 }
 
-vector<pair<uint32_t, uint32_t> > RoutingHashFunction::getHashRange(
-        uint32_t partId, float ratio) const
-{
+vector<pair<uint32_t, uint32_t>> RoutingHashFunction::getHashRange(uint32_t partId, float ratio) const {
     if (partId >= _hashSize || ratio < 0 || ratio > 1) {
         return {};
     }
     return getInnerHashRange(partId, ratio);
 }
 
-vector<pair<uint32_t, uint32_t> > RoutingHashFunction::getHashRange(const vector<string>& strVec) const {
+vector<pair<uint32_t, uint32_t>> RoutingHashFunction::getHashRange(const vector<string> &strVec) const {
     if (strVec.size() == 0) {
         return {};
     } else if (strVec.size() == 1) {
@@ -265,7 +254,7 @@ vector<pair<uint32_t, uint32_t> > RoutingHashFunction::getHashRange(const vector
             AUTIL_LOG(WARN, "parse ratio [%s] failed", strVec[1].c_str());
             return {};
         }
-        if (routingRatio < 0 || routingRatio > 1 ) {
+        if (routingRatio < 0 || routingRatio > 1) {
             AUTIL_LOG(WARN, "ratio [%f] not in [0, 1].", routingRatio);
             return {};
         }
@@ -273,7 +262,7 @@ vector<pair<uint32_t, uint32_t> > RoutingHashFunction::getHashRange(const vector
     }
 }
 
-vector<pair<uint32_t, uint32_t> > RoutingHashFunction::getInnerHashRange(const string& str) const {
+vector<pair<uint32_t, uint32_t>> RoutingHashFunction::getInnerHashRange(const string &str) const {
     uint32_t first = getLogicId(str);
     float ratio = _hotRangeVec[first];
     auto iter = _hotValueMap.find(str);
@@ -283,18 +272,14 @@ vector<pair<uint32_t, uint32_t> > RoutingHashFunction::getInnerHashRange(const s
     return getInnerHashRange(first, ratio);
 }
 
-vector<pair<uint32_t, uint32_t> > RoutingHashFunction::getInnerHashRange(
-        const string& str, float ratio) const
-{
+vector<pair<uint32_t, uint32_t>> RoutingHashFunction::getInnerHashRange(const string &str, float ratio) const {
     uint32_t h1 = getLogicId(str);
     return getInnerHashRange(h1, ratio);
 }
 
-vector<pair<uint32_t, uint32_t> > RoutingHashFunction::getInnerHashRange(
-        uint32_t logicId, float ratio) const
-{
-    uint32_t count = floor((_hashSize - 1 ) * ratio);
-    vector<pair<uint32_t, uint32_t> > rangeVec;
+vector<pair<uint32_t, uint32_t>> RoutingHashFunction::getInnerHashRange(uint32_t logicId, float ratio) const {
+    uint32_t count = floor((_hashSize - 1) * ratio);
+    vector<pair<uint32_t, uint32_t>> rangeVec;
     if (logicId + count >= _hashSize) {
         rangeVec.emplace_back(logicId, _hashSize - 1);
         rangeVec.emplace_back(0, (logicId + count) % _hashSize);
@@ -304,9 +289,7 @@ vector<pair<uint32_t, uint32_t> > RoutingHashFunction::getInnerHashRange(
     return rangeVec;
 }
 
-uint32_t RoutingHashFunction::getLogicId(const std::string& str) const {
-    return getLogicId(str.c_str(), str.length());
-}
+uint32_t RoutingHashFunction::getLogicId(const std::string &str) const { return getLogicId(str.c_str(), str.length()); }
 
 uint32_t RoutingHashFunction::getLogicId(const char *buf, size_t len) const {
     if (likely(_funcBase == nullptr)) {
@@ -317,4 +300,4 @@ uint32_t RoutingHashFunction::getLogicId(const char *buf, size_t len) const {
     }
 }
 
-}
+} // namespace autil

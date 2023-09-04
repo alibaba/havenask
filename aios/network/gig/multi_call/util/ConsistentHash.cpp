@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/util/ConsistentHash.h"
-#include "aios/network/gig/multi_call/common/ControllerParam.h"
+
 #include <algorithm>
+
+#include "aios/network/gig/multi_call/common/ControllerParam.h"
 
 using namespace std;
 
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, ConsistentHash);
 
-bool HashNode::operator<(const HashNode &rha) const { return key < rha.key; }
+bool HashNode::operator<(const HashNode &rha) const {
+    return key < rha.key;
+}
 
-ConsistentHash::ConsistentHash()
-    : _virtualNodeCount(0), _hashCircleSize(0), _hashCircle(NULL) {}
+ConsistentHash::ConsistentHash() : _virtualNodeCount(0), _hashCircleSize(0), _hashCircle(NULL) {
+}
 
 ConsistentHash::~ConsistentHash() {
     _hashCircleSize = 0;
@@ -68,7 +72,9 @@ ConsistentHash::Iterator ConsistentHash::get(uint64_t key) const {
     return it;
 }
 
-ConsistentHash::Iterator ConsistentHash::begin() const { return _hashCircle; }
+ConsistentHash::Iterator ConsistentHash::begin() const {
+    return _hashCircle;
+}
 ConsistentHash::Iterator ConsistentHash::end() const {
     return _hashCircle + _hashCircleSize;
 }

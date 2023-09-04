@@ -33,7 +33,7 @@ class DeletionMapIndexReader;
 } // namespace indexlibv2::index
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 class InvertedIndexConfig;
 } // namespace indexlibv2::config
 
@@ -45,37 +45,45 @@ class NormalTabletSearcher
 {
 public:
     NormalTabletSearcher(const NormalTabletReader* normalTabletReader);
+    virtual ~NormalTabletSearcher();
 
 public:
-    /* json format:
+    /* protobuf query.proto:PartitionQuery to json
+     json format:
      {
-        "docid_list" : [ 0, 1, ...],
-        "pk_list" : [ "key1", "key2", ...],
+        "docid" : [ 0, 1, ...],
+        "pk" : [ "key1", "key2", ...],
         "condition" : {
-            "index_name" : "index1",
+            "indexName" : "index1",
+            "truncateName" : "trunc1",
             "values" : [ "value1", "value2", ...]
         },
-        "ignore_deletionmap" : false,
-        "truncate_name" : "__bitmap__",
+        "ignoreDeletionMap" : false,
+        "truncateName" : "__bitmap__",
         "limit" : 10,
-        "attributes" : ["attr1", "attr2", ...]
+        "attrs" : ["attr1", "attr2", ...],
+        "pkNumber" : [5435621, 45938278, ...],
+        "needSectionInfo" : false,
+        "summarys" : ["summary1", "summary2", ...]
      }
      */
     Status Search(const std::string& jsonQuery, std::string& result) const;
-    Status QueryIndex(const base::PartitionQuery& query, base::PartitionResponse& partitionResponse) const;
+    virtual Status QueryIndex(const base::PartitionQuery& query, base::PartitionResponse& partitionResponse) const;
     Status QueryDocIds(const base::PartitionQuery& query, base::PartitionResponse& partitionResponse,
                        std::vector<docid_t>& docids) const;
 
-private:
+protected:
     enum class IndexTableQueryType { Unknown, ByDocid, ByRawPk, ByPkHash, ByCondition };
-
     static Status ValidateQuery(const base::PartitionQuery& query, IndexTableQueryType& queryType);
 
+private:
     static Status ValidateDocIds(const std::shared_ptr<index::DeletionMapIndexReader>& deletionMapReader,
                                  const std::vector<docid_t>& docids);
 
-    static std::vector<std::string> ValidateAttrs(const std::shared_ptr<config::TabletSchema>& tabletSchema,
+    static std::vector<std::string> ValidateAttrs(const std::shared_ptr<config::ITabletSchema>& tabletSchema,
                                                   const std::vector<std::string>& attrs);
+    static std::vector<std::string> ValidateSummarys(const std::shared_ptr<config::ITabletSchema>& tabletSchema,
+                                                     const std::vector<std::string>& summarys);
 
     static Status QueryDocIdsByTerm(const std::shared_ptr<indexlib::index::InvertedIndexReader>& indexReader,
                                     const std::shared_ptr<index::DeletionMapIndexReader>& deletionMapReader,
@@ -99,10 +107,12 @@ private:
                                 const std::vector<uint64_t>& pkList, const int64_t limit,
                                 std::vector<docid_t>& docIds) const;
 
-    Status QueryRowByDocId(const docid_t docid, const std::vector<std::string>& attrs, base::Row& row) const;
+    Status QueryRowAttrByDocId(const docid_t docid, const std::vector<std::string>& attrs, base::Row& row) const;
+    Status QueryRowSummaryByDocId(const docid_t docid, const std::vector<std::string>& summarys, base::Row& row) const;
 
-    Status QueryIndexByDocId(const std::vector<std::string>& attrs, const std::vector<docid_t>& docids,
-                             const int64_t limit, base::PartitionResponse& partitionResponse) const;
+    Status QueryIndexByDocId(const std::vector<std::string>& attrs, const std::vector<std::string>& summarys,
+                             const std::vector<docid_t>& docids, const int64_t limit,
+                             base::PartitionResponse& partitionResponse) const;
 
     static bool ParseRangeQueryStr(const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& indexConfig,
                                    const std::string& range, int64_t& leftTimestamp, int64_t& rightTimestamp);
@@ -110,7 +120,7 @@ private:
     static bool ParseTimestamp(const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& indexConfig,
                                const std::string& str, int64_t& value);
 
-private:
+protected:
     const NormalTabletReader* _normalTabletReader = nullptr;
 
 private:

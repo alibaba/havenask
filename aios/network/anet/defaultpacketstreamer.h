@@ -22,12 +22,11 @@ namespace anet {
 
 class DefaultPacketStreamer : public IPacketStreamer {
 public:
-
     DefaultPacketStreamer(IPacketFactory *factory);
 
     ~DefaultPacketStreamer();
 
-    virtual StreamingContext* createContext();
+    virtual StreamingContext *createContext();
 
     /**
      * get information about the packet in input data buffer
@@ -49,16 +48,15 @@ public:
 
     /**
      * encode a packet into output data buffer
-     * 
+     *
      * @param packet packet to be encoded
      * @param output output data buffer
      * @return return true if we finished encode. return false if not
      */
     bool encode(Packet *packet, DataBuffer *output);
 
-    bool processData(DataBuffer *dataBuffer, StreamingContext *context); 
-
+    bool processData(DataBuffer *dataBuffer, StreamingContext *context);
 };
-}
+} // namespace anet
 
 #endif /*DEFAULT_PACKET_STREAMER_H_*/

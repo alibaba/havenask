@@ -61,6 +61,7 @@ std::shared_ptr<InvertedIndexConfig> RangeIndexConfig::GetBottomLevelIndexConfig
         _impl->bottomLevelConfig = make_shared<RangeIndexConfig>(*this);
         _impl->bottomLevelConfig->SetIndexName(RangeIndexConfig::GetBottomLevelIndexName(GetIndexName()));
         _impl->bottomLevelConfig->SetFileCompressConfig(GetFileCompressConfig());
+        _impl->bottomLevelConfig->SetFileCompressConfigV2(GetFileCompressConfigV2());
     }
     return _impl->bottomLevelConfig;
 }
@@ -71,6 +72,7 @@ std::shared_ptr<InvertedIndexConfig> RangeIndexConfig::GetHighLevelIndexConfig()
         _impl->highLevelConfig = make_shared<RangeIndexConfig>(*this);
         _impl->highLevelConfig->SetIndexName(RangeIndexConfig::GetHighLevelIndexName(GetIndexName()));
         _impl->highLevelConfig->SetFileCompressConfig(GetFileCompressConfig());
+        _impl->highLevelConfig->SetFileCompressConfigV2(GetFileCompressConfigV2());
     }
     return _impl->highLevelConfig;
 }

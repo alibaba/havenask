@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/RetryLimitChecker.h"
+
 #include "autil/TimeUtility.h"
 
 using namespace std;
@@ -23,12 +24,13 @@ namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, RetryCheckerItem);
 AUTIL_LOG_SETUP(multi_call, RetryLimitChecker);
 
-RetryLimitChecker::RetryLimitChecker() {}
+RetryLimitChecker::RetryLimitChecker() {
+}
 
-RetryLimitChecker::~RetryLimitChecker() {}
+RetryLimitChecker::~RetryLimitChecker() {
+}
 
-bool RetryCheckerItem::canRetry(int64_t currentTimeInSeconds,
-                                int32_t retryCountLimit) {
+bool RetryCheckerItem::canRetry(int64_t currentTimeInSeconds, int32_t retryCountLimit) {
     if (retryCountLimit < 0) {
         return true;
     }
@@ -46,8 +48,7 @@ bool RetryCheckerItem::canRetry(int64_t currentTimeInSeconds,
         }
         retryCountPerSecond++;
         if (retryCountPerSecond == retryCountLimit) {
-            AUTIL_LOG(WARN, "first reach retry count limit[%d]",
-                      retryCountPerSecond);
+            AUTIL_LOG(WARN, "first reach retry count limit[%d]", retryCountPerSecond);
         }
         return true;
     }
@@ -62,8 +63,9 @@ bool RetryCheckerItem::canRetry(int64_t currentTimeInSeconds,
     return true;
 }
 
-bool RetryLimitChecker::canRetry(const string &strategy, int64_t currentTimeInSeconds, int32_t retryCountLimit) {
-    RetryCheckerItem* item = nullptr;
+bool RetryLimitChecker::canRetry(const string &strategy, int64_t currentTimeInSeconds,
+                                 int32_t retryCountLimit) {
+    RetryCheckerItem *item = nullptr;
     {
         ScopedReadLock rlock(_checkerLock);
         auto iter = _StrategyRetryChecker.find(strategy);

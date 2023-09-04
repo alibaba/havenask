@@ -15,6 +15,7 @@
  */
 #include "indexlib/table/index_task/LocalTabletMergeController.h"
 
+#include "autil/EnvUtil.h"
 #include "indexlib/base/PathUtil.h"
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/config/TabletSchema.h"
@@ -23,6 +24,7 @@
 #include "indexlib/framework/VersionLoader.h"
 #include "indexlib/framework/VersionValidator.h"
 #include "indexlib/framework/index_task/IndexTaskContextCreator.h"
+#include "indexlib/framework/index_task/IndexTaskResourceManager.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/util/EpochIdUtil.h"
 #include "indexlib/util/PathUtil.h"
@@ -93,6 +95,43 @@ future_lite::coro::Lazy<std::pair<Status, versionid_t>> LocalTabletMergeControll
 
 void LocalTabletMergeController::TEST_SetClock(const std::shared_ptr<util::Clock>& clock) { _clock = clock; }
 
+struct Env {
+    std::shared_ptr<framework::IndexTaskContext> ctx;
+    std::shared_ptr<framework::IndexTaskPlan> plan;
+    std::shared_ptr<framework::LocalExecuteEngine> engine;
+};
+
+std::pair<Status, std::shared_ptr<Env>> LocalTabletMergeController::CloneEnv(framework::IndexTaskContext* context)
+{
+    Status status;
+    auto env = std::make_shared<Env>();
+    env->ctx = CreateTaskContext(context->GetBaseVersionId(), context->GetTaskType(), context->GetTaskName(),
+                                 context->GetAllParameters());
+    if (env->ctx == nullptr) {
+        return {Status::InternalError("create task context failed"), nullptr};
+    }
+    auto planCreator = _tabletFactory->CreateIndexTaskPlanCreator();
+    if (planCreator == nullptr) {
+        return {Status::InternalError("create task plan creator failed"), nullptr};
+    }
+    std::tie(status, env->plan) = planCreator->CreateTaskPlan(env->ctx.get());
+    if (!status.IsOK()) {
+        return {status, nullptr};
+    }
+    if (env->plan == nullptr) {
+        assert(false);
+        return {Status::InternalError("empty plan, do not merge"), nullptr};
+    }
+    auto extendResources = context->GetResourceManager()->TEST_GetExtendResources();
+    env->ctx->GetResourceManager()->TEST_SetExtendResources(extendResources);
+    auto opCreator = _tabletFactory->CreateIndexOperationCreator(env->ctx->GetTabletSchema());
+    if (opCreator == nullptr) {
+        return {Status::Corruption("create index operation creator failed"), nullptr};
+    }
+    env->engine = std::make_shared<framework::LocalExecuteEngine>(_initParam.executor, std::move(opCreator));
+    return {Status::OK(), env};
+}
+
 future_lite::coro::Lazy<Status>
 LocalTabletMergeController::SubmitMergeTask(std::unique_ptr<framework::IndexTaskPlan> plan,
                                             framework::IndexTaskContext* context)
@@ -117,9 +156,40 @@ LocalTabletMergeController::SubmitMergeTask(std::unique_ptr<framework::IndexTask
     taskInfo.taskEpochId = context->GetTaskEpochId();
 
     SetTaskInfo(taskInfo);
-
-    auto status = co_await engine.ScheduleTask(*plan, context);
+    Status status;
+    std::string resultStr;
     framework::MergeTaskStatus taskStatus;
+    if (autil::EnvUtil::getEnv("IS_TEST_MODE", false)) {
+        size_t parallelNum = autil::EnvUtil::getEnv("TEST_LOCAL_ENGINE_PARALLEL_NUM", 2);
+        std::vector<std::shared_ptr<Env>> envs;
+        std::vector<future_lite::coro::Lazy<Status>> tasks;
+        for (size_t i = 0; i < parallelNum; i++) {
+            auto [s, env] = CloneEnv(context);
+            if (!s.IsOK()) {
+                taskInfo.taskStatus.code = framework::MergeTaskStatus::ERROR;
+                SetTaskInfo(taskInfo);
+                AUTIL_LOG(ERROR, "%s", status.ToString().c_str());
+                co_return s;
+            }
+            envs.push_back(env);
+        }
+        for (auto& env : envs) {
+            tasks.push_back(env->engine->ScheduleTask(*(env->plan), env->ctx.get()));
+        }
+        auto rets = co_await future_lite::coro::collectAll(std::move(tasks));
+        size_t idx = 0;
+        status = rets[idx].value();
+        for (size_t i = 0; i < parallelNum; i++) {
+            if (rets[i].value().IsOK()) {
+                idx = i;
+                status = rets[i].value();
+            }
+        }
+        resultStr = envs[idx]->ctx->GetResult();
+    } else {
+        status = co_await engine.ScheduleTask(*plan, context);
+        resultStr = context->GetResult();
+    }
     taskStatus.baseVersion = baseVersion;
     if (!status.IsOK()) {
         taskInfo.taskStatus.code = framework::MergeTaskStatus::ERROR;
@@ -127,7 +197,6 @@ LocalTabletMergeController::SubmitMergeTask(std::unique_ptr<framework::IndexTask
         AUTIL_LOG(ERROR, "schedule task failed: %s", status.ToString().c_str());
         co_return status;
     }
-    auto resultStr = context->GetResult();
     AUTIL_LOG(INFO, "merge result: %s", resultStr.c_str());
     if (resultStr.empty()) {
         taskInfo.taskStatus.code = framework::MergeTaskStatus::ERROR;
@@ -143,6 +212,8 @@ LocalTabletMergeController::SubmitMergeTask(std::unique_ptr<framework::IndexTask
         co_return status;
     }
     if (result.targetVersionId == INVALID_VERSIONID) {
+        taskInfo.taskStatus.code = framework::MergeTaskStatus::ERROR;
+        SetTaskInfo(taskInfo);
         AUTIL_LOG(ERROR, "invalid target version id");
         co_return Status::Corruption("invalid target version id.");
     }
@@ -214,16 +285,6 @@ std::string LocalTabletMergeController::GenerateEpochId() const
     return indexlib::util::EpochIdUtil::GenerateEpochId(autil::TimeUtility::currentTimeInMicroSeconds());
 }
 
-bool LocalTabletMergeController::NeedSetDesignateTask(const std::map<std::string, std::string>& params) const
-{
-    auto iter = params.find(indexlibv2::table::IS_DESIGNATE_TASK);
-    if (iter == params.end()) {
-        return false;
-    }
-    bool value = false;
-    return autil::StringUtil::fromString(iter->second, value) && value;
-}
-
 std::unique_ptr<framework::IndexTaskContext>
 LocalTabletMergeController::CreateTaskContext(versionid_t baseVersionId, const std::string& taskType,
                                               const std::string& taskName,
@@ -244,10 +305,12 @@ LocalTabletMergeController::CreateTaskContext(versionid_t baseVersionId, const s
         .SetDestDirectory(_initParam.partitionIndexRoot)
         .SetMetricProvider(_initParam.metricProvider)
         .SetClock(_clock)
+        .SetTaskType(taskType)
+        .SetTaskName(taskName)
         .AddSourceVersion(sourceVersionRoot, baseVersionId)
         .SetTaskParams(params)
         .AddParameter(BRANCH_ID, std::to_string(_initParam.branchId));
-    if (NeedSetDesignateTask(params)) {
+    if (!taskType.empty()) {
         contextCreator.SetDesignateTask(taskType, taskName);
     }
     return contextCreator.CreateContext();

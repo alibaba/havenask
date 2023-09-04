@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 #include "aios/network/http_arpc/HTTPRPCServer.h"
-#include "aios/network/http_arpc/HTTPRPCServerWorkItem.h"
-#include "aios/network/http_arpc/HTTPRPCServerAdapter.h"
-#include "aios/network/http_arpc/Log.h"
+
+#include "aios/autil/autil/Lock.h"
 #include "aios/network/anet/anet.h"
 #include "aios/network/arpc/arpc/ANetRPCServer.h"
-#include "autil/LockFreeThreadPool.h"
-#include "aios/autil/autil/Lock.h"
 #include "aios/network/arpc/arpc/RPCServer.h"
 #include "aios/network/http_arpc/HTTPANetApp.h"
+#include "aios/network/http_arpc/HTTPRPCServerAdapter.h"
+#include "aios/network/http_arpc/HTTPRPCServerWorkItem.h"
+#include "aios/network/http_arpc/Log.h"
+#include "autil/LockFreeThreadPool.h"
 
 using namespace std;
 using namespace anet;
@@ -52,11 +53,9 @@ public:
         , _defaultQueueSize(queueSize)
         , _decodeUri(decodeUri)
         , _haCompatible(haCompatible)
-        , _serverAdapter(httpRpcServer)
-    {
-    }
-    ~HTTPRPCServerImpl() {
-    }
+        , _serverAdapter(httpRpcServer) {}
+    ~HTTPRPCServerImpl() {}
+
 public:
     void addDefaultThreadPool() {
         autil::ScopedLock lock(_threadPoolMutex);
@@ -65,8 +64,8 @@ public:
             return;
         }
 
-        autil::ThreadPoolBasePtr threadPoolPtr(new autil::ThreadPool(_defaultThreadNum, _defaultQueueSize, 
-                                        autil::WorkItemQueueFactoryPtr(), DEFAULT_HTTP_TREAHDPOOL_NAME));
+        autil::ThreadPoolBasePtr threadPoolPtr(new autil::ThreadPool(
+            _defaultThreadNum, _defaultQueueSize, autil::WorkItemQueueFactoryPtr(), DEFAULT_HTTP_TREAHDPOOL_NAME));
 
         _threadPoolMap[DEFAULT_HTTP_TREAHDPOOL_NAME] = threadPoolPtr;
     }
@@ -81,9 +80,7 @@ public:
         return autil::ThreadPoolBasePtr();
     }
 
-    bool addAndStartThreadPool(const string &threadPoolName,
-                               size_t threadNum, size_t queueSize)
-    {
+    bool addAndStartThreadPool(const string &threadPoolName, size_t threadNum, size_t queueSize) {
         autil::ScopedLock lock(_threadPoolMutex);
 
         ThreadPoolMap::const_iterator it = _threadPoolMap.find(threadPoolName);
@@ -96,8 +93,8 @@ public:
             queueSize = _defaultQueueSize;
         }
 
-        autil::ThreadPoolBasePtr threadPoolPtr(new autil::ThreadPool(threadNum, queueSize,
-                                    autil::WorkItemQueueFactoryPtr(), threadPoolName));
+        autil::ThreadPoolBasePtr threadPoolPtr(
+            new autil::ThreadPool(threadNum, queueSize, autil::WorkItemQueueFactoryPtr(), threadPoolName));
 
         if (!threadPoolPtr->start()) {
             ARPC_LOG(ERROR, "start thread pool failed");
@@ -128,8 +125,7 @@ public:
 
     autil::ThreadPoolBasePtr GetServiceThreadPool(RPCService *rpcService) const {
         autil::ScopedLock lock(_serviceThreadPoolMutex);
-        ServiceThreadPoolMap::const_iterator it =
-            _serviceThreadPoolMap.find(rpcService);
+        ServiceThreadPoolMap::const_iterator it = _serviceThreadPoolMap.find(rpcService);
         if (it != _serviceThreadPoolMap.end()) {
             return it->second;
         }
@@ -137,9 +133,7 @@ public:
         return autil::ThreadPoolBasePtr();
     }
 
-    void SetServiceThreadPool(RPCService *rpcService,
-                              const autil::ThreadPoolBasePtr &threadPool)
-    {
+    void SetServiceThreadPool(RPCService *rpcService, const autil::ThreadPoolBasePtr &threadPool) {
         autil::ScopedLock lock(_serviceThreadPoolMutex);
         _serviceThreadPoolMap[rpcService] = threadPool;
     }
@@ -152,9 +146,10 @@ public:
         }
         _threadPoolMap.clear();
     }
+
 public:
     typedef std::map<std::string, autil::ThreadPoolBasePtr> ThreadPoolMap;
-    typedef std::map<RPCService*, autil::ThreadPoolBasePtr> ServiceThreadPoolMap;
+    typedef std::map<RPCService *, autil::ThreadPoolBasePtr> ServiceThreadPoolMap;
 
 public:
     HTTPANetApp _anetApp;
@@ -172,16 +167,11 @@ public:
 
     HTTPRPCServerAdapter _serverAdapter;
     autil::ThreadMutex _ioComponentMutex;
-    list<IOComponent*> _ioComponentList;
+    list<IOComponent *> _ioComponentList;
 };
 
-HTTPRPCServer::HTTPRPCServer(ANetRPCServer *rpcServer,
-                             Transport *transport,
-                             size_t threadNum,
-                             size_t queueSize)
-    : _impl(new HTTPRPCServerImpl(rpcServer, this, transport, threadNum,
-                                  queueSize, false, false))
-{
+HTTPRPCServer::HTTPRPCServer(ANetRPCServer *rpcServer, Transport *transport, size_t threadNum, size_t queueSize)
+    : _impl(new HTTPRPCServerImpl(rpcServer, this, transport, threadNum, queueSize, false, false)) {
     _impl->addDefaultThreadPool();
     registerService();
 }
@@ -192,13 +182,10 @@ HTTPRPCServer::HTTPRPCServer(ANetRPCServer *rpcServer,
                              size_t queueSize,
                              bool decodeUri,
                              bool haCompatible)
-    : _impl(new HTTPRPCServerImpl(rpcServer, this, transport, threadNum,
-                                  queueSize, decodeUri, haCompatible))
-{
+    : _impl(new HTTPRPCServerImpl(rpcServer, this, transport, threadNum, queueSize, decodeUri, haCompatible)) {
     _impl->addDefaultThreadPool();
     registerService();
 }
-
 
 HTTPRPCServer::~HTTPRPCServer() {
     Close();
@@ -209,35 +196,35 @@ void HTTPRPCServer::registerService() {
     if (!_impl->_rpcServer) {
         return;
     }
-    ScopedReadLock lock(_methodMapMutex);
-    const ANetRPCServer::RPCCallMap &rpcCallMap =
-        _impl->_rpcServer->GetRPCCallMap();
-    for (ANetRPCServer::RPCCallMap::const_iterator it =
-             rpcCallMap.begin(); it != rpcCallMap.end(); ++it) {
-        string key = "/" + it->second.first->GetDescriptor()->name() +
-                     "/" + it->second.second->name();
-        _impl->_rpcNameMap[key] = it->second;
-        _impl->SetServiceThreadPool(it->second.first,
-                _impl->GetThreadPool(DEFAULT_HTTP_TREAHDPOOL_NAME));
+    {
+        ScopedWriteLock lock(_methodMapMutex);
+        const ANetRPCServer::RPCCallMap &rpcCallMap = _impl->_rpcServer->GetRPCCallMap();
+        _impl->_rpcNameMap.clear();
+        for (ANetRPCServer::RPCCallMap::const_iterator it = rpcCallMap.begin(); it != rpcCallMap.end(); ++it) {
+            string key = "/" + it->second.first.second->GetDescriptor()->name() + "/" + it->second.second->name();
+            _impl->_rpcNameMap[key] = it->second;
+            _impl->SetServiceThreadPool(it->second.first.second, _impl->GetThreadPool(DEFAULT_HTTP_TREAHDPOOL_NAME));
+        }
+        for (auto it = _aliasMap.begin(); it != _aliasMap.end(); it++) {
+            const string &to = it->first;
+            const string &from = it->second;
+            auto rit = _impl->_rpcNameMap.find(from);
+            if (rit == _impl->_rpcNameMap.end()) {
+                HTTP_ARPC_LOG(WARN, "add alias from[%s] to[%s] failed", from.c_str(), to.c_str());
+                continue;
+            }
+            _impl->_rpcNameMap[to] = rit->second;
+        }
     }
+    refreshAddMethod();
 }
 
 bool HTTPRPCServer::addAlias(const AliasMap &aliasMap) {
-    ScopedWriteLock lock(_methodMapMutex);
-
-    for (AliasMap::const_iterator it = aliasMap.begin();
-         it != aliasMap.end(); it++)
     {
-        const string &to = it->first;
-        const string &from = it->second;
-        RPCNameMap::const_iterator rit = _impl->_rpcNameMap.find(from);
-        if (rit == _impl->_rpcNameMap.end()) {
-            HTTP_ARPC_LOG(WARN, "add alias from[%s] to[%s] failed",
-                          from.c_str(), to.c_str());
-            continue;
-        }
-        _impl->_rpcNameMap[to] = rit->second;
+        ScopedWriteLock lock(_methodMapMutex);
+        _aliasMap.insert(aliasMap.begin(), aliasMap.end());
     }
+    registerService();
     return true;
 }
 
@@ -245,32 +232,20 @@ std::vector<std::string> HTTPRPCServer::getRPCNames() {
     ScopedReadLock lock(_methodMapMutex);
     RPCNameMap &rpcMap = _impl->_rpcNameMap;
     vector<string> names;
-    for (RPCNameMap::const_iterator it = rpcMap.begin();
-         it != rpcMap.end(); ++it)
-    {
+    for (RPCNameMap::const_iterator it = rpcMap.begin(); it != rpcMap.end(); ++it) {
         names.push_back(it->first);
     }
     return names;
 }
 
-bool HTTPRPCServer::StartPrivateTransport() {
-    return _impl->_anetApp.StartPrivateTransport();
-}
+bool HTTPRPCServer::StartPrivateTransport() { return _impl->_anetApp.StartPrivateTransport(); }
 
-bool HTTPRPCServer::StopPrivateTransport() {
-    return _impl->_anetApp.StopPrivateTransport();
-}
+bool HTTPRPCServer::StopPrivateTransport() { return _impl->_anetApp.StopPrivateTransport(); }
 
-bool HTTPRPCServer::StartThreads() {
-    return _impl->GetThreadPool(DEFAULT_HTTP_TREAHDPOOL_NAME)->start();
-}
+bool HTTPRPCServer::StartThreads() { return _impl->GetThreadPool(DEFAULT_HTTP_TREAHDPOOL_NAME)->start(); }
 
-bool HTTPRPCServer::Listen(const string &spec,
-                           int timeout, int maxIdleTime, int backlog)
-{
-    IOComponent *ioComponent
-        = _impl->_anetApp.Listen(spec, &_impl->_serverAdapter,
-                timeout, maxIdleTime, backlog);
+bool HTTPRPCServer::Listen(const string &spec, int timeout, int maxIdleTime, int backlog) {
+    IOComponent *ioComponent = _impl->_anetApp.Listen(spec, &_impl->_serverAdapter, timeout, maxIdleTime, backlog);
     if (ioComponent == NULL) {
         HTTP_ARPC_LOG(ERROR, "http arpc listen failed");
         return false;
@@ -285,15 +260,14 @@ bool HTTPRPCServer::Listen(const string &spec,
     return true;
 }
 
-bool HTTPRPCServer::PushItem(RPCService* service, HTTPRPCServerWorkItem *workItem) {
+bool HTTPRPCServer::PushItem(RPCService *service, HTTPRPCServerWorkItem *workItem) {
 
     autil::ThreadPoolBasePtr threadPoolPtr = _impl->GetServiceThreadPool(service);
     if (!threadPoolPtr) {
         HTTP_ARPC_LOG(ERROR, "can't find threadpool");
         return false;
     }
-    autil::ThreadPool::ERROR_TYPE code =
-        threadPoolPtr->pushWorkItem(workItem, false);
+    autil::ThreadPool::ERROR_TYPE code = threadPoolPtr->pushWorkItem(workItem, false);
     if (code != autil::ThreadPool::ERROR_NONE) {
         HTTP_ARPC_LOG(ERROR, "drop work item");
         delete workItem;
@@ -302,9 +276,7 @@ bool HTTPRPCServer::PushItem(RPCService* service, HTTPRPCServerWorkItem *workIte
     return true;
 }
 
-ServiceMethodPair HTTPRPCServer::getMethod(
-        const std::string &serviceAndMethod)
-{
+ServiceMethodPair HTTPRPCServer::getMethod(const std::string &serviceAndMethod) {
     ScopedReadLock lock(_methodMapMutex);
     RPCNameMap::const_iterator it = _impl->_rpcNameMap.find(serviceAndMethod);
     if (it != _impl->_rpcNameMap.end()) {
@@ -317,8 +289,8 @@ ServiceMethodPair HTTPRPCServer::getMethod(
 void HTTPRPCServer::Close() {
     {
         autil::ScopedLock lock(_impl->_ioComponentMutex);
-        list<IOComponent*>::iterator it =_impl->_ioComponentList.begin();
-        for(; it != _impl->_ioComponentList.end(); ++it) {
+        list<IOComponent *>::iterator it = _impl->_ioComponentList.begin();
+        for (; it != _impl->_ioComponentList.end(); ++it) {
             (*it)->close();
             (*it)->subRef();
         }
@@ -326,81 +298,77 @@ void HTTPRPCServer::Close() {
     }
 }
 
-int HTTPRPCServer::getPort() {
-    return _listenPort;
-}
-void HTTPRPCServer::setProtoJsonizer(const ProtoJsonizerPtr& protoJsonizer) {
+int HTTPRPCServer::getPort() { return _listenPort; }
+void HTTPRPCServer::setProtoJsonizer(const ProtoJsonizerPtr &protoJsonizer) {
     _impl->_serverAdapter.setProtoJsonizer(protoJsonizer);
 }
 
-ProtoJsonizerPtr HTTPRPCServer::getProtoJsonizer() {
-    return _impl->_serverAdapter.getProtoJsonizer();
+ProtoJsonizerPtr HTTPRPCServer::getProtoJsonizer() { return _impl->_serverAdapter.getProtoJsonizer(); }
+
+bool HTTPRPCServer::setProtoJsonizer(RPCService *service,
+                                     const std::string &method,
+                                     const ProtoJsonizerPtr &protoJsonizer) {
+    return _impl->_serverAdapter.setProtoJsonizer(service, method, protoJsonizer);
 }
 
-bool HTTPRPCServer::needDecodeUri() {
-    return _impl->_decodeUri;
-}
+bool HTTPRPCServer::needDecodeUri() { return _impl->_decodeUri; }
 
-bool HTTPRPCServer::haCompatible() {
-    return _impl->_haCompatible;
+bool HTTPRPCServer::haCompatible() { return _impl->_haCompatible; }
+
+bool HTTPRPCServer::addMethod(const string &methodName, ServiceMethodPair &methodPair) {
+    return addMethod(
+        methodName,
+        methodPair,
+        ThreadPoolDescriptor(DEFAULT_HTTP_TREAHDPOOL_NAME, _impl->_defaultThreadNum, _impl->_defaultQueueSize));
 }
 
 bool HTTPRPCServer::addMethod(const string &methodName,
-                              ServiceMethodPair& methodPair)
-{
-    return addMethod(methodName, methodPair, ThreadPoolDescriptor(
-                    DEFAULT_HTTP_TREAHDPOOL_NAME,
-                    _impl->_defaultThreadNum,
-                    _impl->_defaultQueueSize));
+                              const ServiceMethodPair &methodPair,
+                              const ThreadPoolDescriptor &threadPoolDescriptor) {
+    _addMethods[methodName] = std::make_pair(methodPair, threadPoolDescriptor);
+    return refreshAddMethod();
 }
 
-bool HTTPRPCServer::addMethod(const string &methodName,
-                              const ServiceMethodPair& methodPair,
-                              const ThreadPoolDescriptor &threadPoolDescriptor)
-{
-    if (!_impl->addAndStartThreadPool(threadPoolDescriptor.threadPoolName,
-                    threadPoolDescriptor.threadNum,
-                    threadPoolDescriptor.queueSize)) {
-        HTTP_ARPC_LOG(ERROR, "start thread pool failed");
-        return false;
-    }
-
-    {
-        ScopedWriteLock lock(_methodMapMutex);
-        RPCNameMap::const_iterator it = _impl->_rpcNameMap.find(methodName);
-        if (it != _impl->_rpcNameMap.end()) {
-            HTTP_ARPC_LOG(ERROR, "%s already exist", methodName.c_str());
-            return false;
+bool HTTPRPCServer::refreshAddMethod() {
+    bool ret = true;
+    for (const auto &pair : _addMethods) {
+        const auto &methodName = pair.first;
+        const auto &methodPair = pair.second.first;
+        const auto &threadPoolDescriptor = pair.second.second;
+        if (!_impl->addAndStartThreadPool(
+                threadPoolDescriptor.threadPoolName, threadPoolDescriptor.threadNum, threadPoolDescriptor.queueSize)) {
+            HTTP_ARPC_LOG(ERROR, "start thread pool failed");
+            ret = false;
+            continue;
         }
-        _impl->_rpcNameMap[methodName] = methodPair;
+        {
+            ScopedWriteLock lock(_methodMapMutex);
+            RPCNameMap::const_iterator it = _impl->_rpcNameMap.find(methodName);
+            if (it != _impl->_rpcNameMap.end()) {
+                HTTP_ARPC_LOG(ERROR, "%s already exist", methodName.c_str());
+                ret = false;
+                continue;
+            }
+            _impl->_rpcNameMap[methodName] = methodPair;
+        }
+        _impl->SetServiceThreadPool(methodPair.first.second, _impl->GetThreadPool(threadPoolDescriptor.threadPoolName));
     }
-
-    _impl->SetServiceThreadPool(methodPair.first,
-                                _impl->GetThreadPool(threadPoolDescriptor.threadPoolName));
-    return true;
+    return ret;
 }
 
 bool HTTPRPCServer::hasMethod(const string &methodName) {
-    ScopedWriteLock lock(_methodMapMutex);
+    ScopedReadLock lock(_methodMapMutex);
     RPCNameMap::const_iterator it = _impl->_rpcNameMap.find(methodName);
     return it != _impl->_rpcNameMap.end();
 }
 
-size_t HTTPRPCServer::getQueueSize(const std::string &name) {
-    return _impl->getQueueSize(name);
-}
+size_t HTTPRPCServer::getQueueSize(const std::string &name) { return _impl->getQueueSize(name); }
 
-size_t HTTPRPCServer::getQueueSize() {
-    return getQueueSize(DEFAULT_HTTP_TREAHDPOOL_NAME);
-}
+size_t HTTPRPCServer::getQueueSize() { return getQueueSize(DEFAULT_HTTP_TREAHDPOOL_NAME); }
 
-size_t HTTPRPCServer::getItemCount(const std::string &name) {
-    return _impl->getItemCount(name);
-}
+size_t HTTPRPCServer::getItemCount(const std::string &name) { return _impl->getItemCount(name); }
 
-size_t HTTPRPCServer::getItemCount() {
-    return getItemCount(DEFAULT_HTTP_TREAHDPOOL_NAME);
-}
+size_t HTTPRPCServer::getItemCount() { return getItemCount(DEFAULT_HTTP_TREAHDPOOL_NAME); }
 
 autil::ThreadPoolBasePtr HTTPRPCServer::getThreadPool(const std::string &name) {
     if (name.empty()) {
@@ -410,4 +378,4 @@ autil::ThreadPoolBasePtr HTTPRPCServer::getThreadPool(const std::string &name) {
     }
 }
 
-}
+} // namespace http_arpc

@@ -17,81 +17,45 @@
 
 namespace opentelemetry {
 
-Span::Span(const TracerContextPtr& tracer,
+Span::Span(const TracerContextPtr &tracer,
            SpanKind spanKind,
-           const SpanContextPtr& parentSpanContext,
-           SpanContextPtr& spanContext)
-{
-}
+           const SpanContextPtr &parentSpanContext,
+           SpanContextPtr &spanContext) {}
 
-Span::~Span() {
-}
+Span::~Span() {}
 
-void Span::setAttribute(const std::string& key,
-                        const std::string& value)  {
-}
+void Span::setAttribute(const std::string &key, const std::string &value) {}
 
-void Span::addEvent(const std::string& name)
-{
-}
+void Span::addEvent(const std::string &name) {}
 
-void Span::addEvent(const std::string& name,
-                    int64_t timestamp)
-{
-}
+void Span::addEvent(const std::string &name, int64_t timestamp) {}
 
-void Span::addEvent(const std::string& name,
-                    const AttributeMap& attributes)
-{
-}
+void Span::addEvent(const std::string &name, const AttributeMap &attributes) {}
 
-void Span::addEvent(const std::string& name,
-                    int64_t timestamp,
-                    const AttributeMap& attributes)
-{
-}
+void Span::addEvent(const std::string &name, int64_t timestamp, const AttributeMap &attributes) {}
 
-void Span::addLink(const SpanContextPtr& context)
-{
-}
+void Span::addLink(const SpanContextPtr &context) {}
 
-void Span::addLink(const SpanContextPtr& context,
-                   const AttributeMap& attributes)
-{
-}
+void Span::addLink(const SpanContextPtr &context, const AttributeMap &attributes) {}
 
-void Span::setStatus(StatusCode code, const std::string& description)  {
-}
+void Span::setStatus(StatusCode code, const std::string &description) {}
 
-void Span::updateName(const std::string& name)  {
-}
+void Span::updateName(const std::string &name) {}
 
-void Span::end()  {
-}
+void Span::end() {}
 
-bool Span::isRecording() const  {
-    return false;
-}
+bool Span::isRecording() const { return false; }
 
-bool Span::isDebug() const {
-    return false;
-}
+bool Span::isDebug() const { return false; }
 
-void Span::setDebug() {
-}
+void Span::setDebug() {}
 
-SpanContextPtr Span::getContext() const  {
-    return nullptr;
-}
+SpanContextPtr Span::getContext() const { return nullptr; }
 
-SpanContextPtr Span::getParentContext() const {
-    return nullptr;
-}
+SpanContextPtr Span::getParentContext() const { return nullptr; }
 
-void Span::addLog(uint32_t level, const std::string& body) {
-}
+void Span::addLog(uint32_t level, const std::string &body) {}
 
-void Span::addLog(uint32_t level, const char* format, ...) {
-}
+void Span::addLog(uint32_t level, const char *format, ...) {}
 
-}
+} // namespace opentelemetry

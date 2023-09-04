@@ -25,7 +25,7 @@ AUTIL_LOG_SETUP(indexlib.index, AttributeUpdater);
 AttributeUpdater::AttributeUpdater(segmentid_t segId, const std::shared_ptr<config::IIndexConfig>& indexConfig)
     : _segmentId(segId)
 {
-    _attrConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+    _attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
     assert(_attrConfig != nullptr);
 }
 

@@ -18,6 +18,7 @@
 #include <iosfwd>
 #include <memory>
 
+#include "indexlib/file_system/ReaderOption.h"
 #include "indexlib/file_system/file/FileNode.h"
 #include "indexlib/util/Exception.h"
 
@@ -31,6 +32,24 @@ FileReader::FileReader() noexcept : _offset(0) {}
 FileReader::~FileReader() noexcept {}
 
 FSResult<size_t> FileReader::Prefetch(size_t length, size_t offset, ReadOption option) noexcept { return {FSEC_OK, 0}; }
+
+size_t FileReader::EvaluateCurrentMemUsed() noexcept
+{
+    switch (GetType()) {
+    case FSFT_MEM:
+    case FSFT_MMAP_LOCK:
+    case FSFT_SLICE:
+    case FSFT_RESOURCE:
+        return GetLength();
+    case FSFT_MMAP:
+    case FSFT_BLOCK:
+        return 0;
+    case FSFT_BUFFERED:
+        return std::min(GetLength(), (uint64_t)ReaderOption::DEFAULT_BUFFER_SIZE);
+    default:
+        return 0;
+    }
+}
 
 string FileReader::TEST_Load() noexcept(false)
 {

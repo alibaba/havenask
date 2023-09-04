@@ -1,0 +1,37 @@
+{
+    "cluster_config" : {
+	"table_name" : "mainse_searcher",
+	"hash_mode" : {
+            "hash_field" : "nid",
+            "hash_function" : "KINGSO_HASH#720"
+	},
+        "cluster_name" : "cluster3",
+        "cluster_type" : "inc_with_realtime",
+	"builder_rule_config" : {
+            "partition_count" : 2,
+            "build_parallel_num" : 3,
+            "merge_parallel_num" : 1,
+            "map_reduce_ratio" : 1,
+            "need_partition" : true
+	}
+    },
+    "offline_index_config" : {
+        "customized_merge_config" : {
+	    "inc" : {
+	        "merge_config" : {},
+	        "period" : "period=1800",
+	        "merge_parallel_num" : 1
+	    },
+	    "inc_merge" : {
+	        "merge_config" : {},
+	        "period" : "daytime=17:30",
+	        "merge_parallel_num" : 3
+	    }
+        }
+    },
+    "slow_node_detect_config" : {
+        "slow_time_threshold" : 300,
+        "detect_interval" : 5,
+        "slow_qps_judge_ratio" : 0.7
+    }
+}

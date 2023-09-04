@@ -1,0 +1,21 @@
+{
+"Descriptions":
+  {
+  "segment_init_timestamp":
+    "1651906781779604"
+  },
+"DocCount":
+  2,
+"IsMergedSegment":
+  false,
+"Locator":
+  "00000000000000000100000000000000",
+"MaxTTL":
+  0,
+"ShardingColumnCount":
+  1,
+"ShardingColumnId":
+  4294967295,
+"Timestamp":
+  2
+}

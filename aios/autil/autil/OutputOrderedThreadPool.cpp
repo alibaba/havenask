@@ -24,16 +24,13 @@ using namespace std;
 namespace autil {
 AUTIL_DECLARE_AND_SETUP_LOGGER(autil, OutputOrderedThreadPool);
 
-OutputOrderedThreadPool::OutputOrderedThreadPool(
-        uint32_t threadNum, uint32_t queueSize)
-    : _queue(queueSize)
-    , _threadPool(threadNum, queueSize)
-{
+OutputOrderedThreadPool::OutputOrderedThreadPool(uint32_t threadNum, uint32_t queueSize)
+    : _queue(queueSize), _threadPool(threadNum, queueSize) {
     _waitItem = NULL;
     _running = false;
 }
 
-OutputOrderedThreadPool::~OutputOrderedThreadPool() { 
+OutputOrderedThreadPool::~OutputOrderedThreadPool() {
     _running = false;
     _threadPool.stop();
 }
@@ -48,16 +45,16 @@ bool OutputOrderedThreadPool::start(const string &name) {
     return _running;
 }
 
-bool OutputOrderedThreadPool::pushWorkItem(
-        WorkItem *item) 
-{
-    if (!item || !_running) return false;
+bool OutputOrderedThreadPool::pushWorkItem(WorkItem *item) {
+    if (!item || !_running)
+        return false;
     OrderWorkItem *oItem = NULL;
     {
         ScopedLock lock(_queueCond);
         while (_queue.size() == _queue.capacity()) {
             _queueCond.producerWait();
-            if (!_running) return false;
+            if (!_running)
+                return false;
         }
         if (!_running) {
             return false;
@@ -66,23 +63,25 @@ bool OutputOrderedThreadPool::pushWorkItem(
         oItem = &_queue.back();
         _waitItemCount.inc();
     }
-    //assert _threadPool is running    
+    // assert _threadPool is running
     _threadPool.pushWorkItem(oItem, true);
     return true;
 }
 
-WorkItem* OutputOrderedThreadPool::popWorkItem() {
+WorkItem *OutputOrderedThreadPool::popWorkItem() {
     ScopedLock lock(_queueCond);
     while (_queue.empty() || !_queue.front()._processed) {
         if (_queue.empty()) {
-            if (!_running) {return NULL;}
+            if (!_running) {
+                return NULL;
+            }
             _waitItem = NULL;
         } else {
             _waitItem = &_queue.front();
         }
         _queueCond.consumerWait();
     }
-    
+
     WorkItem *item = _queue.front()._item;
     _queue.pop_front();
     _outputItemCount.dec();
@@ -90,8 +89,7 @@ WorkItem* OutputOrderedThreadPool::popWorkItem() {
     return item;
 }
 
-bool OutputOrderedThreadPool::waitStop(ThreadPool::STOP_TYPE stopType)
-{
+bool OutputOrderedThreadPool::waitStop(ThreadPool::STOP_TYPE stopType) {
     _running = false;
     _threadPool.stop(stopType);
     ScopedLock lock(_queueCond);
@@ -107,4 +105,4 @@ bool OutputOrderedThreadPool::waitStop(ThreadPool::STOP_TYPE stopType)
     return true;
 }
 
-}
+} // namespace autil

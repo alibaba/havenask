@@ -34,11 +34,13 @@ class MemoryQuotaController;
 }
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 class TabletOptions;
 } // namespace indexlibv2::config
 
 namespace indexlibv2::table {
+
+struct Env;
 
 class LocalTabletMergeController : public framework::ITabletMergeController
 {
@@ -47,7 +49,7 @@ class LocalTabletMergeController : public framework::ITabletMergeController
 public:
     struct InitParam {
         future_lite::Executor* executor = nullptr;
-        std::shared_ptr<config::TabletSchema> schema;
+        std::shared_ptr<config::ITabletSchema> schema;
         std::shared_ptr<config::TabletOptions> options;
         std::shared_ptr<MemoryQuotaController> memoryQuotaController;
         std::string partitionIndexRoot;
@@ -92,6 +94,7 @@ private:
     TaskInfo GetTaskInfo() const;
     void SetTaskInfo(TaskInfo info);
     void ResetTaskInfo();
+    std::pair<Status, std::shared_ptr<Env>> CloneEnv(framework::IndexTaskContext* context);
     bool NeedSetDesignateTask(const std::map<std::string, std::string>& params) const;
 
 private:

@@ -22,181 +22,136 @@ namespace matchdoc {
 template <FieldValueColumn ColumnType>
 struct TraitTypeFromMatchDocColumn {};
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_Int8ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return true;
-    }
+    static constexpr bool isSingleValue() { return true; }
     using T = Int8ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_UInt8ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return true;
-    }
+    static constexpr bool isSingleValue() { return true; }
     using T = UInt8ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_Int16ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return true;
-    }
+    static constexpr bool isSingleValue() { return true; }
     using T = Int16ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_UInt16ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return true;
-    }
+    static constexpr bool isSingleValue() { return true; }
     using T = UInt16ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_Int32ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return true;
-    }
+    static constexpr bool isSingleValue() { return true; }
     using T = Int32ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_UInt32ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return true;
-    }
+    static constexpr bool isSingleValue() { return true; }
     using T = UInt32ValueColumn;
 };
 
-
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_Int64ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return true;
-    }
+    static constexpr bool isSingleValue() { return true; }
     using T = Int64ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_UInt64ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return true;
-    }
+    static constexpr bool isSingleValue() { return true; }
     using T = UInt64ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_FloatValueColumn> {
-    static constexpr bool isSingleValue() {
-        return true;
-    }
+    static constexpr bool isSingleValue() { return true; }
     using T = FloatValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_DoubleValueColumn> {
-    static constexpr bool isSingleValue() {
-        return true;
-    }
+    static constexpr bool isSingleValue() { return true; }
     using T = DoubleValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_StringValueColumn> {
-    static constexpr bool isSingleValue() {
-        return true;
-    }
+    static constexpr bool isSingleValue() { return true; }
     using T = StringValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_MultiInt8ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return false;
-    }
+    static constexpr bool isSingleValue() { return false; }
     using T = MultiInt8ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_MultiUInt8ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return false;
-    }
+    static constexpr bool isSingleValue() { return false; }
     using T = MultiUInt8ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_MultiInt16ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return false;
-    }
+    static constexpr bool isSingleValue() { return false; }
     using T = MultiInt16ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_MultiUInt16ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return false;
-    }
+    static constexpr bool isSingleValue() { return false; }
     using T = MultiUInt16ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_MultiInt32ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return false;
-    }
+    static constexpr bool isSingleValue() { return false; }
     using T = MultiInt32ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_MultiUInt32ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return false;
-    }
+    static constexpr bool isSingleValue() { return false; }
     using T = MultiUInt32ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_MultiInt64ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return false;
-    }
+    static constexpr bool isSingleValue() { return false; }
     using T = MultiInt64ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_MultiUInt64ValueColumn> {
-    static constexpr bool isSingleValue() {
-        return false;
-    }
+    static constexpr bool isSingleValue() { return false; }
     using T = MultiUInt64ValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_MultiFloatValueColumn> {
-    static constexpr bool isSingleValue() {
-        return false;
-    }
+    static constexpr bool isSingleValue() { return false; }
     using T = MultiFloatValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_MultiDoubleValueColumn> {
-    static constexpr bool isSingleValue() {
-        return false;
-    }
+    static constexpr bool isSingleValue() { return false; }
     using T = MultiDoubleValueColumn;
 };
 
-template<>
+template <>
 struct TraitTypeFromMatchDocColumn<FieldValueColumn_MultiStringValueColumn> {
-    static constexpr bool isSingleValue() {
-        return false;
-    }
+    static constexpr bool isSingleValue() { return false; }
     using T = MultiStringValueColumn;
 };
 
-}
+} // namespace matchdoc

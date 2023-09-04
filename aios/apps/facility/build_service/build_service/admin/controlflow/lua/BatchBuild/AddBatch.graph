@@ -1,0 +1,132 @@
+#import(Tool)
+#import(Log)
+#import(BatchBuild/FlowIdTools)
+
+function graphDef()
+   local clusterNames = Graph.parameter["clusterNames"]
+   local batchId = Graph.parameter["batchId"]
+   local beginTime = Graph.parameter["beginTime"]
+   local buildId = Graph.parameter["buildId"]
+   local batchMask = Graph.parameter["batchMask"]
+   local lastBatchId = Graph.parameter["lastBatchId"]
+   if (batchId == nil)
+   then
+      Log.log("ERROR", "lack of batchId")
+      return false
+   end
+   if (beginTime == nil)
+   then
+      Log.log("ERROR", "lack of beginTime")
+      return false
+   end
+   local lastBatchId = Graph.parameter["lastBatchId"]
+   if (clusterNames == nil or clusterNames == "")
+   then
+      Log.log("ERROR", "lack of clusterNames")
+      return false
+   end
+   if (buildId == nil)
+   then
+      Log.log("ERROR", "lack of buildId")
+      return false
+   end
+   if (Graph.parameter["schemaIdMap"] == nil)
+   then
+      Log.log("ERROR", "lack of schema id map")
+      return false
+   end
+   if (batchMask == nil)
+   then
+      Log.log("ERROR", "lack of batch mask")
+      return false
+   end
+
+   local schemaId = '0'
+   Graph.parameter["buildStep"] = "incremental"
+   Graph.parameter["schemaId"] = schemaId
+   Graph.parameter["clusterName"] = clusterNames
+   Graph.parameter["checkpoint"] = beginTime
+   if (Graph.parameter["startDataDescriptionId"] == nil)
+   then
+      Graph.parameter["startDataDescriptionId"] = "0"
+   end
+   
+   -- start new batch processor
+   local incProcessor = Graph.loadFlow("BatchBuild/BatchProcessor.flow", Graph.parameter)
+   if (incProcessor == nil)
+   then
+      return false
+   end
+   incProcessor:addTag("BSIncProcess")
+   incProcessor:addTag(FlowIdTools.getBatchProcessor(batchId))
+
+   -- set processor upstream dependence 
+   if (lastBatchId == nil)
+   then
+      local fullProcessorId = Graph.getFlowIdByTag(FlowIdTools.getFullProcessor())
+      if (table.getn(fullProcessorId) ~= 0)
+      then
+         local fullProcessor = Graph.getFlow(fullProcessorId[1])
+         Graph.setUpstream(incProcessor, fullProcessor)
+      end
+   else
+       local lastProcessorId = Graph.getFlowIdByTag(FlowIdTools.getBatchProcessor(lastBatchId))
+       if (table.getn(lastProcessorId) ~= 0)
+       then
+          Graph.setUpstream(incProcessor, Graph.getFlow(lastProcessorId[1]))
+       end
+   end
+   
+   local schemaIdMap = Tool.jsonToMap(Graph.parameter["schemaIdMap"])
+   local processorFlowId = incProcessor:getFlowId()
+   if (processorFlowId == nil or processorFlowId == "")
+   then
+      Log.log("ERROR", "get processorFlowId failed")
+      return false
+   end
+   targetClusterNames = Tool.jsonToList(clusterNames)
+   for i, v in ipairs(targetClusterNames)
+   do
+      local clusterParam = {}
+      clusterParam["processorFlowId"] = processorFlowId
+      clusterParam["processorTaskName"] = "incProcessor"
+      clusterParam['batchId'] = batchId
+      clusterParam['batchMask'] = batchMask
+      clusterParam['lastBatchId'] = lastBatchId
+      clusterParam['clusterName'] = v
+      clusterParam['checkpoint'] = beginTime
+      clusterParam['buildId'] = buildId
+      clusterParam["dataDescriptions"] = Graph.parameter["dataDescriptions"]
+      clusterParam["startDataDescriptionId"] = Graph.parameter["startDataDescriptionId"]
+      clusterParam["buildStep"] = Graph.parameter["buildStep"]
+      clusterParam["schemaId"] = schemaIdMap[v]
+      local ret = Graph.loadSubGraph(v, "BatchBuild/SingleClusterAddBatch.graph", clusterParam)
+      if (not ret)
+      then
+         Log.log("ERROR", "add batch for "..v.." failed")
+         return false
+      end
+   end
+
+   local skipBatchIds = Graph.parameter["skipMergeBatchIds"]
+   local combinedBatchIds = Graph.parameter["combinedBatchIds"]
+
+   -- ignore when skip and combined batch are both empty
+   if ((skipBatchIds == nil or skipBatchIds == "") and (combinedBatchIds == nil or combinedBatchIds == ""))
+   then
+      return true
+   end
+   -- set need skip batch build and merge, set need combined batch build
+   local skipParam = {}
+   skipParam["clusterNames"] = clusterNames
+   skipParam["skipBatchIds"] = skipBatchIds
+   skipParam["combinedBatchIds"] = combinedBatchIds
+   local ret = Graph.loadSubGraph("skipAtBatch"..batchId,
+				  "BatchBuild/SkipAndCombineBatch.graph", skipParam)
+   if (not ret)
+   then
+      Log.log("ERROR", "skip batch ("..skipBatchIds..") and combine into batch ("..combinedBatchIds..") at batch("..batchId..") failed.")
+      return false
+   end
+   return true
+end

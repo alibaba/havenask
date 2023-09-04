@@ -1,0 +1,76 @@
+{
+    "table_name": "test_for_pk_value",
+    "table_type": "kkv",
+    "settings" : {
+        "need_store_pk_value" : true
+    },
+    "fields": [
+        {
+            "field_name": "pkey",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "skey",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "value",
+            "field_type": "STRING"
+        }
+    ],
+    "indexes": {
+        "kkv": [
+            {
+                "index_fields": [
+                    {
+                        "field_name": "pkey",
+                        "key_type": "prefix"
+                    },
+                    {
+                        "field_name": "skey",
+                        "key_type": "suffix"
+                    }
+                ],
+                "index_name": "pkey",
+                "index_type": "PRIMARY_KEY",
+                "value_fields": ["value"],
+                "index_preference": {
+                "parameters": {
+                    "hash_dict": {
+                        "enable_compact_hash_key": false,
+                        "enable_shorten_offset": false,
+                        "max_value_size_for_short_offset": 4294967293,
+                        "merge_use_precise_count": true,
+                        "occupancy_pct": 60,
+                        "type": "dense"
+                    },
+                    "suffix_key": {
+                        "encode": false,
+                        "file_compressor": "",
+                        "file_compressor_buffer_size": 4096,
+                        "file_compressor_parameter": {},
+                        "fix_len_auto_inline": false,
+                        "memory_reclaim": false,
+                        "plain_format": false,
+                        "value_impact": false
+                    },
+                    "value": {
+                        "encode": false,
+                        "file_compressor": "",
+                        "file_compressor_buffer_size": 1024,
+                        "file_compressor_parameter": {},
+                        "fix_len_auto_inline": false,
+                        "memory_reclaim": false,
+                        "plain_format": true,
+                        "value_impact": false
+                    }
+                },
+                "type": "PERF",
+                "value_inline": false
+                },
+                "default_ttl": 3,
+                "store_expire_time": true
+            }
+        ]
+    }
+}

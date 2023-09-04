@@ -15,8 +15,8 @@
  */
 #include "autil/metric/Cpu.h"
 
-#include <stdlib.h>
 #include <fstream>
+#include <stdlib.h>
 
 #include "autil/metric/MetricUtil.h"
 
@@ -27,30 +27,23 @@ namespace metric {
 
 const string Cpu::CPU_PROC_STAT("/proc/stat");
 
-Cpu::Cpu() { 
+Cpu::Cpu() {
     _diffTotal = 0;
     _procStatFile = CPU_PROC_STAT;
 }
 
-Cpu::~Cpu() { 
-}
+Cpu::~Cpu() {}
 
 void Cpu::update() {
     ifstream fin(_procStatFile.c_str());
     string cpuLine;
     std::getline(fin, cpuLine);
-    
+
     _prevStat = _curStat;
     parseCpuStat(cpuLine.c_str(), _curStat);
-    _diffTotal = (_curStat.user - _prevStat.user +
-                  _curStat.nice - _prevStat.nice +
-                  _curStat.sys - _prevStat.sys + 
-                  _curStat.idle - _prevStat.idle + 
-                  _curStat.iow - _prevStat.iow + 
-                  _curStat.irq - _prevStat.irq + 
-                  _curStat.sirq - _prevStat.sirq +
-                  _curStat.steal - _prevStat.steal +
-                  _curStat.guest - _prevStat.guest);
+    _diffTotal = (_curStat.user - _prevStat.user + _curStat.nice - _prevStat.nice + _curStat.sys - _prevStat.sys +
+                  _curStat.idle - _prevStat.idle + _curStat.iow - _prevStat.iow + _curStat.irq - _prevStat.irq +
+                  _curStat.sirq - _prevStat.sirq + _curStat.steal - _prevStat.steal + _curStat.guest - _prevStat.guest);
 }
 
 void Cpu::parseCpuStat(const char *statStr, CpuStat &cpuStat) {
@@ -60,28 +53,26 @@ void Cpu::parseCpuStat(const char *statStr, CpuStat &cpuStat) {
     // skip the "cpu"
     const char *p = MetricUtil::skipToken(statStr);
 
-#define EXTRACT_FIELD(field) {                                          \
-        cpuStat.field = strtoll(p, NULL, 10);                           \
-        p = MetricUtil::skipToken(p);                                   \
+#define EXTRACT_FIELD(field)                                                                                           \
+    {                                                                                                                  \
+        cpuStat.field = strtoll(p, NULL, 10);                                                                          \
+        p = MetricUtil::skipToken(p);                                                                                  \
     }
-    
+
     EXTRACT_FIELD(user);
-    EXTRACT_FIELD(nice);    
+    EXTRACT_FIELD(nice);
     EXTRACT_FIELD(sys);
     EXTRACT_FIELD(idle);
     EXTRACT_FIELD(iow);
-    EXTRACT_FIELD(irq);    
+    EXTRACT_FIELD(irq);
     EXTRACT_FIELD(sirq);
     EXTRACT_FIELD(steal);
-    EXTRACT_FIELD(guest);    
+    EXTRACT_FIELD(guest);
 
 #undef EXTRACT_FIELD
-
 }
 
-void Cpu::setProcStatFile(const string &file) {
-    _procStatFile = file;
-}
+void Cpu::setProcStatFile(const string &file) { _procStatFile = file; }
 
 double Cpu::getIoWait() const {
     if (_prevStat.iow > _curStat.iow) {
@@ -90,6 +81,5 @@ double Cpu::getIoWait() const {
     return (_curStat.iow - _prevStat.iow) / (double)_diffTotal * 100;
 }
 
-}
-}
-
+} // namespace metric
+} // namespace autil

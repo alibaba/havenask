@@ -26,8 +26,6 @@ std::string ColumnDataBase::toString(size_t rowIndex) const {
     return str;
 }
 
-std::string ColumnDataBase::toOriginString(size_t rowIndex) const {
-    return _ref->toString((*_rows)[rowIndex]);
-}
+std::string ColumnDataBase::toOriginString(size_t rowIndex) const { return _ref->toString((*_rows)[rowIndex]); }
 
-}
+} // namespace table

@@ -1,0 +1,52 @@
+#import(Tool)
+#import(Log)
+#import(BatchBuildV2/FlowIdTools)
+
+function graphDef()
+    local batchId = Graph.parameter["batchId"]
+    local lastBatchId = Graph.parameter["lastBatchId"]
+    local clusterName = Graph.parameter["clusterName"]
+    local processorFlowId = Graph.parameter["processorFlowId"]
+    Graph.parameter["buildStep"] = "incremental"
+
+    --start new batch builder
+    local flowParam = Tool.copyMap(Graph.parameter)
+    flowParam["processorFlowId"] = processorFlowId
+    flowParam["processorTaskName"] = "incProcessor"
+    local incBuilder = Graph.loadFlow("BatchBuildV2/BatchBuilder.flow", flowParam)
+    if (incBuilder == nil)
+    then
+        return false
+    end
+    incBuilder:addTag(FlowIdTools.getIncBuild(clusterName))
+    incBuilder:addTag(FlowIdTools.getBatchBuilder(batchId, clusterName))
+    incBuilder:addTag("BSBuildV2")
+    local incProcessor = Graph.getFlow(processorFlowId)
+    if (incProcessor == nil)
+    then
+       Log.log("ERROR", "get processorFlowId failed")
+       return false
+    end
+    Graph.declareFriend(incProcessor, incBuilder)
+    Graph.declareFriend(incBuilder, incProcessor)
+
+    -- set upstream with full
+    if (lastBatchId == nil)
+    then
+       local fullBuildId = Graph.getFlowIdByTag(FlowIdTools.getFullBuilder(clusterName))
+       if (table.getn(fullBuildId) ~= 0)
+       then
+          local fullBuild = Graph.getFlow(fullBuildId[1])
+          Graph.setUpstream(incBuilder, fullBuild)
+       end
+       return true
+    end
+
+    -- set upstream with last batch
+    local lastBatchBuildId = Graph.getFlowIdByTag(FlowIdTools.getBatchBuilder(lastBatchId, clusterName))
+    if (table.getn(lastBatchBuildId) ~= 0)
+    then
+       Graph.setUpstream(incBuilder, Graph.getFlow(lastBatchBuildId[1]))
+    end
+    return true
+end

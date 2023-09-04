@@ -27,7 +27,7 @@ class Version;
 class IndexTaskResourceManager;
 } // namespace indexlibv2::framework
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::framework {
@@ -61,6 +61,8 @@ public:
     static framework::IndexOperationDescription
     CreateOperationDescription(framework::IndexOperationId opId, const framework::Version& version,
                                const std::string& patchIndexDir, const std::vector<DropIndexInfo>& dropIndexes);
+    static framework::IndexOperationDescription CreateOperationDescription(framework::IndexOperationId opId,
+                                                                           versionid_t versionId);
 
 private:
     Status MountAndMaybePackageResourceDir(const framework::IndexTaskContext& context,
@@ -68,7 +70,7 @@ private:
     Status MountResourceDir(const std::shared_ptr<indexlib::file_system::Directory>& indexRoot,
                             const std::string& resourceName);
     Status MountPatchIndexDir(const std::shared_ptr<indexlib::file_system::Directory>& indexRoot);
-    Status ValidateVersion(const std::string& indexRootPath, const std::shared_ptr<config::TabletSchema>& schema,
+    Status ValidateVersion(const std::string& indexRootPath, const std::shared_ptr<config::ITabletSchema>& schema,
                            versionid_t versionId);
     Status UpdateSegmentDescriptions(const std::shared_ptr<framework::IndexTaskResourceManager>& resourceManager,
                                      framework::Version* targetVersion);

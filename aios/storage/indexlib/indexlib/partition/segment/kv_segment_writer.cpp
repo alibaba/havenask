@@ -135,11 +135,9 @@ void KVSegmentWriter::InitConfig()
 void KVSegmentWriter::InitStorePkey()
 {
     bool storePKey = false;
-    char* needStorePKeyValue = getenv(NEED_STORE_PKEY_VALUE);
-    if (needStorePKeyValue && autil::StringUtil::fromString(std::string(needStorePKeyValue), storePKey)) {
+    if (autil::EnvUtil::getEnvWithoutDefault(NEED_STORE_PKEY_VALUE, storePKey)) {
         mNeedStorePKeyValue = storePKey;
     }
-
     if (mNeedStorePKeyValue) {
         auto pkeyFieldName = mKVConfig->GetKeyFieldName();
         AttributeConfigPtr attrConfig = mSchema->GetRegionSchema(0)->CreateAttributeConfig(pkeyFieldName);

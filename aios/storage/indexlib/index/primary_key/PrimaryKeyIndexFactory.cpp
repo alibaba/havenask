@@ -127,6 +127,6 @@ std::unique_ptr<config::IIndexConfig> PrimaryKeyIndexFactory::CreateIndexConfig(
 
 std::string PrimaryKeyIndexFactory::GetIndexPath() const { return "index"; }
 
-REGISTER_INDEX(primarykey, PrimaryKeyIndexFactory);
+REGISTER_INDEX_FACTORY(primarykey, PrimaryKeyIndexFactory);
 
 } // namespace indexlibv2::index

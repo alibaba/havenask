@@ -23,20 +23,20 @@
 namespace autil {
 namespace codec {
 
-class UTF8Util
-{
+class UTF8Util {
 private:
     UTF8Util();
     ~UTF8Util();
     UTF8Util(const UTF8Util &);
-    UTF8Util& operator=(const UTF8Util &);
+    UTF8Util &operator=(const UTF8Util &);
+
 public:
-    static std::string getNextCharUTF8(const std::string& str, size_t start);
+    static std::string getNextCharUTF8(const std::string &str, size_t start);
     static bool getNextCharUTF8(const char *str, size_t start, size_t end, size_t &len);
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
-}
-}
-
+} // namespace codec
+} // namespace autil

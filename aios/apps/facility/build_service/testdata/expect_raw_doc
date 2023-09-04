@@ -1,0 +1,18 @@
+CMD=add
+category=12
+name=doc1
+price=0
+tags=test1test
+
+CMD=add
+category=23
+name=doc2
+price=1
+tags=test2test
+
+CMD=add
+category=23
+name=doc3
+price=2
+tags=test3test
+

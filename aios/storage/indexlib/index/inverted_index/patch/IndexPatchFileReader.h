@@ -31,7 +31,7 @@ namespace indexlib::index {
 class IndexPatchFileReader
 {
 private:
-    static constexpr double PATCH_EXPAND_FACTOR = 1.2;
+    static constexpr double PATCH_EXPAND_FACTOR = 4;
 
 public:
     IndexPatchFileReader(segmentid_t srcSegmentId, segmentid_t targetSegmentId, bool patchCompress);

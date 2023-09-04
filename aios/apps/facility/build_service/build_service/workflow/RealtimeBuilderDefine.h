@@ -66,6 +66,8 @@ public:
 
 public:
     bool isValid() const { return _valid; }
+    // for backward index compatibility
+    bool adaptsToDataLinkMode(const std::string& specifiedDataLinkMode);
     const KeyValueMap& getKvMap() const { return _kvMap; }
     indexlib::document::SrcSignature getSrcSignature() const
     {

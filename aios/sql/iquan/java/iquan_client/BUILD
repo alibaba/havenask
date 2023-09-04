@@ -1,0 +1,17 @@
+package(default_visibility=['//aios/sql/iquan/java:__subpackages__'])
+java_binary(
+    name='iquan_client',
+    srcs=glob(['src/main/java/com/taobao/search/iquan/**/*.java']),
+    main_class='com.taobao.search.iquan.client.IquanClient',
+    resources=glob(['src/main/resources/**']),
+    deps=[
+        '//aios/sql/iquan/java/iquan_core',
+        '@iquan_maven//:com_fasterxml_jackson_core_jackson_core',
+        '@iquan_maven//:com_fasterxml_jackson_core_jackson_databind',
+        '@iquan_maven//:com_lmax_disruptor',
+        '@iquan_maven//:org_apache_logging_log4j_log4j_api',
+        '@iquan_maven//:org_apache_logging_log4j_log4j_core',
+        '@iquan_maven//:org_apache_logging_log4j_log4j_slf4j_impl',
+        '@iquan_maven//:org_slf4j_slf4j_api'
+    ]
+)

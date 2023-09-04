@@ -15,30 +15,26 @@
  */
 #include "ha3/rank/MatchDocPriorityQueue.h"
 
-#include "autil/mem_pool/Pool.h"
-#include "matchdoc/MatchDoc.h"
-
-#include "ha3/rank/Comparator.h"
 #include "autil/Log.h"
+#include "autil/mem_pool/Pool.h"
+#include "ha3/rank/Comparator.h"
+#include "matchdoc/MatchDoc.h"
 
 namespace isearch {
 namespace rank {
 AUTIL_LOG_SETUP(ha3, MatchDocPriorityQueue);
 
 MatchDocPriorityQueue::MatchDocPriorityQueue(uint32_t size,
-        autil::mem_pool::Pool *pool,
-        const Comparator *cmp)
-{ 
-    _items = (matchdoc::MatchDoc *)pool->allocate(sizeof(matchdoc::MatchDoc)
-            * (size + 1));
+                                             autil::mem_pool::Pool *pool,
+                                             const Comparator *cmp) {
+    _items = (matchdoc::MatchDoc *)pool->allocate(sizeof(matchdoc::MatchDoc) * (size + 1));
     _count = 0;
     _size = size;
     setComparator(cmp);
-    assert(_items);    
+    assert(_items);
 }
 
-MatchDocPriorityQueue::~MatchDocPriorityQueue() { 
-}
+MatchDocPriorityQueue::~MatchDocPriorityQueue() {}
 
 matchdoc::MatchDoc MatchDocPriorityQueue::pop() {
     if (_count < 1) {
@@ -65,7 +61,7 @@ void MatchDocPriorityQueue::adjustUp(uint32_t idx) {
 
 void MatchDocPriorityQueue::adjustDown(uint32_t idx) {
     uint32_t min = idx;
-    do {    
+    do {
         idx = min;
         uint32_t left = idx << 1;
         uint32_t right = left + 1;
@@ -81,7 +77,6 @@ void MatchDocPriorityQueue::adjustDown(uint32_t idx) {
     } while (min != idx);
 }
 
-
 void MatchDocPriorityQueue::swap(uint32_t a, uint32_t b) {
     if (a != b) {
         auto tmp = _items[a];
@@ -96,4 +91,3 @@ void MatchDocPriorityQueue::reset() {
 
 } // namespace rank
 } // namespace isearch
-

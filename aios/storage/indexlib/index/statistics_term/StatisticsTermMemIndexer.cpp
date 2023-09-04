@@ -15,6 +15,7 @@
  */
 #include "indexlib/index/statistics_term/StatisticsTermMemIndexer.h"
 
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocument.h"
 #include "indexlib/document/normal/NormalDocument.h"
 #include "indexlib/file_system/Directory.h"
@@ -82,11 +83,9 @@ Status StatisticsTermMemIndexer::Build(const document::IIndexFields* indexFields
 }
 Status StatisticsTermMemIndexer::Build(document::IDocumentBatch* docBatch)
 {
-    for (size_t i = 0; i < docBatch->GetBatchSize(); ++i) {
-        if (docBatch->IsDropped(i)) {
-            continue;
-        }
-        auto doc = (*docBatch)[i];
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(docBatch);
+    while (iter->HasNext()) {
+        auto doc = iter->Next();
         if (doc->GetDocOperateType() != ADD_DOC) {
             continue;
         }

@@ -37,21 +37,34 @@ private:
     ProcessedDocRtBuilderImplV2(const ProcessedDocRtBuilderImplV2&);
     ProcessedDocRtBuilderImplV2& operator=(const ProcessedDocRtBuilderImplV2&);
 
+private:
+    class ForceSeekStatus;
+
 protected: /*override*/
     bool doStart(const proto::PartitionId& partitionId, KeyValueMap& kvMap) override;
     bool getLastTimestampInProducer(int64_t& timestamp) override;
     bool getLastReadTimestampInProducer(int64_t& timestamp) override;
     bool producerAndBuilderPrepared() const override;
     bool producerSeek(const common::Locator& locator) override;
+    void handleRecoverTimeout() override;
     void externalActions() override;
 
 private:
     virtual common::ResourceKeeperMap createResources(const config::ResourceReaderPtr& resourceReader,
                                                       const proto::PartitionId& pid, KeyValueMap& kvMap) const;
+
+    bool prepareForNormalMode(const config::ResourceReaderPtr& resourceReader, const proto::PartitionId& partitionId,
+                              KeyValueMap& kvMap);
+
+    bool prepareForNPCMode(const config::ResourceReaderPtr& resourceReader, const proto::PartitionId& partitionId,
+                           KeyValueMap& kvMap);
+
     bool getBuilderAndProducer();
     void reportFreshnessWhenSuspendBuild();
     // void resetStartSkipTimestamp(KeyValueMap& kvMap);
+    bool seekProducerToLatest() override;
     void setProducerRecovered();
+    void reportProducerSkipInterval();
 
 protected:
     // virtual for test
@@ -63,8 +76,11 @@ private:
     std::unique_ptr<FlowFactory> _brokerFactory;
     SwiftProcessedDocProducer* _producer;
     bool _startSkipCalibrateDone; // for flushed realtime index, need skip to rt locator
+    bool _seekToLatestInForceRecover;
     common::Locator _lastSkipedLocator;
     bool _isProducerRecovered {false};
+    indexlib::util::MetricPtr _lostRtMetric;
+    std::unique_ptr<ForceSeekStatus> _forceSeekStatus;
 
 private:
     BS_LOG_DECLARE();

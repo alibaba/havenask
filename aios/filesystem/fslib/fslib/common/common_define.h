@@ -16,10 +16,14 @@
 #ifndef FSLIB_COMMON_DEFINE_H_
 #define FSLIB_COMMON_DEFINE_H_
 
-#include <memory>
 #include <cstdlib>
-#define FSLIB_BEGIN_NAMESPACE(x) namespace fslib { namespace x {
-#define FSLIB_END_NAMESPACE(x) } }
+#include <memory>
+#define FSLIB_BEGIN_NAMESPACE(x)                                                                                       \
+    namespace fslib {                                                                                                  \
+    namespace x {
+#define FSLIB_END_NAMESPACE(x)                                                                                         \
+    }                                                                                                                  \
+    }
 #define FSLIB_USE_NAMESPACE(x) using namespace fslib::x
 
 #define BEGIN_FSLIB_NAMESPACE namespace fslib {
@@ -60,7 +64,7 @@
 #define FSLIB_ERROR_COLLECTOR_NAME "fslib_error"
 #define FSLIB_LONG_INTERVAL_COLLECTOR_NAME "fslib_long_interval"
 
-#define FSLIB_MAX_INT ((1 << 31) -1)
+#define FSLIB_MAX_INT ((1 << 31) - 1)
 #define DEFAULT_FILE_BLOCK_SIZE 1024 * 1024
 #define DEFAULT_MEM_POOL_SIZE 1024 * 1024 * 1024
 #define MAX_UNWRITTEN_LEN (int64_t)10 * 1024 * 1024 * 1024
@@ -94,6 +98,7 @@
 #define OPERATION_GET_FILE_META "getFileMeta"
 #define OPERATION_ISFILE "isFile"
 #define OPERATION_COPY "copy"
+#define OPERATION_LINK "link"
 #define OPERATION_MOVE "move"
 #define OPERATION_MKDIR "mkdir"
 #define OPERATION_LISTDIR "listDir"
@@ -150,13 +155,14 @@
 #define FSLIB_METRIC_TAGS_OPTYPE_OPEN4WRITE "open4write"
 #define FSLIB_METRIC_TAGS_OPTYPE_OPEN4APPEND "open4append"
 #define FSLIB_METRIC_TAGS_OPTYPE_RENAME "rename"
-#define FSLIB_METRIC_TAGS_OPTYPE_GETFILEMETA "getfilemeta" // getFileMeta, getPathMeta, isFile, isDir, isExist are the same operation
+#define FSLIB_METRIC_TAGS_OPTYPE_GETFILEMETA                                                                           \
+    "getfilemeta" // getFileMeta, getPathMeta, isFile, isDir, isExist are the same operation
 #define FSLIB_METRIC_TAGS_OPTYPE_LIST "list"
 #define FSLIB_METRIC_TAGS_OPTYPE_MKDIR "mkdir"
 #define FSLIB_METRIC_TAGS_OPTYPE_DELETE "delete"
 #define FSLIB_METRIC_TAGS_OPTYPE_DELETE_FILE "deletefile"
 #define FSLIB_METRIC_TAGS_OPTYPE_DELETE_DIR "deletedir"
-#define FSLIB_METRIC_TAGS_OPTYPE_CREATE_FILELOCK "createfilelock" // only works for zookeeper
+#define FSLIB_METRIC_TAGS_OPTYPE_CREATE_FILELOCK "createfilelock"     // only works for zookeeper
 #define FSLIB_METRIC_TAGS_OPTYPE_CREATE_READWRITE_LOCK "createRWlock" // only works for local fs
 
 #define FSLIB_METRIC_TAGS_OPTYPE_FLUSH "flush"

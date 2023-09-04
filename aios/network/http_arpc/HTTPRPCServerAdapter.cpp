@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 #include "HTTPRPCServerAdapter.h"
+
+#include <cstring>
+#include <sstream>
+
 #include "HTTPRPCServer.h"
-#include "ProtoJsonizer.h"
 #include "HTTPRPCServerWorkItem.h"
 #include "Log.h"
+#include "ProtoJsonizer.h"
+#include "aios/network/arpc/arpc/ANetRPCServer.h"
 #include "autil/StringTokenizer.h"
 #include "autil/URLUtil.h"
-#include "aios/network/arpc/arpc/ANetRPCServer.h"
-#include <sstream>
-#include <cstring>
 
 using namespace std;
 using namespace arpc;
@@ -36,51 +38,39 @@ HTTP_ARPC_DECLARE_AND_SETUP_LOGGER(HTTPRPCServerAdapter);
 
 class PacketFreeGuard {
 public:
-    PacketFreeGuard(Packet *packet)
-        : _packet(packet)
-    {
-    }
-    ~PacketFreeGuard() {
-        _packet->free();
-    }
+    PacketFreeGuard(Packet *packet) : _packet(packet) {}
+    ~PacketFreeGuard() { _packet->free(); }
+
 private:
     Packet *_packet;
 };
 
-HTTPRPCServerAdapter::HTTPRPCServerAdapter(HTTPRPCServer *server)
-    : _server(server)
-{
+HTTPRPCServerAdapter::HTTPRPCServerAdapter(HTTPRPCServer *server) : _server(server) {
     _protoJsonizer.reset(new ProtoJsonizer());
 }
 
-HTTPRPCServerAdapter::~HTTPRPCServerAdapter() {
-    _protoJsonizer.reset();
-}
+HTTPRPCServerAdapter::~HTTPRPCServerAdapter() { _protoJsonizer.reset(); }
 
-IPacketHandler::HPRetCode
-HTTPRPCServerAdapter::handlePacket(Connection *connection,
-                                   Packet *packet)
-{
+IPacketHandler::HPRetCode HTTPRPCServerAdapter::handlePacket(Connection *connection, Packet *packet) {
     PacketFreeGuard freePacket(packet);
-    if (packet->isRegularPacket())  {
+    if (packet->isRegularPacket()) {
         return handleRegularPacket(connection, packet);
     } else {
         return handleCmdPacket(connection, packet);
     }
 }
 
-IPacketHandler::HPRetCode HTTPRPCServerAdapter::handleCmdPacket(
-        Connection *connection, Packet* packet)
-{
-    ControlPacket *cmd = dynamic_cast<ControlPacket*>(packet);
+IPacketHandler::HPRetCode HTTPRPCServerAdapter::handleCmdPacket(Connection *connection, Packet *packet) {
+    ControlPacket *cmd = dynamic_cast<ControlPacket *>(packet);
     assert(cmd);
     HTTP_ARPC_LOG(DEBUG, "Control Packet (%s) received!", cmd->what());
     return IPacketHandler::FREE_CHANNEL;
 }
 
-void HTTPRPCServerAdapter::fillInfoFromUri(const string& uri,
-        string &serviceAndMethod, string &request, bool haCompatible)
-{
+void HTTPRPCServerAdapter::fillInfoFromUri(const string &uri,
+                                           string &serviceAndMethod,
+                                           string &request,
+                                           bool haCompatible) {
     size_t pos = uri.find("?");
     if (pos != string::npos) {
         serviceAndMethod = uri.substr(0, pos);
@@ -103,18 +93,16 @@ void HTTPRPCServerAdapter::fillInfoFromUri(const string& uri,
                 request = "";
             }
         } else {
-            serviceAndMethod =uri;
+            serviceAndMethod = uri;
             request = "";
         }
     } else {
-        serviceAndMethod =uri;
+        serviceAndMethod = uri;
         request = "";
     }
 }
 
-bool HTTPRPCServerAdapter::processHaCompatible(const string& uri,
-        string &serviceAndMethod, string &request)
-{
+bool HTTPRPCServerAdapter::processHaCompatible(const string &uri, string &serviceAndMethod, string &request) {
     static const string STATUS_CHECK_PREFIX = "status";
     static const string HTTP_SUPPORT_PREFIX = "httpsupport:file";
     static const string HA_QUERY_PREFIX = "query=";
@@ -122,10 +110,8 @@ bool HTTPRPCServerAdapter::processHaCompatible(const string& uri,
     if (uri.empty()) {
         return false;
     }
-    if (uri.find(HA_CONFIG_PREFIX) != string::npos
-        && uri.find(HA_QUERY_PREFIX) != string::npos)
-    {
-        serviceAndMethod ="/";
+    if (uri.find(HA_CONFIG_PREFIX) != string::npos && uri.find(HA_QUERY_PREFIX) != string::npos) {
+        serviceAndMethod = "/";
         if (uri[0] == '/') {
             request = uri.substr(1);
         } else {
@@ -148,16 +134,14 @@ bool HTTPRPCServerAdapter::processHaCompatible(const string& uri,
     return false;
 }
 
-IPacketHandler::HPRetCode HTTPRPCServerAdapter::handleRegularPacket(
-        Connection *connection, Packet* packet)
-{
+IPacketHandler::HPRetCode HTTPRPCServerAdapter::handleRegularPacket(Connection *connection, Packet *packet) {
     int64_t beginTime = TimeUtility::currentTime();
     char addr[256];
     if (!connection->getIpAndPortAddr(addr, 256)) {
         HTTP_ARPC_LOG(WARN, "get ip addr failed!");
         addr[0] = 0;
     }
-    HTTPPacket *httpPacket = dynamic_cast<HTTPPacket*>(packet);
+    HTTPPacket *httpPacket = dynamic_cast<HTTPPacket *>(packet);
     assert(httpPacket);
     const char *uri = httpPacket->getURI();
     HTTPPacket::HTTPMethod httpMethod = httpPacket->getMethod();
@@ -197,7 +181,7 @@ IPacketHandler::HPRetCode HTTPRPCServerAdapter::handleRegularPacket(
         request = "{}";
     }
     ServiceMethodPair serviceMethodPair = _server->getMethod(serviceAndMethod);
-    RPCService *service = serviceMethodPair.first;
+    RPCService *service = serviceMethodPair.first.second;
     RPCMethodDescriptor *method = serviceMethodPair.second;
 
     if (!service || !method) {
@@ -207,27 +191,33 @@ IPacketHandler::HPRetCode HTTPRPCServerAdapter::handleRegularPacket(
         return IPacketHandler::KEEP_CHANNEL;
     }
 
-    const char* encoding = httpPacket->getHeader("Accept-Encoding");
+    const char *encoding = httpPacket->getHeader("Accept-Encoding");
     string encodingStr;
     if (encoding) {
         encodingStr = encoding;
     }
-    HTTPRPCServerWorkItem *workItem = new HTTPRPCServerWorkItem(
-            service, method, connection, httpPacket->isKeepAlive(), encodingStr,
-            getProtoJsonizer(), getEagleInfo(httpPacket), std::move(request));
+    auto protoJsonizer = getProtoJsonizer(service, method);
+    HTTPRPCServerWorkItem *workItem = new HTTPRPCServerWorkItem(service,
+                                                                method,
+                                                                connection,
+                                                                httpPacket->isKeepAlive(),
+                                                                encodingStr,
+                                                                protoJsonizer,
+                                                                getEagleInfo(httpPacket),
+                                                                std::move(request));
     workItem->SetBeginTime(beginTime);
     workItem->SetAddr(string(addr));
     if (!_server->PushItem(service, workItem)) {
-        handleError(connection, httpPacket, 503,
-                    method->service()->name() +
-                    string(" push to threadpool fail, maybe queue full"));
+        handleError(connection,
+                    httpPacket,
+                    503,
+                    method->service()->name() + string(" push to threadpool fail, maybe queue full"));
         return IPacketHandler::KEEP_CHANNEL;
     }
     return IPacketHandler::KEEP_CHANNEL;
 }
 
-HTTPPacket *HTTPRPCServerAdapter::buildErrorPacket(bool isKeepAlive,
-        int statusCode, string reason)
+HTTPPacket *HTTPRPCServerAdapter::buildErrorPacket(bool isKeepAlive, int statusCode, string reason)
 
 {
     HTTPPacket *packet = new HTTPPacket();
@@ -238,20 +228,13 @@ HTTPPacket *HTTPRPCServerAdapter::buildErrorPacket(bool isKeepAlive,
     return packet;
 }
 
-void HTTPRPCServerAdapter::handleError(Connection *connection,
-                                       HTTPPacket *httpPacket,
-                                       int statusCode,
-                                       string reason)
-{
+void HTTPRPCServerAdapter::handleError(Connection *connection, HTTPPacket *httpPacket, int statusCode, string reason) {
     HTTP_ARPC_LOG(ERROR, "%s", reason.c_str());
-    HTTPPacket *packet = buildErrorPacket(
-            httpPacket->isKeepAlive(), statusCode, reason);
+    HTTPPacket *packet = buildErrorPacket(httpPacket->isKeepAlive(), statusCode, reason);
     sendError(connection, packet);
 }
 
-void HTTPRPCServerAdapter::sendError(Connection *connection,
-                                     HTTPPacket *packet)
-{
+void HTTPRPCServerAdapter::sendError(Connection *connection, HTTPPacket *packet) {
     if (!packet->isKeepAlive()) {
         connection->setWriteFinishClose(true);
     }
@@ -259,30 +242,69 @@ void HTTPRPCServerAdapter::sendError(Connection *connection,
         packet->free();
     }
 }
-void HTTPRPCServerAdapter::setProtoJsonizer(const ProtoJsonizerPtr& protoJsonizer) {
+
+void HTTPRPCServerAdapter::setProtoJsonizer(const ProtoJsonizerPtr &protoJsonizer) {
     ScopedWriteLock lock(_mutex);
     _protoJsonizer = protoJsonizer;
 }
-ProtoJsonizerPtr& HTTPRPCServerAdapter::getProtoJsonizer() {
+
+ProtoJsonizerPtr &HTTPRPCServerAdapter::getProtoJsonizer() {
     ScopedReadLock lock(_mutex);
     return _protoJsonizer;
 }
 
+bool HTTPRPCServerAdapter::setProtoJsonizer(RPCService *service,
+                                            const std::string &method,
+                                            const ProtoJsonizerPtr &protoJsonizer) {
+    auto serviceDesc = service->GetDescriptor();
+    const auto &serviceName = serviceDesc->full_name();
+    auto methodDesc = serviceDesc->FindMethodByName(method);
+    if (!methodDesc) {
+        HTTP_ARPC_LOG(ERROR,
+                      "set protoJsonizer failed, method [%s] not found in service [%s]",
+                      method.c_str(),
+                      serviceName.c_str());
+        return false;
+    }
+    ScopedWriteLock lock(_mutex);
+    auto &methodMap = _serviceProtoJsonizerMap[serviceName];
+    methodMap[method] = protoJsonizer;
+    return true;
+}
+
+ProtoJsonizerPtr HTTPRPCServerAdapter::getProtoJsonizer(RPCService *service, RPCMethodDescriptor *method) {
+    const auto &name = service->GetDescriptor()->full_name();
+    const auto &methodName = method->name();
+    ScopedReadLock lock(_mutex);
+    auto it = _serviceProtoJsonizerMap.find(name);
+    if (it == _serviceProtoJsonizerMap.end()) {
+        return _protoJsonizer;
+    } else {
+        const auto &methodMap = it->second;
+        auto methodIt = methodMap.find(methodName);
+        if (methodMap.end() == methodIt) {
+            return _protoJsonizer;
+        } else {
+            return methodIt->second;
+        }
+    }
+}
+
 EagleInfo HTTPRPCServerAdapter::getEagleInfo(anet::HTTPPacket *httpPacket) {
     EagleInfo eagleInfo;
-    const char* traceId = httpPacket->getHeader("EagleEye-TraceId");
+    const char *traceId = httpPacket->getHeader("EagleEye-TraceId");
     if (traceId) {
         eagleInfo.traceid = traceId;
     }
-    const char* rpcId = httpPacket->getHeader("EagleEye-RpcId");
+    const char *rpcId = httpPacket->getHeader("EagleEye-RpcId");
     if (rpcId) {
         eagleInfo.rpcid = rpcId;
     }
-    const char* udata = httpPacket->getHeader("EagleEye-UserData");
+    const char *udata = httpPacket->getHeader("EagleEye-UserData");
     if (udata) {
         eagleInfo.udata = udata;
     }
-    const char* gdata = httpPacket->getHeader("GigData");
+    const char *gdata = httpPacket->getHeader("GigData");
     if (!gdata) {
         gdata = httpPacket->getHeader("gig_data");
     }
@@ -292,5 +314,4 @@ EagleInfo HTTPRPCServerAdapter::getEagleInfo(anet::HTTPPacket *httpPacket) {
     return eagleInfo;
 }
 
-
-}
+} // namespace http_arpc

@@ -33,9 +33,7 @@ FixedSizeChunkAllocator::FixedSizeChunkAllocator() {
     _buffer = NULL;
 }
 
-FixedSizeChunkAllocator::~FixedSizeChunkAllocator() { 
-    release();
-}
+FixedSizeChunkAllocator::~FixedSizeChunkAllocator() { release(); }
 
 void FixedSizeChunkAllocator::init(uint32_t requestSize, uint32_t maxRequestChunk) {
     _maxRequestChunk = maxRequestChunk;
@@ -45,13 +43,13 @@ void FixedSizeChunkAllocator::init(uint32_t requestSize, uint32_t maxRequestChun
     _free = _buffer;
 }
 
-void* FixedSizeChunkAllocator::allocate(uint32_t size) {
+void *FixedSizeChunkAllocator::allocate(uint32_t size) {
     void *ret;
     ++_count;
     assert(_count <= _maxRequestChunk);
     if (_freeList) {
         ret = _freeList;
-        _freeList  = *static_cast<void **> (_freeList);
+        _freeList = *static_cast<void **>(_freeList);
     } else {
         assert(_free < _end);
         ret = _free;
@@ -60,7 +58,7 @@ void* FixedSizeChunkAllocator::allocate(uint32_t size) {
     return ret;
 }
 
-void FixedSizeChunkAllocator::free(void* const addr) {
+void FixedSizeChunkAllocator::free(void *const addr) {
     --_count;
     *reinterpret_cast<void **>(addr) = _freeList;
     _freeList = addr;
@@ -76,5 +74,4 @@ void FixedSizeChunkAllocator::release() {
     }
 }
 
-}
-
+} // namespace autil

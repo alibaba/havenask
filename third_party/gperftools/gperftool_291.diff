@@ -1,0 +1,31 @@
+diff --git a/src/common.h b/src/common.h
+index caa3e4a..28a5488 100644
+--- a/src/common.h
++++ b/src/common.h
+@@ -80,7 +80,7 @@ static const size_t kPageShift  = 13;
+
+ static const size_t kClassSizesMax = 128;
+
+-static const size_t kMaxThreadCacheSize = 4 << 20;
++static const size_t kMaxThreadCacheSize = 32 << 20;
+
+ static const size_t kPageSize   = 1 << kPageShift;
+ static const size_t kMaxSize    = 256 * 1024;
+@@ -94,7 +94,7 @@ static const size_t kMaxPages = 1 << (20 - kPageShift);
+ // for the small memory footprint case.
+ static const size_t kDefaultOverallThreadCacheSize = kMaxThreadCacheSize;
+ #else
+-static const size_t kDefaultOverallThreadCacheSize = 8u * kMaxThreadCacheSize;
++static const size_t kDefaultOverallThreadCacheSize = 64u * kMaxThreadCacheSize;
+ #endif
+
+ // Lower bound on the per-thread cache sizes
+@@ -107,7 +107,7 @@ static const size_t kStealAmount = 1 << 16;
+
+ // The number of times that a deallocation can cause a freelist to
+ // go over its max_length() before shrinking max_length().
+-static const int kMaxOverages = 3;
++static const int kMaxOverages = 2;
+
+ // Maximum length we allow a per-thread free-list to have before we
+ // move objects from it into the corresponding central free-list.  We

@@ -15,6 +15,8 @@
  */
 #pragma once
 
+#include <utility>
+
 namespace autil {
 
 template <typename Lambda>

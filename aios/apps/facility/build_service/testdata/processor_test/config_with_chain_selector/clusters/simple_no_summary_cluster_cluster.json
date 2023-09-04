@@ -1,0 +1,9 @@
+{
+    "cluster_config" : {
+        "table_name" : "simple_no_summary_table",
+	    "hash_mode" : {
+            "hash_function" : "KINGSO_HASH#720",
+            "hash_field" : "id"
+	    }
+    }
+}

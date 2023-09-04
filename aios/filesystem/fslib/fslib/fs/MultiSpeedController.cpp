@@ -15,6 +15,7 @@
  */
 #include "fslib/fs/MultiSpeedController.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 
 using namespace std;
@@ -23,18 +24,16 @@ FSLIB_BEGIN_NAMESPACE(fs);
 AUTIL_DECLARE_AND_SETUP_LOGGER(fs, MultiSpeedController);
 
 MultiSpeedController::MultiSpeedController() {
-    const char* speedLimitParam = getenv("FSLIB_READ_SPEED_LIMIT");
-    string paramStr = speedLimitParam ? string(speedLimitParam) : "";
-    init(std::string(paramStr));
+    string paramStr = autil::EnvUtil::getEnv("FSLIB_READ_SPEED_LIMIT");
+    init(paramStr);
 }
 
-MultiSpeedController::~MultiSpeedController() {
-}
+MultiSpeedController::~MultiSpeedController() {}
 
-void MultiSpeedController::init(const std::string& speedLimitParam) {
+void MultiSpeedController::init(const std::string &speedLimitParam) {
     vector<string> patternStrVec;
     autil::StringUtil::fromString(speedLimitParam, patternStrVec, ";");
-    for (auto& pattern : patternStrVec) {
+    for (auto &pattern : patternStrVec) {
         SpeedControllerPtr controller(new SpeedController());
         controller->initFromString(pattern);
         _readSpeedControllers.push_back(move(controller));
@@ -44,17 +43,15 @@ void MultiSpeedController::init(const std::string& speedLimitParam) {
     _readSpeedControllers.push_back(move(controller));
 }
 
-SpeedController* MultiSpeedController::getReadSpeedController(const std::string& filePath)
-{
-    MultiSpeedController* multiSpeedController = MultiSpeedController::getInstance();
+SpeedController *MultiSpeedController::getReadSpeedController(const std::string &filePath) {
+    MultiSpeedController *multiSpeedController = MultiSpeedController::getInstance();
     return multiSpeedController->findReadSpeedController(filePath);
 }
 
-void MultiSpeedController::getQuotaDetailInfo(std::vector<std::pair<std::string, int64_t>>& quotaInfos)
-{
-    MultiSpeedController* multiSpeedController = MultiSpeedController::getInstance();
-    for (const auto& controller : multiSpeedController->_readSpeedControllers) {
-        const std::string& pathPattern = controller->getPathPattern();
+void MultiSpeedController::getQuotaDetailInfo(std::vector<std::pair<std::string, int64_t>> &quotaInfos) {
+    MultiSpeedController *multiSpeedController = MultiSpeedController::getInstance();
+    for (const auto &controller : multiSpeedController->_readSpeedControllers) {
+        const std::string &pathPattern = controller->getPathPattern();
         if (pathPattern.empty()) {
             continue;
         }
@@ -62,10 +59,9 @@ void MultiSpeedController::getQuotaDetailInfo(std::vector<std::pair<std::string,
     }
 }
 
-bool MultiSpeedController::updateQuota(const std::string& patternStr, int64_t quotaSizePerSec)
-{
-    MultiSpeedController* multiSpeedController = MultiSpeedController::getInstance();
-    SpeedController* controller = multiSpeedController->findReadSpeedControllerByPatternString(patternStr);
+bool MultiSpeedController::updateQuota(const std::string &patternStr, int64_t quotaSizePerSec) {
+    MultiSpeedController *multiSpeedController = MultiSpeedController::getInstance();
+    SpeedController *controller = multiSpeedController->findReadSpeedControllerByPatternString(patternStr);
     if (!controller) {
         return false;
     }
@@ -73,9 +69,8 @@ bool MultiSpeedController::updateQuota(const std::string& patternStr, int64_t qu
     return true;
 }
 
-SpeedController* MultiSpeedController::findReadSpeedController(const std::string& filePath) const
-{
-    for (const auto& controller : _readSpeedControllers) {
+SpeedController *MultiSpeedController::findReadSpeedController(const std::string &filePath) const {
+    for (const auto &controller : _readSpeedControllers) {
         if (controller->matchPathPattern(filePath)) {
             return controller.get();
         }
@@ -84,10 +79,8 @@ SpeedController* MultiSpeedController::findReadSpeedController(const std::string
     return NULL;
 }
 
-SpeedController* MultiSpeedController::findReadSpeedControllerByPatternString(
-        const std::string& pattern) const
-{
-    for (const auto& controller : _readSpeedControllers) {
+SpeedController *MultiSpeedController::findReadSpeedControllerByPatternString(const std::string &pattern) const {
+    for (const auto &controller : _readSpeedControllers) {
         if (pattern == controller->getPathPattern()) {
             return controller.get();
         }
@@ -95,12 +88,10 @@ SpeedController* MultiSpeedController::findReadSpeedControllerByPatternString(
     return NULL;
 }
 
-double MultiSpeedController::getQuotaUsageRatio(const std::string& patternString)
-{
-    MultiSpeedController* multiSpeedController = MultiSpeedController::getInstance();
+double MultiSpeedController::getQuotaUsageRatio(const std::string &patternString) {
+    MultiSpeedController *multiSpeedController = MultiSpeedController::getInstance();
     auto controller = multiSpeedController->findReadSpeedControllerByPatternString(patternString);
     return controller != nullptr ? controller->getQuotaUsageRatio() : 1.0;
 }
 
 FSLIB_END_NAMESPACE(fs);
-

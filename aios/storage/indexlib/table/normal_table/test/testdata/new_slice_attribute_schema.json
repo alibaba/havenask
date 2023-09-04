@@ -1,0 +1,56 @@
+{
+    "fields": [
+        {
+            "binary_field": false,
+            "field_name": "nid",
+            "field_type": "LONG"
+        },
+        {
+            "binary_field": false,
+            "field_name": "string",
+            "field_type": "STRING",
+            "updatable_multi_value": true
+        },
+        {
+            "binary_field": false,
+            "compress_type" : "uniq",
+            "field_name": "unique_string",
+            "field_type": "STRING"
+        },
+        {
+            "binary_field": false,
+            "field_name": "price",
+            "field_type": "INT32"
+        },
+        {
+            "binary_field": false,
+            "field_name": "newValue",
+            "field_type": "UINT64"
+        },
+        {
+            "binary_field": false,
+            "field_name": "newString",
+            "field_type": "STRING"
+        }
+    ],
+    "indexs": [
+        {
+            "format_version_id": 0,
+            "index_fields": "nid",
+            "index_name": "nid",
+            "index_type": "PRIMARYKEY64",
+            "pk_data_block_size": 4096,
+            "pk_hash_type": "default_hash",
+            "pk_storage_type": "sort_array"
+        }
+    ],
+    "attributes": [
+        {"field_name": "nid", "slice_count": 4 },
+        {"field_name": "string", "slice_count": 2},
+        {"field_name": "unique_string", "slice_count": 4},
+        {"field_name": "price"},
+        {"field_name": "newValue", "slice_count": 4},
+        {"field_name": "newString", "slice_count": 4}
+    ],
+    "table_name": "table1"
+}

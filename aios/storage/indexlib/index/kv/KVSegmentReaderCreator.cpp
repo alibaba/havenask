@@ -15,7 +15,7 @@
  */
 #include "indexlib/index/kv/KVSegmentReaderCreator.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/index/common/field_format/pack_attribute/PackValueAdapter.h"
 #include "indexlib/index/kv/AdapterIgnoreFieldCalculator.h"

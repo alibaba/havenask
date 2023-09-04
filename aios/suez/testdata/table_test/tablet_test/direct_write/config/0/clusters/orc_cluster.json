@@ -1,0 +1,21 @@
+{
+    "realtime" : false,
+    "direct_write" : true,
+    "wal_config" : {
+        "strategy" : "none",
+        "sink" : {
+        }
+    },
+    "realtime_info" : {
+        "type" : "file",
+        "data": "%data_path%",
+        "realtime_mode": "realtime_service_rawdoc_rt_build_mode"
+    },
+    "cluster_config" : {
+	"table_name" : "orc",
+	"hash_mode" : {
+	    "hash_field" : "nid",
+	    "hash_function": "HASH"
+	}
+    }
+}

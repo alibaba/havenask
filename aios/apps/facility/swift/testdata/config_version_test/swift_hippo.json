@@ -1,0 +1,54 @@
+{
+    "packages" : [
+        {
+            "packageURI" : "pangu://AT-ha3perf/sdd/swift_func_1_0//_external_2016-01-13-20:26:59_1.tar",
+            "type" : "ARCHIVE"
+        }
+    ],
+    "role_default" : {
+        "processInfos" : [
+            {
+                "args" : [
+                    [
+                        "-l",
+                        "$HIPPO_APP_INST_ROOT/usr/local/etc/swift/swift_alog.conf"
+                    ]
+                ],
+                "envs" : [
+                    [
+                        "HADOOP_HOME",
+                        "/home/hadoop.devel/hadoop-2.6.0-cdh5.4.0-etao4/"
+                    ],
+                    [
+                        "LD_LIBRARY_PATH",
+                        "/usr/ali/java/jre/lib/amd64/server/"
+                    ]
+                ],
+                "restartCountLimit" : 30,
+                "stopTimeout" : 360
+            }
+        ]
+    },
+    "role_resource" : {
+        "admin" : [
+            {
+                "amount" : 1,
+                "name" : "cpu"
+            },
+            {
+                "amount" : 1,
+                "name" : "mem"
+            }
+        ],
+        "broker" : [
+            {
+                "amount" : 1,
+                "name" : "cpu"
+            },
+            {
+                "amount" : 1,
+                "name" : "mem"
+            }
+        ]
+    }
+}

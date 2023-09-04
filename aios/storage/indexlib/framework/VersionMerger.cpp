@@ -33,11 +33,6 @@ namespace indexlibv2::framework {
 AUTIL_LOG_SETUP(indexlib.framework, VersionMerger);
 #define TABLET_LOG(level, format, args...) AUTIL_LOG(level, "[%s] [%p] " format, _tabletName.c_str(), this, ##args)
 
-namespace {
-static const size_t SKIP_CLEAN_TASK =
-    autil::EnvUtil::getEnv<size_t>("tablet_merge_skip_clean_task", /*defaultValue*/ 0);
-}
-
 VersionMerger::VersionMerger(std::string tabletName, std::string indexRoot,
                              std::shared_ptr<ITabletMergeController> controller,
                              std::unique_ptr<IIndexTaskPlanCreator> planCreator, MetricsManager* manager)
@@ -50,6 +45,7 @@ VersionMerger::VersionMerger(std::string tabletName, std::string indexRoot,
     , _stopped(false)
 {
     RegisterMetrics(manager);
+    _skipCleanTask = autil::EnvUtil::getEnv<size_t>("tablet_merge_skip_clean_task", /*defaultValue*/ 0);
 }
 
 void VersionMerger::UpdateVersion(const Version& version)
@@ -64,11 +60,11 @@ versionid_t VersionMerger::GetBaseVersion() const
     std::lock_guard<std::mutex> lock(_dataMutex);
     if (_mergedVersionInfo && (_mergedVersionInfo->committedVersionId == INVALID_VERSIONID ||
                                _currentBaseVersion.GetVersionId() < _mergedVersionInfo->committedVersionId)) {
-        TABLET_LOG(
-            INFO,
-            "version [%d] would not propose, current merged base version[%d], target version[%d], comitted version[%d]",
-            _currentBaseVersion.GetVersionId(), _mergedVersionInfo->baseVersion.GetVersionId(),
-            _mergedVersionInfo->targetVersion.GetVersionId(), _mergedVersionInfo->committedVersionId);
+        TABLET_LOG(INFO,
+                   "version [%d] would not propose, current merged base version[%d], target version[%d], committed "
+                   "version[%d]",
+                   _currentBaseVersion.GetVersionId(), _mergedVersionInfo->baseVersion.GetVersionId(),
+                   _mergedVersionInfo->targetVersion.GetVersionId(), _mergedVersionInfo->committedVersionId);
         return INVALID_VERSIONID;
     }
     return _currentBaseVersion.GetVersionId();
@@ -109,7 +105,7 @@ void VersionMerger::FinishTask(versionid_t baseVersionId, bool removeTempFiles)
     if (baseVersionId != indexlibv2::INVALID_VERSIONID) {
         _lastProposedVersionId = baseVersionId;
     }
-    if (SKIP_CLEAN_TASK) {
+    if (_skipCleanTask) {
         TABLET_LOG(INFO, "clean task skipped");
         removeTempFiles = false;
     }
@@ -245,6 +241,7 @@ VersionMerger::InnerExecuteTask(const Version& sourceVersion, const std::string&
     if (!_controller->GetRunningTaskStat()) {
         versionid_t currentVersionId = GetBaseVersion();
         if (currentVersionId == INVALID_VERSIONID) {
+            TABLET_LOG(ERROR, "currentVersionId is invalid version");
             co_return std::make_pair(Status::InternalError(), INVALID_VERSIONID);
         }
         if (currentVersionId != _lastProposedVersionId) {
@@ -272,6 +269,7 @@ VersionMerger::InnerExecuteTask(const Version& sourceVersion, const std::string&
             co_return std::make_pair(Status::OK(), INVALID_VERSIONID);
         }
     }
+
     auto [status, mergeTaskStatus] = co_await _controller->WaitMergeResult();
     if (!status.IsOK()) {
         TABLET_LOG(ERROR, "wait merge result failed: %s", status.ToString().c_str());

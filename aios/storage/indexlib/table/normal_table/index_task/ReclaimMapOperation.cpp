@@ -15,6 +15,7 @@
  */
 #include "indexlib/table/normal_table/index_task/ReclaimMapOperation.h"
 
+#include "indexlib/config/MutableJson.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/framework/index_task/IndexTaskResourceManager.h"
@@ -90,7 +91,8 @@ Status ReclaimMapOperation::Execute(const framework::IndexTaskContext& context)
             return Status::InvalidArgs("split only support source segment 1, but segment count [%lu]",
                                        segmentMergePlan.GetSrcSegmentCount());
         }
-        auto [status, segmentGroupConfig] = schema->GetSetting<SegmentGroupConfig>(NORMAL_TABLE_GROUP_CONFIG_KEY);
+        auto [status, segmentGroupConfig] =
+            schema->GetRuntimeSettings().GetValue<SegmentGroupConfig>(NORMAL_TABLE_GROUP_CONFIG_KEY);
         RETURN_IF_STATUS_ERROR(status, "get segment group config failed");
 
         auto spliter = std::make_shared<SingleSegmentDocumentGroupSelector>();
@@ -118,7 +120,7 @@ Status ReclaimMapOperation::Execute(const framework::IndexTaskContext& context)
             PatchedDeletionMapLoader::GetPatchedDeletionMapDiskIndexers(tabletData, patchDir, &indexPairs),
             "apply patch to deletion map failed");
     }
-    auto [st, sortDescs] = schema->GetSetting<config::SortDescriptions>("sort_descriptions");
+    auto [st, sortDescs] = schema->GetRuntimeSettings().GetValue<config::SortDescriptions>("sort_descriptions");
     assert(st.IsOK() || st.IsNotFound());
     bool isSorted = sortDescs.size() > 0;
     std::string reclaimmapName = NormalTableResourceCreator::GetReclaimMapName(idx, isSorted);
@@ -126,7 +128,7 @@ Status ReclaimMapOperation::Execute(const framework::IndexTaskContext& context)
         std::shared_ptr<SortedReclaimMap> sortedReclaimMap;
         auto status =
             resourceManager->LoadResource(reclaimmapName, index::DocMapper::GetDocMapperType(), sortedReclaimMap);
-        if (status.IsNoEntry()) {
+        if (status.IsNotFound()) {
             status =
                 resourceManager->CreateResource(reclaimmapName, index::DocMapper::GetDocMapperType(), sortedReclaimMap);
         }
@@ -140,7 +142,7 @@ Status ReclaimMapOperation::Execute(const framework::IndexTaskContext& context)
     }
     std::shared_ptr<ReclaimMap> reclaimMap;
     auto status = resourceManager->LoadResource(reclaimmapName, index::DocMapper::GetDocMapperType(), reclaimMap);
-    if (status.IsNoEntry()) {
+    if (status.IsNotFound()) {
         status = resourceManager->CreateResource(reclaimmapName, index::DocMapper::GetDocMapperType(), reclaimMap);
     }
     RETURN_IF_STATUS_ERROR(status, "load or create reclaimmap failed");

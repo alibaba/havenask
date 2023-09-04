@@ -19,6 +19,7 @@
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/LogicalFileSystem.h"
+#include "indexlib/file_system/MergeDirsOption.h"
 
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, PatchSegmentMoveOperation);
@@ -107,8 +108,9 @@ Status PatchSegmentMoveOperation::MoveIndexDir(framework::IndexOperationId opId,
     }
     std::string physicalPath = fenceDirectory->GetPhysicalPath(opSegmentDir);
     indexlib::file_system::FenceContextPtr fenceContext = rootDirectory->GetFenceContext();
-    auto status =
-        toStatus(rootDirectory->GetFileSystem()->MergeDirs({physicalPath}, patchSegmentDir, false, fenceContext.get()));
+    auto status = toStatus(rootDirectory->GetFileSystem()->MergeDirs(
+        {physicalPath}, patchSegmentDir,
+        indexlib::file_system::MergeDirsOption::NoMergePackageWithFence(fenceContext.get())));
     if (status.IsOK() || status.IsExist()) {
         return Status::OK();
     }

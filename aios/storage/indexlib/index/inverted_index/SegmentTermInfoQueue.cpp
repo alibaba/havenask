@@ -15,7 +15,7 @@
  */
 #include "indexlib/index/inverted_index/SegmentTermInfoQueue.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/index/inverted_index/Common.h"
@@ -69,7 +69,7 @@ Status SegmentTermInfoQueue::Init(const std::vector<IIndexMerger::SourceSegment>
 }
 
 Status SegmentTermInfoQueue::AddOnDiskTermInfo(docid_t baseDocId, uint64_t docCount, segmentid_t segmentId,
-                                               const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+                                               const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                                const std::shared_ptr<file_system::Directory>& segmentDir)
 {
     auto [status, patchIter] = CreatePatchIterator(segmentId);
@@ -116,7 +116,7 @@ Status SegmentTermInfoQueue::Init(const std::shared_ptr<file_system::Directory>&
 }
 
 std::shared_ptr<IndexIterator>
-SegmentTermInfoQueue::CreateForDefaultValueIter(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+SegmentTermInfoQueue::CreateForDefaultValueIter(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                                 uint64_t docCount, segmentid_t segmentId) const
 {
     if (schema->GetIndexConfig(INVERTED_INDEX_TYPE_STR, _indexConfig->GetIndexName()) == nullptr) {

@@ -15,14 +15,21 @@
  */
 #pragma once
 
+#include <stdint.h>
+#include <string>
+#include <vector>
+
 #include "autil/legacy/jsonizable.h"
-#include "iquan/common/Common.h"
 
 namespace iquan {
 
 class WarmupConfig : public autil::legacy::Jsonizable {
 public:
-    WarmupConfig() : threadNum(3), warmupSeconds(30), warmupQueryNum(1000000), warmupLogName("sql_warmup") {}
+    WarmupConfig()
+        : threadNum(3)
+        , warmupSeconds(30)
+        , warmupQueryNum(1000000)
+        , warmupLogName("sql_warmup") {}
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("thread_number", threadNum, threadNum);

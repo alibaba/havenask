@@ -13,69 +13,64 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <signal.h>
-#include "aios/network/anet/timeutil.h"
 #include "aios/network/anet/transport.h"
-#include "aios/network/anet/socket.h"
-#include "aios/network/anet/tcpacceptor.h"
-#include "aios/network/anet/tcpcomponent.h"
-#include "aios/network/anet/log.h"
-#include "aios/network/anet/transportlist.h"
-#include "aios/network/anet/ioworker.h"
+
 #include <assert.h>
+#include <list>
+#include <ostream>
+#include <signal.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <list>
-#include <ostream>
-#include <string>
 #include <vector>
 
 #include "aios/network/anet/connectionpriority.h"
 #include "aios/network/anet/debug.h"
 #include "aios/network/anet/ilogger.h"
 #include "aios/network/anet/iocomponent.h"
+#include "aios/network/anet/ioworker.h"
+#include "aios/network/anet/log.h"
+#include "aios/network/anet/socket.h"
+#include "aios/network/anet/tcpacceptor.h"
+#include "aios/network/anet/tcpcomponent.h"
 #include "aios/network/anet/thread.h"
 #include "aios/network/anet/threadmutex.h"
+#include "aios/network/anet/timeutil.h"
+#include "aios/network/anet/transportlist.h"
 
 namespace anet {
 class Connection;
 class IPacketStreamer;
 class IServerAdapter;
 struct ConnStat;
-}  // namespace anet
+} // namespace anet
 
 using namespace std;
 namespace anet {
 
 namespace {
-    const int MAX_IO_THREAD_NUM = 8;
+const int MAX_IO_THREAD_NUM = 32;
 } // anonymous namespace
 
-static int SimpleHashStrategy(int fd, int ioThreadNum) {
-    return (fd == -1) ? 0 : (fd % ioThreadNum);
-}
+static int SimpleHashStrategy(int fd, int ioThreadNum) { return (fd == -1) ? 0 : (fd % ioThreadNum); }
 
 static int PrioritySeparateStrategy(int ioType, int priority, int fd, int ioThreadNum) {
-    if (ioType == IOC_TCPACCEPTOR || priority == ANET_PRIORITY_HIGH)
-    {
+    if (ioType == IOC_TCPACCEPTOR || priority == ANET_PRIORITY_HIGH) {
         return ioThreadNum;
-    }
-    else
+    } else
         return SimpleHashStrategy(fd, ioThreadNum);
 }
 
-Transport::Transport() 
-    :_listenFdThreadMode(SHARE_THREAD), _listenThreadNum(0) {
+Transport::Transport() : _listenFdThreadMode(SHARE_THREAD), _listenThreadNum(0) {
     _ioThreadNum = 1;
 
     initialize();
 }
 
-Transport::Transport(int ioThreadNum, ListenFdThreadModeEnum mode)
-    : _listenFdThreadMode(mode) {
+Transport::Transport(int ioThreadNum, ListenFdThreadModeEnum mode) : _listenFdThreadMode(mode) {
     if (ioThreadNum < 1) {
         ioThreadNum = 1;
     } else if (ioThreadNum > MAX_IO_THREAD_NUM) {
@@ -97,7 +92,7 @@ void Transport::initialize() {
     _started = false;
     _promotePriority = false;
     _nextCheckTime = 0;
-    _timeoutLoopInterval = 100000; //default 100ms
+    _timeoutLoopInterval = 100000; // default 100ms
     /* Register the object into the global list. */
     addTransportToList(this);
 }
@@ -169,11 +164,11 @@ void Transport::eventIteration(int64_t &now) {
  * calling timeoutIteration() every 100ms
  */
 void Transport::timeoutLoop() {
-    auto waitTime = _timeoutLoopInterval / 1000;
-    if (0 == waitTime) {
-        waitTime = 100;
-    }
     while (!_stop) {
+        auto waitTime = _timeoutLoopInterval / 1000;
+        if (0 == waitTime) {
+            waitTime = 100;
+        }
         _timeoutCond.wait(waitTime);
         int64_t now = TimeUtil::getTime();
         timeoutIteration(now);
@@ -193,10 +188,9 @@ void Transport::setTimeoutLoopInterval(int64_t ms) {
 
 void Transport::closeComponents() {
     collectNewComponets();
-    for (list<IOComponent*>::iterator it = _checkingList.begin();
-         it != _checkingList.end(); ) {
+    for (list<IOComponent *>::iterator it = _checkingList.begin(); it != _checkingList.end();) {
         IOComponent *ioc = *it;
-        ANET_LOG(DEBUG,"IOC(%p)->subRef(), [%d]", ioc, ioc->getRef());
+        ANET_LOG(DEBUG, "IOC(%p)->subRef(), [%d]", ioc, ioc->getRef());
         ioc->close();
         ioc->subRef();
         it = _checkingList.erase(it);
@@ -210,16 +204,14 @@ void Transport::closeComponents() {
 
 void Transport::collectNewComponets() {
     MutexGuard guard(&_mutex);
-    _checkingList.insert(_checkingList.end(), 
-                         _newCheckingList.begin(), 
-                         _newCheckingList.end());
+    _checkingList.insert(_checkingList.end(), _newCheckingList.begin(), _newCheckingList.end());
     _newCheckingList.clear();
 }
 
 void Transport::timeoutIteration(int64_t now) {
     collectNewComponets();
-    list<IOComponent*>::iterator it = _checkingList.begin();
-    while (it != _checkingList.end() ) {
+    list<IOComponent *>::iterator it = _checkingList.begin();
+    while (it != _checkingList.end()) {
         IOComponent *ioc = *it;
         if (ioc->checkTimeout(now)) {
             ++it;
@@ -237,7 +229,7 @@ void Transport::run(Thread *thread, void *arg) {
     timeoutLoop();
 }
 
-void Transport::runIteration(int64_t& now) {
+void Transport::runIteration(int64_t &now) {
     eventIteration(now);
     if (now >= _nextCheckTime) {
         timeoutIteration(now);
@@ -251,24 +243,21 @@ void Transport::run() {
     }
 }
 
-void Transport::stopRun() {
-    _stop = true;
-}
+void Transport::stopRun() { _stop = true; }
 
-IOComponent *Transport::listen (const char *spec, IPacketStreamer *streamer, 
-                                IServerAdapter *serverAdapter, 
-                                int postPacketTimeout,
-                                int maxIdleTime, 
-                                int backlog) 
-{
+IOComponent *Transport::listen(const char *spec,
+                               IPacketStreamer *streamer,
+                               IServerAdapter *serverAdapter,
+                               int postPacketTimeout,
+                               int maxIdleTime,
+                               int backlog) {
     MutexGuard guard(&_stopMutex);
-    if (_stop) { 
+    if (_stop) {
         ANET_LOG(SPAM, "Transport(%p) Stoped!", this);
-        return NULL; 
+        return NULL;
     }
     if (NULL == spec || NULL == streamer || NULL == serverAdapter) {
-        ANET_LOG(WARN, "Invalid parameters for listen(%p,%p,%p)",
-                 spec, streamer, serverAdapter);
+        ANET_LOG(WARN, "Invalid parameters for listen(%p,%p,%p)", spec, streamer, serverAdapter);
         return NULL;
     }
 
@@ -276,11 +265,10 @@ IOComponent *Transport::listen (const char *spec, IPacketStreamer *streamer,
     Socket *socket = new Socket();
     DBGASSERT(socket);
     socket->setAddrSpec(spec);
-    if (socket->getProtocolType() == (int)SOCK_STREAM)
-    {
+    if (socket->getProtocolType() == (int)SOCK_STREAM) {
         // TCPAcceptor
-        TCPAcceptor *acceptor = new TCPAcceptor(this, socket, 
-                streamer, serverAdapter, postPacketTimeout, maxIdleTime, backlog);
+        TCPAcceptor *acceptor =
+            new TCPAcceptor(this, socket, streamer, serverAdapter, postPacketTimeout, maxIdleTime, backlog);
         DBGASSERT(acceptor);
         if (!acceptor->init()) {
             delete acceptor;
@@ -290,37 +278,30 @@ IOComponent *Transport::listen (const char *spec, IPacketStreamer *streamer,
     } else {
         ANET_LOG(WARN, "SOCK_DGRAM server does not support yet, spec %s", spec);
         delete socket;
-    } 
+    }
 
     return NULL;
 }
 
-Connection *Transport::connect(const char *spec, 
-                               IPacketStreamer *streamer, 
-                               bool autoReconn,
-                               CONNPRIORITY prio) {
+Connection *Transport::connect(const char *spec, IPacketStreamer *streamer, bool autoReconn, CONNPRIORITY prio) {
     return doConnect(NULL, spec, streamer, autoReconn, prio);
 }
 
-IoWorker* Transport::getBelongedWorker(const IOComponent *ioc) {
+IoWorker *Transport::getBelongedWorker(const IOComponent *ioc) {
     int chunkId = getChunkId(ioc);
     return &_ioWorkers[chunkId];
 }
 
 void Transport::addToCheckingList(IOComponent *ioc) {
     ioc->addRef();
-  
+
     MutexGuard guard(&_mutex);
     _newCheckingList.push_back(ioc);
 }
 
-void Transport::lock() {
-    _mutex.lock();
-}
+void Transport::lock() { _mutex.lock(); }
 
-void Transport::unlock() {
-    _mutex.unlock();
-}
+void Transport::unlock() { _mutex.unlock(); }
 
 int Transport::getChunkId(const IOComponent *ioc) const {
     if (ioc == NULL) {
@@ -329,33 +310,29 @@ int Transport::getChunkId(const IOComponent *ioc) const {
 
     if (_listenFdThreadMode == EXCLUSIVE_LISTEN_THREAD) {
         assert(_listenThreadNum > 0);
-        IOComponent *pioc = const_cast<IOComponent*>(ioc);
-        return PrioritySeparateStrategy(ioc->getType(), pioc->getSocket()->getPriority(), 
-                pioc->getSocket()->getSocketHandle(), _ioThreadNum);
-    }
-    else
-    {
-        IOComponent *pioc = const_cast<IOComponent*>(ioc);
+        IOComponent *pioc = const_cast<IOComponent *>(ioc);
+        return PrioritySeparateStrategy(
+            ioc->getType(), pioc->getSocket()->getPriority(), pioc->getSocket()->getSocketHandle(), _ioThreadNum);
+    } else {
+        IOComponent *pioc = const_cast<IOComponent *>(ioc);
         return SimpleHashStrategy(pioc->getSocket()->getSocketHandle(), _ioThreadNum);
     }
 }
 
 void Transport::dump(ostringstream &buf) {
     char timestr[32];
-    TimeUtil::getTimeStr(_nextCheckTime, timestr); 
+    TimeUtil::getTimeStr(_nextCheckTime, timestr);
 
     int totalIOC = 0;
     buf << "------Transport State------\n";
-    buf << "Address: " << this << "\tStarted: " << _started << "\tStopping: " 
-        << _stop << endl;
-    buf << "\tTimeout interval: " << _timeoutLoopInterval << "us\t" 
+    buf << "Address: " << this << "\tStarted: " << _started << "\tStopping: " << _stop << endl;
+    buf << "\tTimeout interval: " << _timeoutLoopInterval << "us\t"
         << "Next check: " << _nextCheckTime << "-" << timestr << endl;
 
     for (int k = 0; k < _ioThreadNum + _listenThreadNum; ++k) {
         totalIOC += _ioWorkers[k].dump(buf);
     }
     buf << "\nTotally dumped IOC: " << totalIOC << endl;
-    
 }
 
 void Transport::setName(const std::string &name) {
@@ -366,9 +343,8 @@ void Transport::setName(const std::string &name) {
     _name = name;
 }
 
-Connection *Transport::connectWithAddr(const char *localAddr, const char *remoteSpec, 
-                                       IPacketStreamer *streamer, bool autoReconn, CONNPRIORITY prio) 
-{
+Connection *Transport::connectWithAddr(
+    const char *localAddr, const char *remoteSpec, IPacketStreamer *streamer, bool autoReconn, CONNPRIORITY prio) {
     if (localAddr == NULL) {
         ANET_LOG(WARN, "Invalid localspec for connect");
         return NULL;
@@ -376,31 +352,31 @@ Connection *Transport::connectWithAddr(const char *localAddr, const char *remote
     return doConnect(localAddr, remoteSpec, streamer, autoReconn, prio);
 }
 
-Connection *Transport::doConnect(const char *localAddr, const char *remoteSpec,
-                                 IPacketStreamer *streamer, bool autoReconn, CONNPRIORITY prio)
-{
+Connection *Transport::doConnect(
+    const char *localAddr, const char *remoteSpec, IPacketStreamer *streamer, bool autoReconn, CONNPRIORITY prio) {
     MutexGuard guard(&_stopMutex);
-    if (_stop) { return NULL; }
+    if (_stop) {
+        return NULL;
+    }
 
     if (NULL == remoteSpec || NULL == streamer) {
-        ANET_LOG(WARN, "Invalid parameters for connect(%s,%p,%d)",
-                 remoteSpec, streamer, autoReconn);
+        ANET_LOG(WARN, "Invalid parameters for connect(%s,%p,%d)", remoteSpec, streamer, autoReconn);
         return NULL;
     }
 
     Socket *socket = new Socket();
     assert(socket);
-    
-    if (socket->setAddrSpec(remoteSpec) == false){
+
+    if (socket->setAddrSpec(remoteSpec) == false) {
         delete socket;
         ANET_LOG(ERROR, "setAddress error: %s", remoteSpec);
         return NULL;
     }
 
-    if (!socket->setReuseAddress(true)){
+    if (!socket->setReuseAddress(true)) {
         ANET_LOG(WARN, "set reuse address [%s] failed with localAddr [%s]", remoteSpec, localAddr);
     }
-    if (socket->setPriority(prio)){
+    if (socket->setPriority(prio)) {
         ANET_LOG(WARN, "set priority [%d] to addr [%s] failed", prio, remoteSpec);
     }
     if (localAddr && socket->getProtocolFamily() != AF_UNIX) {
@@ -410,9 +386,9 @@ Connection *Transport::doConnect(const char *localAddr, const char *remoteSpec,
             return NULL;
         }
     }
-    
+
     /* Now we only support steam, instead of dgram type. */
-    if (socket->getProtocolType() == (int) SOCK_STREAM) {
+    if (socket->getProtocolType() == (int)SOCK_STREAM) {
         TCPComponent *component = new TCPComponent(this, socket);
         assert(component);
         if (!component->init()) {
@@ -420,16 +396,18 @@ Connection *Transport::doConnect(const char *localAddr, const char *remoteSpec,
             ANET_LOG(ERROR, "Failed to init TCPComponent(%s).", remoteSpec);
             return NULL;
         }
-        component->setAutoReconn(autoReconn); 
+        component->setAutoReconn(autoReconn);
         component->createConnection(streamer, NULL);
-        ANET_LOG(INFO, "socket(fd:%d) connected, connection %p, ioc %p, remote %s, local %s",
+        ANET_LOG(INFO,
+                 "socket(fd:%d) connected, connection %p, ioc %p, remote %s, local %s",
                  component->getSocket()->getSocketHandle(),
-                 component->getConnection(), component,
-                 remoteSpec, localAddr);
+                 component->getConnection(),
+                 component,
+                 remoteSpec,
+                 localAddr);
         addToCheckingList(component);
         return component->getConnection();
-    }
-    else {
+    } else {
         ANET_LOG(WARN, "SOCK_DGRAM does not support yet, spec: %s", remoteSpec);
         delete socket;
     }
@@ -450,9 +428,7 @@ bool Transport::bindLocalAddress(Socket *socket, const char *localAddr) {
     return socket->bindLocalAddress(ipStr, port);
 }
 
-void Transport::parseLocalAddr(const char *localAddr, char *ipStr,
-                               int ipStrBufLen, uint16_t &port) 
-{
+void Transport::parseLocalAddr(const char *localAddr, char *ipStr, int ipStrBufLen, uint16_t &port) {
     const char *sep = strchr(localAddr, ':');
     int ipLen = 0;
     if (sep != NULL) {
@@ -460,7 +436,7 @@ void Transport::parseLocalAddr(const char *localAddr, char *ipStr,
     } else {
         ipLen = strlen(localAddr);
     }
-    
+
     if (ipLen >= ipStrBufLen) {
         if (ipStrBufLen >= 1) {
             ipStr[0] = '\0';
@@ -469,11 +445,11 @@ void Transport::parseLocalAddr(const char *localAddr, char *ipStr,
     }
     strncpy(ipStr, localAddr, ipLen);
     ipStr[ipLen] = '\0';
-    
+
     port = 0;
     if (sep != NULL && ipLen < (int)strlen(localAddr)) {
         port = (uint16_t)atoi(sep + 1);
     }
 }
 
-}
+} // namespace anet

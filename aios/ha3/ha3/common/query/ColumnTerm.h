@@ -15,9 +15,9 @@
  */
 #pragma once
 
+#include <memory>
 #include <stddef.h>
 #include <stdint.h>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -27,16 +27,16 @@
 
 namespace autil {
 class DataBuffer;
-}  // namespace autil
+} // namespace autil
 
 namespace isearch {
 namespace common {
 
-class ColumnTerm
-{
+class ColumnTerm {
 public:
     ColumnTerm(const std::string &indexName = std::string(), bool cache = true);
     virtual ~ColumnTerm() = default;
+
 public:
     bool getEnableCache() const {
         return _enableCache;
@@ -46,42 +46,48 @@ public:
         _enableCache = enableCache;
     }
 
-    const std::string& getIndexName() const {
+    const std::string &getIndexName() const {
         return _indexName;
     }
 
-    std::vector<size_t>& getOffsets() {
+    std::vector<size_t> &getOffsets() {
         return _offsets;
     }
 
-    const std::vector<size_t>& getOffsets() const {
+    const std::vector<size_t> &getOffsets() const {
         return _offsets;
     }
 
     bool isMultiValueTerm() const {
-        return ! _offsets.empty();
+        return !_offsets.empty();
     }
 
     std::string offsetsToString() const;
+
 public:
     static void serialize(const ColumnTerm *p, autil::DataBuffer &dataBuffer);
-    static ColumnTerm* deserialize(autil::DataBuffer &dataBuffer);
-    static ColumnTerm* createColumnTerm(matchdoc::BuiltinType type);
+    static ColumnTerm *deserialize(autil::DataBuffer &dataBuffer);
+    static ColumnTerm *createColumnTerm(matchdoc::BuiltinType type);
+
 public:
-    virtual bool operator == (const ColumnTerm &term) const = 0;
+    virtual bool operator==(const ColumnTerm &term) const = 0;
     virtual ColumnTerm *clone() const = 0;
     virtual std::string toString() const = 0;
     virtual matchdoc::BuiltinType getValueType() const = 0;
+
 protected:
     virtual void doSave(autil::DataBuffer &dataBuffer) const = 0;
     virtual void doLoad(autil::DataBuffer &dataBuffer) = 0;
+
 private:
     void save(autil::DataBuffer &dataBuffer) const;
     void load(autil::DataBuffer &dataBuffer);
+
 protected:
     bool _enableCache;
     std::string _indexName;
     std::vector<size_t> _offsets;
+
 protected:
     AUTIL_LOG_DECLARE();
 };
@@ -89,21 +95,24 @@ protected:
 typedef std::shared_ptr<ColumnTerm> ColumnTermPtr;
 
 template <class T>
-class ColumnTermTyped : public ColumnTerm
-{
+class ColumnTermTyped : public ColumnTerm {
 public:
     using ColumnTerm::ColumnTerm;
+
 public:
-    std::vector<T>& getValues();
-    const std::vector<T>& getValues() const;
+    std::vector<T> &getValues();
+    const std::vector<T> &getValues() const;
+
 public:
-    bool operator == (const ColumnTerm& term) const override;
+    bool operator==(const ColumnTerm &term) const override;
     ColumnTerm *clone() const override;
     std::string toString() const override;
     matchdoc::BuiltinType getValueType() const override;
+
 protected:
     void doSave(autil::DataBuffer &dataBuffer) const override;
     void doLoad(autil::DataBuffer &dataBuffer) override;
+
 private:
     std::vector<T> _values;
 };

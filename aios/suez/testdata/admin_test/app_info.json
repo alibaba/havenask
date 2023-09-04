@@ -1,0 +1,17 @@
+{
+    "app_info" : {
+	"config_path" : "app_config_path"
+    },
+    "custom_app_info" : {
+	"a" : 1,
+	"b" : 2
+    },
+    "biz_info" : {
+        "biz1": {
+            "config_path" : "config_pathXXX"
+        },
+	"TPPSCHEMA_cate_price_int" : {
+	    "custom_biz_info": { "switch_strategy": "default" }
+	}
+    }
+}

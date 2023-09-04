@@ -1,9 +1,4 @@
-load(
-    '//bazel:defs.bzl', 'genyacc', 'genlex', 'test_bc_code', 'copy_target_to',
-    'test_cc_plugin_shared_library'
-)
-load('@org_tensorflow//tensorflow:tensorflow.bzl', 'transitive_hdrs')
-load('//bazel:bundle.bzl', 'bundle_files')
+load('//bazel:defs.bzl', 'genyacc', 'genlex', 'test_bc_code')
 cc_library(
     name='cava_adapter',
     deps=[':havenask_cava_mock'],

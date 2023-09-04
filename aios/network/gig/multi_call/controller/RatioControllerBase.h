@@ -24,7 +24,8 @@ class ServerRatioFilter;
 class GigResponseInfo;
 class PropagationStatDef;
 
-class RatioControllerBase : public ControllerBase {
+class RatioControllerBase : public ControllerBase
+{
 public:
     RatioControllerBase(const std::string &controllerName, float decStep);
 

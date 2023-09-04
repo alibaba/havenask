@@ -1,0 +1,67 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+strict_cc_library(
+    name='PackAttributeTestHelper',
+    testonly=True,
+    copts=['-fno-access-control'],
+    export_name='pack_attribute_test_helper',
+    export_visibility=['//aios/storage:__subpackages__'],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        '//aios/storage/indexlib/document/extractor/plain:DocumentInfoExtractorFactory',
+        '//aios/storage/indexlib/document/normal/rewriter',
+        '//aios/storage/indexlib/document/raw_document/test:raw_document_maker',
+        '//aios/storage/indexlib/index/pack_attribute:config',
+        '//aios/storage/indexlib/index/pack_attribute:factory',
+        '//aios/storage/indexlib/index/test:FakeDocMapper',
+        '//aios/storage/indexlib/index/test:IndexTestHelper'
+    ]
+)
+strict_cc_fast_test(
+    name='PackAttributeConfigTest',
+    srcs=['PackAttributeConfigTest.cpp'],
+    deps=[
+        ':PackAttributeTestHelper', '//aios/storage/indexlib/config:schema',
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
+        '//aios/storage/indexlib/framework/mock:factory',
+        '//aios/storage/indexlib/index/pack_attribute:config',
+        '//aios/storage/indexlib/index/pack_attribute:factory',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='PackAttributeMemIndexerTest',
+    srcs=['PackAttributeMemIndexerTest.cpp'],
+    deps=[
+        ':PackAttributeTestHelper',
+        '//aios/storage/indexlib/index/pack_attribute:config',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='PackAttributeDiskIndexerTest',
+    srcs=['PackAttributeDiskIndexerTest.cpp'],
+    deps=[
+        ':PackAttributeTestHelper',
+        '//aios/storage/indexlib/index/pack_attribute:config',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='PackAttributeIndexReaderTest',
+    srcs=['PackAttributeIndexReaderTest.cpp'],
+    deps=[
+        ':PackAttributeTestHelper',
+        '//aios/storage/indexlib/framework:MetricsManager',
+        '//aios/storage/indexlib/index/pack_attribute:config',
+        '//aios/storage/indexlib/util/counter', '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='PackAttributeIndexMergerTest',
+    srcs=['PackAttributeIndexMergerTest.cpp'],
+    deps=[
+        ':PackAttributeTestHelper',
+        '//aios/storage/indexlib/index/pack_attribute:config',
+        '//aios/unittest_framework'
+    ]
+)

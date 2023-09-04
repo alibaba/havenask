@@ -26,7 +26,7 @@ namespace indexlibv2::table {
 class NormalTableTaskOperationCreator : public framework::IIndexOperationCreator
 {
 public:
-    NormalTableTaskOperationCreator(const std::shared_ptr<config::TabletSchema>& schema);
+    NormalTableTaskOperationCreator(const std::shared_ptr<config::ITabletSchema>& schema);
     ~NormalTableTaskOperationCreator();
 
 public:
@@ -47,7 +47,7 @@ private:
     CreateOperationForReclaim(const framework::IndexOperationDescription& opDesc);
 
 private:
-    std::shared_ptr<config::TabletSchema> _schema;
+    std::shared_ptr<config::ITabletSchema> _schema;
 
 private:
     AUTIL_LOG_DECLARE();

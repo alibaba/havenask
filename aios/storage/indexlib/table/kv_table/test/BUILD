@@ -1,0 +1,158 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+strict_cc_library(
+    name='KVTabletSchemaMaker',
+    testonly=True,
+    copts=['-fno-access-control'],
+    visibility=['//visibility:public'],
+    deps=[
+        '//aios/storage/indexlib/config:schema',
+        '//aios/storage/indexlib/config/test:field_config_test_helper',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory'
+    ]
+)
+strict_cc_library(
+    name='kv_table_test_helper',
+    testonly=True,
+    srcs=['KVTableTestHelper.cpp', 'KVTableTestSearcher.cpp'],
+    hdrs=['KVTableTestHelper.h', 'KVTableTestSearcher.h'],
+    visibility=['//visibility:public'],
+    deps=[
+        ':KVTabletSchemaMaker',
+        '//aios/storage/indexlib/document/kv:kv_document',
+        '//aios/storage/indexlib/document/test:KVDocumentBatchMaker',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/storage/indexlib/table/kv_table:reader',
+        '//aios/storage/indexlib/table/test:table_test_helper'
+    ]
+)
+strict_cc_fast_test(
+    name='KVTabletWriterTest',
+    srcs=['KVTabletWriterTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        '//aios/autil:log', '//aios/future_lite',
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/document:DocumentBatch',
+        '//aios/storage/indexlib/document/test:KVDocumentBatchMaker',
+        '//aios/storage/indexlib/framework:DiskSegment',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/framework:MemSegment',
+        '//aios/storage/indexlib/framework:MetricsManager',
+        '//aios/storage/indexlib/framework:ReadResource',
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/storage/indexlib/table/kv_table:KVTabletWriter',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVTabletReaderTest',
+    srcs=[
+        'KVTableSearchTest.cpp', 'KVTabletCacheReaderTest.cpp',
+        'KVTabletReaderTest.cpp'
+    ],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        ':kv_table_test_helper',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/index/kv:reader',
+        '//aios/storage/indexlib/index/kv/config',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/storage/indexlib/table/kv_table:KVTabletReader',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVTabletInteTest',
+    srcs=['KVTabletInteTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    shard_count=10,
+    deps=[
+        ':kv_table_test_helper', '//aios/autil:scope',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/config:UnresolvedSchema',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/framework/mock:MockIdGenerator',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='KVTabletFactoryTest',
+    srcs=['KVTabletFactoryTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        ':kv_table_test_helper', '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/table/common:LSMTabletLoader',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/storage/indexlib/table/plain:MultiShardDiskSegment',
+        '//aios/storage/indexlib/table/plain:MultiShardMemSegment',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVTabletSchemaTest',
+    srcs=['KVTabletSchemaTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        '//aios/storage/indexlib/config',
+        '//aios/storage/indexlib/table:builtin_define',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVReaderTest',
+    srcs=['FakeSegmentReader.h', 'KVReaderImplTest.cpp', 'KVReaderTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':KVTabletSchemaMaker',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/table/kv_table:table',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='VersionValidatorTest',
+    srcs=['VersionValidatorTest.cpp'],
+    data=['testdata/order_kv.json'],
+    deps=[
+        ':kv_table_test_helper',
+        '//aios/storage/indexlib/framework:VersionValidator',
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVTabletDocIteratorTest',
+    srcs=['KVTabletDocIteratorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':kv_table_test_helper', '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='KVSchemaResolverTest',
+    srcs=['KVSchemaResolverTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['testdata/legacy_ttl_schema.json'],
+    deps=[
+        ':kv_table_test_helper',
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
+        '//aios/storage/indexlib/table/kv_table:KVSchemaResolver',
+        '//aios/unittest_framework'
+    ]
+)

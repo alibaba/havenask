@@ -19,39 +19,35 @@
 #include <string.h>
 
 namespace autil {
-    
+
 /**
-*hash function StoreBkdrHash() for char* ending with '\0'
-*@param szStr
-*@return uint64_t hash value
-*/
-inline uint64_t storeBkdrHash(const char *str)
-{
+ *hash function StoreBkdrHash() for char* ending with '\0'
+ *@param szStr
+ *@return uint64_t hash value
+ */
+inline uint64_t storeBkdrHash(const char *str) {
     uint64_t seed = 131; // 31 131 1313 13131 131313 etc..
     uint64_t hash = 0;
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    for (; *p;) 
-    {
+    for (; *p;) {
         hash = hash * seed + (*p++);
     }
     return hash;
 }
 
 /**
-*hash function StoreBkdrHash() for const char* with given length
-*@param szStr
-*@param len the length of szStr
-*@return uint64_t hash value
-*/
-inline uint64_t storeBkdrHash(const char *str, int32_t len)
-{
+ *hash function StoreBkdrHash() for const char* with given length
+ *@param szStr
+ *@param len the length of szStr
+ *@return uint64_t hash value
+ */
+inline uint64_t storeBkdrHash(const char *str, int32_t len) {
     const uint64_t seed = 131; // 31 131 1313 13131 131313 etc..
     uint64_t hash = 0;
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    for (int32_t i = 0; i < len; ++i)
-    {
+    for (int32_t i = 0; i < len; ++i) {
         hash = hash * seed + (*p++);
     }
     return hash;
@@ -59,20 +55,17 @@ inline uint64_t storeBkdrHash(const char *str, int32_t len)
 
 /****************************************************************************/
 
-/** 
-*ELF hash function
-*/
-inline uint64_t storeElfHash(const char *str)
-{
-    uint64_t hash = 0 ;
-    uint64_t x = 0 ;
+/**
+ *ELF hash function
+ */
+inline uint64_t storeElfHash(const char *str) {
+    uint64_t hash = 0;
+    uint64_t x = 0;
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    while (*p) 
-    {
+    while (*p) {
         hash = (hash << 4) + (*p++);
-        if ((x = hash & __UINT64_C(0xF000000000000000)) != 0)
-        {
+        if ((x = hash & __UINT64_C(0xF000000000000000)) != 0) {
             hash ^= (x >> 56);
             hash &= ~x;
         }
@@ -80,17 +73,14 @@ inline uint64_t storeElfHash(const char *str)
     return hash;
 }
 
-inline uint64_t storeElfHash(const char *str, int32_t len)
-{
-    uint64_t hash = 0 ;
-    uint64_t x = 0 ;
+inline uint64_t storeElfHash(const char *str, int32_t len) {
+    uint64_t hash = 0;
+    uint64_t x = 0;
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    for (int32_t i = 0; i < len; ++i) 
-    {
+    for (int32_t i = 0; i < len; ++i) {
         hash = (hash << 4) + (*p++);
-        if ((x = hash & __UINT64_C(0xF000000000000000)) != 0)
-        {
+        if ((x = hash & __UINT64_C(0xF000000000000000)) != 0) {
             hash ^= (x >> 56);
             hash &= ~x;
         }
@@ -100,139 +90,122 @@ inline uint64_t storeElfHash(const char *str, int32_t len)
 
 /****************************************************************************/
 
-/**  
-*RS Hash Function 
-*/
-inline uint64_t storeRsHash(const char *str)
-{
+/**
+ *RS Hash Function
+ */
+inline uint64_t storeRsHash(const char *str) {
     uint64_t b = 378551;
     uint64_t a = 63689;
     uint64_t hash = 0;
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    while (*p) 
-    {
+    while (*p) {
         hash = hash * a + (*p++);
         a *= b;
-    } 
+    }
     return hash;
-} 
+}
 
-inline uint64_t storeRsHash(const char *str, int32_t len)
-{
+inline uint64_t storeRsHash(const char *str, int32_t len) {
     uint64_t b = 378551;
     uint64_t a = 63689;
     uint64_t hash = 0;
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    for (int32_t i = 0; i < len; ++i) 
-    {
+    for (int32_t i = 0; i < len; ++i) {
         hash = hash * a + (*p++);
         a *= b;
-    } 
+    }
     return hash;
-} 
+}
 
 /****************************************************************************/
 
-/**  
-*JS Hash Function 
-*/
-inline uint64_t storeJsHash(const char *str)
-{
+/**
+ *JS Hash Function
+ */
+inline uint64_t storeJsHash(const char *str) {
     uint64_t hash = 1315423911;
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    while (*p) 
-    {
+    while (*p) {
         hash ^= ((hash << 5) + (*p++) + (hash >> 2));
-    } 
+    }
     return hash;
-} 
+}
 
-inline uint64_t storeJsHash(const char *str, int32_t len)
-{
+inline uint64_t storeJsHash(const char *str, int32_t len) {
     uint64_t hash = 1315423911;
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    for (int32_t i = 0; i < len; ++i) 
-    {
+    for (int32_t i = 0; i < len; ++i) {
         hash ^= ((hash << 5) + (*p++) + (hash >> 2));
-    } 
+    }
     return hash;
-} 
+}
 
 /****************************************************************************/
 
-/**  
-*SDBM Hash Function
-*/
-inline uint64_t storeSdbmHash(const char* str)
-{
+/**
+ *SDBM Hash Function
+ */
+inline uint64_t storeSdbmHash(const char *str) {
     uint64_t hash = 0;
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    while (*p) 
-    {
+    while (*p) {
         hash = (*p++) + (hash << 6) + (hash << 16) - hash;
-    } 
+    }
     return hash;
-} 
+}
 
-inline uint64_t storeSdbmHash(const char* str, int32_t len)
-{
+inline uint64_t storeSdbmHash(const char *str, int32_t len) {
     uint64_t hash = 0;
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    for (int32_t i = 0; i < len; ++i) 
-    {
+    for (int32_t i = 0; i < len; ++i) {
         hash = (*p++) + (hash << 6) + (hash << 16) - hash;
-    } 
+    }
     return hash;
-} 
+}
 
 /****************************************************************************/
 
-/**  
-*PJW Hash Function
-*/
-inline uint64_t storePjwHash(const char* str) {
+/**
+ *PJW Hash Function
+ */
+inline uint64_t storePjwHash(const char *str) {
     uint32_t BitsInUnsignedInt = (uint32_t)(sizeof(uint32_t) * 8);
-    uint32_t ThreeQuarters     = (uint32_t)((BitsInUnsignedInt  * 3) / 4);
-    uint32_t OneEighth         = (uint32_t)(BitsInUnsignedInt / 8);
-    uint32_t HighBits          = (uint32_t)(0xFFFFFFFF) << (BitsInUnsignedInt - OneEighth);
-    uint32_t hash              = 0;
-    uint32_t test              = 0;
+    uint32_t ThreeQuarters = (uint32_t)((BitsInUnsignedInt * 3) / 4);
+    uint32_t OneEighth = (uint32_t)(BitsInUnsignedInt / 8);
+    uint32_t HighBits = (uint32_t)(0xFFFFFFFF) << (BitsInUnsignedInt - OneEighth);
+    uint32_t hash = 0;
+    uint32_t test = 0;
 
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    while (*p) 
-    {
+    while (*p) {
         hash = (hash << OneEighth) + (*p++);
-        if((test = hash & HighBits) != 0) 
-        {
-            hash = (( hash ^ (test >> ThreeQuarters)) & (~HighBits));
+        if ((test = hash & HighBits) != 0) {
+            hash = ((hash ^ (test >> ThreeQuarters)) & (~HighBits));
         }
-        
     }
     return (uint64_t)hash;
 }
 
-inline uint64_t storePjwHash(const char* str, int32_t len) {
+inline uint64_t storePjwHash(const char *str, int32_t len) {
     uint32_t BitsInUnsignedInt = (uint32_t)(sizeof(uint32_t) * 8);
-    uint32_t ThreeQuarters     = (uint32_t)((BitsInUnsignedInt  * 3) / 4);
-    uint32_t OneEighth         = (uint32_t)(BitsInUnsignedInt / 8);
-    uint32_t HighBits          = (uint32_t)(0xFFFFFFFF) << (BitsInUnsignedInt - OneEighth);
-    uint32_t hash              = 0;
-    uint32_t test              = 0;
+    uint32_t ThreeQuarters = (uint32_t)((BitsInUnsignedInt * 3) / 4);
+    uint32_t OneEighth = (uint32_t)(BitsInUnsignedInt / 8);
+    uint32_t HighBits = (uint32_t)(0xFFFFFFFF) << (BitsInUnsignedInt - OneEighth);
+    uint32_t hash = 0;
+    uint32_t test = 0;
 
-    for(int32_t i = 0; i < len; ++i) 
-    {
+    for (int32_t i = 0; i < len; ++i) {
         hash = (hash << OneEighth) + str[i];
 
-        if((test = hash & HighBits)  != 0) 
-        {
-            hash = (( hash ^ (test >> ThreeQuarters)) & (~HighBits));
+        if ((test = hash & HighBits) != 0) {
+            hash = ((hash ^ (test >> ThreeQuarters)) & (~HighBits));
         }
     }
     return (uint64_t)hash;
@@ -240,15 +213,14 @@ inline uint64_t storePjwHash(const char* str, int32_t len) {
 
 /****************************************************************************/
 
-/**  
-*DJB Hash Function
-*/
+/**
+ *DJB Hash Function
+ */
 inline uint64_t storeDjbHash(const char *str) {
     uint32_t hash = 5381;
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    while (*p) 
-    {
+    while (*p) {
         hash = ((hash << 5) + hash) + (*p++);
     }
     return (uint64_t)hash;
@@ -256,8 +228,7 @@ inline uint64_t storeDjbHash(const char *str) {
 
 inline uint64_t storeDjbHash(const char *str, int32_t len) {
     uint32_t hash = 5381;
-    for(int32_t i = 0; i < len; ++i) 
-    {
+    for (int32_t i = 0; i < len; ++i) {
         hash = ((hash << 5) + hash) + str[i];
     }
     return (uint64_t)hash;
@@ -265,15 +236,14 @@ inline uint64_t storeDjbHash(const char *str, int32_t len) {
 
 /****************************************************************************/
 
-/**  
-*DEK Hash Function
-*/
+/**
+ *DEK Hash Function
+ */
 inline uint64_t storeDekHash(const char *str) {
     uint32_t hash = strlen(str);
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    while(*p) 
-    {
+    while (*p) {
         hash = ((hash << 5) ^ (hash >> 27)) ^ (*p++);
     }
     return (uint64_t)hash;
@@ -281,8 +251,7 @@ inline uint64_t storeDekHash(const char *str) {
 
 inline uint64_t storeDekHash(const char *str, int32_t len) {
     uint32_t hash = static_cast<uint32_t>(len);
-    for(int32_t i = 0; i < len; ++i) 
-    {
+    for (int32_t i = 0; i < len; ++i) {
         hash = ((hash << 5) ^ (hash >> 27)) ^ str[i];
     }
     return (uint64_t)hash;
@@ -290,15 +259,14 @@ inline uint64_t storeDekHash(const char *str, int32_t len) {
 
 /****************************************************************************/
 
-/**  
-*BP Hash Function
-*/
+/**
+ *BP Hash Function
+ */
 inline uint64_t storeBpHash(const char *str) {
     uint32_t hash = 0;
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    while(*p) 
-    {
+    while (*p) {
         hash = hash << 7 ^ (*p++);
     }
     return (uint64_t)hash;
@@ -306,26 +274,23 @@ inline uint64_t storeBpHash(const char *str) {
 
 inline uint64_t storeBpHash(const char *str, int32_t len) {
     uint32_t hash = 0;
-    for(int32_t i = 0; i < len; ++i) 
-    {
+    for (int32_t i = 0; i < len; ++i) {
         hash = hash << 7 ^ str[i];
     }
     return (uint64_t)hash;
 }
 
-
 /****************************************************************************/
 
-/**  
-*FNV Hash Function
-*/
+/**
+ *FNV Hash Function
+ */
 inline uint64_t storeFnvHash(const char *str) {
     const uint32_t fnv_prime = 0x811C9DC5;
     uint32_t hash = 0;
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
-    while(*p) 
-    {
+    while (*p) {
         hash *= fnv_prime;
         hash ^= (*p++);
     }
@@ -336,8 +301,7 @@ inline uint64_t storeFnvHash(const char *str) {
 inline uint64_t storeFnvHash(const char *str, int32_t len) {
     const uint32_t fnv_prime = 0x811C9DC5;
     uint32_t hash = 0;
-    for(int32_t i = 0; i < len; ++i) 
-    {
+    for (int32_t i = 0; i < len; ++i) {
         hash *= fnv_prime;
         hash ^= str[i];
     }
@@ -347,79 +311,65 @@ inline uint64_t storeFnvHash(const char *str, int32_t len) {
 
 /****************************************************************************/
 
-/**  
-*AP Hash Function
-*/
+/**
+ *AP Hash Function
+ */
 inline uint64_t storeApHash(const char *str) {
     uint32_t hash = 0xAAAAAAAA;
 
     const unsigned char *p;
     p = reinterpret_cast<const unsigned char *>(str);
     uint32_t i = 0;
-    while(*p) 
-    {
-        hash ^= ((i & 1) == 0) ? (  (hash <<  7) ^ (*p) * (hash >> 3)) :
-                (~((hash << 11) + ((*p++) ^ (hash >> 5))));
+    while (*p) {
+        hash ^= ((i & 1) == 0) ? ((hash << 7) ^ (*p) * (hash >> 3)) : (~((hash << 11) + ((*p++) ^ (hash >> 5))));
         ++i;
     }
     return (uint64_t)hash;
-
 }
 
 inline uint64_t storeApHash(const char *str, int32_t len) {
     uint32_t hash = 0xAAAAAAAA;
 
-    for(int32_t i = 0; i < len; ++i)
-    {
-        hash ^= ((i & 1) == 0) ? (  (hash <<  7) ^ str[i] * (hash >> 3)) :
-                (~((hash << 11) + (str[i] ^ (hash >> 5))));
+    for (int32_t i = 0; i < len; ++i) {
+        hash ^= ((i & 1) == 0) ? ((hash << 7) ^ str[i] * (hash >> 3)) : (~((hash << 11) + (str[i] ^ (hash >> 5))));
     }
     return (uint64_t)hash;
 }
 
-
-
-
 /****************************************************************************/
 
 /**
-* Unique Hash Function
-*/
-inline uint64_t storeUniqueHash(const char *str)
-{
+ * Unique Hash Function
+ */
+inline uint64_t storeUniqueHash(const char *str) {
     uint64_t hash = storeElfHash(str);
     uint64_t hash2 = storeRsHash(str);
     hash = hash << 32 | (hash2 & 0xFFFFFFFFUL);
     return hash;
 }
 
-inline uint64_t storeUniqueHash(const char *str, int32_t len)
-{
+inline uint64_t storeUniqueHash(const char *str, int32_t len) {
     uint64_t hash = storeElfHash(str, len);
     uint64_t hash2 = storeRsHash(str, len);
     hash = hash << 32 | (hash2 & 0xFFFFFFFFUL);
     return hash;
 }
 
-/** 
-*Hash Function for check
-*/
-inline uint64_t storeCheckHash(const char *str)
-{
+/**
+ *Hash Function for check
+ */
+inline uint64_t storeCheckHash(const char *str) {
     uint64_t hash = storeJsHash(str);
     uint64_t hash2 = storeSdbmHash(str);
     hash = hash << 32 | (hash2 & 0xFFFFFFFFUL);
     return hash;
 }
 
-inline uint64_t storeCheckHash(const char *str, int32_t len)
-{
+inline uint64_t storeCheckHash(const char *str, int32_t len) {
     uint64_t hash = storeJsHash(str, len);
     uint64_t hash2 = storeSdbmHash(str, len);
     hash = hash << 32 | (hash2 & 0xFFFFFFFFUL);
     return hash;
 }
 
-}
-
-
+} // namespace autil

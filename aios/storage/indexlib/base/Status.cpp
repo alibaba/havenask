@@ -46,8 +46,8 @@ static std::string CodeToStatusStr(StatusCode code)
         return "UNIMPLEMENT";
     case StatusCode::EC_OUT_OF_RANGE:
         return "OUT_OF_RANGE";
-    case StatusCode::EC_NOENT:
-        return "NO_ENTRY";
+    // case StatusCode::EC_NOENT:
+    //     return "NO_ENTRY";
     case StatusCode::EC_UNINITIALIZE:
         return "UNINITIALIZE";
     case StatusCode::EC_NOT_FOUND:
@@ -67,7 +67,7 @@ std::string StatusError::message() const
 {
     std::string msg = CodeToStatusStr(code);
     if (!_msg.empty()) {
-        msg.append(" : ");
+        msg.append(": ");
         msg.append(_msg.data(), _msg.length());
     }
     return msg;

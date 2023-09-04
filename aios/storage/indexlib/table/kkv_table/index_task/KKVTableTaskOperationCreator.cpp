@@ -21,7 +21,7 @@
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, KKVTableTaskOperationCreator);
 
-KKVTableTaskOperationCreator::KKVTableTaskOperationCreator(const std::shared_ptr<config::TabletSchema>& schema)
+KKVTableTaskOperationCreator::KKVTableTaskOperationCreator(const std::shared_ptr<config::ITabletSchema>& schema)
     : _schema(schema)
 {
 }

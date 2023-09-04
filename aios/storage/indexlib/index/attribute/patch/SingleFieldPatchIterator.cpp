@@ -26,8 +26,7 @@
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, SingleFieldPatchIterator);
 
-SingleFieldPatchIterator::SingleFieldPatchIterator(const std::shared_ptr<config::AttributeConfig>& attrConfig,
-                                                   bool isSub)
+SingleFieldPatchIterator::SingleFieldPatchIterator(const std::shared_ptr<AttributeConfig>& attrConfig, bool isSub)
     : AttributePatchIterator(APT_SINGLE, isSub)
     , _attrConfig(attrConfig)
     , _cursor(0)
@@ -41,23 +40,26 @@ SingleFieldPatchIterator::SingleFieldPatchIterator(const std::shared_ptr<config:
 
 SingleFieldPatchIterator::~SingleFieldPatchIterator() {}
 
-Status SingleFieldPatchIterator::Init(const std::vector<std::shared_ptr<framework::Segment>>& segments)
+Status
+SingleFieldPatchIterator::Init(const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& segments)
 {
     auto attrPatchFinder = std::make_shared<AttributePatchFileFinder>();
     indexlibv2::index::PatchInfos allPatchInfos;
-    auto status = attrPatchFinder->FindAllPatchFiles(segments, _attrConfig, &allPatchInfos);
+    std::vector<std::shared_ptr<framework::Segment>> findSegments;
+    for (size_t i = 0; i < segments.size(); i++) {
+        findSegments.push_back(segments[i].second);
+    }
+    auto status = attrPatchFinder->FindAllPatchFiles(findSegments, _attrConfig, &allPatchInfos);
     RETURN_IF_STATUS_ERROR(status, "find patch file fail for attribute field [%s].",
                            _attrConfig->GetAttrName().c_str());
 
-    docid_t baseDocId = 0;
-    for (auto segment : segments) {
+    for (auto segmentPair : segments) {
+        auto segment = segmentPair.second;
         auto segId = segment->GetSegmentId();
         auto segmentInfo = segment->GetSegmentInfo();
         assert(segmentInfo != nullptr);
-        auto docCount = segmentInfo->docCount;
         auto iter = allPatchInfos.find(segId);
         if (iter == allPatchInfos.end()) {
-            baseDocId += docCount;
             continue;
         }
         std::shared_ptr<AttributePatchReader> segmentPatchReader = CreateSegmentPatchReader(iter->second);
@@ -66,9 +68,8 @@ Status SingleFieldPatchIterator::Init(const std::vector<std::shared_ptr<framewor
                 _patchLoadExpandSize += segmentPatchReader->GetPatchFileLength();
             }
             _patchItemCount += segmentPatchReader->GetPatchItemCount();
-            _segmentPatchReaderInfos.push_back(std::make_pair(baseDocId, segmentPatchReader));
+            _segmentPatchReaderInfos.push_back(std::make_pair(segmentPair.first, segmentPatchReader));
         }
-        baseDocId += docCount;
     }
     _docId = GetNextDocId();
     return Status::OK();

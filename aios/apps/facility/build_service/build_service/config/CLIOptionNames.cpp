@@ -49,7 +49,7 @@ const std::string BS_SERVER_ADDRESS = "bs_server_address";
 const std::string REALTIME_SERVICE_MODE = "realtime_service_mode";
 const std::string REALTIME_JOB_MODE = "realtime_job_mode";
 const std::string REALTIME_SERVICE_RAWDOC_RT_BUILD_MODE = "realtime_service_rawdoc_rt_build_mode";
-const std::string REALTIME_PROCESS_RAWDOC = "realtime_process_rawdoc";
+const std::string REALTIME_SERVICE_NPC_MODE = "realtime_service_npc_mode";
 
 // reader
 const std::string DATA_PATH = "data"; // required
@@ -224,4 +224,6 @@ const std::string MERGE_CONFIG_NAME = "merge_config_name";
 const std::string MERGE_TIMESTAMP = "merge_timestamp";
 const std::string ALIGNED_VERSION_ID = "aligned_versionid";
 const std::string TARGET_DESCRIPTION = "target_description";
+
+const std::string DATA_LINK_MODE = "data_link_mode";
 }} // namespace build_service::config

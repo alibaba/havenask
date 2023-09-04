@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
 #include "iquan/jni/LayerTableMeta.h"
 #include "iquan/jni/LayerTableNorm.h"
@@ -29,19 +29,19 @@ public:
         return layerTableMetaMap.insert(std::make_pair(name, meta)).second;
     }
 
-    const std::unordered_map<std::string, LayerTableMetaPtr>& getLayerTableMetaMap() const {
+    const std::unordered_map<std::string, LayerTableMetaPtr> &getLayerTableMetaMap() const {
         return layerTableMetaMap;
     }
 
     bool normLayerTable(const std::vector<LayerTablePlanMeta> &layerTableMetas,
                         const std::vector<autil::legacy::Any> &params,
-                        std::string &hashStr)
-    {
+                        std::string &hashStr) {
         dynamicParamCache::LayerTableNorm layerTableNorm(layerTableMetas);
         return layerTableNorm.normalize(layerTableMetaMap, params, hashStr);
     }
+
 private:
     std::unordered_map<std::string, LayerTableMetaPtr> layerTableMetaMap;
 };
 
-}// namespace iquan
+} // namespace iquan

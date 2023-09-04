@@ -1,10 +1,10 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(
     default_visibility=[
         '//aios/storage/indexlib/index/primary_key:__subpackages__'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PrimaryKeyMerger',
     srcs=[],
     hdrs=['PrimaryKeyMerger.h'],
@@ -20,7 +20,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/primary_key:primary_key_indexer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PrimaryKeyAttributeMerger',
     deps=[
         '//aios/storage/indexlib/index/attribute:merger',
@@ -28,7 +28,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/primary_key/config:PrimaryKeyIndexConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='OnDiskHashPrimaryKeyIterator',
     srcs=[],
     hdrs=['OnDiskHashPrimaryKeyIterator.h'],
@@ -36,7 +36,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/primary_key:primary_key_reader_interface'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='OnDiskOrderedPrimaryKeyIterator',
     srcs=[],
     hdrs=['OnDiskOrderedPrimaryKeyIterator.h'],

@@ -1,5 +1,5 @@
 package(default_visibility=['//visibility:private'])
-load('//bazel:defs.bzl', 'gen_conf', 'gen_conf_lib')
+load('//bazel:defs.bzl', 'gen_conf_lib')
 cc_library(
     name='sap_easy_util',
     hdrs=['sap/common/common.h'],

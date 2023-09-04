@@ -15,12 +15,13 @@
  */
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include <autil/legacy/json.h>
-#include "iquan/common/Common.h"
+
 #include "autil/Log.h"
+#include "autil/legacy/json.h"
+#include "iquan/common/Common.h"
 
 namespace iquan {
 
@@ -32,18 +33,20 @@ public:
 public:
     const autil::legacy::Any &at(std::size_t idx, std::size_t sql_idx = 0) const;
     const autil::legacy::Any &at(std::string key, std::size_t sql_idx = 0) const;
-    bool addKVParams(const std::string &key, const autil::legacy::Any &val,
-                     std::size_t sql_idx = 0);
+    bool
+    addKVParams(const std::string &key, const autil::legacy::Any &val, std::size_t sql_idx = 0);
     bool findParamWithKey(const std::string &key, std::size_t sql_idx = 0) const;
     bool empty(std::size_t sql_idx = 0) const;
     bool isHintParamsEmpty() const;
     bool findHintParam(const std::string &key) const;
     std::string getHintParam(const std::string &key) const;
     void reserveOneSqlParams();
+
 public:
     std::vector<std::vector<autil::legacy::Any>> _array;
     std::vector<std::map<std::string, autil::legacy::Any>> _map;
     std::map<std::string, std::string> _hint;
+
 private:
     AUTIL_LOG_DECLARE();
 };

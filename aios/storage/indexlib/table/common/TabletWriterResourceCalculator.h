@@ -27,12 +27,11 @@ namespace indexlib::table {
 class TabletWriterResourceCalculator
 {
 public:
-    TabletWriterResourceCalculator(bool isOnline, int64_t dumpThreadCount);
+    TabletWriterResourceCalculator(const std::shared_ptr<util::BuildResourceMetrics>& buildingSegmentMetrics,
+                                   bool isOnline, int64_t dumpThreadCount);
     ~TabletWriterResourceCalculator() {}
 
 public:
-    void Init(const std::shared_ptr<util::BuildResourceMetrics>& segMetrics);
-
     int64_t GetCurrentMemoryUse() const;
     int64_t EstimateMaxMemoryUseOfCurrentSegment() const;
     int64_t EstimateDumpMemoryUse() const;

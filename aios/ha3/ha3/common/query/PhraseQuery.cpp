@@ -38,40 +38,35 @@ PhraseQuery::PhraseQuery(const std::string &label) {
 }
 
 PhraseQuery::PhraseQuery(const PhraseQuery &other)
-    : Query(other)
-{
-    for (TermArray::const_iterator it = other._terms.begin();
-         it != other._terms.end(); ++it)
-    {
+    : Query(other) {
+    for (TermArray::const_iterator it = other._terms.begin(); it != other._terms.end(); ++it) {
         _terms.push_back(TermPtr(new Term(**it)));
     }
     _queryRestrictor = other._queryRestrictor;
 }
 
-PhraseQuery::~PhraseQuery() {
-}
+PhraseQuery::~PhraseQuery() {}
 
-void PhraseQuery::addTerm(const TermPtr& term) {
+void PhraseQuery::addTerm(const TermPtr &term) {
     _terms.push_back(term);
 }
 
-bool PhraseQuery::operator == (const Query& query) const {
+bool PhraseQuery::operator==(const Query &query) const {
     if (&query == this) {
         return true;
     }
     if (query.getQueryName() != getQueryName()) {
         return false;
     }
-    const TermArray &terms2 = dynamic_cast<const PhraseQuery&>(query)._terms;
+    const TermArray &terms2 = dynamic_cast<const PhraseQuery &>(query)._terms;
 
     if (_terms.size() != terms2.size()) {
         return false;
     }
     TermArray::const_iterator it1 = _terms.begin();
     TermArray::const_iterator it2 = terms2.begin();
-    for (; it1 != _terms.end(); it1++, it2++)
-    {
-        if (!( (**it1) == (**it2) )) {
+    for (; it1 != _terms.end(); it1++, it2++) {
+        if (!((**it1) == (**it2))) {
             return false;
         }
     }
@@ -99,28 +94,24 @@ std::string PhraseQuery::toString() const {
     if (getMatchDataLevel() != MDL_NONE) {
         ss << "$" << getMatchDataLevel();
     }
-    ss << ":[" ;
-    for (TermArray::const_iterator it = _terms.begin();
-         it != _terms.end(); it++)
-    {
+    ss << ":[";
+    for (TermArray::const_iterator it = _terms.begin(); it != _terms.end(); it++) {
         ss << (*it)->toString() << ", ";
     }
     ss << "]";
     return ss.str();
 }
 
-const PhraseQuery::TermArray& PhraseQuery::getTermArray() const {
+const PhraseQuery::TermArray &PhraseQuery::getTermArray() const {
     return _terms;
 }
 
-void PhraseQuery::serialize(autil::DataBuffer &dataBuffer) const
-{
+void PhraseQuery::serialize(autil::DataBuffer &dataBuffer) const {
     dataBuffer.write(_terms);
     serializeMDLandQL(dataBuffer);
 }
 
-void PhraseQuery::deserialize(autil::DataBuffer &dataBuffer)
-{
+void PhraseQuery::deserialize(autil::DataBuffer &dataBuffer) {
     dataBuffer.read(_terms);
     deserializeMDLandQL(dataBuffer);
 }

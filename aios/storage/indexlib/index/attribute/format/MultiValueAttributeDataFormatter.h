@@ -24,11 +24,8 @@
 #include "indexlib/index/common/field_format/attribute/MultiValueAttributeFormatter.h"
 #include "indexlib/util/PoolUtil.h"
 
-namespace indexlibv2::config {
-class AttributeConfig;
-}
-
 namespace indexlibv2::index {
+class AttributeConfig;
 
 class MultiValueAttributeDataFormatter
 {
@@ -37,7 +34,7 @@ public:
     ~MultiValueAttributeDataFormatter() = default;
 
 public:
-    void Init(const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    void Init(const std::shared_ptr<AttributeConfig>& attrConfig);
 
     uint32_t GetDataLength(const uint8_t* data, bool& isNull) const __ALWAYS_INLINE;
 

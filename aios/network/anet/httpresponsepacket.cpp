@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdio.h>
 #include "aios/network/anet/httpresponsepacket.h"
-#include "aios/network/anet/databuffer.h"
+
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
 #include <tr1/unordered_map>
 #include <utility>
+
+#include "aios/network/anet/databuffer.h"
 
 namespace anet {
 class PacketHeader;
@@ -49,7 +51,7 @@ HttpResponsePacket::~HttpResponsePacket() {
  * 组装
  */
 bool HttpResponsePacket::encode(DataBuffer *output) {
-    if (_status) { //HTTP/1.1 200 OK
+    if (_status) { // HTTP/1.1 200 OK
         output->writeBytes(ANET_HTTP_STATUS_OK, strlen(ANET_HTTP_STATUS_OK));
     } else { // HTTP/1.1 404 Not Found
         output->writeBytes(ANET_HTTP_STATUS_NOTFOUND, strlen(ANET_HTTP_STATUS_NOTFOUND));
@@ -68,7 +70,7 @@ bool HttpResponsePacket::encode(DataBuffer *output) {
     output->writeBytes(tmp, len);
 
     // 用户自定义长度
-    for (STRING_MAP_ITER it=_headerMap.begin(); it!=_headerMap.end(); it++) {
+    for (STRING_MAP_ITER it = _headerMap.begin(); it != _headerMap.end(); it++) {
         output->writeBytes(it->first.c_str(), strlen(it->first.c_str()));
         output->writeBytes(": ", 2);
         output->writeBytes(it->second.c_str(), strlen(it->second.c_str()));
@@ -79,7 +81,7 @@ bool HttpResponsePacket::encode(DataBuffer *output) {
     output->writeBytes("\r\n", 2);
     // bodyLen
     output->writeBytes(_body, _bodyLen);
-    //assert(_packetHeader._dataLen == output->getDataLen());
+    // assert(_packetHeader._dataLen == output->getDataLen());
 
     return true;
 }
@@ -87,9 +89,7 @@ bool HttpResponsePacket::encode(DataBuffer *output) {
 /*
  * 解开
  */
-bool HttpResponsePacket::decode(DataBuffer *input, PacketHeader *header) {
-    return true;
-}
+bool HttpResponsePacket::decode(DataBuffer *input, PacketHeader *header) { return true; }
 
 /*
  * 设置header
@@ -106,16 +106,14 @@ void HttpResponsePacket::setHeader(const char *name, const char *value) {
 /*
  * 设置状态
  */
-void HttpResponsePacket::setStatus(bool status) {
-    _status = status;
-}
+void HttpResponsePacket::setStatus(bool status) { _status = status; }
 
 /*
  * 设置内容
  */
 void HttpResponsePacket::setBody(const char *body, int len) {
     if (body && (len > 0)) {
-        _body = (char *) malloc(len);
+        _body = (char *)malloc(len);
         assert(_body);
         memcpy(_body, body, len);
         _bodyLen = len;
@@ -125,10 +123,6 @@ void HttpResponsePacket::setBody(const char *body, int len) {
 /*
  * 是否keepalive
  */
-void HttpResponsePacket::setKeepAlive(bool keepAlive) {
-    _isKeepAlive = keepAlive;
-}
+void HttpResponsePacket::setKeepAlive(bool keepAlive) { _isKeepAlive = keepAlive; }
 
-
-}
-
+} // namespace anet

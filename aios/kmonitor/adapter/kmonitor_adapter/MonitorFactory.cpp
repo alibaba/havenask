@@ -17,6 +17,7 @@
 
 #include <errno.h>
 
+#include "autil/EnvUtil.h"
 #include "kmonitor/client/KMonitorFactory.h"
 #include "kmonitor/client/KMonitorWorker.h"
 #include "kmonitor/client/core/MetricsConfig.h"
@@ -25,7 +26,7 @@
 using namespace std;
 using namespace kmonitor;
 
-extern char* program_invocation_short_name;
+extern char *program_invocation_short_name;
 
 namespace kmonitor_adapter {
 
@@ -34,8 +35,7 @@ autil::RecursiveThreadMutex MonitorFactory::_mutex;
 
 MonitorFactory::MonitorFactory() {}
 
-void MonitorFactory::init()
-{
+void MonitorFactory::init() {
     AUTIL_LOG(INFO, "monitor factory init");
     if (KMonitorFactory::IsStarted()) {
         _valid = true;
@@ -44,39 +44,40 @@ void MonitorFactory::init()
     }
 
     MetricsConfig metricsConfig;
-    metricsConfig.set_tenant_name(getenv("KMONITOR_ADAPTER_TENANT_NAME", "default"));
-    metricsConfig.set_service_name(getenv("KMONITOR_ADAPTER_SERVICE_NAME", "monitor_adapter"));
-    string sinkAddress(getenv("KMONITOR_ADAPTER_SINK_ADDRESS", ""));
+    metricsConfig.set_tenant_name(autil::EnvUtil::getEnv("KMONITOR_ADAPTER_TENANT_NAME", "default"));
+    metricsConfig.set_service_name(autil::EnvUtil::getEnv("KMONITOR_ADAPTER_SERVICE_NAME", "monitor_adapter"));
+    string sinkAddress(autil::EnvUtil::getEnv("KMONITOR_ADAPTER_SINK_ADDRESS", ""));
     if (sinkAddress.empty()) {
-        sinkAddress = getenv("HIPPO_SLAVE_IP", "127.0.0.1");
+        sinkAddress = autil::EnvUtil::getEnv("HIPPO_SLAVE_IP", "127.0.0.1");
         sinkAddress += ":4141";
     }
     metricsConfig.set_sink_address(sinkAddress.c_str());
 
-    const char* app = getenv("KMONITOR_ADAPTER_APP", nullptr);
-    if (!app) {
+    string app = autil::EnvUtil::getEnv("KMONITOR_ADAPTER_APP");
+    if (app.empty()) {
         AUTIL_LOG(WARN, "not report monitor for no KMONITOR_ADAPTER_APP");
         return;
     }
     metricsConfig.set_inited(true);
 
     if (!KMonitorFactory::Init(metricsConfig)) {
-        AUTIL_LOG(ERROR, "init kmonitor factory failed with[%s], app[%s]", ToJsonString(metricsConfig, true).c_str(),
-                  app);
+        AUTIL_LOG(ERROR,
+                  "init kmonitor factory failed with[%s], app[%s]",
+                  ToJsonString(metricsConfig, true).c_str(),
+                  app.c_str());
         return;
     }
     KMonitorFactory::Start();
     _owner = true;
     _valid = true;
 
-    AUTIL_LOG(INFO, "init kmonitor factory with[%s], app[%s]", ToJsonString(metricsConfig, true).c_str(), app);
+    AUTIL_LOG(INFO, "init kmonitor factory with[%s], app[%s]", ToJsonString(metricsConfig, true).c_str(), app.c_str());
     return;
 }
 
 MonitorFactory::~MonitorFactory() { close(); }
 
-void MonitorFactory::close()
-{
+void MonitorFactory::close() {
     if (!_valid) {
         return;
     }
@@ -90,8 +91,7 @@ void MonitorFactory::close()
     }
 }
 
-Monitor* MonitorFactory::createMonitor(string serviceName)
-{
+Monitor *MonitorFactory::createMonitor(string serviceName) {
     autil::ScopedLock lock(_mutex);
     if (!_valid) {
         return nullptr;
@@ -101,11 +101,11 @@ Monitor* MonitorFactory::createMonitor(string serviceName)
         return iter->second;
     }
 
-    KMonitor* kmonitor = KMonitorFactory::GetKMonitor(serviceName, true, false);
-    const char* app = getenv("KMONITOR_ADAPTER_APP", "UNKNOWN");
-    const char* userTag0 = getenv("KMONITOR_ADAPTER_USER_TAG_0", "UNKNOWN");
-    const char* userTag1 = getenv("KMONITOR_ADAPTER_USER_TAG_1", "UNKNOWN");
-    const char* hostIpTag = getenv("HIPPO_SLAVE_IP", "UNKNOWN");
+    KMonitor *kmonitor = KMonitorFactory::GetKMonitor(serviceName, true, false);
+    string app = autil::EnvUtil::getEnv("KMONITOR_ADAPTER_APP", "UNKNOWN");
+    string userTag0 = autil::EnvUtil::getEnv("KMONITOR_ADAPTER_USER_TAG_0", "UNKNOWN");
+    string userTag1 = autil::EnvUtil::getEnv("KMONITOR_ADAPTER_USER_TAG_1", "UNKNOWN");
+    string hostIpTag = autil::EnvUtil::getEnv("HIPPO_SLAVE_IP", "UNKNOWN");
     kmonitor->AddTag("app", app);
     kmonitor->AddTag("user_tag_0", userTag0);
     kmonitor->AddTag("user_tag_1", userTag1);
@@ -113,28 +113,18 @@ Monitor* MonitorFactory::createMonitor(string serviceName)
     if (program_invocation_short_name != NULL) {
         kmonitor->AddTag("progName", string(program_invocation_short_name));
     }
-    Monitor* monitor = new Monitor(serviceName, &_mutex, kmonitor);
+    Monitor *monitor = new Monitor(serviceName, &_mutex, kmonitor);
     _monitorMap[serviceName] = monitor;
     return monitor;
 }
 
-MonitorFactory* MonitorFactory::getInstance()
-{
+MonitorFactory *MonitorFactory::getInstance() {
     static MonitorFactory factory;
     autil::ScopedLock lock(_mutex);
     if (!factory._valid) {
         factory.init();
     }
     return &factory;
-}
-
-const char* MonitorFactory::getenv(const char* envName, const char* defaultValue)
-{
-    const char* ret = ::getenv(envName);
-    if (!ret) {
-        return defaultValue;
-    }
-    return ret;
 }
 
 } // namespace kmonitor_adapter

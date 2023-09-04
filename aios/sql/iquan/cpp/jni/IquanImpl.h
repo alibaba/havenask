@@ -23,22 +23,21 @@
 #include "iquan/common/Status.h"
 #include "iquan/common/catalog/CatalogInfo.h"
 #include "iquan/common/catalog/FunctionModel.h"
-#include "iquan/common/catalog/TableModel.h"
 #include "iquan/common/catalog/LayerTableModel.h"
-#include "iquan/common/catalog/TvfFunctionModel.h"
 #include "iquan/common/catalog/PlanMeta.h"
+#include "iquan/common/catalog/TableModel.h"
+#include "iquan/common/catalog/TvfFunctionModel.h"
 #include "iquan/config/ClientConfig.h"
 #include "iquan/config/ExecConfig.h"
 #include "iquan/config/JniConfig.h"
 #include "iquan/config/WarmupConfig.h"
+#include "iquan/jni/DynamicParamsManager.h"
 #include "iquan/jni/Iquan.h"
-
 #include "iquan/jni/IquanCache.h"
 #include "iquan/jni/IquanDqlRequest.h"
 #include "iquan/jni/IquanDqlResponse.h"
 #include "iquan/jni/jnipp/jnipp.h"
 #include "iquan/jni/wrapper/JIquanClient.h"
-#include "iquan/jni/DynamicParamsManager.h"
 
 namespace iquan {
 
@@ -59,11 +58,11 @@ public:
                           const DynamicParams &dynamicParams,
                           std::string &hashStr);
     Status getFromCache(IquanDqlRequest &request,
-                      IquanDqlResponse &response,
-                      std::string &hashKeyStr,
-                      std::string &secHashKeyStr,
-                      std::string &finalHashKeyStr,
-                      PlanCacheStatus &PlanCacheStatus);
+                        IquanDqlResponse &response,
+                        std::string &hashKeyStr,
+                        std::string &secHashKeyStr,
+                        std::string &finalHashKeyStr,
+                        PlanCacheStatus &PlanCacheStatus);
     void putCache(SqlPlan &sqlPlan,
                   IquanDqlRequest &request,
                   IquanDqlResponse &response,
@@ -73,7 +72,8 @@ public:
                   size_t planStrSize,
                   std::shared_ptr<autil::legacy::RapidDocument> documentPtr,
                   PlanCacheStatus &PlanCacheStatus);
-    Status query(IquanDqlRequest &request, IquanDqlResponse &response, PlanCacheStatus &planCacheStatus);
+    Status
+    query(IquanDqlRequest &request, IquanDqlResponse &response, PlanCacheStatus &planCacheStatus);
     Status dumpCatalog(std::string &result);
     Status warmup(const WarmupConfig &warmupConfig);
     uint64_t getPlanCacheKeyCount();
@@ -88,15 +88,16 @@ public:
     Status updateLayerTables(const LayerTableModels &tables);
     Status updateLayerTables(const std::string &tableContent);
 
-
     Status updateFunctions(FunctionModels &functions);
     Status updateFunctions(const TvfModels &functions);
     Status updateFunctions(const std::string &functionContent);
 
     Status listCatalogs(std::string &result);
     Status listDatabases(const std::string &catalogName, std::string &result);
-    Status listTables(const std::string &catalogName, const std::string &dbName, std::string &result);
-    Status listFunctions(const std::string &catalogName, const std::string &dbName, std::string &result);
+    Status
+    listTables(const std::string &catalogName, const std::string &dbName, std::string &result);
+    Status
+    listFunctions(const std::string &catalogName, const std::string &dbName, std::string &result);
     Status getTableDetails(const std::string &catalogName,
                            const std::string &dbName,
                            const std::string &tableName,
@@ -107,11 +108,13 @@ public:
                               std::string &result);
 
 private:
-    std::string
-    readValue(const autil::legacy::json::JsonMap &params, const std::string &key, const std::string &defValue);
+    std::string readValue(const autil::legacy::json::JsonMap &params,
+                          const std::string &key,
+                          const std::string &defValue);
     bool addLayerTableMeta(const LayerTableModels &models);
     void writeWarnupLog(IquanDqlRequest &request);
     static Status getHashKeyStr(IquanDqlRequest &request, std::string &hashKeyStr);
+
 private:
     JniConfig _jniConfig;
     std::unique_ptr<IquanCache<RapidDocPtr>> _planCache;

@@ -16,40 +16,39 @@
 #ifndef ANET_SOCKET_H_
 #define ANET_SOCKET_H_
 #include <errno.h>
+#include <sstream>
+#include <stdint.h>
+#include <string>
+#include <sys/socket.h>
+
 #include "aios/network/anet/addrspec.h"
 #include "aios/network/anet/atomic.h"
 #include "aios/network/anet/connectionpriority.h"
-#include <stdint.h>
-#include <sys/socket.h>
-#include <sstream>
-#include <string>
 
 struct sockaddr_in;
 
 namespace anet {
 const int LISTEN_BACKLOG = 256;
 
-  class IOComponent;
+class IOComponent;
 
 class Socket {
 public:
-
     Socket(int family = AF_INET);
     virtual ~Socket();
 
-    bool setAddress (const char *address, const int port);
-    /* 
+    bool setAddress(const char *address, const int port);
+    /*
      * Set domain socket address. */
     bool setUnixAddress(const char *unixPath);
 
     bool setAddrSpec(const char *addrspec);
 
     bool connect();
-    bool reconnect();    
+    bool reconnect();
 
     void close();
     void shutdown();
-
 
     bool createUDP();
 
@@ -73,17 +72,13 @@ public:
     virtual int write(const void *data, int len);
     virtual int read(void *data, int len);
 
-    bool setKeepAlive(bool on) {
-        return setIntOption(SO_KEEPALIVE, on ? 1 : 0);
-    }
+    bool setKeepAlive(bool on) { return setIntOption(SO_KEEPALIVE, on ? 1 : 0); }
 
     bool setKeepAliveParameter(int idleTime, int keepInterval, int cnt);
 
-    bool setReuseAddress(bool on) {
-        return setIntOption(SO_REUSEADDR, on ? 1 : 0);
-    }
+    bool setReuseAddress(bool on) { return setIntOption(SO_REUSEADDR, on ? 1 : 0); }
 
-    bool setSoLinger (bool doLinger, int seconds);
+    bool setSoLinger(bool doLinger, int seconds);
 
     bool setTcpNoDelay(bool noDelay);
 
@@ -94,7 +89,7 @@ public:
     bool checkSocketHandle();
 
     int setPriority(CONNPRIORITY priority);
-    
+
     int setQosGroup(uint64_t jobid, uint32_t instanceid, uint32_t groupid);
 
     uint32_t getQosGroup();
@@ -111,30 +106,26 @@ public:
 
     char *getAddr(char *dest, int len, bool active = false);
 
-    static int getLastError() {
-        return errno;
-    }
+    static int getLastError() { return errno; }
 
-    inline bool isAddressValid() {
-      return addr.isValidState();
-    }
+    inline bool isAddressValid() { return addr.isValidState(); }
 
     bool getSockAddr(sockaddr_in &addr, bool active = true);
-  
-    int getProtocolType(void) {return addr.getProtocolType(); }
+
+    int getProtocolType(void) { return addr.getProtocolType(); }
 
     /* Functions restructed from ServerSocket class */
     Socket *accept();
     bool listen(int backlog);
 
     /* below functions are for statics purpose */
-    int64_t getBindErrCnt(){return atomic_read(&_bindErrCnt);}
-    int64_t getConnectErrCnt(){return atomic_read(&_connectErrCnt);}
-    int64_t getWriteErrCnt(){return atomic_read(&_writeErrCnt);}
-    int64_t getReadErrCnt(){return atomic_read(&_readErrCnt);}
-    int64_t getAcceptErrCnt(){return atomic_read(&_acceptErrCnt);}
-    int64_t getListenErrCnt(){return atomic_read(&_listenErrCnt);}
-    static int64_t getAccpetConnCnt(){return atomic_read(&_globalAcceptConnCnt);}
+    int64_t getBindErrCnt() { return atomic_read(&_bindErrCnt); }
+    int64_t getConnectErrCnt() { return atomic_read(&_connectErrCnt); }
+    int64_t getWriteErrCnt() { return atomic_read(&_writeErrCnt); }
+    int64_t getReadErrCnt() { return atomic_read(&_readErrCnt); }
+    int64_t getAcceptErrCnt() { return atomic_read(&_acceptErrCnt); }
+    int64_t getListenErrCnt() { return atomic_read(&_listenErrCnt); }
+    static int64_t getAccpetConnCnt() { return atomic_read(&_globalAcceptConnCnt); }
 
     void dump(const char *leadchar, std::ostringstream &buf) {
         std::string leading(leadchar);
@@ -142,12 +133,12 @@ public:
         char tmp[256];
         getAddr(tmp, 256);
         buf << leading << "address: " << tmp << std::endl;
-        buf << leading << "Bind Err: " << getBindErrCnt()
-            << "\t" << "Connect Err: " << getConnectErrCnt()
-            << "\t" << "Write Err: " << getWriteErrCnt() << std::endl;
-        buf << leading << "Read Err: " << getReadErrCnt()
-            << "\t" << "Accept Err: " << getAcceptErrCnt()
-            << "\t" << "Listen Err: " << getListenErrCnt() << std::endl;
+        buf << leading << "Bind Err: " << getBindErrCnt() << "\t"
+            << "Connect Err: " << getConnectErrCnt() << "\t"
+            << "Write Err: " << getWriteErrCnt() << std::endl;
+        buf << leading << "Read Err: " << getReadErrCnt() << "\t"
+            << "Accept Err: " << getAcceptErrCnt() << "\t"
+            << "Listen Err: " << getListenErrCnt() << std::endl;
     }
 
     bool bindLocalAddress(const char *localIp, uint16_t localPort);
@@ -172,17 +163,16 @@ private:
 
     int rebindconn();
     void clearCnt();
-    void bindErrInc(){atomic_inc(&_bindErrCnt);}
-    void connectErrInc(){atomic_inc(&_connectErrCnt);}
-    void writeErrInc(){atomic_inc(&_writeErrCnt);}
-    void readErrInc(){atomic_inc(&_readErrCnt);}
-    void acceptErrInc(){atomic_inc(&_acceptErrCnt);}
-    static void acceptConnInc(){atomic_inc(&_globalAcceptConnCnt);}
-    static void acceptConnDec(){atomic_dec(&_globalAcceptConnCnt);}
-    void listernErrInc(){atomic_inc(&_listenErrCnt);}
+    void bindErrInc() { atomic_inc(&_bindErrCnt); }
+    void connectErrInc() { atomic_inc(&_connectErrCnt); }
+    void writeErrInc() { atomic_inc(&_writeErrCnt); }
+    void readErrInc() { atomic_inc(&_readErrCnt); }
+    void acceptErrInc() { atomic_inc(&_acceptErrCnt); }
+    static void acceptConnInc() { atomic_inc(&_globalAcceptConnCnt); }
+    static void acceptConnDec() { atomic_dec(&_globalAcceptConnCnt); }
+    void listernErrInc() { atomic_inc(&_listenErrCnt); }
 };
 
-
-}
+} // namespace anet
 
 #endif /*SOCKET_H_*/

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/SearchServiceReplica.h"
+
 #include "aios/network/gig/multi_call/metric/SnapshotInfoCollector.h"
-#include "aios/network/gig/multi_call/service/FlowControlParam.h"
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
+#include "aios/network/gig/multi_call/service/FlowControlParam.h"
 #include "autil/HashAlgorithm.h"
 
 using namespace std;
@@ -31,13 +32,13 @@ SearchServiceReplica::SearchServiceReplica(const MiscConfigPtr &miscConfig)
     , _miscConfig(miscConfig)
     , _partId(INVALID_PART_ID)
     , _replicaController(&_serviceVector)
-    , _degradeRatio(FILTER_INIT_LIMIT)
-{
+    , _degradeRatio(FILTER_INIT_LIMIT) {
     assert(_miscConfig);
     _hashPolicy = _miscConfig->getHashPolicy();
 }
 
-SearchServiceReplica::~SearchServiceReplica() {}
+SearchServiceReplica::~SearchServiceReplica() {
+}
 
 bool SearchServiceReplica::addSearchServiceProvider(
     const SearchServiceProviderPtr &searchServiceProviderPtr) {
@@ -48,8 +49,7 @@ bool SearchServiceReplica::addSearchServiceProvider(
     auto weight = searchServiceProviderPtr->getWeight();
     auto it = _providerMap.find(nodeId);
     if (_providerMap.end() != it) {
-        AUTIL_LOG(WARN, "service already exist in replica, nodeId[%s]",
-                  nodeId.c_str());
+        AUTIL_LOG(WARN, "service already exist in replica, nodeId[%s]", nodeId.c_str());
         if (weight >= MIN_WEIGHT) {
             return false;
         } else {
@@ -61,8 +61,7 @@ bool SearchServiceReplica::addSearchServiceProvider(
     } else {
         _serviceVector.push_back(searchServiceProviderPtr);
         auto agentId = searchServiceProviderPtr->getAgentId();
-        _providerMapByAgentId.insert(
-            make_pair(agentId, searchServiceProviderPtr));
+        _providerMapByAgentId.insert(make_pair(agentId, searchServiceProviderPtr));
     }
     _providerMap[nodeId] = searchServiceProviderPtr;
     return true;
@@ -73,27 +72,23 @@ bool SearchServiceReplica::constructConsistentHash(bool multiVersion) {
         return false;
     }
     if (HashPolicy::CONSISTENT_HASH == _hashPolicy) {
-        _providerHashRing.init(_serviceVector.size(),
-                               _miscConfig->virtualNodeCount);
+        _providerHashRing.init(_serviceVector.size(), _miscConfig->virtualNodeCount);
 
         for (size_t i = 0; i < _serviceVector.size(); ++i) {
             const auto &nodeId = _serviceVector[i]->getNodeId();
-            uint64_t hashKey =
-                HashAlgorithm::hashString64(nodeId.c_str(), nodeId.size());
+            uint64_t hashKey = HashAlgorithm::hashString64(nodeId.c_str(), nodeId.size());
             _providerHashRing.add(i, hashKey);
         }
         _providerHashRing.construct();
     }
-    auto bestChainQueueSize =
-        min(MAX_BEST_CHAIN_QUEUE_SIZE, _serviceVector.size());
+    auto bestChainQueueSize = min(MAX_BEST_CHAIN_QUEUE_SIZE, _serviceVector.size());
     _replicaController.init(bestChainQueueSize, multiVersion);
     return true;
 }
 
 SearchServiceProviderPtr SearchServiceReplica::getProviderByHashKey(
     SourceIdTy key, const FlowControlParam &param, const MatchTagMapPtr &matchTagMap,
-    SearchServiceProviderPtr &probeProvider, RequestType &type)
-{
+    SearchServiceProviderPtr &probeProvider, RequestType &type) {
     _queryCounter.inc();
     if (_serviceVector.empty()) {
         probeProvider = getCopyProvider(matchTagMap, type);
@@ -151,8 +146,7 @@ void SearchServiceReplica::fillTagMaxVersion(const MatchTagMapPtr &matchTagMap) 
 
 bool SearchServiceReplica::getProviderVecByMatchTag(const MatchTagMapPtr &matchTagMap,
                                                     SearchServiceProviderVector &requireVec,
-                                                    SearchServiceProviderVector &preferVec)
-{
+                                                    SearchServiceProviderVector &preferVec) {
     fillTagMaxVersion(matchTagMap);
     bool usePrefer = false;
     bool enableNull = (HashPolicy::CONSISTENT_HASH == _hashPolicy);
@@ -174,8 +168,7 @@ bool SearchServiceReplica::getProviderVecByMatchTag(const MatchTagMapPtr &matchT
 }
 
 SearchServiceProviderPtr SearchServiceReplica::getProviderFromAllByRandomHash(
-    const SearchServiceProviderVector &serviceVector, SourceIdTy key)
-{
+    const SearchServiceProviderVector &serviceVector, SourceIdTy key) {
     auto realIndex = getStartIndex(serviceVector, key);
     size_t vectorSize = serviceVector.size();
     SearchServiceProviderPtr requireProvider;
@@ -190,8 +183,7 @@ SearchServiceProviderPtr SearchServiceReplica::getProviderFromAllByRandomHash(
 }
 
 size_t SearchServiceReplica::getStartIndex(const SearchServiceProviderVector &serviceVector,
-                                           SourceIdTy key) const
-{
+                                           SourceIdTy key) const {
     size_t vectorSize = serviceVector.size();
     std::vector<size_t> startedIndexVec(vectorSize);
     size_t startedCnt = 0;
@@ -216,8 +208,7 @@ size_t SearchServiceReplica::getStartIndex(const SearchServiceProviderVector &se
 
 SearchServiceProviderPtr SearchServiceReplica::getProviderFromConsistHash(
     const SearchServiceProviderVector &serviceVector, SourceIdTy key, const FlowControlParam &param,
-    SearchServiceProviderPtr &probeProvider, RequestType &type)
-{
+    SearchServiceProviderPtr &probeProvider, RequestType &type) {
     auto it = _providerHashRing.get(key);
     if (it == _providerHashRing.end()) {
         return SearchServiceProviderPtr();
@@ -231,7 +222,8 @@ SearchServiceProviderPtr SearchServiceReplica::getProviderFromConsistHash(
             if (weight >= it->label) {
                 return provider;
             } else if (param.ignoreWeightLabelInConsistentHash) {
-                AUTIL_LOG(DEBUG, "biz [%s] ignored consistent hash provider [%s] weight [%d] < label [%d]",
+                AUTIL_LOG(DEBUG,
+                          "biz [%s] ignored consistent hash provider [%s] weight [%d] < label [%d]",
                           _bizName.c_str(), provider->getSpec().ip.c_str(), weight, it->label);
                 return provider;
             }
@@ -252,8 +244,7 @@ SearchServiceProviderPtr SearchServiceReplica::getProviderFromConsistHash(
 
 SearchServiceProviderPtr SearchServiceReplica::getProviderFromRandomHash(
     const SearchServiceProviderVector &serviceVector, SourceIdTy key, const FlowControlParam &param,
-    SearchServiceProviderPtr &probeProvider, RequestType &type)
-{
+    SearchServiceProviderPtr &probeProvider, RequestType &type) {
     auto probeRand = _randomGenerator.get();
     const auto &probeCandidate = serviceVector[probeRand % serviceVector.size()];
     if (probeCandidate && needProbe(probeCandidate, param.flowControlConfig, type)) {
@@ -271,8 +262,7 @@ SearchServiceProviderPtr SearchServiceReplica::getProviderFromRandomHash(
 
 uint32_t
 SearchServiceReplica::getRandomHashWeights(const SearchServiceProviderVector &serviceVector,
-                                           vector<RandomHashNode> &weights) const
-{
+                                           vector<RandomHashNode> &weights) const {
     weights.reserve(serviceVector.size());
     uint32_t sum = 0;
     bool pureWeight = _hashPolicy == HashPolicy::RANDOM_HASH;
@@ -290,9 +280,9 @@ SearchServiceReplica::getRandomHashWeights(const SearchServiceProviderVector &se
     return sum;
 }
 
-bool SearchServiceReplica::needProbe(
-    const SearchServiceProviderPtr &provider,
-    const FlowControlConfigPtr &flowControlConfig, RequestType &type) {
+bool SearchServiceReplica::needProbe(const SearchServiceProviderPtr &provider,
+                                     const FlowControlConfigPtr &flowControlConfig,
+                                     RequestType &type) {
     auto weight = provider->getWeight();
     if (weight > MIN_WEIGHT) {
         return false;
@@ -308,8 +298,7 @@ bool SearchServiceReplica::needProbe(
 }
 
 SearchServiceProviderPtr SearchServiceReplica::getCopyProvider(const MatchTagMapPtr &matchTagMap,
-                                                               RequestType &type)
-{
+                                                               RequestType &type) {
     if (_serviceVectorCopy.empty()) {
         return SearchServiceProviderPtr();
     }
@@ -337,8 +326,7 @@ SearchServiceProviderPtr SearchServiceReplica::getCopyProvider(const MatchTagMap
 
 SearchServiceProviderPtr
 SearchServiceReplica::findNextProviderInRing(const SearchServiceProviderVector &serviceVector,
-                                             ConsistentHash::Iterator it)
-{
+                                             ConsistentHash::Iterator it) {
     auto orgIt = it++;
     uint32_t index = 0;
     set<uint32_t> tries;
@@ -369,12 +357,10 @@ SearchServiceReplica::findNextProviderInRing(const SearchServiceProviderVector &
     return SearchServiceProviderPtr();
 }
 
-SearchServiceProviderPtr SearchServiceReplica::getBackupProvider(
-        const SearchServiceProviderPtr &selfProvider,
-        SourceIdTy sourceId,
-        const MatchTagMapPtr &matchTagMap,
-        const FlowControlConfigPtr &flowControlConfig)
-{
+SearchServiceProviderPtr
+SearchServiceReplica::getBackupProvider(const SearchServiceProviderPtr &selfProvider,
+                                        SourceIdTy sourceId, const MatchTagMapPtr &matchTagMap,
+                                        const FlowControlConfigPtr &flowControlConfig) {
     if (_serviceVector.empty()) {
         return SearchServiceProviderPtr();
     }
@@ -439,8 +425,7 @@ SearchServiceProviderPtr SearchServiceReplica::getProviderByAgentId(uint64_t age
 }
 
 void SearchServiceReplica::fillPropagationStat(uint64_t skipAgentId, google::protobuf::Arena *arena,
-                                               PropagationStats &propagationStats)
-{
+                                               PropagationStats &propagationStats) {
     auto propagationStatDef = google::protobuf::Arena::CreateMessage<PropagationStatDef>(arena);
     SearchServiceProviderPtr beginProvider;
     auto randomNum = getRandom();
@@ -468,10 +453,8 @@ void SearchServiceReplica::fillPropagationStat(uint64_t skipAgentId, google::pro
 }
 
 bool SearchServiceReplica::doFillPropagationStat(const SearchServiceProviderPtr &provider,
-                                                 PropagationStatDef &propagationStat)
-{
-    const auto &latencyController =
-        provider->getControllerChain()->latencyController;
+                                                 PropagationStatDef &propagationStat) {
+    const auto &latencyController = provider->getControllerChain()->latencyController;
     if (!latencyController.isValid()) {
         return false;
     }
@@ -484,23 +467,18 @@ bool SearchServiceReplica::doFillPropagationStat(const SearchServiceProviderPtr 
     avgLatency->set_version(version);
     avgLatency->set_agent_id(provider->getAgentId());
     avgLatency->set_latency(latencyController.serverValue());
-    avgLatency->set_load_balance_latency(
-        latencyController.loadBalanceServerValue());
+    avgLatency->set_load_balance_latency(latencyController.loadBalanceServerValue());
     avgLatency->set_avg_weight(latencyController.serverAvgWeight());
 
-    const auto &errorRatioController =
-        provider->getControllerChain()->errorRatioController;
+    const auto &errorRatioController = provider->getControllerChain()->errorRatioController;
     auto errorRatio = propagationStat.mutable_error();
     errorRatio->set_ratio(errorRatioController.serverValue());
-    errorRatio->set_load_balance_ratio(
-        errorRatioController.loadBalanceServerValue());
+    errorRatio->set_load_balance_ratio(errorRatioController.loadBalanceServerValue());
 
-    const auto &degradeRatioController =
-        provider->getControllerChain()->degradeRatioController;
+    const auto &degradeRatioController = provider->getControllerChain()->degradeRatioController;
     auto degradeRatio = propagationStat.mutable_degrade();
     degradeRatio->set_ratio(degradeRatioController.serverValue());
-    degradeRatio->set_load_balance_ratio(
-        degradeRatioController.loadBalanceServerValue());
+    degradeRatio->set_load_balance_ratio(degradeRatioController.loadBalanceServerValue());
 
     return INVALID_FILTER_VALUE != errorRatio->ratio() &&
            INVALID_FILTER_VALUE != errorRatio->load_balance_ratio() &&
@@ -546,10 +524,8 @@ bool SearchServiceReplica::hasStartedProvider() const {
     return false;
 }
 
-bool SearchServiceReplica::needDegrade(uint64_t key,
-                                       const FlowControlParam &param,
-                                       SearchServiceProviderPtr &probeProvider,
-                                       RequestType &type) {
+bool SearchServiceReplica::needDegrade(uint64_t key, const FlowControlParam &param,
+                                       SearchServiceProviderPtr &probeProvider, RequestType &type) {
     float baseAvgLatency = 0.0f;
     float baseErrorRatio = 0.0f;
     float percent = 1.0f;
@@ -557,8 +533,7 @@ bool SearchServiceReplica::needDegrade(uint64_t key,
     if (param.disableDegrade) {
         return false;
     }
-    if (!getDegradeCoverPercent(flowControlConfig, baseAvgLatency,
-                                baseErrorRatio, percent)) {
+    if (!getDegradeCoverPercent(flowControlConfig, baseAvgLatency, baseErrorRatio, percent)) {
         return false;
     }
     bool ret = false;
@@ -566,8 +541,7 @@ bool SearchServiceReplica::needDegrade(uint64_t key,
     if (percent == 0.0f) {
         // full degrade need probe
         const auto &provider = _serviceVector[key % _serviceVector.size()];
-        if (provider->needProbe(
-                flowControlConfig->probePercent * MAX_WEIGHT_FLOAT, type)) {
+        if (provider->needProbe(flowControlConfig->probePercent * MAX_WEIGHT_FLOAT, type)) {
             probeProvider = provider;
         }
         ret = true;
@@ -575,44 +549,39 @@ bool SearchServiceReplica::needDegrade(uint64_t key,
         percent = minDegradePercent;
     }
     if (ret || needDegrade(key, param, percent)) {
-        AUTIL_INTERVAL_LOG(
-            200, WARN,
-            "multi_call degrade triggered, percent [%f], "
-            "baseAvgLatency[%fms], beginDegradeLatency[%ums], "
-            "fullDegradeLatency[%ums], baseErrorRatio[%f], "
-            "beginDegradeErrorRatio[%f], fullDegradeErrorRatio[%f], "
-            "partId[%d], biz[%s]",
-            percent, baseAvgLatency, flowControlConfig->beginDegradeLatency,
-            flowControlConfig->fullDegradeLatency, baseErrorRatio,
-            flowControlConfig->beginDegradeErrorRatio,
-            flowControlConfig->fullDegradeErrorRatio, _partId,
-            _bizName.c_str());
+        AUTIL_INTERVAL_LOG(200, WARN,
+                           "multi_call degrade triggered, percent [%f], "
+                           "baseAvgLatency[%fms], beginDegradeLatency[%ums], "
+                           "fullDegradeLatency[%ums], baseErrorRatio[%f], "
+                           "beginDegradeErrorRatio[%f], fullDegradeErrorRatio[%f], "
+                           "partId[%d], biz[%s]",
+                           percent, baseAvgLatency, flowControlConfig->beginDegradeLatency,
+                           flowControlConfig->fullDegradeLatency, baseErrorRatio,
+                           flowControlConfig->beginDegradeErrorRatio,
+                           flowControlConfig->fullDegradeErrorRatio, _partId, _bizName.c_str());
         return true;
     } else {
         return false;
     }
 }
 
-bool SearchServiceReplica::getDegradeCoverPercent(
-    const FlowControlConfigPtr &flowControlConfig, float &baseAvgLatency,
-    float &baseErrorRatio, float &percent) {
+bool SearchServiceReplica::getDegradeCoverPercent(const FlowControlConfigPtr &flowControlConfig,
+                                                  float &baseAvgLatency, float &baseErrorRatio,
+                                                  float &percent) {
     float latencyPercent = 1.0f;
     float errorPercent = 1.0f;
-    if (!getLatencyCoverPercent(flowControlConfig, baseAvgLatency,
-                                latencyPercent)) {
+    if (!getLatencyCoverPercent(flowControlConfig, baseAvgLatency, latencyPercent)) {
         return false;
     }
-    if (!getErrorRatioCoverPercent(flowControlConfig, baseErrorRatio,
-                                   errorPercent)) {
+    if (!getErrorRatioCoverPercent(flowControlConfig, baseErrorRatio, errorPercent)) {
         return false;
     }
     percent = min(latencyPercent, errorPercent);
     return true;
 }
 
-bool SearchServiceReplica::getLatencyCoverPercent(
-    const FlowControlConfigPtr &flowControlConfig, float &baseAvgLatency,
-    float &percent) {
+bool SearchServiceReplica::getLatencyCoverPercent(const FlowControlConfigPtr &flowControlConfig,
+                                                  float &baseAvgLatency, float &percent) {
     if (!_replicaController.getBaseAvgLatency(baseAvgLatency)) {
         // average latency not available
         return false;
@@ -627,15 +596,13 @@ bool SearchServiceReplica::getLatencyCoverPercent(
     if (0 == range) {
         percent = baseAvgLatency > beginDegradeLatency ? 0.0f : 1.0f;
     } else {
-        percent =
-            max(0.0f, 1.0f - (baseAvgLatency - beginDegradeLatency) / range);
+        percent = max(0.0f, 1.0f - (baseAvgLatency - beginDegradeLatency) / range);
     }
     return true;
 }
 
-bool SearchServiceReplica::getErrorRatioCoverPercent(
-    const FlowControlConfigPtr &flowControlConfig, float &baseErrorRatio,
-    float &percent) {
+bool SearchServiceReplica::getErrorRatioCoverPercent(const FlowControlConfigPtr &flowControlConfig,
+                                                     float &baseErrorRatio, float &percent) {
     if (!_replicaController.getBaseErrorRatio(baseErrorRatio)) {
         // average error ratio not available
         return false;
@@ -651,15 +618,12 @@ bool SearchServiceReplica::getErrorRatioCoverPercent(
     if (range <= EPSILON) {
         percent = baseErrorRatio > beginDegradeErrorRatio ? 0.0f : 1.0f;
     } else {
-        percent =
-            max(0.0f, 1.0f - (baseErrorRatio - beginDegradeErrorRatio) / range);
+        percent = max(0.0f, 1.0f - (baseErrorRatio - beginDegradeErrorRatio) / range);
     }
     return true;
 }
 
-bool SearchServiceReplica::needDegrade(uint64_t key,
-                                       const FlowControlParam &param,
-                                       float percent) {
+bool SearchServiceReplica::needDegrade(uint64_t key, const FlowControlParam &param, float percent) {
     uint32_t totalRange = param.partitionCount * MAX_WEIGHT;
     uint32_t from = param.partitionIndex * MAX_WEIGHT;
     uint32_t to = from + totalRange * percent;
@@ -701,6 +665,16 @@ void SearchServiceReplica::trySetLastFlowControlConfig(const FlowControlConfigPt
         _lastFlowControlConfig = config;
         _lastFlowControlConfigLock.unlock();
     }
+}
+
+MetaMapPtr SearchServiceReplica::getOneMeta() const {
+    for (const auto &provider : _serviceVector) {
+        auto metas = provider->getHeartbeatMetas();
+        if (metas) {
+            return metas;
+        }
+    }
+    return nullptr;
 }
 
 void SearchServiceReplica::toString(std::string &debugStr) {

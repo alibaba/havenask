@@ -150,7 +150,7 @@ bool RawDocRtServiceBuilderImpl::seekProducerToLatest(std::pair<int64_t, int64_t
     }
     common::Locator targetLocator;
     targetLocator.SetSrc(_producer->getLocatorSrc());
-    targetLocator.SetOffset(maxTs);
+    targetLocator.SetOffset({maxTs, 0});
     bool ret = producerSeek(targetLocator);
     if (ret) {
         forceSeekInfo.first = lastReadTs;
@@ -194,7 +194,7 @@ void RawDocRtServiceBuilderImpl::externalActions()
     }
     bool fromInc = false;
     int64_t seekTs = indexlib::index_base::OnlineJoinPolicy::GetRtSeekTimestamp(incVersion.GetTimestamp(),
-                                                                                rtLocator.GetOffset(), fromInc);
+                                                                                rtLocator.GetOffset().first, fromInc);
     if (!fromInc && _startSkipCalibrateDone) {
         return;
     }

@@ -35,7 +35,7 @@ namespace indexlibv2::index {
 class DeletionMapPatchWriter;
 } // namespace indexlibv2::index
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 namespace indexlibv2::table {
 class SegmentMergePlan;
@@ -71,7 +71,8 @@ private:
                                   indexKeyToPatchWriters,
                               index::DeletionMapPatchWriter* deletionMapPatchWriter);
     std::pair<Status, std::shared_ptr<indexlib::index::BatchOpLogIterator>>
-    CreateOpIterator(const config::TabletSchema* schema, const indexlibv2::index::IIndexMerger::SourceSegment& segment);
+    CreateOpIterator(const config::ITabletSchema* schema,
+                     const indexlibv2::index::IIndexMerger::SourceSegment& segment);
     Status GetOpLog2PatchInfos(const framework::IndexTaskContext& context, segmentid_t& targetPatchSegmentId,
                                std::vector<index::IIndexMerger::SourceSegment>& opSegments);
     Status LoadPrimaryKeyReader(const std::shared_ptr<framework::TabletData>& tabletData);
@@ -100,12 +101,12 @@ private:
 
     static bool CreatePatchWriterForAttribute(
         const std::shared_ptr<indexlib::file_system::IDirectory>& workDir, const segmentid_t segmentId,
-        const std::shared_ptr<config::TabletSchema>& schema, const std::shared_ptr<config::IIndexConfig>& indexConfig,
+        const std::shared_ptr<config::ITabletSchema>& schema, const std::shared_ptr<config::IIndexConfig>& indexConfig,
         std::map<fieldid_t, std::vector<index::PatchWriter*>>* fieldIdToPatchWriters,
         std::map<std::pair<std::string, std::string>, std::unique_ptr<index::PatchWriter>>* indexKeyToPatchWriters);
     static bool CreatePatchWriterForInvertedIndex(
         const std::shared_ptr<indexlib::file_system::IDirectory>& workDir, const segmentid_t segmentId,
-        const std::shared_ptr<config::TabletSchema>& schema, const std::shared_ptr<config::IIndexConfig>& indexConfig,
+        const std::shared_ptr<config::ITabletSchema>& schema, const std::shared_ptr<config::IIndexConfig>& indexConfig,
         std::map<fieldid_t, std::vector<index::PatchWriter*>>* fieldIdToPatchWriters,
         std::map<std::pair<std::string, std::string>, std::unique_ptr<index::PatchWriter>>* indexKeyToPatchWriters);
 
@@ -128,7 +129,7 @@ private:
     std::shared_ptr<PkState> _pkState;
     std::pair<std::string, std::string> _deletionMapIndexKey;
     std::shared_ptr<indexlib::file_system::IDirectory> _workDir;
-    std::shared_ptr<config::TabletSchema> _schema;
+    std::shared_ptr<config::ITabletSchema> _schema;
     std::vector<std::pair<segmentid_t, std::pair<docid_t, docid_t>>> _segmentId2DocIdRange;
     std::map<fieldid_t, std::vector<index::PatchWriter*>> _fieldIdToMergeSegmentPatchWriters;
     std::map<std::pair<std::string, std::string>, std::unique_ptr<index::PatchWriter>>

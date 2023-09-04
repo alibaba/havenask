@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/java/GigJavaClosure.h"
+
 #include "aios/network/gig/multi_call/java/GigJavaUtil.h"
 #include "aios/network/gig/multi_call/java/GigJniThreadAttacher.h"
 
@@ -39,8 +40,7 @@ void GigJavaClosure::Run() {
     vector<ResponsePtr> responses = _reply->getResponses(lackCount);
 
     if (responses.empty()) {
-        string errStr =
-            "response is empty, maybe degrade triggered or no provider for biz";
+        string errStr = "response is empty, maybe degrade triggered or no provider for biz";
         AUTIL_LOG(ERROR, "%s", errStr.c_str());
         responseHeader->set_error_msg(errStr);
         responseHeader->set_error_code(GigErrorCode::GIG_ERROR_NO_RESPONSE);
@@ -60,8 +60,7 @@ void GigJavaClosure::Run() {
     } else {
         GigResponseHeader *multiHeader = NULL;
         GigMultiResponse *multiResponse =
-            google::protobuf::Arena::CreateMessage<GigMultiResponse>(
-                _arena.get());
+            google::protobuf::Arena::CreateMessage<GigMultiResponse>(_arena.get());
         for (int i = 0; i < responses.size(); i++) {
             body = NULL;
             bodySize = 0;
@@ -78,11 +77,9 @@ void GigJavaClosure::Run() {
             responseHeader->set_error_code(GigErrorCode::GIG_ERROR_NONE);
             result = true;
         } else {
-            AUTIL_LOG(ERROR,
-                      "[%s] serialize multi response failed, callbackId [%p]",
+            AUTIL_LOG(ERROR, "[%s] serialize multi response failed, callbackId [%p]",
                       typeid(*this).name(), (void *)_callbackId);
-            responseHeader->set_error_code(
-                GigErrorCode::GIG_REPLY_ERROR_CREATE_RESPONSE);
+            responseHeader->set_error_code(GigErrorCode::GIG_REPLY_ERROR_CREATE_RESPONSE);
             result = false;
         }
     }
@@ -90,33 +87,30 @@ void GigJavaClosure::Run() {
     if (_span) {
         _span->setAttribute("gig.status", GigErrorCode_Name(responseHeader->error_code()));
         _span->setStatus(result ? opentelemetry::StatusCode::kOk
-                         : opentelemetry::StatusCode::kError,
+                                : opentelemetry::StatusCode::kError,
                          responseHeader->error_msg());
     }
     if (!result) {
         std::string traceId, spanId;
-        if(_span) {
+        if (_span) {
             auto spanContext = _span->getContext();
             if (spanContext) {
                 traceId = spanContext->getTraceId();
-                spanId =  spanContext->getSpanId();
+                spanId = spanContext->getSpanId();
             }
         }
-        AUTIL_LOG(ERROR, "[%s %s][%s] run failed, callbackId [%p]",
-                  traceId.c_str(), spanId.c_str(), typeid(*this).name(),
-                  (void *)_callbackId);
+        AUTIL_LOG(ERROR, "[%s %s][%s] run failed, callbackId [%p]", traceId.c_str(), spanId.c_str(),
+                  typeid(*this).name(), (void *)_callbackId);
     }
     responseHeader->SerializeToString(&header);
-    _callback(_callbackId, (char *)header.c_str(), header.size(), (char *)body,
-              bodySize);
+    _callback(_callbackId, (char *)header.c_str(), header.size(), (char *)body, bodySize);
     if (_span) {
         _span->end();
     }
     delete this;
 }
 
-bool GigJavaClosure::extract(ResponsePtr response,
-                             GigResponseHeader *responseHeader,
+bool GigJavaClosure::extract(ResponsePtr response, GigResponseHeader *responseHeader,
                              const char *&body, size_t &bodySize) {
     responseHeader->set_error_code(GigErrorCode(response->getErrorCode()));
     responseHeader->set_error_msg(response->errorString());

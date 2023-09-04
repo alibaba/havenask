@@ -13,37 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "aios/network/arpc/arpc/ANetRPCServer.h"
+
 #include <assert.h>
-#include <google/protobuf/message.h>
-#include <stdint.h>
 #include <cstddef>
+#include <google/protobuf/message.h>
 #include <memory>
 #include <new>
+#include <stdint.h>
 #include <string>
 #include <unordered_map>
 #include <utility>
 
+#include "aios/autil/autil/Lock.h"
 #include "aios/network/anet/delaydecodepacket.h"
+#include "aios/network/anet/globalflags.h"
 #include "aios/network/anet/ilogger.h"
+#include "aios/network/anet/iocomponent.h"
 #include "aios/network/anet/packet.h"
 #include "aios/network/anet/runnable.h"
-#include "aios/network/anet/globalflags.h"
-#include "aios/network/anet/iocomponent.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
-#include "aios/network/arpc/arpc/common/Exception.h"
-#include "aios/autil/autil/Lock.h"
-#include "aios/network/arpc/arpc/util/Log.h"
 #include "aios/network/arpc/arpc/MessageCodec.h"
+#include "aios/network/arpc/arpc/MessageSerializable.h"
+#include "aios/network/arpc/arpc/PacketArg.h"
 #include "aios/network/arpc/arpc/RPCServer.h"
+#include "aios/network/arpc/arpc/RPCServerAdapter.h"
 #include "aios/network/arpc/arpc/RPCServerClosure.h"
 #include "aios/network/arpc/arpc/Tracer.h"
-#include "aios/network/arpc/arpc/ANetRPCServer.h"
-#include "aios/network/arpc/arpc/MessageSerializable.h"
-#include "aios/network/arpc/arpc/RPCServerAdapter.h"
-#include "aios/network/arpc/arpc/PacketArg.h"
 #include "aios/network/arpc/arpc/anet/ANetApp.h"
 #include "aios/network/arpc/arpc/anet/ANetRPCMessageCodec.h"
 #include "aios/network/arpc/arpc/anet/ANetRPCServerAdapter.h"
+#include "aios/network/arpc/arpc/common/Exception.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 
 using namespace std;
 using namespace anet;
@@ -53,27 +54,18 @@ ARPC_DECLARE_AND_SETUP_LOGGER(ANetRPCServer);
 
 using namespace common;
 
-ANetRPCServer::ANetRPCServer(Transport *transport,
-                             size_t threadNum,
-                             size_t queueSize)
-    : RPCServer(threadNum, queueSize)
-    , _anetApp(transport)
-{
+ANetRPCServer::ANetRPCServer(Transport *transport, size_t threadNum, size_t queueSize)
+    : RPCServer(threadNum, queueSize), _anetApp(transport) {
     ANetRPCMessageCodec *codec = new ANetRPCMessageCodec(_anetApp.GetPacketFactory());
     _messageCodec = codec;
     _serverAdapter = new ANetRPCServerAdapter(this, codec);
 }
 
-ANetRPCServer::~ANetRPCServer()
-{
-}
+ANetRPCServer::~ANetRPCServer() {}
 
-bool ANetRPCServer::Listen(const std::string &address,
-                           int timeout, int maxIdleTime,
-                           int backlog)
-{
-    IOComponent *ioComponent = _anetApp.Listen(address, (ANetRPCServerAdapter *)_serverAdapter,
-                          timeout, maxIdleTime, backlog);
+bool ANetRPCServer::Listen(const std::string &address, int timeout, int maxIdleTime, int backlog) {
+    IOComponent *ioComponent =
+        _anetApp.Listen(address, (ANetRPCServerAdapter *)_serverAdapter, timeout, maxIdleTime, backlog);
 
     if (NULL == ioComponent) {
         ARPC_LOG(ERROR, "listen on %s failed", address.c_str());
@@ -94,7 +86,7 @@ bool ANetRPCServer::Close() {
         autil::ScopedLock lock(_ioComponentMutex);
         list<IOComponent *>::iterator it = _ioComponentList.begin();
 
-        for(; it != _ioComponentList.end(); ++it) {
+        for (; it != _ioComponentList.end(); ++it) {
             (*it)->close();
             (*it)->subRef();
         }
@@ -112,8 +104,7 @@ void ANetRPCServer::dump(std::ostringstream &out) {
         autil::ScopedLock lock(_ioComponentMutex);
         out << "IOComponent Count: " << _ioComponentList.size() << endl;
 
-        for (list<IOComponent *>::iterator it = _ioComponentList.begin();
-                it != _ioComponentList.end(); ++it) {
+        for (list<IOComponent *>::iterator it = _ioComponentList.begin(); it != _ioComponentList.end(); ++it) {
             (*it)->dump(out);
         }
     }
@@ -133,5 +124,14 @@ int ANetRPCServer::GetListenPort() {
     return socket->getPort();
 }
 
+void ANetRPCServer::SetMetricReporter(const std::shared_ptr<ServerMetricReporter> &metricReporter) {
+    _metricReporter = metricReporter;
+    if (_serverAdapter != nullptr) {
+        auto anetAdapter = dynamic_cast<ANetRPCServerAdapter *>(_serverAdapter);
+        if (anetAdapter != nullptr) {
+            anetAdapter->SetMetricReporter(metricReporter);
+        }
+    }
+}
 
 ARPC_END_NAMESPACE(arpc)

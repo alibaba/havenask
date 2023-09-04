@@ -50,12 +50,11 @@ build --action_env PYTHON_BIN_PATH="/usr/bin/python3"
 build --workspace_status_command "sh ./package/git_commit/git_info.sh"
 build --cxxopt="-std=c++17" --cxxopt="-Wno-register"
 build --config=old_abi
-build --config=havenask
 build:old_abi --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --define use_abi=0
 build:clang --action_env=CC=/usr/bin/clang
 build:clang --action_env=CXX=/usr/bin/clang++
 build:clang --define compiler_type=clang++
-build:clang --repo_env=BAZEL_CXXOPTS="-fcoroutines-ts"
+build:clang --action_env=BAZEL_CXXOPTS="-fcoroutines-ts"
 build:clang --copt -Werror,-Wunused-result
 build:clang --copt -Wall
 build:clang --copt -Wextra
@@ -88,6 +87,18 @@ build:clang --copt -Werror
 build:clang --copt -fno-limit-debug-info
 build:clang --linkopt -fuse-ld=lld
 build:clang --linkopt -lstdc++
+build:asan --copt -fsanitize=address
+build:asan --copt -DADDRESS_SANITIZER
+build:asan --copt -DFL_ASAN_ENABLED
+build:asan --copt -fno-omit-frame-pointer
+build:asan --copt -fPIC # for "fix relocation truncated to fit: R_X86_64_32 against `.debug_info'" collect2 error
+build:asan --copt -fdebug-types-section # for "fix relocation truncated to fit: R_X86_64_32 against `.debug_info'" collect2 error
+build:asan --linkopt -fsanitize=address
 build:havenask --define repo_mode=aios_open_source
 build:havenask --copt -DAIOS_OPEN_SOURCE
+build:havenask --build_tag_filters=-not_for_opensource
+build:havenask --test_tag_filters=-not_for_opensource
+build:havenask --define disable_catalog_mongodb=true
 test --test_tag_filters=-slow_case,-codegen_case,-one_box --test_env CHECK_CASE_TIMEOUT=false
+build:havenask --distdir=/external/__distdir__
+build --config=havenask

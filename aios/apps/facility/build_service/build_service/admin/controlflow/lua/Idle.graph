@@ -1,0 +1,19 @@
+--[[
+Graph.parameter : graph related kv parameters 
+Graph.loadSimpleFlow(taskType, taskIdentifier, taskKVParam = nil) : return flowObject
+Graph.loadFlow(flowFileName, flowKVParam = nil) : return flowObject
+Graph.loadSubGraph(graphId, graphFileName, graphKVParam = nil) : return true : false
+Graph.setUpstream(flow, upstreamFlow, waitStatus = "finish"|"stop"|"xxx") 
+Graph.declareFriend(flow, friendFlow) 
+Graph.getFlowIdByTag(tag) : return flowId list 
+Graph.getFlow(flowId) : return flowObject 
+--]]
+
+--#import(Tool)
+
+function graphDef()
+   local flowObj = Graph.loadFlow("Idle.flow", Graph.parameter)
+   flowObj:addTag("Idle")
+   return true
+end
+

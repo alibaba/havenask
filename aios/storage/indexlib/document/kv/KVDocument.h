@@ -38,6 +38,7 @@ public:
     static constexpr uint32_t LEGACY_KV_DOCUMENT_BINARY_VERSION_THRESHOLD = 10000;
     static constexpr uint32_t KV_DOCUMENT_BINARY_VERSION = LEGACY_KV_DOCUMENT_BINARY_VERSION_THRESHOLD + 1;
     static constexpr uint32_t MULTI_INDEX_KV_DOCUMENT_BINARY_VERSION = KV_DOCUMENT_BINARY_VERSION + 1;
+    static constexpr uint32_t SCHEMA_ID_KV_DOCUMENT_BINARY_VERSION = MULTI_INDEX_KV_DOCUMENT_BINARY_VERSION + 1;
 
 public:
     explicit KVDocument(autil::mem_pool::Pool* pool);
@@ -97,10 +98,15 @@ public:
     void deserialize(autil::DataBuffer& dataBuffer) override;
     void SerializeIndexNameHash(autil::DataBuffer& dataBuffer) const;
     void DeserializeIndexNameHash(autil::DataBuffer& dataBuffer);
+    void SerializeSchemaId(autil::DataBuffer& dataBuffer) const;
+    void DeserializeSchemaId(autil::DataBuffer& dataBuffer);
     bool CheckOrTrim(int64_t timestamp) const;
 
     uint64_t GetIndexNameHash() const { return _indexNameHash; }
     void SetIndexNameHash(uint64_t indexNameHash) { _indexNameHash = indexNameHash; }
+
+    schemaid_t GetSchemaId() const;
+    void SetSchemaId(schemaid_t schemaId);
 
 private:
     DocOperateType _opType = ADD_DOC;
@@ -110,7 +116,10 @@ private:
     autil::StringView _value;
     int64_t _userTimestamp = INVALID_TIMESTAMP;
     uint32_t _ttl = UNINITIALIZED_TTL;
+
+    // serailize/deserialize in KVDocumentBatch
     uint64_t _indexNameHash = 0;
+    schemaid_t _schemaId = DEFAULT_SCHEMAID;
 
     // do not serialize/deserialize
     autil::mem_pool::Pool* _pool = nullptr;

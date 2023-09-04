@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 
 #include "autil/Log.h" // IWYU pragma: keep
 #include "ha3/common/QueryVisitor.h"
@@ -33,23 +33,24 @@ class PhraseQuery;
 class Query;
 class RankQuery;
 class TermQuery;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace common {
 
-class QueryTermVisitor : public QueryVisitor
-{
+class QueryTermVisitor : public QueryVisitor {
 public:
     typedef int32_t VisitTermType;
     static const VisitTermType VT_RANK_QUERY = 1;
     static const VisitTermType VT_ANDNOT_QUERY = 2;
     static const VisitTermType VT_NO_AUX_TERM = 0;
     static const VisitTermType VT_ALL = 0xffff;
+
 public:
     QueryTermVisitor(VisitTermType visitType = VT_RANK_QUERY);
     virtual ~QueryTermVisitor();
+
 public:
     virtual void visitTermQuery(const TermQuery *query);
     virtual void visitPhraseQuery(const PhraseQuery *query);
@@ -59,14 +60,17 @@ public:
     virtual void visitRankQuery(const RankQuery *query);
     virtual void visitNumberQuery(const NumberQuery *query);
     virtual void visitMultiTermQuery(const MultiTermQuery *query);
-    const TermVector& getTermVector() const {
+    const TermVector &getTermVector() const {
         return _termVector;
     }
+
 private:
     void visitAdvancedQuery(const Query *query);
+
 private:
     TermVector _termVector;
     VisitTermType _visitTermType;
+
 private:
     AUTIL_LOG_DECLARE();
 };

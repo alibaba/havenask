@@ -38,4 +38,16 @@ private:
     std::map<std::string, std::unique_ptr<ITabletDeployerHook>> _tabletDeployerHooks;
 };
 
+/*
+   添加一种新的Hook，需要完成以下2个步骤:
+   1.在hook cpp内调用 REGISTER_TABLET_DEPLOYER_HOOK(table_type, ClassName);
+   2.在hook cpp对应的BUILD目标上添加 alwayslink = True
+*/
+#define REGISTER_TABLET_DEPLOYER_HOOK(TABLE_TYPE, TABLET_DEPLOYER_HOOK)                                                \
+    __attribute__((constructor)) static void Register##TABLE_TYPE##TabletDeployerHook()                                \
+    {                                                                                                                  \
+        framework::TabletHooksCreator::GetInstance()->RegisterTabletDeployerHook(                                      \
+            #TABLE_TYPE, std::make_unique<TABLET_DEPLOYER_HOOK>());                                                    \
+    }
+
 } // namespace indexlib::framework

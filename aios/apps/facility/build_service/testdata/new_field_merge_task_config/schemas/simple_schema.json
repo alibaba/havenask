@@ -1,0 +1,112 @@
+{
+"attributes":
+  [
+      "field",
+      "patch_field1",
+      "patch_field2"
+  ],
+"fields":
+  [
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "pk_field",
+    "field_type":
+      "UINT32"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "field",
+    "field_type":
+      "LONG"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "patch_field1",
+    "field_type":
+      "INT8"
+    },
+	  {
+          "binary_field": false,
+          "field_name":"patch_field2",
+          "field_type":"INT64"
+      },
+      {
+          "binary_field": false,
+          "field_name":"patch_field3",
+          "field_type":"TEXT",
+          "analyzer" : "simple_analyzer"
+      },
+      {
+          "binary_field": false,
+          "field_name":"patch_field4",
+          "field_type":"TEXT",
+          "analyzer" : "simple_analyzer"
+      },
+      {
+          "binary_field": false,
+          "field_name":"patch_field5",
+          "field_type":"LOCATION"
+      }
+  ],
+"indexs":
+  [
+    {
+    "has_primary_key_attribute":
+      true,
+    "index_fields":
+      "pk_field",
+    "index_name":
+      "pk_index",
+    "index_type":
+      "PRIMARYKEY64",
+    "pk_hash_type":
+      "default_hash",
+    "pk_storage_type":
+      "sort_array"
+    },
+	  {
+          "index_name":"patch_index_2",
+          "index_type":"RANGE",
+          "index_fields":"patch_field2"
+      },
+      {
+          "index_name":"patch_index_5",
+          "index_type":"SPATIAL",
+          "index_fields":"patch_field5"
+      },
+      {
+          "index_name":"patch_index_4",
+          "index_type":"TEXT",
+          "index_fields":"patch_field4"
+      },
+      {
+          "index_name":"pack",
+          "index_type":"PACK",
+          "index_fields":[
+              { "field_name":"patch_field3", "boost":200000},
+              { "field_name":"patch_field4", "boost":100000}
+          ],
+          "need_sharding":true,
+          "sharding_count":4
+      },
+      {
+          "index_name":"expack",
+          "index_type":"EXPACK",
+          "index_fields":[
+              { "field_name":"patch_field3", "boost":200000},
+              { "field_name":"patch_field4", "boost":100000}
+          ]
+      }
+  ],
+"table_name":
+  "noname",
+"table_type":
+    "normal",
+"versionid" : 1
+}

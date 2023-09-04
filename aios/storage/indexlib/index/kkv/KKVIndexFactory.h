@@ -42,6 +42,7 @@ public:
 
 private:
     void CalculateMemIndexerSKeyMemRatio(double& skeyMemRatio, const KKVSegmentStatistics& stat) const;
+    int64_t GetMaxBuildMemoryUse(const IndexerParameter& indexerParam) const;
 
 private:
     uint32_t _memoryFactor = 2;

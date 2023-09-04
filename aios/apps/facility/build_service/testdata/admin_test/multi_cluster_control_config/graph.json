@@ -1,0 +1,10 @@
+{
+    "graph_name": "BuildIndex.graph",
+    "params": {
+        "disable_fill_index_info": "false",
+        "stop_build_required_latency_in_second": "-1",
+        "stop_build_timeout_in_second": "-1",
+	"user_define_param_disable_clusters": "cluster3",
+	"fullMergeStrategyCount" : "2"
+    }
+}

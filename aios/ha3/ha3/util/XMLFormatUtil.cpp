@@ -21,12 +21,9 @@ namespace isearch {
 namespace util {
 AUTIL_LOG_SETUP(ha3, XMLFormatUtil);
 
-XMLFormatUtil::XMLFormatUtil() { 
-}
+XMLFormatUtil::XMLFormatUtil() {}
 
-XMLFormatUtil::~XMLFormatUtil() { 
-}
+XMLFormatUtil::~XMLFormatUtil() {}
 
 } // namespace util
 } // namespace isearch
-

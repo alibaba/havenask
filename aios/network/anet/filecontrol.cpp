@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/anet/filecontrol.h"
+
 #include <fcntl.h>
 namespace anet {
 bool FileControl::setCloseOnExec(int fd) {
@@ -45,6 +46,4 @@ bool FileControl::isCloseOnExec(int fd) {
     return flags & FD_CLOEXEC;
 }
 
-} 
-
-
+} // namespace anet

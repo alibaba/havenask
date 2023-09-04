@@ -32,13 +32,17 @@ public:
     IndexOperation(IndexOperationId opId, bool useOpFenceDir) : _useOpFenceDir(useOpFenceDir), _opId(opId) {}
     virtual ~IndexOperation() = default;
 
-public:
     Status ExecuteWithLog(const IndexTaskContext& context);
     IndexOperationId GetOpId() const { return _opId; }
 
 protected:
     virtual Status Execute(const IndexTaskContext& context) = 0;
     virtual std::string GetDebugString() const { return typeid(*this).name(); }
+    // the Publish() function attempts to write file in op fence dir first, then move this file to the index root
+    // operations need to write file in the index root, should always use Publish() instead of other methods
+    // to prevent write conflicts
+    Status Publish(const IndexTaskContext& context, const std::string& targetRelativePath, const std::string& fileName,
+                   const std::string& content) const;
 
 protected:
     bool _useOpFenceDir = true;
@@ -48,7 +52,6 @@ private:
     std::shared_ptr<IndexOperationMetrics> _operationMetrics;
     std::shared_ptr<autil::LoopThread> _metricsThread;
 
-private:
     AUTIL_LOG_DECLARE();
 };
 

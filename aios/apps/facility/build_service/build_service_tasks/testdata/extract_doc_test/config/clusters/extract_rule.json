@@ -1,0 +1,30 @@
+{
+    "extract_rule": [
+        {
+            "query": {
+                "match": {
+                    "service_id": {
+                        "query":"0"
+                    }
+                }
+            },
+            "count":2,
+            "filter":"",
+            "required_fields":["__ALL_ATTRIBUTE__", "__ALL_SUMMARY__"],
+            "output_name": "output1"
+        },
+        {
+            "query": {
+                "match": {
+                    "service_id": {
+                        "query":"1"
+                    }
+                }
+            },
+            "filter":"",
+            "count":2,
+            "required_fields":["__ALL_ATTRIBUTE__", "__ALL_SUMMARY__"],
+            "output_name": "output2"            
+        }
+    ]
+}

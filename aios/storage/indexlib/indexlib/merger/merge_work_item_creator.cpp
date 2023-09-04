@@ -20,6 +20,7 @@
 #include "indexlib/config/kkv_index_config.h"
 #include "indexlib/config/kv_index_config.h"
 #include "indexlib/file_system/IDirectory.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/archive/ArchiveFolder.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/kkv/kkv_merger_creator.h"
@@ -39,7 +40,6 @@
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/metrics/KmonitorTagvNormalizer.h"
-
 using namespace std;
 
 using namespace indexlib::config;

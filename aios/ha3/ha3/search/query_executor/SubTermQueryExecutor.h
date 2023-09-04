@@ -20,8 +20,8 @@
 
 #include "autil/Log.h" // IWYU pragma: keep
 #include "ha3/search/QueryExecutor.h"
-#include "ha3/search/TermQueryExecutor.h"
 #include "ha3/search/TermMatchData.h"
+#include "ha3/search/TermQueryExecutor.h"
 #include "indexlib/index/common/ErrorCode.h"
 #include "indexlib/index/normal/attribute/accessor/join_docid_attribute_iterator.h"
 #include "indexlib/indexlib.h"
@@ -30,44 +30,51 @@
 namespace indexlib {
 namespace index {
 class PostingIterator;
-}  // namespace index
-}  // namespace indexlib
+} // namespace index
+} // namespace indexlib
 namespace isearch {
 namespace common {
 class Term;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace search {
 
-class SubTermQueryExecutor : public TermQueryExecutor
-{
+class SubTermQueryExecutor : public TermQueryExecutor {
 public:
     typedef indexlib::index::JoinDocidAttributeIterator DocMapAttrIterator;
+
 public:
     SubTermQueryExecutor(indexlib::index::PostingIterator *iter,
                          const common::Term &term,
                          DocMapAttrIterator *mainToSubIter,
                          DocMapAttrIterator *subToMainIter);
     ~SubTermQueryExecutor();
+
 private:
     SubTermQueryExecutor(const SubTermQueryExecutor &);
-    SubTermQueryExecutor& operator=(const SubTermQueryExecutor &);
+    SubTermQueryExecutor &operator=(const SubTermQueryExecutor &);
+
 public:
-    indexlib::index::ErrorCode doSeek(docid_t docId, docid_t& result) override;
-    indexlib::index::ErrorCode seekSubDoc(docid_t docId, docid_t subDocId,
-                       docid_t subDocEnd, bool needSubMatchdata, docid_t& result) override;
+    indexlib::index::ErrorCode doSeek(docid_t docId, docid_t &result) override;
+    indexlib::index::ErrorCode seekSubDoc(docid_t docId,
+                                          docid_t subDocId,
+                                          docid_t subDocEnd,
+                                          bool needSubMatchdata,
+                                          docid_t &result) override;
     bool isMainDocHit(docid_t docId) const override;
     void reset() override;
     indexlib::index::ErrorCode unpackMatchData(rank::TermMatchData &tmd) override {
         // do nothing
         return IE_OK;
     }
+
 public:
     std::string toString() const override;
+
 private:
-    inline indexlib::index::ErrorCode subDocSeek(docid_t subDocId, docid_t& result) {
+    inline indexlib::index::ErrorCode subDocSeek(docid_t subDocId, docid_t &result) {
         if (subDocId > _curSubDocId) {
             auto ec = TermQueryExecutor::doSeek(subDocId, _curSubDocId);
             IE_RETURN_CODE_IF_ERROR(ec);
@@ -75,10 +82,12 @@ private:
         result = _curSubDocId;
         return indexlib::index::ErrorCode::OK;
     }
+
 private:
     docid_t _curSubDocId;
     DocMapAttrIterator *_mainToSubIter;
     DocMapAttrIterator *_subToMainIter;
+
 private:
     AUTIL_LOG_DECLARE();
 };

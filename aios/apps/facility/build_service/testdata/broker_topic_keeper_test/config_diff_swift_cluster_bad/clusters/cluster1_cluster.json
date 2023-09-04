@@ -1,0 +1,21 @@
+{
+    "swift_config" : {
+        "topic" : {
+            "partition_count" : 10,
+            "partition_resource" : 40,
+            "partition_buffer_size" : 1000,
+            "partition_file_buf_size" : 1000,
+            "obsolete_file_interval" : 3600,
+            "reserved_file_count" : 10
+        },
+        "reader_config" : "",
+        "writer_config" : ""
+    },
+    "cluster_config" : {
+	    "table_name" : "simple",
+        "hash_mode" : {
+            "hash_field" : "nid",
+            "hash_function" : "HASH"
+        }
+	}
+}

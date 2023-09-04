@@ -34,79 +34,98 @@ struct SortItemForCandidateTask {
     int64_t taskPriority;
 };
 
+#define TABLET_INTERVAL_LOG(interval, level, format, args...)                                                          \
+    AUTIL_INTERVAL_LOG(interval, level, "[%s] " format, taskContext->GetTabletData()->GetTabletName().c_str(), ##args)
+
 #define TABLET_LOG(level, format, args...)                                                                             \
     AUTIL_LOG(level, "[%s] " format, taskContext->GetTabletData()->GetTabletName().c_str(), ##args)
-
-ComplexIndexTaskPlanCreator::ComplexIndexTaskPlanCreator() {}
-
-ComplexIndexTaskPlanCreator::~ComplexIndexTaskPlanCreator() {}
 
 std::pair<Status, std::unique_ptr<framework::IndexTaskPlan>>
 ComplexIndexTaskPlanCreator::CreateTaskPlan(const framework::IndexTaskContext* taskContext)
 {
-    std::vector<std::pair<std::string, std::string>> tasks;
+    std::vector<SimpleTaskItem> tasks;
     RETURN2_IF_STATUS_ERROR(ScheduleSimpleTask(taskContext, &tasks), nullptr, "schedule simple task failed");
-    for (auto& taskInfo : tasks) {
-        auto& taskType = taskInfo.first;
-        auto& taskName = taskInfo.second;
-        auto iter = _simpleCreatorFuncMap.find(taskType);
+    for (auto& task : tasks) {
+        auto iter = _simpleCreatorFuncMap.find(task.taskType);
         if (iter == _simpleCreatorFuncMap.end()) {
-            TABLET_LOG(ERROR, "invalid task type [%s], no task plan created", taskType.c_str());
+            TABLET_LOG(ERROR, "invalid task type [%s], no task plan created", task.taskType.c_str());
             return {Status::Unknown(), nullptr};
         }
 
-        std::unique_ptr<SimpleIndexTaskPlanCreator> simpleCreator(iter->second(taskName));
+        std::unique_ptr<SimpleIndexTaskPlanCreator> simpleCreator(iter->second(task.taskName, task.params));
+        if (!taskContext->SetDesignateTask(task.taskType, task.taskName)) {
+            TABLET_LOG(INFO, "set designate task for task [type:%s, name:%s] failed.", task.taskType.c_str(),
+                       task.taskName.c_str());
+            continue;
+        }
         auto [status, taskPlan] = simpleCreator->CreateTaskPlan(taskContext);
         if (!status.IsOK()) {
-            TABLET_LOG(ERROR, "task plan created failed for task [type:%s, name:%s] : %s.", taskType.c_str(),
-                       taskName.c_str(), status.ToString().c_str());
+            TABLET_LOG(ERROR, "task plan created failed for task [type:%s, name:%s] : %s.", task.taskType.c_str(),
+                       task.taskName.c_str(), status.ToString().c_str());
             return {status, nullptr};
         }
 
         if (taskPlan == nullptr) {
-            TABLET_LOG(INFO, "no task plan created for task [type:%s, name:%s], skip it.", taskType.c_str(),
-                       taskName.c_str());
+            TABLET_LOG(INFO, "no task plan created for task [type:%s, name:%s], skip it.", task.taskType.c_str(),
+                       task.taskName.c_str());
             continue;
         }
 
-        TABLET_LOG(INFO, "task plan created: task [type:%s, name:%s].", taskType.c_str(), taskName.c_str());
+        TABLET_LOG(INFO, "task plan created: task [type:%s, name:%s].", task.taskType.c_str(), task.taskName.c_str());
         return {status, std::move(taskPlan)};
     }
     return {Status::OK(), nullptr};
 }
 
 Status ComplexIndexTaskPlanCreator::ScheduleSimpleTask(const framework::IndexTaskContext* taskContext,
-                                                       std::vector<std::pair<std::string, std::string>>* tasks)
+                                                       std::vector<SimpleTaskItem>* tasks)
 {
     assert(tasks);
     tasks->clear();
     // 0. TODO: check in full build phrase, only trigger full merge strategy
 
     // * inc task strategy below
-    // 1. alter table task is always top priority
+    // TODO(yonghao.fyh, lisizhuo.lsz): currently index task only used for bulkload task, will support other task
+    // (e.g. alter table) in the future
     auto tabletData = taskContext->GetTabletData();
     if (tabletData) {
         const auto& version = tabletData->GetOnDiskVersion();
+        // 1. index task in index task queue always has top priority
+        auto indexTasks = version.GetIndexTasks();
+        for (const auto& task : indexTasks) {
+            if (task->state == framework::IndexTaskMeta::SUSPENDED) {
+                TABLET_INTERVAL_LOG(120, WARN,
+                                    "task is in [%s] state, stop schedule index task queue, "
+                                    "taskName[%s] taskType[%s]",
+                                    task->state.c_str(), task->taskName.c_str(), task->taskType.c_str());
+                break;
+            }
+            if (task->state == framework::IndexTaskMeta::READY) {
+                tasks->emplace_back(task->taskType, task->taskName, task->params);
+                return Status::OK();
+            }
+        }
+        // 2. alter table task has second priority
         if (version.GetSchemaId() != version.GetReadSchemaId()) {
             TABLET_LOG(INFO, "version[%d] schema id[%u], read schema id[%u], task type is alter_table",
                        version.GetVersionId(), version.GetSchemaId(), version.GetReadSchemaId());
-            tasks->push_back({/*taskType*/ ALTER_TABLE_TASK_TYPE, /*taskName*/ "alter_table"});
+            tasks->emplace_back(framework::ALTER_TABLE_TASK_TYPE, "alter_table");
             return Status::OK();
         }
     }
 
-    // 2. user designate task goes second priority
-    auto designateTask = taskContext->GetDesignateTask();
-    if (designateTask != std::nullopt) {
-        tasks->push_back(designateTask.value());
+    // 3. user designate task goes third priority
+    auto designateTaskConfig = taskContext->GetDesignateTaskConfig();
+    if (designateTaskConfig) {
+        tasks->emplace_back(designateTaskConfig->GetTaskType(), designateTaskConfig->GetTaskName());
         return Status::OK();
     }
 
-    // 3. check index task configs & get candidate tasks with inner priority reorderd
+    // 4. check index task configs & get candidate tasks with inner priority reorderd
     std::vector<SimpleTaskItem> candidateTasks;
     RETURN_IF_STATUS_ERROR(GetCandidateTasks(taskContext, &candidateTasks), "get candidate task failed");
     for (size_t i = 0; i < candidateTasks.size(); i++) {
-        tasks->push_back(candidateTasks[i].identifier);
+        tasks->push_back(candidateTasks[i]);
     }
     auto indexTaskConfigs = taskContext->GetTabletOptions()->GetAllIndexTaskConfigs();
     bool hasMergeTaskConfig = false;
@@ -117,7 +136,7 @@ Status ComplexIndexTaskPlanCreator::ScheduleSimpleTask(const framework::IndexTas
         }
     }
     if (!hasMergeTaskConfig) {
-        tasks->push_back({/*taskType*/ MERGE_TASK_TYPE, /*taskName*/ ""}); // default merge strateg
+        tasks->emplace_back(MERGE_TASK_TYPE); // default merge strategy
     }
     return Status::OK();
 }
@@ -153,7 +172,7 @@ ComplexIndexTaskPlanCreator::GetCandidateTasks(const framework::IndexTaskContext
             TABLET_LOG(ERROR, "unknown task type [%s].", taskType.c_str());
             return Status::InvalidArgs("unknown task type [%s].", taskType.c_str());
         }
-        std::unique_ptr<SimpleIndexTaskPlanCreator> simpleCreator(iter->second(taskName));
+        std::unique_ptr<SimpleIndexTaskPlanCreator> simpleCreator(iter->second(taskName, {}));
         auto [status, needTrigger] = simpleCreator->NeedTriggerTask(taskConfig, taskContext);
         RETURN_IF_STATUS_ERROR(status, "NeedTriggerTask with error status [%s] for [taskType:%s, taskName:%s]",
                                status.ToString().c_str(), taskType.c_str(), taskName.c_str());
@@ -161,19 +180,18 @@ ComplexIndexTaskPlanCreator::GetCandidateTasks(const framework::IndexTaskContext
             continue;
         }
 
-        SimpleTaskItem item;
-        item.identifier = make_pair(taskType, taskName);
+        SimpleTaskItem item(taskType, taskName);
         std::string taskLogType = simpleCreator->ConstructLogTaskType();
         item.priority = CalculateTaskPriority(taskLogType);
-        taskItems->push_back(item);
+        taskItems->emplace_back(item);
     }
     if (taskItems->size() > 1) {
         std::stable_sort(taskItems->begin(), taskItems->end(),
                          [](auto& lft, auto& rht) { return lft.priority > rht.priority; });
         TABLET_LOG(INFO, "NeedTriggerTask totally get [%lu] tasks.", taskItems->size());
         for (auto& item : *taskItems) {
-            TABLET_LOG(INFO, "candidate taskType [%s] taskName [%s] priority [%ld].", item.identifier.first.c_str(),
-                       item.identifier.second.c_str(), item.priority);
+            TABLET_LOG(INFO, "candidate taskType [%s] taskName [%s] priority [%ld].", item.taskType.c_str(),
+                       item.taskName.c_str(), item.priority);
         }
     }
 

@@ -15,6 +15,9 @@
  */
 #include "indexlib/index/operation_log/OperationLogConfig.h"
 
+#include "indexlib/index/attribute/Common.h"
+#include "indexlib/index/attribute/config/AttributeConfig.h"
+#include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/inverted_index/config/SingleFieldIndexConfig.h"
 #include "indexlib/index/operation_log/Common.h"
 #include "indexlib/index/primary_key/Common.h"
@@ -58,17 +61,46 @@ bool OperationLogConfig::HasIndexConfig(const std::string& indexType, const std:
 }
 
 const std::string& OperationLogConfig::GetIndexType() const { return OPERATION_LOG_INDEX_TYPE_STR; }
-std::vector<std::string> OperationLogConfig::GetIndexPath() const { return {OPERATION_LOG_INDEX_PATH}; }
+const std::string& OperationLogConfig::GetIndexCommonPath() const { return OPERATION_LOG_INDEX_PATH; }
+std::vector<std::string> OperationLogConfig::GetIndexPath() const { return {GetIndexCommonPath()}; }
 void OperationLogConfig::AddIndexConfigs(const std::string& indexType,
                                          const std::vector<std::shared_ptr<IIndexConfig>>& indexConfigs)
 {
     if (!indexConfigs.empty()) {
         _indexConfigs[indexType] = indexConfigs;
     }
+    decltype(_usingFieldConfigs) usingFieldConfigs;
+    for (const auto& [type, indexConfigs] : _indexConfigs) {
+        for (const auto& indexConfig : indexConfigs) {
+            bool useful = false;
+            if (ATTRIBUTE_INDEX_TYPE_STR == indexConfig->GetIndexType()) {
+                auto typedConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(indexConfig);
+                if (!typedConfig || typedConfig->IsAttributeUpdatable()) {
+                    // we assume this case success, make it useful if failed
+                    useful = true;
+                }
+            } else if (INVERTED_INDEX_TYPE_STR == indexConfig->GetIndexType()) {
+                auto typedConfig = std::dynamic_pointer_cast<indexlibv2::config::InvertedIndexConfig>(indexConfig);
+                if (!typedConfig || typedConfig->IsIndexUpdatable()) {
+                    // we assume this case success, make it useful if failed
+                    useful = true;
+                }
+            }
+            if (useful) {
+                auto usingConfigs = indexConfig->GetFieldConfigs();
+                usingFieldConfigs.insert(usingFieldConfigs.end(), usingConfigs.begin(), usingConfigs.end());
+            }
+        }
+    }
+    usingFieldConfigs.erase(
+        std::unique(usingFieldConfigs.begin(), usingFieldConfigs.end(),
+                    [](const auto& a, const auto& b) { return a->GetFieldName() == b->GetFieldName(); }),
+        usingFieldConfigs.end());
+    _usingFieldConfigs = usingFieldConfigs;
 }
 void OperationLogConfig::SetFieldConfigs(const std::vector<std::shared_ptr<FieldConfig>>& fieldConfigs)
 {
-    _fieldConfigs = fieldConfigs;
+    _allFieldConfigs = fieldConfigs;
 }
 
 const std::vector<std::shared_ptr<IIndexConfig>>&
@@ -82,8 +114,10 @@ OperationLogConfig::GetIndexConfigs(const std::string& indexType) const
     return iter->second;
 }
 
-std::vector<std::shared_ptr<FieldConfig>> OperationLogConfig::GetFieldConfigs() const { return _fieldConfigs; }
+std::vector<std::shared_ptr<FieldConfig>> OperationLogConfig::GetFieldConfigs() const { return _usingFieldConfigs; }
+std::vector<std::shared_ptr<FieldConfig>> OperationLogConfig::GetAllFieldConfigs() const { return _allFieldConfigs; }
 
 Status OperationLogConfig::CheckCompatible(const IIndexConfig* other) const { return Status::OK(); }
+bool OperationLogConfig::IsDisabled() const { return false; }
 
 } // namespace indexlib::index

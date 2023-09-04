@@ -42,7 +42,7 @@ bool PackAttributeReader::Open(const PackAttributeConfigPtr& packAttrConfig, con
     mPackAttrFormatter.reset(new PackAttributeFormatter());
     if (!mPackAttrFormatter->Init(packAttrConfig)) {
         IE_LOG(ERROR, "open pack attribute reader for pack attribute: %s failed.",
-               packAttrConfig->GetAttrName().c_str());
+               packAttrConfig->GetPackName().c_str());
         return false;
     }
 
@@ -71,7 +71,7 @@ void PackAttributeReader::InitBuildResourceMetricsNode(BuildResourceMetrics* bui
     if (buildResourceMetrics) {
         mBuildResourceMetricsNode = buildResourceMetrics->AllocateNode();
         IE_LOG(INFO, "allocate build resource node [id:%d] for pack attribute reader[%s]",
-               mBuildResourceMetricsNode->GetNodeId(), mPackAttrConfig->GetAttrName().c_str());
+               mBuildResourceMetricsNode->GetNodeId(), mPackAttrConfig->GetPackName().c_str());
         mBuildResourceMetricsNode->Update(BMT_CURRENT_MEMORY_USE, mSimplePool.getUsedBytes());
     }
 }

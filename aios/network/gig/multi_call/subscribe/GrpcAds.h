@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 #pragma once
+#include <grpc++/grpc++.h>
 #include <iostream>
 #include <memory>
 #include <string>
 
-#include "aios/network/gig/multi_call/common/common.h"
 #include "aios/apps/facility/cm2/cm_basic/basic_struct/proto/envoy/api/v2/cds.grpc.pb.h"
 #include "aios/apps/facility/cm2/cm_basic/basic_struct/proto/envoy/api/v2/eds.grpc.pb.h"
 #include "aios/apps/facility/cm2/cm_basic/basic_struct/proto/envoy/service/discovery/v2/ads.grpc.pb.h"
+#include "aios/network/gig/multi_call/common/common.h"
 #include "autil/Lock.h"
 #include "autil/Log.h"
-#include <grpc++/grpc++.h>
 
 namespace multi_call {
 
@@ -42,14 +42,13 @@ using grpc::ClientReaderWriter;
 using grpc::ClientWriter;
 using grpc::Status;
 
-using AdsStreamPtr =
-    std::shared_ptr<ClientReaderWriter<DiscoveryRequest, DiscoveryResponse> >;
+using AdsStreamPtr = std::shared_ptr<ClientReaderWriter<DiscoveryRequest, DiscoveryResponse>>;
 using DiscoveryResponsePtr = std::shared_ptr<DiscoveryResponse>;
 
-class GrpcAdsClient {
+class GrpcAdsClient
+{
 public:
-    GrpcAdsClient(const std::string &nodeId,
-                  const std::vector<std::string> &xdsServers);
+    GrpcAdsClient(const std::string &nodeId, const std::vector<std::string> &xdsServers);
     ~GrpcAdsClient();
     void TryCancel();
     bool BuildStream();
@@ -67,7 +66,7 @@ public:
 
 private:
     std::unique_ptr<AggregatedDiscoveryService::Stub> stub_;
-    std::vector<std::vector<std::string> > xdsClusters_;
+    std::vector<std::vector<std::string>> xdsClusters_;
     AdsStreamPtr adsStream_;
     std::string nodeId_;
     std::unique_ptr<grpc::ClientContext> context_;

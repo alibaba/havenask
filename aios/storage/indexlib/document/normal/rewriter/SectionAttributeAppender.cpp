@@ -16,7 +16,7 @@
 #include "indexlib/document/normal/rewriter/SectionAttributeAppender.h"
 
 #include "autil/ConstString.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/document/normal/IndexDocument.h"
 #include "indexlib/document/normal/IndexTokenizeField.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
@@ -44,7 +44,7 @@ SectionAttributeAppender::SectionAttributeAppender(const SectionAttributeAppende
 
 SectionAttributeAppender::~SectionAttributeAppender() {}
 
-bool SectionAttributeAppender::Init(const shared_ptr<TabletSchema>& schema)
+bool SectionAttributeAppender::Init(const shared_ptr<ITabletSchema>& schema)
 {
     assert(_indexMetaVec.empty());
     const auto& indexConfigs = schema->GetIndexConfigs(indexlib::index::INVERTED_INDEX_TYPE_STR);
@@ -61,7 +61,12 @@ bool SectionAttributeAppender::Init(const shared_ptr<TabletSchema>& schema)
             auto sectionAttrConf = packIndexConfig->GetSectionAttributeConfig();
             assert(sectionAttrConf);
             auto attrConfig = sectionAttrConf->CreateAttributeConfig(packIndexConfig->GetIndexName());
-
+            if (attrConfig == nullptr) {
+                AUTIL_LOG(ERROR, "section attribute appender init failed, attr config is nullptr, index name[%s]",
+                          packIndexConfig->GetIndexName().c_str());
+                assert(false);
+                return false;
+            }
             IndexMeta indexMeta;
             indexMeta.packIndexConfig = packIndexConfig;
             indexMeta.formatter.reset(new indexlib::index::SectionAttributeFormatter(sectionAttrConf));

@@ -1,0 +1,180 @@
+{
+    "attributes":
+    [
+        "seller_id",
+        "sim_seller_id",
+        "sim_member_id",
+        "score"
+    ],
+    "default_ttl":
+    8796093022207,
+    "enable_temperature_layer":
+    false,
+    "enable_ttl":
+    true,
+    "fields":
+    [
+        {
+            "binary_field":
+            false,
+            "field_name":
+            "seller_id",
+            "field_type":
+            "LONG"
+
+        },
+        {
+            "binary_field":
+            false,
+            "field_name":
+            "member_id",
+            "field_type":
+            "LONG"
+
+        },
+        {
+            "binary_field":
+            false,
+            "field_name":
+            "sim_seller_id",
+            "field_type":
+            "LONG"
+
+        },
+        {
+            "binary_field":
+            false,
+            "field_name":
+            "sim_member_id",
+            "field_type":
+            "LONG"
+
+        },
+        {
+            "binary_field":
+            false,
+            "field_name":
+            "score",
+            "field_type":
+            "DOUBLE"
+
+        }
+
+    ],
+    "indexs":
+    [
+        {
+            "format_version_id":
+            0,
+            "index_fields":
+            [
+                {
+                    "field_name":
+                    "member_id",
+                    "key_type":
+                    "prefix"
+
+                },
+                {
+                    "build_protection_threshold":
+                    50000,
+                    "count_limits":
+                    2000,
+                    "field_name":
+                    "sim_member_id",
+                    "key_type":
+                    "suffix",
+                    "skip_list_threshold":
+                    100,
+                    "trunc_sort_params":
+                    "-$TIME_STAMP"
+
+                }
+
+            ],
+            "index_name":
+            "member_id_sim_member_id",
+            "index_preference":
+            {
+                "parameters":
+                {
+                    "hash_dict":
+                    {
+                        "enable_compact_hash_key":
+                        false,
+                        "enable_shorten_offset":
+                        false,
+                        "max_value_size_for_short_offset":
+                        4294967294,
+                        "merge_use_precise_count":
+                        true,
+                        "occupancy_pct":
+                        60,
+                        "type":
+                        "dense"
+
+                    },
+                    "suffix_key":
+                    {
+                        "encode":
+                        false,
+                        "file_compressor":
+                        "",
+                        "file_compressor_buffer_size":
+                        4096,
+                        "file_compressor_parameter":
+                        {
+
+                        },
+                        "fix_len_auto_inline":
+                        false
+
+                    },
+                    "value":
+                    {
+                        "encode":
+                        false,
+                        "file_compressor":
+                        "snappy",
+                        "file_compressor_buffer_size":
+                        4096,
+                        "file_compressor_parameter":
+                        {
+
+                        },
+                        "fix_len_auto_inline":
+                        false
+
+                    }
+
+                },
+                "type":
+                "PERF",
+                "value_inline":
+                false
+
+            },
+            "index_type":
+            "PRIMARY_KEY",
+            "use_number_hash":
+            true
+
+        }
+
+    ],
+    "indexes" : {
+        "orc" : [{
+            "index_type" : "orc",
+            "index_fields" : [
+                "nid", "multi_int16"
+            ]
+        }]
+    },
+    "table_name":
+    "shop_col_cart_alipay_sim_for_dmp_all_user",
+    "table_type":
+    "kkv",
+    "ttl_from_doc":
+    false
+
+}

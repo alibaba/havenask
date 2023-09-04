@@ -57,16 +57,11 @@
 // and ACQUIRED_BEFORE.)
 #if defined(__clang__)
 
-#define AUTIL_ACQUIRED_AFTER(...) \
-    __attribute__((acquired_after(__VA_ARGS__)))
-#define AUTIL_ACQUIRED_BEFORE(...) \
-    __attribute__((acquired_before(__VA_ARGS__)))
-#define AUTIL_ACQUIRE(...) \
-    __attribute__((acquire_capability(__VA_ARGS__)))
-#define AUTIL_ACQUIRE_SHARED(...) \
-    __attribute__((acquire_shared_capability(__VA_ARGS__)))
-#define AUTIL_RELEASE(...) \
-    __attribute__((release_capability(__VA_ARGS__)))
+#define AUTIL_ACQUIRED_AFTER(...) __attribute__((acquired_after(__VA_ARGS__)))
+#define AUTIL_ACQUIRED_BEFORE(...) __attribute__((acquired_before(__VA_ARGS__)))
+#define AUTIL_ACQUIRE(...) __attribute__((acquire_capability(__VA_ARGS__)))
+#define AUTIL_ACQUIRE_SHARED(...) __attribute__((acquire_shared_capability(__VA_ARGS__)))
+#define AUTIL_RELEASE(...) __attribute__((release_capability(__VA_ARGS__)))
 
 #else
 
@@ -83,10 +78,8 @@
 // function.
 #if defined(__clang__)
 
-#define AUTIL_EXCLUSIVE_LOCKS_REQUIRED(...) \
-    __attribute__((exclusive_locks_required(__VA_ARGS__)))
-#define AUTIL_SHARED_LOCKS_REQUIRED(...) \
-    __attribute__((shared_locks_required(__VA_ARGS__)))
+#define AUTIL_EXCLUSIVE_LOCKS_REQUIRED(...) __attribute__((exclusive_locks_required(__VA_ARGS__)))
+#define AUTIL_SHARED_LOCKS_REQUIRED(...) __attribute__((shared_locks_required(__VA_ARGS__)))
 
 #else
 
@@ -99,8 +92,7 @@
 // cannot be held when calling this function (for instance, when the
 // mutex implementation is non-reentrant).
 #if defined(__clang__)
-#define AUTIL_LOCKS_EXCLUDED(...)               \
-    __attribute__((locks_excluded(__VA_ARGS__)))
+#define AUTIL_LOCKS_EXCLUDED(...) __attribute__((locks_excluded(__VA_ARGS__)))
 #else
 #define AUTIL_LOCKS_EXCLUDED(...)
 #endif
@@ -135,15 +127,13 @@
 // Document functions that acquire a lock in the body of a function, and do
 // not release it.
 #if defined(__clang__)
-#define AUTIL_EXCLUSIVE_LOCK_FUNCTION(...)                              \
-    __attribute__((exclusive_lock_function(__VA_ARGS__)))
+#define AUTIL_EXCLUSIVE_LOCK_FUNCTION(...) __attribute__((exclusive_lock_function(__VA_ARGS__)))
 #else
 #define AUTIL_EXCLUSIVE_LOCK_FUNCTION(...)
 #endif
 
 #if defined(__clang__)
-#define AUTIL_SHARED_LOCK_FUNCTION(...) \
-    __attribute__((shared_lock_function(__VA_ARGS__)))
+#define AUTIL_SHARED_LOCK_FUNCTION(...) __attribute__((shared_lock_function(__VA_ARGS__)))
 #else
 #define AUTIL_SHARED_LOCK_FUNCTION(...)
 #endif
@@ -151,8 +141,7 @@
 // Document functions that expect a lock to be held on entry to the function,
 // and release it in the body of the function.
 #if defined(__clang__)
-#define AUTIL_UNLOCK_FUNCTION(...)                                      \
-    __attribute__((unlock_function(__VA_ARGS__)))
+#define AUTIL_UNLOCK_FUNCTION(...) __attribute__((unlock_function(__VA_ARGS__)))
 #else
 #define AUTIL_UNLOCK_FUNCTION(...)
 #endif
@@ -164,15 +153,13 @@
 // specifies the mutex that is locked on success. If unspecified, it is assumed
 // to be 'this'.
 #if defined(__clang__)
-#define AUTIL_EXCLUSIVE_TRYLOCK_FUNCTION(...)                   \
-    __attribute__((exclusive_trylock_function(__VA_ARGS__)))
+#define AUTIL_EXCLUSIVE_TRYLOCK_FUNCTION(...) __attribute__((exclusive_trylock_function(__VA_ARGS__)))
 #else
 #define AUTIL_EXCLUSIVE_TRYLOCK_FUNCTION(...)
 #endif
 
 #if defined(__clang__)
-#define AUTIL_SHARED_TRYLOCK_FUNCTION(...) \
-    __attribute__((shared_trylock_function(__VA_ARGS__)))
+#define AUTIL_SHARED_TRYLOCK_FUNCTION(...) __attribute__((shared_trylock_function(__VA_ARGS__)))
 #else
 #define AUTIL_SHARED_TRYLOCK_FUNCTION(...)
 #endif
@@ -180,10 +167,8 @@
 // Document functions that dynamically check to see if a lock is held, and fail
 // if it is not held.
 #if defined(__clang__)
-#define AUTIL_ASSERT_EXCLUSIVE_LOCK(...)                \
-    __attribute__((assert_exclusive_lock(__VA_ARGS__)))
-#define AUTIL_ASSERT_SHARED_LOCK(...) \
-    __attribute__((assert_shared_lock(__VA_ARGS__)))
+#define AUTIL_ASSERT_EXCLUSIVE_LOCK(...) __attribute__((assert_exclusive_lock(__VA_ARGS__)))
+#define AUTIL_ASSERT_SHARED_LOCK(...) __attribute__((assert_shared_lock(__VA_ARGS__)))
 #else
 #define AUTIL_ASSERT_EXCLUSIVE_LOCK(...)
 #define AUTIL_ASSERT_SHARED_LOCK(...)
@@ -194,8 +179,7 @@
 // is correct, but the locking is more complicated than the analyzer can handle,
 // or (b) the function contains race conditions that are known to be benign.
 #if defined(__clang__)
-#define AUTIL_NO_THREAD_SAFETY_ANALYSIS                                 \
-    __attribute__((no_thread_safety_analysis))
+#define AUTIL_NO_THREAD_SAFETY_ANALYSIS __attribute__((no_thread_safety_analysis))
 #else
 #define AUTIL_NO_THREAD_SAFETY_ANALYSIS
 #endif

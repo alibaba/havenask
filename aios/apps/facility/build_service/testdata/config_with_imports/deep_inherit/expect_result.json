@@ -1,0 +1,37 @@
+{
+    "inherit_from" : "deep_inherit/cluster_common_config.json",
+    "aggregate_sampler_config" : {
+	"aggThreshold" : 1234
+    },
+    "cluster_config" : {
+        "inherit_from" : "deep_inherit/section.json",
+        "hash_mode" : {
+            "hash_function" : "section replaced",
+            "hash_field" : "subsection replaced"
+        },
+	"table_name" : "mainse_searcher",
+    	"cluster_type" : "original",
+	"searcher_rule" : {
+	    "inherit_from" : "deep_inherit/subsection.json",
+            "replica_count" : 2,
+            "specified_machine_type": "subsection replaced"
+	},
+	"dispatch_config": {
+            "min_searcher_replica" : 123
+	}
+    },
+    "summary_profile_config" : {
+	"modules" : [
+	],
+	"summary_profiles" : [
+            {
+                "inherit_from" : "deep_inherit/skip_level.json",
+                "summary_profile_name": "Inherit",
+		"extractor": {
+                    "module_name": "Inherit",
+                    "extractor_name": "DefaultExtractor"
+		}
+            }
+	]
+    }
+}

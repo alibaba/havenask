@@ -17,50 +17,34 @@
 #define ARPC_RPCSERVERCLOSURE_H
 #include <memory>
 
-#include "aios/network/arpc/arpc/CommonMacros.h"
-#include "aios/network/arpc/arpc/util/Log.h"
-#include "aios/network/arpc/arpc/ANetRPCController.h"
-#include "aios/network/arpc/arpc/MessageCodec.h"
 #include "aios/network/anet/anet.h"
+#include "aios/network/arpc/arpc/ANetRPCController.h"
+#include "aios/network/arpc/arpc/CommonMacros.h"
+#include "aios/network/arpc/arpc/MessageCodec.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 #include "google/protobuf/arena.h"
 
 ARPC_BEGIN_NAMESPACE(arpc);
 
-class RPCServerClosure : public RPCClosure
-{
+class RPCServerClosure : public RPCClosure {
 public:
-    RPCServerClosure(RPCMessage *reqMsg,
-                     RPCMessage *resMsg);
+    RPCServerClosure(RPCMessage *reqMsg, RPCMessage *resMsg);
 
     virtual ~RPCServerClosure();
 
-    RPCController *GetRpcController() {
-        return &_controller;
-    }
+    RPCController *GetRpcController() { return &_controller; }
 
-    RPCMessage *GetResponseMsg() {
-        return _resMsg;
-    }
+    RPCMessage *GetResponseMsg() { return _resMsg; }
 
-    RPCMessage *GetRequestMsg() {
-        return _reqMsg;
-    }
+    RPCMessage *GetRequestMsg() { return _reqMsg; }
 
-    void SetResponse(RPCMessage *response) {
-        _resMsg = response;
-    }
+    void SetResponse(RPCMessage *response) { _resMsg = response; }
 
-    void SetTracer(Tracer *tracer) {
-        _tracer = tracer;
-    }
+    void SetTracer(Tracer *tracer) { _tracer = tracer; }
 
-    Tracer *GetTracer() {
-        return _tracer;
-    }
+    Tracer *GetTracer() { return _tracer; }
 
-    void setProtobufArena(const std::shared_ptr<google::protobuf::Arena> &arena) {
-        _arena = arena;
-    }
+    void setProtobufArena(const std::shared_ptr<google::protobuf::Arena> &arena) { _arena = arena; }
 
 public:
     virtual void Run();
@@ -68,10 +52,9 @@ public:
     virtual void doPostPacket() = 0;
 
 protected:
-    void release() {
-        delete this;
-    }
+    void release() { delete this; }
     friend class RPCServerClosureTest;
+
 protected:
     RPCMessage *_reqMsg;
     RPCMessage *_resMsg;
@@ -83,4 +66,4 @@ protected:
 TYPEDEF_PTR(RPCServerClosure);
 ARPC_END_NAMESPACE(arpc);
 
-#endif //ARPC_RPCSERVERCLOSURE_H
+#endif // ARPC_RPCSERVERCLOSURE_H

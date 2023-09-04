@@ -54,7 +54,8 @@ MULTI_CALL_TYPEDEF_PTR(RetryLimitChecker);
 class LatencyTimeSnapshot;
 MULTI_CALL_TYPEDEF_PTR(LatencyTimeSnapshot);
 
-class SearchService : public std::enable_shared_from_this<SearchService> {
+class SearchService : public std::enable_shared_from_this<SearchService>
+{
 public:
     SearchService();
     virtual ~SearchService();
@@ -74,14 +75,11 @@ public:
 public: // config update
     virtual bool updateFlowConfig(const std::string &flowConfigStrategy,
                                   const autil::legacy::json::JsonMap *flowConf);
-    virtual bool
-    updateFlowConfig(const std::string &flowConfigStrategy,
-                     const FlowControlConfigPtr &flowControlConfig);
+    virtual bool updateFlowConfig(const std::string &flowConfigStrategy,
+                                  const FlowControlConfigPtr &flowControlConfig);
     virtual void
-    updateFlowConfig(const std::map<std::string, FlowControlConfigPtr>
-                         &flowControlConfigMap);
-    virtual bool
-    updateDefaultFlowConfig(const FlowControlConfigPtr &flowControlConfig);
+    updateFlowConfig(const std::map<std::string, FlowControlConfigPtr> &flowControlConfigMap);
+    virtual bool updateDefaultFlowConfig(const FlowControlConfigPtr &flowControlConfig);
 
     void setEagleeyeConfig(const EagleeyeConfig &eagleeyeConfig) {
         _eagleeyeConfig.reset(new EagleeyeConfig(eagleeyeConfig));
@@ -106,28 +104,23 @@ public: // biz & version & cluster
     virtual int32_t getBizPartCount(const std::string &bizName) const;
     bool hasCluster(const std::string &clusterName) const;
     virtual bool hasBiz(const std::string &bizName) const;
-    virtual bool hasBiz(const std::string &clusterName,
-                        const std::string &bizName) const;
-    bool hasVersion(const std::string &bizName, VersionTy version,
+    virtual bool hasBiz(const std::string &clusterName, const std::string &bizName) const;
+    bool hasVersion(const std::string &bizName, VersionTy version, VersionInfo &info) const;
+    bool hasVersion(const std::string &clusterName, const std::string &bizName, VersionTy version,
                     VersionInfo &info) const;
-    bool hasVersion(const std::string &clusterName, const std::string &bizName,
-                    VersionTy version, VersionInfo &info) const;
-    virtual std::vector<VersionTy>
-    getBizVersion(const std::string &bizName) const;
-    virtual std::set<VersionTy>
-    getBizProtocalVersion(const std::string &bizName) const;
-    bool getBizInfos(const std::string &bizName,
-                     std::vector<BizInfo> &bizInfos) const;
+    virtual std::vector<VersionTy> getBizVersion(const std::string &bizName) const;
+    virtual std::set<VersionTy> getBizProtocalVersion(const std::string &bizName) const;
+    bool getBizInfos(const std::string &bizName, std::vector<BizInfo> &bizInfos) const;
+    bool getBizMetaInfos(std::vector<BizMetaInfo> &bizMetaInfos) const;
     FlowControlConfigMap getFlowConfigMap();
+
 public: // call in gig
     FlowConfigSnapshotPtr getFlowConfigSnapshot();
     std::shared_ptr<SearchServiceSnapshot> getSearchServiceSnapshot();
-    const std::shared_ptr<VersionSelectorFactory> &
-    getVersionSelectorFactory() const {
+    const std::shared_ptr<VersionSelectorFactory> &getVersionSelectorFactory() const {
         return _versionSelectorFactory;
     }
-    const std::shared_ptr<ProviderSelectorFactory> &
-    getProviderSelectorFactory() const {
+    const std::shared_ptr<ProviderSelectorFactory> &getProviderSelectorFactory() const {
         return _providerSelectorFactory;
     }
     const RetryLimitCheckerPtr &getRetryLimitChecker() const {
@@ -139,26 +132,26 @@ public: // call in gig
     const opentelemetry::TracerProviderPtr &getTracerProvider() const {
         return _tracerProvider;
     }
-    const std::shared_ptr<SearchServiceManager> &
-    getSearchServiceManager() const {
+    const std::shared_ptr<SearchServiceManager> &getSearchServiceManager() const {
         return _serviceManager;
     }
-    const std::shared_ptr<MetricReporterManager> &
-    getMetricReporterManager() const {
+    const std::shared_ptr<MetricReporterManager> &getMetricReporterManager() const {
         return _metricReporterManager;
     }
     void disableSnapshotLog();
 
 public:
-    virtual bool restartCallThread(
-        int64_t processInterval,
-        uint64_t queueSize = std::numeric_limits<uint64_t>::max());
+    virtual bool restartCallThread(int64_t processInterval,
+                                   uint64_t queueSize = std::numeric_limits<uint64_t>::max());
     virtual int64_t getCallProcessInterval() const;
     void waitCreateSnapshotLoop();
     bool bind(const GigClientStreamPtr &stream);
     bool bind(const GigClientStreamPtr &stream, const QuerySessionPtr &session);
     bool bind(const GigClientStreamPtr &stream,
               const std::shared_ptr<SearchServiceSnapshot> &searchSnapshot);
+    bool setSnapshotChangeCallback(SnapshotChangeCallback *callback);
+    void stealSnapshotChangeCallback();
+
 private:
     bool bind(const GigClientStreamPtr &stream, const QuerySessionPtr &session,
               const std::shared_ptr<SearchServiceSnapshot> &searchSnapshot);

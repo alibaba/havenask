@@ -41,7 +41,7 @@ private:
     bool CreateOperationItems(autil::mem_pool::Pool* pool, const indexlibv2::document::NormalDocument* doc,
                               OperationItem** items, uint32_t* itemCount);
     void CreateAttrOperationItems(autil::mem_pool::Pool* pool, const std::shared_ptr<document::AttributeDocument>& doc,
-                                  indexlibv2::index::UpdateFieldExtractor& fieldExtractor, OperationItem* itemBase);
+                                  indexlibv2::index::UpdateFieldExtractor* fieldExtractor, OperationItem* itemBase);
     void CreateInvertedIndexOperationItems(autil::mem_pool::Pool* pool,
                                            const std::shared_ptr<document::IndexDocument>& doc,
                                            const std::vector<fieldid_t>& updateFieldIds, OperationItem* itemBase);
@@ -55,6 +55,7 @@ private:
 
 private:
     FieldIdToConvertorMap _fieldId2ConvertorMap;
+    std::shared_ptr<indexlibv2::index::UpdateFieldExtractor> _attributeUpdateFieldExtractor;
 
 private:
     AUTIL_LOG_DECLARE();

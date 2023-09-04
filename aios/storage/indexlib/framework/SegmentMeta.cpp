@@ -25,6 +25,7 @@ SegmentMeta::SegmentMeta(segmentid_t segId)
     : segmentId(segId)
     , segmentInfo(std::make_shared<SegmentInfo>())
     , segmentMetrics(std::make_shared<indexlib::framework::SegmentMetrics>())
+    , lifecycle("")
 {
 }
 

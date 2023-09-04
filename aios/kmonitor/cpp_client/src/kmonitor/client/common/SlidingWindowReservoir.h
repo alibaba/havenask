@@ -14,22 +14,22 @@ BEGIN_KMONITOR_NAMESPACE(kmonitor);
 class UniformSnapshot;
 
 class SlidingWindowReservoir {
- public:
+public:
     explicit SlidingWindowReservoir(int64_t size = 1000);
     ~SlidingWindowReservoir();
 
     int32_t Size() const;
     void Add(double value);
-    UniformSnapshot* GetSnapShot();
+    UniformSnapshot *GetSnapShot();
     // for test
     double GetValue(int32_t pos);
     void Reset();
 
- private:
+private:
     SlidingWindowReservoir(const SlidingWindowReservoir &);
-    SlidingWindowReservoir& operator=(const SlidingWindowReservoir &);
+    SlidingWindowReservoir &operator=(const SlidingWindowReservoir &);
 
- private:
+private:
     double *measurements_;
     int64_t count_;
     int64_t size_;
@@ -37,4 +37,4 @@ class SlidingWindowReservoir {
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_COMMON_SLIDINGWINDOWRESERVOIR_H_
+#endif // KMONITOR_CLIENT_COMMON_SLIDINGWINDOWRESERVOIR_H_

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/common/Spec.h"
+
 #include "autil/StringConvertor.h"
 
 using namespace std;
@@ -32,8 +33,7 @@ Spec::Spec() {
 }
 
 bool Spec::operator==(const Spec &rhs) const {
-    return ip == rhs.ip &&
-           ports[MC_PROTOCOL_TCP] == rhs.ports[MC_PROTOCOL_TCP] &&
+    return ip == rhs.ip && ports[MC_PROTOCOL_TCP] == rhs.ports[MC_PROTOCOL_TCP] &&
            ports[MC_PROTOCOL_ARPC] == rhs.ports[MC_PROTOCOL_ARPC] &&
            ports[MC_PROTOCOL_HTTP] == rhs.ports[MC_PROTOCOL_HTTP] &&
            ports[MC_PROTOCOL_GRPC] == rhs.ports[MC_PROTOCOL_GRPC] &&
@@ -70,7 +70,7 @@ bool Spec::hasValidPort() const {
     return false;
 }
 
-std::ostream& operator<<(std::ostream& os, const Spec& spec) {
+std::ostream &operator<<(std::ostream &os, const Spec &spec) {
     os << spec.ip << ":";
     for (uint32_t type = 0; type < MC_PROTOCOL_UNKNOWN; ++type) {
         os << (type > 0 ? ":" : "") << spec.ports[type];

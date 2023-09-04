@@ -49,23 +49,29 @@ void OfflineConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
     json.Jsonize("merge_config", _impl->mergeConfig, _impl->mergeConfig);
     json.Jsonize("build_config", _impl->buildConfig, _impl->buildConfig);
     json.Jsonize("index_task_configs", _impl->indexTaskConfigs, _impl->indexTaskConfigs);
-    if (_impl->indexTaskConfigs.size() == 0) {
-        std::map<std::string, indexlib::legacy::config::OfflineMergeConfig> customizeMergeConfigMap;
-        json.Jsonize("customized_merge_config", customizeMergeConfigMap, customizeMergeConfigMap);
-        for (const auto& [name, mergeConfig] : customizeMergeConfigMap) {
-            IndexTaskConfig indexTaskConfig;
-            indexTaskConfig.FillLegacyMergeConfig(name, mergeConfig);
-            _impl->indexTaskConfigs.push_back(indexTaskConfig);
-            if (mergeConfig.NeedReclaimTask()) {
-                IndexTaskConfig reclaimTaskConfig;
-                reclaimTaskConfig.FillLegacyReclaimConfig(name, mergeConfig);
-                _impl->indexTaskConfigs.push_back(reclaimTaskConfig);
+    _impl->loadConfigList.Jsonize(json);
+    // "load_config"
+    if (json.GetMode() == FROM_JSON) {
+        if (_impl->indexTaskConfigs.size() == 0) {
+            std::map<std::string, indexlib::legacy::config::OfflineMergeConfig> customizeMergeConfigMap;
+            json.Jsonize("customized_merge_config", customizeMergeConfigMap, customizeMergeConfigMap);
+            for (const auto& [name, mergeConfig] : customizeMergeConfigMap) {
+                IndexTaskConfig indexTaskConfig;
+                indexTaskConfig.FillLegacyMergeConfig(name, mergeConfig);
+                _impl->indexTaskConfigs.push_back(indexTaskConfig);
+                if (mergeConfig.NeedReclaimTask()) {
+                    IndexTaskConfig reclaimTaskConfig;
+                    reclaimTaskConfig.FillLegacyReclaimConfig(name, mergeConfig);
+                    _impl->indexTaskConfigs.push_back(reclaimTaskConfig);
+                }
             }
         }
-    }
-    // "load_config"
-    _impl->loadConfigList.Jsonize(json);
-    if (json.GetMode() == FROM_JSON) {
+        for (auto& indexTaskConfig : _impl->indexTaskConfigs) {
+            if (indexTaskConfig.GetTaskType() == "merge") {
+                indexTaskConfig.RewriteWithDefaultMergeConfig(_impl->mergeConfig);
+            }
+        }
+
         _impl->loadConfigList.Check();
         Check();
     }
@@ -102,8 +108,7 @@ void OfflineConfig::Check() const
 }
 
 const BuildConfig& OfflineConfig::GetBuildConfig() const { return _impl->buildConfig; }
-const MergeConfig& OfflineConfig::GetMergeConfig() const { return _impl->mergeConfig; }
-MergeConfig& OfflineConfig::MutableMergeConfig() { return _impl->mergeConfig; }
+const MergeConfig& OfflineConfig::GetDefaultMergeConfig() const { return _impl->mergeConfig; }
 
 const std::vector<IndexTaskConfig>& OfflineConfig::GetAllIndexTaskConfigs() const { return _impl->indexTaskConfigs; }
 

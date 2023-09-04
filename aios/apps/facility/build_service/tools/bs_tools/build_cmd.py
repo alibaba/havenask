@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import include.json as json
+import include.json_wrapper as json
 
 from build_service.proto.Admin_pb2 import StartBuildRequest
 from build_service.proto.Admin_pb2 import StopBuildRequest

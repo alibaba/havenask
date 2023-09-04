@@ -1,0 +1,48 @@
+{
+    "role_default" : {
+        "slotResources" : [
+            {
+                "slotResources" : [
+                    { "name" : "cpu", "amount" : 1 }
+                ]
+            }
+        ],
+        "processInfos" : [
+            {
+                "envs" : [
+                    ["-cc" , "/path/to/logconf"]
+                ]
+            }
+        ]
+    },
+    "role_customize" : [
+	{
+            "_bs_role" : "builder.*.full",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        { "name" : "cpu", "amount" : 2 }
+                    ]
+                }
+            ]
+	},
+	{
+            "_bs_role" : ".*.cluster1.full",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        { "name" : "cpu", "amount" : 5 }
+                    ]
+                }
+            ]
+	}
+    ],
+    "role_resource" : {
+        "builder.cluster1" : [
+            { "name" : "cpu", "amount" : 3 }
+        ],
+        "builder.cluster1.inc" : [
+            { "name" : "cpu", "amount" : 4 }
+        ]
+    }
+}

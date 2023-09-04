@@ -1,0 +1,20 @@
+{
+    "table_name": "kv_table",
+    "table_type": "kv",
+    "indexes": {
+        "kv": [
+            {
+                "index_name": "nid",
+                "index_preference": {
+                    "type": "PERF"
+                },
+                "key_field": "nid",
+                "value_fields": [
+                    "nid",
+                    "multi_int32_fixed",
+                    "multi_int16"
+                ]
+            }
+        ]
+    }
+}

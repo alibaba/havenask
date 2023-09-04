@@ -1,0 +1,11 @@
+{
+    "PartitionMeta":
+      [
+        {
+        "SortField":
+          "nid",
+        "SortPattern":
+          "DESC"
+        }
+      ]
+    }

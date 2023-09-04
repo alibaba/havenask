@@ -1,0 +1,76 @@
+load('//bazel:defs.bzl', 'cc_fast_test', 'test_cc_plugin_shared_library')
+filegroup(
+    name='example_cpp',
+    srcs=['example_customized_document.cpp'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__']
+)
+filegroup(
+    name='example1_cpp',
+    srcs=['example1_customized_document.cpp'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__']
+)
+filegroup(
+    name='example_h',
+    srcs=['example_customized_document.h'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__']
+)
+test_cc_plugin_shared_library(
+    name='example',
+    srcs=[':example_cpp'],
+    hdrs=[':example_h'],
+    copy_dests=['testdata/document/plugins/'],
+    include_prefix='indexlib/document/test',
+    preloaded_deps=[
+        '//aios/storage/indexlib/indexlib:indexlib_plugin',
+        '//aios/storage/indexlib/indexlib/document:document_parser'
+    ],
+    static_deps=[]
+)
+test_cc_plugin_shared_library(
+    name='example1',
+    srcs=[':example1_cpp'],
+    hdrs=[':example_h'],
+    copy_dests=['testdata/document/plugins/'],
+    include_prefix='indexlib/document/test',
+    preloaded_deps=[
+        '//aios/storage/indexlib/indexlib:indexlib_plugin',
+        '//aios/storage/indexlib/indexlib/document:document_parser'
+    ],
+    static_deps=[]
+)
+filegroup(
+    name='document_testdata',
+    testonly=True,
+    srcs=[':example1_testdata', ':example_testdata']
+)
+cc_library(
+    name='indexlib_document_test_helper',
+    testonly=True,
+    hdrs=glob(['*.h']),
+    copts=['-Werror'],
+    include_prefix='indexlib/document/test',
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
+    deps=[
+        '//aios/storage/indexlib/indexlib:indexlib_testbase_helper',
+        '//aios/storage/indexlib/indexlib/config/test:indexlib_config_test_helper',
+        '//aios/storage/indexlib/indexlib/index/test:indexlib_index_test_helper'
+    ]
+)
+cc_fast_test(
+    name='indexlib_document_unittest',
+    srcs=[
+        'IndexFieldConvertorTest.cpp', 'classified_document_unittest.cpp',
+        'document_collector_unittest.cpp',
+        'document_factory_wrapper_unittest.cpp', 'index_locator_unittest.cpp',
+        'locator_unittest.cpp'
+    ],
+    copts=['-Werror', '-fno-access-control'],
+    data=([':document_testdata', '//aios/storage/indexlib:test_log_conf'] +
+          glob(['testdata/*'])),
+    shard_count=2,
+    deps=[
+        ':indexlib_document_test_helper',
+        '//aios/storage/indexlib/indexlib:indexlib_testbase',
+        '//aios/storage/indexlib/indexlib/document'
+    ]
+)

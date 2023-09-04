@@ -31,7 +31,7 @@ struct Spec {
     std::string ip;
     int32_t ports[MC_PROTOCOL_UNKNOWN + 1];
 
-    friend std::ostream& operator<<(std::ostream& os, const Spec& spec);
+    friend std::ostream &operator<<(std::ostream &os, const Spec &spec);
 };
 
 struct HeartbeatSpec {

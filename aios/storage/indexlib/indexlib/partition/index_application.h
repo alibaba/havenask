@@ -71,8 +71,6 @@ public:
     std::shared_ptr<indexlibv2::config::ITabletSchema> GetTableSchema(const std::string& tableName) const;
     void GetTableLatestDataTimestamps(std::vector<IndexDataTimestampInfo>& dataTsInfos);
 
-    bool GetLatestDataTimestamp(const std::string& tableName, int64_t& dataTs);
-
     bool IsLatestSnapshotReader(const PartitionReaderSnapshotPtr& snapshotReader) const;
 
     void GetExpireReaderNames(const PartitionReaderSnapshotPtr& snapshotReader, std::vector<std::string>& tables) const;

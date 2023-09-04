@@ -162,6 +162,7 @@ public:
     void TEST_SetTTLFromDoc(bool value) { mTTLFromDoc = value; }
 
 private:
+    void ResolveEmptyProfileNamesForTruncateIndex();
     void UpdateIndexConfigForTruncate(IndexConfig* indexConfig, IndexConfig* truncateIndexConfig);
     AttributeConfigPtr
     CreateAttributeConfig(const std::string& fieldName,

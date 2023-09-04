@@ -44,6 +44,7 @@ public:
     // util::KeyValueMap mUserDefinedParam;
     IndexStatus mStatus = is_normal;
     schema_opid_t mOwnerOpId = INVALID_SCHEMA_OP_ID;
+    bool isBuiltInField = false;
 };
 
 FieldConfig::FieldConfig() : FieldConfig("", ft_unknown, false) {}
@@ -56,6 +57,9 @@ FieldConfig::FieldConfig(const string& fieldName, FieldType fieldType, bool mult
     , mImpl(new FieldConfigImpl())
 {
 }
+
+bool FieldConfig::IsBuiltInField() const { return mImpl->isBuiltInField; }
+void FieldConfig::SetBuiltInField(bool isBuiltIn) { mImpl->isBuiltInField = isBuiltIn; }
 
 void FieldConfig::SetFieldType(FieldType type) { indexlibv2::config::FieldConfig::SetFieldType(type); }
 uint64_t FieldConfig::GetU32OffsetThreshold() { return mImpl->mU32OffsetThreshold; }
@@ -104,7 +108,9 @@ void FieldConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
         if (!mImpl->mUserDefineAttrNullValue.empty()) {
             json.Jsonize(FIELD_USER_DEFINE_ATTRIBUTE_NULL_VALUE, mImpl->mUserDefineAttrNullValue);
         }
-
+        if (mImpl->isBuiltInField) {
+            json.Jsonize(FIELD_IS_BUILT_IN, mImpl->isBuiltInField);
+        }
     } else {
         bool uniqEncode = false;
         json.Jsonize(ATTRIBUTE_UNIQ_ENCODE, uniqEncode, uniqEncode);
@@ -128,20 +134,31 @@ void FieldConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
 
         json.Jsonize(FIELD_USER_DEFINE_ATTRIBUTE_NULL_VALUE, mImpl->mUserDefineAttrNullValue,
                      mImpl->mUserDefineAttrNullValue);
+        json.Jsonize(FIELD_IS_BUILT_IN, mImpl->isBuiltInField, mImpl->isBuiltInField);
     }
 }
 void FieldConfig::AssertEqual(const FieldConfig& other) const
 {
-    auto status = FieldConfig::CheckEqual(other);
-    THROW_IF_STATUS_ERROR(status);
+    IE_CONFIG_ASSERT_EQUAL(GetFieldId(), other.GetFieldId(), "FieldId not equal");
+    IE_CONFIG_ASSERT_EQUAL(IsMultiValue(), other.IsMultiValue(), "MultiValue not equal");
+    IE_CONFIG_ASSERT_EQUAL(IsBinary(), other.IsBinary(), "BinaryField not equal");
+    IE_CONFIG_ASSERT_EQUAL(GetFieldName(), other.GetFieldName(), "FieldName not equal");
+    IE_CONFIG_ASSERT_EQUAL(GetFixedMultiValueCount(), other.GetFixedMultiValueCount(),
+                           "FixedMultiValueCount not equal");
+    IE_CONFIG_ASSERT_EQUAL(GetSeparator(), other.GetSeparator(), "separator not equal");
+    IE_CONFIG_ASSERT_EQUAL(GetDefaultTimeZoneDelta(), other.GetDefaultTimeZoneDelta(),
+                           "DefaultTimeZoneDelta not equal");
+    IE_CONFIG_ASSERT_EQUAL(GetDefaultValue(), other.GetDefaultValue(), "DefaultValue not equal");
+    IE_CONFIG_ASSERT_EQUAL(IsEnableNullField(), other.IsEnableNullField(), "SupportNull not equal");
+    IE_CONFIG_ASSERT_EQUAL(GetNullFieldLiteralString(), other.GetNullFieldLiteralString(), "NullFieldString not equal");
+    IE_CONFIG_ASSERT_EQUAL(GetAnalyzerName(), other.GetAnalyzerName(), "AnalyzerName not equal");
     IE_CONFIG_ASSERT_EQUAL(mImpl->mUpdatableMultiValue, other.mImpl->mUpdatableMultiValue,
                            "UpdatableMultiValue not equal");
     IE_CONFIG_ASSERT_EQUAL(mImpl->mDefragSlicePercent, other.mImpl->mDefragSlicePercent,
                            "defrag slice percent not equal");
     // IE_CONFIG_ASSERT_EQUAL(mImpl->mUserDefinedParam, other.mImpl->mUserDefinedParam, "user defined param not equal");
     // IE_CONFIG_ASSERT_EQUAL(_userDefinedParamV2, other._userDefinedParamV2, "user defined param not equal");
-    status = mImpl->mCompressType.AssertEqual(other.mImpl->mCompressType);
-    THROW_IF_STATUS_ERROR(status);
+    THROW_IF_STATUS_ERROR(mImpl->mCompressType.AssertEqual(other.mImpl->mCompressType));
     CheckFieldTypeEqual(other);
 }
 
@@ -274,7 +291,7 @@ bool FieldConfig::IsUpdatableMultiValue() const { return mImpl->mUpdatableMultiV
 
 CompressTypeOption FieldConfig::GetCompressType() const { return mImpl->mCompressType; }
 
-float FieldConfig::GetDefragSlicePercent() const { return (float)mImpl->mDefragSlicePercent / 100; }
+uint64_t FieldConfig::GetDefragSlicePercent() const { return mImpl->mDefragSlicePercent; }
 
 void FieldConfig::CheckUniqEncode() const
 {

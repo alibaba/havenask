@@ -22,16 +22,14 @@ namespace worker_framework {
 
 class DataClientWrapper {
 public:
-    enum WFErrorCode
-    {
+    enum WFErrorCode {
         ERROR_NONE = 0,
         ERROR_DOWNLOAD = 1,
         ERROR_FILEIO = 2,
         ERROR_DEST = 3,
         ERROR_UNKNOWN = 4
     };
-    enum DownloadMode
-    {
+    enum DownloadMode {
         MODE_DP2 = 0,
         MODE_FS_UTIL = 1,
         MODE_FSLIB = 2,

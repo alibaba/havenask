@@ -26,10 +26,12 @@ class NewHeartbeatResponse;
 class HeartbeatClientManagerNotifier;
 class HeartbeatClientStream;
 
-class HostHeartbeatStats {
+class HostHeartbeatStats
+{
 public:
     void updateLastResponseTime();
     void updateLastHeartbeatTime(bool isSuccess);
+
 public:
     std::string addr;
     std::shared_ptr<HeartbeatClientManagerNotifier> notifier;
@@ -37,6 +39,7 @@ public:
     bool topoReady = false;
     int64_t lastHeartbeatTime = 0;
     int64_t lastResponseTime = 0;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -48,9 +51,11 @@ class HostHeartbeatInfo
 public:
     HostHeartbeatInfo();
     ~HostHeartbeatInfo();
+
 private:
     HostHeartbeatInfo(const HostHeartbeatInfo &);
     HostHeartbeatInfo &operator=(const HostHeartbeatInfo &);
+
 public:
     bool init(const std::shared_ptr<HeartbeatClientManagerNotifier> &notifier,
               const std::shared_ptr<SearchServiceSnapshot> &heartbeatSnapshot,
@@ -60,6 +65,7 @@ public:
     bool fillBizInfoMap(BizInfoMap &bizInfoMap) const;
     void toString(std::string &debugStr, MetasSignatureMap &allMetas) const;
     bool isTopoReady() const;
+
 private:
     bool createStream();
     std::shared_ptr<HeartbeatClientStream> newClientStream() const;
@@ -67,6 +73,7 @@ private:
     void setStream(const std::shared_ptr<HeartbeatClientStream> &stream);
     bool skip(int64_t currentTime);
     bool skipByCount();
+
 private:
     std::shared_ptr<SearchServiceSnapshot> _heartbeatSnapshot;
     SearchService *_searchService;
@@ -76,10 +83,11 @@ private:
     int64_t _skipCount;
     int64_t _totalCount;
     HostHeartbeatStatsPtr _stats;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
 MULTI_CALL_TYPEDEF_PTR(HostHeartbeatInfo);
 
-}
+} // namespace multi_call

@@ -1,6 +1,5 @@
 load('@rules_cc//cc:defs.bzl', 'cc_library')
 load('//bazel:defs.bzl', 'gen_cpp_code')
-load('//bazel:bundle.bzl', 'bundle_files')
 value_type_list = [
     'ft_int8', 'ft_int16', 'ft_int32', 'ft_int64', 'ft_uint8', 'ft_uint16',
     'ft_uint32', 'ft_uint64', 'ft_float', 'ft_double', 'ft_byte1', 'ft_byte2',
@@ -17,17 +16,18 @@ cc_library(
     copts=['-Werror'],
     include_prefix='indexlib/index',
     visibility=['//aios/storage/indexlib:__subpackages__'],
-    deps=[
+    deps=([
         '//aios/kmonitor:kmonitor_cpp_adapter',
         '//aios/storage/indexlib/file_system',
-        '//aios/storage/indexlib/indexlib:indexlib_codegen',
         '//aios/storage/indexlib/indexlib:indexlib_h',
         '//aios/storage/indexlib/indexlib:indexlib_misc',
         '//aios/storage/indexlib/indexlib/common',
         '//aios/storage/indexlib/indexlib/config',
         '//aios/storage/indexlib/indexlib/document:raw_document',
         '//aios/storage/indexlib/indexlib/index_base'
-    ],
+    ] + [
+        '//aios/storage/indexlib/indexlib/open_source/codegen:indexlib_codegen'
+    ]),
     alwayslink=True
 )
 cc_library(
@@ -265,6 +265,7 @@ cc_library(
         '//aios/storage/indexlib/index/inverted_index/builtin_index/spatial:SpatialPostingIterator',
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:DictionaryCreator',
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:InMemDictionaryReader',
+        '//aios/storage/indexlib/index/ann/aitheta2/util/parallel_merge:ParallelReduceMeta',
         '//aios/storage/indexlib/index/primary_key:reader',
         '//aios/storage/indexlib/indexlib:indexlib_h',
         '//aios/storage/indexlib/indexlib:indexlib_misc',
@@ -277,22 +278,9 @@ cc_library(
         '//aios/storage/indexlib/indexlib/index/normal/inverted_index/format:index_format_option',
         '//aios/storage/indexlib/indexlib/index/normal/primarykey',
         '//aios/storage/indexlib/indexlib/index/normal/util',
-        '//aios/storage/indexlib/indexlib/index_base',
-        '//aios/storage/indexlib/index/ann/aitheta2/util/parallel_merge:ParallelReduceMeta'
+        '//aios/storage/indexlib/indexlib/index_base'
     ],
     alwayslink=True
-)
-filegroup(
-    name='index_headers',
-    srcs=glob(['kv/*.h', 'kkv/*.h']),
-    visibility=['//aios/storage/indexlib:__subpackages__']
-)
-bundle_files(
-    name='index_source_code_for_codegen',
-    srcs=glob(['kv/*.h', 'kkv/*.h', 'kv/*.cpp', 'kkv/*.cpp']),
-    prefix='usr/local/codegen_source_code/indexlib/index',
-    strip_prefix='.',
-    visibility=['//aios/storage/indexlib:__subpackages__']
 )
 cc_library(
     name='kv_metrics',
@@ -324,14 +312,15 @@ cc_library(
     copts=['-Werror'],
     include_prefix='indexlib/index',
     visibility=['//aios/storage/indexlib:__subpackages__'],
-    deps=[
+    deps=([
         ':kv_metrics', ':kv_util',
         '//aios/storage/indexlib/index/common:AttributeValueTypeTraits',
         '//aios/storage/indexlib/index/kv:reader',
-        '//aios/storage/indexlib/indexlib:indexlib_codegen',
         '//aios/storage/indexlib/indexlib/common:multi_region_rehasher',
         '//aios/storage/indexlib/indexlib/index_base'
-    ],
+    ] + [
+        '//aios/storage/indexlib/indexlib/open_source/codegen:indexlib_codegen'
+    ]),
     alwayslink=True
 )
 cc_library(
@@ -349,11 +338,10 @@ cc_library(
     copts=['-Werror'],
     include_prefix='indexlib/index',
     visibility=['//visibility:public'],
-    deps=[
+    deps=([
         ':kv_metrics', ':kv_reader_interface', ':util',
         '//aios/kmonitor:kmonitor_cpp_adapter',
         '//aios/storage/indexlib/file_system',
-        '//aios/storage/indexlib/indexlib:indexlib_codegen',
         '//aios/storage/indexlib/indexlib:indexlib_h',
         '//aios/storage/indexlib/indexlib:indexlib_misc',
         '//aios/storage/indexlib/indexlib/common',
@@ -363,7 +351,9 @@ cc_library(
         '//aios/storage/indexlib/indexlib/index_base',
         '//aios/storage/indexlib/indexlib/partition:on-disk-partition-data',
         '//aios/storage/indexlib/util/metrics:progress_metrics'
-    ],
+    ] + [
+        '//aios/storage/indexlib/indexlib/open_source/codegen:indexlib_codegen'
+    ]),
     alwayslink=True
 )
 cc_library(
@@ -373,17 +363,18 @@ cc_library(
     copts=['-Werror'],
     include_prefix='indexlib/index',
     visibility=['//visibility:public'],
-    deps=[
+    deps=([
         ':kv', '//aios/kmonitor:kmonitor_cpp_adapter',
         '//aios/storage/indexlib/file_system',
-        '//aios/storage/indexlib/indexlib:indexlib_codegen',
         '//aios/storage/indexlib/indexlib:indexlib_h',
         '//aios/storage/indexlib/indexlib:indexlib_misc',
         '//aios/storage/indexlib/indexlib/config',
         '//aios/storage/indexlib/indexlib/document:raw_document',
         '//aios/storage/indexlib/indexlib/index/normal/attribute:reader_interface',
         '//aios/storage/indexlib/indexlib/index_base'
-    ],
+    ] + [
+        '//aios/storage/indexlib/indexlib/open_source/codegen:indexlib_codegen'
+    ]),
     alwayslink=True
 )
 cc_library(

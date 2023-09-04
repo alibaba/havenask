@@ -34,10 +34,6 @@
 #include "build_service/util/SwiftClientCreator.h"
 #include "indexlib/util/metrics/MetricProvider.h"
 
-#ifndef AIOS_OPEN_SOURCE
-#include "build_service/reader/HologresClient.h"
-#include "build_service/reader/HologresRawDocumentReader.h"
-#endif
 
 using namespace std;
 using namespace autil;
@@ -73,7 +69,7 @@ RawDocumentReader* RawDocumentReaderCreator::create(const config::ResourceReader
                                                     const KeyValueMap& kvMap, const proto::PartitionId& partitionId,
                                                     indexlib::util::MetricProviderPtr metricProvider,
                                                     const indexlib::util::CounterMapPtr& counterMap,
-                                                    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema)
+                                                    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema)
 {
     return createSingleSourceReader(resourceReader, kvMap, partitionId, metricProvider, counterMap, nullptr, schema);
 }
@@ -82,7 +78,7 @@ RawDocumentReader* RawDocumentReaderCreator::createSingleSourceReader(
     const config::ResourceReaderPtr& resourceReader, const KeyValueMap& kvMap, const proto::PartitionId& partitionId,
     indexlib::util::MetricProviderPtr metricProvider, const indexlib::util::CounterMapPtr& counterMap,
     const indexlib::config::IndexPartitionSchemaPtr schema,
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& schemaV2)
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schemaV2)
 {
     ReaderInitParam param;
     param.kvMap = kvMap;
@@ -149,15 +145,6 @@ RawDocumentReader* RawDocumentReaderCreator::createSingleSourceReader(
             return NULL;
         }
     }
-#ifndef AIOS_OPEN_SOURCE
-    else if (HOLOGRES_READ_SRC == sourceType) {
-        if (_hologresInterface == nullptr) {
-            _hologresInterface = std::make_shared<Hologres>();
-        }
-        param.hologresInterface = _hologresInterface;
-        reader = new HologresRawDocumentReader(param.hologresInterface);
-    }
-#endif
     else {
         string errorMsg = "Unsupported data source type[" + sourceType + "].";
         REPORT_ERROR_WITH_ADVICE(BUILDFLOW_ERROR_CREATE_READER, errorMsg, BS_STOP);

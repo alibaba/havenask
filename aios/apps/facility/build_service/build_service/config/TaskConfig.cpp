@@ -15,6 +15,7 @@
  */
 #include "build_service/config/TaskConfig.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
 #include "autil/legacy/json.h"
@@ -99,9 +100,9 @@ void TaskConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
 
 bool TaskConfig::prepareBuildServiceTaskModuleInfo(const ResourceReaderPtr& resourceReader, std::string& pluginPath)
 {
-    char* env = getenv("LD_LIBRARY_PATH");
+    string env = autil::EnvUtil::getEnv("LD_LIBRARY_PATH");
     string paths;
-    if (NULL == env) {
+    if (env.empty()) {
         paths = resourceReader->getPluginPath() + ":./";
     } else {
         paths = resourceReader->getPluginPath() + ":./:" + string(env);

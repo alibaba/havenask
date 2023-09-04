@@ -15,12 +15,14 @@
  */
 #include "indexlib/table/plain/PlainMemSegment.h"
 
+#include "autil/UnitUtil.h"
 #include "beeper/beeper.h"
 #include "indexlib/base/MemoryQuotaController.h"
 #include "indexlib/config/BuildConfig.h"
 #include "indexlib/config/IIndexConfig.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/document/DocumentBatch.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocument.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/PlainDocument.h"
@@ -46,17 +48,20 @@ using namespace indexlib::config;
 namespace indexlibv2::plain {
 AUTIL_LOG_SETUP(indexlib.table, PlainMemSegment);
 
+#define SEGMENT_LOG(level, format, args...)                                                                            \
+    AUTIL_LOG(level, "[%s] [%p] segment[%d] " format, _options->GetTabletName().c_str(), this, GetSegmentId(), ##args)
+
 Status PlainMemSegment::Open(const framework::BuildResource& resource,
                              indexlib::framework::SegmentMetrics* lastSegMetrics)
 {
-    AUTIL_LOG(INFO, "begin open mem segment");
+    SEGMENT_LOG(INFO, "begin open mem segment");
     _buildResourceMetrics = resource.buildResourceMetrics;
     _segmentMemController = std::make_unique<MemoryQuotaController>("in_memory_segment", resource.memController);
     _lastSegmentMetrics.reset(new indexlib::framework::SegmentMetrics);
     if (lastSegMetrics) {
         _lastSegmentMetrics->FromString(lastSegMetrics->ToString());
     }
-    auto [status, sortDescs] = _schema->GetSetting<config::SortDescriptions>("sort_descriptions");
+    auto [status, sortDescs] = _schema->GetRuntimeSettings().GetValue<config::SortDescriptions>("sort_descriptions");
     if (status.IsOK()) {
         _sortDescriptions = sortDescs;
     } else if (!status.IsNotFound()) {
@@ -100,6 +105,7 @@ Status PlainMemSegment::PrepareIndexers(const framework::BuildResource& resource
     std::vector<IndexerResource> indexerResources;
     auto status = GenerateIndexerResource(resource, indexerResources);
     RETURN_IF_STATUS_ERROR(status, "generate indexer resource failed for table[%s]", _schema->GetTableName().c_str());
+    std::set<std::string> insertedIndexTypes;
     for (auto& indexerResource : indexerResources) {
         auto indexConfig = indexerResource.indexConfig;
         auto indexType = indexConfig->GetIndexType();
@@ -115,28 +121,37 @@ Status PlainMemSegment::PrepareIndexers(const framework::BuildResource& resource
         auto indexer = indexerResource.indexerFactory->CreateMemIndexer(indexConfig, indexerResource.indexerParam);
         if (indexer == nullptr) {
             auto status = Status::Corruption("create building index [%s] failed", indexName.c_str());
-            AUTIL_LOG(ERROR, "%s", status.ToString().c_str());
+            SEGMENT_LOG(ERROR, "%s", status.ToString().c_str());
             return status;
         }
         status = indexer->Init(indexConfig, _docInfoExtractorFactory.get());
         if (!status.IsOK()) {
-            AUTIL_LOG(ERROR, "init indexer [%s] failed", indexName.c_str());
+            SEGMENT_LOG(ERROR, "init indexer [%s] failed", indexName.c_str());
             return status;
         }
         auto indexMapKey = GenerateIndexMapKey(indexType, indexName);
         auto metricsNode = _buildResourceMetrics->AllocateNode();
         _indexMap[indexMapKey] =
             std::make_pair(indexer, std::make_shared<index::BuildingIndexMemoryUseUpdater>(metricsNode));
+        if (insertedIndexTypes.find(indexType) == insertedIndexTypes.end()) {
+            _indexMapForValidation[indexMapKey] =
+                std::make_pair(indexer, std::make_shared<index::BuildingIndexMemoryUseUpdater>(metricsNode));
+            insertedIndexTypes.insert(indexType);
+        } else {
+            AUTIL_LOG(INFO, "Skipping including index type [%s] for validation", indexType.c_str());
+        }
         _indexers.emplace_back(indexer);
         UpdateMemUse();
         if (_segmentMemController->GetFreeQuota() <= 0) {
-            AUTIL_LOG(ERROR, "no mem for open indexer")
-            return Status::NoMem();
+            SEGMENT_LOG(ERROR, "no mem for open indexer, type[%s], name[%s], free[%ld], allocated[%ld]",
+                        indexType.c_str(), indexName.c_str(), _segmentMemController->GetFreeQuota(),
+                        _segmentMemController->GetAllocatedQuota());
+            return Status::NoMem("segment memory quota exhausted.");
         }
     }
     if (_indexMap.empty()) {
-        AUTIL_LOG(ERROR, "none mem indexer was prepared.");
-        return Status::InvalidArgs();
+        SEGMENT_LOG(ERROR, "none mem indexer was prepared.");
+        return Status::InvalidArgs("empty index map");
     }
     return Status::OK();
 }
@@ -149,7 +164,8 @@ void PlainMemSegment::Seal()
         memIndexer->FillStatistics(_segmentMeta.segmentMetrics);
     }
     UpdateMemUse();
-    AUTIL_LOG(INFO, "seal segment [%d]", GetSegmentId());
+    SEGMENT_LOG(INFO, "seal segment, EvaluateCurrentMemUsed[%s], DocCount[%lu]",
+                autil::UnitUtil::GiBDebugString(EvaluateCurrentMemUsed()).c_str(), _segmentMeta.segmentInfo->docCount);
 }
 
 std::pair<Status, std::shared_ptr<framework::DumpParams>> PlainMemSegment::CreateDumpParams()
@@ -177,7 +193,8 @@ std::pair<Status, std::vector<std::shared_ptr<framework::SegmentDumpItem>>> Plai
         }
     }
 
-    auto segMetricsDumpItem = std::make_shared<SegmentMetricsDumpItem>(GetSegmentMetrics(), GetSegmentDirectory());
+    auto segMetricsDumpItem =
+        std::make_shared<SegmentMetricsDumpItem>(GetSegmentMetrics(), GetSegmentDirectory()->GetIDirectory());
     segmentDumpItems.push_back(segMetricsDumpItem);
     return {Status::OK(), segmentDumpItems};
 }
@@ -205,14 +222,14 @@ void PlainMemSegment::ValidateDocumentBatch(document::TemplateDocumentBatch<docu
             const auto& indexType = indexMapKey.first;
             auto indexFields = plainDoc->GetIndexFields(indexType);
             if (!indexFields) {
-                AUTIL_LOG(ERROR, "get index fields [%s] failed, drop doc", indexType.c_str());
+                SEGMENT_LOG(ERROR, "get index fields [%s] failed, drop doc", indexType.c_str());
                 plainDocBatch->DropDoc(i);
             }
 
             auto& memIndexer = indexerAndMemUpdater.first;
             if (!memIndexer->IsValidField(indexFields)) {
-                AUTIL_LOG(ERROR, "mem indexer [%s] check index fields [%s] whether valid failed, drop doc",
-                          memIndexer->GetIndexName().c_str(), indexType.c_str());
+                SEGMENT_LOG(ERROR, "mem indexer [%s] check index fields [%s] whether valid failed, drop doc",
+                            memIndexer->GetIndexName().c_str(), indexType.c_str());
                 plainDocBatch->DropDoc(i);
             }
         }
@@ -229,7 +246,7 @@ void PlainMemSegment::ValidateDocumentBatch(document::IDocumentBatch* docBatch)
                 continue;
             }
             auto doc = (*docBatch)[i].get();
-            for (const auto& [_, indexerAndMemUpdater] : _indexMap) {
+            for (const auto& [_, indexerAndMemUpdater] : _indexMapForValidation) {
                 auto& memIndexer = indexerAndMemUpdater.first;
                 if (!memIndexer->IsValidDocument(doc)) {
                     docBatch->DropDoc(i);
@@ -239,11 +256,12 @@ void PlainMemSegment::ValidateDocumentBatch(document::IDocumentBatch* docBatch)
     }
 }
 
-void PlainMemSegment::PostBuildActions(document::IDocumentBatch* batch)
+void PlainMemSegment::PostBuildActions(const indexlibv2::framework::Locator& locator, int64_t maxTimestamp,
+                                       int64_t maxTTL, uint64_t addDocCount)
 {
     UpdateMemUse();
     _isDirty = true;
-    UpdateSegmentInfo(batch);
+    UpdateSegmentInfo(locator, maxTimestamp, maxTTL, addDocCount);
 }
 
 Status PlainMemSegment::Build(document::IDocumentBatch* batch)
@@ -264,7 +282,12 @@ Status PlainMemSegment::Build(document::IDocumentBatch* batch)
             }
         }
     }
-    PostBuildActions(batch);
+
+    auto lastLocator = batch->GetLastLocator();
+    auto maxTimestamp = batch->GetMaxTimestamp();
+    auto maxTTL = batch->GetMaxTTL();
+    auto addDocCount = batch->GetAddedDocCount();
+    PostBuildActions(lastLocator, maxTimestamp, maxTTL, addDocCount);
     return Status::OK();
 }
 Status PlainMemSegment::BuildPlainDoc(document::TemplateDocumentBatch<document::PlainDocument>* plainDocBatch)
@@ -272,11 +295,10 @@ Status PlainMemSegment::BuildPlainDoc(document::TemplateDocumentBatch<document::
     const auto& buildIndexers = GetBuildIndexers();
     for (auto& memIndexer : buildIndexers) {
         auto indexType = memIndexer->GetIndexType();
-        for (size_t i = 0; i < plainDocBatch->GetBatchSize(); ++i) {
-            if (plainDocBatch->IsDropped(i)) {
-                continue;
-            }
-            auto plainDoc = plainDocBatch->GetTypedDocument(i).get();
+        std::unique_ptr<indexlibv2::document::DocumentIterator<indexlibv2::document::PlainDocument>> iter =
+            document::DocumentIterator<indexlibv2::document::PlainDocument>::Create(plainDocBatch);
+        while (iter->HasNext()) {
+            auto plainDoc = iter->TypedNext().get();
             auto indexFields = plainDoc->GetIndexFields(indexType);
             if (!indexFields) {
                 RETURN_IF_STATUS_ERROR(Status::InternalError(), "get index fields [%s] failed",
@@ -310,28 +332,26 @@ void PlainMemSegment::UpdateMemUse()
     }
 }
 
-void PlainMemSegment::UpdateSegmentInfo(document::IDocumentBatch* batch)
+void PlainMemSegment::UpdateSegmentInfo(const indexlibv2::framework::Locator& locator, int64_t maxTimestamp,
+                                        int64_t maxTTL, uint64_t addDocCount)
 {
-    const auto& locator = batch->GetLastLocator();
     if (locator.IsValid()) {
         _segmentMeta.segmentInfo->SetLocator(locator);
     }
-    if (_segmentMeta.segmentInfo->timestamp < batch->GetMaxTimestamp()) {
-        _segmentMeta.segmentInfo->timestamp = batch->GetMaxTimestamp();
+    if (_segmentMeta.segmentInfo->timestamp < maxTimestamp) {
+        _segmentMeta.segmentInfo->timestamp = maxTimestamp;
     }
-    if (_segmentMeta.segmentInfo->maxTTL < batch->GetMaxTTL()) {
-        _segmentMeta.segmentInfo->maxTTL = batch->GetMaxTTL();
+    if (_segmentMeta.segmentInfo->maxTTL < maxTTL) {
+        _segmentMeta.segmentInfo->maxTTL = maxTTL;
     }
-    _segmentMeta.segmentInfo->docCount += batch->GetAddedDocCount();
+    _segmentMeta.segmentInfo->docCount += addDocCount;
 }
 
 bool PlainMemSegment::NeedDump() const
 {
     if (_segmentMeta.segmentInfo->docCount >= _options->GetBuildConfig().GetMaxDocCount()) {
-        AUTIL_LOG(INFO,
-                  "DumpSegment for reach doc count limit : "
-                  "docCount [%lu] over maxDocCount [%lu]",
-                  _segmentMeta.segmentInfo->docCount, _options->GetBuildConfig().GetMaxDocCount());
+        SEGMENT_LOG(INFO, "NeedDump for reach doc count limit : docCount [%lu] over maxDocCount [%lu]",
+                    _segmentMeta.segmentInfo->docCount, _options->GetBuildConfig().GetMaxDocCount());
         return true;
     }
     return false;
@@ -353,6 +373,8 @@ void PlainMemSegment::TEST_AddIndexer(const std::string& type, const std::string
     auto metricsNode = _buildResourceMetrics->AllocateNode();
     _indexMap[indexMapKey] =
         std::make_pair(memIndexer, std::make_shared<index::BuildingIndexMemoryUseUpdater>(metricsNode));
+    _indexMapForValidation[indexMapKey] =
+        std::make_pair(memIndexer, std::make_shared<index::BuildingIndexMemoryUseUpdater>(metricsNode));
 }
 
 const std::vector<std::shared_ptr<indexlibv2::index::IMemIndexer>>& PlainMemSegment::GetBuildIndexers()
@@ -371,7 +393,7 @@ Status PlainMemSegment::GenerateIndexerResource(const framework::BuildResource& 
         std::string indexType = indexConfig->GetIndexType();
         auto [status, indexFactory] = indexFactoryCreator->Create(indexType);
         if (!status.IsOK()) {
-            AUTIL_LOG(ERROR, "get index factory for index type [%s] failed", indexType.c_str());
+            SEGMENT_LOG(ERROR, "get index factory for index type [%s] failed", indexType.c_str());
             return status;
         }
         IndexerResource indexerResource;

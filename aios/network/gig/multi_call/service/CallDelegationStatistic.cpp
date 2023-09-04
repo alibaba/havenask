@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/CallDelegationStatistic.h"
+
 #include <math.h>
 using namespace std;
 
@@ -21,12 +22,16 @@ namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, CallDelegationStatistic);
 
 CallDelegationStatistic::CallDelegationStatistic()
-    : _enableEt(false), _etWaitTimeFactor(0), _etMinWaitTime(0) {}
+    : _enableEt(false)
+    , _etWaitTimeFactor(0)
+    , _etMinWaitTime(0) {
+}
 
-CallDelegationStatistic::~CallDelegationStatistic() {}
+CallDelegationStatistic::~CallDelegationStatistic() {
+}
 
-void CallDelegationStatistic::collectProviderStatistic(
-    const std::string &bizName, size_t providerCount) {
+void CallDelegationStatistic::collectProviderStatistic(const std::string &bizName,
+                                                       size_t providerCount) {
     BizStatistic &statistic = _callDelegationResultMap[bizName];
     if (statistic.expectNum == numeric_limits<uint32_t>::max()) {
         statistic.expectNum = providerCount;
@@ -36,16 +41,13 @@ void CallDelegationStatistic::collectProviderStatistic(
 }
 
 void CallDelegationStatistic::collectStatistic(const string &bizName, size_t providerCount,
-                                               const FlowControlConfigPtr &flowControlConfig, bool disableRetry)
-{
+                                               const FlowControlConfigPtr &flowControlConfig,
+                                               bool disableRetry) {
     collectProviderStatistic(bizName, providerCount);
 
-    CallDelegationStatisticResultMap::iterator it =
-        _callDelegationResultMap.find(bizName);
+    CallDelegationStatisticResultMap::iterator it = _callDelegationResultMap.find(bizName);
     if (it == _callDelegationResultMap.end()) {
-        AUTIL_LOG(ERROR,
-                  "callDelegationResultMap has no bizName [%s] statistic.",
-                  bizName.c_str());
+        AUTIL_LOG(ERROR, "callDelegationResultMap has no bizName [%s] statistic.", bizName.c_str());
         return;
     }
     BizStatistic &bizStatistic = it->second;
@@ -57,12 +59,11 @@ void CallDelegationStatistic::collectStatistic(const string &bizName, size_t pro
     uint32_t retryThreshold = bizStatistic.expectNum;
 
     if (etEnabled) {
-        etThreshold = uint32_t(
-            ceil(bizStatistic.expectNum * flowControlConfig->etTriggerPercent));
+        etThreshold = uint32_t(ceil(bizStatistic.expectNum * flowControlConfig->etTriggerPercent));
     }
     if (bizStatistic.needRetry) {
-        retryThreshold = uint32_t(ceil(bizStatistic.expectNum *
-                                       flowControlConfig->retryTriggerPercent));
+        retryThreshold =
+            uint32_t(ceil(bizStatistic.expectNum * flowControlConfig->retryTriggerPercent));
     }
     // update factor while collecting
     if (etEnabled && flowControlConfig->etWaitTimeFactor > _etWaitTimeFactor) {
@@ -86,8 +87,7 @@ bool CallDelegationStatistic::hasEnoughResultForEt() const {
         return false;
     }
     assert(!_callDelegationResultMap.empty());
-    CallDelegationStatisticResultMap::const_iterator it =
-        _callDelegationResultMap.begin();
+    CallDelegationStatisticResultMap::const_iterator it = _callDelegationResultMap.begin();
     for (; it != _callDelegationResultMap.end(); ++it) {
         const BizStatistic &stat = it->second;
         if (stat.resultNum < stat.etThreshold) {
@@ -97,8 +97,7 @@ bool CallDelegationStatistic::hasEnoughResultForEt() const {
     return true;
 }
 
-bool CallDelegationStatistic::hasEnoughResultForRetry(
-    const string &bizName) const {
+bool CallDelegationStatistic::hasEnoughResultForRetry(const string &bizName) const {
     auto it = _callDelegationResultMap.find(bizName);
     if (_callDelegationResultMap.end() == it) {
         return false;
@@ -108,8 +107,7 @@ bool CallDelegationStatistic::hasEnoughResultForRetry(
     return hasEnoughResultForRetry(stat);
 }
 
-bool CallDelegationStatistic::IsSingleResultNeedRetry(
-    const string &bizName) const {
+bool CallDelegationStatistic::IsSingleResultNeedRetry(const string &bizName) const {
     auto it = _callDelegationResultMap.find(bizName);
     if (_callDelegationResultMap.end() == it) {
         return false;
@@ -119,13 +117,11 @@ bool CallDelegationStatistic::IsSingleResultNeedRetry(
     return IsSingleResultNeedRetry(stat);
 }
 
-void CallDelegationStatistic::prepareCollectStatistic(
-    const vector<string> &bizNameVec) {
+void CallDelegationStatistic::prepareCollectStatistic(const vector<string> &bizNameVec) {
     _callDelegationResultMap.clear();
     _etWaitTimeFactor = 0;
     _etMinWaitTime = 0;
-    for (vector<string>::const_iterator it = bizNameVec.begin();
-         it != bizNameVec.end(); ++it) {
+    for (vector<string>::const_iterator it = bizNameVec.begin(); it != bizNameVec.end(); ++it) {
         BizStatistic &bizStat = _callDelegationResultMap[*it];
         bizStat.expectNum = numeric_limits<uint32_t>::max();
         bizStat.etThreshold = numeric_limits<uint32_t>::max();

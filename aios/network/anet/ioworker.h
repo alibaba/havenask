@@ -16,17 +16,17 @@
 #ifndef ANET_IO_WORKER_H
 #define ANET_IO_WORKER_H
 
+#include <iosfwd>
 #include <stdint.h>
 #include <vector>
-#include <iosfwd>
 
 #include "aios/network/anet/epollsocketevent.h"
 #include "aios/network/anet/iocomponent.h"
+#include "aios/network/anet/runnable.h"
 #include "aios/network/anet/socket.h"
 #include "aios/network/anet/thread.h"
-#include "aios/network/anet/transport.h"
-#include "aios/network/anet/runnable.h"
 #include "aios/network/anet/threadmutex.h"
+#include "aios/network/anet/transport.h"
 
 namespace anet {
 
@@ -53,6 +53,7 @@ class IoWorker : public Runnable {
     friend class TransportTest_testConstructor_Test;
     friend class IoWorkerTest_testAddComponent_Test;
     friend class IoWorkerTest_testInitEpollWaitTimeoutFromEnv_Test;
+
 public:
     IoWorker();
 
@@ -96,14 +97,15 @@ public:
      */
     void step(int64_t timeStamp);
 
-    void postCommand(const Transport::CommandType type, IOComponent * ioc);
+    void postCommand(const Transport::CommandType type, IOComponent *ioc);
 
-    SocketEvent* getSocketEvent();
+    SocketEvent *getSocketEvent();
     void closeComponents();
-    int  dump(std::ostringstream &buf);
+    int dump(std::ostringstream &buf);
     void getTcpConnStats(std::vector<ConnStat> &connStats);
 
     void setName(const char *name);
+
 private:
     /**
      * process Command in queue _commands;
@@ -112,22 +114,24 @@ private:
     void addComponent(IOComponent *ioc);
     void removeComponent(IOComponent *ioc);
     void setPriorityByEnv();
+
 private:
     // mutex for _iocList and _commands
     ThreadMutex _mutex;
     ThreadMutex _stopMutex;
     EPollSocketEvent _socketEvent;
     Thread _ioThread;
-    bool _stop;              // stopping flag
+    bool _stop; // stopping flag
     bool _started;
     bool _promotePriority;
-    IOComponent *_iocListHead, *_iocListTail;   // IOComponent list
+    IOComponent *_iocListHead, *_iocListTail; // IOComponent list
     std::vector<Transport::TransportCommand> _commands;
     int _epollWaitTimeoutMs{100};
+
 public:
     static __thread int64_t _loopTime;
 };
 
-}
+} // namespace anet
 
 #endif // ANET_IO_WORKER_H

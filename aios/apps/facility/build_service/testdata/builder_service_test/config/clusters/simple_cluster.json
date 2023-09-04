@@ -1,0 +1,5 @@
+{
+    "cluster_config" : {
+	    "table_name" : "simple_table"
+	}
+}

@@ -43,9 +43,12 @@ struct PackAttributeConfig::Impl {
 PackAttributeConfig::PackAttributeConfig(const string& attrName, const CompressTypeOption& compressType,
                                          uint64_t defragSlicePercent,
                                          const std::shared_ptr<FileCompressConfig>& fileCompressConfig)
-    : indexlibv2::config::PackAttributeConfig(attrName, compressType, defragSlicePercent, fileCompressConfig)
-    , mImpl(std::make_unique<Impl>())
+    : mImpl(std::make_unique<Impl>())
 {
+    SetPackName(attrName);
+    SetCompressType(compressType);
+    SetDefragSlicePercent(defragSlicePercent);
+    SetFileCompressConfig(fileCompressConfig);
     assert(attrName.size() > 0);
 }
 
@@ -54,21 +57,17 @@ PackAttributeConfig::~PackAttributeConfig() {}
 void PackAttributeConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
 {
     if (json.GetMode() == autil::legacy::Jsonizable::TO_JSON) {
-        indexlibv2::config::PackAttributeConfig::Serialize(json);
+        indexlibv2::index::PackAttributeConfig::Serialize(json);
     }
+    // FROM_JSON see RegionSchemaImpl::LoadPackAttributeConfig
 }
 
-Status
-PackAttributeConfig::AddAttributeConfig(const std::shared_ptr<indexlibv2::config::AttributeConfig>& attributeConfig)
+Status PackAttributeConfig::AddAttributeConfig(const AttributeConfigPtr& attributeConfig)
 {
-    auto status = indexlibv2::config::PackAttributeConfig::AddAttributeConfig(attributeConfig);
+    auto status = indexlibv2::index::PackAttributeConfig::AddAttributeConfig(attributeConfig);
     RETURN_IF_STATUS_ERROR(status, "add attr config failed");
-    auto legacyAttrConfig = std::dynamic_pointer_cast<AttributeConfig>(attributeConfig);
-    if (!legacyAttrConfig) {
-        RETURN_IF_STATUS_ERROR(Status::InternalError(), "attribute config[%s] is not legacy config",
-                               attributeConfig->GetAttrName().c_str());
-    }
-    mImpl->attributeConfigVec.push_back(legacyAttrConfig);
+    SetUpdatable(IsPackAttributeUpdatable() || attributeConfig->IsAttributeUpdatable());
+    mImpl->attributeConfigVec.push_back(attributeConfig);
     return Status::OK();
 }
 
@@ -79,16 +78,16 @@ const vector<AttributeConfigPtr>& PackAttributeConfig::GetAttributeConfigVec() c
 
 void PackAttributeConfig::AssertEqual(const PackAttributeConfig& other) const
 {
-    auto status = indexlibv2::config::PackAttributeConfig::CheckEqual(other);
+    auto status = indexlibv2::index::PackAttributeConfig::CheckEqual(other);
     THROW_IF_STATUS_ERROR(status);
 }
 
 AttributeConfigPtr PackAttributeConfig::CreateAttributeConfig() const
 {
-    FieldConfigPtr fieldConfig(new FieldConfig(GetAttrName(), ft_string, false, true, false));
+    FieldConfigPtr fieldConfig(new FieldConfig(GetPackName(), ft_string, false, true, false));
     AttributeConfigPtr attrConfig(new AttributeConfig(AttributeConfig::ct_normal));
     attrConfig->Init(fieldConfig);
-    attrConfig->SetUpdatableMultiValue(IsUpdatable());
+    attrConfig->SetUpdatableMultiValue(IsPackAttributeUpdatable());
     attrConfig->SetFileCompressConfig(GetFileCompressConfig());
     auto status = attrConfig->SetCompressType(GetCompressType().GetCompressStr());
     THROW_IF_STATUS_ERROR(status);

@@ -5,22 +5,22 @@
  * Author Email: beifei@taobao.com
  */
 
-#include <string>
-#include "kmonitor/client/net/thrift/ThriftType.h"
-#include "kmonitor/client/net/thrift/TCompactProtocol.h"
 #include "kmonitor/client/net/thrift/TApplicationException.h"
+
+#include <string>
+
+#include "kmonitor/client/net/thrift/TCompactProtocol.h"
+#include "kmonitor/client/net/thrift/ThriftType.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 using std::string;
 
-TApplicationException::TApplicationException() {
-}
+TApplicationException::TApplicationException() {}
 
-TApplicationException::~TApplicationException() {
-}
+TApplicationException::~TApplicationException() {}
 
-uint32_t TApplicationException::Read(TCompactProtocol* prot) {
+uint32_t TApplicationException::Read(TCompactProtocol *prot) {
     uint32_t xfer = 0;
     std::string fname;
     TType ftype;
@@ -28,39 +28,39 @@ uint32_t TApplicationException::Read(TCompactProtocol* prot) {
 
     xfer += prot->ReadStructBegin(fname);
     while (true) {
-      xfer += prot->ReadFieldBegin(fname, ftype, fid);
-      if (ftype == T_STOP) {
-        break;
-      }
-      switch (fid) {
-      case 1:
-        if (ftype == T_STRING) {
-          xfer += prot->ReadString(message_);
-        } else {
-          xfer += prot->Skip(ftype);
+        xfer += prot->ReadFieldBegin(fname, ftype, fid);
+        if (ftype == T_STOP) {
+            break;
         }
-        break;
-      case 2:
-        if (ftype == T_I32) {
-          int32_t type;
-          xfer += prot->ReadI32(type);
-          type_ = (TApplicationExceptionType)type;
-        } else {
-          xfer += prot->Skip(ftype);
+        switch (fid) {
+        case 1:
+            if (ftype == T_STRING) {
+                xfer += prot->ReadString(message_);
+            } else {
+                xfer += prot->Skip(ftype);
+            }
+            break;
+        case 2:
+            if (ftype == T_I32) {
+                int32_t type;
+                xfer += prot->ReadI32(type);
+                type_ = (TApplicationExceptionType)type;
+            } else {
+                xfer += prot->Skip(ftype);
+            }
+            break;
+        default:
+            xfer += prot->Skip(ftype);
+            break;
         }
-        break;
-      default:
-        xfer += prot->Skip(ftype);
-        break;
-      }
-      xfer += prot->ReadFieldEnd();
+        xfer += prot->ReadFieldEnd();
     }
 
     xfer += prot->ReadStructEnd();
     return xfer;
 }
 
-const char* TApplicationException::What() const {
+const char *TApplicationException::What() const {
     if (message_.empty()) {
         switch (type_) {
         case UNKNOWN:
@@ -84,14 +84,13 @@ const char* TApplicationException::What() const {
         case INVALID_PROTOCOL:
             return "TApplicationException: Invalid protocol";
         case UNSUPPORTED_CLIENT_TYPE:
-           return "TApplicationException: Unsupported client type";
+            return "TApplicationException: Unsupported client type";
         default:
-           return "TApplicationException: (Invalid exception type)";
+            return "TApplicationException: (Invalid exception type)";
         }
     } else {
-      return message_.c_str();
+        return message_.c_str();
     }
 }
 
 END_KMONITOR_NAMESPACE(kmonitor);
-

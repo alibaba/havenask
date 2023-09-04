@@ -23,31 +23,23 @@
 namespace autil {
 AUTIL_DECLARE_AND_SETUP_LOGGER(autil, MmapBlockAllocator);
 
-MmapBlockAllocator::MmapBlockAllocator(uint32_t blockSize,
-                                       size_t blockCount)
-    :  BlockAllocator(blockSize)
-    , _blockHeaderAllocator(sizeof(Block))
-    , _blockDataPool(blockSize, blockCount)
-{
-}
+MmapBlockAllocator::MmapBlockAllocator(uint32_t blockSize, size_t blockCount)
+    : BlockAllocator(blockSize), _blockHeaderAllocator(sizeof(Block)), _blockDataPool(blockSize, blockCount) {}
 
-MmapBlockAllocator::~MmapBlockAllocator() { 
-    _blockHeaderAllocator.clear();
-}
+MmapBlockAllocator::~MmapBlockAllocator() { _blockHeaderAllocator.clear(); }
 
-Block* MmapBlockAllocator::allocBlock() {
+Block *MmapBlockAllocator::allocBlock() {
     ScopedLock lock(_lock);
-    Block *block = new (_blockHeaderAllocator.allocate())Block();
+    Block *block = new (_blockHeaderAllocator.allocate()) Block();
     block->_data = (uint8_t *)_blockDataPool.allocate();
     return block;
 }
 
-void MmapBlockAllocator::freeBlock(Block* block) {
+void MmapBlockAllocator::freeBlock(Block *block) {
     ScopedLock lock(_lock);
     _blockDataPool.free(block->_data);
     block->~Block();
-    _blockHeaderAllocator.free(block);    
+    _blockHeaderAllocator.free(block);
 }
 
-}
-
+} // namespace autil

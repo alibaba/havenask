@@ -17,6 +17,7 @@
 
 #include <memory>
 
+#include "autil/EnvUtil.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/config/FileCompressConfig.h"
 #include "indexlib/config/config_define.h"
@@ -44,13 +45,10 @@ struct AttributeConfig::Impl {
     // customized config and opid, only exist in legacy framework
     CustomizedConfigVector customizedConfigs;
     schema_opid_t ownerOpId = INVALID_SCHEMA_OP_ID;
+    AttributeConfig::ConfigType configType = ct_normal;
 };
 
-AttributeConfig::AttributeConfig(ConfigType type)
-    : indexlibv2::config::AttributeConfig(type)
-    , mImpl(std::make_unique<Impl>())
-{
-}
+AttributeConfig::AttributeConfig(ConfigType type) : mImpl(std::make_unique<Impl>()) { SetConfigType(type); }
 
 AttributeConfig::~AttributeConfig() {}
 
@@ -62,12 +60,12 @@ void AttributeConfig::Init(const FieldConfigPtr& fieldConfig, const AttributeVal
     mImpl->customizedConfigs = customizedConfigs;
 
     if (fieldConfig->IsMultiValue() || fieldConfig->GetFieldType() == ft_string) {
-        indexlibv2::config::AttributeConfig::SetUpdatable(fieldConfig->IsUpdatableMultiValue());
+        indexlibv2::index::AttributeConfig::SetUpdatable(fieldConfig->IsUpdatableMultiValue());
     }
-    auto status = indexlibv2::config::AttributeConfig::SetCompressType(fieldConfig->GetCompressType().GetCompressStr());
+    auto status = indexlibv2::index::AttributeConfig::SetCompressType(fieldConfig->GetCompressType().GetCompressStr());
     THROW_IF_STATUS_ERROR(status);
-    indexlibv2::config::AttributeConfig::SetDefragSlicePercent(fieldConfig->GetDefragSlicePercent() * 100);
-    indexlibv2::config::AttributeConfig::SetU32OffsetThreshold(fieldConfig->GetU32OffsetThreshold());
+    indexlibv2::index::AttributeConfig::SetDefragSlicePercent(fieldConfig->GetDefragSlicePercent());
+    indexlibv2::index::AttributeConfig::SetU32OffsetThreshold(fieldConfig->GetU32OffsetThreshold());
 }
 
 void AttributeConfig::SetFieldConfig(const FieldConfigPtr& fieldConfig)
@@ -82,7 +80,12 @@ void AttributeConfig::SetFieldConfig(const FieldConfigPtr& fieldConfig)
         (fieldType == ft_hash_64 && !isMultiValue) || (fieldType == ft_hash_128 && !isMultiValue) ||
         fieldType == ft_string || fieldType == ft_location || fieldType == ft_line || fieldType == ft_polygon ||
         fieldType == ft_raw || fieldType == ft_time || fieldType == ft_timestamp || fieldType == ft_date) {
-        indexlibv2::config::AttributeConfig::Init(fieldConfig);
+        auto status = indexlibv2::index::AttributeConfig::Init(fieldConfig);
+        if (!status.IsOK()) {
+            INDEXLIB_FATAL_ERROR(Schema, "set field config failed, fieldName = %s, fieldType = %s, isMultiValue = %s",
+                                 fieldConfig->GetFieldName().c_str(), FieldConfig::FieldTypeToStr(fieldType),
+                                 (isMultiValue ? "true" : "false"));
+        }
         return;
     }
 
@@ -102,7 +105,7 @@ size_t AttributeConfig::EstimateAttributeExpandSize(size_t docCount)
 
 FieldConfigPtr AttributeConfig::GetFieldConfig() const
 {
-    return std::dynamic_pointer_cast<FieldConfig>(indexlibv2::config::AttributeConfig::GetFieldConfig());
+    return std::dynamic_pointer_cast<FieldConfig>(indexlibv2::index::AttributeConfig::GetFieldConfig());
 }
 
 bool AttributeConfig::IsBuiltInAttribute() const { return GetFieldConfig()->IsBuiltInField(); }
@@ -110,7 +113,7 @@ bool AttributeConfig::IsBuiltInAttribute() const { return GetFieldConfig()->IsBu
 void AttributeConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
 {
     if (json.GetMode() == TO_JSON) {
-        indexlibv2::config::AttributeConfig::Serialize(json);
+        indexlibv2::index::AttributeConfig::Serialize(json);
         if (!mImpl->customizedConfigs.empty()) {
             json.Jsonize(CUSTOMIZED_CONFIG, mImpl->customizedConfigs);
         }
@@ -124,10 +127,11 @@ common::AttributeValueInitializerCreatorPtr AttributeConfig::GetAttrValueInitial
 
 void AttributeConfig::AssertEqual(const AttributeConfig& other) const
 {
-    auto status = indexlibv2::config::AttributeConfig::AssertEqual(other);
+    auto status = indexlibv2::index::AttributeConfig::AssertEqual(other);
     THROW_IF_STATUS_ERROR(status);
 
     IE_CONFIG_ASSERT_EQUAL(mImpl->ownerOpId, other.mImpl->ownerOpId, "ownerOpId not equal");
+    IE_CONFIG_ASSERT_EQUAL(mImpl->configType, other.mImpl->configType, "configType not equal");
 
     auto fieldConfig = GetFieldConfig();
     auto otherFieldConfig = other.GetFieldConfig();
@@ -163,12 +167,12 @@ schema_opid_t AttributeConfig::GetOwnerModifyOperationId() const { return mImpl-
 
 void AttributeConfig::SetUpdatableMultiValue(bool isUpdatable)
 {
-    indexlibv2::config::AttributeConfig::SetUpdatable(isUpdatable);
+    indexlibv2::index::AttributeConfig::SetUpdatable(isUpdatable);
     GetFieldConfig()->SetUpdatableMultiValue(isUpdatable);
 }
 Status AttributeConfig::SetCompressType(const std::string& compressStr)
 {
-    auto status = indexlibv2::config::AttributeConfig::SetCompressType(compressStr);
+    auto status = indexlibv2::index::AttributeConfig::SetCompressType(compressStr);
     RETURN_IF_STATUS_ERROR(status, "attribute config set compress type fail, compressStr[%s]", compressStr.c_str());
     GetFieldConfig()->SetCompressType(compressStr);
     return Status::OK();
@@ -176,12 +180,12 @@ Status AttributeConfig::SetCompressType(const std::string& compressStr)
 
 PackAttributeConfig* AttributeConfig::GetPackAttributeConfig() const
 {
-    return dynamic_cast<PackAttributeConfig*>(indexlibv2::config::AttributeConfig::GetPackAttributeConfig());
+    return dynamic_cast<PackAttributeConfig*>(indexlibv2::index::AttributeConfig::GetPackAttributeConfig());
 }
 
 bool AttributeConfig::IsLegacyAttributeConfig() const
 {
-    if (getenv("INDEXLIB_FORCE_USE_LEGACY_ATTRIBUTE_CONFIG")) {
+    if (autil::EnvUtil::hasEnv("INDEXLIB_FORCE_USE_LEGACY_ATTRIBUTE_CONFIG")) {
         IE_LOG(WARN, "INDEXLIB_FORCE_USE_LEGACY_ATTRIBUTE_CONFIG is set, will serialize legacy attribute config, some "
                      "property maybe lost, such as updatable");
         return !GetFileCompressConfig() || !GetCustomizedConfigs().empty();
@@ -189,5 +193,8 @@ bool AttributeConfig::IsLegacyAttributeConfig() const
         return false;
     }
 }
+
+AttributeConfig::ConfigType AttributeConfig::GetConfigType() const { return mImpl->configType; }
+void AttributeConfig::SetConfigType(AttributeConfig::ConfigType type) { mImpl->configType = type; }
 
 }} // namespace indexlib::config

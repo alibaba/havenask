@@ -1,0 +1,27 @@
+{
+    "table_name": "auction",
+    "fields": 
+    [
+        {"field_name":"sub_int8_single", "field_type":"int8", "compress_type":"patch_compress"},
+        {"field_name":"sub_int8_multi", "field_type":"int8",   "multi_value": true, "updatable_multi_value": true, "compress_type":"equal|patch_compress"},
+        {"field_name":"sub_str_single", "field_type":"string"}
+    ],
+
+    "indexs": 
+    [
+	{
+	    "index_name": "sub_pk",
+            "index_type" : "PRIMARYKEY64",
+	    "index_fields": "sub_str_single"
+	}
+    ],
+
+    "attributes":
+    [
+        {
+            "pack_name" : "sub_pack_attr",
+            "sub_attributes" : ["sub_int8_single", "sub_int8_multi"]                                
+        }
+    ]
+}
+

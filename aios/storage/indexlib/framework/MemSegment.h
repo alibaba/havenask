@@ -29,7 +29,7 @@ namespace indexlib::framework {
 class SegmentMetrics;
 }
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 class TabletOptions;
 } // namespace indexlibv2::config
 
@@ -48,7 +48,7 @@ public:
     virtual ~MemSegment() = default;
 
 public:
-    size_t EstimateMemUsed(const std::shared_ptr<config::TabletSchema>& schema) override { return 0; }
+    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override { return 0; }
 
 public:
     virtual Status Open(const BuildResource& resource, indexlib::framework::SegmentMetrics* lastSegmentMetrics) = 0;

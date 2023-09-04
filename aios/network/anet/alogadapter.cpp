@@ -13,61 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "aios/network/anet/alogadapter.h"
+
+#include <iostream>
 #include <stdarg.h>
-#include <strings.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <iostream>
 #include <string>
+#include <strings.h>
 
 #include "alog/Configurator.h"
-#include "aios/network/anet/alogadapter.h"
 #include "alog/Logger.h"
 
-static const char *g_errstr[] = {"NO_LEVEL", "NO_LEVEL", "ERROR","WARN","INFO","DEBUG","SPAM"};
+static const char *g_errstr[] = {"NO_LEVEL", "NO_LEVEL", "ERROR", "WARN", "INFO", "DEBUG", "SPAM"};
 
-AlogAdapter::AlogAdapter(const std::string & loggerName) {
-    logger = alog::Logger::getLogger(loggerName.c_str());
-}
-AlogAdapter::AlogAdapter(const char *loggerName) {
-    logger = alog::Logger::getLogger(loggerName);
-}
+AlogAdapter::AlogAdapter(const std::string &loggerName) { logger = alog::Logger::getLogger(loggerName.c_str()); }
+AlogAdapter::AlogAdapter(const char *loggerName) { logger = alog::Logger::getLogger(loggerName); }
 
-AlogAdapter::AlogAdapter() {
-    logger = alog::Logger::getRootLogger();
-}
+AlogAdapter::AlogAdapter() { logger = alog::Logger::getRootLogger(); }
 
 AlogAdapter::~AlogAdapter() {}
 
-void AlogAdapter::logSetupStatic() {
-    alog::Configurator::configureRootLogger();
-}
+void AlogAdapter::logSetupStatic() { alog::Configurator::configureRootLogger(); }
 
 void AlogAdapter::logSetupStatic(const std::string &configFile) {
     try {
         alog::Configurator::configureLogger(configFile.c_str());
-    } catch(std::exception &e) {
-        std::cerr << "WARN! Failed to configure logger!"
-                  << e.what() << ",use default log conf."
-                  << std::endl;
+    } catch (std::exception &e) {
+        std::cerr << "WARN! Failed to configure logger!" << e.what() << ",use default log conf." << std::endl;
         alog::Configurator::configureRootLogger();
     }
 }
 
-void AlogAdapter::logTearDownStatic() {
-    alog::Logger::shutdown();
-}
+void AlogAdapter::logTearDownStatic() { alog::Logger::shutdown(); }
 
 int AlogAdapter::getLogLevel(void) {
     int rc = logger->getLevel();
-    if (rc < 0) rc = 0;
-    return  rc;
+    if (rc < 0)
+        rc = 0;
+    return rc;
 }
 
 void AlogAdapter::setLogLevel(const char *level) {
-    if (level == NULL) return;
-    int l = sizeof(g_errstr)/sizeof(char*);
-    for (int i=0; i<l; i++) {
+    if (level == NULL)
+        return;
+    int l = sizeof(g_errstr) / sizeof(char *);
+    for (int i = 0; i < l; i++) {
         if (strcasecmp(level, g_errstr[i]) == 0) {
             uint32_t tmp = i;
             if (tmp >= alog::LOG_LEVEL_COUNT) {
@@ -79,20 +70,17 @@ void AlogAdapter::setLogLevel(const char *level) {
     }
 }
 
-void AlogAdapter::setLogLevel(const int level) {
-    logger->setLevel(level);
-}
+void AlogAdapter::setLogLevel(const int level) { logger->setLevel(level); }
 
-void AlogAdapter::logPureMessage(int level, const char *file, int line, const char *function, const char *buffer)
-{
-    if (__builtin_expect((!logger->isLevelEnabled(level)),1))
+void AlogAdapter::logPureMessage(int level, const char *file, int line, const char *function, const char *buffer) {
+    if (__builtin_expect((!logger->isLevelEnabled(level)), 1))
         return;
 
     logger->log(level, file, line, function, "%s", buffer);
 }
 
 void AlogAdapter::log(int level, const char *file, int line, const char *function, const char *fmt, ...) {
-    if (__builtin_expect((!logger->isLevelEnabled(level)),1))
+    if (__builtin_expect((!logger->isLevelEnabled(level)), 1))
         return;
 
     va_list va;

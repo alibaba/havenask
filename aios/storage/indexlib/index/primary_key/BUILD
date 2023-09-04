@@ -1,34 +1,34 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=[':__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='factory',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':PrimaryKeyIndexFactory']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='reader',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':primary_key_reader']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='constants',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':Common', ':Constant', ':Types']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='util',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=[':PrimaryKeyHashConvertor']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PrimaryKeyIndexFactory',
     deps=[
         '//aios/storage/indexlib/index:IIndexFactory',
@@ -38,7 +38,7 @@ indexlib_cc_library(
     ],
     alwayslink=True
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PrimaryKeyIndexReader',
     srcs=[],
     visibility=['//visibility:public'],
@@ -50,7 +50,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/primary_key:Types'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='primary_key_indexer',
     srcs=[],
     hdrs=[
@@ -69,6 +69,7 @@ indexlib_cc_library(
         '//aios/autil:log', '//aios/future_lite',
         '//aios/storage/indexlib/base:NoExceptionWrapper',
         '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/document:interface',
         '//aios/storage/indexlib/document/extractor:IDocumentInfoExtractorFactory',
         '//aios/storage/indexlib/document/extractor/plain:DocumentInfoExtractorFactory',
         '//aios/storage/indexlib/file_system',
@@ -81,7 +82,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:HashMap'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InMemPrimaryKeySegmentReaderTyped',
     srcs=[],
     deps=[
@@ -90,7 +91,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:HashMap'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PrimaryKeyBuildingIndexReader',
     srcs=[],
     deps=[
@@ -98,7 +99,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:HashMap'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PrimaryKeyInDocPositionState',
     srcs=[],
     deps=[
@@ -106,7 +107,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index:Types'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PrimaryKeyPostingIterator',
     deps=[
         ':InMemPrimaryKeySegmentReaderTyped', ':PrimaryKeyInDocPositionState',
@@ -115,14 +116,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format:TermMeta'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentDataAdapter',
     deps=[
         '//aios/storage/indexlib/framework:Segment',
         '//aios/storage/indexlib/framework:SegmentInfo'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='primary_key_reader_interface',
     srcs=[],
     hdrs=[
@@ -131,7 +132,7 @@ indexlib_cc_library(
     ],
     deps=['//aios/autil:mem_pool_base', '//aios/storage/indexlib/base:Status']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='primary_key_reader',
     srcs=['PrimaryKeyLoadPlan.cpp'],
     hdrs=[],
@@ -150,7 +151,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/primary_key/merger:OnDiskOrderedPrimaryKeyIterator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PrimaryKeyAttributeReader',
     deps=[
         ':primary_key_indexer',
@@ -158,26 +159,26 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/primary_key/config:PrimaryKeyIndexConfig'
     ]
 )
-indexlib_cc_library(name='Common', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='Common', srcs=[])
+strict_cc_library(
     name='PrimaryKeyHashConvertor',
     srcs=[],
     deps=['//aios/autil:long_hash_value']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PrimaryKeyDuplicationChecker',
     deps=[':PrimaryKeyIndexReader', '//aios/autil:thread']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='Types',
     srcs=[],
     deps=['//aios/storage/indexlib/index/common:PrimaryKeyHashType']
 )
-indexlib_cc_library(name='Constant', srcs=[], deps=[':Types'])
-indexlib_cc_library(
+strict_cc_library(name='Constant', srcs=[], deps=[':Types'])
+strict_cc_library(
     name='SinglePrimaryKeyBuilder', srcs=[], deps=[':primary_key_indexer']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PrimaryKeyBuildWorkItem',
     srcs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],

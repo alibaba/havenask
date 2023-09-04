@@ -17,11 +17,9 @@
 
 extern "C"
 
-fslib::fs::AbstractFileSystem* createFileSystem() {
+    fslib::fs::AbstractFileSystem *
+    createFileSystem() {
     return new fslib::fs::hdfs::HdfsFileSystem;
 }
 
-extern "C"
-void destroyFileSystem(fslib::fs::AbstractFileSystem* fileSystem) {
-    delete fileSystem;
-}
+extern "C" void destroyFileSystem(fslib::fs::AbstractFileSystem *fileSystem) { delete fileSystem; }

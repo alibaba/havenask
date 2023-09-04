@@ -1,0 +1,48 @@
+{
+    "fields": [
+        {
+            "binary_field": false,
+            "field_name": "seller_id",
+            "field_type": "LONG"
+        },
+        {
+            "binary_field": false,
+            "field_name": "member_id",
+            "field_type": "LONG"
+        },
+        {
+            "binary_field": false,
+            "field_name": "sim_seller_id",
+            "field_type": "LONG"
+        },
+        {
+            "binary_field": false,
+            "field_name": "sim_member_id",
+            "field_type": "LONG"
+        },
+        {
+            "binary_field": false,
+            "field_name": "score",
+            "field_type": "DOUBLE"
+        }
+    ],
+    "indexes": {
+        "kv": [
+            {
+                "index_name": "member_id_sim_member_id",
+                "index_preference": {
+                    "type": "PERF"
+                },
+                "key_field": "member_id",
+                "value_fields": [
+                    "seller_id",
+                    "sim_seller_id",
+                    "sim_member_id",
+                    "score"
+                ]
+            }
+        ]
+    },
+    "table_name": "shop_col_cart_alipay_sim_for_dmp_all_user",
+    "table_type": "kv"
+}

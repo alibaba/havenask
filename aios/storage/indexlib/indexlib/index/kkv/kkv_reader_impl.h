@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "autil/EnvUtil.h"
 #include "indexlib/index/kkv/kkv_reader_impl_base.h"
 #include "indexlib/index_base/segment/in_memory_segment_reader.h"
 
@@ -298,9 +299,9 @@ inline bool KKVReaderImpl<SKeyType>::doCollectAllCode()
             break;
         }
     }
-    char* envParam = getenv("READ_REPORT_METRICS");
+    std::string envParam = autil::EnvUtil::getEnv("READ_REPORT_METRICS");
     bool KKVReportMetrics = true;
-    if (envParam && std::string(envParam) == "false") {
+    if (envParam == "false") {
         KKVReportMetrics = false;
     }
     {

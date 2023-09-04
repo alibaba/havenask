@@ -1,0 +1,28 @@
+{
+"config":
+  "hdfs:\/\/ea120cloudstorage\/tisplus\/moss_online\/config\/\/1873\/119714\/1603154941534",
+"data_description":
+  "{\n\"document_format\":\n  \"indexlib_parser\",\n\"need_field_filter\":\n  \"false\",\n\"parser_config\":\n  [\n    {\n    \"parameters\":\n      {\n      \"message_type\":\n        \"flatbuffer\"\n      },\n    \"type\":\n      \"indexlib_parser\"\n    }\n  ],\n\"raw_doc_schema_name\":\n  \"ad_kgb_10m\",\n\"reader_config\":\n  \"oneRequestReadCount=200000;readBufferSize=300000\",\n\"src\":\n  \"swift\",\n\"src_signature\":\n  \"1\",\n\"swift_root\":\n  \"http:\\\/\\\/fs-proxy.vip.tbsite.net:3066\\\/swift_et120_kmon\",\n\"swift_start_timestamp\":\n  \"1603152000000000\",\n\"topic_name\":\n  \"kmonitor_metric_ad_kgb_fb_10m\",\n\"type\":\n  \"swift\"\n}",
+"document_format":
+  "indexlib_parser",
+"need_field_filter":
+  "false",
+"raw_doc_schema_name":
+  "ad_kgb_10m",
+"reader_config":
+  "oneRequestReadCount=200000;readBufferSize=300000",
+"realtime_mode":
+  "realtime_service_rawdoc_rt_build_mode",
+"src":
+  "swift",
+"src_signature":
+  "1",
+"swift_root":
+  "http:\/\/fs-proxy.vip.tbsite.net:3066\/swift_et120_kmon",
+"swift_start_timestamp":
+  "1603152000000000",
+"topic_name":
+  "kmonitor_metric_ad_kgb_fb_10m",
+"type":
+  "swift"
+}

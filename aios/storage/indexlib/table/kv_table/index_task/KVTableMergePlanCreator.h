@@ -38,7 +38,7 @@ class ReclaimMap;
 class KVTableMergePlanCreator : public SimpleIndexTaskPlanCreator
 {
 public:
-    KVTableMergePlanCreator(const std::string& taskName);
+    KVTableMergePlanCreator(const std::string& taskName, const std::map<std::string, std::string>& params);
     ~KVTableMergePlanCreator();
 
 public:
@@ -49,10 +49,6 @@ private:
     std::string ConstructLogTaskType() const override;
     std::string ConstructLogTaskId(const framework::IndexTaskContext* taskContext,
                                    const framework::Version& targetVersion) const override;
-
-    // rewrite mergeConfig in taskContext from IndexTaskConfig
-    // otherwise merge strategy should change logic, any better way ?
-    Status RewriteMergeConfig(const framework::IndexTaskContext* taskContext);
 
     std::unique_ptr<MergeStrategy> CreateMergeStrategy(const framework::IndexTaskContext* taskContext);
     Status CommitMergePlans(const std::shared_ptr<MergePlan>& mergePlan,

@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='tablet',
     srcs=[],
     hdrs=[],
@@ -9,52 +9,56 @@ indexlib_cc_library(
         ':Tablet', ':TabletCreator', ':TabletDeployer', ':TabletPortalManager'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='id_generator',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=[':IdGenerator']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='version_cleaner',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=[':VersionCleaner']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='tablet_doc_iterator',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=[':ITabletDocIterator']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='tablet_factory',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=[':ITabletFactory']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='tablet_schema_loader',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=[':TabletSchemaLoader']
 )
-indexlib_cc_library(name='IndexRoot', srcs=[])
-indexlib_cc_library(name='TabletId')
-indexlib_cc_library(name='DumpParams', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='IndexRoot', srcs=[])
+strict_cc_library(name='TabletId')
+strict_cc_library(name='DumpParams', srcs=[])
+strict_cc_library(
     name='ITabletDocIterator', srcs=[], hdrs=['ITabletDocIterator.h']
 )
-indexlib_cc_library(
-    name='ITabletValidator', srcs=[], hdrs=['ITabletValidator.h']
+strict_cc_library(name='ITabletValidator', srcs=[], hdrs=['ITabletValidator.h'])
+strict_cc_library(name='ITabletExporter', srcs=[], hdrs=['ITabletExporter.h'])
+strict_cc_library(
+    name='ITabletImporter',
+    srcs=[],
+    hdrs=['ITabletImporter.h'],
+    deps=[':ImportOptions', ':Version', '//aios/storage/indexlib/base:Status']
 )
-indexlib_cc_library(name='ITabletExporter', srcs=[], hdrs=['ITabletExporter.h'])
-indexlib_cc_library(
+strict_cc_library(
     name='TabletReaderContainer',
     deps=[
         '//aios/storage/indexlib/framework:ITabletReader',
@@ -62,7 +66,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework:VersionDeployDescription'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='LevelInfo',
     deps=[
         '//aios/autil:json', '//aios/autil:string_helper',
@@ -72,10 +76,10 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:ShardUtil'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentTopologyInfo', deps=[':LevelInfo', '//aios/autil:json']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentDescriptions',
     deps=[
         ':LevelInfo', ':SegmentStatistics', ':SegmentTopologyInfo',
@@ -83,14 +87,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletDumper',
     deps=[
         ':SegmentDumper', ':TabletCommitter', '//aios/future_lite',
         '//aios/storage/indexlib/config:TabletOptions'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletSchemaManager',
     deps=[
         ':ITabletFactory', ':TabletSchemaLoader', ':Version',
@@ -98,7 +102,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletCenter',
     deps=[
         ':ITablet', ':TabletInfos', '//aios/alog', '//aios/autil:env_util',
@@ -106,11 +110,11 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:Singleton'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletCommitter',
     deps=[
-        ':CommitOptions', ':IdGenerator', ':SegmentMeta', ':TabletData',
-        ':Version', ':VersionCommitter', ':VersionImporter', ':VersionMerger',
+        ':CommitOptions', ':ITabletImporter', ':IdGenerator', ':SegmentMeta',
+        ':TabletData', ':Version', ':VersionCommitter', ':VersionMerger',
         '//aios/alog', '//aios/autil:time',
         '//aios/storage/indexlib/base:NoExceptionWrapper',
         '//aios/storage/indexlib/base:Status',
@@ -118,7 +122,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework/cleaner:DropIndexCleaner'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentDumper',
     deps=[
         ':Locator', ':MemSegment', ':MetricsWrapper', ':SegmentDumpItem',
@@ -126,12 +130,12 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:NoExceptionWrapper'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentDumpItem',
     srcs=[],
     deps=[':TabletData', '//aios/storage/indexlib/config:TabletOptions']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentMeta',
     deps=[
         ':SegmentInfo', ':SegmentMetrics', '//aios/storage/indexlib/base:Types',
@@ -139,10 +143,10 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ITabletLoader', srcs=[], deps=['//aios/storage/indexlib/base:Status']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletLoader',
     deps=[
         ':DiskSegment', ':ITabletLoader', ':Segment', ':SegmentMeta',
@@ -150,14 +154,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/config:schema'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletInfos',
     deps=[
         ':IndexRoot', ':Locator', ':TabletId', ':Version',
-        '//aios/storage/indexlib/util/counter'
+        ':VersionDeployDescription', '//aios/storage/indexlib/util/counter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='Locator',
     deps=[
         '//aios/alog', '//aios/autil:json',
@@ -166,13 +170,13 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BuildResource', srcs=[], deps=['//aios/kmonitor:kmonitor_client_cpp']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ReadResource', srcs=[], deps=['//aios/kmonitor:kmonitor_client_cpp']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletData',
     deps=[
         ':Segment', ':TabletDataInfo', ':TabletDataSchemaGroup', ':Version',
@@ -182,37 +186,37 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework:ResourceMap'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletResource',
     srcs=[],
     deps=[
         ':TabletId', '//aios/future_lite', '//aios/kmonitor:kmonitor_client_cpp'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='Version',
     deps=[
         ':Locator', ':SegmentDescriptions', ':VersionLine', '//aios/alog',
-        '//aios/autil:json', '//aios/autil:string_helper',
-        '//aios/storage/indexlib/base:Status',
+        '//aios/autil:json', '//aios/autil:murmur_hash', '//aios/autil:net',
+        '//aios/autil:string_helper', '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/base:Types',
         '//aios/storage/indexlib/base:constants',
         '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/framework/index_task:IndexTaskHistory'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MemSegment',
     srcs=[],
     deps=[':BuildResource', ':Segment', '//aios/storage/indexlib/base:Status']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ITabletReader', srcs=[], deps=['//aios/storage/indexlib/base:Status']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ITabletPortal', srcs=[], deps=['//aios/storage/indexlib/base:Status']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletPortalBase',
     deps=[
         ':ITabletPortal', ':Tablet', ':TabletInfos', '//aios/alog',
@@ -220,22 +224,22 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:Status'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='HttpTabletPortal',
     deps=[
         ':TabletPortalBase', '//aios/storage/indexlib/util:headers',
         '//aios/storage/indexlib/util:key_value_map'
     ]
 )
-indexlib_cc_library(name='TabletPortalManager', deps=[':HttpTabletPortal'])
-indexlib_cc_library(name='OpenOptions', deps=['//aios/autil:log'])
-indexlib_cc_library(
+strict_cc_library(name='TabletPortalManager', deps=[':HttpTabletPortal'])
+strict_cc_library(name='OpenOptions', deps=['//aios/autil:log'])
+strict_cc_library(
     name='CommitOptions',
     srcs=[],
     deps=['//aios/storage/indexlib/base:constants']
 )
-indexlib_cc_library(name='ImportOptions', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='ImportOptions', srcs=[])
+strict_cc_library(
     name='Segment',
     srcs=[],
     deps=[
@@ -244,19 +248,20 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DiskSegment', srcs=[], deps=[':BuildResource', ':Segment']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ITablet',
     srcs=[],
     deps=[
         ':CommitOptions', ':ITabletReader', ':ImportOptions', ':IndexRoot',
         ':OpenOptions', ':TabletId', ':VersionCoord', ':VersionMeta',
-        '//aios/autil:NoCopyable'
+        '//aios/autil:NoCopyable',
+        '//aios/storage/indexlib/framework/index_task:MergeTaskDefine'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='Tablet',
     deps=[
         ':Fence', ':ITablet', ':ITabletFactory', ':ITabletMergeController',
@@ -278,11 +283,13 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/framework/cleaner:OnDiskIndexCleaner',
         '//aios/storage/indexlib/framework/cleaner:ResourceCleaner',
+        '//aios/storage/indexlib/framework/index_task:MergeTaskDefine',
         '//aios/storage/indexlib/framework/lifecycle',
-        '//aios/storage/indexlib/framework/mem_reclaimer:EpochBasedMemReclaimer'
+        '//aios/storage/indexlib/framework/mem_reclaimer:EpochBasedMemReclaimer',
+        '//aios/storage/indexlib/util:KeyHasherTyped'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletFactoryCreator',
     hdrs=['ITabletFactory.h', 'TabletFactoryCreator.h'],
     deps=[
@@ -290,7 +297,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:Singleton'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ITabletFactory',
     srcs=[],
     deps=[
@@ -299,7 +306,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:Types'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletWriter',
     srcs=[],
     deps=[
@@ -307,7 +314,7 @@ indexlib_cc_library(
         '//aios/future_lite', '//aios/storage/indexlib/base:Status'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletReader',
     deps=[
         ':ITabletReader', ':ReadResource', ':TabletData',
@@ -315,7 +322,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework/mem_reclaimer:IIndexMemoryReclaimer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VersionCommitter',
     deps=[
         ':Fence', ':Version', '//aios/storage/indexlib/base:NoExceptionWrapper',
@@ -325,7 +332,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VersionLoader',
     deps=[
         ':Version', '//aios/storage/indexlib/base:NoExceptionWrapper',
@@ -335,7 +342,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletSchemaLoader',
     deps=[
         ':TabletFactoryCreator', '//aios/storage/indexlib/base:Status',
@@ -347,7 +354,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VersionMerger',
     deps=[
         ':ITabletMergeController', ':MetricsManager', ':VersionCoord',
@@ -358,8 +365,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework/index_task:IndexTaskResourceManager'
     ]
 )
-indexlib_cc_library(name='TaskType')
-indexlib_cc_library(
+strict_cc_library(name='TaskType')
+strict_cc_library(
     name='TabletMemoryCalculator',
     deps=[
         ':TabletData', ':TabletReaderContainer', ':TabletWriter',
@@ -367,7 +374,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MetricsWrapper',
     srcs=[],
     deps=[
@@ -375,7 +382,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util/metrics:metric'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexRecoverStrategy',
     deps=[
         ':Version', ':VersionLoader',
@@ -384,7 +391,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletMetrics',
     deps=[
         ':BuildDocumentMetrics', ':IMetrics', ':MetricsWrapper',
@@ -395,7 +402,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/config:TabletOptions'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BuildDocumentMetrics',
     deps=[
         ':MetricsWrapper', '//aios/autil:time',
@@ -403,7 +410,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/document:DocumentBatch'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='Fence',
     deps=[
         ':TabletId', '//aios/autil:string_helper',
@@ -415,15 +422,15 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:retry_util'
     ]
 )
-indexlib_cc_library(name='IdGenerator', deps=[':Segment', ':Version'])
-indexlib_cc_library(
+strict_cc_library(name='IdGenerator', deps=[':Segment', ':Version'])
+strict_cc_library(
     name='VersionCoord',
     deps=[
         '//aios/autil:json', '//aios/autil:string_helper',
         '//aios/storage/indexlib/base:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VersionMeta',
     deps=[
         ':Version', ':VersionLine', '//aios/autil:json',
@@ -431,7 +438,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VersionMetaCreator',
     deps=[
         'VersionMeta', ':DeployIndexUtil', ':TabletData',
@@ -439,7 +446,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DeployIndexUtil',
     deps=[
         ':Segment', ':Version', '//aios/storage/indexlib/base:Status',
@@ -449,7 +456,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system/load_config:interface'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ITabletMergeController',
     srcs=[],
     deps=[
@@ -458,15 +465,15 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework/index_task:MergeTaskDefine'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletCreator',
     deps=[
         ':ITablet', ':Tablet', ':TabletResource', '//aios/autil:NoCopyable',
         '//aios/autil:log'
     ]
 )
-indexlib_cc_library(name='IMetrics', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='IMetrics', srcs=[])
+strict_cc_library(
     name='MetricsManager',
     deps=[
         ':IMetrics', '//aios/autil:NoCopyable',
@@ -474,8 +481,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util/counter'
     ]
 )
-indexlib_cc_library(name='IResource', srcs=[], deps=['//aios/autil:NoCopyable'])
-indexlib_cc_library(
+strict_cc_library(name='IResource', srcs=[], deps=['//aios/autil:NoCopyable'])
+strict_cc_library(
     name='ResourceMap',
     deps=[
         '//aios/autil:log', '//aios/storage/indexlib/base:Status',
@@ -484,7 +491,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework:IResource'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletDataInfo',
     srcs=[],
     deps=[
@@ -493,11 +500,11 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletDataSchemaGroup',
     deps=[':IResource', '//aios/storage/indexlib/base:Types']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletDeployer',
     deps=[
         ':Version', ':VersionDeployDescription', ':VersionLoader',
@@ -506,13 +513,15 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:Types',
         '//aios/storage/indexlib/base:constants',
         '//aios/storage/indexlib/config:options',
+        '//aios/storage/indexlib/config:schema',
         '//aios/storage/indexlib/file_system:deploy',
         '//aios/storage/indexlib/file_system/load_config:interface',
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
         '//aios/storage/indexlib/framework/hooks',
         '//aios/storage/indexlib/framework/lifecycle'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentFenceDirFinder',
     deps=[
         ':Fence', ':Version', '//aios/autil:json',
@@ -520,14 +529,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentInfo',
     deps=[
         ':Locator', ':SegmentStatistics', '//aios/autil:json',
-        '//aios/storage/indexlib/file_system'
+        '//aios/autil:net', '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VersionDeployDescription',
     deps=[
         '//aios/storage/indexlib/base:Types',
@@ -535,22 +544,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system:interface'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentStatistics',
     deps=[
         '//aios/autil:json', '//aios/storage/indexlib/base:Types',
         '//aios/storage/indexlib/base:constants'
     ]
 )
-indexlib_cc_library(
-    name='VersionImporter',
-    deps=[
-        ':Fence', ':ImportOptions', ':SegmentInfo', ':Version',
-        '//aios/storage/indexlib/base:PathUtil',
-        '//aios/storage/indexlib/file_system'
-    ]
-)
-indexlib_cc_library(
+strict_cc_library(
     name='VersionValidator',
     deps=[
         ':ITablet', ':ITabletFactory', ':ITabletValidator', ':MetricsManager',
@@ -558,22 +559,22 @@ indexlib_cc_library(
         '//aios/storage/indexlib/config:TabletSchema'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VersionCleaner',
     deps=[
         ':Segment', ':SegmentFenceDirFinder', ':Version', ':VersionCoord',
         ':VersionLoader', '//aios/filesystem/fslib:fslib-framework'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MemSegmentCreator',
     deps=[
         ':ITabletFactory', ':IdGenerator', ':MemSegment', ':TabletData',
         '//aios/autil:log', '//aios/storage/indexlib/config:options'
     ]
 )
-indexlib_cc_library(name='SegmentGroupMetrics', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='SegmentGroupMetrics', srcs=[])
+strict_cc_library(
     name='SegmentMetrics',
     deps=[
         ':SegmentGroupMetrics', '//aios/autil:json',
@@ -583,7 +584,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:Exception'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='VersionLine',
     deps=[
         ':VersionCoord', '//aios/autil:json',
@@ -592,7 +593,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TabletFault',
     deps=[
         '//aios/autil:NoCopyable', '//aios/autil:json', '//aios/autil:log',

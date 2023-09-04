@@ -1,0 +1,8 @@
+{
+    "summary_profile_name": "base",
+    "extractor":
+    {
+        "module_name": "base",
+	"extractor_name": "base"
+    }
+}

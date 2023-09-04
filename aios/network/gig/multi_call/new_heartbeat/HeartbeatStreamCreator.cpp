@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/new_heartbeat/HeartbeatStreamCreator.h"
-#include "aios/network/gig/multi_call/new_heartbeat/HeartbeatServerStream.h"
+
 #include "aios/network/gig/multi_call/new_heartbeat/HeartbeatServerManager.h"
+#include "aios/network/gig/multi_call/new_heartbeat/HeartbeatServerStream.h"
 
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, HeartbeatStreamCreator);
@@ -40,7 +41,7 @@ GigServerStreamPtr HeartbeatStreamCreator::create() {
     return std::dynamic_pointer_cast<GigServerStream>(stream);
 }
 
-void HeartbeatStreamCreator::setManager(const HeartbeatServerManagerPtr &manager){
+void HeartbeatStreamCreator::setManager(const HeartbeatServerManagerPtr &manager) {
     autil::ScopedLock scope(_managerMutex);
     _manager = manager;
 }
@@ -50,4 +51,4 @@ HeartbeatServerManagerPtr HeartbeatStreamCreator::getManager() const {
     return _manager;
 }
 
-}
+} // namespace multi_call

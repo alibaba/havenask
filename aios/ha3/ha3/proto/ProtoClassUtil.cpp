@@ -27,19 +27,16 @@ using namespace autil;
 namespace isearch {
 namespace proto {
 
-ProtoClassUtil::ProtoClassUtil() { 
-}
+ProtoClassUtil::ProtoClassUtil() {}
 
-ProtoClassUtil::~ProtoClassUtil() { 
-}
+ProtoClassUtil::~ProtoClassUtil() {}
 
 string ProtoClassUtil::partitionIdToString(const PartitionID &partId) {
-    return RoleType_Name(partId.role()) 
-        + '_' + partId.clustername()
-        + '_' + StringUtil::toString(partId.majorconfigversion())
-        + '_' + StringUtil::toString(partId.fullversion())
-        + '_' + StringUtil::toString(partId.range().from())
-        + '_' + StringUtil::toString(partId.range().to());
+    return RoleType_Name(partId.role()) + '_' + partId.clustername() + '_'
+           + StringUtil::toString(partId.majorconfigversion()) + '_'
+           + StringUtil::toString(partId.fullversion()) + '_'
+           + StringUtil::toString(partId.range().from()) + '_'
+           + StringUtil::toString(partId.range().to());
 }
 
 string ProtoClassUtil::partitionIdToStringForDisplay(const PartitionID &pid) {
@@ -47,8 +44,7 @@ string ProtoClassUtil::partitionIdToStringForDisplay(const PartitionID &pid) {
     if (pid.role() != ROLE_QRS) {
         oss << pid.clustername() << ".";
     }
-    oss << RoleType_Name(pid.role())
-        << ".Generation[" << pid.fullversion() << "]"
+    oss << RoleType_Name(pid.role()) << ".Generation[" << pid.fullversion() << "]"
         << ".Range[" << pid.range().from() << "-" << pid.range().to() << "]";
     return oss.str();
 }
@@ -65,12 +61,12 @@ string ProtoClassUtil::toString(const PartitionID &partitionId) {
     return partitionId.ShortDebugString();
 }
 
-PartitionID ProtoClassUtil::createPartitionID(
-        const std::string &clusterName,
-        RoleType type, uint16_t from, 
-        uint16_t to, uint32_t fullversion,
-        uint32_t majorConfigVersion)
-{
+PartitionID ProtoClassUtil::createPartitionID(const std::string &clusterName,
+                                              RoleType type,
+                                              uint16_t from,
+                                              uint16_t to,
+                                              uint32_t fullversion,
+                                              uint32_t majorConfigVersion) {
     Range range;
     range.set_from(from);
     range.set_to(to);
@@ -86,10 +82,9 @@ PartitionID ProtoClassUtil::createPartitionID(
     return partitionID;
 }
 
-const PartitionID& ProtoClassUtil::getQrsPartitionID()
-{
-    static PartitionID qrsPartitionID = createPartitionID("", 
-            ROLE_QRS, 0, numeric_limits<uint16_t>::max(), 0, 0);
+const PartitionID &ProtoClassUtil::getQrsPartitionID() {
+    static PartitionID qrsPartitionID
+        = createPartitionID("", ROLE_QRS, 0, numeric_limits<uint16_t>::max(), 0, 0);
 
     return qrsPartitionID;
 }
@@ -109,9 +104,7 @@ CompressType ProtoClassUtil::convertCompressType(autil::CompressType type) {
     }
 }
 
-autil::CompressType ProtoClassUtil::toHaCompressType(
-        CompressType type)
-{
+autil::CompressType ProtoClassUtil::toHaCompressType(CompressType type) {
     switch (type) {
     case CT_Z_SPEED_COMPRESS:
         return autil::CompressType::Z_SPEED_COMPRESS;

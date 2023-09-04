@@ -15,6 +15,7 @@
  */
 #include "indexlib/framework/BuildDocumentMetrics.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/TimeUtility.h"
 #include "indexlib/document/IDocument.h"
 #include "indexlib/document/IDocumentBatch.h"
@@ -52,12 +53,11 @@ DeclareMetric(const std::shared_ptr<kmonitor::MetricsReporter>& metricProvider, 
 void BuildDocumentMetrics::RegisterMetrics()
 {
     static std::string buildDocumentMetricsInterval = "build_document_metrics_interval_us";
-    const char* param = getenv(buildDocumentMetricsInterval.c_str());
     int64_t interval = 0;
-    if (param != nullptr and autil::StringUtil::fromString(std::string(param), interval)) {
+    if (autil::EnvUtil::getEnvWithoutDefault(buildDocumentMetricsInterval, interval)) {
         _periodicReportIntervalUS = interval;
     }
-    TABLET_LOG(INFO, "build_document_metrics_interval %s interval %ld", param, _periodicReportIntervalUS);
+    TABLET_LOG(INFO, "build_document_metrics_interval %ld", _periodicReportIntervalUS);
 
     if (_metricsReporter == nullptr) {
         return;

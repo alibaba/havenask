@@ -40,7 +40,7 @@ bool TableSchema::eraseColumnSchema(const std::string &name) {
     return true;
 }
 
-ColumnSchema* TableSchema::getColumnSchema(const string &name) const {
+ColumnSchema *TableSchema::getColumnSchema(const string &name) const {
     auto iter = _columnSchema.find(name);
     if (iter == _columnSchema.end()) {
         AUTIL_LOG(WARN, "column [%s] does not exist.", name.c_str());
@@ -51,26 +51,13 @@ ColumnSchema* TableSchema::getColumnSchema(const string &name) const {
 
 std::string TableSchema::toString() const {
     string str;
-    for (auto iter :_columnSchema) {
+    for (auto iter : _columnSchema) {
         str += iter.second->toString() + ";";
     }
     return str;
 }
 
-bool TableSchema::hasMultiValueColumn() const {
-    for (const auto &iter : _columnSchema) {
-        auto columnSchema = iter.second;
-        if (columnSchema->getType().isMultiValue()) {
-            return true;
-        }
-        if (columnSchema->getType().getBuiltinType() == matchdoc::bt_string) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool TableSchema::operator == (const TableSchema& other) const {
+bool TableSchema::operator==(const TableSchema &other) const {
     if (_columnSchema.size() != other._columnSchema.size()) {
         return false;
     }
@@ -86,4 +73,4 @@ bool TableSchema::operator == (const TableSchema& other) const {
     return true;
 }
 
-}
+} // namespace table

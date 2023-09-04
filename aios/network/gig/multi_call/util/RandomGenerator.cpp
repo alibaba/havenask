@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/util/RandomGenerator.h"
+
 #include "autil/TimeUtility.h"
 #if !__aarch64__
 #include <cpuid.h>

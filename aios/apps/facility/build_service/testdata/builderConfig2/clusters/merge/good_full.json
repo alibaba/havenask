@@ -1,0 +1,58 @@
+{
+    "merge_config" : {
+
+	"merge_strategy" : "optimize",
+	"merge_strategy_param" : "",
+	"merge_thread_count" : 3,
+        "max_merge_memory_use" : 22528,
+	"truncate_strategy" : [
+	    {
+		"diversity_constrain" : {
+		    "distinct_count" : 20000,
+		    "distinct_expand_limit" : 120000,
+		    "distinct_field" : "user_id"
+		},
+		"limit" : 50000,
+		"memory_optimize_threshold" : 20,
+		"strategy_name" : "distinct_sort",
+		"threshold" : 90000,
+		"truncate_profiles" : [
+		    "desc_static_trans_score",
+		    "desc_biz30day",
+		    "desc_uvsum_suc",
+		    "desc_uvsum",
+                    "desc_auc_money_score_c2c",
+		    "desc_w_gmv_haixuan_c2c"
+		]
+	    },
+	    {
+		"diversity_constrain" : {
+		    "distinct_count" : 2200,
+		    "distinct_expand_limit" : 3400,
+		    "distinct_field" : "user_id"
+		},
+		"limit" : 2600,
+		"memory_optimize_threshold" : 20,
+		"strategy_name" : "distinct_sort_2",
+		"threshold" : 2600,
+		"truncate_profiles" : [
+                    "desc_2_auc_money_score_c2c"
+		]
+	    },
+	    {
+		"diversity_constrain" : {
+		    "distinct_count" : 30000,
+		    "distinct_expand_limit" : 160000,
+		    "distinct_field" : "user_id"
+		},
+		"limit" : 80000,
+		"memory_optimize_threshold" : 20,
+		"strategy_name" : "distinct_sort_for_ends",
+		"threshold" : 140000,
+		"truncate_profiles" : [
+		    "asc_ends_1"
+		]
+	    }
+	]
+    }
+}

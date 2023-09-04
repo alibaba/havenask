@@ -21,12 +21,9 @@ namespace isearch {
 namespace search {
 AUTIL_LOG_SETUP(ha3, MultiTermAndQueryExecutor);
 
-MultiTermAndQueryExecutor::MultiTermAndQueryExecutor() { 
-}
+MultiTermAndQueryExecutor::MultiTermAndQueryExecutor() {}
 
-MultiTermAndQueryExecutor::~MultiTermAndQueryExecutor() { 
-}
+MultiTermAndQueryExecutor::~MultiTermAndQueryExecutor() {}
 
 } // namespace search
 } // namespace isearch
-

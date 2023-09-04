@@ -24,14 +24,14 @@
 
 namespace kmonitor_adapter {
 
-class LatencyRecorder : public GaugeRecorder
-{
+class LatencyRecorder : public GaugeRecorder {
 public:
-    LatencyRecorder(const std::string& name, MetricPtr metric) : GaugeRecorder(name, std::move(metric)) {}
-    LatencyRecorder(Monitor* monitor, const std::string& metricName, kmonitor::MetricLevel level,
-                    const Metric::KVVec& tags = Metric::KVVec())
-        : GaugeRecorder()
-    {
+    LatencyRecorder(const std::string &name, MetricPtr metric) : GaugeRecorder(name, std::move(metric)) {}
+    LatencyRecorder(Monitor *monitor,
+                    const std::string &metricName,
+                    kmonitor::MetricLevel level,
+                    const Metric::KVVec &tags = Metric::KVVec())
+        : GaugeRecorder() {
         assert(monitor);
         GaugeRecorder::_name = metricName;
         GaugeRecorder::_metric = monitor->registerGaugePercentileMetric(metricName, level, tags);

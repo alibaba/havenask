@@ -18,6 +18,7 @@
 #include <assert.h>
 #include <memory>
 
+#include "autil/Log.h"
 #include "ha3/common/AndNotQuery.h"
 #include "ha3/common/AndQuery.h"
 #include "ha3/common/MultiTermQuery.h"
@@ -28,7 +29,6 @@
 #include "ha3/common/TableQuery.h"
 #include "ha3/common/Term.h"
 #include "ha3/common/TermQuery.h"
-#include "autil/Log.h"
 
 using namespace std;
 
@@ -37,26 +37,23 @@ namespace common {
 AUTIL_LOG_SETUP(ha3, Query);
 #define QUERY_EXTEND_SERIALIZE_SECTION_NAME "HA3_QUERY_EXTEND"
 
-Query::Query() : _queryRestrictor(false), _matchDataLevel(MDL_NONE) {
+Query::Query()
+    : _queryRestrictor(false)
+    , _matchDataLevel(MDL_NONE) {}
 
-}
-
-Query::Query(const Query &other) :
-    _queryRestrictor(other._queryRestrictor),
-    _matchDataLevel(other._matchDataLevel),
-    _queryLabel(other._queryLabel)
-{
-    for (QueryVector::const_iterator it = other._children.begin();
-         it != other._children.end(); ++it)
-    {
+Query::Query(const Query &other)
+    : _queryRestrictor(other._queryRestrictor)
+    , _matchDataLevel(other._matchDataLevel)
+    , _queryLabel(other._queryLabel) {
+    for (QueryVector::const_iterator it = other._children.begin(); it != other._children.end();
+         ++it) {
         addQuery(QueryPtr((*it)->clone()));
     }
 }
 
-Query::~Query() {
-}
+Query::~Query() {}
 
-std::ostream& operator << (std::ostream& out, const Query& query) {
+std::ostream &operator<<(std::ostream &out, const Query &query) {
     return out << query.toString();
 }
 
@@ -69,14 +66,13 @@ std::string Query::toString() const {
     if (getMatchDataLevel() != MDL_NONE) {
         ss << "$" << getMatchDataLevel();
     }
-    ss << ":[" ;
-    for (QueryVector::const_iterator it = _children.begin();
-         it != _children.end(); it++)
-    {
-        if ( NULL != (*it) ) {
+    ss << ":[";
+    for (QueryVector::const_iterator it = _children.begin(); it != _children.end(); it++) {
+        if (NULL != (*it)) {
             ss << (*it)->toString() << ", ";
         } else {
-            ss << "NULL" << ", ";
+            ss << "NULL"
+               << ", ";
         }
     }
     ss << "]";
@@ -89,8 +85,8 @@ void Query::serialize(autil::DataBuffer &dataBuffer) const {
 }
 
 void Query::serializeMDLandQL(autil::DataBuffer &dataBuffer) const {
-    autil::DataBuffer *extFieldsBuffer =
-        dataBuffer.declareSectionBuffer(QUERY_EXTEND_SERIALIZE_SECTION_NAME);
+    autil::DataBuffer *extFieldsBuffer
+        = dataBuffer.declareSectionBuffer(QUERY_EXTEND_SERIALIZE_SECTION_NAME);
     if (extFieldsBuffer) {
         extFieldsBuffer->write(_matchDataLevel);
         extFieldsBuffer->write(_queryLabel);
@@ -103,8 +99,8 @@ void Query::deserialize(autil::DataBuffer &dataBuffer) {
 }
 
 void Query::deserializeMDLandQL(autil::DataBuffer &dataBuffer) {
-    autil::DataBuffer *extFieldsBuffer =
-        dataBuffer.findSectionBuffer(QUERY_EXTEND_SERIALIZE_SECTION_NAME);
+    autil::DataBuffer *extFieldsBuffer
+        = dataBuffer.findSectionBuffer(QUERY_EXTEND_SERIALIZE_SECTION_NAME);
     if (extFieldsBuffer) {
         extFieldsBuffer->read(_matchDataLevel);
         extFieldsBuffer->read(_queryLabel);
@@ -117,27 +113,22 @@ void Query::setQueryLabelBinary(const std::string &label) {
     setQueryLabel(label);
 }
 
-void Query::setQueryLabelTerm(const std::string& label) {
+void Query::setQueryLabelTerm(const std::string &label) {
     setMatchDataLevel(MDL_TERM);
     setQueryLabel(label);
 }
 
-Query* Query::createQuery(QueryType type)
-{
+Query *Query::createQuery(QueryType type) {
     Query *t = NULL;
     switch (type) {
-    case TERM_QUERY:
-        {
-            RequiredFields requiredFields;
-            t = new TermQuery("", "", requiredFields, "");
-        }
-        break;
-    case NUMBER_QUERY:
-        {
-            RequiredFields requiredFields;
-            t = new NumberQuery(0, "", requiredFields, "");
-        }
-        break;
+    case TERM_QUERY: {
+        RequiredFields requiredFields;
+        t = new TermQuery("", "", requiredFields, "");
+    } break;
+    case NUMBER_QUERY: {
+        RequiredFields requiredFields;
+        t = new NumberQuery(0, "", requiredFields, "");
+    } break;
     case PHRASE_QUERY:
         t = new PhraseQuery("");
         break;

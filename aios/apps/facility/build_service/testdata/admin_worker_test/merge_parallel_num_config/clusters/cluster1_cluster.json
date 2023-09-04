@@ -1,0 +1,36 @@
+{
+    "builder_rule_config" : {
+        "partition_resource" : 50,
+        "partition_count" : 5
+    },
+    "swift_config" : {
+        "topic" : {
+            "partition_count" : 10,
+            "partition_resource" : 100,
+            "partition_buffer_size" : 1000,
+            "partition_file_buf_size" : 1000,
+            "obsolete_file_interval" : 3600,
+            "reserved_file_count" : 10
+        },
+        "reader_config" : "",
+        "writer_config" : ""
+    },
+    "build_config" : {
+        "NeedSort" : true,
+        "SortQueueSize" : 100000,
+        "IndexKeepTime" : 3600
+    },
+    "offline_index_config" : {
+        "customized_merge_config" : {
+	    "inc" : {
+	        "merge_parallel_num" : 2
+	    },
+	    "full" : {
+	        "merge_parallel_num" : 10
+	    },
+	    "inc_merge" : {
+	        "merge_parallel_num" : 4
+	    }
+        }
+    }
+}

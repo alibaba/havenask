@@ -15,8 +15,8 @@
  */
 #include "autil/ThreadPool.h"
 
-#include <unistd.h>
 #include <ostream>
+#include <unistd.h>
 #include <utility>
 
 #include "autil/LambdaWorkItem.h"
@@ -44,8 +44,7 @@ ThreadPoolBase::ThreadPoolBase(const size_t threadNum,
     , _queueSize(queueSize)
     , _push(true)
     , _run(false)
-    , _threadName(name)
-{
+    , _threadName(name) {
     if (_threadNum == 0) {
         AUTIL_LOG(WARN, "Thread number is zero, use default value 4");
         _threadNum = DEFAULT_THREADNUM;
@@ -96,8 +95,11 @@ void ThreadPoolBase::consumeItem(WorkItem *item) {
     } catch (const std::exception &e) {
         autil::legacy::ExceptionBase wrapper(e.what());
         wrapper.Init(__FILE__, __FUNCTION__, __LINE__);
-        AUTIL_LOG(ERROR, "thread [%s] exception: [%s], stack: [%s]",
-                  _threadName.c_str(), e.what(), wrapper.GetStackTrace().c_str());
+        AUTIL_LOG(ERROR,
+                  "thread [%s] exception: [%s], stack: [%s]",
+                  _threadName.c_str(),
+                  e.what(),
+                  wrapper.GetStackTrace().c_str());
         destroyItemIgnoreException(item);
         {
             ScopedLock lock(_cond);
@@ -143,21 +145,25 @@ void ThreadPoolBase::waitQueueEmpty() const {
 
 const size_t ThreadPool::MAX_THREAD_NAME_LEN = 15;
 
-ThreadPool::ThreadPool(const size_t threadNum, const size_t queueSize, bool stopIfHasException,
-                       const std::string &name, WorkItemQueueFactoryPtr factory)
-    : ThreadPoolBase(threadNum, queueSize, stopIfHasException, name)
-    , _lastPopTime(0)
-    {
-        if (factory == nullptr) {
-            _queue.reset(new CircularPoolQueue(_queueSize));
-        } else {
-            _queue.reset(factory->create(threadNum, queueSize));
-        }
+ThreadPool::ThreadPool(const size_t threadNum,
+                       const size_t queueSize,
+                       bool stopIfHasException,
+                       const std::string &name,
+                       WorkItemQueueFactoryPtr factory)
+    : ThreadPoolBase(threadNum, queueSize, stopIfHasException, name), _lastPopTime(0) {
+    if (factory == nullptr) {
+        _queue.reset(new CircularPoolQueue(_queueSize));
+    } else {
+        _queue.reset(factory->create(threadNum, queueSize));
     }
+}
 
-ThreadPool::ThreadPool(const size_t threadNum, const size_t queueSize, WorkItemQueueFactoryPtr factory,
-                       const std::string &name, bool stopIfHasException):
-    ThreadPool(threadNum, queueSize, stopIfHasException, name, factory) {}
+ThreadPool::ThreadPool(const size_t threadNum,
+                       const size_t queueSize,
+                       WorkItemQueueFactoryPtr factory,
+                       const std::string &name,
+                       bool stopIfHasException)
+    : ThreadPool(threadNum, queueSize, stopIfHasException, name, factory) {}
 
 ThreadPool::~ThreadPool() { stop(STOP_AND_CLEAR_QUEUE_IGNORE_EXCEPTION); }
 

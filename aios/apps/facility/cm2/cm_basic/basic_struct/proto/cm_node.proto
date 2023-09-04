@@ -1,0 +1,62 @@
+syntax = "proto2";
+import "proto/cm_common.proto";
+import "arpc/proto/rpc_extensions.proto";
+
+package cm_basic;
+option cc_generic_services = true;
+option py_generic_services = true;
+option cc_enable_arenas = true;
+
+enum ReplyStatus
+{
+    RS_SUCCESS          = 0;
+    RS_FAILED           = 1;
+    RS_NOT_CM_LEADER    = 2;
+    RS_NEED_PRE_CONFIG  = 3;
+}
+
+// 回调函数需要的信息
+message HBCallbackMsg
+{
+    enum HBCallbackType
+    {
+        CB_NEW_NODE = 0;
+        CB_UPDATE_METAINFO = 1;
+        CB_TIMEOUT = 2;
+    }
+    required HBCallbackType type = 1;
+    repeated CMNode nodes = 2;
+}
+
+// 注册节点发送给CMServer的心跳信息, UDP 方式发送,心跳无需响应
+message HeartBeatMsg 
+{
+    // required string         node_ip     = 1;
+    // repeated ProtocolPort   proto_port  = 2;
+    required string         node_spec   = 1;
+    required NodeStatus     status      = 2;    // 节点当前的状态
+    required NodeLBInfo     lb_info     = 3; 
+}
+
+// 节点向CMServer发送的注册信息/metainfo
+message NodeMetaInfoReqMsg 
+{
+    required string         node_ip         = 1;
+    repeated ProtocolPort   proto_port      = 2;
+
+    enum RegType
+    {
+        RT_PRE_CONFIG   = 0;    // 需要预先配置集群，添加是按集群添加
+        RT_NONE_CONFIG  = 1;    // 不需要预先配置，需要通过NodeMetaInfoReqMsg消息 按节点添加
+    }
+    required RegType        reg_type        = 3;
+    optional string         cluster_name    = 4; // RT_NONE_CONFIG 时有效，ha3 使用
+    optional NodeMetaInfo   meta_info       = 5;
+    optional IDCType        idc_type        = 6 [default=IDC_ANY];
+}
+
+// 节点收到CMServer的注册响应
+message NodeMetaInfoRespMsg 
+{
+    required ReplyStatus status = 1;
+}

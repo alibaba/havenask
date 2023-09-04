@@ -20,6 +20,4 @@
 namespace autil {
 AUTIL_DECLARE_AND_SETUP_LOGGER(autil, Block);
 
-
 }
-

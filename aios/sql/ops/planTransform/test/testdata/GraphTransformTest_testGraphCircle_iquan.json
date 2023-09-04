@@ -1,0 +1,52 @@
+{
+  "exec_params" : { },
+  "optimize_infos" : { },
+  "rel_plan" : [ {
+    "attrs" : {
+      "output_fields" : [ "$i1", "$i2" ],
+      "output_fields_hash" : 1831636447,
+      "output_fields_type" : [ "INTEGER", "INTEGER" ]
+    },
+    "id" : 0,
+    "inputs" : {
+      "input" : [ ]
+    },
+    "op_name" : "ValuesOp",
+    "outputs" : [ 1, 2 ]
+  }, {
+    "attrs" : {
+      "all" : true,
+      "block" : false,
+      "output_fields_hash" : -173911118
+    },
+    "id" : 1,
+    "inputs" : {
+      "input" : [ 0, 2 ]
+    },
+    "op_name" : "UnionOp",
+    "outputs" : [ 2 ]
+  }, {
+    "attrs" : {
+      "all" : true,
+      "block" : false,
+      "output_fields_hash" : -173911118
+    },
+    "id" : 2,
+    "inputs" : {
+      "input" : [ 0, 1 ]
+    },
+    "op_name" : "UnionOp",
+    "outputs" : [ 3 ]
+  }, {
+    "attrs" : {
+      "output_fields_hash" : 1831636447,
+      "type" : "api"
+    },
+    "id" : 3,
+    "inputs" : {
+      "input" : [ 2 ]
+    },
+    "op_name" : "SinkOp"
+  } ],
+  "rel_plan_version" : "plan_version_0.0.1"
+}

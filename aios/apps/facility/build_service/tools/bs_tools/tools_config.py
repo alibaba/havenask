@@ -1,10 +1,12 @@
 #!/bin/env python
 import sys
-import os, shutil
+import os
+import shutil
 import os.path
 
 import tools_conf
 import process
+
 
 class ToolsConfig(object):
     def __init__(self):
@@ -41,16 +43,18 @@ class ToolsConfig(object):
         self.vipclient_set_failover_path = ''
         if hasattr(tools_conf, 'vipclient_set_failover_path'):
             self.vipclient_set_failover_path = tools_conf.vipclient_set_failover_path
-            
-        self.pm_run_exe = self.__getFromToolsConfWithDefault('pm_run', os.path.join(self.install_prefix, 'bin/apsara_tool/pm_run'))
-        self.rpc_caller_exe = self.__getFromToolsConfWithDefault('rpc_caller', os.path.join(self.install_prefix, 'bin/apsara_tool/rpc_caller'))
+
+        self.pm_run_exe = self.__getFromToolsConfWithDefault(
+            'pm_run', os.path.join(self.install_prefix, 'bin/apsara_tool/pm_run'))
+        self.rpc_caller_exe = self.__getFromToolsConfWithDefault(
+            'rpc_caller', os.path.join(self.install_prefix, 'bin/apsara_tool/rpc_caller'))
 
         self.retry_duration = self.__getFromToolsConfWithDefault('retry_duration', 0)
         self.retry_interval = self.__getFromToolsConfWithDefault('retry_interval', 0)
         self.retry_times = self.__getFromToolsConfWithDefault('retry_times', 1)
         self.use_asan = True
 
-    def __getFromToolsConfWithDefault(self, name, defaultValue = None):
+    def __getFromToolsConfWithDefault(self, name, defaultValue=None):
         if hasattr(tools_conf, name):
             return getattr(tools_conf, name)
         return defaultValue
@@ -72,8 +76,14 @@ class ToolsConfig(object):
             envCmd += ' JAVA_HOME=%s ' % self.java_home
         if self.vipclient_set_failover_path:
             envCmd += ' VIPCLIENT_SET_FAILOVER_PATH=%s ' % self.vipclient_set_failover_path
+        addEnv = os.getenv("ADD_ENV_LIST", '')
+        for key in addEnv.split(','):
+            if len(key) > 0:
+                value = os.getenv(key, '')
+                if value != '':
+                    envCmd += ' ' + key + '=' + value + ' '
         if envCmd:
-            envCmd = '/bin/env' + envCmd
+            envCmd = '/bin/env ' + envCmd + ' '
         return envCmd + cmd + ' '
 
     def getClassPath(self):
@@ -84,7 +94,8 @@ class ToolsConfig(object):
             print 'WARN: hadoopHome[%s] not exist' % self.hadoop_home
             return ''
 
-        classPathUtil = self.__getFromToolsConfWithDefault('class_path_util', self.install_prefix + '/bin/class_path_util')
+        classPathUtil = self.__getFromToolsConfWithDefault(
+            'class_path_util', self.install_prefix + '/bin/class_path_util')
         if not os.path.exists(classPathUtil):
             raise Exception("ERROR: can't find class_path_util")
 

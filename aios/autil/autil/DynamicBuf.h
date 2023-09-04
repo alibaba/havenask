@@ -16,44 +16,35 @@
 #pragma once
 
 #include <assert.h>
+#include <memory>
 #include <stdint.h>
 #include <string.h>
 #include <string>
-#include <memory>
-
 
 namespace autil {
 
-class DynamicBuf
-{
+class DynamicBuf {
 public:
-    DynamicBuf(uint32_t initSize = 0, bool owns = true)
-        : _size(initSize), _own(owns)
-    {
+    DynamicBuf(uint32_t initSize = 0, bool owns = true) : _size(initSize), _own(owns) {
         if (initSize > 0) {
             _buffer = _ptr = new char[initSize];
         } else {
             _buffer = _ptr = NULL;
         }
     }
-    
-    DynamicBuf(char* buf, uint32_t len, bool owns = false)
-        : _size(len), _own(owns), _buffer(buf), _ptr(buf)
-    {
-    }
-    
-    ~DynamicBuf() {release();}
-    const char* getPtr() const {return _ptr;}
-    char* getPtr() {return _ptr;}
-    void movePtr(size_t len) {_ptr += len;}
-    char* getBuffer() {return _buffer;}
-    const char* getBuffer() const {return _buffer;}
-    uint32_t getTotalSize() const {return _size;}
-    uint32_t getDataLen() const {return (uint32_t)(_ptr - _buffer);}
 
-    uint32_t remaining() const { 
-        return (uint32_t)(_size - (_ptr - _buffer));
-    }
+    DynamicBuf(char *buf, uint32_t len, bool owns = false) : _size(len), _own(owns), _buffer(buf), _ptr(buf) {}
+
+    ~DynamicBuf() { release(); }
+    const char *getPtr() const { return _ptr; }
+    char *getPtr() { return _ptr; }
+    void movePtr(size_t len) { _ptr += len; }
+    char *getBuffer() { return _buffer; }
+    const char *getBuffer() const { return _buffer; }
+    uint32_t getTotalSize() const { return _size; }
+    uint32_t getDataLen() const { return (uint32_t)(_ptr - _buffer); }
+
+    uint32_t remaining() const { return (uint32_t)(_size - (_ptr - _buffer)); }
 
     void reserve(uint32_t length) {
         if (remaining() < length) {
@@ -61,75 +52,71 @@ public:
         }
     }
 
-    const char* add(const char* sourceStr, uint32_t length,  const char*& oldBuffer)
-    {
+    const char *add(const char *sourceStr, uint32_t length, const char *&oldBuffer) {
         if (sourceStr == NULL || length == 0) {
             return NULL;
         }
         oldBuffer = ensure(length);
         memcpy(_ptr, sourceStr, length);
-        char* ret = _ptr;
+        char *ret = _ptr;
         _ptr += length;
-        return ret; 
+        return ret;
     }
 
-    const char* add(const char* sourceStr, uint32_t length)
-    {
-        const char* notUsed;
+    const char *add(const char *sourceStr, uint32_t length) {
+        const char *notUsed;
         return add(sourceStr, length, notUsed);
     }
 
-    char* alloc(uint32_t length) {
+    char *alloc(uint32_t length) {
         if (length == 0)
             return NULL;
         ensure(length);
-        char* rPtr = _ptr;
+        char *rPtr = _ptr;
         _ptr += length;
         return rPtr;
     }
 
-    const char* backspace(uint32_t length) {
+    const char *backspace(uint32_t length) {
         if (_ptr - length < _buffer) {
             _ptr = _buffer;
             return _buffer;
-        }   
+        }
         _ptr -= length;
         return _ptr;
     }
 
-    void reset() {_ptr = _buffer;}
+    void reset() { _ptr = _buffer; }
 
     void release() {
         if (_own) {
-            delete []_buffer;
+            delete[] _buffer;
         }
         _buffer = _ptr = NULL;
         _size = 0;
     }
 
-    void serialize(std::string& str) const
-    {
+    void serialize(std::string &str) const {
         uint32_t len = (uint32_t)(_ptr - _buffer);
-        str.append((char*)&len, sizeof(len));
+        str.append((char *)&len, sizeof(len));
         str.append(_buffer, len);
     }
 
-    int32_t deserialize(const char* str, uint32_t strLen)
-    {
+    int32_t deserialize(const char *str, uint32_t strLen) {
         if (strLen < sizeof(uint32_t)) {
             return -1;
         }
 
         uint32_t len;
-        memcpy((char*)&len, str, sizeof(uint32_t));
+        memcpy((char *)&len, str, sizeof(uint32_t));
 
         if (strLen - sizeof(uint32_t) < len) {
             return -1;
         }
 
-        if (_size < len)  {
+        if (_size < len) {
             if (_own && _buffer) {
-                delete []_buffer;
+                delete[] _buffer;
             }
             _buffer = _ptr = new char[len];
             _size = len;
@@ -138,7 +125,7 @@ public:
 
         memcpy(_buffer, str + sizeof(uint32_t), len);
         _ptr = _buffer + len;
-        
+
         return _ptr - _buffer + sizeof(uint32_t);
     }
 
@@ -146,31 +133,30 @@ public:
      * Ensure we have length memory available. Alloc length*3/2 for future use
      * @param length memory length needed
      */
-    const char* ensure(uint32_t length) {
+    const char *ensure(uint32_t length) {
         if (remaining() < length) {
             // TODO: the size for enlarge to be decided
-            return grow((getDataLen() + length)*3/2);
-        }
-        else {
+            return grow((getDataLen() + length) * 3 / 2);
+        } else {
             return _buffer;
         }
     }
 
 private:
-    const char* grow(uint32_t newSize) {
+    const char *grow(uint32_t newSize) {
         assert(newSize > _size);
-        const char* ret = _buffer;
-        char* newBuf = new char[newSize];
+        const char *ret = _buffer;
+        char *newBuf = new char[newSize];
 
         if (_buffer && (_ptr - _buffer) > 0)
             memcpy(newBuf, _buffer, _ptr - _buffer);
 
         _ptr = newBuf + (_ptr - _buffer);
         if (_own && _buffer)
-           delete []_buffer;
+            delete[] _buffer;
         _buffer = newBuf;
         _size = newSize;
-        _own  = true;
+        _own = true;
 
         return ret;
     }
@@ -178,11 +164,10 @@ private:
 private:
     uint32_t _size;
     bool _own;
-    char* _buffer;
-    char* _ptr; /*< current pointer pos */
+    char *_buffer;
+    char *_ptr; /*< current pointer pos */
 };
 
 typedef std::shared_ptr<DynamicBuf> DynamicBufPtr;
 
-}
-
+} // namespace autil

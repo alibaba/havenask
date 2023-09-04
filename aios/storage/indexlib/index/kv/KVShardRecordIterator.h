@@ -40,13 +40,14 @@ namespace indexlibv2::index {
 class KVShardRecordIterator final : public IShardRecordIterator
 {
 public:
-    KVShardRecordIterator() = default;
+    KVShardRecordIterator() {}
+    KVShardRecordIterator(bool ignoreValue) : _ignoreValue(ignoreValue) {}
     ~KVShardRecordIterator() = default;
 
 public:
     Status Init(const std::vector<std::shared_ptr<indexlibv2::framework::Segment>>& segments,
                 const std::map<std::string, std::string>& params,
-                const std::shared_ptr<indexlibv2::config::TabletSchema>& readSchema,
+                const std::shared_ptr<indexlibv2::config::ITabletSchema>& readSchema,
                 const std::shared_ptr<AdapterIgnoreFieldCalculator>& ignoreFieldCalculator, int64_t currentTs) override;
     Status Next(IShardRecordIterator::ShardRecord* shardRecord, std::string* checkpoint) override;
     bool HasNext() override;
@@ -54,6 +55,7 @@ public:
 
 private:
     struct KVIteratorWrapper {
+        IKVIterator* iterator = nullptr;
         std::unique_ptr<IKVIterator> kvIterator;
         std::shared_ptr<indexlib::file_system::FileReader> pkFileReader;
         std::unique_ptr<HashTableBase> pkHashTable;
@@ -61,7 +63,7 @@ private:
     };
 
 private:
-    void GetKVIndexConfig(const std::shared_ptr<indexlibv2::config::TabletSchema>& tabletSchema,
+    void GetKVIndexConfig(const std::shared_ptr<indexlibv2::config::ITabletSchema>& tabletSchema,
                           std::shared_ptr<indexlibv2::config::KVIndexConfig>& kvIndexConfig,
                           std::shared_ptr<indexlibv2::config::KVIndexConfig>& pkValueIndexConfig) const;
     std::unique_ptr<RecordFilter> CreateRecordFilter(uint64_t currentTsInSecond) const;
@@ -79,6 +81,7 @@ private:
 
 private:
     static const size_t MAX_POOL_MEMORY_THRESHOLD = 10 * 1024 * 1024;
+    bool _ignoreValue = false;
     offset_t _currIteratorIndex = 0;
     schemaid_t _readerSchemaId = DEFAULT_SCHEMAID;
     autil::mem_pool::Pool _pool;

@@ -16,7 +16,7 @@
 #pragma once
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::document {
@@ -32,16 +32,16 @@ public:
     virtual ~IDocumentFactory() = default;
 
 public:
-    virtual std::unique_ptr<RawDocument> CreateRawDocument(const std::shared_ptr<config::TabletSchema>& schema) = 0;
+    virtual std::unique_ptr<RawDocument> CreateRawDocument(const std::shared_ptr<config::ITabletSchema>& schema) = 0;
 
     virtual std::unique_ptr<ExtendDocument> CreateExtendDocument() = 0;
 
     virtual std::unique_ptr<IRawDocumentParser>
-    CreateRawDocumentParser(const std::shared_ptr<config::TabletSchema>& schema,
+    CreateRawDocumentParser(const std::shared_ptr<config::ITabletSchema>& schema,
                             const std::shared_ptr<DocumentInitParam>& initParam) = 0;
 
     virtual std::unique_ptr<IDocumentParser>
-    CreateDocumentParser(const std::shared_ptr<config::TabletSchema>& schema,
+    CreateDocumentParser(const std::shared_ptr<config::ITabletSchema>& schema,
                          const std::shared_ptr<DocumentInitParam>& initParam) = 0;
 };
 } // namespace indexlibv2::document

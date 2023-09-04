@@ -16,6 +16,7 @@
 #include "indexlib/config/customized_index_config.h"
 
 #include "indexlib/config/configurator_define.h"
+#include "indexlib/index/ann/ANNIndexConfig.h"
 
 using namespace std;
 
@@ -89,14 +90,35 @@ IndexConfig* CustomizedIndexConfig::Clone() const { return new CustomizedIndexCo
 
 std::unique_ptr<indexlibv2::config::InvertedIndexConfig> CustomizedIndexConfig::ConstructConfigV2() const
 {
-    IE_LOG(ERROR, "not support construct configv2 for indexerName[%s].", mImpl->indexerName.c_str());
-    return nullptr;
+    const string& indxerName = mImpl->indexerName;
+    if (CustomizedIndexConfig::AITHETA2_INDEXER_NAME == indxerName ||
+        CustomizedIndexConfig::AITHETA_INDEXER_NAME == indxerName) {
+        return DoConstructConfigV2<indexlibv2::config::ANNIndexConfig>();
+    } else {
+        // assert(false);
+        IE_LOG(ERROR, "not support construct configv2 for indexerName[%s].", indxerName.c_str());
+        return nullptr;
+    }
 }
 
 bool CustomizedIndexConfig::FulfillConfigV2(indexlibv2::config::InvertedIndexConfig* configV2) const
 {
-    IE_LOG(ERROR, "not support fill configv2 for indexerName[%s].", mImpl->indexerName.c_str());
-    return false;
+    if (!PackageIndexConfig::FulfillConfigV2(configV2)) {
+        IE_LOG(ERROR, "fulfill package index config failed");
+        return false;
+    }
+    const string& indxerName = mImpl->indexerName;
+    if (CustomizedIndexConfig::AITHETA2_INDEXER_NAME == indxerName ||
+        CustomizedIndexConfig::AITHETA_INDEXER_NAME == indxerName) {
+        auto annConfigV2 = dynamic_cast<indexlibv2::config::ANNIndexConfig*>(configV2);
+        assert(annConfigV2);
+        annConfigV2->SetIndexer(mImpl->indexerName);
+        annConfigV2->SetParameters(mImpl->params);
+    } else {
+        IE_LOG(ERROR, "not support fill configv2 for indexerName[%s].", indxerName.c_str());
+        return false;
+    }
+    return true;
 }
 
 void CustomizedIndexConfig::AssertCompatible(const IndexConfig& other) const { AssertEqual(other); }

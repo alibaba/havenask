@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="testWithAggAndSort">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+select i2, count(*) from t2 group by i2 order by i2 limit 10
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"i2", "COUNT(*)"</Resource>
+        <Resource name="column_types">int32, uint64</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1, 2
+10, 2
+11, 2
+12, 2
+13, 2
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#4(type=api)
+    ExchangeOp#3(distribution={type:SINGLETON})
+        SortOp#2(directions=[ASC],limit=10,order_fields=[$i2])
+            AggregateOp#1(agg_funcs=[{approximate:false,distinct:false,filter_arg:-1,name:COUNT,output:[$COUNT(*)],type:NORMAL}],group_fields=[$i2],scope=NORMAL)
+                TableScanOp#0(catalog_name=default,db_name=t1,limit=2147483647,output_fields=[$i2],push_down_ops=[{attrs:{output_fields:[$i2]},op_name:CalcOp}],table_name=t2,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

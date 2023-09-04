@@ -42,17 +42,17 @@ class AttributeMemIndexer : public IMemIndexer
 public:
     // move counter and isOffline and flushRtIndex to IndexMeta?
     AttributeMemIndexer(const IndexerParameter& indexerParam) : _indexerParam(indexerParam) {}
-    virtual ~AttributeMemIndexer() = default;
+    ~AttributeMemIndexer() = default;
 
 public:
-    virtual Status Init(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                        document::extractor::IDocumentInfoExtractorFactory* docInfoExtractorFactory) override;
-    virtual Status Build(document::IDocumentBatch* docBatch) override;
-    virtual Status Build(const document::IIndexFields* indexFields, size_t n) override;
-    virtual void ValidateDocumentBatch(document::IDocumentBatch* docBatch) override;
+    Status Init(const std::shared_ptr<config::IIndexConfig>& indexConfig,
+                document::extractor::IDocumentInfoExtractorFactory* docInfoExtractorFactory) override;
+    Status Build(document::IDocumentBatch* docBatch) override;
+    Status Build(const document::IIndexFields* indexFields, size_t n) override;
+    void ValidateDocumentBatch(document::IDocumentBatch* docBatch) override;
     bool IsValidDocument(document::IDocument* doc) override;
     bool IsValidField(const document::IIndexFields* fields) override;
-    virtual void FillStatistics(const std::shared_ptr<indexlib::framework::SegmentMetrics>& segmentMetrics) override {}
+    void FillStatistics(const std::shared_ptr<indexlib::framework::SegmentMetrics>& segmentMetrics) override {}
     void Seal() override {}
     std::string GetIndexName() const override { return _attrConfig->GetIndexName(); }
     autil::StringView GetIndexType() const override { return ATTRIBUTE_INDEX_TYPE_STR; }
@@ -65,7 +65,7 @@ public:
                              const uint64_t* hashKey) = 0;
     Status AddDocument(document::IDocument* doc);
 
-    std::shared_ptr<config::AttributeConfig> GetAttrConfig() const { return _attrConfig; }
+    std::shared_ptr<AttributeConfig> GetAttrConfig() const { return _attrConfig; }
     virtual bool IsUpdatable() const { return _attrConfig->IsAttributeUpdatable(); }
 
 public:
@@ -81,7 +81,7 @@ public:
 protected:
     using AllocatorPtr = std::shared_ptr<autil::mem_pool::ChunkAllocatorBase>;
 
-    std::shared_ptr<config::AttributeConfig> _attrConfig;
+    std::shared_ptr<AttributeConfig> _attrConfig;
     AllocatorPtr _allocator;
     std::shared_ptr<autil::mem_pool::Pool> _pool;
     indexlib::util::SimplePool _simplePool;

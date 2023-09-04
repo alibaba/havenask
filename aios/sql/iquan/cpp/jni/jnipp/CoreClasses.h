@@ -39,24 +39,34 @@ jmethodID getStaticMethodID(jclass clazz, const std::string &name, const std::st
 bool isSameObject(AliasRef<jobject> lhs, AliasRef<jobject> rhs);
 } // namespace util
 
-#define SEAL_IN_REF(T)                                                                                                 \
-    T() noexcept = default;                                                                                            \
-    T(const T &other) = default;                                                                                       \
-    T(T &&other) = default;                                                                                            \
-    template <typename U, typename Alloc>                                                                              \
-    friend class StrongRef;                                                                                            \
-    template <typename U>                                                                                              \
+#define SEAL_IN_REF(T)                                                                             \
+    T() noexcept = default;                                                                        \
+    T(const T &other) = default;                                                                   \
+    T(T &&other) = default;                                                                        \
+    template <typename U, typename Alloc>                                                          \
+    friend class StrongRef;                                                                        \
+    template <typename U>                                                                          \
     friend class AliasRef;
 
 class JObject {
 public:
     static constexpr const char *kJavaDescriptor = "Ljava/lang/Object;";
-    static constexpr const char *javaDescriptor() { return nullptr; }
-    static constexpr const char *baseName() { return nullptr; }
+    static constexpr const char *javaDescriptor() {
+        return nullptr;
+    }
+    static constexpr const char *baseName() {
+        return nullptr;
+    }
     using jtype = jobject;
-    jobject get() const noexcept { return _ref; }
-    void set(jobject ref) noexcept { _ref = ref; }
-    jobject self() const noexcept { return get(); }
+    jobject get() const noexcept {
+        return _ref;
+    }
+    void set(jobject ref) noexcept {
+        _ref = ref;
+    }
+    jobject self() const noexcept {
+        return get();
+    }
     LocalRef<jclass> getClass() const;
     static AliasRef<jclass> javaClass();
     LocalRef<jstring> toString();
@@ -73,9 +83,15 @@ class JavaClass : public Base {
 public:
     static_assert(std::is_base_of<JObject, Base>::value, "Base root must be JObject");
     using jtype = JniType;
-    jtype get() const noexcept { return static_cast<jtype>(JObject::get()); }
-    void set(jtype o) noexcept { JObject::set(o); }
-    jtype self() const noexcept { return get(); }
+    jtype get() const noexcept {
+        return static_cast<jtype>(JObject::get());
+    }
+    void set(jtype o) noexcept {
+        JObject::set(o);
+    }
+    jtype self() const noexcept {
+        return get();
+    }
     static AliasRef<jclass> javaClass();
 
     template <typename... Args>
@@ -179,11 +195,11 @@ protected:
     // SEAL_IN_REF(JPrimitiveArray)
 };
 
-#define DEFINE_PRIMITIVE_ARRAY_TYPE_MAP(ctype, jtype)                                                                  \
-    using ctype = JPrimitiveArray<jtype>;                                                                              \
-    template <>                                                                                                        \
-    struct CTypeT<jtype> {                                                                                             \
-        using type = ctype;                                                                                            \
+#define DEFINE_PRIMITIVE_ARRAY_TYPE_MAP(ctype, jtype)                                              \
+    using ctype = JPrimitiveArray<jtype>;                                                          \
+    template <>                                                                                    \
+    struct CTypeT<jtype> {                                                                         \
+        using type = ctype;                                                                        \
     };
 
 DEFINE_PRIMITIVE_ARRAY_TYPE_MAP(JBooleanArray, jbooleanArray)

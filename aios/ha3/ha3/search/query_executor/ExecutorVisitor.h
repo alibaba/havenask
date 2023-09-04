@@ -15,12 +15,12 @@
  */
 #pragma once
 
-#include "ha3/search/OrQueryExecutor.h"
+#include "ha3/search/AndNotQueryExecutor.h"
 #include "ha3/search/AndQueryExecutor.h"
+#include "ha3/search/BitmapAndQueryExecutor.h"
+#include "ha3/search/OrQueryExecutor.h"
 #include "ha3/search/OrQueryMatchRowInfoExecutor.h"
 #include "ha3/search/TermQueryExecutor.h"
-#include "ha3/search/BitmapAndQueryExecutor.h"
-#include "ha3/search/AndNotQueryExecutor.h"
 
 namespace isearch {
 namespace search {
@@ -28,6 +28,7 @@ namespace search {
 class ExecutorVisitor {
 public:
     virtual ~ExecutorVisitor() = default;
+
 public:
     virtual void visitAndExecutor(const AndQueryExecutor *executor) = 0;
     virtual void visitOrExecutor(const OrQueryExecutor *executor) = 0;

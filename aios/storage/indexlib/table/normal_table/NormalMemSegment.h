@@ -28,7 +28,7 @@ namespace indexlibv2::table {
 class NormalMemSegment : public plain::PlainMemSegment
 {
 public:
-    NormalMemSegment(const config::TabletOptions* options, const std::shared_ptr<config::TabletSchema>& schema,
+    NormalMemSegment(const config::TabletOptions* options, const std::shared_ptr<config::ITabletSchema>& schema,
                      const framework::SegmentMeta& segmentMeta);
     ~NormalMemSegment();
 

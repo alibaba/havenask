@@ -13,23 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "aios/network/arpc/arpc/anet/ClientPacketHandler.h"
+
 #include <assert.h>
+#include <cstddef>
 #include <google/protobuf/arena.h>
 #include <google/protobuf/descriptor.h>
-#include <stdint.h>
-#include <cstddef>
 #include <memory>
 #include <new>
+#include <stdint.h>
 #include <string>
 
-#include "aios/network/arpc/arpc/util/Log.h"
-#include "google/protobuf/io/zero_copy_stream_impl_lite.h"
-#include "aios/network/arpc/arpc/anet/ClientPacketHandler.h"
-#include "aios/network/arpc/arpc/PacketArg.h"
-#include "aios/network/arpc/arpc/MessageSerializable.h"
-#include "aios/network/arpc/arpc/RPCMessageSerializable.h"
-#include "aios/network/arpc/arpc/RPCChannelBase.h"
-#include "aios/network/arpc/arpc/UtilFun.h"
 #include "aios/network/anet/controlpacket.h"
 #include "aios/network/anet/databufferserializable.h"
 #include "aios/network/anet/delaydecodepacket.h"
@@ -37,12 +31,19 @@
 #include "aios/network/anet/ipackethandler.h"
 #include "aios/network/anet/packet.h"
 #include "aios/network/anet/runnable.h"
+#include "aios/network/arpc/arpc/ANetRPCChannel.h"
 #include "aios/network/arpc/arpc/ANetRPCController.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/arpc/arpc/MessageCodec.h"
+#include "aios/network/arpc/arpc/MessageSerializable.h"
+#include "aios/network/arpc/arpc/PacketArg.h"
+#include "aios/network/arpc/arpc/RPCChannelBase.h"
+#include "aios/network/arpc/arpc/RPCMessageSerializable.h"
 #include "aios/network/arpc/arpc/Tracer.h"
+#include "aios/network/arpc/arpc/UtilFun.h"
 #include "aios/network/arpc/arpc/proto/rpc_extensions.pb.h"
-#include "aios/network/arpc/arpc/ANetRPCChannel.h"
+#include "aios/network/arpc/arpc/util/Log.h"
+#include "google/protobuf/io/zero_copy_stream_impl_lite.h"
 
 using namespace std;
 using namespace anet;
@@ -50,31 +51,21 @@ using namespace google::protobuf::io;
 ARPC_BEGIN_NAMESPACE(arpc);
 ARPC_DECLARE_AND_SETUP_LOGGER(ClientPacketHandler);
 
-ClientPacketHandler::ClientPacketHandler()
-{
-    _channel = NULL;
-}
+ClientPacketHandler::ClientPacketHandler() { _channel = NULL; }
 
-ClientPacketHandler::~ClientPacketHandler()
-{
-    _channel = NULL;
-}
+ClientPacketHandler::~ClientPacketHandler() { _channel = NULL; }
 
-IPacketHandler::HPRetCode
-ClientPacketHandler::handlePacket(anet::Packet *packet, void *args)
-{
+IPacketHandler::HPRetCode ClientPacketHandler::handlePacket(anet::Packet *packet, void *args) {
     RpcReqArg *pArgs = (RpcReqArg *)args;
 
     if (!packet->isRegularPacket()) {
-        ARPC_LOG(WARN, "receive control packet[%d]",
-                 ((ControlPacket *)packet)->getCommand());
+        ARPC_LOG(WARN, "receive control packet[%d]", ((ControlPacket *)packet)->getCommand());
         return handleCmdPacket(packet, pArgs);
     }
 
     pArgs->sController->GetTracer().BeginHandleResponse();
 
-    ARPC_LOG(TRACE1, "channel pointer: %p, msg chid: %lu", _channel,
-             packet->getChannelId());
+    ARPC_LOG(TRACE1, "channel pointer: %p, msg chid: %lu", _channel, packet->getChannelId());
 
     /* Check the error code and remote version.
      * Repost the request if necessary.
@@ -83,20 +74,18 @@ ClientPacketHandler::handlePacket(anet::Packet *packet, void *args)
         return IPacketHandler::FREE_CHANNEL;
     }
 
-    decodePacket(pArgs->sController, packet, pArgs->sResponse,
-                 pArgs->sContext->arena);
+    decodePacket(pArgs->sController, packet, pArgs->sResponse, pArgs->sContext->arena);
+    pArgs->sController->GetTracer().EndCallMethod(ARPC_ERROR_NONE);
     pArgs->sClosure->Run();
     delete pArgs;
 
     return IPacketHandler::FREE_CHANNEL;
 }
 
-IPacketHandler::HPRetCode
-ClientPacketHandler::handleCmdPacket(Packet *packet, RpcReqArg *pArgs)
-{
+IPacketHandler::HPRetCode ClientPacketHandler::handleCmdPacket(Packet *packet, RpcReqArg *pArgs) {
     ErrorCode errCode = ARPC_ERROR_NONE;
 
-    switch(((ControlPacket *)packet)->getCommand()) {
+    switch (((ControlPacket *)packet)->getCommand()) {
     case ControlPacket::CMD_BAD_PACKET:
         errCode = ARPC_ERROR_BAD_PACKET;
         break;
@@ -123,9 +112,9 @@ ClientPacketHandler::handleCmdPacket(Packet *packet, RpcReqArg *pArgs)
 }
 
 void ClientPacketHandler::decodePacket(ANetRPCController *controller,
-                                       Packet *packet, RPCMessage *response,
-                                       const std::shared_ptr<google::protobuf::Arena> &arenaPtr)
-{
+                                       Packet *packet,
+                                       RPCMessage *response,
+                                       const std::shared_ptr<google::protobuf::Arena> &arenaPtr) {
     TraceInfo *serverTraceInfo = NULL;
     const Tracer &tracer = controller->GetTracer();
 
@@ -137,8 +126,7 @@ void ClientPacketHandler::decodePacket(ANetRPCController *controller,
 
     version_t version = packet->getPacketVersion();
     int32_t pcode = packet->getPcode();
-    DataBufferSerializable *pSeri = createSerializable(pcode, response,
-            serverTraceInfo, version, arena, arenaPtr);
+    DataBufferSerializable *pSeri = createSerializable(pcode, response, serverTraceInfo, version, arena, arenaPtr);
 
     if (pSeri == NULL) {
         controller->SetErrorCode(ARPC_ERROR_NEW_NOTHROW);
@@ -147,8 +135,7 @@ void ClientPacketHandler::decodePacket(ANetRPCController *controller,
         return;
     }
 
-    DelayDecodePacket *delayDecodePacket =
-        dynamic_cast<DelayDecodePacket *>(packet);
+    DelayDecodePacket *delayDecodePacket = dynamic_cast<DelayDecodePacket *>(packet);
     assert(delayDecodePacket);
     delayDecodePacket->setContent(pSeri, true);
 
@@ -164,8 +151,10 @@ void ClientPacketHandler::decodePacket(ANetRPCController *controller,
              * this request.
              * In this case, we will log a warning message in client side. We do
              * not encourage such case. */
-            ARPC_LOG(WARN, "Server does not respond to msg chid %lu, which is"
-                     " not normal case. Error msg: %s", packet->getChannelId(),
+            ARPC_LOG(WARN,
+                     "Server does not respond to msg chid %lu, which is"
+                     " not normal case. Error msg: %s",
+                     packet->getChannelId(),
                      errorCodeToString(ARPC_ERROR_NO_RESPONSE_SENT).c_str());
         }
 
@@ -174,19 +163,18 @@ void ClientPacketHandler::decodePacket(ANetRPCController *controller,
             ErrorMsg *errMsg = NULL;
 
             if (version == ARPC_VERSION_1 && tracer.GetTraceFlag()) {
-                RPCMessageSerializable *serializable =
-                    dynamic_cast<RPCMessageSerializable *>(pSeri);
+                RPCMessageSerializable *serializable = dynamic_cast<RPCMessageSerializable *>(pSeri);
                 assert(serializable);
                 errMsg = (ErrorMsg *)serializable->getBody();
             } else {
-                MessageSerializable *serializable =
-                    dynamic_cast<MessageSerializable *>(pSeri);
+                MessageSerializable *serializable = dynamic_cast<MessageSerializable *>(pSeri);
                 assert(serializable);
                 errMsg = (ErrorMsg *)serializable->getMessage();
             }
 
             controller->SetFailed(errMsg->error_msg());
-            if (errMsg->error_code()) pcode = errMsg->error_code();
+            if (errMsg->error_code())
+                pcode = errMsg->error_code();
             controller->SetErrorCode((ErrorCode)pcode);
         }
     }
@@ -201,11 +189,13 @@ void ClientPacketHandler::decodePacket(ANetRPCController *controller,
     return;
 }
 
-DataBufferSerializable *ClientPacketHandler::createSerializable(int32_t pcode,
-        RPCMessage *response, TraceInfo *traceInfo, version_t version,
-        google::protobuf::Arena *arena,
-        const std::shared_ptr<google::protobuf::Arena> &arenaPtr)
-{
+DataBufferSerializable *
+ClientPacketHandler::createSerializable(int32_t pcode,
+                                        RPCMessage *response,
+                                        TraceInfo *traceInfo,
+                                        version_t version,
+                                        google::protobuf::Arena *arena,
+                                        const std::shared_ptr<google::protobuf::Arena> &arenaPtr) {
     DataBufferSerializable *pSeri = NULL;
 
     if (version == ARPC_VERSION_1 && traceInfo != NULL) {
@@ -237,15 +227,8 @@ DataBufferSerializable *ClientPacketHandler::createSerializable(int32_t pcode,
     return pSeri;
 }
 
-void ClientPacketHandler::repostPacket(anet::Packet *packet, void *args)
-{
+void ClientPacketHandler::repostPacket(anet::Packet *packet, void *args) { assert(false); }
 
-    assert(false);
-}
-
-RPCChannelBase *ClientPacketHandler::getChannel() {
-    return _channel;
-}
+RPCChannelBase *ClientPacketHandler::getChannel() { return _channel; }
 
 ARPC_END_NAMESPACE(arpc);
-

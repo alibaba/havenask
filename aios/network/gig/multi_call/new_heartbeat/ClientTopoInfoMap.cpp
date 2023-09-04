@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/new_heartbeat/ClientTopoInfoMap.h"
+
 #include "aios/network/gig/multi_call/new_heartbeat/ServerTopoMap.h"
 #include "aios/network/gig/multi_call/service/SearchServiceReplica.h"
 #include "aios/network/gig/multi_call/service/SearchServiceResource.h"
@@ -27,8 +28,7 @@ AUTIL_LOG_SETUP(multi_call, ClientTopoInfoMap);
 ClientTopoInfo::ClientTopoInfo(const std::shared_ptr<HostHeartbeatStats> &hostStats)
     : _hostStats(hostStats)
     , _hasServerAgent(false)
-    , _initNetLatencyUs(0)
-{
+    , _initNetLatencyUs(0) {
 }
 
 ClientTopoInfo::~ClientTopoInfo() {
@@ -39,8 +39,7 @@ ClientTopoInfo::~ClientTopoInfo() {
 
 bool ClientTopoInfo::init(const std::string &clusterName, bool enableClusterBizSearch,
                           const Spec &spec, const GigMetaEnv &envDef, const BizTopoDef &topoDef,
-                          int64_t netLatencyUs)
-{
+                          int64_t netLatencyUs) {
     const auto &keyDef = topoDef.key();
     const auto &bizName = keyDef.biz_name();
     if (enableClusterBizSearch) {
@@ -67,7 +66,6 @@ bool ClientTopoInfo::init(const std::string &clusterName, bool enableClusterBizS
     _signature.publishId = signature.publish_id();
     initMetas(signature.meta(), topoDef.metas());
     initTags(signature.tag(), topoDef.tags());
-    _hasServerAgent = topoDef.has_propagation_stat();
     if (topoDef.has_propagation_stat()) {
         _hasServerAgent = true;
         _firstPropagationStatDef.CopyFrom(topoDef.propagation_stat());
@@ -140,6 +138,7 @@ void ClientTopoInfo::flushUpdate() {
     } else {
         _provider->updateTagsFromMap(TagMap());
     }
+    _provider->updateHeartbeatMetas(_metas);
 }
 
 std::shared_ptr<SearchServiceProvider> ClientTopoInfo::getProvider() const {
@@ -148,8 +147,7 @@ std::shared_ptr<SearchServiceProvider> ClientTopoInfo::getProvider() const {
 }
 
 void ClientTopoInfo::bind(const std::shared_ptr<SearchServiceReplica> &replica,
-                          const std::shared_ptr<SearchServiceProvider> &provider)
-{
+                          const std::shared_ptr<SearchServiceProvider> &provider) {
     {
         autil::ScopedReadWriteLock lock(_lock, 'r');
         if (_replica == replica && _provider == provider) {
@@ -176,14 +174,20 @@ void ClientTopoInfo::bind(const std::shared_ptr<SearchServiceReplica> &replica,
         flushUpdate();
     }
     if (_firstPropagationStatDef.has_latency() &&
-        _firstPropagationStatDef.latency().filter_ready())
-    {
+        _firstPropagationStatDef.latency().filter_ready()) {
         updatePropagationStat(_firstPropagationStatDef, _initNetLatencyUs);
         _firstPropagationStatDef.Clear();
     }
 }
 
-void ClientTopoInfo::updatePropagationStat(const PropagationStatDef &statDef, int64_t netLatencyUs) {
+void ClientTopoInfo::unBind() {
+    autil::ScopedReadWriteLock lock(_lock, 'w');
+    _provider.reset();
+    _replica.reset();
+}
+
+void ClientTopoInfo::updatePropagationStat(const PropagationStatDef &statDef,
+                                           int64_t netLatencyUs) {
     std::shared_ptr<SearchServiceProvider> provider;
     std::shared_ptr<SearchServiceReplica> replica;
     {
@@ -204,8 +208,9 @@ void ClientTopoInfo::fillTopoRequest(TopoHeartbeatRequest &request) const {
 }
 
 void ClientTopoInfo::disableProvider() const {
-    if (_provider) {
-        _provider->setWeight(0.0f);
+    auto provider = getProvider();
+    if (provider) {
+        provider->setWeight(0.0f);
     }
 }
 
@@ -214,14 +219,25 @@ void ClientTopoInfo::toString(std::string &debugStr, MetasSignatureMap &allMetas
     BizTopoSignature signature;
     TagMapPtr tags;
     MetaMapPtr metas;
+    std::shared_ptr<SearchServiceProvider> provider;
+    std::shared_ptr<SearchServiceReplica> replica;
     {
         autil::ScopedReadWriteLock lock(_lock, 'r');
         nodeId = _topoNode.nodeId;
         signature = _signature;
         tags = _tags;
         metas = _metas;
+        provider = _provider;
+        replica = _replica;
     }
     debugStr += "  " + nodeId;
+    debugStr += ", targetWeight: " + autil::StringUtil::toString(_topoNode.meta.targetWeight);
+    debugStr += ", hasProvider: " + autil::StringUtil::toString(provider != nullptr);
+    if (provider) {
+        debugStr +=
+            ", providerTargetWeight: " + autil::StringUtil::toString(provider->getTargetWeight());
+    }
+    debugStr += ", hasReplica: " + autil::StringUtil::toString(replica != nullptr);
     debugStr += ", topoSig: " + autil::StringUtil::toString(signature.topo);
     debugStr += ", tagsSig: " + autil::StringUtil::toString(signature.tag);
     if (tags) {
@@ -244,17 +260,14 @@ void ClientTopoInfo::toString(std::string &debugStr, MetasSignatureMap &allMetas
     }
 }
 
-ClientTopoInfoMap::ClientTopoInfoMap(uint64_t clientId)
-    : _clientId(clientId)
-{
+ClientTopoInfoMap::ClientTopoInfoMap(uint64_t clientId) : _clientId(clientId) {
 }
 
 ClientTopoInfoMap::~ClientTopoInfoMap() {
 }
 
 bool ClientTopoInfoMap::init(const std::string &ip, const ClientTopoInfoMapPtr &oldMap,
-                             const NewHeartbeatResponse &response)
-{
+                             const NewHeartbeatResponse &response) {
     auto serverSig = response.server_signature();
     if (oldMap) {
         auto oldServerId = oldMap->getServerId();
@@ -300,7 +313,7 @@ bool ClientTopoInfoMap::update(const NewHeartbeatResponse &response, int64_t net
         const auto &topoDef = response.topo(i);
         const auto &signature = topoDef.signature();
         auto clientInfo = getInfo(signature.topo());
-        if (!clientInfo)  {
+        if (!clientInfo) {
             isSame = false;
             continue;
         }
@@ -344,4 +357,4 @@ void ClientTopoInfoMap::toString(std::string &debugStr, MetasSignatureMap &allMe
         pair.second->toString(debugStr, allMetas);
     }
 }
-}
+} // namespace multi_call

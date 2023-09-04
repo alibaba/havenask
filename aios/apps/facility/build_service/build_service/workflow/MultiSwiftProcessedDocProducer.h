@@ -63,7 +63,7 @@ public:
 
 public: // 功能相关接口
     bool needUpdateCommittedCheckpoint() const override;
-    bool updateCommittedCheckpoint(int64_t checkpoint) override;
+    bool updateCommittedCheckpoint(const indexlibv2::base::Progress::Offset& checkpoint) override;
 
     int64_t getStartTimestamp() const override;
     bool getMaxTimestamp(int64_t& timestamp) override;

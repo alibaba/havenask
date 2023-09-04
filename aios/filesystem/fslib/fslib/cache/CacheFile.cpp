@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stack>
 #include "fslib/cache/CacheFile.h"
-#include "fslib/common/common_define.h"
+
+#include <stack>
+
 #include "autil/TimeUtility.h"
+#include "fslib/common/common_define.h"
 using namespace std;
 using namespace autil;
 FSLIB_BEGIN_NAMESPACE(cache);
 AUTIL_DECLARE_AND_SETUP_LOGGER(cache, CacheFile);
 
 size_t CacheFile::_alignment = getpagesize();
-#define barrier()  __asm__ __volatile__("": : :"memory")
+#define barrier() __asm__ __volatile__("" : : : "memory")
 
-CacheFile::CacheFile(const std::string &fileName, FileBlockCache *cache,
-                     int64_t id, size_t blockSize)
-{
+CacheFile::CacheFile(const std::string &fileName, FileBlockCache *cache, int64_t id, size_t blockSize) {
     _fileName = fileName;
     _id = id;
     _cache = cache;
@@ -52,8 +52,7 @@ CacheFile::~CacheFile() {
 
 bool CacheFile::open(fslib::Flag mode, bool useDirectIO, bool isAsync) {
     if (_file != NULL) {
-        AUTIL_LOG(ERROR, "file should not be open twice! fileName[%s].",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "file should not be open twice! fileName[%s].", _fileName.c_str());
         return false;
     }
     if (useDirectIO && _blockSize % _alignment != 0) {
@@ -96,15 +95,13 @@ ssize_t CacheFile::read(void *buffer, size_t len) {
 ssize_t CacheFile::read(void *buffer, size_t len, size_t &fromCacheSize) {
     fromCacheSize = 0;
     if (_file == NULL) {
-        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]", _fileName.c_str());
         return -1;
     }
     autil::ScopedLock lock(_mutex);
     int64_t offset = _file->tell();
     if (offset < 0) {
-        AUTIL_LOG(ERROR, "get offset failed! fileName:[%s]",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "get offset failed! fileName:[%s]", _fileName.c_str());
         return -1;
     }
     ssize_t ret = pread(buffer, len, offset, fromCacheSize);
@@ -122,8 +119,7 @@ ssize_t CacheFile::pread(void *buffer, size_t len, int64_t offset) {
 ssize_t CacheFile::pread(void *buffer, size_t len, int64_t offset, size_t &fromCacheSize) {
     fromCacheSize = 0;
     if (_file == NULL) {
-        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]", _fileName.c_str());
         return -1;
     }
     assert(_blockSize > 0);
@@ -132,8 +128,7 @@ ssize_t CacheFile::pread(void *buffer, size_t len, int64_t offset, size_t &fromC
         bool fromCache = false;
         FileBlockPtr block = getOneBlock(offset / _blockSize * _blockSize, fromCache);
         if (block == NULL) {
-            AUTIL_LOG(ERROR, "read block failed, fileName:[%s], offset:[%ld]",
-                      _fileName.c_str(), offset);
+            AUTIL_LOG(ERROR, "read block failed, fileName:[%s], offset:[%ld]", _fileName.c_str(), offset);
             return -1;
         }
         int64_t offsetDelta = offset % _blockSize;
@@ -144,8 +139,7 @@ ssize_t CacheFile::pread(void *buffer, size_t len, int64_t offset, size_t &fromC
         if (fromCache) {
             fromCacheSize += readLen;
         }
-        memcpy((char*)buffer + totalReadLen,
-               (char*)block->getBuffer() + offsetDelta, readLen);
+        memcpy((char *)buffer + totalReadLen, (char *)block->getBuffer() + offsetDelta, readLen);
         totalReadLen += readLen;
         offset += readLen;
         len -= readLen;
@@ -175,7 +169,7 @@ FileBlockPtr CacheFile::getOneBlock(int64_t offset, bool &fromCache) {
     }
     fileBlock->init(pool);
 
-    ssize_t readLen = _file->pread(fileBlock->getBuffer(),  _blockSize, offset);
+    ssize_t readLen = _file->pread(fileBlock->getBuffer(), _blockSize, offset);
     if (readLen < 0) {
         AUTIL_LOG(ERROR, "file pread failed");
         return FileBlockPtr();
@@ -183,7 +177,7 @@ FileBlockPtr CacheFile::getOneBlock(int64_t offset, bool &fromCache) {
 
     fileBlock->setActualLen(readLen);
 
-    if ((size_t)readLen == _blockSize){
+    if ((size_t)readLen == _blockSize) {
         putBlockToCache(offset, fileBlock);
     }
 
@@ -191,8 +185,7 @@ FileBlockPtr CacheFile::getOneBlock(int64_t offset, bool &fromCache) {
 }
 
 FileBlockPtr CacheFile::getBlockFromCache(int64_t offset) {
-    CacheKey cacheKey = make_pair(make_pair(_fileName, _id),
-                                  make_pair(offset, _blockSize));
+    CacheKey cacheKey = make_pair(make_pair(_fileName, _id), make_pair(offset, _blockSize));
     FileBlockPtr fileBlock;
     if (_cache != NULL) {
         _cache->get(cacheKey, fileBlock);
@@ -201,25 +194,22 @@ FileBlockPtr CacheFile::getBlockFromCache(int64_t offset) {
 }
 
 void CacheFile::putBlockToCache(int64_t offset, FileBlockPtr fileBlock) {
-    CacheKey cacheKey = make_pair(make_pair(_fileName, _id),
-                                  make_pair(offset, _blockSize));
+    CacheKey cacheKey = make_pair(make_pair(_fileName, _id), make_pair(offset, _blockSize));
     if (_cache != NULL) {
         _cache->put(cacheKey, fileBlock);
     }
 }
 
-void CacheFile::putBufferToCache(
-        FileBlockPtr fileBlock, int64_t curOff, size_t len)
-{
+void CacheFile::putBufferToCache(FileBlockPtr fileBlock, int64_t curOff, size_t len) {
     if (_cache == NULL) {
-        return ;
+        return;
     }
 
     if (len < _blockSize) {
-        return ;
+        return;
     }
 
-    if (getBlockFromCache(curOff ) == NULL) {
+    if (getBlockFromCache(curOff) == NULL) {
         putBlockToCache(curOff, fileBlock);
     }
 }
@@ -258,15 +248,13 @@ ssize_t CacheFile::writeSlice(const void *buffer, size_t len, int64_t offset) {
         pool = _cache->getFileBlockPool();
     }
     fileBlock->init(pool);
-    memcpy(fileBlock->getBuffer(), (char*)buffer, len);
+    memcpy(fileBlock->getBuffer(), (char *)buffer, len);
     fileBlock->setActualLen(len);
 
     autil::ScopedLock lock(_mutex);
     if (_threadPool != NULL) {
-        //doWrite will free alignedBuffer
-        auto task = [this, fileBlock, len, offset]() {
-                        doWriteAuto(fileBlock, len, offset);
-                    };
+        // doWrite will free alignedBuffer
+        auto task = [this, fileBlock, len, offset]() { doWriteAuto(fileBlock, len, offset); };
         if (ThreadPool::ERROR_NONE != _threadPool->pushTask(std::move(task))) {
             AUTIL_LOG(ERROR, "fail to push write work item.");
             return -1;
@@ -283,13 +271,15 @@ ssize_t CacheFile::writeSlice(const void *buffer, size_t len, int64_t offset) {
 
 ssize_t CacheFile::write(const void *buffer, size_t len) {
     if (len > MAX_UNWRITTEN_LEN) {
-        AUTIL_LOG(ERROR, "Do not support write more than %ld byte in ont time! "
-                  "fileName:[%s]", MAX_UNWRITTEN_LEN, _fileName.c_str());
+        AUTIL_LOG(ERROR,
+                  "Do not support write more than %ld byte in ont time! "
+                  "fileName:[%s]",
+                  MAX_UNWRITTEN_LEN,
+                  _fileName.c_str());
         return -1;
     }
     if (_file == NULL) {
-        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]", _fileName.c_str());
         return -1;
     }
 
@@ -320,23 +310,20 @@ ssize_t CacheFile::doWriteSafe(FileBlockPtr fileBlock, size_t len, int64_t offse
 ssize_t CacheFile::doWrite(FileBlockPtr fileBlock, size_t len, int64_t offset) {
     ssize_t ret = len;
     if (_writeFailedCount > 0) {
-        AUTIL_LOG(ERROR, "file broken! fileName:[%s]",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "file broken! fileName:[%s]", _fileName.c_str());
         return -1;
     }
     if (offset == -1) {
         offset = _file->tell();
         if (offset < 0) {
-            AUTIL_LOG(ERROR, "get offset failed! fileName:[%s]",
-                      _fileName.c_str());
-            _writeFailedCount ++;
+            AUTIL_LOG(ERROR, "get offset failed! fileName:[%s]", _fileName.c_str());
+            _writeFailedCount++;
             return -1;
         }
-        ssize_t more = (ssize_t) len;
+        ssize_t more = (ssize_t)len;
         int64_t off = 0;
         while (more > 0) {
-            ssize_t writeLen = _file->write(
-                    (char*)fileBlock->getBuffer() + off, more);
+            ssize_t writeLen = _file->write((char *)fileBlock->getBuffer() + off, more);
             if (writeLen == -1) {
                 ret = -1;
                 break;
@@ -350,9 +337,8 @@ ssize_t CacheFile::doWrite(FileBlockPtr fileBlock, size_t len, int64_t offset) {
     }
 
     if (ret == -1) {
-        AUTIL_LOG(ERROR, "do write failed! fileName:[%s]",
-                  _fileName.c_str());
-        _writeFailedCount ++;
+        AUTIL_LOG(ERROR, "do write failed! fileName:[%s]", _fileName.c_str());
+        _writeFailedCount++;
     } else {
         // put buffer to cache, do not free
         putBufferToCache(fileBlock, offset, ret);
@@ -361,16 +347,17 @@ ssize_t CacheFile::doWrite(FileBlockPtr fileBlock, size_t len, int64_t offset) {
     return ret;
 }
 
-ssize_t CacheFile::pwrite(const void *buffer, size_t len, int64_t offset)
-{
+ssize_t CacheFile::pwrite(const void *buffer, size_t len, int64_t offset) {
     if (len > MAX_UNWRITTEN_LEN) {
-        AUTIL_LOG(ERROR, "Do not support write more than %ld byte in ont time! "
-                  "fileName:[%s]", MAX_UNWRITTEN_LEN, _fileName.c_str());
+        AUTIL_LOG(ERROR,
+                  "Do not support write more than %ld byte in ont time! "
+                  "fileName:[%s]",
+                  MAX_UNWRITTEN_LEN,
+                  _fileName.c_str());
         return -1;
     }
     if (_file == NULL) {
-        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]", _fileName.c_str());
         return -1;
     }
 
@@ -379,8 +366,7 @@ ssize_t CacheFile::pwrite(const void *buffer, size_t len, int64_t offset)
 
 ErrorCode CacheFile::close() {
     if (_file == NULL) {
-        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]", _fileName.c_str());
         return EC_BADF;
     }
     if (_threadPool != NULL) {
@@ -400,8 +386,7 @@ ErrorCode CacheFile::close() {
 
 ErrorCode CacheFile::flush() {
     if (_file == NULL) {
-        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]", _fileName.c_str());
         return EC_BADF;
     }
     autil::ScopedLock lock(_mutex);
@@ -415,8 +400,7 @@ ErrorCode CacheFile::flush() {
         return ec;
     }
     if (_writeFailedCount > 0) {
-        AUTIL_LOG(ERROR, "write failed %d times in fileName:[%s]",
-                  _writeFailedCount, _fileName.c_str());
+        AUTIL_LOG(ERROR, "write failed %d times in fileName:[%s]", _writeFailedCount, _fileName.c_str());
         return EC_UNKNOWN;
     }
     return EC_OK;
@@ -424,8 +408,7 @@ ErrorCode CacheFile::flush() {
 
 ErrorCode CacheFile::sync() {
     if (_file == NULL) {
-        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]", _fileName.c_str());
         return EC_BADF;
     }
 
@@ -439,8 +422,7 @@ ErrorCode CacheFile::sync() {
 
 ErrorCode CacheFile::seek(int64_t offset, SeekFlag flag) {
     if (_file == NULL) {
-        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]", _fileName.c_str());
         return EC_BADF;
     }
     return _file->seek(offset, flag);
@@ -448,8 +430,7 @@ ErrorCode CacheFile::seek(int64_t offset, SeekFlag flag) {
 
 int64_t CacheFile::tell() {
     if (_file == NULL) {
-        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]", _fileName.c_str());
         return -1;
     }
     if (_unWrittenLen.load() > 0) {
@@ -458,14 +439,11 @@ int64_t CacheFile::tell() {
     return _file->tell();
 }
 
-bool CacheFile::isOpened() const {
-    return _file != NULL && _file->isOpened();
-}
+bool CacheFile::isOpened() const { return _file != NULL && _file->isOpened(); }
 
 bool CacheFile::isEof() {
     if (_file == NULL) {
-        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]",
-                  _fileName.c_str());
+        AUTIL_LOG(ERROR, "should open file first! fileName:[%s]", _fileName.c_str());
         return false;
     }
     return _file->isEof();

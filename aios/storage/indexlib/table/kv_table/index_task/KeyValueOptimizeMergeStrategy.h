@@ -48,7 +48,7 @@ private:
                        const std::map<segmentid_t, framework::SegmentTopologyInfo>& topoInfos,
                        std::shared_ptr<MergePlan>& mergePlan);
 
-    bool CheckLevelInfo(const std::shared_ptr<framework::LevelInfo>& levelInfo) const;
+    bool CheckLevelInfo(const std::shared_ptr<framework::LevelInfo>& levelInfo, bool& needMerge) const;
     void CollectSegmentDescriptions(const std::shared_ptr<framework::LevelInfo>& originalLevelInfo,
                                     const std::map<segmentid_t, framework::SegmentTopologyInfo>& topoInfos,
                                     const std::shared_ptr<MergePlan>& mergePlan, framework::Version& targetVersion);

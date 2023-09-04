@@ -24,9 +24,6 @@
 #include "indexlib/index/attribute/patch/AttributePatchReader.h"
 #include "indexlib/index/common/patch/PatchFileInfos.h"
 
-namespace indexlibv2::config {
-class AttributeConfig;
-}
 namespace indexlibv2::framework {
 class Segment;
 }
@@ -34,6 +31,7 @@ class Segment;
 namespace indexlibv2::index {
 class AttributePatchReader;
 class AttributeFieldValue;
+class AttributeConfig;
 
 class SingleFieldPatchIterator : public AttributePatchIterator
 {
@@ -41,12 +39,12 @@ public:
     using SegmentPatchReaderInfo = std::pair<docid_t, std::shared_ptr<AttributePatchReader>>;
 
 public:
-    SingleFieldPatchIterator(const std::shared_ptr<config::AttributeConfig>& attrConfig, bool isSub);
+    SingleFieldPatchIterator(const std::shared_ptr<AttributeConfig>& attrConfig, bool isSub);
 
     ~SingleFieldPatchIterator();
 
 public:
-    Status Init(const std::vector<std::shared_ptr<framework::Segment>>& segments);
+    Status Init(const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& segments);
     Status Next(AttributeFieldValue& value) override;
     void Reserve(AttributeFieldValue& value) override;
     size_t GetPatchLoadExpandSize() const override;
@@ -73,7 +71,7 @@ private:
 
 private:
     std::vector<SegmentPatchReaderInfo> _segmentPatchReaderInfos;
-    std::shared_ptr<config::AttributeConfig> _attrConfig;
+    std::shared_ptr<AttributeConfig> _attrConfig;
     size_t _cursor;
     size_t _patchLoadExpandSize;
     size_t _patchItemCount;

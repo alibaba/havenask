@@ -1,0 +1,70 @@
+{
+    "packages" : [
+	    {
+	        "type" : "RPM",
+	        "packageURI" : "bs_package"
+	    },
+	    {
+	        "type" : "ARCHIVE",
+	        "packageURI" : "other_packages"
+	    }
+    ],
+    "role_default" : {
+        "count" : 1,
+        "processInfos" : [
+            {
+                "isDaemon" : true,
+                "envs" : [
+                    ["HADOOP_HOME","/hadoop/home/path"]
+                ],
+                "args" : [
+                    ["-l" , "/path/to/logconf"]
+                ]
+            }
+        ],
+	"dataInfos" : [
+	    {
+		"name" : "isearch5_data",
+		"src" : "hdfs://path/to/isearch5_data",
+		"dst" : "$HIPP_APP_WORKDIR/isearch5_data"
+	    }
+	],
+        "properties" : {
+            "key" : "value"
+        },
+	"queue" : "build_service_queue",
+	"allocateMode" : 2
+    },
+    "role_customize" : [
+	{
+	    "dataInfos" : [],
+            "_bs_role" : "builder_cluster1"
+	},
+        {
+	    "dataInfos" : [],
+            "_bs_role" : "builder_cluster2"
+	}
+    ],
+    "role_resource" : {
+        "processor" : [
+            {
+                "name" : "cpu",
+                "amount" : 100
+            },
+            {
+                "name" : "mem",
+                "amount" : 1000
+            }
+        ],
+        "builder.cluster1" : [
+            {
+                "name" : "cpu",
+                "amount" : 200
+            },
+            {
+                "name" : "mem",
+                "amount" : 1000
+            }
+        ]
+    }
+}

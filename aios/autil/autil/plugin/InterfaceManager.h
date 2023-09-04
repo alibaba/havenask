@@ -15,9 +15,9 @@
  */
 #pragma once
 
+#include <map>
 #include <stddef.h>
 #include <string>
-#include <map>
 
 #include "autil/Log.h"
 
@@ -27,43 +27,44 @@ class BaseInterface;
 
 class InterfaceManager {
 public:
-    InterfaceManager() {};
+    InterfaceManager(){};
     virtual ~InterfaceManager();
     InterfaceManager(const InterfaceManager &) = delete;
-    InterfaceManager& operator=(const InterfaceManager &) = delete;
+    InterfaceManager &operator=(const InterfaceManager &) = delete;
 
 public:
-    bool addInterface(const std::string &name, BaseInterface* interface);
-    BaseInterface* find(const std::string &name) const;
+    bool addInterface(const std::string &name, BaseInterface *interface);
+    BaseInterface *find(const std::string &name) const;
     void clear();
     size_t size() const { return _interfaceMap.size(); }
 
     template <class T>
-    T* get(const std::string &name) const {
+    T *get(const std::string &name) const {
         auto interface = this->find(name);
         if (interface) {
-            return dynamic_cast<T*>(interface);
+            return dynamic_cast<T *>(interface);
         }
         return nullptr;
     }
+
 private:
-    std::map<const std::string, BaseInterface*> _interfaceMap;
+    std::map<const std::string, BaseInterface *> _interfaceMap;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
 #define CREATE_INTERFACE_INSTANCE(type) new type()
-#define REGISTER_INTERFACE(name, interface, manager)            \
-    do {                                                        \
-        auto instance = CREATE_INTERFACE_INSTANCE(interface);   \
-        if (instance) {                                         \
-            if (!manager->addInterface(name, instance)) {       \
-                return false;                                   \
-            }                                                   \
-        } else {                                                \
-            return false;                                       \
-        }                                                       \
+#define REGISTER_INTERFACE(name, interface, manager)                                                                   \
+    do {                                                                                                               \
+        auto instance = CREATE_INTERFACE_INSTANCE(interface);                                                          \
+        if (instance) {                                                                                                \
+            if (!manager->addInterface(name, instance)) {                                                              \
+                return false;                                                                                          \
+            }                                                                                                          \
+        } else {                                                                                                       \
+            return false;                                                                                              \
+        }                                                                                                              \
     } while (false)
-
 
 } // namespace autil

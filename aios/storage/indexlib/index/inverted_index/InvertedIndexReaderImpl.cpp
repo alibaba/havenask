@@ -15,7 +15,7 @@
  */
 #include "indexlib/index/inverted_index/InvertedIndexReaderImpl.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/index/inverted_index/BufferedPostingIterator.h"
 #include "indexlib/index/inverted_index/BuildingIndexReader.h"
 #include "indexlib/index/inverted_index/Common.h"
@@ -44,7 +44,7 @@ using indexlibv2::config::InvertedIndexConfig;
 using indexlibv2::framework::Segment;
 
 bool UseDefaultValue(const std::shared_ptr<IIndexConfig>& indexConfig,
-                     std::vector<std::shared_ptr<indexlibv2::config::TabletSchema>> schemas)
+                     std::vector<std::shared_ptr<indexlibv2::config::ITabletSchema>> schemas)
 {
     if (schemas.size() <= 1) {
         return false;

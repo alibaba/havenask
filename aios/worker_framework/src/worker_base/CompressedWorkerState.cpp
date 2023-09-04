@@ -15,10 +15,21 @@
  */
 #include "worker_framework/CompressedWorkerState.h"
 
+#include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
+#include "autil/Log.h"
+#include "autil/StringUtil.h"
 #include "worker_base/CompressedWorkerStateImpl.h"
+#include "worker_framework/EmptyState.h"
+#include "worker_framework/LocalState.h"
+#include "worker_framework/ZkState.h"
 
 namespace worker_framework {
 namespace worker_base {
+
+AUTIL_DECLARE_AND_SETUP_LOGGER(worker_framework.worker_base, CompressedWorkerState);
+
+const std::string ZK_PREFIX = "zfs://";
+const std::string LOCAL_PREFIX = "LOCAL://";
 
 CompressedWorkerState::CompressedWorkerState(std::unique_ptr<WorkerState> underlying)
     : _underlying(std::move(underlying)) {}
@@ -42,6 +53,24 @@ WorkerState::ErrorCode CompressedWorkerState::read(std::string &content) {
         }
     }
     return ec;
+}
+
+std::unique_ptr<WorkerState> CompressedWorkerState::createWithFilePath(const std::string &filePath,
+                                                                       autil::CompressType type) {
+    if (autil::StringUtil::startsWith(filePath, ZK_PREFIX)) {
+        auto state = ZkState::create(filePath);
+        if (state == nullptr) {
+            return nullptr;
+        }
+        std::unique_ptr<ZkState> zkState(state);
+        return worker_base::CompressedWorkerState::create(std::move(zkState), type);
+    } else if (autil::StringUtil::startsWith(filePath, LOCAL_PREFIX)) {
+        auto localState = std::make_unique<LocalState>(filePath);
+        return worker_base::CompressedWorkerState::create(std::move(localState), type);
+    } else if (filePath.empty()) {
+        return std::make_unique<EmptyState>();
+    }
+    return nullptr;
 }
 
 std::unique_ptr<WorkerState> CompressedWorkerState::create(std::unique_ptr<WorkerState> underlying,

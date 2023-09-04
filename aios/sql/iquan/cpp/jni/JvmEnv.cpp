@@ -18,6 +18,8 @@
 
 namespace iquan {
 
-JNIEnv *getIquanJNIEnv() { return Jvm::env(); }
+JNIEnv *getIquanJNIEnv() {
+    return Jvm::env();
+}
 
 } // namespace iquan

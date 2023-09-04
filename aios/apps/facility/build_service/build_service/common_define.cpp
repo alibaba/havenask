@@ -53,6 +53,7 @@ const std::string BS_ENV_BROKER_TOPIC_MAX_BATCH_SIZE = "broker_topic_max_batch_s
 // checkpoint
 const std::string BS_RESOURCE_CHECKPOINT_ID = "checkpoint_resource_checkpoint";
 const std::string BS_BUILDER_CHECKPOINT_ID = "builder_checkpoint";
+const std::string BS_CHECKPOINT_VISIABLE_ID = "checkpoint_visiable";
 const std::string BS_INDEX_INFO_ID = "index_info";
 const std::string BS_INDEX_CHECKPOINT_ID = "index_checkpoint";
 const std::string BS_INDEX_TOTAL_SIZE_ID = "index_total_size";
@@ -94,7 +95,7 @@ const std::string BS_ENV_DEFAULT_KMON_SERVICE_NAME = "bs.worker";
 const std::string BS_ENV_DOC_TRACE_FIELD = "bs_doc_trace_field";
 const std::string BS_ENV_DOC_TRACE_INTERVAL = "bs_doc_trace_interval"; // second
 const std::string BS_ENV_READER_CHECKPOINT_STEP = "bs_doc_reader_checkpoint_step";
+const std::string BS_ENV_ALLOW_UPDATE_SCHEMA = "bs_allow_update_schema";
 
 const std::string BS_BACKUP_NODE_LABEL = "backup";
-
 }; // namespace build_service

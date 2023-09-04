@@ -33,8 +33,7 @@ RangeQueryExecutor::RangeQueryExecutor(LayerMeta *layerMeta)
     : _layerMeta(*layerMeta)
     , _rangeIdx(0)
     , _rangeCount(_layerMeta.size())
-    , _df(0)
-{
+    , _df(0) {
     for (auto &rangeMeta : _layerMeta) {
         _df += rangeMeta.end - rangeMeta.begin + 1;
     }

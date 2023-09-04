@@ -1,0 +1,9 @@
+{
+    "table_name": "orc_table",
+    "table_type": "orc",
+    "fields": [
+        { "field_name": "nid", "field_type": "INT64" },
+        { "field_name": "multi_int16", "field_type": "INT16", "multi_value" : true}
+    ],
+    "attributes": [ "nid", "multi_int16"]    
+}

@@ -1,0 +1,14 @@
+{
+    "graph_name" : "U2AWithCloneIndex.graph",
+    "id" : "1",
+    "path" : "Update2Add",
+    "params" : {
+        "needCloneIndex" : "true",
+        "source_admin_address" : "zfs://test/admin",
+        "madrox_admin_address" : "zfs://test/madrox",
+        "clusterNames" : "[\"simple_cluster\"]", 
+        "versionIds" : "[1]", 
+        "source_build_id" : "{\"dataTable\" : \"simple\", \"generationId\" : 1234, \"appName\" : \"test\"}",
+        "mergeConfig" : "large_segment_reclaim"
+    }
+}

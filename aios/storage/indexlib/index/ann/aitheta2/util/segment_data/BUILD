@@ -1,0 +1,48 @@
+package(
+    default_visibility=[
+        '//aios/storage/indexlib/index/ann/aitheta2:__subpackages__'
+    ]
+)
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+strict_cc_library(
+    name='segment_data_reader',
+    srcs=['SegmentDataReader.cpp'],
+    hdrs=['SegmentDataReader.h'],
+    visibility=['//visibility:public'],
+    deps=[
+        ':index_data_addr_holder',
+        '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common',
+        '//aios/storage/indexlib/index/ann/aitheta2/util/parallel_merge:parallel_merge_util'
+    ]
+)
+strict_cc_library(
+    name='segment_data_writer',
+    srcs=['SegmentDataWriter.cpp'],
+    hdrs=['SegmentDataWriter.h'],
+    visibility=['//visibility:public'],
+    deps=[
+        ':index_data_addr_holder',
+        '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common',
+        '//aios/storage/indexlib/index/ann/aitheta2/util/parallel_merge:parallel_merge_util'
+    ]
+)
+strict_cc_library(
+    name='parallel_segment_data_reader',
+    srcs=['ParallelMergeSegmentDataReader.cpp'],
+    hdrs=['ParallelMergeSegmentDataReader.h'],
+    visibility=['//visibility:public'],
+    deps=[
+        ':segment_data_reader',
+        '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common',
+        '//aios/storage/indexlib/index/ann/aitheta2/util/parallel_merge:parallel_merge_util'
+    ]
+)
+strict_cc_library(
+    name='index_data_addr_holder',
+    srcs=['IndexDataAddrHolder.cpp'],
+    hdrs=['IndexDataAddrHolder.h'],
+    deps=[
+        '//aios/autil:json', '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common'
+    ]
+)

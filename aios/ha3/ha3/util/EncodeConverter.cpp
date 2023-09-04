@@ -18,23 +18,19 @@
 #include <string>
 
 #include "alog/Logger.h"
-
 #include "autil/Log.h"
 
 namespace isearch {
 namespace util {
- AUTIL_LOG_SETUP(ha3, EncodeConverter);
+AUTIL_LOG_SETUP(ha3, EncodeConverter);
 
-EncodeConverter::EncodeConverter() { 
-}
+EncodeConverter::EncodeConverter() {}
 
-EncodeConverter::~EncodeConverter() { 
-}
+EncodeConverter::~EncodeConverter() {}
 
-int32_t EncodeConverter::utf8ToUtf16(const char *in, int32_t length, uint16_t *out) 
-{
+int32_t EncodeConverter::utf8ToUtf16(const char *in, int32_t length, uint16_t *out) {
     int32_t ret = 0;
-    const unsigned char *b = reinterpret_cast<const unsigned char*>(in);
+    const unsigned char *b = reinterpret_cast<const unsigned char *>(in);
     const unsigned char *e = b + length;
     bool error = false;
     while (b < e) {
@@ -64,15 +60,14 @@ int32_t EncodeConverter::utf8ToUtf16(const char *in, int32_t length, uint16_t *o
             b++;
         }
     }
-    
+
     if (error) {
         AUTIL_LOG(DEBUG, "invalid utf8 [%s]", std::string(in, length).c_str());
     }
     return ret;
 }
 
-int32_t EncodeConverter::utf16ToUtf8(const uint16_t *in, int32_t length, char *out)
-{
+int32_t EncodeConverter::utf16ToUtf8(const uint16_t *in, int32_t length, char *out) {
     int32_t ret = 0;
     const uint16_t *b = in;
     const uint16_t *e = b + length;
@@ -82,12 +77,12 @@ int32_t EncodeConverter::utf16ToUtf8(const uint16_t *in, int32_t length, char *o
         if (u < 0x80) {
             p[ret++] = u;
         } else if (u < 0x800) {
-            p[ret++] = ( (u >> 6) | 0xC0 ) ;  
-            p[ret++] = ( (u & 0x3F) | 0x80 ) ; 
+            p[ret++] = ((u >> 6) | 0xC0);
+            p[ret++] = ((u & 0x3F) | 0x80);
         } else {
-            p[ret++] = ( (u >> 12) | 0xE0 );  
-            p[ret++] = ( ( (u >> 6) & 0x3F ) | 0x80 ) ; 
-            p[ret++] = ( (u & 0x3F ) | 0x80 ); 
+            p[ret++] = ((u >> 12) | 0xE0);
+            p[ret++] = (((u >> 6) & 0x3F) | 0x80);
+            p[ret++] = ((u & 0x3F) | 0x80);
         }
         b++;
     }
@@ -96,7 +91,7 @@ int32_t EncodeConverter::utf16ToUtf8(const uint16_t *in, int32_t length, char *o
 
 int32_t EncodeConverter::utf8ToUtf16Len(const char *in, int32_t length) {
     int32_t ret = 0;
-    const unsigned char *b = reinterpret_cast<const unsigned char*>(in);
+    const unsigned char *b = reinterpret_cast<const unsigned char *>(in);
     const unsigned char *e = b + length;
     bool error = false;
     while (b < e) {
@@ -129,7 +124,7 @@ int32_t EncodeConverter::utf8ToUtf16Len(const char *in, int32_t length) {
             b++;
         }
     }
-    
+
     if (error) {
         AUTIL_LOG(DEBUG, "invalid utf8 [%s]", std::string(in, length).c_str());
         return -1;
@@ -139,4 +134,3 @@ int32_t EncodeConverter::utf8ToUtf16Len(const char *in, int32_t length) {
 
 } // namespace util
 } // namespace isearch
-

@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/util/Filter.h"
-#include "autil/StringUtil.h"
+
 #include <assert.h>
 #include <math.h>
+
+#include "autil/StringUtil.h"
 
 using namespace std;
 using namespace autil;
@@ -35,7 +37,8 @@ Filter::Filter(int32_t windowSize) : _windowSize(windowSize), _minValue(0.0f) {
     _alpha = 1.0f - ::exp(ln15 / _windowSize);
 }
 
-Filter::~Filter() {}
+Filter::~Filter() {
+}
 
 bool Filter::update(float input, float truncate) {
     if (likely(input >= _minValue)) {
@@ -43,21 +46,24 @@ bool Filter::update(float input, float truncate) {
         FloatIntUnion newValue;
         do {
             current.f = _current.f;
-            newValue.f = std::min(_alpha * input + (1.0f - _alpha) * current.f,
-                                  truncate);
+            newValue.f = std::min(_alpha * input + (1.0f - _alpha) * current.f, truncate);
         } while (!cmpxchg(&_current.i, current.i, newValue.i));
         atomic_inc(&_filterCounter);
     }
     return isValid();
 }
 
-float Filter::getAlpha() const { return _alpha; }
+float Filter::getAlpha() const {
+    return _alpha;
+}
 
 bool Filter::isValid() const {
     return atomic_read(&_filterCounter) >= _windowSize;
 }
 
-float Filter::output() const { return _current.f; }
+float Filter::output() const {
+    return _current.f;
+}
 
 CompareFlag Filter::compare(const Filter &rhs) const {
     int32_t sum = isValid() | (rhs.isValid() << 1u);
@@ -74,7 +80,9 @@ CompareFlag Filter::compare(const Filter &rhs) const {
     }
 }
 
-int64_t Filter::count() const { return atomic_read(&_filterCounter); }
+int64_t Filter::count() const {
+    return atomic_read(&_filterCounter);
+}
 
 void Filter::truncate(float value) {
     if (_current.f > value) {
@@ -82,7 +90,9 @@ void Filter::truncate(float value) {
     }
 }
 
-void Filter::setCurrent(float current) { _current.f = current; }
+void Filter::setCurrent(float current) {
+    _current.f = current;
+}
 
 void Filter::setCounter(int64_t counter) {
     atomic_set(&_filterCounter, counter);
@@ -92,7 +102,9 @@ void Filter::setMinValue(float minValue) {
     _minValue = minValue;
 }
 
-int32_t Filter::getWindowSize() const { return _windowSize; }
+int32_t Filter::getWindowSize() const {
+    return _windowSize;
+}
 
 void Filter::reset() {
     setCounter(0);
@@ -100,8 +112,7 @@ void Filter::reset() {
 }
 
 std::string Filter::toString() const {
-    return StringUtil::toString(output()) + " O " +
-           StringUtil::toString(count()) + " C " +
+    return StringUtil::toString(output()) + " O " + StringUtil::toString(count()) + " C " +
            StringUtil::toString(getWindowSize()) + " W";
 }
 

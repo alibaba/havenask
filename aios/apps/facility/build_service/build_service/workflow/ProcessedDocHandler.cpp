@@ -66,11 +66,12 @@ bool ProcessedDocHandler::start(const config::ResourceReaderPtr& resourceReader,
             BS_LOG(ERROR, "cannot get src locator, processor handle start failed");
             return false;
         }
-        int64_t locator = initLocatorOffset < srcLocator.GetOffset() ? initLocatorOffset : srcLocator.GetOffset();
-        _lastLocator.SetOffset(locator);
-        _candidateLastLocator.SetOffset(locator);
+        int64_t locator =
+            initLocatorOffset < srcLocator.GetOffset().first ? initLocatorOffset : srcLocator.GetOffset().first;
+        _lastLocator.SetOffset({locator, 0});
+        _candidateLastLocator.SetOffset({locator, 0});
     }
-    BS_LOG(INFO, "doc handler init locator offset [%ld]", _lastLocator.GetOffset());
+    BS_LOG(INFO, "doc handler init locator offset [%ld]", _lastLocator.GetOffset().first);
 
     ProcessorConfig processorConfig;
     config::ProcessorConfigReaderPtr processorConfigReader(

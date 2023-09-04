@@ -22,7 +22,8 @@
 namespace multi_call {
 class ChildNodeReply;
 
-class Reply {
+class Reply
+{
 public:
     Reply();
     virtual ~Reply();
@@ -34,9 +35,9 @@ private:
 public:
     // virtual for ut
     virtual std::vector<ResponsePtr> getResponses(size_t &lackCount);
-    virtual std::vector<ResponsePtr> getResponses(size_t &lackCount, std::vector<LackResponseInfo> &lackInfos);
-    virtual std::map<std::string, std::vector<ResponsePtr> >
-    getResponseMap(size_t &lackCount);
+    virtual std::vector<ResponsePtr> getResponses(size_t &lackCount,
+                                                  std::vector<LackResponseInfo> &lackInfos);
+    virtual std::map<std::string, std::vector<ResponsePtr>> getResponseMap(size_t &lackCount);
     void setChildNodeReply(const std::shared_ptr<ChildNodeReply> &reply);
 
 public:

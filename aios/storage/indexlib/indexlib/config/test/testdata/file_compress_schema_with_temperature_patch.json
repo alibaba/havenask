@@ -1,0 +1,28 @@
+{
+    "file_compress": [
+        {
+            "name":"compress1",
+            "type":"zstd"
+        },
+        {
+            "name":"compress2",
+            "type":"snappy",
+	    "exclude_file_pattern" : ".*/(dictionary|posting)$"
+        },
+	{
+	    "name":"compress3",
+            "type":"lz4"
+	},
+	{
+            "name":"hybrid_compressor",
+	    "type":"",
+	    "temperature_compressor":
+	    {
+		"warm" : "compress1",
+		"COLD"  : "compress3"
+	    }
+	}
+    ],
+    "table_name": "noname"
+}
+

@@ -9,10 +9,10 @@
 #define KMONITOR_CLIENT_NET_THRIFT_TSOCKET_H_
 
 #include <string>
-#include "kmonitor/client/common/Common.h"
-#include "autil/Log.h"
-BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
+#include "autil/Log.h"
+#include "kmonitor/client/common/Common.h"
+BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 enum SocketState {
     TO_BE_CONNECTING = 1,
@@ -23,8 +23,8 @@ enum SocketState {
 };
 
 class TSocket {
- public:
-    TSocket(const std::string& host, int port, int32_t time_out_ms = 100);
+public:
+    TSocket(const std::string &host, int port, int32_t time_out_ms = 100);
     virtual ~TSocket();
 
     bool IsConnect();
@@ -34,17 +34,17 @@ class TSocket {
     SocketState GetSocketState() const;
 
     // virtual for test
-    virtual int32_t Read(uint8_t* buf, uint32_t len);
-    virtual int32_t Write(const uint8_t* buf, uint32_t len); 
+    virtual int32_t Read(uint8_t *buf, uint32_t len);
+    virtual int32_t Write(const uint8_t *buf, uint32_t len);
 
- private:
+private:
     TSocket(const TSocket &);
-    TSocket& operator=(const TSocket &);
+    TSocket &operator=(const TSocket &);
 
- private:
+private:
     static const int kInvalidSocket = -1;
 
- private:
+private:
     std::string host_;
     int port_;
     int32_t time_out_ms_;
@@ -58,10 +58,10 @@ class TSocket {
     bool no_delay_;
     int max_recv_retries_;
 
- private:
+private:
     AUTIL_LOG_DECLARE();
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_NET_THRIFT_TSOCKET_H_
+#endif // KMONITOR_CLIENT_NET_THRIFT_TSOCKET_H_

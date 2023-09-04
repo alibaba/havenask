@@ -39,7 +39,7 @@ namespace indexlibv2::table {
 class NormalTabletWriter : public table::CommonTabletWriter
 {
 public:
-    NormalTabletWriter(const std::shared_ptr<config::TabletSchema>& schema, const config::TabletOptions* options);
+    NormalTabletWriter(const std::shared_ptr<config::ITabletSchema>& schema, const config::TabletOptions* options);
     ~NormalTabletWriter();
 
     Status Open(const std::shared_ptr<framework::TabletData>& tabletData, const framework::BuildResource& buildResource,
@@ -47,6 +47,7 @@ public:
     Status DoBuildAndReportMetrics(const std::shared_ptr<document::IDocumentBatch>& batch) override;
 
     std::unique_ptr<framework::SegmentDumper> CreateSegmentDumper() override;
+    void Close() override;
 
 private:
     void DispatchDocIds(document::IDocumentBatch* batch);
@@ -56,8 +57,8 @@ private:
     Status PrepareBuiltinIndex(const std::shared_ptr<framework::TabletData>& tabletData);
     Status PreparePrimaryKeyReader(const std::shared_ptr<framework::TabletData>& tabletData);
     Status PrepareModifier(const std::shared_ptr<framework::TabletData>& tabletData);
-    std::vector<std::shared_ptr<document::IDocumentBatch>> SplitDocumentBatch(document::IDocumentBatch* batch) const;
-    void CalculateDocumentBatchSplitSize(document::IDocumentBatch* batch, std::vector<size_t>& splitSizeVec) const;
+    static std::vector<std::shared_ptr<document::IDocumentBatch>> SplitDocumentBatch(document::IDocumentBatch* batch);
+    static void CalculateDocumentBatchSplitSize(document::IDocumentBatch* batch, std::vector<size_t>& splitSizeVec);
     void UpdateNormalTabletInfo();
     void PostBuildActions();
 
@@ -66,6 +67,7 @@ public:
 
 private:
     std::shared_ptr<NormalMemSegment> _normalBuildingSegment;
+    docid_t _buildingSegmentBaseDocId;
     std::shared_ptr<indexlib::index::PrimaryKeyIndexReader> _pkReader;
     std::shared_ptr<NormalTabletModifier> _modifier;
     std::shared_ptr<document::DocumentRewriteChain> _documentRewriteChain;

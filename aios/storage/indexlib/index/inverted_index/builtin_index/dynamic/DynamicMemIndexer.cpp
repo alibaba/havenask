@@ -71,11 +71,11 @@ void DynamicMemIndexer::UpdateToken(const DictKeyInfo& termKey, bool isNumberInd
 
 std::shared_ptr<DynamicIndexSegmentReader> DynamicMemIndexer::CreateInMemReader()
 {
-    return std::make_shared<DynamicIndexSegmentReader>(&(_postingTable->table), _isNumberIndex,
-                                                       &(_postingTable->nullTermPosting));
+    return std::make_shared<DynamicIndexSegmentReader>(&(_postingTableAccessor->table), _isNumberIndex,
+                                                       &(_postingTableAccessor->nullTermPosting));
 }
 
-DynamicPostingWriter* DynamicMemIndexer::CreatePostingWriter() { return CreatePostingWriter(_postingTable.get()); }
+DynamicPostingWriter* DynamicMemIndexer::CreatePostingWriter() { return CreatePostingWriter(_postingTableAccessor); }
 
 DynamicPostingWriter* DynamicMemIndexer::CreatePostingWriter(DynamicMemIndexer::DynamicPostingTable* postingTable)
 {
@@ -152,5 +152,7 @@ void DynamicMemIndexer::Dump(const std::shared_ptr<file_system::Directory>& inde
     _resource->Reset(_postingTable.release());
     _resource->SetDirty(true);
 }
+
+size_t DynamicMemIndexer::GetCurrentMemoryUse() { return _postingTableAccessor->pool.getUsedBytes(); }
 
 } // namespace indexlib::index

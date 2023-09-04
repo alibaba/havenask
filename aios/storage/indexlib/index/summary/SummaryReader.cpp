@@ -19,8 +19,10 @@
 #include "indexlib/document/normal/SummaryGroupFormatter.h"
 #include "indexlib/index/attribute/AttributeIteratorBase.h"
 #include "indexlib/index/attribute/AttributeReader.h"
+#include "indexlib/index/pack_attribute/PackAttributeReader.h"
 #include "indexlib/index/summary/SummaryMemIndexer.h"
 #include "indexlib/index/summary/SummaryMemReaderContainer.h"
+#include "indexlib/index/summary/config/SummaryConfig.h"
 #include "indexlib/index/summary/config/SummaryIndexConfig.h"
 
 namespace indexlibv2::index {
@@ -116,7 +118,19 @@ void SummaryReader::AddAttrReader(fieldid_t fieldId, AttributeReader* attrReader
     _groupAttributeReaders[groupId].emplace_back(std::make_pair(fieldId, attrReader));
 }
 
-void SummaryReader::ClearAttrReaders() { _groupAttributeReaders.clear(); }
+void SummaryReader::AddPackAttrReader(fieldid_t fieldId, PackAttributeReader* packAttrReader)
+{
+    summarygroupid_t groupId = _summaryIndexConfig->FieldIdToSummaryGroupId(fieldId);
+    assert(_summaryIndexConfig->GetSummaryConfig(fieldId));
+    const auto& summaryName = _summaryIndexConfig->GetSummaryConfig(fieldId)->GetSummaryName();
+    _groupPackAttributeReaders[groupId].emplace_back(std::make_tuple(fieldId, summaryName, packAttrReader));
+}
+
+void SummaryReader::ClearAttrReaders()
+{
+    _groupAttributeReaders.clear();
+    _groupPackAttributeReaders.clear();
+}
 
 std::pair<Status, bool> SummaryReader::GetDocument(docid_t docId, const SummaryGroupIdVec& groupVec,
                                                    indexlib::document::SearchSummaryDocument* summaryDoc) const
@@ -159,16 +173,19 @@ bool SummaryReader::GetDocumentFromAttributes(docid_t docId, const SummaryGroupI
                                               indexlib::document::SearchSummaryDocument* summaryDoc) const
 {
     for (size_t i = 0; i < groupVec.size(); ++i) {
-        auto attrReadersIter = _groupAttributeReaders.find(groupVec[i]);
-        AttributeReaderInfo curAttrReaderInfo;
-        if (attrReadersIter != _groupAttributeReaders.end()) {
-            curAttrReaderInfo = attrReadersIter->second;
-        } else {
-            continue;
+        if (auto it = _groupAttributeReaders.find(groupVec[i]); it != _groupAttributeReaders.end()) {
+            const auto& curAttributeReaderInfo = it->second;
+            if (!GetDocumentFromAttributes(docId, curAttributeReaderInfo, summaryDoc)) {
+                AUTIL_LOG(ERROR, "read data from attribute for group [%d] fail", groupVec[i]);
+                return false;
+            }
         }
-        if (!GetDocumentFromAttributes(docId, curAttrReaderInfo, summaryDoc)) {
-            AUTIL_LOG(ERROR, "read data from attribute for group [%d] fail", groupVec[i]);
-            return false;
+        if (auto it = _groupPackAttributeReaders.find(groupVec[i]); it != _groupPackAttributeReaders.end()) {
+            const auto& curPackAttributeReaderInfo = it->second;
+            if (!GetDocumentFromPackAttributes(docId, curPackAttributeReaderInfo, summaryDoc)) {
+                AUTIL_LOG(ERROR, "read data from pack attribute for group [%d] fail", groupVec[i]);
+                return false;
+            }
         }
     }
     return true;
@@ -187,26 +204,31 @@ bool SummaryReader::GetDocumentFromAttributes(docid_t docId, const AttributeRead
                                               indexlib::document::SearchSummaryDocument* summaryDoc) const
 {
     autil::mem_pool::Pool* pool = dynamic_cast<autil::mem_pool::Pool*>(summaryDoc->getPool());
-    std::string attrValue;
-    for (size_t i = 0; i < attrReaders.size(); ++i) {
-        if (!(attrReaders[i].second)->Read(docId, attrValue, pool)) {
+    for (const auto& [fieldId, attrReader] : attrReaders) {
+        std::string attrValue;
+        if (!attrReader->Read(docId, attrValue, pool)) {
             return false;
         }
-        if (!SetSummaryDocField(summaryDoc, attrReaders[i].first, attrValue)) {
+        if (!SetSummaryDocField(summaryDoc, fieldId, attrValue)) {
             return false;
         }
     }
-    // for (size_t i = 0; i < _packAttrReaders.size(); ++i) {
-    //     std::shared_ptr<SummaryConfig> summaryConfig =
-    //     _summaryIndexConfig->GetSummaryConfig(_packAttrReaders[i].first); assert(summaryConfig); const std::string&
-    //     fieldName = summaryConfig->GetSummaryName(); if (!(_packAttrReaders[i].second)->Read(docId, fieldName,
-    //     attrValue, pool)) {
-    //         return false;
-    //     }
-    //     if (!SetSummaryDocField(summaryDoc, _packAttrReaders[i].first, attrValue)) {
-    //         return false;
-    //     }
-    // }
+    return true;
+}
+
+bool SummaryReader::GetDocumentFromPackAttributes(docid_t docId, const PackAttributeReaderInfo& packAttrReaders,
+                                                  indexlib::document::SearchSummaryDocument* summaryDoc) const
+{
+    autil::mem_pool::Pool* pool = dynamic_cast<autil::mem_pool::Pool*>(summaryDoc->getPool());
+    for (const auto& [fieldId, summaryName, packAttrReader] : packAttrReaders) {
+        std::string value;
+        if (!packAttrReader->Read(docId, summaryName, value, pool)) {
+            return false;
+        }
+        if (!SetSummaryDocField(summaryDoc, fieldId, value)) {
+            return false;
+        }
+    }
     return true;
 }
 

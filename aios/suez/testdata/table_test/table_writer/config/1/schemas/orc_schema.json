@@ -1,0 +1,32 @@
+{
+    "attributes" : [
+        "nid",
+        "value",
+        "title"
+    ],
+    "fields" : [
+        {
+            "field_name" : "nid",
+            "field_type" : "INTEGER"
+        },
+        {
+            "field_name" : "value",
+            "field_type" : "INT64"
+        },
+        {
+            "field_name" : "title",
+            "field_type" : "STRING"
+        }
+    ],
+    "indexs" : [
+        {
+            "index_fields" : "nid",
+            "index_name" : "nid",
+            "index_type" : "PRIMARY_KEY"
+        }
+    ],
+    "table_name" : "orc",
+    "table_type" : "kv",
+    "tablet" : true,
+    "versionid": 124
+}

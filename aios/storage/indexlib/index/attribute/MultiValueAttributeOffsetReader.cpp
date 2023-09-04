@@ -20,7 +20,7 @@
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, MultiValueAttributeOffsetReader);
 
-Status MultiValueAttributeOffsetReader::Init(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+Status MultiValueAttributeOffsetReader::Init(const std::shared_ptr<AttributeConfig>& attrConfig,
                                              const std::shared_ptr<indexlib::file_system::IDirectory>& attrDir,
                                              uint32_t docCount, bool disableUpdate)
 {

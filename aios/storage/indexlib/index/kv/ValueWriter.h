@@ -45,7 +45,7 @@ public:
     virtual const char* GetBaseAddress() const = 0;
     virtual int64_t GetLength() const = 0;
     virtual void FillStatistics(SegmentStatistics& stat) const = 0;
-    virtual void UpdateMemoryUsage(MemoryUsage& memUsage) const = 0;
+    virtual void FillMemoryUsage(MemoryUsage& memUsage) const = 0;
 
 public:
     static void FillWriterOption(const indexlibv2::config::KVIndexConfig& config,

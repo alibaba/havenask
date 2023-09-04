@@ -38,13 +38,11 @@ namespace indexlib { namespace index {
 struct PartitionInfoHint {
     segmentid_t lastIncSegmentId;
     segmentid_t lastRtSegmentId;
-    segmentid_t needRefindRtSegmentId;
     size_t lastRtSegmentDocCount;
 
     PartitionInfoHint()
         : lastIncSegmentId(INVALID_SEGMENTID)
         , lastRtSegmentId(INVALID_SEGMENTID)
-        , needRefindRtSegmentId(INVALID_SEGMENTID)
         , lastRtSegmentDocCount(0)
     {
     }
@@ -52,7 +50,6 @@ struct PartitionInfoHint {
     bool operator==(const PartitionInfoHint& other)
     {
         return lastIncSegmentId == other.lastIncSegmentId && lastRtSegmentId == other.lastRtSegmentId &&
-               needRefindRtSegmentId == other.needRefindRtSegmentId &&
                lastRtSegmentDocCount == other.lastRtSegmentDocCount;
     }
 };

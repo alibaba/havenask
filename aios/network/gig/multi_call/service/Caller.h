@@ -17,8 +17,8 @@
 #define MULTI_CALL_CALLER_H
 
 #include "aios/network/gig/multi_call/common/common.h"
-#include "aios/network/gig/multi_call/interface/QuerySessionContext.h"
 #include "aios/network/gig/multi_call/interface/Closure.h"
+#include "aios/network/gig/multi_call/interface/QuerySessionContext.h"
 #include "aios/network/gig/multi_call/service/SearchServiceResource.h"
 #include "aios/network/gig/multi_call/util/TerminateNotifier.h"
 #include "autil/Lock.h"
@@ -28,12 +28,14 @@ namespace multi_call {
 class ChildNodeReply;
 typedef std::shared_ptr<ChildNodeReply> ChildNodeReplyPtr;
 
-class Caller : public std::enable_shared_from_this<Caller> {
+class Caller : public std::enable_shared_from_this<Caller>
+{
 public:
     /**
      * @func: called whenever a response arrived
      */
-    Caller(const ChildNodeReplyPtr &reply, const std::shared_ptr<QuerySessionContext> &sessionContext);
+    Caller(const ChildNodeReplyPtr &reply,
+           const std::shared_ptr<QuerySessionContext> &sessionContext);
     virtual ~Caller();
 
 private:
@@ -69,13 +71,15 @@ public:
     const ChildNodeReplyPtr &getReply() const {
         return _reply;
     }
+
 protected:
     bool _hasClosure : 1;
-    bool _stopped : 1;
+    bool _stopped    : 1;
     TerminateNotifier _notifier;
     ChildNodeReplyPtr _reply;
     std::shared_ptr<QuerySessionContext> _sessionContext;
     std::map<PartIdTy, PartIdTy> _partIdToIndexMap;
+
 private:
     AUTIL_LOG_DECLARE();
 };

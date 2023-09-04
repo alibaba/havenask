@@ -172,4 +172,5 @@ FSResult<void> MemDirectory::InnerRename(const std::string& srcPath, const std::
     assert(false);
     return FSEC_NOTSUP;
 }
+
 }} // namespace indexlib::file_system

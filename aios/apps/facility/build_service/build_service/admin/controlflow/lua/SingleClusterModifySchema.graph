@@ -1,0 +1,57 @@
+#import(Tool)
+#import(Log)
+
+function graphDef()
+   local param = Tool.copyMap(Graph.parameter)
+   local clusterName = param["clusterName"]
+
+   --get last inc flow, set upstream
+   local incFlowTag = clusterName..":IncBuild"
+   local incFlowIds = Graph.getFlowIdByTag(incFlowTag)
+   local lastFlowId = incFlowIds[#incFlowIds]
+   local lastIncFlow = Graph.getFlow(lastFlowId)
+
+   --stop old processor and add new processor
+   local stopProcessorIds = Graph.getFlowIdByTag(clusterName..":BSIncProcessor")
+   Graph.batchStopFlows(stopProcessorIds)
+   local incProcessor = Graph.loadSimpleFlow("processor", "incProcessor", param)  
+   incProcessor:addTag("BSIncProcess")
+   incProcessor:addTag(clusterName..":BSIncProcessor")
+   Graph.batchSetUpstream(incProcessor:getFlowId(), stopProcessorIds, "stopped|finish")
+   param['processorFlowId'] = incProcessor:getFlowId()
+   param['lastIncFlow'] = lastFlowId
+
+   --get merge crontab && processor flow
+   local mergeCrontabTag = clusterName..":MergeCrontab" 
+   local mergeCrontabFlowId = Graph.getFlowIdByTag(mergeCrontabTag)
+   local mergeCrontabFlow = Graph.getFlow(mergeCrontabFlowId[1])
+   param['mergeCrontabFlowId'] = mergeCrontabFlowId[1]
+
+   --create new flow
+   local incBuildFlow = Graph.loadFlow("IncBuild.flow", param)
+   incBuildFlow:addTag(incFlowTag)
+   Graph.declareFriend(mergeCrontabFlow, incBuildFlow)
+   Graph.declareFriend(incProcessor, incBuildFlow)
+   Graph.setUpstream(incBuildFlow, lastIncFlow, "finish") 
+
+   --add alter field flow
+   local operationInfoStrs = Tool.jsonToList(param["operationInfos"])
+   for i, v in ipairs(operationInfoStrs)
+   do
+      local operationInfo = Tool.jsonToMap(v);
+      param["targetOperationId"] = operationInfo["operationId"];
+      local modifySchemaFlow = Graph.loadFlow("ModifySchema.flow", param)
+      Graph.declareFriend(mergeCrontabFlow, modifySchemaFlow)
+      Graph.declareFriend(lastIncFlow, modifySchemaFlow)
+      if (operationInfo["alterFieldMode"] == "sync") 
+      then
+	 Graph.setUpstream(modifySchemaFlow, lastIncFlow, "finish") 
+      end
+      if (operationInfo["alterFieldMode"] == "block") 
+      then
+	 Graph.setUpstream(modifySchemaFlow, lastIncFlow, "finish")
+	 Graph.setUpstream(incBuildFlow, modifySchemaFlow, "finish") 	 
+      end
+   end
+   return true
+end

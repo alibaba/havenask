@@ -1,9 +1,3 @@
-load('//bazel:defs.bzl', 'gen_cpp_code')
-filegroup(
-    name='util_headers',
-    srcs=glob(['*.h']),
-    visibility=['//aios/storage/indexlib:__subpackages__']
-)
 cc_library(
     name='util_all',
     srcs=glob([]),

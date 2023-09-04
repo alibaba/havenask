@@ -1,0 +1,68 @@
+{
+"attributes":
+  [
+    "value"
+  ],
+"fields":
+  [
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "pkey",
+    "field_type":
+      "STRING"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "value",
+    "field_type":
+      "STRING"
+    }
+  ],
+"indexs":
+  [
+    {
+    "index_fields":
+      "pkey",
+    "index_name":
+      "pkey",
+    "index_preference":
+      {
+      "parameters":
+        {
+        "hash_dict":
+          {
+          "merge_use_precise_count":
+            true,
+          "occupancy_pct":
+            60,
+          "type":
+            "dense"
+          },
+        "value":
+          {
+          "encode":
+            false,
+          "file_compressor":
+            "zstd",
+          "file_compressor_buffer_size":
+            4096
+          }
+        },
+      "type":
+        "PERF"
+      },
+    "index_type":
+      "PRIMARY_KEY",
+    "use_number_hash":
+      true
+    }
+  ],
+"table_name":
+  "lt_feed_nav_full",
+"table_type":
+  "kv"
+}

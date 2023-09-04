@@ -18,6 +18,7 @@
 #include "aios/network/anet/anet.h"
 #include "aios/network/arpc/arpc/RPCServerAdapter.h"
 #include "aios/network/arpc/arpc/anet/ANetRPCMessageCodec.h"
+#include "aios/network/arpc/arpc/metric/ServerMetricReporter.h"
 
 ARPC_BEGIN_NAMESPACE(arpc)
 
@@ -27,9 +28,9 @@ public:
     virtual ~ANetRPCServerAdapter();
 
 public:
-    anet::IPacketHandler::HPRetCode
-        handlePacket(anet::Connection *pConnection,
-                     anet::Packet *pPacket);
+    anet::IPacketHandler::HPRetCode handlePacket(anet::Connection *pConnection, anet::Packet *pPacket);
+    void SetMetricReporter(const std::shared_ptr<ServerMetricReporter> &metricReporter);
+
 private:
     void handleError(anet::Connection *pConnection,
                      anet::DelayDecodePacket *pReqPacket,
@@ -37,9 +38,12 @@ private:
                      Tracer *tracer,
                      const std::shared_ptr<google::protobuf::Arena> &arena);
 
-    void sendError(anet::Connection *pConnection, channelid_t channelId,
-                   version_t requestVersion, const std::string &errMsg,
-                   ErrorCode errorCode, Tracer *tracer,
+    void sendError(anet::Connection *pConnection,
+                   channelid_t channelId,
+                   version_t requestVersion,
+                   const std::string &errMsg,
+                   ErrorCode errorCode,
+                   Tracer *tracer,
                    const std::shared_ptr<google::protobuf::Arena> &arena);
 
     anet::IPacketHandler::HPRetCode handleCmdPacket(anet::Packet *pPacket);
@@ -56,21 +60,24 @@ private:
                                   RPCMessage *&request);
 
     anet::Packet *encodeErrorResponse(channelid_t channelId,
-                                      version_t requestVersion, const std::string &errMsg,
-            ErrorCode errorCode, Tracer *tracer,
-            const std::shared_ptr<google::protobuf::Arena> &arena);
+                                      version_t requestVersion,
+                                      const std::string &errMsg,
+                                      ErrorCode errorCode,
+                                      Tracer *tracer,
+                                      const std::shared_ptr<google::protobuf::Arena> &arena);
     std::string getClientIpStr(anet::Connection *conn);
 
-    ErrorCode decodePacket(anet::Packet *packet,
-                           CodecContext *&context);
+    ErrorCode decodePacket(anet::Packet *packet, CodecContext *&context);
     anet::Packet *encodeResponse(RPCMessage *response,
                                  Tracer *tracer,
                                  version_t version,
                                  const std::shared_ptr<google::protobuf::Arena> &arena);
 
     friend class ANetRPCServerAdapterTest;
+
 protected:
     ANetRPCMessageCodec *_messageCodec;
+    std::shared_ptr<ServerMetricReporter> _metricReporter;
 };
 
 ARPC_END_NAMESPACE(arpc)

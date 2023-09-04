@@ -20,22 +20,21 @@
 #include <string>
 
 #include "aios/network/anet/anet.h"
+#include "aios/network/anet/connectionpriority.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/arpc/arpc/RPCChannelManagerBase.h"
-#include "aios/network/anet/connectionpriority.h"
 #include "aios/network/arpc/arpc/anet/ANetApp.h"
 
 ARPC_BEGIN_NAMESPACE(arpc)
 
-class ANetRPCChannelManager : public RPCChannelManagerBase
-{
+class ANetRPCChannelManager : public RPCChannelManagerBase {
 public:
     ANetRPCChannelManager(anet::Transport *transport = NULL);
     virtual ~ANetRPCChannelManager();
 
 public:
-    //queueSize : default queue size for rpcchannel
-    //timout    : default timeout for rpcchannel(miliseconds)
+    // queueSize : default queue size for rpcchannel
+    // timout    : default timeout for rpcchannel(miliseconds)
     virtual RPCChannel *OpenChannel(const std::string &address,
                                     bool block = false,
                                     size_t queueSize = 50ul,
@@ -54,6 +53,10 @@ public:
      */
     bool StopPrivateTransport();
 
+    anet::Transport *GetTransport();
+
+    void SetMetricReporter(const std::shared_ptr<ClientMetricReporter> &metricReporter);
+
 protected:
     /**
      * Tool function to create connection to remote server.
@@ -65,14 +68,11 @@ protected:
                               int timeout,
                               bool autoReconn,
                               anet::CONNPRIORITY prio = anet::ANET_PRIORITY_NORMAL);
-    
+
     /**
      * Check if this manager owns its private transport or not.
      */
-    bool OwnTransport()
-    {
-        return _anetApp.OwnTransport();
-    }
+    bool OwnTransport() { return _anetApp.OwnTransport(); }
     /**
      * Tool function to create connection with bind ip and port to remote server.
      * @return Connection object pointer
@@ -83,10 +83,12 @@ protected:
                               int timeout,
                               bool autoReconn,
                               anet::CONNPRIORITY prio = anet::ANET_PRIORITY_NORMAL);
+
 protected:
     ANetApp _anetApp;
+    std::shared_ptr<ClientMetricReporter> _metricReporter;
 };
 
 ARPC_END_NAMESPACE(arpc)
 
-#endif //ARPC_ANETRPCCHANNELMANAGER_H
+#endif // ARPC_ANETRPCCHANNELMANAGER_H

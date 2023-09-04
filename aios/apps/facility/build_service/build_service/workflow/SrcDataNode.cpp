@@ -367,12 +367,12 @@ bool SrcDataNode::getLocator(common::Locator& locator) const
             return false;
         }
         bool fromInc;
-        BS_LOG(INFO, "seekts [%ld] %ld", incVersionTime, rtLocator.GetOffset());
-        int64_t seekTs = OnlineJoinPolicy::GetRtSeekTimestamp(incVersionTime, rtLocator.GetOffset(), fromInc);
+        BS_LOG(INFO, "seekts [%ld] %ld", incVersionTime, rtLocator.GetOffset().first);
+        int64_t seekTs = OnlineJoinPolicy::GetRtSeekTimestamp(incVersionTime, rtLocator.GetOffset().first, fromInc);
 
         if (fromInc) {
             locator.SetSrc(rtLocator.GetSrc());
-            locator.SetOffset(seekTs);
+            locator.SetOffset({seekTs, 0});
             BS_LOG(INFO, "incVersionTime[%ld], rt locator[%s], inc covers rt", incVersionTime,
                    rtLocator.DebugString().c_str());
         } else {
@@ -478,7 +478,7 @@ void SrcDataNode::disableUselessFields(indexlib::config::IndexPartitionSchemaPtr
             }
         }
         if (!hasKeepField) {
-            config.packAttributes.push_back((*it)->GetAttrName());
+            config.packAttributes.push_back((*it)->GetPackName());
         }
     }
     config.summarys = indexlib::config::DisableFieldsConfig::SDF_FIELD_ALL;

@@ -15,6 +15,7 @@
  */
 #include "indexlib/document/document_rewriter/TTLSetter.h"
 
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocument.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/normal/NormalDocument.h"
@@ -25,7 +26,7 @@
 namespace indexlibv2::document {
 AUTIL_LOG_SETUP(indexlib.document, TTLSetter);
 
-TTLSetter::TTLSetter(const std::shared_ptr<config::AttributeConfig>& ttlAttributeConfig, uint32_t defalutTTLInSeconds)
+TTLSetter::TTLSetter(const std::shared_ptr<index::AttributeConfig>& ttlAttributeConfig, uint32_t defalutTTLInSeconds)
     : _ttlFieldId(ttlAttributeConfig->GetFieldId())
     , _defalutTTLInSeconds(defalutTTLInSeconds)
     , _ttlFieldName(ttlAttributeConfig->GetAttrName())
@@ -41,11 +42,9 @@ Status TTLSetter::Rewrite(document::IDocumentBatch* batch)
         return Status::InternalError("get ttl field id failed");
     }
     int64_t maxTTL = 0;
-    for (size_t i = 0; i < batch->GetBatchSize(); ++i) {
-        if (batch->IsDropped(i)) {
-            continue;
-        }
-        auto document = (*batch)[i];
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(batch);
+    while (iter->HasNext()) {
+        auto document = iter->Next();
         assert(document);
         if (document->GetDocOperateType() != ADD_DOC) {
             continue;

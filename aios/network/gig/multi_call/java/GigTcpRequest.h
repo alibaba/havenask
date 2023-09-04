@@ -22,20 +22,24 @@
 
 namespace multi_call {
 
-class GigTcpRequest : public TcpRequest {
+class GigTcpRequest : public TcpRequest
+{
 public:
     GigTcpRequest(const std::shared_ptr<google::protobuf::Arena> &arena =
-                  std::shared_ptr<google::protobuf::Arena>())
-        : TcpRequest(arena)
-    {}
-    ~GigTcpRequest() {}
+                      std::shared_ptr<google::protobuf::Arena>())
+        : TcpRequest(arena) {
+    }
+    ~GigTcpRequest() {
+    }
 
 private:
     GigTcpRequest(const GigTcpRequest &);
     GigTcpRequest &operator=(const GigTcpRequest &);
 
 public:
-    bool serializeBody(std::string &body) override { return true; }
+    bool serializeBody(std::string &body) override {
+        return true;
+    }
     multi_call::ResponsePtr newResponse() override {
         return multi_call::ResponsePtr(new multi_call::TcpResponse);
     }

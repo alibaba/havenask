@@ -103,10 +103,10 @@ size_t PackAttrUpdateDocSizeCalculator::DoEstimateUpdateDocSize(const IndexParti
     size_t packAttrCount = attrSchema->GetPackAttributeCount();
     for (packattrid_t packId = 0; packId < packAttrCount; packId++) {
         const PackAttributeConfigPtr& packAttrConfig = attrSchema->GetPackAttributeConfig(packId);
-        if (packAttrConfig->IsDisable()) {
+        if (packAttrConfig->IsDisabled()) {
             continue;
         }
-        if (!packAttrConfig->IsUpdatable()) {
+        if (!packAttrConfig->IsPackAttributeUpdatable()) {
             continue;
         }
         estimateSize += EsitmateOnePackAttributeUpdateDocSize(packAttrConfig, partitionData, diffVersion);
@@ -121,7 +121,7 @@ size_t PackAttrUpdateDocSizeCalculator::EsitmateOnePackAttributeUpdateDocSize(
     assert(partitionData);
 
     SegmentUpdateMap segUpdateMap;
-    ConstructUpdateMap(packAttrConfig->GetAttrName(), partitionData, diffVersion, segUpdateMap);
+    ConstructUpdateMap(packAttrConfig->GetPackName(), partitionData, diffVersion, segUpdateMap);
 
     return EstimateUpdateDocSizeInUpdateMap(packAttrConfig, segUpdateMap, partitionData);
 }
@@ -172,8 +172,8 @@ double PackAttrUpdateDocSizeCalculator::GetAverageDocSize(const SegmentData& seg
                                                           const PackAttributeConfigPtr& packAttrConfig)
 {
     assert(packAttrConfig);
-    assert(packAttrConfig->IsUpdatable());
-    const string& packAttrName = packAttrConfig->GetAttrName();
+    assert(packAttrConfig->IsPackAttributeUpdatable());
+    const string& packAttrName = packAttrConfig->GetPackName();
     DirectoryPtr packAttrDir = segData.GetAttributeDirectory(packAttrName, false);
     if (!packAttrDir) {
         return 0;
@@ -212,10 +212,10 @@ bool PackAttrUpdateDocSizeCalculator::HasUpdatablePackAttrInAttrSchema(const Att
     size_t packAttrCount = attrSchema->GetPackAttributeCount();
     for (packattrid_t packId = 0; packId < packAttrCount; ++packId) {
         const PackAttributeConfigPtr& packConfig = attrSchema->GetPackAttributeConfig(packId);
-        if (packConfig->IsDisable()) {
+        if (packConfig->IsDisabled()) {
             continue;
         }
-        if (packConfig->IsUpdatable()) {
+        if (packConfig->IsPackAttributeUpdatable()) {
             return true;
         }
     }

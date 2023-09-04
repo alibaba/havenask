@@ -1,0 +1,10 @@
+{
+    "user_name" : "user_name",
+    "service_name" : "service_name",
+    "index_root" : "hdsf://index/root/",
+    "swift_root" : "zfs://root/",
+    "hippo_root" : "path/to/hippo/leader/elector/root",
+    "zookeeper_root" : "path/to/zk/root",
+    "amonitor_port" : 10086 /* default is for 10086 */,
+    "config_download_mode" : "fs_util"
+}

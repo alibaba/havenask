@@ -1,0 +1,7 @@
+{
+    "cluster_config" : {
+	"builder_rule_config" : {
+            "partition_count" : 4
+	}
+    }
+}

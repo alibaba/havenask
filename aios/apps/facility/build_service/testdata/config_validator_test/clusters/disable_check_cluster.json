@@ -1,0 +1,49 @@
+{
+    "cluster_config" : {
+	"table_name" : "simple",
+	"hash_mode" : {
+	    "hash_function" : "HASH",
+	    "hash_field" : "id"
+	},
+	"builder_rule_config" : {
+        "partition_count" : 32,
+		"build_parallel_num": 3
+	}
+    },
+    "build_option_config" : {
+	"sort_build" : true,
+	"sort_queue_size" : 500000,
+	"sort_descriptions" : [
+	    {
+		"sort_field" : "price2",
+		"sort_pattern" : "desc"
+	    }
+	]
+    },
+    "swift_config" : {
+        "topic_full" : {
+            "partition_count" : 96,
+            "partition_resource" : 1,
+            "partition_buffer_size" : 1000,
+            "partition_file_buf_size" : 1000,
+            "obsolete_file_interval" : 3600,
+            "reserved_file_count" : 10,
+			"topic_mode": "memory_prefer",
+            "enable_partition_restrict" : false
+        },
+		"topic_inc" : {
+			"partition_count" : 96,
+			"topic_mode": "normal"
+		}
+    },
+    "online_index_config" : {
+        "build_config" : {
+            "max_doc_count" : 10
+        }
+    },
+    "offline_index_config" : {
+        "build_config" : {
+            "max_doc_count" : 10
+        }
+    }
+}

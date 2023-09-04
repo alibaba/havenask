@@ -1,0 +1,42 @@
+{
+    "table_name": "test",
+    "table_type": "kkv",
+    "fields": [
+        {
+            "field_name": "pkey",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "skey",
+            "field_type": "INT16"
+        },
+        {
+            "field_name": "value1",
+            "field_type": "FLOAT",
+            "compress_type": "fp16"
+        }
+    ],
+    "indexes": {
+        "kkv": [
+            {
+                "index_fields": [
+                    {
+                        "field_name": "pkey",
+                        "key_type": "prefix"
+                    },
+                    {
+                        "field_name": "skey",
+                        "key_type": "suffix"
+                    }
+                ],
+                "index_name": "pkey",
+                "index_type": "PRIMARY_KEY",
+                "value_fields" : ["skey", "value1"],
+                "index_preference": {
+                    "type": "PERF",
+                    "value_inline": true
+                }
+            }
+        ]
+    }
+}

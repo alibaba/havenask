@@ -15,18 +15,18 @@
  */
 #pragma once
 
-#include <stddef.h>
 #include <cassert>
 #include <initializer_list>
 #include <iterator>
-#include <vector>
 #include <memory>
+#include <stddef.h>
+#include <vector>
 
 #include "autil/Lock.h"
 
 namespace autil {
 
-template <typename T, typename Alloc = std::allocator<T> >
+template <typename T, typename Alloc = std::allocator<T>>
 class SnapshotVector {
 public:
     typedef T value_type;
@@ -40,34 +40,34 @@ public:
 
 public:
     class Iterator {
-     public:
+    public:
         Iterator(std::shared_ptr<vector_type> snapshot, size_type sz) : _snapshot(snapshot), _cursor(0), _size(sz) {}
         bool has_next() const { return _cursor < _size; }
         const_reference next() { return _snapshot->operator[](_cursor++); }
 
-     private:
+    private:
         std::shared_ptr<vector_type> _snapshot;
         size_type _cursor;
         size_type _size;
     };
 
 public:
-   SnapshotVector()
-       : _allocator(),
-         _data(nullptr),
-         _currentCapacity(0),
-         _currentSize(0),
-         _vector(std::make_shared<vector_type>(_allocator)) {
-       init();
-   }
-   SnapshotVector(Alloc allocator)
-       : _allocator(allocator),
-         _data(nullptr),
-         _currentCapacity(0),
-         _currentSize(0),
-         _vector(std::make_shared<vector_type>(_allocator)) {
-       init();
-   }
+    SnapshotVector()
+        : _allocator()
+        , _data(nullptr)
+        , _currentCapacity(0)
+        , _currentSize(0)
+        , _vector(std::make_shared<vector_type>(_allocator)) {
+        init();
+    }
+    SnapshotVector(Alloc allocator)
+        : _allocator(allocator)
+        , _data(nullptr)
+        , _currentCapacity(0)
+        , _currentSize(0)
+        , _vector(std::make_shared<vector_type>(_allocator)) {
+        init();
+    }
 
     void init() {
         _vector->resize(4);
@@ -84,9 +84,7 @@ public:
         _currentSize++;
     }
 
-    size_type size() const {
-        return _currentSize;
-    }
+    size_type size() const { return _currentSize; }
 
     const_reference operator[](size_type n) const {
         auto target = this->currrent();
@@ -130,12 +128,11 @@ private:
 
 private:
     Alloc _allocator;
-    T* _data;
+    T *_data;
     size_type _currentCapacity;
     size_type _currentSize;
     std::shared_ptr<vector_type> _vector;
     mutable ThreadMutex _mutex;
-
 };
 
-}
+} // namespace autil

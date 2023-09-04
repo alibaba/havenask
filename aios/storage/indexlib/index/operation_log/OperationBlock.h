@@ -19,8 +19,10 @@
 
 #include "autil/NoCopyable.h"
 #include "autil/mem_pool/Pool.h"
+#include "indexlib/base/Progress.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/util/MMapVector.h"
+
 namespace indexlib::file_system {
 class FileWriter;
 } // namespace indexlib::file_system
@@ -45,22 +47,23 @@ public:
     void AddOperation(OperationBase* operation);
     size_t GetTotalMemoryUse() const;
     virtual size_t Size() const;
-    virtual Status Dump(const std::shared_ptr<file_system::FileWriter>& fileWriter, size_t maxOpSerializeSize);
+    virtual Status Dump(const std::shared_ptr<file_system::FileWriter>& fileWriter, size_t maxOpSerializeSize,
+                        bool hasConcurrentIdx);
     autil::mem_pool::Pool* GetPool() const;
-    int64_t GetMinTimestamp() const;
-    int64_t GetMaxTimestamp() const;
+    const indexlibv2::base::Progress::Offset& GetMinOffset() const;
+    const indexlibv2::base::Progress::Offset& GetMaxOffset() const;
     const OperationVec& GetOperations() const;
     void Reset();
 
-    static size_t DumpSingleOperation(OperationBase* op, char* buffer, size_t bufLen);
+    static size_t DumpSingleOperation(OperationBase* op, char* buffer, size_t bufLen, bool hasConcurrentIdx);
 
 private:
-    void UpdateTimestamp(int64_t ts);
+    void UpdateOffset(const indexlibv2::base::Progress::Offset& offset);
 
 protected:
     std::shared_ptr<OperationVec> _operations;
-    int64_t _minTimestamp;
-    int64_t _maxTimestamp;
+    indexlibv2::base::Progress::Offset _minOffset;
+    indexlibv2::base::Progress::Offset _maxOffset;
     std::shared_ptr<autil::mem_pool::Pool> _pool;
     std::shared_ptr<util::MMapAllocator> _allocator;
     AUTIL_LOG_DECLARE();

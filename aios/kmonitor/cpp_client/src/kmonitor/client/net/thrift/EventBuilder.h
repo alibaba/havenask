@@ -10,6 +10,7 @@
 
 #include <map>
 #include <string>
+
 #include "kmonitor/client/common/Common.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
@@ -17,16 +18,17 @@ BEGIN_KMONITOR_NAMESPACE(kmonitor);
 class ThriftFlumeEvent;
 
 class EventBuilder {
- public:
+public:
     EventBuilder();
     ~EventBuilder();
-    static ThriftFlumeEvent *Build(const std::map<std::string, std::string>& header, const std::string& body);
-    static ThriftFlumeEvent *Build(const std::string& body);     
- private:
+    static ThriftFlumeEvent *Build(const std::map<std::string, std::string> &header, const std::string &body);
+    static ThriftFlumeEvent *Build(const std::string &body);
+
+private:
     EventBuilder(const EventBuilder &);
     EventBuilder &operator=(const EventBuilder &);
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_NET_EVENT_EVENTBUILDER_H_
+#endif // KMONITOR_CLIENT_NET_EVENT_EVENTBUILDER_H_

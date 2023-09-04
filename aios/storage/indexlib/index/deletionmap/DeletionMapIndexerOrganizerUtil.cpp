@@ -32,7 +32,7 @@ AUTIL_LOG_SETUP(indexlib.index, DeletionMapIndexerOrganizerUtil);
 Status DeletionMapIndexerOrganizerUtil::Delete(docid_t docId, SingleDeletionMapBuildInfoHolder* buildInfoHolder)
 {
     const std::vector<docid_t>& segmentBaseDocids = buildInfoHolder->segmentBaseDocids;
-    if (docId == INVALID_DOCID || docId < segmentBaseDocids.front()) {
+    if (docId < segmentBaseDocids.front()) {
         return Status::InvalidArgs("Invalid docid to delete: %d", docId);
     }
     int idx =

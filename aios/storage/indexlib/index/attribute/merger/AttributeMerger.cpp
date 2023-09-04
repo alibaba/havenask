@@ -16,7 +16,7 @@
 #include "indexlib/index/attribute/merger/AttributeMerger.h"
 
 #include "autil/StringUtil.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/index_task/IndexTaskResourceManager.h"
 #include "indexlib/index/DocMapper.h"
 #include "indexlib/index/attribute/AttributeDiskIndexer.h"
@@ -30,7 +30,7 @@ AUTIL_LOG_SETUP(indexlib.index, AttributeMerger);
 Status AttributeMerger::Init(const std::shared_ptr<config::IIndexConfig>& indexConfig,
                              const std::map<std::string, std::any>& params)
 {
-    _attributeConfig = std::dynamic_pointer_cast<config::AttributeConfig>(indexConfig);
+    _attributeConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
     assert(_attributeConfig != nullptr);
     //可更新的attribute
     //如果多slice情况下，只有第一个slice负责merge patch，其他不merge
@@ -82,10 +82,6 @@ Status AttributeMerger::Merge(const SegmentMergeInfos& segMergeInfos,
 
 Status AttributeMerger::StoreSliceInfo(const SegmentMergeInfos& segMergeInfos)
 {
-    config::AttributeConfig::ConfigType configType = _attributeConfig->GetConfigType();
-    if (configType == config::AttributeConfig::ct_section) {
-        RETURN_IF_STATUS_ERROR(Status::Corruption(), "only support attribute merge to multi slices");
-    }
     if (segMergeInfos.targetSegments.size() > 1) {
         RETURN_IF_STATUS_ERROR(Status::Corruption(), "split segment not support attribute merge to multi slices");
     }

@@ -30,13 +30,12 @@ namespace common {
 AUTIL_LOG_SETUP(ha3, ColumnTerm);
 
 ColumnTerm::ColumnTerm(const std::string &indexName, bool cache)
-    : _enableCache(cache), _indexName(indexName)
-{
-}
+    : _enableCache(cache)
+    , _indexName(indexName) {}
 
 std::string ColumnTerm::offsetsToString() const {
     stringstream ss;
-    for (auto offset: _offsets) {
+    for (auto offset : _offsets) {
         ss << offset << ",";
     }
     return ss.str();
@@ -52,8 +51,8 @@ void ColumnTerm::serialize(const ColumnTerm *p, autil::DataBuffer &dataBuffer) {
     }
 }
 
-ColumnTerm* ColumnTerm::deserialize(autil::DataBuffer &dataBuffer) {
-    ColumnTerm* p = nullptr;
+ColumnTerm *ColumnTerm::deserialize(autil::DataBuffer &dataBuffer) {
+    ColumnTerm *p = nullptr;
     bool isNull;
     dataBuffer.read(isNull);
     if (isNull) {
@@ -67,14 +66,14 @@ ColumnTerm* ColumnTerm::deserialize(autil::DataBuffer &dataBuffer) {
     return p;
 }
 
-ColumnTerm* ColumnTerm::createColumnTerm(BuiltinType type) {
-#define CASE_MACRO(bt)                                                          \
-    case bt: {                                                                  \
-        using T = typename MatchDocBuiltinType2CppType<bt, false>::CppType;     \
-        return new ColumnTermTyped<T>();                                        \
+ColumnTerm *ColumnTerm::createColumnTerm(BuiltinType type) {
+#define CASE_MACRO(bt)                                                                             \
+    case bt: {                                                                                     \
+        using T = typename MatchDocBuiltinType2CppType<bt, false>::CppType;                        \
+        return new ColumnTermTyped<T>();                                                           \
     }
 
-    switch(type) {
+    switch (type) {
         BUILTIN_TYPE_MACRO_HELPER(CASE_MACRO)
     case bt_bool:
         return new ColumnTermTyped<bool>();
@@ -97,28 +96,26 @@ void ColumnTerm::load(autil::DataBuffer &dataBuffer) {
 }
 
 template <class T>
-vector<T>& ColumnTermTyped<T>::getValues() {
+vector<T> &ColumnTermTyped<T>::getValues() {
     return _values;
 }
 
 template <class T>
-const vector<T>& ColumnTermTyped<T>::getValues() const {
+const vector<T> &ColumnTermTyped<T>::getValues() const {
     return _values;
 }
 
 template <class T>
-bool ColumnTermTyped<T>::operator == (const ColumnTerm& term) const {
+bool ColumnTermTyped<T>::operator==(const ColumnTerm &term) const {
     if (&term == this) {
         return true;
     }
-    const ColumnTermTyped<T>* p = dynamic_cast<const ColumnTermTyped<T>*>(&term);
+    const ColumnTermTyped<T> *p = dynamic_cast<const ColumnTermTyped<T> *>(&term);
     if (!p) {
         return false;
     }
-    return (_indexName == p->_indexName)
-        && (_offsets == p->_offsets)
-        && (_values == p->_values)
-        && (_enableCache == p->_enableCache);
+    return (_indexName == p->_indexName) && (_offsets == p->_offsets) && (_values == p->_values)
+           && (_enableCache == p->_enableCache);
 }
 
 template <class T>
@@ -131,7 +128,7 @@ string ColumnTermTyped<T>::toString() const {
     stringstream ss;
     ss << "ColumnTerm:[" << offsetsToString();
     ss << "]:[" << _indexName << ":";
-    for (const auto& value : _values) {
+    for (const auto &value : _values) {
         ss << value << ",";
     }
     ss << "]";

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/ChildNodeCaller.h"
+
 #include "aios/network/gig/multi_call/interface/QuerySession.h"
 #include "aios/network/gig/multi_call/service/FlowControlParam.h"
 #include "aios/network/gig/multi_call/service/ResourceComposer.h"
@@ -41,12 +42,12 @@ ChildNodeCaller::ChildNodeCaller(const SearchServiceSnapshotPtr &snapshot,
     , _earlyTerminationEnabled(false)
     , _retryEnabled(false)
     , _singleRetryEnable(false)
-    , _canRetry(false)
-{
+    , _canRetry(false) {
     _callBeginTime = autil::TimeUtility::currentTime();
 }
 
-ChildNodeCaller::~ChildNodeCaller() {}
+ChildNodeCaller::~ChildNodeCaller() {
+}
 
 ChildNodeReplyPtr ChildNodeCaller::call() {
     SearchServiceResourceVector resourceVec;
@@ -60,8 +61,8 @@ ChildNodeReplyPtr ChildNodeCaller::call(SearchServiceResourceVector &resourceVec
         }
     }
     if (isDetectionOn() && !resourceVec.empty()) {
-        _callDelegationThread->pushWorkItem(new CallDelegationWorkItem(
-            _caller, _querySession->getLoadBalancerContext()));
+        _callDelegationThread->pushWorkItem(
+            new CallDelegationWorkItem(_caller, _querySession->getLoadBalancerContext()));
     }
     return _reply;
 }
@@ -117,29 +118,23 @@ void ChildNodeCaller::initCaller() {
     }
     _replyInfoCollector.reset(new ReplyInfoCollector(bizNameVec));
     _replyInfoCollector->setSessionBiz(_querySession->getBiz());
-    _replyInfoCollector->setSessionSrc(
-        _querySession->getUserData(RPC_DATA_SRC));
-    _replyInfoCollector->setSessionSrcAb(
-        _querySession->getUserData(RPC_DATA_SRC_AB));
-    _replyInfoCollector->setStressTest(
-        _querySession->getUserData(RPC_DATA_STRESS_TEST));
+    _replyInfoCollector->setSessionSrc(_querySession->getUserData(RPC_DATA_SRC));
+    _replyInfoCollector->setSessionSrcAb(_querySession->getUserData(RPC_DATA_SRC_AB));
+    _replyInfoCollector->setStressTest(_querySession->getUserData(RPC_DATA_STRESS_TEST));
 
-    _reply.reset(new ChildNodeReply(_flowConfigSnapshot, _replyInfoCollector,
-                                    _retryLimitChecker, _latencyTimeSnapshot));
-    _flowConfigSnapshot->getFlowControlSwitch(
-        flowControlStrategyVec, _earlyTerminationEnabled, _retryEnabled,
-        _singleRetryEnable);
+    _reply.reset(new ChildNodeReply(_flowConfigSnapshot, _replyInfoCollector, _retryLimitChecker,
+                                    _latencyTimeSnapshot));
+    _flowConfigSnapshot->getFlowControlSwitch(flowControlStrategyVec, _earlyTerminationEnabled,
+                                              _retryEnabled, _singleRetryEnable);
     _reply->setSingleRetryEnabled(_singleRetryEnable);
     if (isDetectionOn()) {
-        _reply->prepareCallDelegationStatistic(bizNameVec,
-                                               flowControlStrategyVec);
+        _reply->prepareCallDelegationStatistic(bizNameVec, flowControlStrategyVec);
     }
 
     _caller.reset(new Caller(_reply, _querySession->getSessionContext()));
 }
 
-void ChildNodeCaller::prepareSearchResource(
-    SearchServiceResourceVector &resourceVec) {
+void ChildNodeCaller::prepareSearchResource(SearchServiceResourceVector &resourceVec) {
     for (const auto &generator : _generatorVec) {
         if (!generator) {
             continue;
@@ -152,8 +147,7 @@ void ChildNodeCaller::prepareSearchResource(
             _querySession, generator, _replyInfoCollector, resourceVec, providerCount);
 
         _replyInfoCollector->addRequestCount(bizName, 1);
-        _replyInfoCollector->addExpectProviderCount(bizName,
-                                                    expectProviderCount);
+        _replyInfoCollector->addExpectProviderCount(bizName, expectProviderCount);
         _reply->addExpectProviderCount(expectProviderCount);
         if (isDetectionOn()) {
             _reply->collectStatistic(bizName, providerCount, generator->getDisableRetry());

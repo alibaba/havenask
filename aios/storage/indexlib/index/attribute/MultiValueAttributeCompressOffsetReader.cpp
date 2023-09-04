@@ -26,7 +26,7 @@
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, MultiValueAttributeCompressOffsetReader);
 
-Status MultiValueAttributeCompressOffsetReader::Init(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+Status MultiValueAttributeCompressOffsetReader::Init(const std::shared_ptr<AttributeConfig>& attrConfig,
                                                      const std::shared_ptr<indexlib::file_system::IDirectory>& attrDir,
                                                      bool disableUpdate, uint32_t docCount,
                                                      std::shared_ptr<AttributeMetrics> attributeMetrics)
@@ -119,7 +119,7 @@ Status MultiValueAttributeCompressOffsetReader::InitFileReader(
 }
 
 Status MultiValueAttributeCompressOffsetReader::InitSliceFileReader(
-    const std::shared_ptr<config::AttributeConfig>& attrConfig,
+    const std::shared_ptr<AttributeConfig>& attrConfig,
     const std::shared_ptr<indexlib::file_system::IDirectory>& attrDir)
 {
     if (!attrConfig->IsAttributeUpdatable() || !_fileReader->GetBaseAddress()) {

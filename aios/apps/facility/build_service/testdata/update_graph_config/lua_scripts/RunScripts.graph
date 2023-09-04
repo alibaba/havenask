@@ -1,0 +1,29 @@
+#import(Log)
+#import(Tool)
+
+function graphDef()
+    local param = Tool.copyMap(Graph.parameter)
+    param["clusterName"] = "simple_shell"
+    if (Graph.parameter["type"] == "shell")
+    then
+        param["configFileName"] = "run_shell.json"
+        param["replaceArguments"] = Graph.parameter["index_root"]
+        print("--- call shell script task ---")
+        shellTask=Graph.loadSimpleFlow("run_script", "shell_cp_index", param)
+        shellTask:addTag("shellTask")
+        return true
+    end
+
+    if (Graph.parameter["type"] == "python")
+    then
+        param["configFileName"] = "run_python.json"
+        param["replaceArguments"] = Graph.parameter["index_root"]
+        print("--- call python script task ---")
+        shellTask=Graph.loadSimpleFlow("run_script", "python_cp_index", param)
+        shellTask:addTag("pythonTask")
+        return true
+    end
+    Log.log("ERROR", "--- call script task fail ---"..Graph.parameter["type"])
+    Log.log("ERROR", "--- call script task fail ---"..Tool.mapToJson(Graph.parameter))
+    return false
+end

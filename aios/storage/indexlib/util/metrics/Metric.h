@@ -93,7 +93,7 @@ private:
     kmonitor::MetricsReporterPtr _reporter;
     std::string _metricName;
     kmonitor::MetricType _type;
-    double _value;
+    double _value = 0.0;
 
 private:
     AUTIL_LOG_DECLARE();

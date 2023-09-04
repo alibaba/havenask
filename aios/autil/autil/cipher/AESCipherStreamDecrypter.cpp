@@ -14,53 +14,51 @@
  * limitations under the License.
  */
 #include "autil/cipher/AESCipherStreamDecrypter.h"
+
+#include "autil/EnvUtil.h"
 #include "autil/cipher/AESCipherUtility.h"
 #include "autil/cipher/MemoryDataPipeline.h"
-#include "autil/EnvUtil.h"
 #include "openssl/err.h"
 
-namespace autil { namespace cipher {
+namespace autil {
+namespace cipher {
 AUTIL_LOG_SETUP(autil, AESCipherStreamDecrypter);
 
 const size_t AESCipherStreamDecrypter::DEFAULT_PIPE_FREE_BLOCK_COUNT =
     EnvUtil::getEnv("max_cipher_pipe_free_block_count", 10);
 
-AESCipherStreamDecrypter::AESCipherStreamDecrypter(
-        std::unique_ptr<AESCipherUtility> utility, size_t capacity, size_t readTimeoutInMs)
-    : AESCipherDecrypter(std::move(utility))
-    , _capacity(capacity)
-    , _readTimeoutInMs(readTimeoutInMs)
-{
+AESCipherStreamDecrypter::AESCipherStreamDecrypter(std::unique_ptr<AESCipherUtility> utility,
+                                                   size_t capacity,
+                                                   size_t readTimeoutInMs)
+    : AESCipherDecrypter(std::move(utility)), _capacity(capacity), _readTimeoutInMs(readTimeoutInMs) {
     _ctx = EVP_CIPHER_CTX_new();
 }
 
-AESCipherStreamDecrypter::~AESCipherStreamDecrypter() 
-{
-   if (_ctx != nullptr) {
-       EVP_CIPHER_CTX_free(_ctx);
-   }
-   if (_pipe != nullptr) {
-       delete _pipe;
-   }
+AESCipherStreamDecrypter::~AESCipherStreamDecrypter() {
+    if (_ctx != nullptr) {
+        EVP_CIPHER_CTX_free(_ctx);
+    }
+    if (_pipe != nullptr) {
+        delete _pipe;
+    }
 }
 
-bool AESCipherStreamDecrypter::append(const unsigned char* data, size_t dataLen)
-{
+bool AESCipherStreamDecrypter::append(const unsigned char *data, size_t dataLen) {
     if (_status == ST_ERROR || _status == ST_SEALED) {
         return false;
     }
-    
+
     if (_status == ST_UNKNOWN) {
         _status = ST_INIT;
         if (_useRandomSalt) {
             size_t saltHeaderLen = _utility->getSaltHeaderLen();
             if ((_saltHeader.size() + dataLen) < saltHeaderLen) {
-                _saltHeader += std::string((const char*)data, dataLen);
+                _saltHeader += std::string((const char *)data, dataLen);
                 _status = ST_UNKNOWN;
                 return true;
             }
             size_t saltSkipLen = saltHeaderLen - _saltHeader.size();
-            _saltHeader += std::string((const char*)data, saltSkipLen);
+            _saltHeader += std::string((const char *)data, saltSkipLen);
             if (_utility->needCalculate()) {
                 if (_saltHeader.find(AESCipherUtility::magic) != 0) {
                     AUTIL_LOG(ERROR, "cipherText not starts with salt magic.");
@@ -70,7 +68,7 @@ bool AESCipherStreamDecrypter::append(const unsigned char* data, size_t dataLen)
                 _utility->setSaltHeader(_saltHeader);
                 if (!_utility->calculate()) {
                     AUTIL_LOG(ERROR, "utility calculate fail.");
-                    _status = ST_ERROR;                    
+                    _status = ST_ERROR;
                     return false;
                 }
             } else {
@@ -90,29 +88,27 @@ bool AESCipherStreamDecrypter::append(const unsigned char* data, size_t dataLen)
             return false;
         }
         size_t len;
-        if (EVP_DecryptInit_ex(_ctx, _utility->getCipher(), nullptr,
-                               _utility->getKey(len), _utility->getIv(len)) <= 0)
-        {
-            AUTIL_LOG(ERROR, "Failed to initialize decryption operation, error:[%s].",
+        if (EVP_DecryptInit_ex(_ctx, _utility->getCipher(), nullptr, _utility->getKey(len), _utility->getIv(len)) <=
+            0) {
+            AUTIL_LOG(ERROR,
+                      "Failed to initialize decryption operation, error:[%s].",
                       toErrorString(ERR_get_error()).c_str());
             _status = ST_ERROR;
             return false;
         }
-        _pipe = new MemoryDataPipeline(_utility->getCipherBlockSize() * 4096,
-                _capacity, _readTimeoutInMs, DEFAULT_PIPE_FREE_BLOCK_COUNT);
+        _pipe = new MemoryDataPipeline(
+            _utility->getCipherBlockSize() * 4096, _capacity, _readTimeoutInMs, DEFAULT_PIPE_FREE_BLOCK_COUNT);
     }
-    
+
     const size_t batchSize = _utility->getCipherBlockSize() * 64;
     const size_t bufSize = batchSize + _utility->getCipherBlockSize(); /* make efficient buffer room */
     size_t totalDecryptLen = 0;
     while (totalDecryptLen < dataLen) {
         size_t tmpLen = std::min(batchSize, dataLen - totalDecryptLen);
-        unsigned char* buf = (unsigned char*)_pipe->getMemoryBuffer(bufSize);
+        unsigned char *buf = (unsigned char *)_pipe->getMemoryBuffer(bufSize);
         assert(buf != nullptr);
         int decryptLen = 0;
-        if (EVP_DecryptUpdate(_ctx, buf, &decryptLen,
-                              (const unsigned char*)(data + totalDecryptLen), tmpLen) <= 0)
-        {
+        if (EVP_DecryptUpdate(_ctx, buf, &decryptLen, (const unsigned char *)(data + totalDecryptLen), tmpLen) <= 0) {
             AUTIL_LOG(ERROR, "Decryption failed, error:[%s].", toErrorString(ERR_get_error()).c_str());
             _status = ST_ERROR;
             return false;
@@ -123,8 +119,7 @@ bool AESCipherStreamDecrypter::append(const unsigned char* data, size_t dataLen)
     return true;
 }
 
-bool AESCipherStreamDecrypter::seal()
-{
+bool AESCipherStreamDecrypter::seal() {
     if (_status == ST_ERROR) {
         return false;
     }
@@ -133,13 +128,12 @@ bool AESCipherStreamDecrypter::seal()
         return true;
     }
     const size_t bufSize = _utility->getCipherBlockSize() * 8;
-    unsigned char* buf = (unsigned char*)_pipe->getMemoryBuffer(bufSize);
-    assert(buf != nullptr);    
+    unsigned char *buf = (unsigned char *)_pipe->getMemoryBuffer(bufSize);
+    assert(buf != nullptr);
     int finalLen = 0;
     if (EVP_DecryptFinal_ex(_ctx, buf, &finalLen) <= 0) {
-        AUTIL_LOG(ERROR, "Final decryption failed, error:[%s].",
-                  toErrorString(ERR_get_error()).c_str());
-        _status = ST_ERROR;        
+        AUTIL_LOG(ERROR, "Final decryption failed, error:[%s].", toErrorString(ERR_get_error()).c_str());
+        _status = ST_ERROR;
         return false;
     }
     _pipe->increaseDataLength(finalLen);
@@ -149,23 +143,18 @@ bool AESCipherStreamDecrypter::seal()
     return true;
 }
 
-size_t AESCipherStreamDecrypter::get(unsigned char* buffer, size_t bufferLen)
-{
-    return (_pipe != nullptr) ? _pipe->read((char*)buffer, bufferLen) : 0;
+size_t AESCipherStreamDecrypter::get(unsigned char *buffer, size_t bufferLen) {
+    return (_pipe != nullptr) ? _pipe->read((char *)buffer, bufferLen) : 0;
 }
 
-size_t AESCipherStreamDecrypter::getMemoryUse() const
-{
-    return (_pipe != nullptr) ? _pipe->getCurrentMemoryUse() : 0;
-}
+size_t AESCipherStreamDecrypter::getMemoryUse() const { return (_pipe != nullptr) ? _pipe->getCurrentMemoryUse() : 0; }
 
-bool AESCipherStreamDecrypter::isEof() const
-{
+bool AESCipherStreamDecrypter::isEof() const {
     if (!isSealed()) {
         return false;
     }
     return !_pipe || _pipe->isEof();
 }
 
-}}
-
+} // namespace cipher
+} // namespace autil

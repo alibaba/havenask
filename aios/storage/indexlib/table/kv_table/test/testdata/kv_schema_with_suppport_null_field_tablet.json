@@ -1,0 +1,36 @@
+{
+    "fields": [
+        {
+            "enable_null": true,
+            "field_name": "nid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "pidvid",
+            "field_type": "INT64",
+            "multi_value": true
+        },
+        {
+            "field_name": "timestamp",
+            "field_type": "INT64"
+        }
+    ],
+    "indexes": {
+        "kv": [
+            {
+                "index_name": "nid",
+                "index_preference": {
+                    "type": "PERF"
+                },
+                "key_field": "nid",
+                "value_fields": [
+                    "nid",
+                    "pidvid",
+                    "timestamp"
+                ]
+            }
+        ]
+    },
+    "table_name": "kv_table",
+    "table_type": "kv"
+}

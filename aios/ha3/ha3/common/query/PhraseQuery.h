@@ -25,26 +25,26 @@
 
 namespace autil {
 class DataBuffer;
-}  // namespace autil
+} // namespace autil
 namespace isearch {
 namespace common {
 class ModifyQueryVisitor;
 class QueryVisitor;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace common {
 
-class PhraseQuery : public Query
-{
+class PhraseQuery : public Query {
 public:
     PhraseQuery(const std::string &label);
     PhraseQuery(const PhraseQuery &other);
     ~PhraseQuery();
+
 public:
-    void addTerm(const TermPtr& term);
-    bool operator == (const Query& query) const override;
+    void addTerm(const TermPtr &term);
+    bool operator==(const Query &query) const override;
     void accept(QueryVisitor *visitor) const override;
     void accept(ModifyQueryVisitor *visitor) override;
     Query *clone() const override;
@@ -52,8 +52,8 @@ public:
         return "PhraseQuery";
     }
     std::string toString() const override;
-    const TermArray& getTermArray() const;
-    TermArray& getTermArray() {
+    const TermArray &getTermArray() const;
+    TermArray &getTermArray() {
         return _terms;
     }
     void serialize(autil::DataBuffer &dataBuffer) const override;
@@ -64,8 +64,10 @@ public:
     void setQueryLabelWithDefaultLevel(const std::string &label) override {
         setQueryLabelTerm(label);
     }
+
 private:
     TermArray _terms;
+
 private:
     AUTIL_LOG_DECLARE();
 };

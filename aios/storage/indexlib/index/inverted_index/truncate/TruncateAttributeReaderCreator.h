@@ -25,7 +25,7 @@
 #include "indexlib/index/attribute/config/AttributeConfig.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::index {
@@ -39,23 +39,23 @@ class TruncateAttributeReader;
 class TruncateAttributeReaderCreator
 {
 public:
-    TruncateAttributeReaderCreator(const std::shared_ptr<indexlibv2::config::TabletSchema>& tabletSchema,
+    TruncateAttributeReaderCreator(const std::shared_ptr<indexlibv2::config::ITabletSchema>& tabletSchema,
                                    const indexlibv2::index::IIndexMerger::SegmentMergeInfos& segmentMergeInfos,
                                    const std::shared_ptr<indexlibv2::index::DocMapper>& docMapper);
     ~TruncateAttributeReaderCreator() = default;
 
 public:
     std::shared_ptr<TruncateAttributeReader> Create(const std::string& attrName);
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& GetTabletSchema() const { return _tabletSchema; }
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& GetTabletSchema() const { return _tabletSchema; }
     const std::shared_ptr<indexlibv2::index::DocMapper>& GetDocMapper() const { return _docMapper; }
-    std::shared_ptr<indexlibv2::config::AttributeConfig> GetAttributeConfig(const std::string& fieldName) const;
+    std::shared_ptr<indexlibv2::index::AttributeConfig> GetAttributeConfig(const std::string& fieldName) const;
 
 private:
     std::shared_ptr<TruncateAttributeReader> CreateAttributeReader(const std::string& fieldName);
 
 private:
     mutable std::mutex _mutex;
-    std::shared_ptr<indexlibv2::config::TabletSchema> _tabletSchema;
+    std::shared_ptr<indexlibv2::config::ITabletSchema> _tabletSchema;
     std::shared_ptr<indexlibv2::index::DocMapper> _docMapper;
     indexlibv2::index::IIndexMerger::SegmentMergeInfos _segmentMergeInfos;
     std::map<std::string, std::shared_ptr<TruncateAttributeReader>> _truncateAttributeReaders;

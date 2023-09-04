@@ -37,10 +37,13 @@ struct GrpcChannelInitParams {
     int64_t keepAliveTimeout = 0;
 };
 
-class ConnectionFactory {
+class ConnectionFactory
+{
 public:
-    ConnectionFactory(size_t queueSize) : _queueSize(queueSize) {}
-    virtual ~ConnectionFactory() {}
+    ConnectionFactory(size_t queueSize) : _queueSize(queueSize) {
+    }
+    virtual ~ConnectionFactory() {
+    }
 
 private:
     ConnectionFactory(const ConnectionFactory &);
@@ -59,11 +62,15 @@ protected:
 MULTI_CALL_TYPEDEF_PTR(ConnectionFactory);
 
 template <typename ConnectionType>
-class AnetConnectionFactory : public ConnectionFactory {
+class AnetConnectionFactory : public ConnectionFactory
+{
 public:
     AnetConnectionFactory(anet::Transport *transport, size_t queueSize)
-        : ConnectionFactory(queueSize), _transport(transport) {}
-    ~AnetConnectionFactory() {}
+        : ConnectionFactory(queueSize)
+        , _transport(transport) {
+    }
+    ~AnetConnectionFactory() {
+    }
     ConnectionPtr createConnection(const std::string &spec) override {
         return ConnectionPtr(new ConnectionType(_transport, spec, _queueSize));
     }
@@ -72,31 +79,36 @@ private:
     anet::Transport *_transport;
 };
 
-class ArpcConnectionFactory : public ConnectionFactory {
+class ArpcConnectionFactory : public ConnectionFactory
+{
 public:
-    ArpcConnectionFactory(const ANetRPCChannelManagerPtr &channelManager,
-                          size_t queueSize)
-        : ConnectionFactory(queueSize), _rpcChannelManager(channelManager) {}
-    ~ArpcConnectionFactory() {}
+    ArpcConnectionFactory(const ANetRPCChannelManagerPtr &channelManager, size_t queueSize)
+        : ConnectionFactory(queueSize)
+        , _rpcChannelManager(channelManager) {
+    }
+    ~ArpcConnectionFactory() {
+    }
     ConnectionPtr createConnection(const std::string &spec) override {
-        return ConnectionPtr(
-            new ArpcConnection(_rpcChannelManager, spec, _queueSize));
+        return ConnectionPtr(new ArpcConnection(_rpcChannelManager, spec, _queueSize));
     }
 
 private:
     ANetRPCChannelManagerPtr _rpcChannelManager;
 };
 
-class GrpcConnectionFactory : public ConnectionFactory {
+class GrpcConnectionFactory : public ConnectionFactory
+{
 public:
-    GrpcConnectionFactory(const GrpcClientWorkerPtr &worker,
-                          const SecureConfig &secureConfig)
-        : ConnectionFactory(0), _worker(worker), _secureConfig(secureConfig) {}
-    ~GrpcConnectionFactory() {}
+    GrpcConnectionFactory(const GrpcClientWorkerPtr &worker, const SecureConfig &secureConfig)
+        : ConnectionFactory(0)
+        , _worker(worker)
+        , _secureConfig(secureConfig) {
+    }
+    ~GrpcConnectionFactory() {
+    }
     void initChannelArgs(GrpcChannelInitParams params = {});
     ConnectionPtr createConnection(const std::string &spec) override {
-        return ConnectionPtr(new GrpcConnection(
-            _worker, spec, _channelCredentials, _channelArgs));
+        return ConnectionPtr(new GrpcConnection(_worker, spec, _channelCredentials, _channelArgs));
     }
     // virtual for ut
     virtual grpc::SslCredentialsOptions getSslOptions() const;
@@ -108,19 +120,20 @@ protected:
     std::shared_ptr<grpc::ChannelArguments> _channelArgs;
 };
 
-class GrpcStreamConnectionFactory : public GrpcConnectionFactory {
+class GrpcStreamConnectionFactory : public GrpcConnectionFactory
+{
 public:
-    GrpcStreamConnectionFactory(const GrpcClientWorkerPtr &worker,
-                                const SecureConfig &secureConfig)
+    GrpcStreamConnectionFactory(const GrpcClientWorkerPtr &worker, const SecureConfig &secureConfig)
         : GrpcConnectionFactory(worker, secureConfig)
-        , _objectPool(std::make_shared<ObjectPool>())
-    {
+        , _objectPool(std::make_shared<ObjectPool>()) {
     }
-    ~GrpcStreamConnectionFactory() {}
+    ~GrpcStreamConnectionFactory() {
+    }
     ConnectionPtr createConnection(const std::string &spec) override {
         return ConnectionPtr(new GrpcStreamConnection(_worker, spec, _channelCredentials,
                                                       _channelArgs, _objectPool));
     }
+
 private:
     ObjectPoolPtr _objectPool;
 };

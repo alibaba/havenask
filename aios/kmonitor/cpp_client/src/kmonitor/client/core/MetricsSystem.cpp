@@ -5,26 +5,28 @@
  * Author Email: xsank.mz@alibaba-inc.com
  * */
 
-#include <set>
+#include "kmonitor/client/core/MetricsSystem.h"
+
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
+
 #include "autil/Log.h"
-#include "kmonitor/client/sink/FlumeSink.h"
-#include "kmonitor/client/KMonitorFactory.h"
 #include "kmonitor/client/KMonitor.h"
-#include "kmonitor/client/core/MetricsTags.h"
+#include "kmonitor/client/KMonitorFactory.h"
+#include "kmonitor/client/core/MetricsConfig.h"
 #include "kmonitor/client/core/MetricsRecord.h"
 #include "kmonitor/client/core/MetricsSource.h"
-#include "kmonitor/client/core/MetricsConfig.h"
-#include "kmonitor/client/core/MetricsSystem.h"
+#include "kmonitor/client/core/MetricsTags.h"
 #include "kmonitor/client/net/BatchFlumeEvent.h"
+#include "kmonitor/client/sink/FlumeSink.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 AUTIL_LOG_SETUP(kmonitor, MetricsSystem);
 
-using std::set;
 using std::map;
+using std::set;
 using std::string;
 using std::vector;
 
@@ -35,9 +37,7 @@ MetricsSystem::MetricsSystem() {
     started_ = false;
 }
 
-MetricsSystem::~MetricsSystem() {
-    timer_thread_ptr_.reset();
-}
+MetricsSystem::~MetricsSystem() { timer_thread_ptr_.reset(); }
 
 void MetricsSystem::Init(MetricsConfig *config) {
     if (!initSink(config)) {
@@ -49,21 +49,16 @@ void MetricsSystem::Init(MetricsConfig *config) {
 }
 
 bool MetricsSystem::initSink(MetricsConfig *config) {
-    auto sink = std::make_shared<FlumeSink>(config->tenant_name(),
-                                            config->sink_address(),
-                                            config->remote_sink_address(),
-                                            config->enable_log_file_sink());
+    auto sink =
+        std::make_shared<FlumeSink>(config->tenant_name(), config->sink_address(), config->enable_log_file_sink());
     if (!sink->Init()) {
-        AUTIL_LOG(ERROR, "Add and init sink %s failed",
-                     sink->GetName().c_str());
+        AUTIL_LOG(ERROR, "Add and init sink %s failed", sink->GetName().c_str());
         return false;
     }
     return AddSink(sink);
 }
 
-bool MetricsSystem::Started() {
-    return started_;
-}
+bool MetricsSystem::Started() { return started_; }
 
 void MetricsSystem::AddSource(MetricsSource *source) {
     autil::ScopedWriteLock lock(source_lock_);
@@ -74,8 +69,7 @@ void MetricsSystem::AddSource(MetricsSource *source) {
 void MetricsSystem::DelSource(const string &name) {
     autil::ScopedWriteLock lock(source_lock_);
     source_map_.erase(name);
-    AUTIL_LOG(INFO, "remove source name [%s], current source size [%ld]",
-                 name.c_str(), source_map_.size());
+    AUTIL_LOG(INFO, "remove source name [%s], current source size [%ld]", name.c_str(), source_map_.size());
 }
 
 void MetricsSystem::Stop() {
@@ -93,16 +87,14 @@ void MetricsSystem::PublishMetrics(const MetricsRecords &records) {
             sink->PutMetrics(record);
         }
         sink->Flush();
-        AUTIL_LOG(DEBUG, "publish metrics to %s, metrics num is %ld",
-                     sink->GetName().c_str(),
-                     records.size());
+        AUTIL_LOG(DEBUG, "publish metrics to %s, metrics num is %ld", sink->GetName().c_str(), records.size());
     }
 }
 
-const MetricsRecords &MetricsSystem::SampleMetrics(const set<MetricLevel>& levels, int64_t timeMs) {
+const MetricsRecords &MetricsSystem::SampleMetrics(const set<MetricLevel> &levels, int64_t timeMs) {
     collector_.Clear();
     autil::ScopedReadLock lock(source_lock_);
-    map<string, MetricsSource*>::iterator iter = source_map_.begin();
+    map<string, MetricsSource *>::iterator iter = source_map_.begin();
     for (; iter != source_map_.end(); iter++) {
         iter->second->GetMetrics(&collector_, levels, timeMs);
     }
@@ -145,8 +137,7 @@ SinkPtr MetricsSystem::GetSink(const std::string &name) const {
     auto iter = sinks_.find(name);
     if (iter != sinks_.end()) {
         return iter->second;
-    }
-    else {
+    } else {
         return SinkPtr();
     }
 }

@@ -29,7 +29,7 @@ SectionAttributeRewriter::SectionAttributeRewriter() {}
 
 SectionAttributeRewriter::~SectionAttributeRewriter() {}
 
-bool SectionAttributeRewriter::Init(const shared_ptr<TabletSchema>& schema)
+bool SectionAttributeRewriter::Init(const shared_ptr<ITabletSchema>& schema)
 {
     auto mainAppender = make_shared<SectionAttributeAppender>();
     if (mainAppender->Init(schema)) {

@@ -1,0 +1,61 @@
+{
+    "fields" : [
+        {
+            "field_name" : "id",
+            "field_type" : "INTEGER"
+        },
+        {
+            "field_name" : "company_id",
+            "field_type" : "INT64"
+        },
+        {
+            "field_name" : "keywords",
+            "field_type" : "STRING"
+        },
+        {
+            "field_name" : "visitor_id",
+            "field_type" : "LONG"
+        }
+    ],
+    "indexes" : {
+        "aggregation": [
+            {
+                "index_name": "global_agg",
+                "key": {
+                    "fields": [
+                        "company_id",
+                        "keywords"
+                    ],
+                    "initial_key_count": 4096
+                },
+                "value": {
+                    "fields": [
+                        "visitor_id"
+                    ],
+                    "record_count_per_block": 4,
+                    "sort_descriptions":
+                    [
+                        {
+                            "SortField": "visitor_id",
+                            "SortPattern": "DESC"
+                        }
+                    ],
+                    "unique": true
+                }
+            }
+        ],
+        "kv": [
+            {
+                "index_name": "detail",
+                "index_type": "kv",
+                "key_field" : "id",
+                "value_fields": [
+                    "company_id"
+                ],
+                "use_number_hash": false
+            }
+        ]
+    },
+    "table_type": "aggregation",
+    "table_name" : "daogou"
+}

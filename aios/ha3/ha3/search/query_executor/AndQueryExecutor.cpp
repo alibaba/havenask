@@ -15,17 +15,16 @@
  */
 #include "ha3/search/AndQueryExecutor.h"
 
-#include <assert.h>
 #include <algorithm>
+#include <assert.h>
 #include <iostream>
 #include <limits>
 
 #include "autil/CommonMacros.h"
-
+#include "autil/Log.h"
 #include "ha3/isearch.h"
 #include "ha3/search/ExecutorVisitor.h"
 #include "ha3/search/MultiQueryExecutor.h"
-#include "autil/Log.h"
 
 using namespace std;
 
@@ -34,13 +33,11 @@ namespace search {
 AUTIL_LOG_SETUP(ha3, AndQueryExecutor);
 
 AndQueryExecutor::AndQueryExecutor()
-    : _testDocCount(0)
-{
+    : _testDocCount(0) {
     _firstExecutor = NULL;
 }
 
-AndQueryExecutor::~AndQueryExecutor() {
-}
+AndQueryExecutor::~AndQueryExecutor() {}
 
 const std::string AndQueryExecutor::getName() const {
     return "AndQueryExecutor";
@@ -50,13 +47,13 @@ void AndQueryExecutor::accept(ExecutorVisitor *visitor) const {
     visitor->visitAndExecutor(this);
 }
 
-void AndQueryExecutor::addQueryExecutors(const vector<QueryExecutor*> &queryExecutors) {
+void AndQueryExecutor::addQueryExecutors(const vector<QueryExecutor *> &queryExecutors) {
     _hasSubDocExecutor = false;
     if (unlikely(queryExecutors.empty())) {
         return;
     }
 
-    for(size_t i = 0; i < queryExecutors.size(); i++) {
+    for (size_t i = 0; i < queryExecutors.size(); i++) {
         _hasSubDocExecutor = _hasSubDocExecutor || queryExecutors[i]->hasSubDocExecutor();
     }
     _queryExecutors = queryExecutors;
@@ -75,7 +72,7 @@ void AndQueryExecutor::addQueryExecutors(const vector<QueryExecutor*> &queryExec
     _firstExecutor = &_sortedQueryExecutors[0];
 }
 
-indexlib::index::ErrorCode AndQueryExecutor::doSeek(docid_t id, docid_t& result) {
+indexlib::index::ErrorCode AndQueryExecutor::doSeek(docid_t id, docid_t &result) {
     QueryExecutor **firstExecutor = _firstExecutor;
     QueryExecutor **currentExecutor = firstExecutor;
     QueryExecutor **endExecutor = firstExecutor + _sortedQueryExecutors.size();
@@ -110,9 +107,8 @@ indexlib::index::ErrorCode AndQueryExecutor::doSeek(docid_t id, docid_t& result)
     return indexlib::index::ErrorCode::OK;
 }
 
-indexlib::index::ErrorCode AndQueryExecutor::seekSubDoc(docid_t docId, docid_t subDocId,
-        docid_t subDocEnd, bool needSubMatchdata, docid_t& result)
-{
+indexlib::index::ErrorCode AndQueryExecutor::seekSubDoc(
+    docid_t docId, docid_t subDocId, docid_t subDocEnd, bool needSubMatchdata, docid_t &result) {
     if (!_hasSubDocExecutor) {
         docid_t currSubDocId = END_DOCID;
         if (getDocId() == docId && subDocId < subDocEnd) {
@@ -144,7 +140,7 @@ indexlib::index::ErrorCode AndQueryExecutor::seekSubDoc(docid_t docId, docid_t s
         }
 
         if (currentExecutor >= endExecutor) {
-            //test main doc
+            // test main doc
             if (testCurrentDoc(docId)) {
                 break;
             } else {
@@ -164,9 +160,9 @@ bool AndQueryExecutor::isMainDocHit(docid_t docId) const {
     }
     const QueryExecutorVector &queryExecutors = getQueryExecutors();
     for (QueryExecutorVector::const_iterator it = queryExecutors.begin();
-         it != queryExecutors.end(); ++it)
-    {
-        if(!(*it)->isMainDocHit(docId)) {
+         it != queryExecutors.end();
+         ++it) {
+        if (!(*it)->isMainDocHit(docId)) {
             return false;
         }
     }
@@ -182,8 +178,7 @@ df_t AndQueryExecutor::getDF(GetDFType type) const {
 }
 
 string AndQueryExecutor::toString() const {
-    return "AND" +
-        MultiQueryExecutor::convertToString(_sortedQueryExecutors);
+    return "AND" + MultiQueryExecutor::convertToString(_sortedQueryExecutors);
 }
 
 } // namespace search

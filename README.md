@@ -1,5 +1,7 @@
 ## Note
-> old version：[main-stable-0.4](https://github.com/alibaba/havenask/tree/main-stable-0.4)
+> old version:
+> [1.0.0-beta](https://github.com/alibaba/havenask/tree/1.0.0-beta),
+> [main-stable-0.4](https://github.com/alibaba/havenask/tree/main-stable-0.4)<br>
 > The new and old main branches have a significant difference, and if the sync code branch produces errors, please make them consistent with the current main branch.
 
 ## Introduction
@@ -32,66 +34,46 @@ Havenask delivers the following benefits:
 
 * Havenask Docker images (image platform: amd64)
   * <strong>ha3_runtime</strong>: runtime image allows you to quickly start a search service without compiling.
-  * <strong>ha3_dev </strong>: development image includes all libraries necessary for compiling havenask. （[Wiki: Compile Code](https://github.com/alibaba/havenask/wiki/Get-Started-en-1.0.0-beta#compile-code)）
+  * <strong>ha3_dev </strong>: development image includes all libraries necessary for compiling havenask. （[QuickStart](docs/havenask_docs/快速开始.md)）
 * Requirements
   * Runtime: cpu > 2 cores, memory > 4G, disk > 20G
   * Dev: cpu > 2 cores, memory > 10G, disk > 50G
   * Install and Start Docker
 
-
-
-
-### Run the container
-
-* clone the repository
+## Start Havenask Service
+* Create the container
+CONTAINER_NAME specifies the name of the container.
 ```
 cd ~
 git clone git@github.com:alibaba/havenask.git
 cd ~/havenask/docker/havenask
+docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
+./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ```
 
-* create the container. CONTAINER_NAME specifies the name of the container.
-```
-docker pull havenask/ha3_runtime:1.0.0-beta2
-./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:1.0.0-beta2
-```
-* If the connection to Docker Hub is unstable, you can try to download the images from Alibaba Cloud Container Registry.
-```
-docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.0.0-beta2
-./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.0.0-beta2
-```
-
-
-
-* Log on to the container.
-
+* Log on to the container
 ```
 ./<CONTAINER_NAME>/sshme
 ```
 
-
-
-### Build Demo Index
+* Start Havneask service
 ```
-cd ~/havenask/example/
-python build_demo_data.py /ha3_install
+/ha3_install/hape start havenask
+```
+* Create table
+```
+/ha3_install/hape create table -t in0 -s /ha3_install/hape_conf/example/cases/normal/in0_schema.json -p 1
 ```
 
-### Query Demo Index
-* start havenask
+* Insert data
 ```
-python start_demo_searcher.py /ha3_install
+/ha3_install/sql_query.py --query "insert into in0 (createtime,hits,id,title,subject)values(1,2,4,'test', 'test')&&kvpair=databaseName:database"
 ```
-* havenask container listens on the default port of 45800. Here are some examples. ([More examples](https://github.com/alibaba/havenask/tree/main/example))
-
-
+* Query
 ```
-python curl_http.py 45800 "query=select count(*) from in0&&kvpair=databaseName:in0;timeout:2000"
-
-python curl_http.py 45800 "query=select id,hits from in0 where MATCHINDEX('title', '搜索词典')&&kvpair=databaseName:in0;timeout:2000"
-
-python curl_http.py 45800 "query=select title, subject from in0_summary_ where id=1 or id=2&&kvpair=databaseName:in0;timeout:2000"
+/ha3_install/sql_query.py --query "select * from in0 &&kvpair=databaseName:database;formatType:string"
 ```
+
 
 ## Contact Us
 Havenask DingTalk Group：
@@ -127,56 +109,45 @@ Havenask 的核心能力与优势，有以下几点：
 ## 开始使用
 * 镜像介绍（镜像平台: amd64）
    * ha3_runtime：可直接运行的镜像，无需编译代码，包含了问天引擎的可执行文件。
-   * ha3_dev：用于开发测试的镜像，里面包含了开发测试时需要的各种依赖库和头文件，如何编译问天引擎请参考[编译代码](https://github.com/alibaba/havenask/wiki/%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B-1.0.0-beta)。
+   * ha3_dev：用于开发测试的镜像，里面包含了开发测试时需要的各种依赖库和头文件，如何编译问天引擎请参考[快速开始](docs/havenask_docs/快速开始.md)。
 * 环境要求
    * 运行镜像：确保机器内存大于4G，cpu大于2核，磁盘大小大于20G。
    * 开发镜像：确保机器内存大于10G，cpu大于2核，磁盘大小大于50G。
    * 使用前确保设备已经安装和启动Docker服务。
 
-### 启动容器
-克隆仓库
+## 启动服务
+
+* 创建容器
+其中CONTAINER_NAME为指定的容器名
 ```
 cd ~
 git clone git@github.com:alibaba/havenask.git
 cd ~/havenask/docker/havenask
+docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
+./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ```
-创建容器，其中CONTAINER_NAME为指定的容器名
-```
-docker pull havenask/ha3_runtime:1.0.0-beta2
-./create_container.sh <CONTAINER_NAME> havenask/ha3_runtime:1.0.0-beta2
-```
-如果由于Docker Hub访问不稳定无法下载以上镜像，可以尝试阿里云镜像源
-```
-docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.0.0-beta2
-./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.0.0-beta2
-```
-登陆容器
+
+* 登陆容器
 ```
 ./<CONTAINER_NAME>/sshme
 ```
 
-### 测试索引构建
-
-构建全量索引
+* 启动havneask服务
 ```
-cd ~/havenask/example/
-python build_demo_data.py /ha3_install
+/ha3_install/hape start havenask
 ```
-
-### 测试引擎查询
-启动havenask引擎
+* 创建表
 ```
-python start_demo_searcher.py /ha3_install
+/ha3_install/hape create table -t in0 -s /ha3_install/hape_conf/example/cases/normal/in0_schema.json -p 1
 ```
 
-引擎的默认查询端口为45800，使用脚本进行查询测试。下面是一些测试query。更多测试case见[example](https://github.com/alibaba/havenask/tree/main/example)
-
+* 写入数据
 ```
-python curl_http.py 45800 "query=select count(*) from in0&&kvpair=databaseName:in0;timeout:2000"
-
-python curl_http.py 45800 "query=select id,hits from in0 where MATCHINDEX('title', '搜索词典')&&kvpair=databaseName:in0;timeout:2000"
-
-python curl_http.py 45800 "query=select title, subject from in0_summary_ where id=1 or id=2&&kvpair=databaseName:in0;timeout:2000"
+/ha3_install/sql_query.py --query "insert into in0 (createtime,hits,id,title,subject)values(1,2,4,'测试', '测试')&&kvpair=databaseName:database"
+```
+* 查询数据
+```
+/ha3_install/sql_query.py --query "select * from in0 &&kvpair=databaseName:database;formatType:string"
 ```
 
 ## 联系我们

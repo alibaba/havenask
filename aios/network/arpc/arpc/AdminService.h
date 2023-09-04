@@ -17,10 +17,10 @@
 #define ARPC_ADMIN_SERVICE_H
 #include <string>
 
-#include "aios/network/anet/anet.h"
 #include "aios/network/anet/adminserver.h"
-#include "aios/network/arpc/arpc/util/Log.h"
+#include "aios/network/anet/anet.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 
 ARPC_BEGIN_NAMESPACE(arpc);
 
@@ -62,8 +62,7 @@ ARPC_BEGIN_NAMESPACE(arpc);
  * @endcode
  */
 
-class AdminService
-{
+class AdminService {
 public:
     /**
      * Register krpc/anet admin commands and start admin service.

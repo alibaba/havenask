@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/grpc/server/GrpcServerStreamHandler.h"
+
 #include "aios/network/gig/multi_call/stream/GigStreamClosure.h"
 #include "aios/network/gig/multi_call/util/ProtobufByteBufferUtil.h"
 
@@ -29,37 +30,34 @@ GrpcServerStreamHandler::GrpcServerStreamHandler(GrpcServerWorker *worker,
     , _cqs(cqs)
     , _grpcStream(&_serverContext)
     , _triggered(false)
-    , _beginTime(0)
-{
+    , _finished(false)
+    , _beginTime(0) {
     assert(_worker);
     assert(_cqs);
-    HANDLER_LOG(DEBUG, "server handler [%p] constructed, worker [%p], type: %s",
-                this, _worker, typeid(*this).name());
+    HANDLER_LOG(DEBUG, "server handler [%p] constructed, worker [%p], type: %s", this, _worker,
+                typeid(*this).name());
 }
 
 GrpcServerStreamHandler::~GrpcServerStreamHandler() {
     if (_cancelBuffer.valid) {
-        HANDLER_LOG(DEBUG, "cancel message not sent, this type: %s",
-                    typeid(*this).name());
+        HANDLER_LOG(DEBUG, "cancel message not sent, this type: %s", typeid(*this).name());
     }
     auto count = closureCount();
     if (count > 0) {
-        HANDLER_LOG(ERROR,
-                    "closure count: %ld, not zero when finish, this type: %s",
-                    count, typeid(*this).name());
+        HANDLER_LOG(ERROR, "closure count: %ld, not zero when finish, this type: %s", count,
+                    typeid(*this).name());
         _streamState.logState(true);
     }
     HANDLER_LOG(DEBUG, "begin notifyFinish in grpc server stream destruct");
     notifyFinish();
-    HANDLER_LOG(DEBUG, "deconstructed [%p], worker [%p], type: %s", this,
-                _worker, typeid(*this).name());
+    HANDLER_LOG(DEBUG, "deconstructed [%p], worker [%p], type: %s", this, _worker,
+                typeid(*this).name());
 }
 
 void GrpcServerStreamHandler::triggerNew() {
     if (!_triggered && !_cqs->stopped) {
         _triggered = true;
-        GrpcServerStreamHandlerPtr handler(
-            new GrpcServerStreamHandler(_worker, _cqs));
+        GrpcServerStreamHandlerPtr handler(new GrpcServerStreamHandler(_worker, _cqs));
         handler->setCallBackThreadPool(_callBackThreadPool);
         handler->init();
     }
@@ -68,9 +66,8 @@ void GrpcServerStreamHandler::triggerNew() {
 bool GrpcServerStreamHandler::init() {
     autil::ScopedReadWriteLock lock(_cqs->enqueueLock, 'r');
     if (!_cqs->stopped) {
-        _worker->getAsyncGenericService().RequestCall(
-            &_serverContext, &_grpcStream, _cqs->cq.get(), _cqs->cq.get(),
-            getInitClosure());
+        _worker->getAsyncGenericService().RequestCall(&_serverContext, &_grpcStream, _cqs->cq.get(),
+                                                      _cqs->cq.get(), getInitClosure());
         return true;
     } else {
         _streamState.setErrorCode(MULTI_CALL_ERROR_STREAM_STOPPED);
@@ -126,8 +123,7 @@ bool GrpcServerStreamHandler::receiveInitQuery() {
     }
     auto stream = streamCreator->create();
     if (!stream) {
-        HANDLER_LOG(ERROR, "create stream failed, method [%s]",
-                    methodName.c_str());
+        HANDLER_LOG(ERROR, "create stream failed, method [%s]", methodName.c_str());
         _streamState.setErrorCode(MULTI_CALL_ERROR_STREAM_CREATOR);
         return false;
     }
@@ -136,8 +132,8 @@ bool GrpcServerStreamHandler::receiveInitQuery() {
     return true;
 }
 
-bool GrpcServerStreamHandler::getServerContextMetaValue(
-    const std::string &key, std::string &value) const {
+bool GrpcServerStreamHandler::getServerContextMetaValue(const std::string &key,
+                                                        std::string &value) const {
     const auto &clientMetaMap = _serverContext.client_metadata();
     auto it = clientMetaMap.find(key);
     if (clientMetaMap.end() != it) {
@@ -149,14 +145,27 @@ bool GrpcServerStreamHandler::getServerContextMetaValue(
     }
 }
 
-GigStreamClosureBase *
-GrpcServerStreamHandler::doSend(bool sendEof, grpc::ByteBuffer *message,
-                                GigStreamClosureBase *closure) {
+GigStreamClosureBase *GrpcServerStreamHandler::doSend(bool sendEof, grpc::ByteBuffer *message,
+                                                      GigStreamClosureBase *closure, bool &ok) {
     autil::ScopedReadWriteLock lock(_cqs->enqueueLock, 'r');
     if (!_cqs->stopped) {
-        _grpcStream.Write(*message, closure);
+        if (_finished) {
+            ok = true;
+            return closure;
+        }
+        if (sendEof) {
+            clean();
+            auto statusCode =
+                _streamState.hasError() ? grpc::StatusCode::CANCELLED : grpc::StatusCode::OK;
+            grpc::Status status(statusCode, "");
+            _grpcStream.WriteAndFinish(*message, grpc::WriteOptions(), status, closure);
+            _finished = true;
+        } else {
+            _grpcStream.Write(*message, closure);
+        }
         return nullptr;
     } else {
+        ok = false;
         return closure;
     }
 }
@@ -178,12 +187,15 @@ bool GrpcServerStreamHandler::ignoreReceiveError() {
 }
 
 GigStreamClosureBase *GrpcServerStreamHandler::finish() {
-    clean();
-    auto statusCode = _streamState.hasError() ? grpc::StatusCode::CANCELLED
-                                              : grpc::StatusCode::OK;
-    grpc::Status status(statusCode, "");
-    auto closure = getFinishClosure();
     autil::ScopedReadWriteLock lock(_cqs->enqueueLock, 'r');
+    auto closure = getFinishClosure();
+    if (_finished) {
+        dynamic_cast<GigStreamClosureBase *>(closure)->run(true);
+        return nullptr;
+    }
+    clean();
+    auto statusCode = _streamState.hasError() ? grpc::StatusCode::CANCELLED : grpc::StatusCode::OK;
+    grpc::Status status(statusCode, "");
     _streamState.logState();
     HANDLER_LOG(DEBUG, "server finishing, closureCount: %ld", closureCount());
     if (!_cqs->stopped) {
@@ -199,10 +211,8 @@ void GrpcServerStreamHandler::clean() {
     auto queryInfo = stealQueryInfo();
     if (queryInfo) {
         auto latency = getLatency();
-        auto responseInfo =
-            queryInfo->finish(latency, _streamState.getErrorCode(), MAX_WEIGHT);
-        _serverContext.AddTrailingMetadata(GIG_GRPC_RESPONSE_INFO_KEY,
-                                           responseInfo);
+        auto responseInfo = queryInfo->finish(latency, _streamState.getErrorCode(), MAX_WEIGHT);
+        _serverContext.AddTrailingMetadata(GIG_GRPC_RESPONSE_INFO_KEY, responseInfo);
         queryInfo.reset();
     }
 }
@@ -238,6 +248,7 @@ int64_t GrpcServerStreamHandler::getLatency() const {
     return (autil::TimeUtility::currentTime() - _beginTime) / FACTOR_US_TO_MS;
 }
 
-void GrpcServerStreamHandler::doFinishCallback(bool ok) {}
+void GrpcServerStreamHandler::doFinishCallback(bool ok) {
+}
 
 } // namespace multi_call

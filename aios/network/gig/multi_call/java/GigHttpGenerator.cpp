@@ -21,7 +21,7 @@ namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GigHttpGenerator);
 
 RequestPtr GigHttpGenerator::generateRequest(const std::string &bodyStr,
-        const GigRequestPlan &requestPlan) {
+                                             const GigRequestPlan &requestPlan) {
     GigHttpRequestPtr request(new GigHttpRequest(getProtobufArena()));
     if (requestPlan.has_timeout()) {
         request->setTimeout(requestPlan.timeout());
@@ -43,8 +43,7 @@ RequestPtr GigHttpGenerator::generateRequest(const std::string &bodyStr,
 
     request->setBody(bodyStr);
     for (auto i = 0; i < requestPlan.headers_size(); i++) {
-        request->setRequestHeader(requestPlan.headers(i).key(),
-                                  requestPlan.headers(i).value());
+        request->setRequestHeader(requestPlan.headers(i).key(), requestPlan.headers(i).value());
     }
     request->setKeepAlive(requestPlan.keep_alive());
     return request;

@@ -23,6 +23,7 @@
 #include "autil/legacy/any.h"
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/config/MutableJson.h"
 
 namespace indexlib::file_system {
 class LoadConfigList;
@@ -52,7 +53,7 @@ public:
 
 public: // GET ANY PATH FROM RAW JSON
     template <typename T>
-    bool GetFromRawJson(const std::string& jsonPath, T* value) const noexcept;
+    Status GetFromRawJson(const std::string& jsonPath, T* value) const noexcept;
     bool IsRawJsonEmpty() const;
 
 public: // NO-SERIALIZE OPTIONS
@@ -82,8 +83,8 @@ public: // SERIALIZE OPTIONS
 
 public: // FASTPATH OPTIONS
     // offline only
-    const MergeConfig& GetMergeConfig() const;
-    MergeConfig& MutableMergeConfig();
+    const MergeConfig& GetDefaultMergeConfig() const;
+    // MergeConfig& MutableMergeConfig();
     const std::vector<IndexTaskConfig>& GetAllIndexTaskConfigs() const;
     std::vector<IndexTaskConfig> GetIndexTaskConfigs(const std::string& taskType) const;
     std::optional<IndexTaskConfig> GetIndexTaskConfig(const std::string& taskType, const std::string& taskName) const;
@@ -106,6 +107,7 @@ public:
     OfflineConfig& TEST_GetOfflineConfig();
     BuildOptionConfig& TEST_GetBuildOptionConfig();
     MergeConfig& TEST_GetMergeConfig();
+    MutableJson& TEST_GetRawJson();
 
 private:
     const autil::legacy::Any* GetAnyFromRawJson(const std::string& jsonPath) const noexcept;
@@ -120,19 +122,19 @@ private:
 
 /////////////////////////////////////////////////////////////////////////
 template <typename T>
-inline bool TabletOptions::GetFromRawJson(const std::string& jsonPath, T* value) const noexcept
+inline Status TabletOptions::GetFromRawJson(const std::string& jsonPath, T* value) const noexcept
 {
     auto any = GetAnyFromRawJson(jsonPath);
     if (!any) {
-        return false;
+        return Status::NotFound("path [%s] not exist", jsonPath.c_str());
     }
     try {
         autil::legacy::FromJson(*value, *any);
     } catch (const autil::legacy::ExceptionBase& e) {
         AUTIL_LOG(ERROR, "decode jsonpath[%s] failed: %s", jsonPath.c_str(), e.what());
-        return false;
+        return Status::ConfigError("parse [%s] failed", jsonPath.c_str());
     }
-    return true;
+    return Status::OK();
 }
 
 } // namespace indexlibv2::config

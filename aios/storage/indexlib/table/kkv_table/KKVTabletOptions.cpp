@@ -27,7 +27,7 @@ uint32_t KKVTabletOptions::GetShardNum() const
     } else {
         path = "offline_index_config.build_config.sharding_column_num";
     }
-    if (!_tabletOptions->GetFromRawJson(path, &shardNum)) {
+    if (!_tabletOptions->GetFromRawJson(path, &shardNum).IsOK()) {
         return 1;
     }
     return shardNum;
@@ -42,7 +42,7 @@ uint32_t KKVTabletOptions::GetLevelNum() const
     } else {
         path = "offline_index_config.build_config.level_num";
     }
-    if (!_tabletOptions->GetFromRawJson(path, &levelNum)) {
+    if (!_tabletOptions->GetFromRawJson(path, &levelNum).IsOK()) {
         AUTIL_LOG(WARN, "kkv table level num not existed, rewrite to 2");
         return 2;
     }

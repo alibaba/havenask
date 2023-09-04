@@ -1,17 +1,17 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='kkv_document',
     srcs=[],
     hdrs=['KKVDocumentBatch.h'],
     deps=[':KKVDocument', '//aios/storage/indexlib/document/kv:kv_document']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVDocument',
     srcs=[],
     deps=['//aios/storage/indexlib/document/kv:KVDocument']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVKeysExtractor',
     deps=[
         ':KKVDocument', '//aios/autil:log', '//aios/autil:string_type',
@@ -20,22 +20,22 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/config:KKVIndexConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVIndexDocumentParser',
     deps=[
         ':KKVDocument', ':KKVKeysExtractor',
-        '//aios/storage/indexlib/index/kkv/config:KKVIndexConfig',
-        '//aios/storage/indexlib/document/kv:KVIndexDocumentParserBase'
+        '//aios/storage/indexlib/document/kv:KVIndexDocumentParserBase',
+        '//aios/storage/indexlib/index/kkv/config:KKVIndexConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVDocumentParser',
     deps=[
         ':KKVIndexDocumentParser',
         '//aios/storage/indexlib/document/kv:KVDocumentParser'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVDocumentFactory',
     deps=[
         ':KKVDocumentParser',

@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/controller/DegradeRatioController.h"
+
+#include <math.h>
+
 #include "aios/network/gig/multi_call/controller/ControllerChain.h"
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
-#include <math.h>
 
 using namespace std;
 using namespace autil;
@@ -25,21 +27,21 @@ namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, DegradeRatioController);
 
 DegradeRatioController::DegradeRatioController()
-    : RatioControllerBase("degradeRatio", DEGRADE_RATIO_WEIGHT_DEC_STEP) {}
+    : RatioControllerBase("degradeRatio", DEGRADE_RATIO_WEIGHT_DEC_STEP) {
+}
 
-void DegradeRatioController::updateLocalRatio(
-    const QueryResultStatistic &stat) {
+void DegradeRatioController::updateLocalRatio(const QueryResultStatistic &stat) {
     float degrade = stat.isDecWeight() ? MAX_RATIO : MIN_RATIO;
     updateLocal(degrade);
 }
 
-const ServerRatioFilter &DegradeRatioController::getServerRatioFilter(
-    const GigResponseInfo &agentInfo) const {
+const ServerRatioFilter &
+DegradeRatioController::getServerRatioFilter(const GigResponseInfo &agentInfo) const {
     return agentInfo.degrade_ratio();
 }
 
-const ServerRatioFilter &DegradeRatioController::getMirrorServerRatioFilter(
-    const PropagationStatDef &stat) const {
+const ServerRatioFilter &
+DegradeRatioController::getMirrorServerRatioFilter(const PropagationStatDef &stat) const {
     return stat.degrade();
 }
 
@@ -99,8 +101,7 @@ float DegradeRatioController::updateLoadBalance(ControllerFeedBack &feedBack) {
     if (!getBestRatio(feedBack, bestRatio)) {
         return MAX_PERCENT;
     }
-    auto returnPercent =
-        calculateWeightPercent(controllerLoadBalanceOutput(), bestRatio);
+    auto returnPercent = calculateWeightPercent(controllerLoadBalanceOutput(), bestRatio);
     return std::max(LOAD_BALANCE_MIN_PERCENT, returnPercent);
 }
 
@@ -121,14 +122,12 @@ bool DegradeRatioController::getBestRatio(const ControllerFeedBack &feedBack,
     return true;
 }
 
-float DegradeRatioController::calculateWeightPercent(float thisRatio,
-                                                     float bestRatio) {
-    if (INVALID_FILTER_VALUE == thisRatio ||
-        INVALID_FILTER_VALUE == bestRatio || thisRatio <= bestRatio) {
+float DegradeRatioController::calculateWeightPercent(float thisRatio, float bestRatio) {
+    if (INVALID_FILTER_VALUE == thisRatio || INVALID_FILTER_VALUE == bestRatio ||
+        thisRatio <= bestRatio) {
         return MAX_PERCENT;
     } else {
-        return std::max(MIN_PERCENT,
-                        (MAX_RATIO + bestRatio - thisRatio) / MAX_RATIO);
+        return std::max(MIN_PERCENT, (MAX_RATIO + bestRatio - thisRatio) / MAX_RATIO);
     }
 }
 

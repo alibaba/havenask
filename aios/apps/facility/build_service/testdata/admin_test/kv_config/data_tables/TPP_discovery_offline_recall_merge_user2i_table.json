@@ -1,0 +1,69 @@
+{
+    "data_descriptions": [
+                {
+            "access_id": "dXuyCyyEAJpUtPqS", 
+            "access_key": "9d8c1Q1pU676tdcdW2CjrIj0rpls0A", 
+            "account_type": "aliyun", 
+            "odps_endpoint": "http://service.odps.aliyun-inc.com/api", 
+            "module_name": "OdpsRawDocumentReader", 
+            "module_path": "libbasic_bs_plugins.so",
+            "partition_name": "ds=20190426",
+            "project_name": "ytrec", 
+            "src": "odps", 
+            "table_name": "discovery_offline_recall_merge_user2i_kv", 
+            "type": "plugin",
+	    "ignore_empty_field": "true"
+        }
+    ],
+    "processor_chain_config": [
+    {
+        "clusters": [
+            "TPP_discovery_offline_recall_merge_user2i"
+        ],
+        "document_processor_chain": [
+            {
+                "class_name": "PGDocumentProcessor",
+                "module_name": "IGraphBuildPlugins",
+                "parameters": {
+                    "odps_field_config": "odps_field_config.json",
+		    "drop_empty_field_doc": "false"
+                }
+            },
+            {
+                "class_name": "MultiValueSeperatorProcessor", 
+                "module_name": "BasicBSPlugins", 
+                "parameters": {}
+            },
+            {
+                "class_name": "HashDocumentProcessor"
+            }
+        ], 
+        "modules": [
+            {
+                "module_name": "BasicBSPlugins", 
+                "module_path": "libbasic_bs_plugins.so", 
+                "parameters": {}
+            }, 
+            {
+                "module_name": "IGraphBuildPlugins", 
+                "module_path": "libbasic_bs_plugins.so", 
+                "parameters": {}
+            }
+        ],
+	"tolerate_field_format_error": false
+    }
+],
+    "processor_config": {
+        "processor_queue_size": 1000, 
+        "processor_thread_num": 4
+    },
+    "processor_rule_config": {
+        "parallel_num": 7,
+        "partition_count": 2
+    },
+    "slow_node_detect_config" : {
+        "max_kill_times" : 2,
+        "slow_time_threshold" : 600,
+        "enable_slow_node_detect" : true
+    }
+}

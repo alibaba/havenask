@@ -38,11 +38,13 @@
 #include "indexlib/file_system/FileInfo.h"
 #include "indexlib/file_system/FileSystemCreator.h"
 #include "indexlib/file_system/FileSystemMetricsReporter.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/framework/BuildResource.h"
 #include "indexlib/framework/DeployIndexUtil.h"
 #include "indexlib/framework/DiskSegment.h"
 #include "indexlib/framework/Fence.h"
+#include "indexlib/framework/ITabletImporter.h"
 #include "indexlib/framework/IndexRecoverStrategy.h"
 #include "indexlib/framework/MemSegment.h"
 #include "indexlib/framework/MemSegmentCreator.h"
@@ -65,16 +67,17 @@
 #include "indexlib/framework/TabletSchemaManager.h"
 #include "indexlib/framework/TaskType.h"
 #include "indexlib/framework/VersionDeployDescription.h"
-#include "indexlib/framework/VersionImporter.h"
 #include "indexlib/framework/VersionLoader.h"
 #include "indexlib/framework/VersionMetaCreator.h"
 #include "indexlib/framework/cleaner/DropIndexCleaner.h"
 #include "indexlib/framework/cleaner/OnDiskIndexCleaner.h"
 #include "indexlib/framework/cleaner/ResourceCleaner.h"
+#include "indexlib/framework/index_task/Constant.h"
 #include "indexlib/framework/lifecycle/LifecycleTableCreator.h"
 #include "indexlib/framework/mem_reclaimer/EpochBasedMemReclaimer.h"
 #include "indexlib/framework/mem_reclaimer/MemReclaimerMetrics.h"
 #include "indexlib/util/Exception.h"
+#include "indexlib/util/KeyHasherTyped.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/cache/SearchCachePartitionWrapper.h"
 #include "indexlib/util/memory_control/BuildResourceMetrics.h"
@@ -86,6 +89,9 @@ AUTIL_LOG_SETUP(indexlib.framework, Tablet);
 
 #define TABLET_LOG(level, format, args...)                                                                             \
     AUTIL_LOG(level, "[%s] [%p] " format, _tabletInfos->GetTabletName().c_str(), this, ##args)
+
+#define TABLET_INTERVAL_LOG2(logInterval, level, format, args...)                                                      \
+    AUTIL_INTERVAL_LOG2(logInterval, level, "[%s] [%p] " format, _tabletInfos->GetTabletName().c_str(), this, ##args)
 
 Tablet::Tablet(const TabletResource& resource)
     : _tabletInfos(std::make_unique<TabletInfos>())
@@ -157,7 +163,7 @@ std::shared_ptr<ITabletReader> Tablet::GetTabletReader() const
 
 const TabletInfos* Tablet::GetTabletInfos() const { return _tabletInfos.get(); }
 
-std::shared_ptr<config::TabletSchema> Tablet::GetTabletSchema() const
+std::shared_ptr<config::ITabletSchema> Tablet::GetTabletSchema() const
 {
     auto tabletData = GetTabletData();
     if (tabletData == nullptr) {
@@ -168,14 +174,17 @@ std::shared_ptr<config::TabletSchema> Tablet::GetTabletSchema() const
 
 std::shared_ptr<config::TabletOptions> Tablet::GetTabletOptions() const { return _tabletOptions; }
 
-Status Tablet::OpenWriterAndReader(std::shared_ptr<TabletData> tabletData, const framework::OpenOptions& openOptions)
+Status
+Tablet::OpenWriterAndReader(std::shared_ptr<TabletData> tabletData, const framework::OpenOptions& openOptions,
+                            const std::shared_ptr<indexlibv2::framework::VersionDeployDescription>& versionDpDesc)
 {
     // create and set reader
     ReadResource readResource = GenerateReadResource();
     auto readSchema = GetReadSchema(tabletData);
     auto tabletReader = _tabletFactory->CreateTabletReader(readSchema);
     if (_tabletOptions->IsOnline()) {
-        TABLET_LOG(INFO, "begin open tablet reader, version id[%d]", tabletData->GetOnDiskVersion().GetVersionId());
+        auto versionId = tabletData->GetOnDiskVersion().GetVersionId();
+        TABLET_LOG(INFO, "begin open tablet reader, version id[%d]", versionId);
         auto st = tabletReader->Open(tabletData, readResource);
         if (!st.IsOK()) {
             TABLET_LOG(ERROR, "tablet reader open failed");
@@ -184,9 +193,6 @@ Status Tablet::OpenWriterAndReader(std::shared_ptr<TabletData> tabletData, const
     } else {
         TABLET_LOG(INFO, "skip open tablet reader for offline");
     }
-    auto [status, versionDpDesc] = CreateVersionDeployDescription(tabletData->GetOnDiskVersion().GetVersionId());
-    RETURN_IF_STATUS_ERROR(status, "create version deploy description failed for version [%d]",
-                           tabletData->GetOnDiskVersion().GetVersionId());
     {
         std::lock_guard<std::mutex> guard(_readerMutex);
         _tabletReader = std::move(tabletReader);
@@ -221,6 +227,7 @@ Status Tablet::OpenWriterAndReader(std::shared_ptr<TabletData> tabletData, const
                 _needSeek.store(true);
             }
         }
+        CloseWriterUnsafe();
         _tabletWriter = std::move(tabletWriter);
         TABLET_LOG(INFO, "end open tablet writer");
     }
@@ -232,12 +239,12 @@ Status Tablet::OpenWriterAndReader(std::shared_ptr<TabletData> tabletData, const
     return Status::OK();
 }
 
-Status Tablet::ReopenNewSegment(const std::shared_ptr<config::TabletSchema>& schema)
+Status Tablet::ReopenNewSegment(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     return RefreshTabletData(RefreshStrategy::NEW_BUILDING_SEGMENT, schema);
 }
 
-Status Tablet::RefreshTabletData(RefreshStrategy strategy, const std::shared_ptr<config::TabletSchema>& writeSchema)
+Status Tablet::RefreshTabletData(RefreshStrategy strategy, const std::shared_ptr<config::ITabletSchema>& writeSchema)
 {
     // assert dataMutex is held
     indexlib::util::ScopeLatencyReporter scopeLatency(_tabletMetrics->GetreopenRealtimeLatencyMetric().get());
@@ -276,7 +283,7 @@ Status Tablet::RefreshTabletData(RefreshStrategy strategy, const std::shared_ptr
         TABLET_LOG(ERROR, "finalize tablet data failed: %s", st.ToString().c_str());
         return st;
     }
-    st = OpenWriterAndReader(std::move(newTabletData), _openOptions);
+    st = OpenWriterAndReader(std::move(newTabletData), _openOptions, _tabletInfos->GetLoadedVersionDeployDescription());
     return st;
 }
 
@@ -299,12 +306,14 @@ Status Tablet::Build(const std::shared_ptr<document::IDocumentBatch>& batch)
     if (unlikely(_tabletOptions->IsReadOnly())) {
         return Status::Unimplement("readonly tablet not support build");
     }
+    if (unlikely(batch == nullptr)) {
+        return Status::InvalidArgs("document batch is nullptr");
+    }
     auto memStatus = GetTabletInfos()->GetMemoryStatus();
     if (memStatus == indexlibv2::framework::MemoryStatus::REACH_TOTAL_MEM_LIMIT ||
         memStatus == indexlibv2::framework::MemoryStatus::REACH_MAX_RT_INDEX_SIZE) {
         return Status::NoMem("memory status: %d", int(memStatus));
     }
-
     std::lock_guard<std::mutex> guard(_dataMutex);
 
     auto status = CheckDoc(batch.get());
@@ -328,14 +337,16 @@ Status Tablet::Build(const std::shared_ptr<document::IDocumentBatch>& batch)
             docLocator.IsFasterThan(latestLocator, true) != Locator::LocatorCompareResult::LCR_FULLY_FASTER) {
             _tabletMetrics->AddTabletFault("locator rollback");
             if (_tabletOptions->GetOnlineConfig().GetAllowLocatorRollback()) {
-                TABLET_LOG(WARN,
-                           "doc locator [%s] , tablet lastest locator [%s], shrink or compare failed, but not skip it",
-                           batch->GetLastLocator().DebugString().c_str(),
-                           _tabletInfos->GetLatestLocator().DebugString().c_str());
+                TABLET_INTERVAL_LOG2(
+                    120, WARN,
+                    "doc locator [%s] , tablet lastest locator [%s], shrink or compare failed, but not skip it",
+                    batch->GetLastLocator().DebugString().c_str(),
+                    _tabletInfos->GetLatestLocator().DebugString().c_str());
             } else {
-                TABLET_LOG(ERROR, "skip doc, doc locator [%s] , tablet lastest locator [%s], shrink or compare failed",
-                           batch->GetLastLocator().DebugString().c_str(),
-                           _tabletInfos->GetLatestLocator().DebugString().c_str());
+                TABLET_INTERVAL_LOG2(
+                    120, ERROR, "skip doc, doc locator [%s] , tablet lastest locator [%s], shrink or compare failed",
+                    batch->GetLastLocator().DebugString().c_str(),
+                    _tabletInfos->GetLatestLocator().DebugString().c_str());
                 return Status::OK();
             }
         }
@@ -344,7 +355,7 @@ Status Tablet::Build(const std::shared_ptr<document::IDocumentBatch>& batch)
     if (_tabletWriter == nullptr) {
         Status st = ReopenNewSegment(GetTabletSchema());
         if (!st.IsOK()) {
-            _tabletWriter.reset();
+            CloseWriterUnsafe();
             TABLET_LOG(ERROR, "reopen new segment failed");
             return st;
         }
@@ -359,7 +370,7 @@ Status Tablet::Build(const std::shared_ptr<document::IDocumentBatch>& batch)
         _tabletDumper->PushSegmentDumper(std::move(segmentDumper));
         Status st = ReopenNewSegment(GetTabletSchema());
         if (!st.IsOK()) {
-            _tabletWriter.reset();
+            CloseWriterUnsafe();
             TABLET_LOG(ERROR, "reopen new segment failed");
             return st;
         }
@@ -381,9 +392,7 @@ Locator Tablet::GetMemSegmentLocator()
 {
     auto slice = GetTabletData()->CreateSlice(Segment::SegmentStatus::ST_BUILDING);
     if (!slice.empty()) {
-        auto [status, lastLocator] = (*slice.begin())->GetLastLocator();
-        assert(status.IsOK());
-        return lastLocator;
+        return (*slice.begin())->GetLocator();
     }
     return Locator();
 }
@@ -487,7 +496,9 @@ Status Tablet::LoadVersion(const VersionCoord& versionCoord, Version* version, s
     return Status::OK();
 }
 
-std::pair<Status, Version> Tablet::MountOnDiskVersion(const VersionCoord& versionCoord)
+std::pair<Status, Version>
+Tablet::MountOnDiskVersion(const VersionCoord& versionCoord,
+                           const std::shared_ptr<indexlibv2::framework::VersionDeployDescription>& versionDpDesc)
 {
     Version version;
     std::string versionRoot;
@@ -500,8 +511,13 @@ std::pair<Status, Version> Tablet::MountOnDiskVersion(const VersionCoord& versio
     }
     auto lfs = _fence.GetFileSystem();
     assert(lfs != nullptr);
-    auto lifecycleTable =
-        LifecycleTableCreator::CreateLifecycleTable(version, _tabletOptions->GetOnlineConfig().GetLifecycleConfig());
+
+    std::shared_ptr<indexlib::file_system::LifecycleTable> lifecycleTable;
+    if (_tabletOptions->IsOnline()) {
+        if (versionDpDesc != nullptr) {
+            lifecycleTable = versionDpDesc->GetLifecycleTable();
+        }
+    }
     status = indexlib::file_system::toStatus(lfs->MountVersion(versionRoot, versionCoord.GetVersionId(),
                                                                /*rawLogicalPath=*/"",
                                                                indexlib::file_system::FSMT_READ_ONLY, lifecycleTable));
@@ -516,7 +532,7 @@ std::pair<Status, Version> Tablet::MountOnDiskVersion(const VersionCoord& versio
     return std::make_pair(Status::OK(), std::move(version));
 }
 
-Status Tablet::FinalizeTabletData(TabletData* tabletData, const std::shared_ptr<config::TabletSchema>& writeSchema)
+Status Tablet::FinalizeTabletData(TabletData* tabletData, const std::shared_ptr<config::ITabletSchema>& writeSchema)
 {
     assert(tabletData);
     auto resourceMap = tabletData->GetResourceMap();
@@ -556,12 +572,12 @@ int64_t Tablet::GetSuggestBuildingSegmentMemoryUse()
     }
     if (_buildMemoryQuotaSynchronizer &&
         _buildMemoryQuotaSynchronizer->GetTotalQuota() != std::numeric_limits<int64_t>::max()) {
-        return _buildMemoryQuotaSynchronizer->GetFreeQuota() / 3;
+        return _buildMemoryQuotaSynchronizer->GetTotalQuota();
     }
     return 6L * 1024 * 1024 * 1024; // default 6G
 }
 
-Status Tablet::PrepareEmptyTabletData(const std::shared_ptr<config::TabletSchema>& tabletSchema)
+Status Tablet::PrepareEmptyTabletData(const std::shared_ptr<config::ITabletSchema>& tabletSchema)
 {
     // assert dataMutex has been locked or not necessary
     _tabletData = std::make_unique<TabletData>(_tabletInfos->GetTabletName());
@@ -583,7 +599,7 @@ bool Tablet::NeedRecoverFromLocal() const
             !_tabletOptions->FlushRemote() && _tabletOptions->GetOnlineConfig().LoadRemainFlushRealtimeIndex());
 }
 
-Status Tablet::Open(const IndexRoot& indexRoot, const std::shared_ptr<config::TabletSchema>& tabletSchema,
+Status Tablet::Open(const IndexRoot& indexRoot, const std::shared_ptr<config::ITabletSchema>& tabletSchema,
                     const std::shared_ptr<config::TabletOptions>& options, const VersionCoord& versionCoord)
 {
     TABLET_LOG(INFO, "open tablet begin, indexRoot[%s], version[%s], leader[%d], flushlocal[%d], flushremote[%d]",
@@ -744,7 +760,7 @@ Status Tablet::UpdateControlFlow(const ReopenOptions& reopenOptions)
         auto threadPoolQueueFactory = std::make_shared<autil::ThreadPoolQueueFactory>();
         _consistentModeBuildThreadPool =
             std::make_shared<autil::ThreadPool>(reopenOptions.GetOpenOptions().GetConsistentModeBuildThreadCount(),
-                                                queueSize, threadPoolQueueFactory, "parallel-build");
+                                                queueSize, threadPoolQueueFactory, "consistent-parallel-build");
     }
     if (_inconsistentModeBuildThreadPool == nullptr &&
         reopenOptions.GetOpenOptions().GetInconsistentModeBuildThreadCount() > 0) {
@@ -752,7 +768,7 @@ Status Tablet::UpdateControlFlow(const ReopenOptions& reopenOptions)
         auto threadPoolQueueFactory = std::make_shared<autil::ThreadPoolQueueFactory>();
         _inconsistentModeBuildThreadPool =
             std::make_shared<autil::ThreadPool>(reopenOptions.GetOpenOptions().GetInconsistentModeBuildThreadCount(),
-                                                queueSize, threadPoolQueueFactory, "parallel-build");
+                                                queueSize, threadPoolQueueFactory, "inconsistent-parallel-build");
     }
     std::lock_guard<std::mutex> guard(_dataMutex);
     if (_tabletWriter == nullptr) {
@@ -771,27 +787,29 @@ Status Tablet::Reopen(const ReopenOptions& reopenOptions, const VersionCoord& ve
         return Status::Unimplement("tablet not support force reopen, try reload, version [%d]", versionId);
     }
     autil::ScopedTime2 timer;
-    _openOptions = reopenOptions.GetOpenOptions();
-    _openOptions.SetUpdateControlFlowOnly(false);
     if (versionId == CONTROL_FLOW_VERSIONID) {
         TABLET_LOG(INFO, "reopen as entrance to update control flow only.");
         auto status = UpdateControlFlow(reopenOptions);
+        _openOptions = reopenOptions.GetOpenOptions();
+        _openOptions.SetUpdateControlFlowOnly(false);
         TABLET_LOG(INFO, "reopen tablet end, version [%d], status [%s], used [%.3f]s", versionId,
                    status.ToString().c_str(), timer.done_sec());
         return status;
     }
+    ReopenOptions clonedReopenOptions;
+    clonedReopenOptions.SetOpenOptions(_openOptions);
     if (versionId == INVALID_VERSIONID) {
         TABLET_LOG(ERROR, "reopen failed, version invalid");
         return Status::InvalidArgs("version invalid");
     }
     try {
         TabletPhase tabletPhase =
-            reopenOptions.IsForceReopen() ? TabletPhase::FORCE_REOPEN : TabletPhase::NORMAL_REOPEN;
+            clonedReopenOptions.IsForceReopen() ? TabletPhase::FORCE_REOPEN : TabletPhase::NORMAL_REOPEN;
         autil::ScopeGuard tabletPhaseGuard = _tabletMetrics->CreateTabletPhaseGuard(tabletPhase);
         std::lock_guard<std::mutex> lockReopen(_reopenMutex);
-        auto status = DoReopenUnsafe(reopenOptions, versionCoord);
+        auto status = DoReopenUnsafe(clonedReopenOptions, versionCoord);
         TABLET_LOG(INFO, "reopen tablet end, force[%d], version [%s], status [%s], used [%.3f]s",
-                   reopenOptions.IsForceReopen(), versionCoord.DebugString().c_str(), status.ToString().c_str(),
+                   clonedReopenOptions.IsForceReopen(), versionCoord.DebugString().c_str(), status.ToString().c_str(),
                    timer.done_sec());
         return status;
     } catch (const indexlib::util::FileIOException& e) {
@@ -837,7 +855,12 @@ Status Tablet::DoReopenUnsafe(const ReopenOptions& reopenOptions, const VersionC
     std::lock_guard<std::mutex> lockCleaner(_cleanerMutex);
     BuildResource buildResource = GenerateBuildResource(COUNTER_PREFIX);
     indexlib::util::ScopeLatencyReporter reopenLatency(_tabletMetrics->GetreopenIncLatencyMetric().get());
-    auto [mountStatus, version] = MountOnDiskVersion(versionCoord);
+
+    auto statusOrDpDesc = CreateVersionDeployDescription(versionCoord.GetVersionId());
+    RETURN_IF_STATUS_ERROR(statusOrDpDesc, "create version deploy description failed for version [%d]",
+                           versionCoord.GetVersionId());
+    auto versionDpDesc = std::move(statusOrDpDesc.steal_value());
+    auto [mountStatus, version] = MountOnDiskVersion(versionCoord, versionDpDesc);
     if (!mountStatus.IsOK()) {
         TABLET_LOG(ERROR, "mount version [%s] failed: %s", versionCoord.DebugString().c_str(),
                    mountStatus.ToString().c_str());
@@ -880,35 +903,67 @@ Status Tablet::DoReopenUnsafe(const ReopenOptions& reopenOptions, const VersionC
             return status;
         }
     }
+    auto currentLifecycleTable = LifecycleTableCreator::CreateLifecycleTable(
+        version, _tabletOptions->GetOnlineConfig().GetLifecycleConfig(),
+        {{indexlib::file_system::LifecyclePatternBase::CURRENT_TIME,
+          std::to_string(indexlib::file_system::LifecycleConfig::CurrentTimeInSeconds())}});
+
+    if (currentLifecycleTable == nullptr) {
+        TABLET_LOG(ERROR, "do reopen failed, create LifecycleTable failed for version[%d]", version.GetVersionId());
+        return Status::Corruption("reopen failed due to null lifecycleTable");
+    }
+
     std::vector<std::pair<std::shared_ptr<Segment>, bool>> segmentPairs;
+    std::shared_ptr<indexlib::file_system::Directory> root = GetRootDirectory();
     for (auto [segmentId, schemaId] : version) {
         auto seg = currentTabletData->GetSegment(segmentId);
+        auto segmentDirName = version.GetSegmentDirName(segmentId);
+        auto currentLifecycle = currentLifecycleTable->GetLifecycle(segmentDirName + "/");
+        bool needLoadDiskSegment = true;
         if (seg != nullptr && seg->GetSegmentStatus() == Segment::SegmentStatus::ST_BUILT) {
+            seg->GetSegmentDirectory()->SetLifecycle(currentLifecycle);
             auto segmentSchemaId = seg->GetSegmentSchema()->GetSchemaId();
+            auto preLifecycle = seg->GetSegmentLifecycle();
             if (segmentSchemaId != schemaId) {
                 auto diskSegment = std::dynamic_pointer_cast<DiskSegment>(seg);
                 assert(diskSegment != nullptr);
-                std::vector<std::shared_ptr<config::TabletSchema>> tabletSchemas;
+                std::vector<std::shared_ptr<config::ITabletSchema>> tabletSchemas;
                 auto status = _tabletSchemaMgr->GetSchemaList(segmentSchemaId, schemaId, version, tabletSchemas);
                 RETURN_IF_STATUS_ERROR(status, "get schema list failed, segmentSchemaId[%d], segmentId[%d]",
                                        segmentSchemaId, segmentId);
+                if (preLifecycle != currentLifecycle) {
+                    RETURN_IF_STATUS_ERROR(
+                        status, "config conficts, segmentId[%d] schemaId updated [%d->%d], lifecycle updated[%s -> %s]",
+                        segmentId, segmentSchemaId, schemaId, preLifecycle.c_str(), currentLifecycle.c_str());
+                }
                 status = diskSegment->Reopen(tabletSchemas);
                 RETURN_IF_STATUS_ERROR(status, "disk segment open failed, segmentId[%d]", segmentId);
+                needLoadDiskSegment = false;
+            } else {
+                if (preLifecycle != currentLifecycle) {
+                    TABLET_LOG(INFO, "built segmentId[%d] lifecycle updated [%s] -> [%s]", segmentId,
+                               preLifecycle.c_str(), currentLifecycle.c_str());
+                } else {
+                    needLoadDiskSegment = false;
+                }
             }
+        }
+        if (!needLoadDiskSegment) {
             segmentPairs.emplace_back(std::make_pair(seg, /*needOpen=*/false));
         } else {
-            SegmentMeta segmentMeta;
-            segmentMeta.segmentId = segmentId;
-            auto schema = _tabletSchemaMgr->GetSchema(schemaId);
-            segmentMeta.schema = schema;
-            std::shared_ptr<indexlib::file_system::Directory> root = GetRootDirectory();
-            auto segDir = root->GetDirectory(version.GetSegmentDirName(segmentId),
+            auto segDir = root->GetDirectory(segmentDirName,
                                              /*throwExceptionIfNotExist=*/false);
             if (!segDir) {
                 auto st = Status::IOError("get segment[%d] dir failed", segmentId);
                 TABLET_LOG(ERROR, "do reopen failed, %s", st.ToString().c_str());
                 return st;
             }
+            segDir->SetLifecycle(currentLifecycle);
+            SegmentMeta segmentMeta;
+            segmentMeta.segmentId = segmentId;
+            segmentMeta.lifecycle = currentLifecycle;
+            auto schema = _tabletSchemaMgr->GetSchema(schemaId);
+            segmentMeta.schema = schema;
             segmentMeta.segmentDir = segDir;
             auto readerOption = indexlib::file_system::ReaderOption::PutIntoCache(indexlib::file_system::FSOT_MEM);
             if (!segmentMeta.segmentInfo->Load(segDir->GetIDirectory(), readerOption).IsOK()) {
@@ -922,6 +977,7 @@ Status Tablet::DoReopenUnsafe(const ReopenOptions& reopenOptions, const VersionC
             segmentPairs.emplace_back(std::make_pair(diskSegment, /*needOpen=*/true));
         }
     }
+
     TABLET_LOG(INFO, "end load segments, segment count [%lu]", segmentPairs.size());
 
     TABLET_LOG(INFO, "begin load tablet data, fence name[%s]", _fence.GetFenceName().c_str());
@@ -966,11 +1022,14 @@ Status Tablet::DoReopenUnsafe(const ReopenOptions& reopenOptions, const VersionC
     TABLET_LOG(INFO, "end load tablet data");
 
     _tabletDumper->TrimDumpingQueue(*newTabletData);
-
-    status = OpenWriterAndReader(std::move(newTabletData), reopenOptions.GetOpenOptions());
+    if (version.GetVersionId() & Version::PRIVATE_VERSION_ID_MASK) {
+        versionDpDesc = _tabletInfos->GetLoadedVersionDeployDescription();
+    }
+    status = OpenWriterAndReader(std::move(newTabletData), reopenOptions.GetOpenOptions(), versionDpDesc);
     if (status.IsOK()) {
         if (!(version.GetVersionId() & Version::PRIVATE_VERSION_ID_MASK)) {
             _tabletInfos->SetLoadedPublishVersion(version);
+            _tabletInfos->SetLoadedVersionDeployDescription(versionDpDesc);
         } else {
             _tabletInfos->SetLoadedPrivateVersion(version);
         }
@@ -1018,7 +1077,7 @@ void Tablet::Close()
     }
 }
 
-Status Tablet::PrepareIndexRoot(const std::shared_ptr<config::TabletSchema>& schema)
+Status Tablet::PrepareIndexRoot(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     // TODO memory controller
     TABLET_LOG(INFO, "begin prepare index root");
@@ -1036,7 +1095,7 @@ Status Tablet::PrepareIndexRoot(const std::shared_ptr<config::TabletSchema>& sch
 }
 
 bool Tablet::IsEmptyDir(std::shared_ptr<indexlib::file_system::Directory> directory,
-                        const std::shared_ptr<config::TabletSchema>& schema)
+                        const std::shared_ptr<config::ITabletSchema>& schema)
 {
     std::string rootDir = directory->GetOutputPath();
     std::string schemaFileName = schema->GetSchemaFileName();
@@ -1055,7 +1114,7 @@ bool Tablet::IsEmptyDir(std::shared_ptr<indexlib::file_system::Directory> direct
     return false;
 }
 
-Status Tablet::InitBasicIndexInfo(const std::shared_ptr<config::TabletSchema>& schema)
+Status Tablet::InitBasicIndexInfo(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     TABLET_LOG(INFO, "begin init index dir");
     try {
@@ -1335,7 +1394,7 @@ bool Tablet::SealSegmentUnsafe()
     }
     TABLET_LOG(INFO, "seal segment [%d]", segmentDumper->GetSegmentId());
     _tabletDumper->PushSegmentDumper(std::move(segmentDumper));
-    _tabletWriter.reset();
+    CloseWriterUnsafe();
     return true;
 }
 
@@ -1354,12 +1413,12 @@ void Tablet::DumpSegmentOverInterval()
         return;
     }
     bool sealed = SealSegmentUnsafe();
-    TABLET_LOG(INFO, "interval seal segment done, sealed[%d]", sealed);
+    TABLET_LOG(INFO, "seal segment by internal [%d s] done [%d]", _tabletOptions->GetMaxDumpIntervalSecond(), sealed);
     if (sealed) {
         auto status = ReopenNewSegment(GetTabletSchema());
         if (!status.IsOK()) {
             TABLET_LOG(ERROR, "reopen new segment after seal failed");
-            _tabletWriter.reset();
+            CloseWriterUnsafe();
         }
     }
 }
@@ -1377,8 +1436,21 @@ Status Tablet::CleanIndexFiles(const std::vector<versionid_t>& reservedVersionId
     return cleaner.Clean(reservedVersionIds);
 }
 
+Status Tablet::CleanUnreferencedDeployFiles(const std::set<std::string>& toKeepFiles)
+{
+    if (unlikely(_tabletOptions->IsReadOnly())) {
+        TABLET_LOG(WARN, "tablet is open in readonly mode, clean index do nothing");
+        return Status::OK();
+    }
+
+    std::lock_guard<std::mutex> lockCleaner(_cleanerMutex);
+    OnDiskIndexCleaner cleaner(_tabletInfos->GetIndexRoot().GetLocalRoot(), _tabletInfos->GetTabletName(),
+                               _tabletOptions->GetBuildConfig().GetKeepVersionCount(), _tabletReaderContainer.get());
+    return cleaner.Clean(GetRootDirectory(), _tabletInfos->GetLoadedPublishVersion(), toKeepFiles);
+}
+
 Status Tablet::CheckAlterTableCompatible(const std::shared_ptr<TabletData>& tabletData,
-                                         const config::TabletSchema& oldSchema, const config::TabletSchema& newSchema)
+                                         const config::ITabletSchema& oldSchema, const config::ITabletSchema& newSchema)
 {
     // check ignore new schema
     // env ignore_alter_table_schema_ids = 1;2;3
@@ -1457,7 +1529,7 @@ Status Tablet::CheckAlterTableCompatible(const std::shared_ptr<TabletData>& tabl
     return Status::OK();
 }
 
-Status Tablet::AlterTable(const std::shared_ptr<config::TabletSchema>& newSchema)
+Status Tablet::AlterTable(const std::shared_ptr<config::ITabletSchema>& newSchema)
 {
     if (unlikely(_tabletOptions->IsReadOnly())) {
         return Status::Unimplement("readonly tablet not support build");
@@ -1503,7 +1575,7 @@ Status Tablet::AlterTable(const std::shared_ptr<config::TabletSchema>& newSchema
     return Status::OK();
 }
 
-Status Tablet::DoAlterTable(const std::shared_ptr<config::TabletSchema>& newSchema)
+Status Tablet::DoAlterTable(const std::shared_ptr<config::ITabletSchema>& newSchema)
 {
     bool segmentSealed = SealSegmentUnsafe();
     _tabletSchemaMgr->InsertSchemaToCache(newSchema);
@@ -1525,7 +1597,7 @@ Status Tablet::DoAlterTable(const std::shared_ptr<config::TabletSchema>& newSche
     }
     if (!status.IsOK()) {
         TABLET_LOG(ERROR, "reopen new segment failed: %s", status.ToString().c_str());
-        _tabletWriter.reset();
+        CloseWriterUnsafe();
         return status;
     }
     TABLET_LOG(INFO, "schema[%u] updated", newSchema->GetSchemaId());
@@ -1720,8 +1792,8 @@ BuildResource Tablet::GenerateBuildResource(const std::string& counterPrefix)
     auto buildingMemLimit = _tabletOptions->GetBuildConfig().GetBuildingMemoryLimit();
     if (buildingMemLimit == -1) {
         buildingMemLimit = GetSuggestBuildingSegmentMemoryUse();
-        AUTIL_LOG(INFO, "using suggest building segment memory [%s]",
-                  autil::UnitUtil::GiBDebugString(buildingMemLimit).c_str());
+        TABLET_LOG(INFO, "using suggest building segment memory [%s]",
+                   autil::UnitUtil::GiBDebugString(buildingMemLimit).c_str());
     }
     buildResource.buildingMemLimit = buildingMemLimit;
     buildResource.counterMap = _metricsManager->GetCounterMap();
@@ -1762,12 +1834,119 @@ std::pair<Status, versionid_t> Tablet::ExecuteTask(const Version& sourceVersion,
     return future_lite::coro::syncAwait(_versionMerger.get()->ExecuteTask(sourceVersion, taskType, taskName, params));
 }
 
+void Tablet::HandleIndexTask(const std::string& taskType, const std::string& taskName,
+                             const std::map<std::string, std::string>& params, Action action,
+                             const std::string& comment)
+{
+    _tabletCommitter->HandleIndexTask(taskType, taskName, params, action, comment);
+}
+
+Status Tablet::ImportExternalFiles(const std::string& bulkloadId, const std::vector<std::string>& externalFiles,
+                                   const std::shared_ptr<ImportExternalFileOptions>& options, Action action)
+{
+    std::lock_guard<std::mutex> lock(_dataMutex);
+    Status status;
+    if (bulkloadId.empty()) {
+        status = Status::InvalidArgs("bulkload id is empty");
+        TABLET_LOG(ERROR, "%s", status.ToString().c_str());
+        return status;
+    }
+    // check ignore bulkload id
+    // env IGNORE_BULKLOAD_ID = id1;id2;id3
+    std::string ignoreBulkloadIdStr;
+    if (autil::EnvUtil::getEnvWithoutDefault("IGNORE_BULKLOAD_ID", ignoreBulkloadIdStr)) {
+        std::vector<std::string> ignoreBulkloadIds;
+        autil::StringUtil::fromString(ignoreBulkloadIdStr, ignoreBulkloadIds, ";");
+        for (auto ignoreBulkloadId : ignoreBulkloadIds) {
+            if (bulkloadId == ignoreBulkloadId) {
+                status = Status::InvalidArgs("bulkload with ignore bulkload id [%s], all ignore bulkload id [%s]",
+                                             bulkloadId.c_str(), ignoreBulkloadIdStr.c_str());
+                TABLET_LOG(ERROR, "%s", status.ToString().c_str());
+                return status;
+            }
+        }
+    }
+
+    RETURN_IF_STATUS_ERROR(FlushUnsafe(), "flush before import external file failed, isLeader[%d]",
+                           _tabletOptions->IsLeader());
+    if (_tabletOptions->IsLeader()) {
+        std::map<std::string, std::string> params;
+        params[PARAM_BULKLOAD_ID] = bulkloadId;
+        params[PARAM_EXTERNAL_FILES] = autil::legacy::ToJsonString(externalFiles);
+        const auto& currentOnDiskVersion = GetTabletData()->GetOnDiskVersion();
+        auto indexTask = currentOnDiskVersion.GetIndexTask(BULKLOAD_TASK_TYPE, bulkloadId);
+
+        if (action == Action::ABORT) {
+            HandleIndexTask(BULKLOAD_TASK_TYPE, bulkloadId, params, action, /*comment=*/"");
+        } else if (action == Action::SUSPEND) {
+            HandleIndexTask(BULKLOAD_TASK_TYPE, bulkloadId, params, action, /*comment=*/"");
+        } else if (action == Action::OVERWRITE) {
+            if (externalFiles.empty()) {
+                auto status = Status::InvalidArgs("external file list is empty.");
+                TABLET_LOG(ERROR, "overwrite index task failed, bulkload id is %s, status: %s", bulkloadId.c_str(),
+                           status.ToString().c_str());
+                return status;
+            }
+            if (options == nullptr) {
+                auto status = Status::InvalidArgs("invalid import external file options.");
+                TABLET_LOG(ERROR, "overwrite index task failed, bulkload id is %s, status: %s", bulkloadId.c_str(),
+                           status.ToString().c_str());
+                return status;
+            }
+            params[PARAM_IMPORT_EXTERNAL_FILE_OPTIONS] = autil::legacy::ToJsonString(options);
+            HandleIndexTask(BULKLOAD_TASK_TYPE, bulkloadId, params, action, /*comment=*/"");
+        } else if (action == Action::ADD) {
+            if (indexTask != nullptr) {
+                return status;
+            }
+            std::string comment;
+            if (externalFiles.empty()) {
+                status = Status::InvalidArgs("external file list is empty.");
+            } else if (options == nullptr) {
+                status = Status::InvalidArgs("invalid import external file options.");
+            }
+            if (!status.IsOK()) {
+                action = Action::SUSPEND;
+                comment = status.ToString();
+                TABLET_LOG(ERROR, "add index task failed, bulkload id is %s, status: %s", bulkloadId.c_str(),
+                           status.ToString().c_str());
+            } else {
+                params[PARAM_IMPORT_EXTERNAL_FILE_OPTIONS] = autil::legacy::ToJsonString(options);
+            }
+            uint64_t newSegId = _idGenerator->GetNextSegmentId();
+            params[PARAM_LAST_SEQUENCE_NUMBER] = autil::StringUtil::toString(newSegId << 24);
+            HandleIndexTask(BULKLOAD_TASK_TYPE, bulkloadId, params, action, comment);
+            _idGenerator->CommitNextSegmentId();
+        } else {
+            status = Status::InvalidArgs("invalid action, usage action=%s|%s|%s|%s",
+                                         ActionConvertUtil::ActionToStr(Action::ADD).c_str(),
+                                         ActionConvertUtil::ActionToStr(Action::ABORT).c_str(),
+                                         ActionConvertUtil::ActionToStr(Action::OVERWRITE).c_str(),
+                                         ActionConvertUtil::ActionToStr(Action::SUSPEND).c_str());
+        }
+        if (!status.IsOK()) {
+            TABLET_LOG(ERROR, "import external file failed, status: %s, bulkload id %s, external files %s, options %s",
+                       status.ToString().c_str(), bulkloadId.c_str(),
+                       autil::legacy::ToJsonString(externalFiles, /*isCompact=*/true).c_str(),
+                       autil::legacy::ToJsonString(options, /*isCompact=*/true).c_str());
+            return status;
+        }
+    }
+    TABLET_LOG(INFO, "import external file, isLeader[%d], bulkload id %s, external files %s, options %s",
+               _tabletOptions->IsLeader(), bulkloadId.c_str(),
+               autil::legacy::ToJsonString(externalFiles, /*isCompact=*/true).c_str(),
+               autil::legacy::ToJsonString(options, /*isCompact=*/true).c_str());
+    return status;
+}
+
 Status Tablet::Import(const std::vector<Version>& versions, const ImportOptions& options)
 {
-    if (_tabletOptions->IsOnline()) {
-        TABLET_LOG(ERROR, "only support import for offline scenario");
+    std::shared_ptr<ITabletImporter> importer = _tabletFactory->CreateTabletImporter(options.GetImportType());
+    if (importer == nullptr) {
+        TABLET_LOG(ERROR, "Import failed: not support import type %s.", options.GetImportType().c_str());
         return Status::Unimplement();
     }
+
     std::shared_ptr<TabletData> currentTabletData;
     {
         std::lock_guard<std::mutex> lock(_dataMutex);
@@ -1775,17 +1954,17 @@ Status Tablet::Import(const std::vector<Version>& versions, const ImportOptions&
     }
     const auto& baseVersion = currentTabletData->GetOnDiskVersion();
     std::vector<Version> validVersions;
-    auto status = VersionImporter::Check(versions, &baseVersion, options, validVersions);
+    auto status = importer->Check(versions, &baseVersion, options, &validVersions);
     if (status.IsExist()) {
         TABLET_LOG(WARN, "input versions already exist, no need to be imported");
         return Status::OK();
     }
     RETURN_IF_STATUS_ERROR(status, "import check versions failed");
-    _tabletCommitter->Import(validVersions, options);
+    _tabletCommitter->Import(validVersions, importer, options);
     return Status::OK();
 }
 
-std::shared_ptr<config::TabletSchema> Tablet::GetReadSchema(const std::shared_ptr<TabletData>& tabletData)
+std::shared_ptr<config::ITabletSchema> Tablet::GetReadSchema(const std::shared_ptr<TabletData>& tabletData)
 {
     auto readSchema = tabletData->GetOnDiskVersionReadSchema();
     return readSchema ? readSchema : GetTabletSchema();
@@ -1811,11 +1990,15 @@ std::shared_ptr<TabletData> Tablet::GetTabletData() const
     return _tabletData;
 }
 
-std::pair<Status, std::shared_ptr<VersionDeployDescription>>
+StatusOr<std::shared_ptr<indexlibv2::framework::VersionDeployDescription>>
 Tablet::CreateVersionDeployDescription(versionid_t versionId)
 {
-    if (versionId < 0 || !_tabletOptions->GetOnlineConfig().EnableLocalDeployManifestChecking()) {
-        return {Status::OK(), nullptr};
+    if (!_tabletOptions->IsOnline()) {
+        return nullptr;
+    }
+    if (versionId < 0 || (versionId & Version::PRIVATE_VERSION_ID_MASK) ||
+        !_tabletOptions->GetOnlineConfig().EnableLocalDeployManifestChecking()) {
+        return nullptr;
     }
     auto versionDpDesc = std::make_shared<indexlibv2::framework::VersionDeployDescription>();
     if (!indexlibv2::framework::VersionDeployDescription::LoadDeployDescription(
@@ -1824,9 +2007,9 @@ Tablet::CreateVersionDeployDescription(versionid_t versionId)
                    "load version deploy description failed in CreateVersionDeployDescription, versionId[%d], "
                    "indexRootPath[%s]",
                    static_cast<int>(versionId), _tabletInfos->GetIndexRoot().GetLocalRoot().c_str());
-        return {Status::Corruption(), nullptr};
+        return Status::Corruption();
     }
-    return {Status::OK(), versionDpDesc};
+    return versionDpDesc;
 }
 
 std::string Tablet::GetDiffSegmentDebugString(const Version& targetVersion,
@@ -1864,6 +2047,14 @@ std::string Tablet::GetDiffSegmentDebugString(const Version& targetVersion,
         }
     }
     return ss.str();
+}
+
+void Tablet::CloseWriterUnsafe()
+{
+    if (_tabletWriter) {
+        _tabletWriter->Close();
+        _tabletWriter.reset();
+    }
 }
 
 #undef TABLET_LOG

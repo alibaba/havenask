@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/anet/directpacketstreamer.h"
-#include "aios/network/anet/log.h"
-#include "aios/network/anet/directpacket.h"
-#include "aios/network/anet/directstreamingcontext.h"
+
 #include <assert.h>
 #include <string.h>
 
@@ -26,8 +24,11 @@
 #include "aios/network/anet/databuffer.h"
 #include "aios/network/anet/debug.h"
 #include "aios/network/anet/defaultpacketstreamer.h"
+#include "aios/network/anet/directpacket.h"
 #include "aios/network/anet/directplaceholder.h"
+#include "aios/network/anet/directstreamingcontext.h"
 #include "aios/network/anet/ilogger.h"
+#include "aios/network/anet/log.h"
 #include "aios/network/anet/packet.h"
 #include "aios/network/anet/socket.h"
 #include "aios/network/anet/streamingcontext.h"
@@ -46,8 +47,7 @@ DirectPacketStreamer::~DirectPacketStreamer() {}
 
 StreamingContext *DirectPacketStreamer::createContext() { return new DirectStreamingContext; }
 
-bool DirectPacketStreamer::encode(Packet *packet, DataBuffer *output,
-                                  DirectPayload &payloadToWrite) {
+bool DirectPacketStreamer::encode(Packet *packet, DataBuffer *output, DirectPayload &payloadToWrite) {
     auto directPacket = dynamic_cast<DirectPacket *>(packet);
     if (nullptr == directPacket) {
         ANET_LOG(ERROR, "only DirectPacket is supoorted for DirectPacketStreamer");
@@ -64,8 +64,7 @@ bool DirectPacketStreamer::encode(Packet *packet, DataBuffer *output,
     int msgSizeOffset = -1;
     const auto &payload = directPacket->getPayload();
     int payloadSize = payload.getLen();
-    int toReceiveSize =
-        directPacket->hasPlaceholder() ? directPacket->getPlaceholder().getLen() : 0;
+    int toReceiveSize = directPacket->hasPlaceholder() ? directPacket->getPlaceholder().getLen() : 0;
 
     // pcode offset
     int pcodeOffset = -1;
@@ -126,8 +125,11 @@ bool DirectPacketStreamer::encode(Packet *packet, DataBuffer *output,
     if (nullptr != channel && directPacket->hasPlaceholder()) {
         const auto &placeholder = directPacket->getPlaceholder();
         channel->setPlaceholder(placeholder);
-        ANET_LOG(DEBUG, "setPlaceholder:[addr:[%p], len:[%d]] with chid:[%lu]",
-                 placeholder.getAddr(), placeholder.getLen(), directPacket->getChannelId());
+        ANET_LOG(DEBUG,
+                 "setPlaceholder:[addr:[%p], len:[%d]] with chid:[%lu]",
+                 placeholder.getAddr(),
+                 placeholder.getLen(),
+                 directPacket->getChannelId());
     }
     return true;
 }
@@ -167,8 +169,8 @@ bool DirectPacketStreamer::processData(DataBuffer *dataBuffer, StreamingContext 
     return true;
 }
 
-bool DirectPacketStreamer::readPayload(DataBuffer *input, Socket *socket, ChannelPool *channelPool,
-                                       DirectStreamingContext *context, int &socketReadLen) {
+bool DirectPacketStreamer::readPayload(
+    DataBuffer *input, Socket *socket, ChannelPool *channelPool, DirectStreamingContext *context, int &socketReadLen) {
     auto packet = context->getDirectPacket();
     auto &directHeader = packet->getDirectHeader();
     const auto payloadSize = directHeader._payloadSize;
@@ -187,7 +189,9 @@ bool DirectPacketStreamer::readPayload(DataBuffer *input, Socket *socket, Channe
             ANET_LOG(WARN,
                      "packet payload mismatch with target payload addr:[%p], len:[%u] and "
                      "src payload len:[%d]",
-                     placeholder.getAddr(), placeholder.getLen(), payloadSize);
+                     placeholder.getAddr(),
+                     placeholder.getLen(),
+                     payloadSize);
             context->setBroken(true);
             return false;
         }
@@ -198,20 +202,20 @@ bool DirectPacketStreamer::readPayload(DataBuffer *input, Socket *socket, Channe
     assert(leftToRead > 0);
     const auto bufferLen = input->getDataLen();
     int32_t bufferReadLen = bufferLen >= leftToRead ? leftToRead : bufferLen;
-    if (bufferReadLen > 0) {  // read from buffer
+    if (bufferReadLen > 0) { // read from buffer
         ::memcpy(placeholder.getAddr() + payloadReadOffset, input->getData(), bufferReadLen);
         payloadReadOffset += bufferReadLen;
         context->setPayloadReadOffset(payloadReadOffset);
         input->drainData(bufferReadLen);
         leftToRead -= bufferReadLen;
     }
-    if (leftToRead == 0) {  // finish from buffer
+    if (leftToRead == 0) { // finish from buffer
         return true;
     }
 
     socketReadLen = socket->read(placeholder.getAddr() + payloadReadOffset, leftToRead);
     ANET_LOG(SPAM, "%d bytes read", socketReadLen);
-    if (socketReadLen < 0) {  // need retry
+    if (socketReadLen < 0) { // need retry
         return false;
     }
     if (socketReadLen == 0) {
@@ -225,8 +229,10 @@ bool DirectPacketStreamer::readPayload(DataBuffer *input, Socket *socket, Channe
     return socketReadLen == leftToRead;
 }
 
-bool DirectPacketStreamer::getPacketInfo(DataBuffer *input, PacketHeader *header,
-                                         DirectPacketHeader *directHeader, bool *broken) {
+bool DirectPacketStreamer::getPacketInfo(DataBuffer *input,
+                                         PacketHeader *header,
+                                         DirectPacketHeader *directHeader,
+                                         bool *broken) {
     // if input buffer is not enough for header, we should do nothing.
     if (input->getDataLen() < ANET_DIRECT_PACKET_INFO_LEN) {
         return false;
@@ -241,28 +247,31 @@ bool DirectPacketStreamer::getPacketInfo(DataBuffer *input, PacketHeader *header
     directHeader->_msgSize = input->readInt32();
     directHeader->_payloadSize = input->readInt32();
     directHeader->_toReceiveSize = input->readInt32();
-    if (directHeader->_flag != ANET_DIRECT_PACKET_FLAG ||
-        directHeader->_ver != ANET_DIRECT_PACKET_VER) {
+    if (directHeader->_flag != ANET_DIRECT_PACKET_FLAG || directHeader->_ver != ANET_DIRECT_PACKET_VER) {
         *broken = true;
         ANET_LOG(WARN,
                  "DIRECT_PACKET_FLAG(%08X) VS Packet(%08X) or DIRECT_VER(%08X) VS Packet(%08X)",
-                 ANET_DIRECT_PACKET_FLAG, directHeader->_flag, ANET_DIRECT_PACKET_VER,
+                 ANET_DIRECT_PACKET_FLAG,
+                 directHeader->_flag,
+                 ANET_DIRECT_PACKET_VER,
                  directHeader->_ver);
         return false;
     }
     return true;
 }
 
-const DirectPlaceholder &DirectPacketStreamer::getPlaceholderFromChannel(ChannelPool *channelPool,
-                                                                         uint64_t channelId) {
+const DirectPlaceholder &DirectPacketStreamer::getPlaceholderFromChannel(ChannelPool *channelPool, uint64_t channelId) {
     auto channel = channelPool->findChannel(channelId);
     if (nullptr == channel) {
         ANET_LOG(WARN, "channel not found:[%lu]", channelId);
         return kEmptyPlaceholder;
     }
     const auto &placeholder = channel->getPlaceholder();
-    ANET_LOG(DEBUG, "getPlaceholder from channel:[%lu] with addr:[%p] and len:[%u]", channelId,
-             placeholder.getAddr(), placeholder.getLen());
+    ANET_LOG(DEBUG,
+             "getPlaceholder from channel:[%lu] with addr:[%p] and len:[%u]",
+             channelId,
+             placeholder.getAddr(),
+             placeholder.getLen());
     return placeholder;
 }
 
@@ -272,4 +281,4 @@ Packet *DirectPacketStreamer::decode(DataBuffer *input, PacketHeader *header) {
     return nullptr;
 }
 
-}  // namespace anet
+} // namespace anet

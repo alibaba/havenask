@@ -21,7 +21,8 @@
 
 namespace multi_call {
 
-class PacketUtil {
+class PacketUtil
+{
 public:
     PacketUtil();
     ~PacketUtil();

@@ -16,18 +16,18 @@
 #ifndef ISEARCH_MULTI_CALL_GENERATORBASE_H
 #define ISEARCH_MULTI_CALL_GENERATORBASE_H
 
+#include "aios/network/gig/multi_call/common/Spec.h"
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/util/MiscUtil.h"
-#include "aios/network/gig/multi_call/common/Spec.h"
 
 namespace multi_call {
 
-class GeneratorBase {
+class GeneratorBase
+{
 public:
     GeneratorBase(const std::string &clusterName, const std::string &bizName,
-                  const std::string &strategy, const std::string &requestId,
-                  SourceIdTy sourceId, VersionTy version,
-                  VersionTy preferVersion);
+                  const std::string &strategy, const std::string &requestId, SourceIdTy sourceId,
+                  VersionTy version, VersionTy preferVersion);
     ~GeneratorBase();
 
 private:
@@ -38,11 +38,15 @@ public:
     void setClusterName(const std::string &clusterName) {
         _clusterName = clusterName;
     }
-    void setBizName(const std::string &bizName) { _bizName = bizName; }
+    void setBizName(const std::string &bizName) {
+        _bizName = bizName;
+    }
     std::string getBizName() const {
         return MiscUtil::createBizName(_clusterName, _bizName);
     }
-    const std::string &getClusterName() const { return _clusterName; }
+    const std::string &getClusterName() const {
+        return _clusterName;
+    }
     void setFlowControlStrategy(const std::string &strategy) {
         _strategy = strategy;
     }
@@ -53,18 +57,36 @@ public:
             return _bizName;
         }
     }
-    void setRequestId(const std::string &requestId) { _requestId = requestId; }
-    const std::string &getRequestId() const { return _requestId; }
-    void setSourceId(SourceIdTy sourceId) { _sourceId = sourceId; }
-    SourceIdTy getSourceId() const { return _sourceId; }
-    VersionTy getVersion() const { return _version; }
-    void setVersion(VersionTy version) { _version = version; }
-    VersionTy getPreferVersion() const { return _preferVersion; }
+    void setRequestId(const std::string &requestId) {
+        _requestId = requestId;
+    }
+    const std::string &getRequestId() const {
+        return _requestId;
+    }
+    void setSourceId(SourceIdTy sourceId) {
+        _sourceId = sourceId;
+    }
+    SourceIdTy getSourceId() const {
+        return _sourceId;
+    }
+    VersionTy getVersion() const {
+        return _version;
+    }
+    void setVersion(VersionTy version) {
+        _version = version;
+    }
+    VersionTy getPreferVersion() const {
+        return _preferVersion;
+    }
     void setPreferVersion(VersionTy preferVersion) {
         _preferVersion = preferVersion;
     }
-    void setUserRequestType(RequestType type) { _requestType = type; }
-    RequestType getUserRequestType() const { return _requestType; }
+    void setUserRequestType(RequestType type) {
+        _requestType = type;
+    }
+    RequestType getUserRequestType() const {
+        return _requestType;
+    }
     void setSpec(const Spec &spec) {
         _spec = spec;
     }
@@ -120,6 +142,7 @@ public:
         }
         return std::make_shared<MatchTagMap>(*_tags);
     }
+
 protected:
     std::string _clusterName;
     std::string _bizName;
@@ -130,9 +153,9 @@ protected:
     VersionTy _preferVersion;
     RequestType _requestType;
     Spec _spec;
-    bool _disableRetry : 1;
-    bool _disableProbe : 1;
-    bool _disableDegrade : 1;
+    bool _disableRetry                      : 1;
+    bool _disableProbe                      : 1;
+    bool _disableDegrade                    : 1;
     bool _ignoreWeightLabelInConsistentHash : 1;
     MatchTagMapPtr _tags;
 };

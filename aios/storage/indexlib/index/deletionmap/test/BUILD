@@ -1,0 +1,51 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+strict_cc_fast_test(
+    name='DeletionMapMemIndexerTest',
+    srcs=['DeletionMapMemIndexerTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/index/deletionmap:DeletionMapDiskIndexer',
+        '//aios/storage/indexlib/index/deletionmap:DeletionMapMemIndexer',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='DeletionMapDiskIndexerTest',
+    srcs=['DeletionMapDiskIndexerTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/index/deletionmap:DeletionMapDiskIndexer',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='DeletionMapIndexReaderTest',
+    srcs=['DeletionMapIndexReaderTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/autil:string_helper',
+        '//aios/storage/indexlib/document/normal:NormalDocument',
+        '//aios/storage/indexlib/index/deletionmap:DeletionMapIndexReader',
+        '//aios/storage/indexlib/index/deletionmap:DeletionMapModifier',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='DeletionMapMergerTest',
+    srcs=['DeletionMapMergerTest.cpp'],
+    deps=[
+        '//aios/autil:string_helper',
+        '//aios/storage/indexlib/framework/mock:FakeSegment',
+        '//aios/storage/indexlib/index/deletionmap:DeletionMapIndexFactory',
+        '//aios/storage/indexlib/index/deletionmap:DeletionMapMerger',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='DeletionMapPatcherTest',
+    srcs=['DeletionMapPatcherTest.cpp'],
+    deps=[
+        '//aios/autil:string_helper',
+        '//aios/storage/indexlib/index/deletionmap:DeletionMapIndexReader',
+        '//aios/storage/indexlib/index/deletionmap:DeletionMapPatcher',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)

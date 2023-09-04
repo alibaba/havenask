@@ -15,37 +15,32 @@
  */
 #pragma once
 
-#include <stddef.h>
 #include <new>
+#include <stddef.h>
 
 #include "autil/FixedSizeAllocator.h"
 
 namespace autil {
 
-template<typename T>
-class ObjectAllocator
-{
+template <typename T>
+class ObjectAllocator {
 public:
-    ObjectAllocator() 
-        : allocator(sizeof(T))
-    {
-    }
-    ~ObjectAllocator() {
-    }
+    ObjectAllocator() : allocator(sizeof(T)) {}
+    ~ObjectAllocator() {}
+
 public:
-    T* allocate() {
-        return new (allocator.allocate()) T();
-    }
-    void free(T* t) {
+    T *allocate() { return new (allocator.allocate()) T(); }
+    void free(T *t) {
         t->~T();
         allocator.free((void *)t);
     }
-    size_t getCount() const {return allocator.getCount();}
+    size_t getCount() const { return allocator.getCount(); }
+
 private:
     FixedSizeAllocator allocator;
+
 private:
     friend class ObjectAllocatorTest;
 };
 
-}
-
+} // namespace autil

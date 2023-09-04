@@ -17,18 +17,10 @@
 
 namespace opentelemetry {
 
-SpanPtr Tracer::startSpan(SpanKind spanKind,
-                          const SpanContextPtr& parent)
-{
-    return nullptr;
-}
+SpanPtr Tracer::startSpan(SpanKind spanKind, const SpanContextPtr &parent) { return nullptr; }
 
-SpanPtr Tracer::startChildSpan(SpanKind spanKind, const SpanContextPtr& parent) {
-    return nullptr;
-}
+SpanPtr Tracer::startChildSpan(SpanKind spanKind, const SpanContextPtr &parent) { return nullptr; }
 
-SpanPtr Tracer::startNewTrace(SpanKind spanKind) {
-    return nullptr;
-}
+SpanPtr Tracer::startNewTrace(SpanKind spanKind) { return nullptr; }
 
-}
+} // namespace opentelemetry

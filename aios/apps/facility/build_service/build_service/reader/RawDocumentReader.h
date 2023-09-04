@@ -45,7 +45,7 @@ class PeriodDocCounterBase;
 }} // namespace build_service::common
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 namespace indexlibv2::document {
 class IDocumentFactory;
@@ -62,16 +62,12 @@ struct ReaderInitParam {
     indexlib::util::MetricProviderPtr metricProvider;
     indexlib::util::CounterMapPtr counterMap;
     indexlib::config::IndexPartitionSchemaPtr schema;
-    std::shared_ptr<indexlibv2::config::TabletSchema> schemaV2;
+    std::shared_ptr<indexlibv2::config::ITabletSchema> schemaV2;
     proto::PartitionId partitionId;
     std::shared_ptr<HologresInterface> hologresInterface;
 };
 
-struct DocInfo {
-    uint16_t hashId;
-    int64_t docTimestamp;
-    DocInfo(uint16_t hashId = 0, int64_t docTimestamp = 0) : hashId(hashId), docTimestamp(docTimestamp) {}
-};
+using DocInfo = indexlibv2::document::IDocument::DocInfo;
 
 struct Checkpoint {
     Checkpoint() {}
@@ -99,7 +95,8 @@ struct Checkpoint {
         std::stringstream ss;
         ss << offset << ':' << userData << ':';
         for (const auto& oneProgress : progress) {
-            ss << '[' << oneProgress.from << ':' << oneProgress.to << ':' << oneProgress.offset << ']';
+            ss << '[' << oneProgress.from << ':' << oneProgress.to << ':' << oneProgress.offset.first << ":"
+               << oneProgress.offset.second << ']';
         }
         return ss.str();
     }
@@ -108,7 +105,7 @@ struct Checkpoint {
 class RawDocumentReader : public proto::ErrorCollector
 {
 public:
-    enum ErrorCode { ERROR_NONE, ERROR_EOF, ERROR_PARSE, ERROR_WAIT, ERROR_EXCEPTION, ERROR_SEALED };
+    enum ErrorCode { ERROR_NONE, ERROR_EOF, ERROR_PARSE, ERROR_WAIT, ERROR_EXCEPTION, ERROR_SEALED, ERROR_SKIP };
 
     using Message = indexlib::document::RawDocumentParser::Message;
 
@@ -139,8 +136,6 @@ public:
     virtual void suspendReadAtTimestamp(int64_t targetTimestamp, common::ExceedTsAction action) {}
     virtual bool isExceedSuspendTimestamp() const { return false; }
     virtual ErrorCode getNextRawDoc(document::RawDocument& rawDoc, Checkpoint* checkpoint, DocInfo& docInfo);
-    virtual bool getMaxTimestampAfterStartTimestamp(int64_t& timestamp);
-    virtual bool isStreamReader() { return false; }
 
 protected:
     virtual ErrorCode readDocStr(std::string& docStr, Checkpoint* checkpoint, DocInfo& docInfo) = 0;
@@ -152,7 +147,7 @@ protected:
             auto& msg = msgs.back();
             DocInfo docInfo;
             auto ret = readDocStr(msg.data, checkpoint, docInfo);
-            msg.timestamp = docInfo.docTimestamp;
+            msg.timestamp = docInfo.timestamp;
             msg.hashId = docInfo.hashId;
             if (ret != ERROR_NONE) {
                 return ret;
@@ -181,7 +176,7 @@ protected:
 
     indexlib::document::DocumentFactoryWrapperPtr _documentFactoryWrapper;
     std::unique_ptr<indexlibv2::document::IDocumentFactory> _documentFactoryV2;
-    std::shared_ptr<indexlibv2::config::TabletSchema> _tabletSchema;
+    std::shared_ptr<indexlibv2::config::ITabletSchema> _tabletSchema;
     indexlib::document::QueryEvaluatorCreatorPtr _evaluatorCreator;
     indexlib::document::QueryEvaluatorPtr _queryEvaluator;
     indexlib::document::QueryEvaluator::EvaluateParam _evaluateParam;

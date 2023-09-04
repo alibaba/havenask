@@ -32,8 +32,6 @@ using namespace autil::legacy;
 using namespace autil::legacy::json;
 using namespace autil;
 
-using namespace indexlib::util;
-
 namespace indexlib { namespace config {
 
 IE_LOG_SETUP(config, SchemaConfigurator);
@@ -111,8 +109,7 @@ void SchemaConfigurator::Configurate(const Any& any, IndexPartitionSchemaImpl& s
 
     iter = indexPartitionMap.find(MAX_SCHEMA_MODIFY_OPERATION_COUNT);
     if (iter != indexPartitionMap.end()) {
-        uint32_t count = AnyCast<uint32_t>(iter->second);
-        schema.SetMaxModifyOperationCount(count);
+        schema.SetMaxModifyOperationCount(JsonNumberCast<uint32_t>(iter->second));
     }
 
     // parse modify_operations definition

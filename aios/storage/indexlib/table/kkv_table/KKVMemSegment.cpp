@@ -22,7 +22,7 @@
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, KKVMemSegment);
 
-KKVMemSegment::KKVMemSegment(const config::TabletOptions* options, const std::shared_ptr<config::TabletSchema>& schema,
+KKVMemSegment::KKVMemSegment(const config::TabletOptions* options, const std::shared_ptr<config::ITabletSchema>& schema,
                              const framework::SegmentMeta& segmentMeta)
     : plain::PlainMemSegment(options, schema, segmentMeta)
 {
@@ -49,7 +49,7 @@ const std::vector<std::shared_ptr<indexlibv2::index::IMemIndexer>>& KKVMemSegmen
 
 std::shared_ptr<plain::PlainMemSegment>
 KKVMemSegment::CreatePlainMemSegment(const config::TabletOptions* options,
-                                     const std::shared_ptr<config::TabletSchema>& schema,
+                                     const std::shared_ptr<config::ITabletSchema>& schema,
                                      const framework::SegmentMeta& segmentMeta)
 {
     return std::make_shared<KKVMemSegment>(options, schema, segmentMeta);

@@ -179,7 +179,7 @@ void MergeTaskItemCreator::InitAttributeMergeTaskIdentify(const IndexPartitionSc
     auto packIter = packAttrConfigs->Begin();
     for (; packIter != packAttrConfigs->End(); packIter++) {
         const PackAttributeConfigPtr& packConfig = *packIter;
-        const string& attrName = packConfig->GetAttrName();
+        const string& attrName = packConfig->GetPackName();
         assert(packConfig);
         AttributeMergerPtr packAttrMerger = CreateAttributeMerger(attrSchema, attrName, true, isOptimize);
         bool enableInPlanMultiSegmentParallel = packAttrMerger->EnableMultiOutputSegmentParallel();

@@ -15,6 +15,9 @@
  */
 #include "indexlib/table/normal_table/index_task/merger/CombinedMergeStrategy.h"
 
+#include "indexlib/config/MergeConfig.h"
+#include "indexlib/config/OfflineConfig.h"
+#include "indexlib/config/TabletOptions.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/table/normal_table/Common.h"
 #include "indexlib/table/normal_table/index_task/merger/BalanceTreeMergeStrategy.h"
@@ -57,7 +60,9 @@ CombinedMergeStrategy::CreateMergePlan(const framework::IndexTaskContext* contex
     RETURN2_IF_STATUS_ERROR(st1, nullptr, "get merged segment merge plan failed");
 
     _buildSegmentStrategy = std::make_unique<RealtimeMergeStrategy>();
-    auto [st2, buildSegmentsMergePlan] = _buildSegmentStrategy->DoCreateMergePlan(context);
+    auto mergeConfig = context->GetMergeConfig();
+    auto [st2, buildSegmentsMergePlan] =
+        _buildSegmentStrategy->DoCreateMergePlan(context, mergeConfig.GetMergeStrategyParameter());
     RETURN2_IF_STATUS_ERROR(st2, nullptr, "Realtime merge strategy create merge plan failed");
 
     auto mergePlan = std::make_shared<MergePlan>(MERGE_PLAN, MERGE_PLAN);

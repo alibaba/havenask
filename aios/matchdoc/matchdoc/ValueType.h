@@ -16,9 +16,10 @@
 #pragma once
 
 #include <assert.h>
-#include "autil/MultiValueType.h"
-#include "autil/LongHashValue.h"
+
 #include "autil/Hyperloglog.h"
+#include "autil/LongHashValue.h"
+#include "autil/MultiValueType.h"
 
 namespace matchdoc {
 
@@ -51,19 +52,17 @@ enum BuiltinType : uint16_t {
 };
 
 inline static int16_t getBuiltinTypeOrder(BuiltinType type) {
-    static std::map<BuiltinType, int16_t> typeSizeMap = {
-        {bt_int8, 1},
-        {bt_uint8, 2},
-        {bt_int16, 3},
-        {bt_uint16, 4},
-        {bt_int32, 5},
-        {bt_uint32, 6},
-        {bt_int64, 7},
-        {bt_uint64, 8},
-        {bt_float, 9},
-        {bt_double, 10}
-    };
-    auto iter =  typeSizeMap.find(type);
+    static std::map<BuiltinType, int16_t> typeSizeMap = {{bt_int8, 1},
+                                                         {bt_uint8, 2},
+                                                         {bt_int16, 3},
+                                                         {bt_uint16, 4},
+                                                         {bt_int32, 5},
+                                                         {bt_uint32, 6},
+                                                         {bt_int64, 7},
+                                                         {bt_uint64, 8},
+                                                         {bt_float, 9},
+                                                         {bt_double, 10}};
+    auto iter = typeSizeMap.find(type);
     if (iter != typeSizeMap.end()) {
         return iter->second;
     } else {
@@ -101,30 +100,30 @@ inline static BuiltinType builtinTypeFromString(std::string type) {
 
 inline static std::string builtinTypeToString(BuiltinType vt) {
     switch (vt) {
-        case matchdoc::bt_int8:
-            return "int8";
-        case matchdoc::bt_uint8:
-            return "uint8";
-        case matchdoc::bt_int16:
-            return "int16";
-        case matchdoc::bt_uint16:
-            return "uint16";
-        case matchdoc::bt_int32:
-            return "int32";
-        case matchdoc::bt_uint32:
-            return "uint32";
-        case matchdoc::bt_int64:
-            return "int64";
-        case matchdoc::bt_uint64:
-            return "uint64";
-        case matchdoc::bt_float:
-            return "float";
-        case matchdoc::bt_double:
-            return "double";
-        case matchdoc::bt_string:
-            return "string";
-        default:
-            return "unknown";
+    case matchdoc::bt_int8:
+        return "int8";
+    case matchdoc::bt_uint8:
+        return "uint8";
+    case matchdoc::bt_int16:
+        return "int16";
+    case matchdoc::bt_uint16:
+        return "uint16";
+    case matchdoc::bt_int32:
+        return "int32";
+    case matchdoc::bt_uint32:
+        return "uint32";
+    case matchdoc::bt_int64:
+        return "int64";
+    case matchdoc::bt_uint64:
+        return "uint64";
+    case matchdoc::bt_float:
+        return "float";
+    case matchdoc::bt_double:
+        return "double";
+    case matchdoc::bt_string:
+        return "string";
+    default:
+        return "unknown";
     }
 }
 
@@ -133,10 +132,10 @@ struct BuiltinType2CppType {
     struct UnknownType {};
     typedef UnknownType CppType;
 };
-#define BuiltinType2CppTypeTraits(builtinType, cppType) \
-    template <>                                         \
-    struct BuiltinType2CppType<builtinType, false> {    \
-        typedef cppType CppType;                        \
+#define BuiltinType2CppTypeTraits(builtinType, cppType)                                                                \
+    template <>                                                                                                        \
+    struct BuiltinType2CppType<builtinType, false> {                                                                   \
+        typedef cppType CppType;                                                                                       \
     }
 BuiltinType2CppTypeTraits(bt_int8, int8_t);
 BuiltinType2CppTypeTraits(bt_int16, int16_t);
@@ -153,11 +152,10 @@ BuiltinType2CppTypeTraits(bt_string, autil::MultiChar);
 BuiltinType2CppTypeTraits(bt_hash_128, autil::uint128_t);
 BuiltinType2CppTypeTraits(bt_hllctx, autil::HllCtx);
 
-
-#define BuiltinType2CppTypeTraitsMulti(builtinType, cppType)    \
-    template <>                                                 \
-    struct BuiltinType2CppType<builtinType, true> {             \
-        typedef autil::MultiValueType<cppType> CppType;         \
+#define BuiltinType2CppTypeTraitsMulti(builtinType, cppType)                                                           \
+    template <>                                                                                                        \
+    struct BuiltinType2CppType<builtinType, true> {                                                                    \
+        typedef autil::MultiValueType<cppType> CppType;                                                                \
     }
 
 BuiltinType2CppTypeTraitsMulti(bt_int8, int8_t);
@@ -179,10 +177,10 @@ struct MatchDocBuiltinType2CppType {
     struct UnknownType {};
     typedef UnknownType CppType;
 };
-#define MatchDocBuiltinType2CppTypeTraits(builtinType, isMulti, cppType) \
-    template <>                                                         \
-    struct MatchDocBuiltinType2CppType<builtinType, isMulti> {          \
-        typedef cppType CppType;                                        \
+#define MatchDocBuiltinType2CppTypeTraits(builtinType, isMulti, cppType)                                               \
+    template <>                                                                                                        \
+    struct MatchDocBuiltinType2CppType<builtinType, isMulti> {                                                         \
+        typedef cppType CppType;                                                                                       \
     }
 MatchDocBuiltinType2CppTypeTraits(bt_int8, false, int8_t);
 MatchDocBuiltinType2CppTypeTraits(bt_int16, false, int16_t);
@@ -212,31 +210,19 @@ MatchDocBuiltinType2CppTypeTraits(bt_double, true, autil::MultiDouble);
 MatchDocBuiltinType2CppTypeTraits(bt_string, true, autil::MultiString);
 
 struct ValueType {
-    uint32_t _isBuiltinType : 1;
-    uint32_t _isMulti : 1;
-    uint32_t _buildInType : 8;
-    uint32_t _reserved : 19;
+    uint32_t _isBuiltinType    : 1;
+    uint32_t _isMulti          : 1;
+    uint32_t _buildInType      : 8;
+    uint32_t _reserved         : 19;
     uint32_t _needNotConstruct : 1;
-    uint32_t _ha3ReservedFlag : 1;
-    uint32_t _isStdType : 1;
-    ValueType() {
-        *(uint32_t *)this = 0;
-    }
-    uint32_t toInt() const {
-        return *(uint32_t *)this;
-    }
-    bool isBuiltInType() const {
-        return _isBuiltinType == 1;
-    }
-    void setBuiltin() {
-        _isBuiltinType = 1;
-    }
-    bool isMultiValue() const {
-        return _isMulti == 1;
-    }
-    void setMultiValue(bool isMulti) {
-        _isMulti = isMulti ? 1 : 0;
-    }
+    uint32_t _ha3ReservedFlag  : 1;
+    uint32_t _isStdType        : 1;
+    ValueType() { *(uint32_t *)this = 0; }
+    uint32_t toInt() const { return *(uint32_t *)this; }
+    bool isBuiltInType() const { return _isBuiltinType == 1; }
+    void setBuiltin() { _isBuiltinType = 1; }
+    bool isMultiValue() const { return _isMulti == 1; }
+    void setMultiValue(bool isMulti) { _isMulti = isMulti ? 1 : 0; }
     BuiltinType getBuiltinType() const {
         assert(isBuiltInType());
         if (_buildInType >= bt_max) {
@@ -244,55 +230,37 @@ struct ValueType {
         }
         return (BuiltinType)_buildInType;
     }
-    void setBuiltinType(BuiltinType bt) {
-        _buildInType = bt;
-    }
-    void setStdType(bool isStdType) {
-        _isStdType = isStdType;
-    }
-    bool isStdType() const {
-        return _isStdType == 1;
-    }
-    uint32_t getType() const {
-        return *(uint32_t *)this;
-    }
-    void setType(uint32_t i) {
-        *(uint32_t *)this = i;
-    }
-    void setNeedConstruct(bool needConstruct) {
-        _needNotConstruct = needConstruct ? 0 : 1;
-    }
-    bool needConstruct() const {
-        return _needNotConstruct != 1;
-    }
+    void setBuiltinType(BuiltinType bt) { _buildInType = bt; }
+    void setStdType(bool isStdType) { _isStdType = isStdType; }
+    bool isStdType() const { return _isStdType == 1; }
+    uint32_t getType() const { return *(uint32_t *)this; }
+    void setType(uint32_t i) { *(uint32_t *)this = i; }
+    void setNeedConstruct(bool needConstruct) { _needNotConstruct = needConstruct ? 0 : 1; }
+    bool needConstruct() const { return _needNotConstruct != 1; }
     uint32_t getTypeIgnoreConstruct() const {
         ValueType res = *this;
         res._needNotConstruct = 0;
         return res.getType();
     }
-    bool operator==(const ValueType &other) const {
-        return *(uint32_t *)this == *(uint32_t *)(&other);
-    }
+    bool operator==(const ValueType &other) const { return *(uint32_t *)this == *(uint32_t *)(&other); }
 };
 
 template <typename T>
 struct ValueTypeHelper {
-    static ValueType getValueType() {
-        return ValueType();
-    }
+    static ValueType getValueType() { return ValueType(); }
 };
 
-#define BUILTIN_TYPE_HELPER(T, isMulti, isStdType, bt)  \
-    template <>                                         \
-    struct ValueTypeHelper<T> {                         \
-        static inline ValueType getValueType() {        \
-            ValueType vt;                               \
-            vt.setBuiltin();                            \
-            vt.setMultiValue(isMulti);                  \
-            vt.setStdType(isStdType);                   \
-            vt.setBuiltinType(bt);                      \
-            return vt;                                  \
-        }                                               \
+#define BUILTIN_TYPE_HELPER(T, isMulti, isStdType, bt)                                                                 \
+    template <>                                                                                                        \
+    struct ValueTypeHelper<T> {                                                                                        \
+        static inline ValueType getValueType() {                                                                       \
+            ValueType vt;                                                                                              \
+            vt.setBuiltin();                                                                                           \
+            vt.setMultiValue(isMulti);                                                                                 \
+            vt.setStdType(isStdType);                                                                                  \
+            vt.setBuiltinType(bt);                                                                                     \
+            return vt;                                                                                                 \
+        }                                                                                                              \
     }
 
 BUILTIN_TYPE_HELPER(int8_t, false, false, bt_int8);
@@ -337,64 +305,64 @@ BUILTIN_TYPE_HELPER(std::vector<double>, true, true, bt_double);
 BUILTIN_TYPE_HELPER(std::vector<bool>, true, true, bt_bool);
 BUILTIN_TYPE_HELPER(std::vector<std::string>, true, true, bt_string);
 
-}
+} // namespace matchdoc
 
-#define INTERGER_BUILTIN_TYPE_MACRO_HELPER(MY_MACRO)             \
-    MY_MACRO(matchdoc::bt_int8);                                 \
-    MY_MACRO(matchdoc::bt_int16);                                \
-    MY_MACRO(matchdoc::bt_int32);                                \
-    MY_MACRO(matchdoc::bt_int64);                                \
-    MY_MACRO(matchdoc::bt_uint8);                                \
-    MY_MACRO(matchdoc::bt_uint16);                               \
-    MY_MACRO(matchdoc::bt_uint32);                               \
+#define INTERGER_BUILTIN_TYPE_MACRO_HELPER(MY_MACRO)                                                                   \
+    MY_MACRO(matchdoc::bt_int8);                                                                                       \
+    MY_MACRO(matchdoc::bt_int16);                                                                                      \
+    MY_MACRO(matchdoc::bt_int32);                                                                                      \
+    MY_MACRO(matchdoc::bt_int64);                                                                                      \
+    MY_MACRO(matchdoc::bt_uint8);                                                                                      \
+    MY_MACRO(matchdoc::bt_uint16);                                                                                     \
+    MY_MACRO(matchdoc::bt_uint32);                                                                                     \
     MY_MACRO(matchdoc::bt_uint64);
 
-#define NUMBER_BUILTIN_TYPE_MACRO_HELPER(MY_MACRO)               \
-    INTERGER_BUILTIN_TYPE_MACRO_HELPER(MY_MACRO)                 \
-    MY_MACRO(matchdoc::bt_float);                                \
+#define NUMBER_BUILTIN_TYPE_MACRO_HELPER(MY_MACRO)                                                                     \
+    INTERGER_BUILTIN_TYPE_MACRO_HELPER(MY_MACRO)                                                                       \
+    MY_MACRO(matchdoc::bt_float);                                                                                      \
     MY_MACRO(matchdoc::bt_double);
 
-#define BUILTIN_TYPE_MACRO_HELPER(MY_MACRO)                      \
-    NUMBER_BUILTIN_TYPE_MACRO_HELPER(MY_MACRO)                   \
+#define BUILTIN_TYPE_MACRO_HELPER(MY_MACRO)                                                                            \
+    NUMBER_BUILTIN_TYPE_MACRO_HELPER(MY_MACRO)                                                                         \
     MY_MACRO(matchdoc::bt_string);
 
-#define _CASE_HELPER(buildinType, valueType, MY_MACRO)                  \
-    case buildinType:                                                   \
-    if (valueType.isMultiValue()) {                                     \
-        typedef matchdoc::BuiltinType2CppType<buildinType, true>::CppType Type; \
-        MY_MACRO(Type);                                                 \
-    } else {                                                            \
-        typedef matchdoc::BuiltinType2CppType<buildinType, false>::CppType Type; \
-        MY_MACRO(Type);                                                 \
-    }                                                                   \
-    break;
+#define _CASE_HELPER(buildinType, valueType, MY_MACRO)                                                                 \
+    case buildinType:                                                                                                  \
+        if (valueType.isMultiValue()) {                                                                                \
+            typedef matchdoc::BuiltinType2CppType<buildinType, true>::CppType Type;                                    \
+            MY_MACRO(Type);                                                                                            \
+        } else {                                                                                                       \
+            typedef matchdoc::BuiltinType2CppType<buildinType, false>::CppType Type;                                   \
+            MY_MACRO(Type);                                                                                            \
+        }                                                                                                              \
+        break;
 
-#define SWITCH_BUILTIN_TYPE_MACRO_HELPER(valueType, MY_MACRO, ON_DEFAULT) \
-    do {                                                                \
-        switch (valueType.getBuiltinType()) {                           \
-            _CASE_HELPER(matchdoc::bt_int8, valueType, MY_MACRO);       \
-            _CASE_HELPER(matchdoc::bt_uint8, valueType, MY_MACRO);      \
-            _CASE_HELPER(matchdoc::bt_int16, valueType, MY_MACRO);      \
-            _CASE_HELPER(matchdoc::bt_uint16, valueType, MY_MACRO);     \
-            _CASE_HELPER(matchdoc::bt_int32, valueType, MY_MACRO);      \
-            _CASE_HELPER(matchdoc::bt_uint32, valueType, MY_MACRO);     \
-            _CASE_HELPER(matchdoc::bt_int64, valueType, MY_MACRO);      \
-            _CASE_HELPER(matchdoc::bt_uint64, valueType, MY_MACRO);     \
-            _CASE_HELPER(matchdoc::bt_float, valueType, MY_MACRO);      \
-            _CASE_HELPER(matchdoc::bt_double, valueType, MY_MACRO);     \
-        case matchdoc::bt_string:                                       \
-            if (valueType.isMultiValue()) {                             \
-                typedef matchdoc::BuiltinType2CppType<matchdoc::bt_string, true>::CppType Type; \
-                MY_MACRO(Type);                                         \
-            } else if (!valueType.isStdType()) {                        \
-                typedef matchdoc::BuiltinType2CppType<matchdoc::bt_string, false>::CppType Type; \
-                MY_MACRO(Type);                                         \
-            } else {                                                    \
-                MY_MACRO(std::string);                                  \
-            }                                                           \
-            break;                                                      \
-        default:                                                        \
-            ON_DEFAULT(valueType);                                      \
-            break;                                                      \
-        }                                                               \
-    } while(0)
+#define SWITCH_BUILTIN_TYPE_MACRO_HELPER(valueType, MY_MACRO, ON_DEFAULT)                                              \
+    do {                                                                                                               \
+        switch (valueType.getBuiltinType()) {                                                                          \
+            _CASE_HELPER(matchdoc::bt_int8, valueType, MY_MACRO);                                                      \
+            _CASE_HELPER(matchdoc::bt_uint8, valueType, MY_MACRO);                                                     \
+            _CASE_HELPER(matchdoc::bt_int16, valueType, MY_MACRO);                                                     \
+            _CASE_HELPER(matchdoc::bt_uint16, valueType, MY_MACRO);                                                    \
+            _CASE_HELPER(matchdoc::bt_int32, valueType, MY_MACRO);                                                     \
+            _CASE_HELPER(matchdoc::bt_uint32, valueType, MY_MACRO);                                                    \
+            _CASE_HELPER(matchdoc::bt_int64, valueType, MY_MACRO);                                                     \
+            _CASE_HELPER(matchdoc::bt_uint64, valueType, MY_MACRO);                                                    \
+            _CASE_HELPER(matchdoc::bt_float, valueType, MY_MACRO);                                                     \
+            _CASE_HELPER(matchdoc::bt_double, valueType, MY_MACRO);                                                    \
+        case matchdoc::bt_string:                                                                                      \
+            if (valueType.isMultiValue()) {                                                                            \
+                typedef matchdoc::BuiltinType2CppType<matchdoc::bt_string, true>::CppType Type;                        \
+                MY_MACRO(Type);                                                                                        \
+            } else if (!valueType.isStdType()) {                                                                       \
+                typedef matchdoc::BuiltinType2CppType<matchdoc::bt_string, false>::CppType Type;                       \
+                MY_MACRO(Type);                                                                                        \
+            } else {                                                                                                   \
+                MY_MACRO(std::string);                                                                                 \
+            }                                                                                                          \
+            break;                                                                                                     \
+        default:                                                                                                       \
+            ON_DEFAULT(valueType);                                                                                     \
+            break;                                                                                                     \
+        }                                                                                                              \
+    } while (0)

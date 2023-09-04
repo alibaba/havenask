@@ -1,18 +1,3 @@
-/*
- * Copyright 2014-present Alibaba Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 #ifndef __INDEXLIB_TEST_SCHEMA_MAKER_H
 #define __INDEXLIB_TEST_SCHEMA_MAKER_H
 
@@ -23,8 +8,8 @@
 #include "indexlib/config/index_partition_schema.h"
 #include "indexlib/indexlib.h"
 
-namespace indexlibv2::util {
-class TabletSchemaMaker;
+namespace indexlibv2::config {
+class TabletSchema;
 }
 
 namespace indexlib { namespace test {
@@ -47,9 +32,17 @@ public:
                                                          const std::string& skeyName, const std::string& valueNames,
                                                          int64_t ttl = INVALID_TTL,
                                                          const std::string& valueFormat = "");
+    static std::shared_ptr<indexlibv2::config::TabletSchema>
+    MakeKKVTabletSchema(const std::string& fieldNames, const std::string& pkeyName, const std::string& skeyName,
+                        const std::string& valueNames, int64_t ttl = INVALID_TTL, const std::string& valueFormat = "");
+
     static config::IndexPartitionSchemaPtr MakeKVSchema(const std::string& fieldNames, const std::string& keyName,
                                                         const std::string& valueNames, int64_t ttl = INVALID_TTL,
                                                         const std::string& valueFormat = "", bool useNumberHash = true);
+
+    static std::shared_ptr<indexlibv2::config::TabletSchema>
+    MakeKVTabletSchema(const std::string& fieldNames, const std::string& keyName, const std::string& valueNames,
+                       int64_t ttl = INVALID_TTL, const std::string& valueFormat = "", bool useNumberHash = true);
 
     static void SetAdaptiveHighFrequenceDictionary(const std::string& indexName, const std::string& adaptiveRuleStr,
                                                    index::HighFrequencyTermPostingType type,
@@ -116,6 +109,9 @@ public:
     static StringVector SplitToStringVector(const std::string& names);
 
 private:
+    static void ResolveEmptyProfileNamesForTruncateIndex(const config::TruncateProfileSchemaPtr& truncateProfileSchema,
+                                                         const config::IndexSchemaPtr& indexSchema);
+
     static void MakeFieldConfigSchema(config::IndexPartitionSchemaPtr& schema, const StringVector& fieldNames);
 
     static void MakeIndexConfigSchema(config::IndexPartitionSchemaPtr& schema, const std::string& indexNames);

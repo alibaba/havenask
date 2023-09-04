@@ -56,8 +56,8 @@ public:
     ~PackValueComparator();
 
 public:
-    bool Init(const std::shared_ptr<config::ValueConfig>& valueConfig,
-              const config::SortDescriptions& sortDescriptions);
+    bool Init(const std::shared_ptr<config::ValueConfig>& valueConfig, const config::SortDescriptions& sortDescriptions,
+              bool needDecode = true);
     bool operator()(const autil::StringView& lhs, const autil::StringView& rhs) const { return Compare(lhs, rhs) < 0; }
     //  -1: lhs < rhs
     //   0: lhs = rhs
@@ -73,6 +73,7 @@ private:
 
 private:
     int32_t _fixedValueLen = -1;
+    bool _needDecode = true;
     std::unique_ptr<PackAttributeFormatter> _formatter;
     std::vector<std::unique_ptr<AttributeComparator>> _sortComps;
 

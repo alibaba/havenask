@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/new_heartbeat/HeartbeatClientManager.h"
+
 #include "aios/network/gig/multi_call/service/SearchServiceManager.h"
 #include "aios/network/gig/multi_call/util/FileRecorder.h"
 
@@ -36,8 +37,7 @@ HeartbeatClientManager::HeartbeatClientManager(SearchService *searchService,
                                                SearchServiceManager *manager)
     : _searchService(searchService)
     , _manager(manager)
-    , _notifier(std::make_shared<HeartbeatClientManagerNotifier>(this))
-{
+    , _notifier(std::make_shared<HeartbeatClientManagerNotifier>(this)) {
 }
 
 HeartbeatClientManager::~HeartbeatClientManager() {
@@ -46,8 +46,7 @@ HeartbeatClientManager::~HeartbeatClientManager() {
 
 bool HeartbeatClientManager::start(
     const MiscConfigPtr &miscConfig,
-    const std::shared_ptr<SearchServiceSnapshot> &heartbeatSnapshot)
-{
+    const std::shared_ptr<SearchServiceSnapshot> &heartbeatSnapshot) {
     _miscConfig = miscConfig;
     _heartbeatSnapshot = heartbeatSnapshot;
     return initThread();
@@ -221,4 +220,4 @@ std::string HeartbeatClientManager::toString() const {
     return ret;
 }
 
-}
+} // namespace multi_call

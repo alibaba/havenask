@@ -37,8 +37,8 @@ struct GigCodecContext {
 };
 
 struct GigRpcReqArg {
-    GigRpcReqArg(arpc::ANetRPCController *controller, std::string *response,
-                 RPCClosure *closure, GigCodecContext *context) {
+    GigRpcReqArg(arpc::ANetRPCController *controller, std::string *response, RPCClosure *closure,
+                 GigCodecContext *context) {
         sController = controller;
         sResponse = response;
         sClosure = closure;
@@ -46,7 +46,9 @@ struct GigRpcReqArg {
         sVersion = ARPC_VERSION_CURRENT;
     }
 
-    ~GigRpcReqArg() { delete sContext; }
+    ~GigRpcReqArg() {
+        delete sContext;
+    }
     arpc::ANetRPCController *sController;
     std::string *sResponse;
     RPCClosure *sClosure;

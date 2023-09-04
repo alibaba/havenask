@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="nest_select_reorder_column">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT brand, nid FROM (SELECT nid, brand, price, size FROM phone LIMIT 5)
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"brand", "nid"</Resource>
+        <Resource name="column_types">multi_char, uint64</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+"Huawei", 1
+"Huawei", 2
+"Xiaomi", 3
+"OPPO",   4
+"Meizu",  5
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#2(type=api)
+    ExchangeOp#1(distribution={type:SINGLETON})
+        TableScanOp#0(catalog_name=default,db_name=phone,limit=5,output_fields=[$brand,$nid],push_down_ops=[{attrs:{output_fields:[$brand,$nid]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

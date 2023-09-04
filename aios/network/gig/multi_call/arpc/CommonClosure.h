@@ -20,19 +20,27 @@
 
 namespace multi_call {
 
-class CommonClosure : public GigClosure {
+class CommonClosure : public GigClosure
+{
 public:
-    CommonClosure(google::protobuf::Closure *closure) : _closure(closure) {}
-    ~CommonClosure() { _closure = NULL; }
+    CommonClosure(google::protobuf::Closure *closure) : _closure(closure) {
+    }
+    ~CommonClosure() {
+        _closure = NULL;
+    }
 
 private:
     CommonClosure(const CommonClosure &);
     CommonClosure &operator=(const CommonClosure &);
 
 public:
-    google::protobuf::Closure *getClosure() { return _closure; }
+    google::protobuf::Closure *getClosure() {
+        return _closure;
+    }
     void Run() override;
-    ProtocolType getProtocolType() override { return MC_PROTOCOL_UNKNOWN; }
+    ProtocolType getProtocolType() override {
+        return MC_PROTOCOL_UNKNOWN;
+    }
 
 private:
     google::protobuf::Closure *_closure;

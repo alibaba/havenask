@@ -15,6 +15,7 @@
  */
 #include "indexlib/index/kv/doc_reader_base.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/memory.h"
 #include "indexlib/common/field_format/pack_attribute/pack_attribute_formatter.h"
 #include "indexlib/common/field_format/pack_attribute/plain_format_encoder.h"
@@ -66,8 +67,7 @@ bool DocReaderBase::Init(const IndexPartitionSchemaPtr& schema, const PartitionD
     }
 
     bool storePKey = false;
-    char* needStorePKeyValue = getenv(NEED_STORE_PKEY_VALUE);
-    if (needStorePKeyValue && autil::StringUtil::fromString(std::string(needStorePKeyValue), storePKey)) {
+    if (autil::EnvUtil::getEnvWithoutDefault(NEED_STORE_PKEY_VALUE, storePKey)) {
         mNeedStorePKeyValue = storePKey;
     }
 

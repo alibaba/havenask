@@ -33,7 +33,7 @@ AUTIL_LOG_SETUP(indexlib.index, AttributePatchMergerFactory);
     }
 
 std::unique_ptr<AttributePatchMerger>
-AttributePatchMergerFactory::Create(const std::shared_ptr<config::AttributeConfig>& attributeConfig,
+AttributePatchMergerFactory::Create(const std::shared_ptr<AttributeConfig>& attributeConfig,
                                     const std::shared_ptr<SegmentUpdateBitmap>& updateBitmap)
 {
     FieldType fieldType = attributeConfig->GetFieldType();

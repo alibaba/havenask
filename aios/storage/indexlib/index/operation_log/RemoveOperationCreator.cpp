@@ -31,13 +31,13 @@ bool RemoveOperationCreator::Create(const indexlibv2::document::NormalDocument* 
     auto docInfo = doc->GetDocInfo();
     if (type == it_primarykey64) {
         RemoveOperation<uint64_t>* removeOperation =
-            IE_POOL_COMPATIBLE_NEW_CLASS(pool, RemoveOperation<uint64_t>, docInfo.timestamp, docInfo.hashId);
+            IE_POOL_COMPATIBLE_NEW_CLASS(pool, RemoveOperation<uint64_t>, docInfo);
         removeOperation->Init(pkHash.value[1], segmentId);
         *operation = removeOperation;
     } else {
         assert(type == it_primarykey128);
         RemoveOperation<autil::uint128_t>* removeOperation =
-            IE_POOL_COMPATIBLE_NEW_CLASS(pool, RemoveOperation<autil::uint128_t>, docInfo.timestamp, docInfo.hashId);
+            IE_POOL_COMPATIBLE_NEW_CLASS(pool, RemoveOperation<autil::uint128_t>, docInfo);
         removeOperation->Init(pkHash, segmentId);
         *operation = removeOperation;
     }

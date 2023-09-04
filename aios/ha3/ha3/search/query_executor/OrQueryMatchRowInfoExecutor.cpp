@@ -24,17 +24,16 @@
 namespace isearch {
 namespace search {
 
-OrQueryMatchRowInfoExecutor::OrQueryMatchRowInfoExecutor() {
-}
+OrQueryMatchRowInfoExecutor::OrQueryMatchRowInfoExecutor() {}
 
-OrQueryMatchRowInfoExecutor::~OrQueryMatchRowInfoExecutor() {
-}
+OrQueryMatchRowInfoExecutor::~OrQueryMatchRowInfoExecutor() {}
 
 void OrQueryMatchRowInfoExecutor::accept(ExecutorVisitor *visitor) const {
     visitor->visitOrV2Executor(this);
 }
 
-void OrQueryMatchRowInfoExecutor::getMatchedExecutor(std::vector<const QueryExecutor*>& matchs) const {
+void OrQueryMatchRowInfoExecutor::getMatchedExecutor(
+    std::vector<const QueryExecutor *> &matchs) const {
     matchs.clear();
     auto collectFn = [&matchs, this](uint32_t entryId) -> void {
         matchs.push_back(getQueryExecutor(entryId));

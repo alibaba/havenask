@@ -20,14 +20,16 @@
 
 namespace multi_call {
 struct HashNode {
-    HashNode() : key(0), offset(0), label(0) {}
+    HashNode() : key(0), offset(0), label(0) {
+    }
     uint64_t key;
     uint16_t offset;
     uint8_t label;
     bool operator<(const HashNode &rha) const;
 } __attribute__((packed));
 
-class ConsistentHash {
+class ConsistentHash
+{
 public:
     typedef HashNode *Iterator;
 

@@ -1,0 +1,9 @@
+package(default_visibility=['//aios/sql/iquan/java:__subpackages__'])
+java_library(
+    name='iquan_boot_common',
+    srcs=glob(['src/main/java/com/taobao/search/iquan/boot/common/**/*.java']),
+    deps=[
+        '//aios/sql/iquan/java/iquan_core',
+        '@iquan_maven//:org_mybatis_spring_boot_mybatis_spring_boot_starter'
+    ]
+)

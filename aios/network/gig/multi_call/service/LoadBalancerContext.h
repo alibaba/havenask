@@ -16,24 +16,27 @@
 #ifndef MULTI_CALL_INTERFACE_LOADBALANCERCONTEXT_H_
 #define MULTI_CALL_INTERFACE_LOADBALANCERCONTEXT_H_
 
+#include <map>
+#include <string>
+
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/config/MultiCallConfig.h"
 #include "aios/network/gig/multi_call/interface/SearchService.h"
 #include "aios/network/gig/multi_call/service/ProviderSelectorFactory.h"
 #include "aios/network/gig/multi_call/service/VersionSelectorFactory.h"
 #include "autil/Lock.h"
-#include <map>
-#include <string>
 
 namespace multi_call {
 
-class LoadBalancerContext {
+class LoadBalancerContext
+{
 public:
     LoadBalancerContext(const SearchServicePtr &searchService)
-        : _versionSelectorFactory(searchService->getVersionSelectorFactory()),
-          _providerSelectorFactory(
-              searchService->getProviderSelectorFactory()) {}
-    virtual ~LoadBalancerContext() {}
+        : _versionSelectorFactory(searchService->getVersionSelectorFactory())
+        , _providerSelectorFactory(searchService->getProviderSelectorFactory()) {
+    }
+    virtual ~LoadBalancerContext() {
+    }
 
 public:
     VersionSelectorPtr getVersionSelector(const std::string &bizname);

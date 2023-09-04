@@ -21,11 +21,7 @@ namespace multi_call {
 
 AUTIL_DECLARE_AND_SETUP_LOGGER(multi_call, GigStreamBase);
 
-PartMessageQueue::PartMessageQueue()
-    : _receiving(false)
-    , _count(0)
-    , _ec(MULTI_CALL_ERROR_NONE)
-{
+PartMessageQueue::PartMessageQueue() : _receiving(false), _count(0), _ec(MULTI_CALL_ERROR_NONE) {
 }
 
 PartMessageQueue::~PartMessageQueue() {
@@ -64,12 +60,11 @@ void PartMessageQueue::appendMessage(const GigStreamMessage &message, MultiCallE
     _count++;
 }
 
-GigStreamBase::GigStreamBase()
-    : _asyncMode(true)
-{
+GigStreamBase::GigStreamBase() : _asyncMode(true) {
 }
 
-GigStreamBase::~GigStreamBase() {}
+GigStreamBase::~GigStreamBase() {
+}
 
 bool GigStreamBase::hasError() const {
     return false;
@@ -150,14 +145,16 @@ bool GigStreamBase::doReceive(PartMessageQueue &partQueue) {
 PartMessageQueue &GigStreamBase::getPartQueue(PartIdTy partId) {
     {
         autil::ScopedReadLock lock(_asyncQueueLock);
-        auto it = _partAsyncQueues.find(partId);;
+        auto it = _partAsyncQueues.find(partId);
+        ;
         if (_partAsyncQueues.end() != it) {
             return it->second;
         }
     }
     {
         autil::ScopedWriteLock lock(_asyncQueueLock);
-        auto it = _partAsyncQueues.find(partId);;
+        auto it = _partAsyncQueues.find(partId);
+        ;
         if (_partAsyncQueues.end() != it) {
             return it->second;
         }

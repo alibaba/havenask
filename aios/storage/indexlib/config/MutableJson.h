@@ -22,6 +22,7 @@
 #include "autil/Log.h"
 #include "autil/legacy/any.h"
 #include "autil/legacy/jsonizable.h"
+#include "indexlib/base/Status.h"
 
 namespace indexlibv2::config {
 
@@ -34,7 +35,7 @@ public:
 
     // jsonPath examples: key1.key2; key1.key2[1][2]
     template <typename T>
-    bool GetValue(const std::string& jsonPath, T* value) const noexcept;
+    std::pair<Status, T> GetValue(const std::string& jsonPath) const noexcept;
     const autil::legacy::Any* GetAny(const std::string& jsonPath) const noexcept;
 
     bool SetValue(const std::string& jsonPath, const char* value);
@@ -69,19 +70,20 @@ private:
 
 //////////////////////////////////////////////////////////////////////
 template <typename T>
-inline bool MutableJson::GetValue(const std::string& jsonPath, T* value) const noexcept
+inline std::pair<Status, T> MutableJson::GetValue(const std::string& jsonPath) const noexcept
 {
+    T value {};
     const autil::legacy::Any* any = GetAny(jsonPath);
     if (!any) {
-        return false;
+        return {Status::NotFound(), value};
     }
     try {
-        autil::legacy::FromJson(*value, *any);
+        autil::legacy::FromJson(value, *any);
     } catch (const autil::legacy::ExceptionBase& e) {
         AUTIL_LOG(ERROR, "decode jsonpath[%s] failed: %s", jsonPath.c_str(), e.what());
-        return false;
+        return {Status::ConfigError(), value};
     }
-    return true;
+    return {Status::OK(), value};
 }
 
 template <typename T>

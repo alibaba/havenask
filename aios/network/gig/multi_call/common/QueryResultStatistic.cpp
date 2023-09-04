@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/common/QueryResultStatistic.h"
+
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
 
 namespace multi_call {
 
 AUTIL_LOG_SETUP(multi_call, QueryResultStatistic);
 
-QueryResultStatistic::~QueryResultStatistic() {}
+QueryResultStatistic::~QueryResultStatistic() {
+}
 
 void QueryResultStatistic::setAgentInfo(GigResponseInfo *pbInfo) {
     if (!pbInfo) {
@@ -40,16 +42,13 @@ void QueryResultStatistic::setAgentInfo(GigResponseInfo *pbInfo) {
 }
 
 bool QueryResultStatistic::operator==(const QueryResultStatistic &rhs) const {
-    auto ret = targetWeight == rhs.targetWeight &&
-               callBegTime == rhs.callBegTime &&
-               rpcBeginTime == rhs.rpcBeginTime &&
-               callEndTime == rhs.callEndTime && ec == rhs.ec;
+    auto ret = targetWeight == rhs.targetWeight && callBegTime == rhs.callBegTime &&
+               rpcBeginTime == rhs.rpcBeginTime && callEndTime == rhs.callEndTime && ec == rhs.ec;
     if (!ret) {
         return ret;
     }
     if (agentInfo && rhs.agentInfo) {
-        return agentInfo->SerializeAsString() ==
-               rhs.agentInfo->SerializeAsString();
+        return agentInfo->SerializeAsString() == rhs.agentInfo->SerializeAsString();
     }
     return agentInfo == rhs.agentInfo;
 }

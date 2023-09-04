@@ -104,8 +104,7 @@ inline void InMemSegmentOperationIterator::ToNextReadPosition()
 
 void InMemSegmentOperationIterator::SeekNextValidOpBlock()
 {
-    while (_opBlockIdx < (int32_t)_opBlocks.size() &&
-           _opBlocks[_opBlockIdx]->GetMaxTimestamp() < _locator.GetOffset()) {
+    while (_opBlockIdx < (int32_t)_opBlocks.size() && _opBlocks[_opBlockIdx]->GetMaxOffset() < _locator.GetOffset()) {
         if (_opBlockIdx == _opBlocks.size() - 1) {
             // last block
             _lastCursor.pos = int32_t(_opMeta.GetOperationCount()) - 1;
@@ -146,12 +145,11 @@ Status InMemSegmentOperationIterator::SeekNextValidOperation()
     while (HasNext()) {
         RETURN_IF_STATUS_ERROR(SwitchToReadBlock(_opBlockIdx), "switch operation block failed");
         OperationBase* operation = _curBlockForRead->GetOperations()[_inBlockOffset];
-        uint16_t hashId = operation->GetHashId();
-        int64_t timestamp = operation->GetTimestamp();
-        auto result = _locator.IsFasterThan(hashId, timestamp);
+        auto docInfo = operation->GetDocInfo();
+        auto result = _locator.IsFasterThan(docInfo.hashId, {docInfo.timestamp, docInfo.concurrentIdx});
         if (result == indexlibv2::framework::Locator::LocatorCompareResult::LCR_INVALID) {
             AUTIL_LOG(ERROR, "compare locator [%s] with timestamp [%ld] hash id [%u] failed",
-                      _locator.DebugString().c_str(), timestamp, hashId);
+                      _locator.DebugString().c_str(), docInfo.timestamp, docInfo.hashId);
             return Status::Corruption("compare locator failed");
         }
         if (result == indexlibv2::framework::Locator::LocatorCompareResult::LCR_SLOWER) {

@@ -16,7 +16,7 @@
 #include "indexlib/index/deletionmap/DeletionMapIndexReader.h"
 
 #include "indexlib/config/IIndexConfig.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/ResourceMap.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/framework/TabletData.h"

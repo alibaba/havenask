@@ -16,7 +16,6 @@
 #include "indexlib/index/kv/hash_table_var_segment_reader.h"
 
 using namespace std;
-using namespace indexlib::codegen;
 
 namespace indexlib { namespace index {
 IE_LOG_SETUP(index, HashTableVarSegmentReader);
@@ -101,7 +100,7 @@ bool HashTableVarSegmentReader::doCollectAllCode()
 
 void HashTableVarSegmentReader::TEST_collectCodegenResult(CodegenCheckers& checkers, std::string id)
 {
-    codegen::CodegenCheckerPtr checker(new CodegenChecker);
+    codegen::CodegenCheckerPtr checker(new codegen::CodegenChecker);
     COLLECT_CONST_MEM(checker, mIsMultiRegion);
     COLLECT_CONST_MEM(checker, mHasFixValueLen);
     COLLECT_CONST_MEM(checker, mUseBaseAddr);

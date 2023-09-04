@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="agg_grouping_sets_filter_args">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT count(distinct brand) as brand, count(distinct color) as color FROM phone
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"brand", "color"</Resource>
+        <Resource name="column_types">int32, int32</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="sql_params">iquan.optimizer.cte.enable:true</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+7, 1
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#10(type=api)
+    ExchangeOp#9(distribution={type:SINGLETON})
+        LimitOp#8(limit=100)
+            AggregateOp#7(agg_funcs=[{approximate:false,distinct:false,filter_arg:2,input:[$brand],name:COUNT,output:[$brand],type:NORMAL},{approximate:false,distinct:false,filter_arg:3,input:[$color],name:COUNT,output:[$color],type:NORMAL}],scope=NORMAL)
+                CalcOp#6(output_field_exprs={$$g_1:=($$g,1),$$g_2:=($$g,2)},output_fields=[$brand,$color,$$g_1,$$g_2])
+                    UnionOp#5(all=true,block=false)
+                        CalcOp#2(output_field_exprs={$$g:1,$color:CAST(null)},output_fields=[$brand,$color,$$g])
+                            AggregateOp#1(group_fields=[$brand],scope=NORMAL)
+                                TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$brand,$color],push_down_ops=[{attrs:{output_fields:[$brand,$color]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+                        CalcOp#4(output_field_exprs={$$g:2,$brand:CAST(null)},output_fields=[$brand,$color,$$g])
+                            AggregateOp#3(group_fields=[$color],scope=NORMAL)
+                                TableScanOp#0(catalog_name=default,db_name=phone,limit=2147483647,output_fields=[$brand,$color],push_down_ops=[{attrs:{output_fields:[$brand,$color]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

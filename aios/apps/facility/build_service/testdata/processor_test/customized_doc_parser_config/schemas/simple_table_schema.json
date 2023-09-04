@@ -1,0 +1,52 @@
+{
+    "table_name": "simple_table",
+    "table_type": "customized",
+    "customized_table_config" : {
+        "plugin_name" : "customized_doc_parser",
+        "parameters" : {
+            "key": "param1"
+        }
+    },
+    "customized_document_config" :
+    [
+        {
+            "plugin_name" : "customized_doc_parser",
+            "parameters" : {"key":"param2"},
+            "id" : "document.parser"
+        }
+    ],
+    
+    "fields":
+    [
+        {"field_name":"title",        "field_type":"TEXT",   "analyzer":"multi_level_analyzer"},
+        {"field_name":"price2",       "field_type":"INTEGER"},
+        {"field_name":"id",       "field_type":"INTEGER"}
+
+    ],
+
+    "indexs":
+    [
+        {
+            "index_name": "title",
+            "index_type": "TEXT",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "position_payload_flag" : 1,
+            "position_list_flag" : 1,
+            "index_analyzer" : "multi_level_analyzer",
+            "index_fields": "title"
+        },
+	    {
+	        "index_name": "pk",
+	        "index_type": "PRIMARYKEY64",
+	        "index_fields": "id"
+	    }
+    ],
+
+    "attributes": ["price2"],
+
+    "summarys":{
+        "summary_fields": ["title",  "price2"],
+        "compress_block_size": 5
+    }
+}

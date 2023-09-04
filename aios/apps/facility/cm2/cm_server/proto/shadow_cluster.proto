@@ -1,0 +1,32 @@
+syntax = "proto2";
+
+import "arpc/proto/rpc_extensions.proto";
+option cc_generic_services = true;
+option py_generic_services = true;
+option cc_enable_arenas = true;
+
+package cm_server;
+
+message CMServerAddr {
+    required string zk_addr = 1;
+    required string zk_root = 2;
+    required uint32 id = 3;
+}
+
+message CMServerAddrList {
+    repeated CMServerAddr addrs = 1;
+}
+
+message ShadowConf {
+    required string cluster_name = 1;
+    // DEPRECATED
+    required string dst_cluster_name = 2;
+    // DEPRECATED
+    required uint32 server_id = 3;
+    required int32 valid_ratio = 4; // [0,100]
+    required bool manual_to_dst = 5 [default = false]; 
+    repeated string dst_cluster_names = 6;
+    repeated uint32 server_ids = 7;
+    optional bool to_this = 8 [default = false];
+}
+

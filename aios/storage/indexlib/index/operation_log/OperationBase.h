@@ -17,6 +17,7 @@
 
 #include "autil/NoCopyable.h"
 #include "autil/mem_pool/Pool.h"
+#include "indexlib/document/IDocument.h"
 #include "indexlib/index/operation_log/OperationFieldInfo.h"
 
 namespace indexlib::index {
@@ -33,7 +34,7 @@ public:
     enum SerializedOperationType { INVALID_SERIALIZE_OP = 0, REMOVE_OP = 1, UPDATE_FIELD_OP = 2, SUB_DOC_OP = 3 };
 
 public:
-    OperationBase(int64_t timestamp, uint16_t hashId) : _timestamp(timestamp), _hashId(hashId) {}
+    OperationBase(const indexlibv2::document::IDocument::DocInfo& docInfo) : _docInfo(docInfo) {}
     virtual ~OperationBase() {}
 
 public:
@@ -41,8 +42,7 @@ public:
     virtual OperationBase* Clone(autil::mem_pool::Pool* pool) = 0;
     virtual SerializedOperationType GetSerializedType() const { return INVALID_SERIALIZE_OP; }
     virtual DocOperateType GetDocOperateType() const { return UNKNOWN_OP; }
-    int64_t GetTimestamp() const { return _timestamp; }
-    uint16_t GetHashId() const { return _hashId; }
+    const indexlibv2::document::IDocument::DocInfo& GetDocInfo() const { return _docInfo; }
     virtual size_t GetMemoryUse() const = 0;
     virtual segmentid_t GetSegmentId() const = 0;
     virtual size_t GetSerializeSize() const = 0;
@@ -57,9 +57,8 @@ public:
     }
 
 protected:
-    int64_t _timestamp;
-    uint16_t _hashId;
     std::shared_ptr<OperationFieldInfo> _operationFieldInfo;
+    indexlibv2::document::IDocument::DocInfo _docInfo;
 };
 
 } // namespace indexlib::index

@@ -35,6 +35,7 @@ public:
         json.Jsonize("shape", shape, shape);
         json.Jsonize("default_params", defaultParams, defaultParams);
     }
+
 public:
     std::string node;
     std::string type;
@@ -49,6 +50,7 @@ public:
         json.Jsonize("item", item);
         json.Jsonize("label", label);
     }
+
 public:
     std::string user;
     std::string item;
@@ -63,9 +65,8 @@ enum MODEL_TYPE {
 
 class ModelInfo : public autil::legacy::Jsonizable {
 public:
-    ModelInfo()
-    {
-    }
+    ModelInfo() {}
+
 public:
     bool empty() const {
         return inputs.empty() && outputs.empty() && index.empty();
@@ -75,6 +76,7 @@ public:
         json.Jsonize("output", outputs, outputs);
         json.Jsonize("index", index, index);
     }
+
 public:
     std::vector<NodeConfig> inputs;
     std::vector<NodeConfig> outputs;
@@ -84,8 +86,8 @@ public:
 class SamplingInfo : public autil::legacy::Jsonizable {
 public:
     SamplingInfo()
-        : count(100)
-    {}
+        : count(100) {}
+
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("sampling_fields", fields);
@@ -97,6 +99,7 @@ public:
     bool open() const {
         return !fields.empty();
     }
+
 public:
     std::vector<std::string> fields;
     size_t count;
@@ -105,9 +108,8 @@ public:
 class ModelConfig : public autil::legacy::Jsonizable {
 public:
     ModelConfig()
-        : modelType(UNKNOWN_MODEL)
-    {
-    }
+        : modelType(UNKNOWN_MODEL) {}
+
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         if (json.GetMode() == FROM_JSON) {
@@ -127,6 +129,7 @@ public:
         json.Jsonize("searcher_model_info", searcherModelInfo);
         json.Jsonize("sampling_info", samplingInfo, samplingInfo);
     }
+
 public:
     MODEL_TYPE modelType;
     std::string bizName;

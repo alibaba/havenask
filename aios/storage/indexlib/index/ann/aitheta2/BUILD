@@ -1,7 +1,6 @@
 load('@bazel_skylib//lib:selects.bzl', 'selects')
-load('@bazel_skylib//rules:common_settings.bzl', 'bool_flag')
 load('//bazel:defs.bzl', 'cc_proto')
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 load(
     '//aios/storage/indexlib/index/ann/aitheta2:defs.bzl', 'aitheta_cc_library'
 )
@@ -29,29 +28,26 @@ cc_proto(
     strip_import_prefix='',
     deps=[]
 )
-indexlib_cc_library(name='AithetaAuxSearchInfoBase', srcs=[], deps=[])
-indexlib_cc_library(
-    name='AithetaAuxSearchInfo',
-    srcs=[],
-    visibility=['//visibility:public'],
-    deps=[':AithetaAuxSearchInfoBase']
+strict_cc_library(name='AithetaAuxSearchInfoBase', srcs=[], deps=[])
+strict_cc_library(
+    name='AithetaAuxSearchInfo', srcs=[], deps=[':AithetaAuxSearchInfoBase']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AithetaQueryWrapper',
-    visibility=['//visibility:public'],
     deps=[
         ':aitheta_query_proto_cc_proto', '//aios/autil:json', '//aios/autil:log'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AithetaTerm',
     srcs=[],
-    visibility=['//visibility:public'],
+    export_name='aitheta_term',
+    export_visibility=['//visibility:public'],
     deps=[
         ':AithetaAuxSearchInfoBase', '//aios/storage/indexlib/index/common:Term'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='aitheta2_disk_indexer',
     srcs=['AithetaDiskIndexer.cpp'],
     hdrs=['AithetaDiskIndexer.h'],
@@ -63,7 +59,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/ann/aitheta2/impl:normal_segment'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='aitheta2_index_common',
     srcs=['AithetaIndexConfig.cpp'],
     hdrs=['AithetaIndexConfig.h', 'AithetaParams.h', 'CommonDefine.h'],
@@ -74,7 +70,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/base:constants',
         '//aios/storage/indexlib/index/ann/aitheta2/util:param_util',
         '//aios/storage/indexlib/util:key_value_map',
-        '//third_party/proxima2:proxima2_headers'
+        '@proxima2//:proxima2_headers'
     ]
 )
 aitheta_cc_library(
@@ -114,7 +110,7 @@ aitheta_cc_library(
         '//aios/storage/indexlib/index/ann/aitheta2/util:metric_reporter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='aitheta2_index_reader',
     srcs=['AithetaIndexReader.cpp', 'AithetaRecallReporter.cpp'],
     hdrs=['AithetaIndexReader.h', 'AithetaRecallReporter.h'],
@@ -127,8 +123,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/ann/aitheta2/impl:customized_aitheta_logger'
     ]
 )
-indexlib_cc_library(name='SingleAithetaBuilder', deps=[':aitheta2_mem_indexer'])
-indexlib_cc_library(
+strict_cc_library(name='SingleAithetaBuilder', deps=[':aitheta2_mem_indexer'])
+strict_cc_library(
     name='AithetaBuildWorkItem',
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[
@@ -136,7 +132,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:BuildWorkItem'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AithetaFilterCreator',
     srcs=[],
     deps=[

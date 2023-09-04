@@ -18,12 +18,11 @@
 #include <algorithm>
 #include <cstddef>
 
+#include "autil/Log.h"
 #include "autil/mem_pool/PoolVector.h"
-
 #include "ha3/common/TimeoutTerminator.h"
 #include "ha3/isearch.h"
 #include "ha3/search/LayerMetas.h"
-#include "autil/Log.h"
 
 using namespace std;
 
@@ -32,15 +31,12 @@ namespace search {
 AUTIL_LOG_SETUP(ha3, QueryExecutorRestrictor);
 
 LayerMetaWrapper::LayerMetaWrapper(const LayerMeta *layerMeta)
- : _layerMeta(layerMeta)
-{
+    : _layerMeta(layerMeta) {
     reset();
 }
 
 docid_t LayerMetaWrapper::seek(docid_t curDocId) {
-    while (_offset < _layerMeta->size() && 
-           (*_layerMeta)[_offset].end < curDocId)
-    {
+    while (_offset < _layerMeta->size() && (*_layerMeta)[_offset].end < curDocId) {
         ++_offset;
     }
     if (_offset < _layerMeta->size()) {
@@ -54,16 +50,13 @@ void LayerMetaWrapper::reset() {
     _offset = 0;
 }
 
-LayerMetaWrapper::~LayerMetaWrapper () {
-}
+LayerMetaWrapper::~LayerMetaWrapper() {}
 
-QueryExecutorRestrictor::QueryExecutorRestrictor() 
+QueryExecutorRestrictor::QueryExecutorRestrictor()
     : _timeoutTerminator(NULL)
-    , _layerMetaWrapper(NULL)
-{ 
-}
+    , _layerMetaWrapper(NULL) {}
 
-QueryExecutorRestrictor::~QueryExecutorRestrictor() { 
+QueryExecutorRestrictor::~QueryExecutorRestrictor() {
     DELETE_AND_SET_NULL(_layerMetaWrapper);
 }
 
@@ -84,4 +77,3 @@ void QueryExecutorRestrictor::reset() {
 }
 } // namespace search
 } // namespace isearch
-

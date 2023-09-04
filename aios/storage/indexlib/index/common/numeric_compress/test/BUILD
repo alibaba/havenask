@@ -1,0 +1,48 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+strict_cc_fast_test(
+    name='EquivalentCompressTraitsTest',
+    srcs=['EquivalentCompressTraitsTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/index/common/numeric_compress:EquivalentCompressTraits',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='EquivalentCompressWriterTest',
+    srcs=['EquivalentCompressWriterTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/common/numeric_compress:EquivalentCompressReader',
+        '//aios/storage/indexlib/index/common/numeric_compress:EquivalentCompressWriter',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='EquivalentCompressReaderTest',
+    srcs=['EquivalentCompressReaderTest.cpp'],
+    copts=['-fno-access-control'],
+    data=(['//aios/storage/indexlib:testdata'] + glob(['testdata/**'])),
+    deps=[
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/common:constants',
+        '//aios/storage/indexlib/index/common/numeric_compress:EquivalentCompressReader',
+        '//aios/storage/indexlib/index/common/numeric_compress:EquivalentCompressSessionReader',
+        '//aios/storage/indexlib/index/common/numeric_compress:EquivalentCompressWriter',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='EquivalentCompressReaderPerfTest',
+    srcs=['EquivalentCompressReaderPerfTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/common:constants',
+        '//aios/storage/indexlib/index/common/numeric_compress:EquivalentCompressReader',
+        '//aios/storage/indexlib/index/common/numeric_compress:EquivalentCompressWriter',
+        '//aios/unittest_framework'
+    ]
+)

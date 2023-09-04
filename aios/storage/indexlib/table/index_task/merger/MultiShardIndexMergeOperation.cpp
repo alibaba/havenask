@@ -25,7 +25,6 @@
 #include "indexlib/framework/index_task/IndexTaskResourceManager.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/table/index_task/merger/MergePlan.h"
-#include "indexlib/table/index_task/merger/MergeUtil.h"
 #include "indexlib/table/plain/MultiShardDiskSegment.h"
 
 using namespace std;
@@ -68,7 +67,9 @@ MultiShardIndexMergeOperation::PrepareSegmentMergeInfos(const framework::IndexTa
 
     index::IIndexMerger::SegmentMergeInfos segMergeInfos;
     for (size_t i = 0; i < segMergePlan.GetSrcSegmentCount(); i++) {
-        auto sourceSegment = MergeUtil::GetSourceSegment(segMergePlan.GetSrcSegmentId(i), tabletData);
+        index::IIndexMerger::SourceSegment sourceSegment;
+        std::tie(sourceSegment.segment, sourceSegment.baseDocid) =
+            tabletData->GetSegmentWithBaseDocid(segMergePlan.GetSrcSegmentId(i));
         auto multiShardSegment = dynamic_pointer_cast<plain::MultiShardDiskSegment>(sourceSegment.segment);
         sourceSegment.segment = multiShardSegment->GetShardSegment(inLevelIdx);
         assert(sourceSegment.segment);

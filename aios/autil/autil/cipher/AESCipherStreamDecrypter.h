@@ -16,40 +16,39 @@
 #pragma once
 
 #include "autil/Log.h"
-#include "openssl/evp.h"
 #include "autil/cipher/AESCipherDecrypter.h"
+#include "autil/cipher/ICipherStream.h"
+#include "openssl/evp.h"
 
-namespace autil { namespace cipher {
+namespace autil {
+namespace cipher {
 
 class MemoryDataPipeline;
 
-class AESCipherStreamDecrypter : public AESCipherDecrypter
-{
+class AESCipherStreamDecrypter : public AESCipherDecrypter, public ICipherStream {
 public:
-    AESCipherStreamDecrypter(std::unique_ptr<AESCipherUtility> utility,
-                             size_t capacity, size_t readTimeoutInMs);
+    AESCipherStreamDecrypter(std::unique_ptr<AESCipherUtility> utility, size_t capacity, size_t readTimeoutInMs);
     ~AESCipherStreamDecrypter();
 
 public:
-    bool append(const unsigned char* data, size_t dataLen);
-    size_t get(unsigned char* buffer, size_t bufferLen);
-    
-    bool seal();
+    bool append(const unsigned char *data, size_t dataLen) override;
+    size_t get(unsigned char *buffer, size_t bufferLen) override;
+
+    bool seal() override;
     bool isSealed() const { return _status == ST_SEALED; }
     size_t getMemoryUse() const;
-    bool isEof() const;
+    bool isEof() const override;
 
 private:
-    enum InnerStatus
-    {
+    enum InnerStatus {
         ST_UNKNOWN = 0,
         ST_INIT = 1,
         ST_SEALED = 2,
         ST_ERROR = 3,
     };
-    
-    EVP_CIPHER_CTX* _ctx = nullptr;
-    MemoryDataPipeline* _pipe = nullptr;
+
+    EVP_CIPHER_CTX *_ctx = nullptr;
+    MemoryDataPipeline *_pipe = nullptr;
     std::string _saltHeader;
     size_t _capacity;
     size_t _readTimeoutInMs;
@@ -60,5 +59,5 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-}}
-
+} // namespace cipher
+} // namespace autil

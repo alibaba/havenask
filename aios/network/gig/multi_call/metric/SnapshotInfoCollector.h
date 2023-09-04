@@ -16,24 +16,33 @@
 #ifndef ISEARCH_MULTI_CALL_SNAPSHOTINFOCOLLECTOR_H
 #define ISEARCH_MULTI_CALL_SNAPSHOTINFOCOLLECTOR_H
 
+#include <limits>
+
 #include "aios/network/gig/multi_call/common/ControllerParam.h"
 #include "aios/network/gig/multi_call/common/common.h"
-#include <limits>
 
 namespace multi_call {
 
 struct SnapshotBizInfo {
     SnapshotBizInfo()
-        : versionCount(0), completeVersionCount(0), copyVersionCount(0),
-          totalVersionWeight(0), completeVersionWeight(0), providerCount(0),
-          healthProviderCount(0), unhealthProviderCount(0),
-          copyProviderCount(0),
-          minProviderLatency(std::numeric_limits<float>::max()),
-          minErrorRatio(std::numeric_limits<float>::max()),
-          minDegradeRatio(std::numeric_limits<float>::max()),
-          minLoadBalanceLatency(std::numeric_limits<float>::max()),
-          minLoadBalanceDegradeRatio(std::numeric_limits<float>::max()),
-          avgWeight(MAX_WEIGHT_FLOAT), delaySum(0), delayCount(0) {}
+        : versionCount(0)
+        , completeVersionCount(0)
+        , copyVersionCount(0)
+        , totalVersionWeight(0)
+        , completeVersionWeight(0)
+        , providerCount(0)
+        , healthProviderCount(0)
+        , unhealthProviderCount(0)
+        , copyProviderCount(0)
+        , minProviderLatency(std::numeric_limits<float>::max())
+        , minErrorRatio(std::numeric_limits<float>::max())
+        , minDegradeRatio(std::numeric_limits<float>::max())
+        , minLoadBalanceLatency(std::numeric_limits<float>::max())
+        , minLoadBalanceDegradeRatio(std::numeric_limits<float>::max())
+        , avgWeight(MAX_WEIGHT_FLOAT)
+        , delaySum(0)
+        , delayCount(0) {
+    }
     int32_t versionCount;
     int32_t completeVersionCount;
     int32_t copyVersionCount;
@@ -58,7 +67,8 @@ struct SnapshotBizInfo {
 
 typedef std::map<std::string, SnapshotBizInfo> SnapshotBizInfoMap;
 
-class SnapshotInfoCollector {
+class SnapshotInfoCollector
+{
 public:
     SnapshotInfoCollector();
     ~SnapshotInfoCollector();
@@ -68,8 +78,7 @@ private:
     SnapshotInfoCollector &operator=(const SnapshotInfoCollector &);
 
 public:
-    void addSnapshotBizInfo(const std::string &bizName,
-                            const SnapshotBizInfo &snapshotInfo);
+    void addSnapshotBizInfo(const std::string &bizName, const SnapshotBizInfo &snapshotInfo);
     const SnapshotBizInfoMap &getSnapshotInfoMap() const;
 
 private:

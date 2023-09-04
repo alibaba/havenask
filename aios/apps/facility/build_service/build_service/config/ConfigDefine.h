@@ -58,7 +58,6 @@ extern const std::string BS_TASK_SYNC_INDEX;
 extern const std::string BS_REPARTITION;
 extern const std::string BS_TASK_RUN_SCRIPT;
 extern const std::string BS_SNAPSHOT_VERSION;
-extern const std::string BS_TASK_CONFIG_FILE_PATH;
 extern const std::string BS_DROP_BUILDING_INDEX;
 extern const std::string BS_BUILDER_TASK_V2;
 
@@ -67,7 +66,7 @@ extern const std::string BS_ENDBUILD_PARTITION_COUNT;
 extern const std::string BS_ENDBUILD_WORKER_PATHVERSION;
 
 extern const std::string BS_BUILD_TASK_TARGET;
-
+extern const std::string BS_APP_NAME;
 extern const std::string BS_GENERAL_TASK;
 extern const std::string BS_TASK_PARALLEL_NUM;
 extern const std::string BS_TASK_THREAD_NUM;

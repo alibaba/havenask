@@ -20,6 +20,7 @@
 #include <memory>
 #include <stdlib.h>
 
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 
 using namespace std;
@@ -33,12 +34,7 @@ MultiPathDataFlushController::~MultiPathDataFlushController() {}
 
 void MultiPathDataFlushController::InitFromEnv()
 {
-    char* envParam = getenv("INDEXLIB_DATA_FLUSH_PARAM");
-    string paramStr;
-    if (envParam) {
-        paramStr = string(envParam);
-    }
-
+    string paramStr = autil::EnvUtil::getEnv("INDEXLIB_DATA_FLUSH_PARAM");
     InitFromString(paramStr);
 }
 

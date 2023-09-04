@@ -1,0 +1,19 @@
+{
+    "aggregate_sampler_config" : {
+	"aggThreshold" : 1234
+    },
+    "summary_profile_config" : {
+	"modules" : [
+	],
+	"summary_profiles" : [
+            {
+		"summary_profile_name": "DefaultProfile",
+		"extractor":
+		{
+                    "extractor_name": "DefaultSummaryExtractor",
+                    "module_name": ""
+		}
+            }
+	]
+    }
+}

@@ -1,0 +1,27 @@
+#import(Tool)
+#import(Log)
+
+function graphDef()
+   local clusterNames = Tool.jsonToList(Graph.parameter["clusterNames"])
+   local schemaIdMap = Tool.jsonToMap(Graph.parameter["schemaIdMap"])
+   local opsIdMap = Tool.jsonToMap(Graph.parameter["operationIdMap"])
+   -- start alter field flow
+   for i, v in ipairs(clusterNames)
+   do
+      local clusterParam = {}
+      clusterParam["clusterName"] = v
+      clusterParam["schemaId"] = schemaIdMap[v]
+      clusterParam["buildId"] = Graph.parameter["buildId"]
+      clusterParam["buildStep"] = Graph.parameter["buildStep"]
+      clusterParam["dataDescriptions"] = Graph.parameter["dataDescriptions"]
+      clusterParam["operationInfos"] = opsIdMap[v]
+      local loadClusterSuccess = Graph.loadSubGraph(v, "SingleClusterModifySchema.graph", clusterParam)
+      if (not loadClusterSuccess)
+      then
+      	 Log.log("ERROR", "load SingleClusterChangeSchema.graph fail for cluster:"..v)
+         return false
+      end
+   end
+   return true
+end
+

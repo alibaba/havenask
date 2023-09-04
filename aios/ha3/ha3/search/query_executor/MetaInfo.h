@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 #pragma once
-#include "suez/turing/expression/provider/MetaInfo.h"
 #include "ha3/search/TermMetaInfo.h"
+#include "suez/turing/expression/provider/MetaInfo.h"
 
 namespace isearch {
 namespace rank {

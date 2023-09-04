@@ -28,7 +28,7 @@ class FunctionInterfaceManager;
 } // namespace expression
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::framework {
@@ -48,7 +48,7 @@ public:
 
 public:
     Status Init(const std::vector<std::shared_ptr<framework::Segment>>& segments,
-                const std::shared_ptr<config::TabletSchema>& schema, const std::vector<std::string>& functionNames);
+                const std::shared_ptr<config::ITabletSchema>& schema, const std::vector<std::string>& functionNames);
     std::vector<std::shared_ptr<DocumentEvaluatorBase>> GetAllEvaluators();
 
 private:
@@ -60,7 +60,7 @@ private:
     std::unique_ptr<expression::FunctionInterfaceFactory> _functionInterfaceFactory;
     std::unique_ptr<expression::FunctionInterfaceManager> _functionInterfaceManager;
     std::unique_ptr<expression::AttributeExpressionCreator> _attributeExpressionCreator;
-    std::shared_ptr<config::TabletSchema> _schema;
+    std::shared_ptr<config::ITabletSchema> _schema;
     std::vector<std::shared_ptr<DocumentEvaluatorBase>> _evaluators;
     std::unique_ptr<TabletSessionResource> _sessionResource;
     AtomicExpressionCreator* _atomicExpressionCreator;

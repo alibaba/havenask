@@ -1,0 +1,80 @@
+{
+    "extract_rule": [
+        {
+            "query": {
+                "match": {
+                    "service_id": {
+                        "query":"0"
+                    }
+                }
+            },
+            "filter":"",
+            "count":-1,
+            "required_fields":["__ALL_ATTRIBUTE__", "__ALL_SUMMARY__"],
+            "output_config":{
+                "modules": [
+                    {
+                        "module_name": "freeschema",
+                        "module_path": "libfreeschema.so"
+                    }
+                ],
+                "type":"SWIFT",
+                "output_module": "",
+                "params":{
+                    "dest":"SWIFT",
+                    "zk_root":"test",
+                    "topic_name":"123"
+                },
+                "convertors": [
+                    {
+                        "module": "freeschema",
+                        "name": {
+                            "FreeSchemaConvertor"
+                        },
+                        "parameters": {
+                            "new_service_id": "100"
+                        }
+                    },
+                    {
+                        "module": "",
+                        "name": {
+                            "SwiftMessageConvertor"
+                        },
+                        "parameters": {
+                            "hash_mode":"HASH",
+                            "hash_field":"pk"
+                        }                    
+                    }                    
+                ]
+            }
+        },
+        {
+            "query": {
+                "match": {
+                    "service_id": {
+                        "query":"1"
+                    }
+                }
+            },
+            "filter":"",
+            "count":-1,
+            "required_fields":["__ALL_ATTRIBUTE__", "__ALL_SUMMARY__"],
+            "convertor" : {
+                "module": {
+                },
+                "parameters": {
+                }
+            },            
+            "output_config":{
+                "type":"SWIFT",
+                "params":{
+                    "zk_root":"test",
+                    "client_config":"",
+                    "topic_name":"123",
+                    "hash_mode":"HASH",
+                    "hash_field":"pk"                    
+                }
+            }
+        }        
+    ]
+}

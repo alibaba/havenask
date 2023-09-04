@@ -33,7 +33,7 @@ class IIndexFactory;
 } // namespace indexlibv2::index
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 class IIndexConfig;
 } // namespace indexlibv2::config
 
@@ -46,20 +46,20 @@ class PlainDiskSegment : public framework::DiskSegment
 public:
     using IndexMapKey = std::pair<std::string, std::string>;
 
-    PlainDiskSegment(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    PlainDiskSegment(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                      const framework::SegmentMeta& segmentMeta, const framework::BuildResource& buildResource);
     ~PlainDiskSegment() = default;
 
     Status Open(const std::shared_ptr<MemoryQuotaController>& memoryQuotaController,
                 framework::DiskSegment::OpenMode mode) override;
-    Status Reopen(const std::vector<std::shared_ptr<config::TabletSchema>>& schemas) override;
+    Status Reopen(const std::vector<std::shared_ptr<config::ITabletSchema>>& schemas) override;
     std::pair<Status, std::shared_ptr<index::IIndexer>> GetIndexer(const std::string& type,
                                                                    const std::string& indexName) override;
     void AddIndexer(const std::string& type, const std::string& indexName,
                     std::shared_ptr<indexlibv2::index::IIndexer> indexer) override;
     void DeleteIndexer(const std::string& type, const std::string& indexName) override;
 
-    size_t EstimateMemUsed(const std::shared_ptr<config::TabletSchema>& schema) override;
+    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override;
     size_t EvaluateCurrentMemUsed() override;
 
 protected:
@@ -76,10 +76,10 @@ protected:
 
     index::IndexerParameter GenerateIndexerParameter() const;
     virtual bool NeedDrop(const std::string& indexType, const std::string& indexName,
-                          const std::vector<std::shared_ptr<config::TabletSchema>>& schemas);
+                          const std::vector<std::shared_ptr<config::ITabletSchema>>& schemas);
 
 protected:
-    std::shared_ptr<indexlibv2::config::TabletSchema> _schema;
+    std::shared_ptr<indexlibv2::config::ITabletSchema> _schema;
     std::map<IndexMapKey, std::shared_ptr<index::IDiskIndexer>> _indexMap;
     mutable autil::ReadWriteLock _indexMapLock;
     framework::BuildResource _buildResource;

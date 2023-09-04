@@ -29,7 +29,9 @@ public:
         json.Jsonize("service_desc", serviceDesc, serviceDesc);
     }
 
-    bool isValid() const { return true; }
+    bool isValid() const {
+        return true;
+    }
 
 public:
     int partitionCnt = 0;

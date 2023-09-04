@@ -5,17 +5,19 @@
  * Author Email: yixuan.ly@alibaba-inc.com
  */
 
-#include <string>
-#include "kmonitor/client/common/Common.h"
 #include "kmonitor/client/metric/DenseStore.h"
-#include <vector>
+
 #include <limits.h>
 #include <string.h>
+#include <string>
+#include <vector>
+
+#include "kmonitor/client/common/Common.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
-DenseStore::DenseStore(int32_t arrayLengthGrowthIncrement, int32_t arrayLengthOverhead) : arrayLengthGrowthIncrement_(arrayLengthGrowthIncrement), arrayLengthOverhead_(arrayLengthOverhead)
-{
+DenseStore::DenseStore(int32_t arrayLengthGrowthIncrement, int32_t arrayLengthOverhead)
+    : arrayLengthGrowthIncrement_(arrayLengthGrowthIncrement), arrayLengthOverhead_(arrayLengthOverhead) {
     counts_ = NULL;
     countsLength_ = 0;
     offset_ = 0;
@@ -23,12 +25,9 @@ DenseStore::DenseStore(int32_t arrayLengthGrowthIncrement, int32_t arrayLengthOv
     maxIndex_ = INT_MIN;
 }
 
-DenseStore::~DenseStore() {
-    delete []counts_;
-}
+DenseStore::~DenseStore() { delete[] counts_; }
 
-void DenseStore::add(int32_t index, int64_t count)
-{
+void DenseStore::add(int32_t index, int64_t count) {
     if (count <= 0) {
         return;
     }
@@ -37,8 +36,7 @@ void DenseStore::add(int32_t index, int64_t count)
     counts_[arrayIndex] += count;
 }
 
-int64_t DenseStore::getTotalCount(int32_t fromIndex, int32_t toIndex)
-{
+int64_t DenseStore::getTotalCount(int32_t fromIndex, int32_t toIndex) {
     if (isEmpty()) {
         return 0;
     }
@@ -54,8 +52,7 @@ int64_t DenseStore::getTotalCount(int32_t fromIndex, int32_t toIndex)
     return totalCount;
 }
 
-void DenseStore::extendRange(int32_t newMinIndex, int32_t newMaxIndex)
-{
+void DenseStore::extendRange(int32_t newMinIndex, int32_t newMaxIndex) {
     newMinIndex = (newMinIndex < minIndex_) ? newMinIndex : minIndex_;
     newMaxIndex = (newMaxIndex > maxIndex_) ? newMaxIndex : maxIndex_;
     if (isEmpty()) {
@@ -63,9 +60,9 @@ void DenseStore::extendRange(int32_t newMinIndex, int32_t newMaxIndex)
         counts_ = new int64_t[countsLength_](); // add () to init 0 in counts_
         offset_ = newMinIndex;
         minIndex_ = newMinIndex;
-        
-        //java就是取的newMinIndex，而且因为newMinIndex==newMaxIndex，所以暂保持一致
-        maxIndex_ = newMinIndex; 
+
+        // java就是取的newMinIndex，而且因为newMinIndex==newMaxIndex，所以暂保持一致
+        maxIndex_ = newMinIndex;
         adjust(newMinIndex, newMaxIndex);
     } else if ((newMinIndex >= offset_ && newMaxIndex < offset_ + countsLength_)) {
         minIndex_ = newMinIndex;
@@ -74,10 +71,10 @@ void DenseStore::extendRange(int32_t newMinIndex, int32_t newMaxIndex)
         int32_t desiredLength = newMaxIndex - newMinIndex + 1;
         int32_t newLength = getNewLength(desiredLength);
         if (newLength > countsLength_) {
-            int64_t* newCounts = new int64_t[newLength]();
-            memcpy((void*)newCounts, (void*)counts_, countsLength_ * sizeof(int64_t));
+            int64_t *newCounts = new int64_t[newLength]();
+            memcpy((void *)newCounts, (void *)counts_, countsLength_ * sizeof(int64_t));
             countsLength_ = newLength;
-            delete []counts_;
+            delete[] counts_;
             counts_ = newCounts;
         }
 
@@ -93,33 +90,28 @@ void DenseStore::centerCounts(int32_t newMinIndex, int32_t newMaxIndex) {
     maxIndex_ = newMaxIndex;
 }
 
-void DenseStore::getCounts(std::vector<int64_t> &vec) {
-    vec.assign(counts_, counts_ + countsLength_);
-}
-
+void DenseStore::getCounts(std::vector<int64_t> &vec) { vec.assign(counts_, counts_ + countsLength_); }
 
 void DenseStore::shiftCounts(int32_t shift) {
     int32_t minArrayIndex = minIndex_ - offset_;
     int32_t maxArrayIndex = maxIndex_ - offset_;
 
-    memmove((void*)(counts_ + (minArrayIndex + shift)),
-            (void*)(counts_ + minArrayIndex),
+    memmove((void *)(counts_ + (minArrayIndex + shift)),
+            (void *)(counts_ + minArrayIndex),
             (maxArrayIndex - minArrayIndex + 1) * sizeof(int64_t));
 
     if (shift > 0) {
-        memset((void*)(counts_ + minArrayIndex), 0, shift * sizeof(int64_t));
+        memset((void *)(counts_ + minArrayIndex), 0, shift * sizeof(int64_t));
     } else {
-        memset((void*)(counts_ + (maxArrayIndex + shift + 1)), 0, (-shift) * sizeof(int64_t));
+        memset((void *)(counts_ + (maxArrayIndex + shift + 1)), 0, (-shift) * sizeof(int64_t));
     }
 
     //初始及每次新申请空间时offset_ = 0 放的index即为midindex_value，这样就尽可能多存数据
-    //offset_ - (offset_ + countsLength_ / 2 - middleIndex) = middleIndex - countsLength_ / 2
-    offset_ -= shift; 
+    // offset_ - (offset_ + countsLength_ / 2 - middleIndex) = middleIndex - countsLength_ / 2
+    offset_ -= shift;
 }
 
-
-int32_t DenseStore::normalize(int32_t index)
-{
+int32_t DenseStore::normalize(int32_t index) {
     if (index < minIndex_ || index > maxIndex_) {
         extendRange(index);
     }
@@ -127,9 +119,6 @@ int32_t DenseStore::normalize(int32_t index)
     return index - offset_;
 }
 
-void DenseStore::adjust(int32_t newMinIndex, int32_t newMaxIndex) {
-    centerCounts(newMinIndex, newMaxIndex);
-}
+void DenseStore::adjust(int32_t newMinIndex, int32_t newMaxIndex) { centerCounts(newMinIndex, newMaxIndex); }
 
 END_KMONITOR_NAMESPACE(kmonitor);
-

@@ -1,0 +1,67 @@
+--[[
+Flow.parameter : flow related kv parameters 
+Flow.createTask(taskId, taskType, taskKvParam = nil) 
+Flow.getTaskProperty(taskId, key, flowId = nil) 
+Flow.getTaskInFlow(taskId, flowId) 
+Flow.setError(msg) 
+Flow.setFatalError(msg) 
+Flow.setProperty(key, value) 
+Flow.getProperty(key) 
+Flow.startTask(taskObj, kvParam = nil) 
+Flow.finishTask(taskObj, kvParam = nil) 
+######################################################### 
+function stepRunFlow() will be called by single TaskFlow, return true means eof of flow 
+--]]
+
+#import(Tool)
+#import(Log)
+
+function stepRunFlow()
+   local param = Tool.copyMap(Flow.parameter)
+   local cloneIndexFlowId = Flow.parameter['cloneIndexFlowId']
+   
+   if (cloneIndexFlowId ~= nil)
+   then
+      local cloneIndexTask = Flow.getTaskInFlow("cloneIndex", cloneIndexFlowId)
+      if (cloneIndexTask:isValid())
+      then
+         -- the locator key of single cluster format like: ${clusterName}-cloned-index-locator
+         local locator = cloneIndexTask:getProperty(Flow.parameter["clusterName"].."-cloned-index-locator")
+         if (locator == "")
+         then
+            Log.log("ERROR", "no cloned-index-locator defined in CloneIndexTask: "..Flow.parameter["buildId"])
+            return false
+         end
+         param["checkpoint"] = locator
+         param["startDataDescriptionId"] = "1"
+      end
+      if (Flow.parameter["realtimeDataDescription"] ~= nil)
+      then
+         local dsJson = Flow.parameter["realtimeDataDescription"]
+         param["data_description"] = dsJson
+         Log.log("WARN", "dsJson: "..dsJson) 
+         
+         local dsKvMap = Tool.jsonToMap(dsJson)
+         local startTs = dsKvMap["swift_start_timestamp"]
+         if (startTs ~= nil and startTs ~= "-1" and startTs ~= "")
+         then
+            param["checkpoint"] = startTs
+            Log.log("WARN", "startTs: "..startTs) 
+         end
+       end
+   end
+   
+   local task = Flow.createTask("incProcessor", "processor", param)
+   if (not task:isValid())
+   then
+      Flow.setFatalError("createSimpleFlow Task id:incProcessor, type:processor fail!")
+      return false
+   end
+   if (not Flow.startTask(task, param))
+   then
+      Flow.setFatalError("start SimpleFlow Task id:incProcessor fail!")
+      return false
+   end
+   return true
+end
+

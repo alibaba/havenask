@@ -16,7 +16,6 @@
 #include "indexlib/index/kv/hash_table_compress_var_segment_reader.h"
 
 using namespace std;
-using namespace indexlib::codegen;
 
 namespace indexlib { namespace index {
 IE_LOG_SETUP(index, HashTableCompressVarSegmentReader);
@@ -76,7 +75,7 @@ bool HashTableCompressVarSegmentReader::doCollectAllCode()
 
 void HashTableCompressVarSegmentReader::TEST_collectCodegenResult(CodegenCheckers& checkers, std::string id)
 {
-    CodegenCheckerPtr checker(new CodegenChecker);
+    codegen::CodegenCheckerPtr checker(new codegen::CodegenChecker);
     COLLECT_TYPE_DEFINE(checker, OffsetReaderType);
     checkers[string("HashTableCompressVarSegmentReader") + id] = checker;
     mOffsetReader.TEST_collectCodegenResult(checkers, id);

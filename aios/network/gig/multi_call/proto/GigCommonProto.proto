@@ -32,3 +32,8 @@ enum GigMetaByTcp {
     META_BT_APPEND = 1;
     META_BT_IGRAPH = 2;
 }
+
+enum GigTagMatchType {
+    GIG_TMT_REQUIRE = 0;
+    GIG_TMT_PREFER = 1;
+}

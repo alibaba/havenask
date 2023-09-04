@@ -23,21 +23,16 @@
 
 namespace kmonitor_adapter {
 
-QpsRecorder::QpsRecorder(const std::string& name, MetricPtr metric)
-    : _name(name)
-    , _metric(std::move(metric))
-    , _mergedSum(0)
-    , _last(0)
-{
+QpsRecorder::QpsRecorder(const std::string &name, MetricPtr metric)
+    : _name(name), _metric(std::move(metric)), _mergedSum(0), _last(0) {
     registerRecorder();
 }
 
-QpsRecorder::QpsRecorder(Monitor* monitor, const std::string& metricName, kmonitor::MetricLevel level,
-                         const Metric::KVVec& tags)
-    : _name(metricName)
-    , _mergedSum(0)
-    , _last(0)
-{
+QpsRecorder::QpsRecorder(Monitor *monitor,
+                         const std::string &metricName,
+                         kmonitor::MetricLevel level,
+                         const Metric::KVVec &tags)
+    : _name(metricName), _mergedSum(0), _last(0) {
     assert(monitor);
     _metric = monitor->registerQPSMetric(metricName, level, tags);
     assert(_metric);

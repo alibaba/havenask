@@ -36,7 +36,7 @@ class MultiValueAttributeDefragSliceArray : public indexlib::util::DefragSliceAr
 {
 public:
     MultiValueAttributeDefragSliceArray(const std::shared_ptr<indexlib::util::DefragSliceArray::SliceArray>& sliceArray,
-                                        const std::string& attrName, float defragPercentThreshold,
+                                        const std::string& attrName, uint64_t defragPercentThreshold,
                                         framework::IIndexMemoryReclaimer* indexMemoryReclaimer);
     ~MultiValueAttributeDefragSliceArray() = default;
 
@@ -65,7 +65,7 @@ private:
     std::shared_ptr<AttributeMetrics> _attributeMetrics;
     std::vector<int64_t> _uselessSliceIdxs;
     std::string _attrName;
-    float _defragPercentThreshold;
+    uint64_t _defragPercentThreshold;
     framework::IIndexMemoryReclaimer* _indexMemoryReclaimer;
 
 private:

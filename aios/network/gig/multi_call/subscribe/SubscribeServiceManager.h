@@ -24,7 +24,8 @@
 
 namespace multi_call {
 
-class SubscribeServiceManager {
+class SubscribeServiceManager
+{
 
 public:
     SubscribeServiceManager();
@@ -35,7 +36,9 @@ private:
     SubscribeServiceManager &operator=(const SubscribeServiceManager &);
 
 public:
-    virtual bool empty() { return _subServiceVec.empty(); };
+    virtual bool empty() {
+        return _subServiceVec.empty();
+    };
     bool clusterInfoNeedUpdate();
     virtual bool getClusterInfoMap(TopoNodeVec &topoNodeVec, HeartbeatSpecVec &heartbeatSpecs);
     bool addSubscribe(const SubscribeClustersConfig &gigSubConf);
@@ -48,8 +51,7 @@ public:
     virtual bool unsubscribeBiz(const std::string &bizName);
 
 public:
-    void setMetricReporterManager(
-        const MetricReporterManagerPtr &metricReporterManager) {
+    void setMetricReporterManager(const MetricReporterManagerPtr &metricReporterManager) {
         _metricReporterManager = metricReporterManager;
     }
 

@@ -91,7 +91,12 @@ public:
         _pkAttrDiskIndexer = pkAttrDiskIndexer;
         return Status::OK();
     }
-
+    void InhertPkAttributeDiskIndexer(PrimaryKeyDiskIndexer<Key>* other)
+    {
+        if (other) {
+            _pkAttrDiskIndexer = other->_pkAttrDiskIndexer;
+        }
+    }
     std::shared_ptr<AttributeDiskIndexer> GetPKAttributeDiskIndexer() const { return _pkAttrDiskIndexer; }
 
     bool InnerOpen(const std::shared_ptr<indexlibv2::index::PrimaryKeyIndexConfig>& indexConfig,

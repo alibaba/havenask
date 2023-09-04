@@ -27,7 +27,8 @@ namespace multi_call {
 
 typedef std::shared_ptr<anet::HTTPPacket> HTTPPacketPtr;
 
-class HttpResponse : public Response {
+class HttpResponse : public Response
+{
 public:
     HttpResponse();
     virtual ~HttpResponse();

@@ -1,0 +1,1 @@
+{"id":"@BS_LUA_SCRIPT_ID", "zip":true}

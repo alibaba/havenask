@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "Log.h"
 #include "HTTPANetApp.h"
+
+#include "Log.h"
 
 using namespace std;
 using namespace anet;
@@ -23,8 +24,7 @@ namespace http_arpc {
 
 HTTP_ARPC_DECLARE_AND_SETUP_LOGGER(HTTPANetApp);
 
-HTTPANetApp::HTTPANetApp(Transport *transport)
-    : _streamer(&_factory) {
+HTTPANetApp::HTTPANetApp(Transport *transport) : _streamer(&_factory) {
     _ownTransport = false;
 
     if (transport == NULL) {
@@ -43,14 +43,9 @@ HTTPANetApp::~HTTPANetApp() {
     }
 }
 
-IOComponent* HTTPANetApp::Listen(const std::string &address,
-                             IServerAdapter *serverAdapter,
-                             int timeout,
-                             int maxIdleTime,
-                             int backlog)
-{
-    return _transport->listen(address.c_str(), &_streamer, serverAdapter,
-                              timeout, maxIdleTime, backlog);
+IOComponent *HTTPANetApp::Listen(
+    const std::string &address, IServerAdapter *serverAdapter, int timeout, int maxIdleTime, int backlog) {
+    return _transport->listen(address.c_str(), &_streamer, serverAdapter, timeout, maxIdleTime, backlog);
 }
 
 bool HTTPANetApp::StartPrivateTransport() {
@@ -73,4 +68,4 @@ bool HTTPANetApp::StopPrivateTransport() {
     return true;
 }
 
-}
+} // namespace http_arpc

@@ -17,21 +17,20 @@
 #define ARPC_ANET_RPC_SERVER_H__
 #include <stddef.h>
 #include <stdint.h>
-#include <utility>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
+#include <utility>
 
+#include "aios/autil/autil/Lock.h"
 #include "aios/network/anet/anet.h"
-#include "autil/LockFreeThreadPool.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/arpc/arpc/RPCServer.h"
 #include "aios/network/arpc/arpc/anet/ANetApp.h"
-#include "aios/autil/autil/Lock.h"
+#include "autil/LockFreeThreadPool.h"
 
 ARPC_BEGIN_NAMESPACE(arpc);
 
-class ANetRPCServer : public RPCServer
-{
+class ANetRPCServer : public RPCServer {
 public:
     /**
      * @param: transport instance for ANet.
@@ -40,9 +39,7 @@ public:
      * Otherwise, ANetRPCServer will
      * share transport object with out world.
      */
-    ANetRPCServer(anet::Transport *transport = NULL,
-                  size_t  threadNum = 1,
-                  size_t queueSize = 50);
+    ANetRPCServer(anet::Transport *transport = NULL, size_t threadNum = 1, size_t queueSize = 50);
     /**
      * If there is a private transport instance,
      * it will be free.
@@ -59,28 +56,23 @@ public:
     virtual int GetListenPort() override;
 
 public:
-    bool OwnTransport() {
-        return _anetApp.OwnTransport();
-    }
+    bool OwnTransport() { return _anetApp.OwnTransport(); }
 
     /**
      * Make the private transport spin. IO thread and time thread will be activated.
      * @return bool, true if the transport is started successfully.
      */
-    bool StartPrivateTransport() {
-        return _anetApp.StartPrivateTransport();
-    }
+    bool StartPrivateTransport() { return _anetApp.StartPrivateTransport(); }
 
     /**
      * Stop the private transport and destroy all the threads created.
      * This function must be called if StartPrivateTransport() is called.
      * @return true if the transport is stopped successfully.
      */
-    bool StopPrivateTransport() {
-        return _anetApp.StopPrivateTransport();
-    }
+    bool StopPrivateTransport() { return _anetApp.StopPrivateTransport(); }
+    anet::Transport *GetTransport() { return _anetApp.GetTransport(); }
 
-
+    void SetMetricReporter(const std::shared_ptr<ServerMetricReporter> &metricReporter);
 
 public:
     friend class ANetRPCServerTest;
@@ -89,6 +81,7 @@ private:
     ANetApp _anetApp;
     std::list<anet::IOComponent *> _ioComponentList;
     autil::ThreadMutex _ioComponentMutex;
+    std::shared_ptr<ServerMetricReporter> _metricReporter;
 };
 
 ARPC_END_NAMESPACE(arpc);

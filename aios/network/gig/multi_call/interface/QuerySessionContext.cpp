@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/interface/QuerySessionContext.h"
-#include "aios/network/gig/multi_call/interface/SearchService.h"
+
 #include "aios/network/gig/multi_call/agent/QueryInfo.h"
+#include "aios/network/gig/multi_call/interface/SearchService.h"
 #include "aios/network/opentelemetry/core/eagleeye/EagleeyePropagator.h"
 #include "aios/network/opentelemetry/core/eagleeye/EagleeyeUtil.h"
 

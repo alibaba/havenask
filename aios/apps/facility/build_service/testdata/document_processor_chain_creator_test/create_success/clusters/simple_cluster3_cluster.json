@@ -1,0 +1,36 @@
+{
+    "cluster_config" : {
+        "table_name" : "simple_table",
+	    "hash_mode" : {
+            "hash_function" : "KINGSO_HASH#720",
+            "hash_field" : "id"
+	    }
+    },
+    "online_index_config" : {
+        "build_config" : {
+            "keep_version_count" : 2,
+            "max_doc_count" : 30,
+            "max_memory_use" : 1024
+        }
+    },
+    "offline_index_config" : {
+        "build_config" : {
+            "keep_version_count" : 2,
+            "max_doc_count" : 30,
+            "max_memory_use" : 1024
+        },
+        "merge_config" : {
+            "merge_strategy" : "optimize",
+            "merge_strategy_param" : ""
+        }
+    },
+    "build_option_config" : {
+        "sort_build" : false,
+        "sort_descriptions" : [
+            {
+                "sort_field" : "id",
+                "sort_pattern" : "desc"
+            }
+        ]
+    }
+}

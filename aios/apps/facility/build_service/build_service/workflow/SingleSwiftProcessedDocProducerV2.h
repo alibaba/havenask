@@ -24,6 +24,7 @@
 #include "build_service/common_define.h"
 #include "build_service/document/ProcessedDocument.h"
 #include "build_service/util/Log.h"
+#include "build_service/util/SwiftMessageFilter.h"
 #include "build_service/workflow/ProcessedDocExceptionHandler.h"
 #include "build_service/workflow/Producer.h"
 #include "build_service/workflow/SwiftProcessedDocProducer.h"
@@ -34,7 +35,7 @@
 #include "indexlib/util/counter/CounterMap.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::document {
@@ -61,7 +62,7 @@ private:
 
 public:
     SingleSwiftProcessedDocProducerV2(
-        const common::SwiftParam& swiftParam, const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+        const common::SwiftParam& swiftParam, const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
         const proto::PartitionId& partitionId,
         const indexlib::util::TaskSchedulerPtr& taskScheduler = indexlib::util::TaskSchedulerPtr());
     ~SingleSwiftProcessedDocProducerV2();
@@ -92,7 +93,7 @@ public:
                                 bool isReportFastQueueSwiftReadDelay) override;
     int64_t getStartTimestamp() const override;
     bool needUpdateCommittedCheckpoint() const override;
-    virtual bool updateCommittedCheckpoint(int64_t checkpoint) override;
+    virtual bool updateCommittedCheckpoint(const indexlibv2::base::Progress::Offset& checkpoint) override;
 
 public:
     virtual bool getMaxTimestamp(int64_t& timestamp) override;
@@ -106,11 +107,13 @@ public:
 
 private:
     // timestamp is for locator, always greater than msg.timestamp()
-    document::ProcessedDocumentVec* createProcessedDocument(const std::string& docStr, int64_t docTimestamp,
-                                                            int64_t timestamp, uint16_t hashId,
+    document::ProcessedDocumentVec* createProcessedDocument(const std::string& docStr,
+                                                            indexlibv2::document::IDocument::DocInfo docInfo,
+                                                            int64_t timestamp,
                                                             const std::vector<indexlibv2::base::Progress>& progress);
     // to report checkpoint, timestamp is locator.offset
-    document::ProcessedDocumentVec* createSkipProcessedDocument(int64_t timestamp);
+    document::ProcessedDocumentVec*
+    createSkipProcessedDocument(const std::vector<indexlibv2::base::Progress>& progress);
     // virtual for test
     virtual std::unique_ptr<indexlibv2::document::IDocumentBatch> transDocStrToDocumentBatch(const std::string& docStr);
     virtual bool initDocumentParser(indexlib::util::MetricProviderPtr metricProvider,
@@ -161,12 +164,13 @@ private:
     std::atomic<int64_t> _lastDocTs = INVALID_TIMESTAMP;
     std::atomic<int64_t> _lastIngestionTs = INVALID_TIMESTAMP;
 
-    std::shared_ptr<indexlibv2::config::TabletSchema> _schema;
+    std::shared_ptr<indexlibv2::config::ITabletSchema> _schema;
     std::shared_ptr<indexlibv2::document::IDocumentParser> _docParser;
     indexlib::util::TaskSchedulerPtr _taskScheduler;
     int32_t _reportMetricTaskId = -1;
     std::atomic<int64_t> _fastQueueLastReportTs = -1;
     std::atomic<bool> _isServiceRecovered {false};
+    util::SwiftMessageFilter _swiftMessageFilter;
 
 private:
     BS_LOG_DECLARE();

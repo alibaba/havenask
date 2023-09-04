@@ -5,35 +5,33 @@
  * Author Email: xsank.mz@alibaba-inc.com
  * */
 
+#include "kmonitor/client/net/thrift/EventBuilder.h"
+
 #include <map>
 #include <string>
+
 #include "kmonitor/client/net/thrift/ThriftFlumeEvent.h"
-#include "kmonitor/client/net/thrift/EventBuilder.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
-using std::string;
 using std::map;
+using std::string;
 
-EventBuilder::EventBuilder() {
-}
+EventBuilder::EventBuilder() {}
 
+EventBuilder::~EventBuilder() {}
 
-EventBuilder::~EventBuilder() {
-}
-
-ThriftFlumeEvent* EventBuilder::Build(const map<string, string>& headers, const string& body) {
+ThriftFlumeEvent *EventBuilder::Build(const map<string, string> &headers, const string &body) {
     ThriftFlumeEvent *event = new ThriftFlumeEvent();
     event->SetHeader(headers);
     event->SetBody(body);
     return event;
 }
 
-ThriftFlumeEvent* EventBuilder::Build(const string& body) {
+ThriftFlumeEvent *EventBuilder::Build(const string &body) {
     ThriftFlumeEvent *event = new ThriftFlumeEvent();
     event->SetBody(body);
     return event;
 }
 
 END_KMONITOR_NAMESPACE(kmonitor);
-

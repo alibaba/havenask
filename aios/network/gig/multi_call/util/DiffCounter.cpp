@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/util/DiffCounter.h"
+
 #include "autil/StringUtil.h"
 
 using namespace std;
 
 namespace multi_call {
 
-DiffCounter::DiffCounter()
-    : _snapshot(0)
-{
+DiffCounter::DiffCounter() : _snapshot(0) {
     atomic_set(&_counter, 0);
 }
 
@@ -50,8 +49,8 @@ void DiffCounter::setCurrent(int64_t value) {
 
 std::string DiffCounter::snapshotStr() {
     auto diff = snapshot();
-    return "" + autil::StringUtil::toString(current()) +
-           "(" + autil::StringUtil::toString(diff) + ")";
+    return "" + autil::StringUtil::toString(current()) + "(" + autil::StringUtil::toString(diff) +
+           ")";
 }
 
-}
+} // namespace multi_call

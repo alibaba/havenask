@@ -20,7 +20,7 @@
 #include "autil/CommonMacros.h"
 #include "autil/Log.h"
 #include "autil/TimeUtility.h"
-#include "ha3/common/Query.h" // IWYU pragma: keep
+#include "ha3/common/Query.h"          // IWYU pragma: keep
 #include "ha3/queryparser/QueryExpr.h" // IWYU pragma: keep
 
 using namespace std;
@@ -30,7 +30,7 @@ namespace isearch {
 namespace queryparser {
 AUTIL_LOG_SETUP(ha3, ParserContext);
 
-const char* ParserContext::STATUS_MSGS[] = {
+const char *ParserContext::STATUS_MSGS[] = {
     "OK.",
     "Initial status.",
     "Bad index name.",
@@ -39,8 +39,7 @@ const char* ParserContext::STATUS_MSGS[] = {
 };
 
 ParserContext::ParserContext(QueryParser &queryParser)
-  : _queryParser(queryParser)
-{
+    : _queryParser(queryParser) {
     _status = ParserContext::INITIAL_STATUS;
 }
 
@@ -66,8 +65,8 @@ void ParserContext::addQuery(common::Query *query) {
     _rootQuerys.push_back(query);
 }
 
-vector<common::Query*> ParserContext::stealQuerys() {
-    std::vector<common::Query*> rootQuerys;
+vector<common::Query *> ParserContext::stealQuerys() {
+    std::vector<common::Query *> rootQuerys;
     rootQuerys.swap(_rootQuerys);
     return rootQuerys;
 }
@@ -76,8 +75,8 @@ void ParserContext::addQueryExpr(QueryExpr *queryExpr) {
     _rootQueryExprs.push_back(queryExpr);
 }
 
-vector<QueryExpr*> ParserContext::stealQueryExprs() {
-    vector<QueryExpr*> rootQueryExprs;
+vector<QueryExpr *> ParserContext::stealQueryExprs() {
+    vector<QueryExpr *> rootQueryExprs;
     rootQueryExprs.swap(_rootQueryExprs);
     return rootQueryExprs;
 }

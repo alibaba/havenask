@@ -25,25 +25,26 @@
 namespace autil {
 namespace mem_pool {
 class Pool;
-}  // namespace mem_pool
-}  // namespace autil
+} // namespace mem_pool
+} // namespace autil
 namespace suez {
 namespace turing {
 class AttributeExpressionCreatorBase;
 class SyntaxExpr;
-}  // namespace turing
-}  // namespace suez
+} // namespace turing
+} // namespace suez
 
 namespace isearch {
 namespace search {
 
-class Filter
-{
+class Filter {
 public:
     Filter(suez::turing::AttributeExpressionTyped<bool> *attributeExpr);
     ~Filter();
+
 private:
     Filter(const Filter &filter);
+
 public:
     inline bool pass(matchdoc::MatchDoc doc);
 
@@ -51,20 +52,22 @@ public:
         return _attributeExpr->isSubExpression();
     }
 
-    suez::turing::AttributeExpression* getAttributeExpression() const {
+    suez::turing::AttributeExpression *getAttributeExpression() const {
         return _attributeExpr;
     }
     void setAttributeExpression(suez::turing::AttributeExpressionTyped<bool> *attributeExpr);
 
     void updateExprEvaluatedStatus();
+
 public:
-    static Filter *createFilter(
-            const suez::turing::SyntaxExpr *filterExpr,
-            suez::turing::AttributeExpressionCreatorBase *attributeExpressionCreator,
-            autil::mem_pool::Pool *pool);
+    static Filter *
+    createFilter(const suez::turing::SyntaxExpr *filterExpr,
+                 suez::turing::AttributeExpressionCreatorBase *attributeExpressionCreator,
+                 autil::mem_pool::Pool *pool);
 
 private:
     suez::turing::AttributeExpressionTyped<bool> *_attributeExpr;
+
 private:
     AUTIL_LOG_DECLARE();
 };

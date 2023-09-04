@@ -16,12 +16,12 @@
 #ifndef ISEARCH_MULTI_CALL_PROTOCOLCALLBACK_H
 #define ISEARCH_MULTI_CALL_PROTOCOLCALLBACK_H
 
-#include "autil/WorkItem.h"
 #include "aios/network/anet/connection.h"
 #include "aios/network/anet/ipackethandler.h"
 #include "aios/network/arpc/arpc/ANetRPCController.h"
-#include "autil/LockFreeThreadPool.h"
 #include "aios/network/gig/multi_call/service/CallBack.h"
+#include "autil/LockFreeThreadPool.h"
+#include "autil/WorkItem.h"
 
 namespace autil {
 class ThreadPool;
@@ -33,20 +33,22 @@ class TcpConnection;
 class ArpcConnection;
 class HttpConnection;
 
-class TcpCallBack : public anet::IPacketHandler {
+class TcpCallBack : public anet::IPacketHandler
+{
 public:
-    TcpCallBack(const CallBackPtr &callBack,
-                autil::LockFreeThreadPool *callBackThreadPool)
-        : _callBack(callBack), _callBackThreadPool(callBackThreadPool) {}
-    ~TcpCallBack() {}
+    TcpCallBack(const CallBackPtr &callBack, autil::LockFreeThreadPool *callBackThreadPool)
+        : _callBack(callBack)
+        , _callBackThreadPool(callBackThreadPool) {
+    }
+    ~TcpCallBack() {
+    }
 
 private:
     TcpCallBack(const TcpCallBack &);
     TcpCallBack &operator=(const TcpCallBack &);
 
 public:
-    anet::IPacketHandler::HPRetCode handlePacket(anet::Packet *packet,
-                                                 void *args) override;
+    anet::IPacketHandler::HPRetCode handlePacket(anet::Packet *packet, void *args) override;
 
 private:
     CallBackPtr _callBack;
@@ -56,24 +58,25 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-class HttpCallBack : public anet::IPacketHandler {
+class HttpCallBack : public anet::IPacketHandler
+{
 public:
-    HttpCallBack(const CallBackPtr &callBack,
-                 const std::shared_ptr<HttpConnection> &httpConnection,
-                 anet::Connection *anetConection,
-                 autil::LockFreeThreadPool *callBackThreadPool)
-        : _callBack(callBack), _httpConnection(httpConnection),
-          _anetConnection(anetConection),
-          _callBackThreadPool(callBackThreadPool) {}
-    ~HttpCallBack() {}
+    HttpCallBack(const CallBackPtr &callBack, const std::shared_ptr<HttpConnection> &httpConnection,
+                 anet::Connection *anetConection, autil::LockFreeThreadPool *callBackThreadPool)
+        : _callBack(callBack)
+        , _httpConnection(httpConnection)
+        , _anetConnection(anetConection)
+        , _callBackThreadPool(callBackThreadPool) {
+    }
+    ~HttpCallBack() {
+    }
 
 private:
     HttpCallBack(const HttpCallBack &);
     HttpCallBack &operator=(const HttpCallBack &);
 
 public:
-    anet::IPacketHandler::HPRetCode handlePacket(anet::Packet *packet,
-                                                 void *args) override;
+    anet::IPacketHandler::HPRetCode handlePacket(anet::Packet *packet, void *args) override;
 
 private:
     CallBackPtr _callBack;
@@ -85,11 +88,15 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-class CallBackWorkItem : public autil::WorkItem {
+class CallBackWorkItem : public autil::WorkItem
+{
 public:
     CallBackWorkItem(anet::Packet *packet, CallBackPtr &callback)
-        : _packet(packet), _callBack(callback) {}
-    ~CallBackWorkItem() {}
+        : _packet(packet)
+        , _callBack(callback) {
+    }
+    ~CallBackWorkItem() {
+    }
 
 public:
     void process() override;
@@ -101,11 +108,14 @@ protected:
     CallBackPtr _callBack;
 };
 
-class HttpCallBackWorkItem : public CallBackWorkItem {
+class HttpCallBackWorkItem : public CallBackWorkItem
+{
 public:
     HttpCallBackWorkItem(anet::Packet *packet, CallBackPtr &callback)
-        : CallBackWorkItem(packet, callback) {}
-    ~HttpCallBackWorkItem() {}
+        : CallBackWorkItem(packet, callback) {
+    }
+    ~HttpCallBackWorkItem() {
+    }
 
 public:
     void process() override;
@@ -113,10 +123,13 @@ public:
 
 class ArpcCallBack;
 
-class ArpcCallBackWorkItem : public autil::WorkItem {
+class ArpcCallBackWorkItem : public autil::WorkItem
+{
 public:
-    ArpcCallBackWorkItem(ArpcCallBack *callBack) : _callBack(callBack) {}
-    ~ArpcCallBackWorkItem() {}
+    ArpcCallBackWorkItem(ArpcCallBack *callBack) : _callBack(callBack) {
+    }
+    ~ArpcCallBackWorkItem() {
+    }
 
 public:
     void process() override;
@@ -130,29 +143,33 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-class ArpcCallBack : public RPCClosure {
+class ArpcCallBack : public RPCClosure
+{
 public:
-    ArpcCallBack(google::protobuf::Message *request,
-                 google::protobuf::Message *response,
-                 const CallBackPtr &callBack,
-                 autil::LockFreeThreadPool *callBackThreadPool)
-        : _request(request), _response(response), _callBack(callBack),
-          _callBackThreadPool(callBackThreadPool), _item(this) {}
+    ArpcCallBack(google::protobuf::Message *request, google::protobuf::Message *response,
+                 const CallBackPtr &callBack, autil::LockFreeThreadPool *callBackThreadPool)
+        : _request(request)
+        , _response(response)
+        , _callBack(callBack)
+        , _callBackThreadPool(callBackThreadPool)
+        , _item(this) {
+    }
     virtual ~ArpcCallBack() {
         freeProtoMessage(_request);
         _request = NULL;
     }
 
 public:
-    arpc::ANetRPCController *getController() { return &_controller; }
+    arpc::ANetRPCController *getController() {
+        return &_controller;
+    }
 
 public:
     void Run() override;
     virtual void callBack();
 
 protected:
-    MultiCallErrorCode getCompatibleInfo(MultiCallErrorCode currentEc,
-                                         std::string &responseInfo);
+    MultiCallErrorCode getCompatibleInfo(MultiCallErrorCode currentEc, std::string &responseInfo);
 
 protected:
     google::protobuf::Message *_request;

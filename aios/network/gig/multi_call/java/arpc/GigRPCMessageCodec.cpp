@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/java/arpc/GigRPCMessageCodec.h"
+
 #include "aios/network/arpc/arpc/proto/msg_header.pb.h"
 #include "aios/network/gig/multi_call/java/arpc/GigRPCMessageSerializable.h"
 
@@ -23,12 +24,13 @@ namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GigRPCMessageCodec);
 
 GigRPCMessageCodec::GigRPCMessageCodec(anet::IPacketFactory *packetFactory)
-    : arpc::ANetRPCMessageCodec(packetFactory) {}
+    : arpc::ANetRPCMessageCodec(packetFactory) {
+}
 
-GigRPCMessageCodec::~GigRPCMessageCodec() {}
+GigRPCMessageCodec::~GigRPCMessageCodec() {
+}
 
-anet::Packet *GigRPCMessageCodec::EncodeRequest(const GigCodecContext *context,
-                                                uint32_t pcode,
+anet::Packet *GigRPCMessageCodec::EncodeRequest(const GigCodecContext *context, uint32_t pcode,
                                                 version_t version) {
     anet::DataBufferSerializable *serializable = NULL;
 
@@ -41,13 +43,12 @@ anet::Packet *GigRPCMessageCodec::EncodeRequest(const GigCodecContext *context,
         pcode |= ADVANCE_PACKET_MASK;
 
         arpc::RpcMsgHeader *msgHeader =
-            google::protobuf::Arena::CreateMessage<arpc::RpcMsgHeader>(
-                context->arena.get());
+            google::protobuf::Arena::CreateMessage<arpc::RpcMsgHeader>(context->arena.get());
         msgHeader->set_enabletrace(context->enableTrace);
         msgHeader->set_userpayload(context->userPayload);
 
-        serializable = new (nothrow) GigRPCMessageSerializable(
-            msgHeader, (std::string *)context->request);
+        serializable =
+            new (nothrow) GigRPCMessageSerializable(msgHeader, (std::string *)context->request);
     } else {
         AUTIL_LOG(ERROR, "Invalid version [%d]", version);
         return NULL;

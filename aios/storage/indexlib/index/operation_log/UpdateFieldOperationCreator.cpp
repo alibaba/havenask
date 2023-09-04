@@ -32,6 +32,11 @@ UpdateFieldOperationCreator::UpdateFieldOperationCreator(const std::shared_ptr<O
     : OperationCreator(opConfig)
 {
     InitAttributeConvertorMap(opConfig);
+    _attributeUpdateFieldExtractor = std::make_shared<UpdateFieldExtractor>();
+    const auto& allFieldConfigs = _config->GetAllFieldConfigs();
+    const auto& attrConfigs = _config->GetIndexConfigs(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR);
+    const auto& primaryKeyConfig = _config->GetPrimaryKeyIndexConfig();
+    _attributeUpdateFieldExtractor->Init(primaryKeyConfig, attrConfigs, allFieldConfigs);
 }
 
 bool UpdateFieldOperationCreator::Create(const indexlibv2::document::NormalDocument* doc, autil::mem_pool::Pool* pool,
@@ -61,12 +66,12 @@ bool UpdateFieldOperationCreator::CreateUpdateFieldOperation(const indexlibv2::d
     auto docInfo = doc->GetDocInfo();
     if (GetPkIndexType() == it_primarykey64) {
         UpdateFieldOperation<uint64_t>* updateOperation =
-            IE_POOL_COMPATIBLE_NEW_CLASS(pool, UpdateFieldOperation<uint64_t>, docInfo.timestamp, docInfo.hashId);
+            IE_POOL_COMPATIBLE_NEW_CLASS(pool, UpdateFieldOperation<uint64_t>, docInfo);
         updateOperation->Init(pkHash.value[1], items, itemCount, segmentId);
         *operation = updateOperation;
     } else {
-        UpdateFieldOperation<autil::uint128_t>* updateOperation = IE_POOL_COMPATIBLE_NEW_CLASS(
-            pool, UpdateFieldOperation<autil::uint128_t>, docInfo.timestamp, docInfo.hashId);
+        UpdateFieldOperation<autil::uint128_t>* updateOperation =
+            IE_POOL_COMPATIBLE_NEW_CLASS(pool, UpdateFieldOperation<autil::uint128_t>, docInfo);
         updateOperation->Init(pkHash, items, itemCount, segmentId);
         *operation = updateOperation;
     }
@@ -83,12 +88,8 @@ bool UpdateFieldOperationCreator::CreateOperationItems(autil::mem_pool::Pool* po
                                                        OperationItem** items, uint32_t* itemCount)
 {
     const auto& attrDoc = doc->GetAttributeDocument();
-    const auto& allFieldConfigs = _config->GetFieldConfigs();
-    const auto& attrConfigs = _config->GetIndexConfigs(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR);
-    const auto& primaryKeyConfig = _config->GetPrimaryKeyIndexConfig();
-    UpdateFieldExtractor attributeUpdateFieldExtractor;
-    attributeUpdateFieldExtractor.Init(primaryKeyConfig, attrConfigs, allFieldConfigs);
-    if (!attributeUpdateFieldExtractor.LoadFieldsFromDoc(attrDoc.get())) {
+    _attributeUpdateFieldExtractor->Reset();
+    if (!_attributeUpdateFieldExtractor->LoadFieldsFromDoc(attrDoc.get())) {
         return false;
     }
 
@@ -113,7 +114,7 @@ bool UpdateFieldOperationCreator::CreateOperationItems(autil::mem_pool::Pool* po
         invertedIndexUpdateFieldIds.push_back(fieldId);
     }
 
-    *itemCount = (uint32_t)attributeUpdateFieldExtractor.GetFieldCount() +
+    *itemCount = (uint32_t)_attributeUpdateFieldExtractor->GetFieldCount() +
                  (invertedIndexUpdateFieldIds.empty() ? 0 : 1 + invertedIndexUpdateFieldIds.size());
     if (*itemCount == 0) {
         return true;
@@ -124,8 +125,8 @@ bool UpdateFieldOperationCreator::CreateOperationItems(autil::mem_pool::Pool* po
         return false;
     }
 
-    CreateAttrOperationItems(pool, attrDoc, attributeUpdateFieldExtractor, *items);
-    OperationItem* curItem = (*items) + (uint32_t)attributeUpdateFieldExtractor.GetFieldCount();
+    CreateAttrOperationItems(pool, attrDoc, _attributeUpdateFieldExtractor.get(), *items);
+    OperationItem* curItem = (*items) + (uint32_t)_attributeUpdateFieldExtractor->GetFieldCount();
     if (not invertedIndexUpdateFieldIds.empty()) {
         curItem->first = INVALID_FIELDID; // separator of attr/index items
         curItem->second = autil::StringView::empty_instance();
@@ -137,10 +138,10 @@ bool UpdateFieldOperationCreator::CreateOperationItems(autil::mem_pool::Pool* po
 
 void UpdateFieldOperationCreator::CreateAttrOperationItems(autil::mem_pool::Pool* pool,
                                                            const std::shared_ptr<document::AttributeDocument>& doc,
-                                                           UpdateFieldExtractor& fieldExtractor,
+                                                           UpdateFieldExtractor* fieldExtractor,
                                                            OperationItem* itemBase)
 {
-    UpdateFieldExtractor::Iterator it = fieldExtractor.CreateIterator();
+    UpdateFieldExtractor::Iterator it = fieldExtractor->CreateIterator();
     OperationItem* curItem = itemBase;
     while (it.HasNext()) {
         fieldid_t fieldId = INVALID_FIELDID;
@@ -189,14 +190,14 @@ autil::StringView UpdateFieldOperationCreator::DeserializeField(fieldid_t fieldI
 
 void UpdateFieldOperationCreator::InitAttributeConvertorMap(const std::shared_ptr<OperationLogConfig>& opConfig)
 {
-    auto allFieldConfigs = opConfig->GetFieldConfigs();
+    auto allFieldConfigs = opConfig->GetAllFieldConfigs();
 
     size_t fieldCount = allFieldConfigs.size();
     _fieldId2ConvertorMap.resize(fieldCount);
     auto indexConfigs = opConfig->GetIndexConfigs(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR);
 
     for (const auto& indexConfig : indexConfigs) {
-        const auto& attrConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(indexConfig);
+        const auto& attrConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(indexConfig);
         assert(attrConfig != nullptr);
         const auto& fieldConfig = attrConfig->GetFieldConfig();
         std::shared_ptr<indexlibv2::index::AttributeConvertor> attrConvertor(

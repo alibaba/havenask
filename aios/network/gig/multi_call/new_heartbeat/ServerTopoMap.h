@@ -15,20 +15,22 @@
  */
 #pragma once
 
-#include "aios/network/gig/multi_call/common/common.h"
-#include "aios/network/gig/multi_call/proto/NewHeartbeat.pb.h"
 #include "aios/network/gig/multi_call/common/MetaEnv.h"
 #include "aios/network/gig/multi_call/common/Spec.h"
+#include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/new_heartbeat/BizTopo.h"
+#include "aios/network/gig/multi_call/proto/NewHeartbeat.pb.h"
 
 namespace multi_call {
 
 class TopoInfoBuilder;
 
-class ServerId {
+class ServerId
+{
 public:
     void init(const Spec &spec);
-    void fillServerIdDef(const SignatureMapPtr &clientSignatureMap, NewHeartbeatResponse &response) const;
+    void fillServerIdDef(const SignatureMapPtr &clientSignatureMap,
+                         NewHeartbeatResponse &response) const;
     void fromProto(SignatureTy signature, const std::string &ip, const ServerIdDef &def);
     const Spec &getSpec() const {
         return _spec;
@@ -37,12 +39,15 @@ public:
     SignatureTy getSignature() const {
         return _signature;
     }
+
 private:
     void initSignature();
+
 private:
     MetaEnv _metaEnv;
     Spec _spec;
     SignatureTy _signature;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -54,9 +59,11 @@ class ServerTopoMap
 public:
     ServerTopoMap();
     ~ServerTopoMap();
+
 private:
     ServerTopoMap(const ServerTopoMap &);
     ServerTopoMap &operator=(const ServerTopoMap &);
+
 public:
     bool setSpec(const Spec &spec);
     std::string getTopoInfoStr() const;
@@ -65,14 +72,16 @@ public:
     void setBizTopoMap(const BizTopoMapPtr &newMap);
     BizTopoMapPtr getBizTopoMap() const;
     std::string toString() const;
+
 private:
     mutable autil::ReadWriteLock _lock;
     ServerIdPtr _serverId;
     BizTopoMapPtr _bizTopoMap;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
 MULTI_CALL_TYPEDEF_PTR(ServerTopoMap);
 
-}
+} // namespace multi_call

@@ -16,20 +16,22 @@
 #ifndef ISEARCH_MULTI_CALL_GIGRPCCHANNEL_H
 #define ISEARCH_MULTI_CALL_GIGRPCCHANNEL_H
 
+#include <string>
+
 #include "aios/network/arpc/arpc/ANetRPCChannel.h"
 #include "aios/network/arpc/arpc/proto/rpc_extensions.pb.h"
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/java/arpc/GigClientPacketHandler.h"
 #include "aios/network/gig/multi_call/java/arpc/GigRPCArg.h"
 #include "aios/network/gig/multi_call/java/arpc/GigRPCMessageCodec.h"
-#include <string>
 
 namespace multi_call {
 
-class GigRPCChannel : public arpc::ANetRPCChannel {
+class GigRPCChannel : public arpc::ANetRPCChannel
+{
 public:
-    GigRPCChannel(anet::Connection *pConnection,
-                  GigRPCMessageCodec *gigMessageCodec, bool block = false);
+    GigRPCChannel(anet::Connection *pConnection, GigRPCMessageCodec *gigMessageCodec,
+                  bool block = false);
     ~GigRPCChannel();
 
 private:
@@ -38,9 +40,8 @@ private:
 
 public:
     using arpc::ANetRPCChannel::CallMethod;
-    void CallMethod(uint32_t serviceId, uint32_t methodId,
-                    RPCController *controller, const std::string *request,
-                    std::string *response, RPCClosure *done);
+    void CallMethod(uint32_t serviceId, uint32_t methodId, RPCController *controller,
+                    const std::string *request, std::string *response, RPCClosure *done);
     bool CheckResponsePacket(anet::Packet *packet, GigRpcReqArg *pArgs);
 
 private:
@@ -48,8 +49,7 @@ private:
     bool AsyncCall(anet::Packet *pPack, GigRpcReqArg *pArg);
     bool needRepostPacket(arpc::ErrorCode errorCode, version_t remoteVersion,
                           version_t postedPacketVersion) const;
-    void SetError(arpc::ANetRPCController *pController,
-                  arpc::ErrorCode errorCode);
+    void SetError(arpc::ANetRPCController *pController, arpc::ErrorCode errorCode);
     void RunClosure(RPCClosure *pClosure);
 
 private:

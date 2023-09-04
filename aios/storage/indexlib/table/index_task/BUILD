@@ -1,28 +1,42 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='index_task_constant',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=[':IndexTaskConstant']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='merge_task',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=[':LocalTabletMergeController']
 )
-indexlib_cc_library(name='IndexTaskConstant', srcs=[])
-indexlib_cc_library(
+strict_cc_library(
+    name='IndexTaskConstant',
+    srcs=[],
+    deps=['//aios/storage/indexlib/framework/index_task:Constant']
+)
+strict_cc_library(
+    name='VersionResource',
+    deps=[
+        ':IndexTaskConstant', '//aios/autil:json',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework:Version',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskResource'
+    ]
+)
+strict_cc_library(
     name='SimpleIndexTaskPlanCreator',
     deps=[
         '//aios/storage/indexlib/config:IndexTaskConfig',
         '//aios/storage/indexlib/framework/index_task:IIndexTaskPlanCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ComplexIndexTaskPlanCreator',
     deps=[
         ':IndexTaskConstant', ':SimpleIndexTaskPlanCreator',
@@ -35,7 +49,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework/index_task:IndexTaskHistory'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='LocalTabletMergeController',
     deps=[
         ':IndexTaskConstant', '//aios/alog',

@@ -31,8 +31,7 @@ namespace isearch {
 namespace search {
 class ExecutorVisitor;
 
-class OrQueryExecutor : public MultiQueryExecutor
-{
+class OrQueryExecutor : public MultiQueryExecutor {
 public:
     OrQueryExecutor();
     virtual ~OrQueryExecutor();
@@ -42,21 +41,25 @@ public:
         return "OrQueryExecutor";
     }
     void accept(ExecutorVisitor *visitor) const override;
-    indexlib::index::ErrorCode doSeek(docid_t id, docid_t& result) override;
-    indexlib::index::ErrorCode seekSubDoc(docid_t docId, docid_t subDocId,
-                       docid_t subDocEnd, bool needSubMatchdata, docid_t& result) override;
+    indexlib::index::ErrorCode doSeek(docid_t id, docid_t &result) override;
+    indexlib::index::ErrorCode seekSubDoc(docid_t docId,
+                                          docid_t subDocId,
+                                          docid_t subDocEnd,
+                                          bool needSubMatchdata,
+                                          docid_t &result) override;
     df_t getDF(GetDFType type) const override;
     bool isMainDocHit(docid_t docId) const override;
-    void addQueryExecutors(const std::vector<QueryExecutor*> &queryExecutors) override;
+    void addQueryExecutors(const std::vector<QueryExecutor *> &queryExecutors) override;
     void reset() override;
     std::string toString() const override;
+
 protected:
     std::vector<QueryExecutorEntry> _qeMinHeap;
     uint32_t _count;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
 } // namespace search
 } // namespace isearch
-

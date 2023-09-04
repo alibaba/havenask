@@ -59,5 +59,5 @@ std::unique_ptr<config::IIndexConfig> SummaryIndexFactory::CreateIndexConfig(con
 }
 std::string SummaryIndexFactory::GetIndexPath() const { return index::SUMMARY_INDEX_PATH; }
 
-REGISTER_INDEX(summary, SummaryIndexFactory);
+REGISTER_INDEX_FACTORY(summary, SummaryIndexFactory);
 } // namespace indexlibv2::index

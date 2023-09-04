@@ -1,21 +1,20 @@
 package(default_visibility=['//aios/sql/iquan/cpp:__subpackages__'])
 cc_library(
     name='iquan_catalog',
-    srcs=glob(['*.cpp'],
-              exclude=['IquanCatalogClient.cpp', 'IquanCatalogConvertor.cpp']),
-    hdrs=glob(['*.h'],
-              exclude=['IquanCatalogClient.h', 'IquanCatalogConvertor.h']),
+    srcs=glob(['*.cpp']),
+    hdrs=glob(['*.h']),
     copts=['-Werror'],
-    deps=['//aios/sql/iquan/cpp/common:iquan_common'],
+    include_prefix='iquan/common/catalog',
     visibility=['//visibility:public'],
-    include_prefix='iquan/common/catalog'
+    deps=['//aios/sql/iquan/cpp/common:iquan_common']
 )
-cc_library(
-    name='iquan_catalog_client',
-    srcs=glob(['IquanCatalogClient.cpp']),
-    hdrs=glob(['IquanCatalogClient.h']),
-    copts=['-Werror'],
-    deps=(['iquan_catalog'] + ['//aios/autil:thread']),
-    visibility=['//visibility:public'],
-    include_prefix='iquan/common/catalog'
+cc_test(
+    name='catalog_test',
+    srcs=glob(['test/*.cpp']),
+    copts=['-fno-access-control'],
+    data=['//aios/sql/iquan/cpp:test_alog_conf'],
+    deps=[
+        ':iquan_catalog', '//aios/autil/autil/legacy/test:json_testlib',
+        '//aios/filesystem/fslib:fslib-framework', '//aios/unittest_framework'
+    ]
 )

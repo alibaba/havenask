@@ -24,6 +24,7 @@
 #include "indexlib/framework/TabletInfos.h"
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/inverted_index/Common.h"
+#include "indexlib/index/pack_attribute/Common.h"
 #include "indexlib/partition/index_partition.h"
 #include "indexlib/partition/index_partition_reader.h"
 #include "indexlib/partition/partition_reader_snapshot.h"
@@ -206,49 +207,60 @@ bool IndexApplication::AddTablets()
 bool IndexApplication::AddTablet(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema, uint32_t id)
 {
     const auto& tableName = schema->GetTableName();
-    auto addAttributes = [this, tableName, schema, id](const std::string indexType) {
-        auto indexConfigs = schema->GetIndexConfigs(indexType);
+    auto addAttributes = [this, tableName, schema, id]() {
+        auto indexConfigs = schema->GetIndexConfigs(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR);
         for (const auto& indexConfig : indexConfigs) {
-            const auto& attrConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(indexConfig);
-            if (attrConfig) {
-                if (!attrConfig->IsNormal()) {
-                    continue;
-                }
-                const auto& attrName = attrConfig->GetIndexName();
-                if (!mAttrName2IdMap.Exist(tableName, attrName)) {
-                    mAttrName2IdMap.Insert(tableName, attrName, id);
-                } else {
-                    IE_LOG(ERROR, "duplicate table name[%s] and attribute name[%s] in different table",
-                           tableName.c_str(), attrName.c_str());
-                    return false;
-                }
+            const auto& attrConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(indexConfig);
+            if (!attrConfig) {
+                IE_LOG(ERROR, "tableName [%s] cast attribute config [%s] failed", tableName.c_str(),
+                       indexConfig->GetIndexName().c_str());
+                return false;
+            }
+            if (!attrConfig->IsNormal()) {
+                continue;
+            }
+            const auto& attrName = attrConfig->GetIndexName();
+            if (!mAttrName2IdMap.Exist(tableName, attrName)) {
+                mAttrName2IdMap.Insert(tableName, attrName, id);
             } else {
-                const auto& packAttrConfig =
-                    std::dynamic_pointer_cast<indexlibv2::config::PackAttributeConfig>(indexConfig);
-                if (!packAttrConfig) {
-                    IE_LOG(ERROR, "attr config [%s] is neither normal attribute nor pack attribute",
-                           indexConfig->GetIndexName().c_str());
-                    return false;
-                }
-                const auto& packName = packAttrConfig->GetIndexName();
-                if (!mPackAttrName2IdMap.Exist(tableName, packName)) {
-                    mPackAttrName2IdMap.Insert(tableName, packName, id);
-                } else {
-                    IE_LOG(ERROR,
-                           "duplicate table name [%s] pack attribute name[%s]"
-                           " in different table",
-                           tableName.c_str(), packName.c_str());
-                    return false;
-                }
+                IE_LOG(ERROR, "duplicate table name[%s] and attribute name[%s] in different table", tableName.c_str(),
+                       attrName.c_str());
+                return false;
             }
         }
         return true;
     };
-    if (!addAttributes(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR)) {
+    auto addPackAttributes = [this, tableName, schema, id]() {
+        auto indexConfigs = schema->GetIndexConfigs(indexlibv2::index::PACK_ATTRIBUTE_INDEX_TYPE_STR);
+        for (const auto& indexConfig : indexConfigs) {
+            const auto& packAttrConfig = std::dynamic_pointer_cast<indexlibv2::index::PackAttributeConfig>(indexConfig);
+            if (!packAttrConfig) {
+                IE_LOG(ERROR, "tableName [%s] cast pack attribute [%s] failed", tableName.c_str(),
+                       indexConfig->GetIndexName().c_str());
+                return false;
+            }
+            const auto& packName = packAttrConfig->GetPackName();
+            if (!mPackAttrName2IdMap.Exist(tableName, packName)) {
+                mPackAttrName2IdMap.Insert(tableName, packName, id);
+            } else {
+                IE_LOG(ERROR,
+                       "duplicate table name [%s] pack attribute name[%s]"
+                       " in different table",
+                       tableName.c_str(), packName.c_str());
+                return false;
+            }
+        }
+        return true;
+    };
+    if (!addAttributes()) {
         IE_LOG(ERROR, "add attribute failed");
         return false;
     }
-    auto indexConfigs = schema->GetIndexConfigs(index::INVERTED_INDEX_TYPE_STR);
+    if (!addPackAttributes()) {
+        IE_LOG(ERROR, "add pack attribute failed");
+        return false;
+    }
+    auto indexConfigs = schema->GetIndexConfigs(index::GENERAL_INVERTED_INDEX_TYPE_STR);
     for (const auto& indexConfig : indexConfigs) {
         auto invertedIndexConfig = std::dynamic_pointer_cast<indexlibv2::config::InvertedIndexConfig>(indexConfig);
         assert(invertedIndexConfig);
@@ -309,7 +321,7 @@ bool IndexApplication::AddIndexPartition(const IndexPartitionSchemaPtr& schema, 
         }                                                                                                              \
         for (size_t i = 0; i < attrSchema->GetPackAttributeCount(); ++i) {                                             \
             const PackAttributeConfigPtr& packAttrConfig = attrSchema->GetPackAttributeConfig(i);                      \
-            const string& packName = packAttrConfig->GetAttrName();                                                    \
+            const string& packName = packAttrConfig->GetPackName();                                                    \
             if (!mPackAttrName2IdMap.Exist(tableName, packName)) {                                                     \
                 mPackAttrName2IdMap.Insert(tableName, packName, id);                                                   \
             } else {                                                                                                   \
@@ -593,25 +605,6 @@ void IndexApplication::GetTableLatestDataTimestamps(vector<IndexDataTimestampInf
         dataTsInfos.push_back(make_pair(snapshotIndexPartitionReaders[i]->GetSchema()->GetSchemaName(),
                                         snapshotIndexPartitionReaders[i]->GetLatestDataTimestamp()));
     }
-}
-
-bool IndexApplication::GetLatestDataTimestamp(const string& tableName, int64_t& dataTs)
-{
-    auto iter = mTableName2PartitionIdMap.find(tableName);
-    if (iter == mTableName2PartitionIdMap.end()) {
-        return false;
-    }
-    uint32_t id = iter->second;
-    if (id >= mReaderContainer.Size()) {
-        auto tabletId = id - mReaderContainer.Size();
-        assert(tabletId < _tablets.size());
-        auto& tablet = _tablets[tabletId];
-        dataTs = tablet->GetTabletInfos()->GetLatestLocator().GetOffset();
-        return true;
-    }
-    assert(id < mReaderContainer.Size());
-    dataTs = mReaderContainer.GetReader(id)->GetLatestDataTimestamp();
-    return true;
 }
 
 void IndexApplication::BackgroundUpdateExpiredSnapshotReader()

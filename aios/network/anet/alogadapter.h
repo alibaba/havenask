@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ALOG_ADAPTER_H_ 
+#ifndef ALOG_ADAPTER_H_
 #define ALOG_ADAPTER_H_
-#include "aios/network/anet/ilogger.h"
-#include "alog/Logger.h"
 #include <string>
 
-class AlogAdapter : public ILogger{
+#include "aios/network/anet/ilogger.h"
+#include "alog/Logger.h"
+
+class AlogAdapter : public ILogger {
 public:
-    AlogAdapter(); 
-    AlogAdapter(const std::string & loggerName);
-    AlogAdapter(const char * loggerName);
+    AlogAdapter();
+    AlogAdapter(const std::string &loggerName);
+    AlogAdapter(const char *loggerName);
     ~AlogAdapter();
-    void log(int level, const char *file, int line, const char *function,
-             const char *fmt, ...)  __attribute__((format(printf, 6, 7)));
+    void log(int level, const char *file, int line, const char *function, const char *fmt, ...)
+        __attribute__((format(printf, 6, 7)));
     void logPureMessage(int level, const char *file, int line, const char *function, const char *);
     void setLogLevel(const char *level);
     void setLogLevel(const int level);
     int getLogLevel();
-    bool isLevelEnabled(const int level) {return logger->isLevelEnabled(level); }
+    bool isLevelEnabled(const int level) { return logger->isLevelEnabled(level); }
 
     void logSetup() { AlogAdapter::logSetupStatic(); }
     void logSetup(const std::string &configFile) { AlogAdapter::logSetupStatic(configFile); }
@@ -40,11 +41,10 @@ public:
     static void logSetupStatic(const std::string &configFile);
     static void logTearDownStatic();
 
-    alog::Logger * getAlogLogger(void) { return logger; }
+    alog::Logger *getAlogLogger(void) { return logger; }
 
 private:
-    alog::Logger * logger;
+    alog::Logger *logger;
 };
 
 #endif
-

@@ -1,0 +1,46 @@
+#import(Tool)
+#import(Log)
+
+function graphDef()
+   local clusterName = Graph.parameter["clusterName"]
+   local param = Tool.copyMap(Graph.parameter)
+   local alterFieldTag = clusterName..":AlterField"
+   local alterFieldFlowIds = Graph.getFlowIdByTag(alterFieldTag)
+   if (#alterFieldFlowIds ~= 0)
+   then
+      Log.log("ERROR", "not support alter field while update build v1 to build v2")
+      return false
+   end
+
+   -- get old inc build flow
+   local incBuildTag = clusterName..":IncBuild"
+   local incBuildFlowIds = Graph.getFlowIdByTag(incBuildTag)
+
+   -- create v2 build flow
+   -- old inc build and v2 inc build have same tag, create v2 build after get old inc build
+   incBuildV2 = Graph.loadSimpleFlow("builderV2", "incBuilder", param)
+   incBuildV2:addTag(clusterName..":IncBuild")
+   incBuildV2:addTag("BSBuildV2")
+
+   -- stopp old inc build flow and merge crontab
+   for i, v in ipairs(incBuildFlowIds)
+   do
+      local flow = Graph.getFlow(v)
+      if (flow ~= nil)
+      then
+         flow:stopFlow()
+         Graph.setUpstream(incBuildV2, flow, "stopped|finish")
+      end
+   end
+
+   local mergeCrontabTag = clusterName..":MergeCrontab"
+   local mergeCrontabFlowId = Graph.getFlowIdByTag(mergeCrontabTag)
+   local mergeCrontabFlow = Graph.getFlow(mergeCrontabFlowId[1])
+   if (mergeCrontabFlow ~= nil)
+   then
+      mergeCrontabFlow:stopFlow()
+      Graph.setUpstream(incBuildV2, mergeCrontabFlow, "stopped|finish")
+   end
+
+   return true
+end

@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/SearchServiceSnapshotInBiz.h"
+
+#include <utility>
+
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
-#include <utility>
 
 using namespace std;
 using namespace autil;
@@ -24,18 +26,20 @@ using namespace autil;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, SearchServiceSnapshotInBiz);
 
-SearchServiceSnapshotInBiz::SearchServiceSnapshotInBiz(
-    const string &bizName, const MiscConfigPtr &miscConfig)
-    : _bizName(bizName), _miscConfig(miscConfig),
-      _randomGenerator(autil::TimeUtility::currentTimeInMicroSeconds()),
-      _normalProviderCount(0), _active(false) {
+SearchServiceSnapshotInBiz::SearchServiceSnapshotInBiz(const string &bizName,
+                                                       const MiscConfigPtr &miscConfig)
+    : _bizName(bizName)
+    , _miscConfig(miscConfig)
+    , _randomGenerator(autil::TimeUtility::currentTimeInMicroSeconds())
+    , _normalProviderCount(0)
+    , _active(false) {
     assert(_miscConfig);
 }
 
-SearchServiceSnapshotInBiz::~SearchServiceSnapshotInBiz() {}
+SearchServiceSnapshotInBiz::~SearchServiceSnapshotInBiz() {
+}
 
-bool SearchServiceSnapshotInBiz::init(
-    const MetricReporterManagerPtr &metricReporterManager) {
+bool SearchServiceSnapshotInBiz::init(const MetricReporterManagerPtr &metricReporterManager) {
     // create metric reporter
     if (metricReporterManager && _active) {
         // maybe null in java client
@@ -46,22 +50,20 @@ bool SearchServiceSnapshotInBiz::init(
 
 bool SearchServiceSnapshotInBiz::addProvider(const TopoNode &topoNode,
                                              const SearchServiceProviderPtr &provider,
-                                             SearchServiceReplicaPtr &retReplica)
-{
+                                             SearchServiceReplicaPtr &retReplica) {
     SearchServiceSnapshotInVersionPtr versionSnapshotPtr;
     auto iter = _versionSnapshotMap.find(topoNode.version);
     if (iter != _versionSnapshotMap.end()) {
         versionSnapshotPtr = iter->second;
     } else {
-        versionSnapshotPtr.reset(new SearchServiceSnapshotInVersion(
-            topoNode.version, topoNode.partCnt, _miscConfig));
+        versionSnapshotPtr.reset(
+            new SearchServiceSnapshotInVersion(topoNode.version, topoNode.partCnt, _miscConfig));
         versionSnapshotPtr->setBizName(_bizName);
         _versionSnapshotMap[topoNode.version] = versionSnapshotPtr;
     }
     PartIdTy expectPartCnt = versionSnapshotPtr->getPartCount();
     if (topoNode.partCnt != expectPartCnt) {
-        AUTIL_LOG(WARN,
-                  "add provider in biz [%s] fail, partCnt [%d], expect [%d].",
+        AUTIL_LOG(WARN, "add provider in biz [%s] fail, partCnt [%d], expect [%d].",
                   _bizName.c_str(), topoNode.partCnt, expectPartCnt)
         return false;
     }
@@ -82,15 +84,13 @@ bool SearchServiceSnapshotInBiz::hasDiff(const set<TopoNode> &topoNodes) {
     return _topoNodes != topoNodes;
 }
 
-bool SearchServiceSnapshotInBiz::hasVersion(VersionTy version,
-                                            VersionInfo &info) const {
+bool SearchServiceSnapshotInBiz::hasVersion(VersionTy version, VersionInfo &info) const {
     auto it = _versionSnapshotMap.find(version);
     if (_versionSnapshotMap.end() != it) {
         const auto &versionSnapshot = it->second;
         if (!versionSnapshot->isCopyVersion()) {
             WeightTy weight = 0;
-            versionSnapshot->getWeightInfo(autil::TimeUtility::currentTime(),
-                                           weight, info);
+            versionSnapshot->getWeightInfo(autil::TimeUtility::currentTime(), weight, info);
             return true;
         }
     }
@@ -98,23 +98,36 @@ bool SearchServiceSnapshotInBiz::hasVersion(VersionTy version,
     return false;
 }
 
+void SearchServiceSnapshotInBiz::getMetaInfo(BizMetaInfo &metaInfo) const {
+    // sorted for diff
+    for (const auto &pair : _versionSnapshotMap) {
+        auto version = pair.first;
+        const auto &versionSnapshot = pair.second;
+        if (!versionSnapshot->isCopyVersion()) {
+            VersionInfo info;
+            WeightTy weight = 0;
+            versionSnapshot->getWeightInfo(autil::TimeUtility::currentTime(), weight, info);
+            versionSnapshot->fillMeta(info);
+            metaInfo.versions.emplace(version, std::move(info));
+        }
+    }
+}
+
 bool SearchServiceSnapshotInBiz::constructConsistentHash() {
     _versionNormalProviderCountVec.clear();
-    for (auto it = _versionSnapshotMap.begin();
-         it != _versionSnapshotMap.end();) {
+    for (auto it = _versionSnapshotMap.begin(); it != _versionSnapshotMap.end();) {
         if (it->second->isCopyVersion()) {
             _copyVersionSnapshotMap.insert(*it);
             it = _versionSnapshotMap.erase(it);
         } else {
             WeightTy count = it->second->getNormalProviderCount();
-            _versionNormalProviderCountVec.push_back(
-                make_pair(it->first, count));
+            _versionNormalProviderCountVec.push_back(make_pair(it->first, count));
             it++;
         }
     }
     for (const auto &versionSnapshot : _versionSnapshotMap) {
-        if (!versionSnapshot.second->constructConsistentHash(
-                _versionNormalProviderCountVec.size() > 1)) {
+        if (!versionSnapshot.second->constructConsistentHash(_versionNormalProviderCountVec.size() >
+                                                             1)) {
             return false;
         }
     }
@@ -126,9 +139,8 @@ void SearchServiceSnapshotInBiz::toString(std::string &debugStr) {
     doToString(_copyVersionSnapshotMap, true, debugStr);
 }
 
-void SearchServiceSnapshotInBiz::doToString(
-    const VersionSnapshotMap &versionSnapshotMap, bool isCopy,
-    std::string &debugStr) {
+void SearchServiceSnapshotInBiz::doToString(const VersionSnapshotMap &versionSnapshotMap,
+                                            bool isCopy, std::string &debugStr) {
     auto iter = versionSnapshotMap.begin();
     for (; iter != versionSnapshotMap.end(); ++iter) {
         WeightTy weight = 0;

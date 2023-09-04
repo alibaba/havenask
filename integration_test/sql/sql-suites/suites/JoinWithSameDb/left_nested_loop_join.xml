@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="left_nested_loop_join">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT id, company.company_id as company_id, company_name FROM company LEFT JOIN daogou ON company.company_id < 5 AND -2 < daogou.id - company.company_id AND daogou.id - company.company_id  < 2
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"id", "company_id", "company_name"</Resource>
+        <Resource name="column_types">int32, int32, multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:daogou;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1, 1, "APPLE"
+1, 2, "NOKIA"
+2, 1, "APPLE"
+2, 2, "NOKIA"
+2, 3, "LG"
+3, 2, "NOKIA"
+3, 3, "LG"
+3, 4, "SAMSUNG"
+4, 3, "LG"
+4, 4, "SAMSUNG"
+5, 4, "SAMSUNG"
+0, 5, "HUAWEI"
+0, 6, "XIAOMI"
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#6(type=api)
+    ExchangeOp#5(distribution={type:SINGLETON})
+        LimitOp#4(limit=100)
+            CalcOp#3(output_fields=[$id,$company_id,$company_name])
+                NestedLoopJoinOp#2(condition=AND(<($company_id,5),<(-2,-($id,$company_id)),<(-($id,$company_id),2)),is_equi_join=false,is_internal_build=true,join_type=LEFT,left_is_build=false,output_fields=[$company_id,$company_name,$id],remaining_condition=AND(<($company_id,5),<(-2,-($id,$company_id)),<(-($id,$company_id),2)),semi_join_type=LEFT)
+                    TableScanOp#0(catalog_name=default,db_name=daogou,limit=2147483647,output_fields=[$company_id,$company_name],push_down_ops=[{attrs:{output_fields:[$company_id,$company_name]},op_name:CalcOp}],table_name=company,table_type=normal,use_nest_table=false)
+                    TableScanOp#1(catalog_name=default,db_name=daogou,limit=2147483647,output_fields=[$id],push_down_ops=[{attrs:{output_fields:[$id]},op_name:CalcOp}],table_name=daogou,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

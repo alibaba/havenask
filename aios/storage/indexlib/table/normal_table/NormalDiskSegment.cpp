@@ -16,7 +16,7 @@
 #include "indexlib/table/normal_table/NormalDiskSegment.h"
 
 #include "indexlib/config/IIndexConfig.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/index/IDiskIndexer.h"
 #include "indexlib/index/IIndexFactory.h"
 #include "indexlib/index/IndexFactoryCreator.h"
@@ -31,7 +31,7 @@ using indexlib::index::OPERATION_LOG_INDEX_TYPE_STR;
 } // namespace
 AUTIL_LOG_SETUP(indexlib.table, NormalDiskSegment);
 
-NormalDiskSegment::NormalDiskSegment(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+NormalDiskSegment::NormalDiskSegment(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                      const framework::SegmentMeta& segmentMeta,
                                      const framework::BuildResource& buildResource)
     : PlainDiskSegment(schema, segmentMeta, buildResource)
@@ -40,7 +40,7 @@ NormalDiskSegment::NormalDiskSegment(const std::shared_ptr<indexlibv2::config::T
 
 NormalDiskSegment::~NormalDiskSegment() {}
 
-size_t NormalDiskSegment::EstimateMemUsed(const std::shared_ptr<config::TabletSchema>& schema)
+size_t NormalDiskSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     auto segDir = GetSegmentDirectory();
     assert(segDir);
@@ -83,7 +83,7 @@ size_t NormalDiskSegment::EstimateMemUsed(const std::shared_ptr<config::TabletSc
 }
 
 bool NormalDiskSegment::NeedDrop(const std::string& indexType, const std::string& indexName,
-                                 const std::vector<std::shared_ptr<config::TabletSchema>>& schemas)
+                                 const std::vector<std::shared_ptr<config::ITabletSchema>>& schemas)
 {
     if (indexType == OPERATION_LOG_INDEX_TYPE_STR) {
         return true;
@@ -100,10 +100,13 @@ NormalDiskSegment::OpenIndexer(const std::shared_ptr<indexlibv2::config::IIndexC
         return std::make_pair(Status::InvalidArgs("config is nullptr"), results);
     }
     auto indexType = indexConfig->GetIndexType();
-    if ((indexType == VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR || indexType == OPERATION_LOG_INDEX_TYPE_STR) &&
-        IsMergedSegmentId(GetSegmentId())) {
+    if (indexType == OPERATION_LOG_INDEX_TYPE_STR && IsMergedSegmentId(GetSegmentId())) {
         return std::make_pair(Status::OK(), results);
     }
+    if (indexType == VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR && !IsPrivateSegmentId(GetSegmentId())) {
+        return std::make_pair(Status::OK(), results);
+    }
+
     std::pair<Status, std::vector<plain::DiskIndexerItem>> ret;
     if (indexType == index::PRIMARY_KEY_INDEX_TYPE_STR) {
         // optimize to save mem. primary key indexer will not be opened during plain built segment open.

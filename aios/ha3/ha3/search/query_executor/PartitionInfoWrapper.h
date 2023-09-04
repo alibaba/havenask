@@ -51,6 +51,7 @@ public:
     docid_t GetDocId(const indexlib::index::PartitionInfoHint &infoHint, globalid_t gid) const;
     bool GetDiffDocIdRanges(const indexlib::index::PartitionInfoHint &infoHint,
                             indexlib::DocIdRangeVector &docIdRanges) const;
+
 private:
     indexlibv2::table::TabletInfoHint
     ConverPartitionInfoToTabletInfo(const indexlib::index::PartitionInfoHint &infoHint) const;
@@ -87,13 +88,16 @@ inline bool PartitionInfoWrapper::GetUnorderedDocIdRange(indexlib::DocIdRange &r
 }
 
 inline indexlib::index::PartitionInfoHint PartitionInfoWrapper::GetPartitionInfoHint() const {
+    static_assert(
+        std::is_same<decltype(indexlibv2::table::TabletInfoHint::infoVersion),
+                     decltype(indexlib::index::PartitionInfoHint::lastRtSegmentId)>::value,
+        "type of infoVersion and lastIncSegmentId need to be same type");
     if (_normalTabletInfoPtr) {
         indexlibv2::table::TabletInfoHint tabletInfoHint
             = _normalTabletInfoPtr->GetTabletInfoHint();
         indexlib::index::PartitionInfoHint partitionInfoHint;
-        partitionInfoHint.lastIncSegmentId = tabletInfoHint.lastIncSegmentId;
+        partitionInfoHint.lastIncSegmentId = tabletInfoHint.infoVersion;
         partitionInfoHint.lastRtSegmentId = tabletInfoHint.lastRtSegmentId;
-        partitionInfoHint.needRefindRtSegmentId = tabletInfoHint.needRefindRtSegmentId;
         partitionInfoHint.lastRtSegmentDocCount = tabletInfoHint.lastRtSegmentDocCount;
         return partitionInfoHint;
     }
@@ -149,12 +153,16 @@ inline docid_t PartitionInfoWrapper::GetDocId(const indexlib::index::PartitionIn
     return _partitionInfoPtr->GetDocId(gid);
 }
 
-inline indexlibv2::table::TabletInfoHint
-PartitionInfoWrapper::ConverPartitionInfoToTabletInfo(const indexlib::index::PartitionInfoHint &infoHint) const{
+inline indexlibv2::table::TabletInfoHint PartitionInfoWrapper::ConverPartitionInfoToTabletInfo(
+    const indexlib::index::PartitionInfoHint &infoHint) const {
     indexlibv2::table::TabletInfoHint tabletInfoHint;
-    tabletInfoHint.lastIncSegmentId = infoHint.lastIncSegmentId;
+    static_assert(
+        std::is_same<decltype(indexlibv2::table::TabletInfoHint::infoVersion),
+                     decltype(indexlib::index::PartitionInfoHint::lastRtSegmentId)>::value,
+        "type of infoVersion and lastIncSegmentId need to be same type");
+
+    tabletInfoHint.infoVersion = infoHint.lastIncSegmentId;
     tabletInfoHint.lastRtSegmentId = infoHint.lastRtSegmentId;
-    tabletInfoHint.needRefindRtSegmentId = infoHint.needRefindRtSegmentId;
     tabletInfoHint.lastRtSegmentDocCount = infoHint.lastRtSegmentDocCount;
     return tabletInfoHint;
 }
@@ -163,7 +171,8 @@ inline bool
 PartitionInfoWrapper::GetDiffDocIdRanges(const indexlib::index::PartitionInfoHint &infoHint,
                                          indexlib::DocIdRangeVector &docIdRanges) const {
     if (_normalTabletInfoPtr) {
-        indexlibv2::table::TabletInfoHint tabletInfoHint = ConverPartitionInfoToTabletInfo(infoHint);
+        indexlibv2::table::TabletInfoHint tabletInfoHint
+            = ConverPartitionInfoToTabletInfo(infoHint);
         return _normalTabletInfoPtr->GetDiffDocIdRanges(tabletInfoHint, docIdRanges);
     }
     assert(_partitionInfoPtr);

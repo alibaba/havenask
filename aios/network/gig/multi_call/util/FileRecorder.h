@@ -16,11 +16,13 @@
 #ifndef ISEARCH_MULTI_CALL_FILERECORDER_H
 #define ISEARCH_MULTI_CALL_FILERECORDER_H
 
-#include "aios/network/gig/multi_call/common/common.h"
 #include <string>
+
+#include "aios/network/gig/multi_call/common/common.h"
 namespace multi_call {
 
-class FileRecorder {
+class FileRecorder
+{
 public:
     FileRecorder();
     ~FileRecorder();
@@ -32,17 +34,15 @@ private:
 public:
     static void recordSnapshot(const std::string &content, size_t logCount,
                                const std::string &prefix = "snapshot");
-    static void newRecord(const std::string &content, size_t logCount,
-                          const std::string &dir, const std::string &suffix);
+    static void newRecord(const std::string &content, size_t logCount, const std::string &dir,
+                          const std::string &suffix);
     static bool hasSuffix(const std::string &str, const std::string &suffix);
 
 private:
     static std::string join(const std::string &path, const std::string &file);
-    static bool listDir(const std::string &dirName,
-                        std::vector<std::string> &fileList);
+    static bool listDir(const std::string &dirName, std::vector<std::string> &fileList);
     static bool removeFile(const std::string &path);
-    static bool writeFile(const std::string &srcFileName,
-                          const std::string &content);
+    static bool writeFile(const std::string &srcFileName, const std::string &content);
     static bool getCurrentPath(std::string &path);
     static bool checkAndCreateDir(const std::string &dir);
 

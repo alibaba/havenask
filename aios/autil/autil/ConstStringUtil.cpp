@@ -15,49 +15,43 @@
  */
 #include "autil/ConstStringUtil.h"
 
-#include <stdio.h>
 #include <iosfwd>
+#include <stdio.h>
 
 using namespace std;
 namespace autil {
 
-std::vector<autil::StringView> ConstStringUtil::split(const autil::StringView& text, 
-                                                       const std::string &sepStr, 
-                                                       bool ignoreEmpty)
-{
+std::vector<autil::StringView>
+ConstStringUtil::split(const autil::StringView &text, const std::string &sepStr, bool ignoreEmpty) {
     std::vector<autil::StringView> vec;
     split(vec, text, sepStr, ignoreEmpty);
     return vec;
 }
 
-std::vector<autil::StringView> ConstStringUtil::split(const autil::StringView& text,
-                                                       const char &sepChar,
-                                                       bool ignoreEmpty)
-{
+std::vector<autil::StringView>
+ConstStringUtil::split(const autil::StringView &text, const char &sepChar, bool ignoreEmpty) {
     std::vector<autil::StringView> vec;
     split(vec, text, sepChar, ignoreEmpty);
     return vec;
 }
 
 void ConstStringUtil::split(std::vector<autil::StringView> &vec,
-                            const autil::StringView& text, 
-                            const char &sepChar, bool ignoreEmpty)
-{
+                            const autil::StringView &text,
+                            const char &sepChar,
+                            bool ignoreEmpty) {
     split(vec, text, std::string(1, sepChar), ignoreEmpty);
 }
 
-void ConstStringUtil::split(std::vector<autil::StringView> &vec, 
-                            const autil::StringView& text, 
-                            const std::string &sepStr, bool ignoreEmpty)
-{
+void ConstStringUtil::split(std::vector<autil::StringView> &vec,
+                            const autil::StringView &text,
+                            const std::string &sepStr,
+                            bool ignoreEmpty) {
     size_t n = 0, old = 0;
-    while (n != std::string::npos)
-    {
+    while (n != std::string::npos) {
         n = text.find(sepStr, n);
-        if (n != std::string::npos)
-        {
-            if (!ignoreEmpty || n != old) 
-                vec.push_back(text.substr(old, n-old));
+        if (n != std::string::npos) {
+            if (!ignoreEmpty || n != old)
+                vec.push_back(text.substr(old, n - old));
             n += sepStr.length();
             old = n;
         }
@@ -68,5 +62,4 @@ void ConstStringUtil::split(std::vector<autil::StringView> &vec,
     }
 }
 
-}
-
+} // namespace autil

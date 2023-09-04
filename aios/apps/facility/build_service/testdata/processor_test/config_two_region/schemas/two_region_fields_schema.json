@@ -1,0 +1,81 @@
+{
+    "table_name": "two_region_table",
+    "table_type": "kkv",
+    "fields": [
+
+    ],
+    "regions" :
+    [
+        {
+            "region_name" : "region1",
+            "indexs" : [
+                {
+                    "index_name": "nidint",
+                    "index_type": "PRIMARY_KEY",
+                    "index_fields":
+                    [
+                        { "field_name": "nid", "key_type": "prefix" },
+                        {
+                            "field_name": "friendid",
+                            "key_type": "suffix",
+                            "count_limits": 5000,
+                            "trunc_sort_params": "-$TIME_STAMP;+friendid"
+                        }
+                    ],
+                    "index_preference":
+                    {
+                        "type" : "PERF",
+                        "parameters":
+                        {
+                            "hash_dict": { "type": "dense"},
+                            "suffix_key": {"file_compressor": "zstd", "file_compressor_buffer_size": 4096 },
+                            "value": { "file_compressor": "lz4", "file_compressor_buffer_size": 4096 }
+                        }
+                    }
+                }
+            ],
+            "attributes": [ "nid", "friendid", "timestamp" ],
+            "fields" : [
+	        { "field_name": "nid", "field_type": "INT32" },
+	        { "field_name": "friendid", "field_type": "INT32" },        
+	        { "field_name": "timestamp", "field_type": "INT32" } 
+            ]
+        },
+        {
+            "region_name" : "region2",
+            "indexs" :
+            [
+                {
+                    "index_name": "nidstring",
+                    "index_type": "PRIMARY_KEY",
+                    "index_fields":
+                    [
+                        { "field_name": "nid", "key_type": "prefix" },
+                        {
+                            "field_name": "friendid",
+                            "key_type": "suffix",
+                            "count_limits": 5000,
+                            "trunc_sort_params": "-$TIME_STAMP;+friendid"
+                        }
+                    ],
+                    "index_preference":
+                    {
+                        "type" : "PERF",
+                        "parameters":
+                        {
+                            "hash_dict": { "type": "dense"},
+                            "suffix_key": {"file_compressor": "zstd", "file_compressor_buffer_size": 4096 },
+                            "value": { "file_compressor": "lz4", "file_compressor_buffer_size": 4096 }
+                        }
+                    }
+                }
+            ],
+            "attributes": [ "nid", "friendid", "timestamp" ],
+            "fields" : [
+	        { "field_name": "nid", "field_type": "STRING" },
+	        { "field_name": "friendid", "field_type": "INT32" },        
+	        { "field_name": "timestamp", "field_type": "INT32" }
+            ]            
+        }        
+    ]
+}

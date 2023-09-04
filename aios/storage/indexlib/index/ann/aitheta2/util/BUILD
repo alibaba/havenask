@@ -1,0 +1,106 @@
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+package(
+    default_visibility=[
+        '//aios/storage/indexlib/index/ann/aitheta2:__subpackages__'
+    ]
+)
+strict_cc_library(
+    name='param_util', srcs=[], hdrs=['ParamUtil.h'], deps=['//aios/autil:log']
+)
+strict_cc_library(
+    name='aitheta_factory_wrapper',
+    srcs=['AithetaFactoryWrapper.cpp'],
+    hdrs=['AithetaFactoryWrapper.h', 'CustomizedAithetaDumper.h'],
+    deps=[
+        ':customized_aitheta_container', '//aios/autil:log',
+        '//aios/storage/indexlib/index/ann/aitheta2:AithetaTerm',
+        '//aios/storage/indexlib/index/ann/aitheta2/impl:realtime_build_resource',
+        '//aios/storage/indexlib/index/ann/aitheta2/util/params_initializer:params_initializer_factory'
+    ]
+)
+strict_cc_library(
+    name='embedding_field_data',
+    srcs=[],
+    hdrs=['EmbeddingFieldData.h'],
+    deps=['//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common']
+)
+strict_cc_library(
+    name='index_field_parser',
+    srcs=['IndexFieldParser.cpp'],
+    hdrs=['IndexFieldParser.h'],
+    deps=[
+        ':embedding_field_data', '//aios/autil:log',
+        '//aios/storage/indexlib/document/normal:IndexDocument',
+        '//aios/storage/indexlib/index/ann:config',
+        '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common',
+        '//aios/storage/indexlib/index/ann/aitheta2/impl:normal_segment',
+        '//aios/storage/indexlib/util:FloatUint64Encoder'
+    ]
+)
+strict_cc_library(
+    name='embedding_util',
+    srcs=[
+        'EmbeddingDataDumper.cpp', 'EmbeddingDataExtractor.cpp',
+        'EmbeddingDataHolder.cpp'
+    ],
+    hdrs=[
+        'EmbeddingAttrSegment.h', 'EmbeddingDataDumper.h',
+        'EmbeddingDataExtractor.h', 'EmbeddingDataHolder.h'
+    ],
+    deps=[
+        ':aitheta_factory_wrapper',
+        '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common',
+        '//aios/storage/indexlib/index/ann/aitheta2/impl:normal_segment'
+    ]
+)
+strict_cc_library(
+    name='index_context_holder',
+    srcs=[],
+    hdrs=['AiThetaContextHolder.h'],
+    deps=['//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common']
+)
+strict_cc_library(
+    name='metric_reporter',
+    srcs=[],
+    hdrs=['MetricReporter.h'],
+    deps=['//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common']
+)
+strict_cc_library(
+    name='pk_data_util',
+    srcs=['PkDataExtractor.cpp', 'PkDataHolder.cpp', 'PkDumper.cpp'],
+    hdrs=['PkDataExtractor.h', 'PkDataHolder.h', 'PkDumper.h'],
+    deps=[
+        '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common',
+        '//aios/storage/indexlib/index/ann/aitheta2/impl:normal_segment'
+    ]
+)
+strict_cc_library(
+    name='query_parser',
+    srcs=['QueryParser.cpp'],
+    hdrs=['QueryParser.h'],
+    deps=[
+        '//aios/autil:url_util',
+        '//aios/storage/indexlib/index/ann/aitheta2:AithetaQueryWrapper',
+        '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common',
+        '//aios/storage/indexlib/index/ann/aitheta2/impl:normal_segment'
+    ]
+)
+strict_cc_library(
+    name='result_holder',
+    srcs=['ResultHolder.cpp'],
+    hdrs=['ResultHolder.h'],
+    deps=[
+        '//aios/storage/indexlib/index/ann:constants',
+        '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common',
+        '//aios/storage/indexlib/index/ann/aitheta2/impl:normal_segment'
+    ]
+)
+strict_cc_library(
+    name='customized_aitheta_container',
+    srcs=['CustomizedAithetaContainer.cpp'],
+    hdrs=['CustomizedAithetaContainer.h'],
+    deps=[
+        '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common',
+        '//aios/storage/indexlib/index/ann/aitheta2/util/segment_data:segment_data_reader'
+    ]
+)

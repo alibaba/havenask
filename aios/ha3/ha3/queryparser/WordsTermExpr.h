@@ -17,23 +17,23 @@
 
 #include <string>
 
-#include "ha3/queryparser/AtomicQueryExpr.h"
 #include "autil/Log.h" // IWYU pragma: keep
+#include "ha3/queryparser/AtomicQueryExpr.h"
 
 namespace isearch {
 namespace queryparser {
 class QueryExprEvaluator;
-}  // namespace queryparser
-}  // namespace isearch
+} // namespace queryparser
+} // namespace isearch
 
 namespace isearch {
 namespace queryparser {
 
-class WordsTermExpr : public AtomicQueryExpr
-{
+class WordsTermExpr : public AtomicQueryExpr {
 public:
     WordsTermExpr(const std::string &text);
     ~WordsTermExpr();
+
 public:
     void evaluate(QueryExprEvaluator *qee);
 
@@ -43,4 +43,3 @@ private:
 
 } // namespace queryparser
 } // namespace isearch
-

@@ -30,6 +30,7 @@ class StateCounter;
 
 namespace indexlibv2::framework {
 class TabletMetrics;
+struct VersionDeployDescription;
 
 enum class MemoryStatus {
     OK = 0,
@@ -57,6 +58,7 @@ public:
     Locator GetLastCommittedLocator() const;
     Locator GetLatestLocator() const;
     int64_t GetTabletDocCount() const;
+    std::shared_ptr<VersionDeployDescription> GetLoadedVersionDeployDescription() const;
 
     std::shared_ptr<TabletMetrics> GetTabletMetrics() const;
 
@@ -65,6 +67,8 @@ public:
     void SetIndexRoot(const IndexRoot& indexRoot);
     void SetLoadedPublishVersion(const Version& version);
     void SetLoadedPrivateVersion(const Version& version);
+    void SetLoadedVersionDeployDescription(const std::shared_ptr<VersionDeployDescription>& versionDpDesc);
+
     void SetBuildLocator(const Locator& locator);
     void SetLastCommittedLocator(const Locator& locator);
     void SetLastReopenLocator(const Locator& locator); // the new TabletData's locator after reopen
@@ -88,6 +92,7 @@ private:
     std::shared_ptr<indexlib::util::CounterMap> _counterMap;
     std::shared_ptr<indexlib::util::StateCounter> _tabletDocCounter;
     std::shared_ptr<TabletMetrics> _tabletMetrics;
+    std::shared_ptr<indexlibv2::framework::VersionDeployDescription> _loadedVersionDpDesc;
 
     mutable autil::ReadWriteLock _rwlock;
 };

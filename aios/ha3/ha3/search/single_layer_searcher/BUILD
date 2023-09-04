@@ -2,18 +2,21 @@ package(default_visibility=['//aios/ha3:__subpackages__'])
 cc_library(
     name='ha3_single_layer_searcher_headers',
     hdrs=glob(['*.h']),
+    include_prefix='ha3/search',
     deps=[
+        '//aios/ha3/ha3/search/filter:ha3_filter_headers',
         '//aios/ha3/ha3/search/query_executor:ha3_query_executor_headers',
-        '//aios/matchdoc:matchdoc'
-    ],
-    include_prefix='ha3/search'
+        '//aios/matchdoc'
+    ]
 )
 cc_library(
     name='ha3_single_layer_searcher',
     srcs=glob(['*.cpp']),
+    visibility=['//visibility:public'],
     deps=[
         ':ha3_single_layer_searcher_headers',
+        '//aios/ha3/ha3/search/filter:ha3_filter',
         '//aios/ha3/ha3/search/query_executor:ha3_query_executor',
-        '//aios/matchdoc:matchdoc'
+        '//aios/matchdoc'
     ]
 )

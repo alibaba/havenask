@@ -23,10 +23,11 @@ AUTIL_LOG_SETUP(indexlib.table, NormalDocIdDispatcher);
 
 NormalDocIdDispatcher::NormalDocIdDispatcher(const std::string& tableName,
                                              const std::shared_ptr<indexlib::index::PrimaryKeyIndexReader>& pkReader,
-                                             docid_t baseDocId)
+                                             docid_t buildingSegmentBaseDocId, docid_t currentSegmentDocCount)
     : _tableName(tableName)
     , _pkReader(pkReader)
-    , _baseDocId(baseDocId)
+    , _buildingSegmentBaseDocId(buildingSegmentBaseDocId)
+    , _currentSegmentDocCount(currentSegmentDocCount)
 {
 }
 
@@ -54,11 +55,12 @@ void NormalDocIdDispatcher::ProcessAddDocument(const std::shared_ptr<indexlibv2:
     const std::string& pkStr = doc->GetPrimaryKey();
     docid_t oldDocId = Lookup(pkStr);
     if (oldDocId != INVALID_DOCID) {
-        Remove(oldDocId);
+        doc->SetDeleteDocId(oldDocId);
     }
-    docid_t docid = _baseDocId++;
+    docid_t docid = _currentSegmentDocCount;
     doc->SetDocId(docid);
-    Update(pkStr, docid);
+    Update(pkStr, _buildingSegmentBaseDocId + docid);
+    _currentSegmentDocCount++;
 }
 
 void NormalDocIdDispatcher::ProcessUpdateDocument(const std::shared_ptr<indexlibv2::document::NormalDocument>& doc)
@@ -67,8 +69,9 @@ void NormalDocIdDispatcher::ProcessUpdateDocument(const std::shared_ptr<indexlib
     const std::string& pkStr = doc->GetIndexDocument()->GetPrimaryKey();
     docid_t docId = Lookup(pkStr);
     if (docId == INVALID_DOCID) {
-        AUTIL_LOG(ERROR, "[%s] target update document [pk:%s] [hash:%u] [ts:%ld] not exist!", _tableName.c_str(),
-                  pkStr.c_str(), doc->GetDocInfo().hashId, doc->GetDocInfo().timestamp);
+        AUTIL_SLOG_EVERY_T(WARN, 60) << _tableName << " target update document pk: " << pkStr
+                                     << " hash: " << doc->GetDocInfo().hashId << " ts: " << doc->GetDocInfo().timestamp
+                                     << " not exist!";
     }
     doc->SetDocId(docId);
 }
@@ -79,43 +82,33 @@ void NormalDocIdDispatcher::ProcessDeleteDocument(const std::shared_ptr<indexlib
     const std::string& pkStr = doc->GetIndexDocument()->GetPrimaryKey();
     docid_t docId = Lookup(pkStr);
     if (docId != INVALID_DOCID) {
-        Remove(docId);
+        Remove(pkStr);
     } else {
-        AUTIL_LOG(ERROR, "[%s] target delete document [pk:%s] [hash:%u] [ts:%ld] not exist!", _tableName.c_str(),
-                  pkStr.c_str(), doc->GetDocInfo().hashId, doc->GetDocInfo().timestamp);
+        AUTIL_SLOG_EVERY_T(WARN, 60) << _tableName << " target delete document pk: " << pkStr
+                                     << " hash: " << doc->GetDocInfo().hashId << " ts: " << doc->GetDocInfo().timestamp
+                                     << " not exist!";
     }
     doc->SetDocId(docId);
 }
 
 docid_t NormalDocIdDispatcher::Lookup(const std::string& pkStr) const
 {
+    if (!_pkReader) {
+        return INVALID_DOCID;
+    }
     if (_pkToDocIdMap.find(pkStr) != _pkToDocIdMap.end()) {
         return _pkToDocIdMap.at(pkStr);
     }
     return _pkReader->Lookup(pkStr, _pkReader->GetBuildExecutor());
 }
 
-void NormalDocIdDispatcher::Update(std::string pk, docid_t docId)
+void NormalDocIdDispatcher::Update(const std::string& pk, docid_t docId) { _pkToDocIdMap[pk] = docId; }
+
+void NormalDocIdDispatcher::Remove(const std::string& pk)
 {
-    auto iter = _pkToDocIdMap.find(pk);
-    if (iter != _pkToDocIdMap.end()) {
-        _docIdToPkMap.erase(iter->second);
+    if (_pkToDocIdMap.find(pk) != _pkToDocIdMap.end()) {
+        _pkToDocIdMap.erase(pk);
     }
-    _pkToDocIdMap[pk] = docId;
-    _docIdToPkMap[docId] = pk;
-
-    assert(_pkToDocIdMap.size() == _docIdToPkMap.size());
-}
-
-void NormalDocIdDispatcher::Remove(docid_t docId)
-{
-    auto iter = _docIdToPkMap.find(docId);
-    if (iter != _docIdToPkMap.end()) {
-        _pkToDocIdMap.erase(iter->second);
-        _docIdToPkMap.erase(iter);
-    }
-
-    assert(_pkToDocIdMap.size() == _docIdToPkMap.size());
 }
 
 } // namespace indexlib::table

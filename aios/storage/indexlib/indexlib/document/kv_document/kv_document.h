@@ -140,6 +140,7 @@ public:
     {
         if (!_rawDoc) {
             _rawDoc = std::make_unique<document::DefaultRawDocument>(_keyMapManager);
+            _rawDoc->setDocOperateType(Document::GetDocOperateType());
         }
     }
     void SetFormatError() { _hasFormatError = true; }

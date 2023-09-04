@@ -23,38 +23,28 @@ using namespace std;
 using namespace autil;
 FSLIB_BEGIN_NAMESPACE(util);
 
-LongIntervalLog::LongIntervalLog(const char *file, int line, 
-                                 const char *func, const char *msg, 
-                                 int64_t interval, alog::Logger *logger)
-    : _file(file)
-    , _line(line)
-    , _func(func)
-    , _msg(msg)
-    , _interval(interval) 
-    , _logger(logger)
-{
+LongIntervalLog::LongIntervalLog(
+    const char *file, int line, const char *func, const char *msg, int64_t interval, alog::Logger *logger)
+    : _file(file), _line(line), _func(func), _msg(msg), _interval(interval), _logger(logger) {
     _beginTime = TimeUtility::currentTime();
 }
 
-LongIntervalLog::~LongIntervalLog() { 
+LongIntervalLog::~LongIntervalLog() {
     int64_t endTime = TimeUtility::currentTime();
     int64_t t = endTime - _beginTime;
     if (t >= _interval) {
-        _logger->log(alog::LOG_LEVEL_INFO, _file, _line, _func, 
-                     "interval [%ld], %s", t, _msg);
-        #ifdef ENABLE_BEEPER
+        _logger->log(alog::LOG_LEVEL_INFO, _file, _line, _func, "interval [%ld], %s", t, _msg);
+#ifdef ENABLE_BEEPER
         BEEPER_FORMAT_REPORT_WITHOUT_TAGS(
-                FSLIB_LONG_INTERVAL_COLLECTOR_NAME,
-                "%s:%d:%s, interval [%ld], %s", _file, _line, _func, t, _msg);
-        #endif
+            FSLIB_LONG_INTERVAL_COLLECTOR_NAME, "%s:%d:%s, interval [%ld], %s", _file, _line, _func, t, _msg);
+#endif
     }
-    #ifdef ENABLE_BEEPER
-    if (t >= 10 * 1000 * 1000) {  // 10s
+#ifdef ENABLE_BEEPER
+    if (t >= 10 * 1000 * 1000) { // 10s
         BEEPER_FORMAT_REPORT_WITHOUT_TAGS(
-                FSLIB_ERROR_COLLECTOR_NAME,
-                "%s:%d:%s, interval [%ld], %s", _file, _line, _func, t, _msg);
+            FSLIB_ERROR_COLLECTOR_NAME, "%s:%d:%s, interval [%ld], %s", _file, _line, _func, t, _msg);
     }
-    #endif
+#endif
 }
 
 FSLIB_END_NAMESPACE(util);

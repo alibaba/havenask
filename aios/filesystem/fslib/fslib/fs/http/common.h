@@ -16,27 +16,31 @@
 #ifndef FSLIB_HTTP_PLUGIN_COMMON_H
 #define FSLIB_HTTP_PLUGIN_COMMON_H
 
-#include <autil/Log.h>
 #include <autil/Lock.h>
-#include "fslib/fs/File.h"
-#include "fslib/fs/FileLock.h"
+#include <autil/Log.h>
+
 #include "fslib/common/common_define.h"
 #include "fslib/common/common_type.h"
+#include "fslib/fs/File.h"
+#include "fslib/fs/FileLock.h"
 
-#define FSLIB_PLUGIN_BEGIN_NAMESPACE(x) namespace fslib { namespace fs \
-    { namespace x {
-#define FSLIB_PLUGIN_END_NAMESPACE(x) } } }
+#define FSLIB_PLUGIN_BEGIN_NAMESPACE(x)                                                                                \
+    namespace fslib {                                                                                                  \
+    namespace fs {                                                                                                     \
+    namespace x {
+#define FSLIB_PLUGIN_END_NAMESPACE(x)                                                                                  \
+    }                                                                                                                  \
+    }                                                                                                                  \
+    }
 #define FSLIB_PLUGIN_USING_NAMESPACE(x) using namespace fslib::fs::x
 
-#define CALL_WITH_CHECK(funcName, ...)                                  \
-    do {                                                                \
-        CURLcode res;                                                   \
-        res = funcName(__VA_ARGS__);                                    \
-        if (res != CURLE_OK) {                                          \
-            AUTIL_LOG(ERROR, "error when call " #funcName ": [%s]",     \
-                      curl_easy_strerror(res));                         \
-        }                                                               \
+#define CALL_WITH_CHECK(funcName, ...)                                                                                 \
+    do {                                                                                                               \
+        CURLcode res;                                                                                                  \
+        res = funcName(__VA_ARGS__);                                                                                   \
+        if (res != CURLE_OK) {                                                                                         \
+            AUTIL_LOG(ERROR, "error when call " #funcName ": [%s]", curl_easy_strerror(res));                          \
+        }                                                                                                              \
     } while (0)
 
-
-#endif //FSLIB_HTTP_PLUGIN_COMMON_H
+#endif // FSLIB_HTTP_PLUGIN_COMMON_H

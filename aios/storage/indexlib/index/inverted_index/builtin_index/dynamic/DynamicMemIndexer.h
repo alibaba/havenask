@@ -59,6 +59,7 @@ public:
     void UpdateTerm(docid_t docId, DictKeyInfo termKey, document::ModifiedTokens::Operation op);
     std::shared_ptr<DynamicIndexSegmentReader> CreateInMemReader();
     void Dump(const std::shared_ptr<file_system::Directory>& indexDir);
+    size_t GetCurrentMemoryUse();
 
 public:
     static std::string

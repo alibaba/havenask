@@ -16,12 +16,14 @@
 #ifndef ISEARCH_MULTI_CALL_GRPCREQUEST_H
 #define ISEARCH_MULTI_CALL_GRPCREQUEST_H
 
-#include "aios/network/gig/multi_call/interface/Request.h"
 #include <grpc++/impl/codegen/proto_utils.h>
+
+#include "aios/network/gig/multi_call/interface/Request.h"
 
 namespace multi_call {
 
-class GrpcRequest : public Request {
+class GrpcRequest : public Request
+{
 public:
     GrpcRequest(const std::string &methodName,
                 const std::shared_ptr<google::protobuf::Arena> &arena);
@@ -46,7 +48,9 @@ public:
     }
 
 public:
-    virtual google::protobuf::Message *serializeMessage() { return _message; }
+    virtual google::protobuf::Message *serializeMessage() {
+        return _message;
+    }
 
 public:
     const std::string &getMethodName() const;

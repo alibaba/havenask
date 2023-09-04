@@ -1,0 +1,193 @@
+syntax = "proto2";
+package cm_basic;
+
+option java_package = "com.taobao.cm.cm_basic";
+option cc_enable_arenas = true;
+
+enum IDCType
+{
+    IDC_ANY=0;
+    IDC_CM1=1;
+    IDC_CM2=2;
+    IDC_CM3=3;
+    IDC_CM4=4;
+    IDC_CM5=5;
+    IDC_CM6=6;
+    IDC_CM7=7;
+    IDC_CM8=8;
+    IDC_CM9=9;
+    IDC_CM10=10;
+    IDC_CM11=11;
+    IDC_CM12=12;
+    IDC_CM13=13;
+    IDC_CM14=14;
+    IDC_CM15=15;
+    IDC_CM16=16;
+    IDC_CM17=17;
+    IDC_CM18=18;
+    IDC_CM19=19;
+    IDC_CM20=20;
+    IDC_END=21;
+}
+
+enum NodeStatus
+{
+    NS_NORMAL   = 0;
+    NS_ABNORMAL = 1;
+    NS_TIMEOUT  = 2;
+    NS_UNVALID  = 3;
+    NS_UNINIT   = 4;
+}
+
+enum RespStatus
+{
+    RSP_SUCCESS             = 0;
+    RSP_FAILED              = 1;
+    RSP_NOT_CM_LEADER       = 2;
+    RSP_CLUSTER_NOT_EXIST   = 3;
+    RSP_PARTITION_NOT_EXIST = 4;
+    RSP_NODE_NOT_EXIST      = 5;	
+    RSP_FAILED_CL_ZK        = 6;    // 操作cluster_list zk失败
+    RSP_FAILED_BL_ZK        = 7;    // 操作binlog zk失败
+    RSP_FAILED_CS_ZK        = 8;    // 操作configserver zk失败
+    RSP_FAILED_CASCADE_ZK   = 9;    // 操作cascade config zk失败
+    RSP_FAILED_SERIALIZE    = 10;   // pb序列化失败
+    RSP_UNKNOW_CMD          = 11;
+    RSP_TARGET_NOT_EXIST = 12;
+}
+
+enum BinLogOfflineInfo
+{
+    BLOI_AUTO_OFFLINE_CPU       = 0;
+    BLOI_AUTO_OFFLINE_LOADONE   = 1;
+    BLOI_AUTO_OFFLINE_IOWAIT    = 2;
+    BLOI_AUTO_OFFLINE_LATENCY   = 3;
+    BLOI_AUTO_OFFLINE_QPS       = 4;
+    BLOI_MANUAL_OFFLINE         = 5;
+}
+
+message BinLogUnit
+{
+    required string cluster_name            = 1;
+    required cm_basic.OnlineStatus state    = 2;
+    optional string node_spec               = 3;
+    optional BinLogOfflineInfo offline_info = 4; // 下线原因 
+}
+
+enum ProtocolType
+{
+    PT_TCP      = 0;
+    PT_UDP      = 1;
+    PT_HTTP     = 2;
+    PT_ANY      = 3; // 不指定协议类型
+    PT_RDMA     = 4;
+}
+
+// 集群或节点是否在线的状态
+enum OnlineStatus
+{
+    OS_ONLINE   = 0;    // 集群或者节点在线
+    OS_OFFLINE  = 1;
+    OS_INITING  = 2;    // 正在收集节点状态中
+}
+
+message MetaKV 
+{
+    required bytes meta_key     = 1;
+    optional bytes meta_value   = 2;
+}
+
+message NodeMetaInfo 
+{
+    repeated MetaKV kv_array = 1; 
+}
+
+message NodeLBInfo 
+{
+    optional int32 cpu_busy = 1;
+    optional int32 load_one = 2;
+    optional int32 iowait   = 3;
+    optional int32 weight   = 4;
+    optional int32 latency  = 5;
+    optional int32 qps      = 6;
+    optional bytes custom_info=7;
+}
+
+message ProtocolPort
+{
+    required ProtocolType  protocol = 1;
+    required int32         port     = 2;
+}
+
+message NodeLimit
+{
+    optional int32 cpu_busy_limit   = 1;
+    optional int32 load_one_limit   = 2;
+    optional int32 iowait_limit     = 3;
+    optional int32 latency_limit    = 4;
+    optional int32 qps_limit        = 5;
+}
+
+
+message CMNode 
+{
+    required string         node_ip         = 1;
+    repeated ProtocolPort   proto_port      = 2;
+    required string         cluster_name    = 3;
+    required int32          group_id        = 4 [default = -1];             // 从0开始
+
+    required OnlineStatus   online_status   = 5 [default = OS_ONLINE];      // 节点是否在线状态
+    required NodeStatus     cur_status      = 6 [default = NS_ABNORMAL];    // 当前状态
+    required NodeStatus     prev_status     = 7 [default = NS_UNINIT];      // 上一次的状态
+    required int64          valid_time      = 8 [default = 0];              // 最后一次设置offline/online 的时间
+    required int64          heartbeat_time  = 9;                            // 最后一次收到心跳的时间
+    required int64          start_time      = 10;
+    optional int64          dead_begin      = 11 [deprecated = true];            // 最近一次 dead 的开始时间
+    optional int64          dead_end        = 12 [deprecated = true];            // 最近一次 dead 结束的时间
+    optional int64          dead_time       = 13 [deprecated = true];            // 累计的 dead 时长
+    optional IDCType        idc_type        = 14 [default=IDC_ANY];         // 机房流量分配时，标识节点是哪个机房
+    optional NodeLBInfo     lb_info         = 15;                           // 节点负载信息，可用于自动上下线
+    optional bytes          topo_info       = 16;
+    optional NodeMetaInfo   meta_info       = 17;
+}
+
+message CMGroup 
+{
+    repeated CMNode     node_vec    = 1;
+    optional bytes      info        = 2;
+}
+
+message CMCluster 
+{
+    enum NodeCheckType
+    {
+        NCT_HEARTBEAT       = 0; // 被动心跳探测功能已经下线
+        NCT_7LEVEL_CHECK    = 1;
+        NCT_4LEVEL_CHECK    = 2;
+        NCT_KEEP_ONLINE     = 3;
+        NCT_KEEP_OFFLINE    = 4;
+        NCT_CASCADE = 5;
+    }
+    enum TopoType
+    {
+        TT_ONE_MAP_ONE      = 0;
+        TT_CLUSTER_MAP_TABLE= 1;
+    }
+    required string         cluster_name    = 1;
+    required int64          create_time     = 2 [default = 0];                  // 集群创建时间
+    required int64          version         = 3 [default = 0];                  // 集群当前版本，即最近更新时间
+    required OnlineStatus   cluster_status  = 4 [default = OS_ONLINE];          // 集群是否在线状态
+    required NodeCheckType  check_type      = 5 [default = NCT_HEARTBEAT];
+    required TopoType       topo_type       = 6 [default = TT_ONE_MAP_ONE];     // build 拓扑结构的类型
+    required int32          node_num        = 7 [default = 0];                  // 集群内的总节点数
+    optional NodeLimit      node_limits     = 8;
+    repeated CMGroup        group_vec       = 9;                                //
+    optional string         check_filename  = 10;
+    optional int32          idc_prefer_ratio= 11;                               // 本机房优先的比例，(0,100]
+    optional int32          idc_prefer_ratio_new = 12;                          // 用于新的本机房优先策略, [0, 100]
+    optional bool           close_idc_prefer_new = 13 [default = true];
+    optional bool           auto_offline    = 14;
+    optional bytes          info            = 15;                               // 辅助信息字段
+    optional int32          protect_ratio   = 16 [default = -1];                // timeout节点比例 [-1, 100] -1: disable
+    repeated string         belong_vec      = 17;                               // 归组
+}

@@ -36,7 +36,7 @@ Status VirtualAttributeMemIndexer::Init(const std::shared_ptr<config::IIndexConf
     auto virtualAttrConfig = std::dynamic_pointer_cast<VirtualAttributeConfig>(indexConfig);
     assert(virtualAttrConfig);
     auto attrConfig =
-        std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(virtualAttrConfig->GetAttributeConfig());
+        std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(virtualAttrConfig->GetAttributeConfig());
     assert(attrConfig);
     return _impl->Init(attrConfig, docInfoExtractorFactory);
 }

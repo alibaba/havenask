@@ -19,11 +19,10 @@
 #include <map>
 #include <utility>
 
+#include "autil/Log.h"
 #include "indexlib/indexlib.h"
 #include "suez/turing/expression/framework/JoinDocIdConverterBase.h"
 #include "suez/turing/expression/framework/JoinDocIdConverterCreator.h"
-
-#include "autil/Log.h"
 
 using namespace std;
 using namespace suez::turing;
@@ -32,16 +31,12 @@ namespace isearch {
 namespace search {
 AUTIL_LOG_SETUP(ha3, JoinFilter);
 
-JoinFilter::JoinFilter(JoinDocIdConverterCreator *convertFactory, 
-                       bool forceStrongJoin)
-        : _convertFactory(convertFactory) 
-        , _filteredCount(0)
-        , _forceStrongJoin(forceStrongJoin)
-{ 
-}
+JoinFilter::JoinFilter(JoinDocIdConverterCreator *convertFactory, bool forceStrongJoin)
+    : _convertFactory(convertFactory)
+    , _filteredCount(0)
+    , _forceStrongJoin(forceStrongJoin) {}
 
-JoinFilter::~JoinFilter() { 
-}
+JoinFilter::~JoinFilter() {}
 
 bool JoinFilter::doPass(matchdoc::MatchDoc doc, bool isSub) {
     const auto &convertMap = _convertFactory->getConverterMap();
@@ -51,10 +46,10 @@ bool JoinFilter::doPass(matchdoc::MatchDoc doc, bool isSub) {
         if (converter->isSubJoin() != isSub) {
             continue;
         }
-        if ( !_forceStrongJoin && !converter->isStrongJoin()) {
+        if (!_forceStrongJoin && !converter->isStrongJoin()) {
             continue;
         }
-        if (converter->convert(doc) ==  INVALID_DOCID) {
+        if (converter->convert(doc) == INVALID_DOCID) {
             _filteredCount++;
             return false;
         }
@@ -64,4 +59,3 @@ bool JoinFilter::doPass(matchdoc::MatchDoc doc, bool isSub) {
 
 } // namespace search
 } // namespace isearch
-

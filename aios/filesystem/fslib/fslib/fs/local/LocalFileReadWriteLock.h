@@ -23,17 +23,16 @@
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class LocalFileReadWriteLock : public FileReadWriteLock
-{
+class LocalFileReadWriteLock : public FileReadWriteLock {
 public:
-    LocalFileReadWriteLock(const std::string& fileName);
+    LocalFileReadWriteLock(const std::string &fileName);
 
 public:
     ~LocalFileReadWriteLock();
 
 private:
-    LocalFileReadWriteLock(const LocalFileReadWriteLock&);
-    LocalFileReadWriteLock& operator= (const LocalFileReadWriteLock&);
+    LocalFileReadWriteLock(const LocalFileReadWriteLock &);
+    LocalFileReadWriteLock &operator=(const LocalFileReadWriteLock &);
 
 public:
     /*override*/ int rdlock(uint32_t timeout = 0);
@@ -52,4 +51,4 @@ FSLIB_TYPEDEF_AUTO_PTR(LocalFileReadWriteLock);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_LOCALFILEREADWRITELOCK_H
+#endif // FSLIB_LOCALFILEREADWRITELOCK_H

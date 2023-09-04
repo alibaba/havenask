@@ -47,7 +47,7 @@ Status OperationIterator::Init(const OperationCursor& skipCursor, const indexlib
         if (segmentid < skipCursor.segId || !indexer->GetOperationMeta(opMeta)) {
             continue;
         }
-        if (indexer->IsSealed() && opMeta.GetMaxTimestamp() < _locator.GetOffset()) {
+        if (indexer->IsSealed() && opMeta.GetMaxOffset() < _locator.GetOffset()) {
             continue;
         }
         if (segmentid == skipCursor.segId && skipCursor.pos + 1 >= (int32_t)opMeta.GetOperationCount()) {

@@ -1,10 +1,10 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(
     default_visibility=[
         '//aios/storage/indexlib/table/normal_table:__subpackages__'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='OptimizeMergeStrategy',
     deps=[
         ':NormalTableMergeStrategyUtil', '//aios/autil:log',
@@ -19,16 +19,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTabletMergeStrategyDefine',
     deps=['//aios/storage/indexlib/framework:Segment']
 )
-indexlib_cc_library(
-    name='PriorityQueueMergeStrategy',
+strict_cc_library(
+    name='AdaptiveMergeStrategy',
     deps=[
-        '//aios/storage/indexlib/table/normal_table:Common',
-        '//aios/storage/indexlib/table/normal_table/config:SegmentGroupConfig',
-        ':NormalTabletMergeStrategyDefine', ':NormalTableMergeStrategyUtil',
+        ':NormalTableMergeStrategyUtil', ':NormalTabletMergeStrategyDefine',
         '//aios/autil:log', '//aios/storage/indexlib/config:MergeConfig',
         '//aios/storage/indexlib/config:OfflineConfig',
         '//aios/storage/indexlib/config:TabletOptions',
@@ -38,10 +36,30 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index:IIndexMerger',
         '//aios/storage/indexlib/table/index_task/merger:MergePlan',
         '//aios/storage/indexlib/table/index_task/merger:MergeStrategy',
-        '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine'
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine',
+        '//aios/storage/indexlib/table/index_task/merger:RealtimeMergeStrategy',
+        '//aios/storage/indexlib/table/normal_table:Common'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
+    name='PriorityQueueMergeStrategy',
+    deps=[
+        ':NormalTableMergeStrategyUtil', ':NormalTabletMergeStrategyDefine',
+        '//aios/autil:log', '//aios/storage/indexlib/config:MergeConfig',
+        '//aios/storage/indexlib/config:OfflineConfig',
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/index:IIndexMerger',
+        '//aios/storage/indexlib/table/index_task/merger:MergePlan',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategy',
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine',
+        '//aios/storage/indexlib/table/normal_table:Common',
+        '//aios/storage/indexlib/table/normal_table/config:SegmentGroupConfig'
+    ]
+)
+strict_cc_library(
     name='BalanceTreeMergeStrategy',
     deps=[
         ':NormalTableMergeStrategyUtil', '//aios/autil:log',
@@ -57,7 +75,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='CombinedMergeStrategy',
     deps=[
         ':BalanceTreeMergeStrategy', ':NormalTableMergeStrategyUtil',
@@ -75,14 +93,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task/merger:RealtimeMergeStrategy'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='NormalTableMergeStrategyUtil',
     deps=[
         '//aios/storage/indexlib/framework:Segment',
         '//aios/storage/indexlib/index/deletionmap:merger'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SplitStrategy',
     deps=[
         ':NormalTableMergeStrategyUtil', ':NormalTabletMergeStrategyDefine',
@@ -92,12 +110,12 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework:TabletData',
         '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
         '//aios/storage/indexlib/index:IIndexMerger',
-        '//aios/storage/indexlib/table/normal_table:Common',
-        '//aios/storage/indexlib/table/normal_table/config:SegmentGroupConfig',
-        '//aios/storage/indexlib/table/normal_table/index_task:SingleSegmentDocumentGroupSelector',
         '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
         '//aios/storage/indexlib/table/index_task/merger:MergePlan',
         '//aios/storage/indexlib/table/index_task/merger:MergeStrategy',
-        '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine'
+        '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine',
+        '//aios/storage/indexlib/table/normal_table:Common',
+        '//aios/storage/indexlib/table/normal_table/config:SegmentGroupConfig',
+        '//aios/storage/indexlib/table/normal_table/index_task:SingleSegmentDocumentGroupSelector'
     ]
 )

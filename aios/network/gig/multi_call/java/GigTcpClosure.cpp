@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/java/GigTcpClosure.h"
+
 #include "aios/network/gig/multi_call/interface/TcpResponse.h"
 #include "aios/network/gig/multi_call/java/GigJavaUtil.h"
 
@@ -24,12 +25,13 @@ AUTIL_LOG_SETUP(multi_call, GigTcpClosure);
 
 GigTcpClosure::GigTcpClosure(JavaCallback callback, long callbackId,
                              const GigRequestGeneratorPtr &generator)
-    : GigJavaClosure(callback, callbackId, generator) {}
+    : GigJavaClosure(callback, callbackId, generator) {
+}
 
-GigTcpClosure::~GigTcpClosure() {}
+GigTcpClosure::~GigTcpClosure() {
+}
 
-bool GigTcpClosure::extractResponse(ResponsePtr response,
-                                    GigResponseHeader *responseHeader,
+bool GigTcpClosure::extractResponse(ResponsePtr response, GigResponseHeader *responseHeader,
                                     const char *&body, size_t &bodySize) {
     TcpResponsePtr gigTcpResponse = dynamic_pointer_cast<TcpResponse>(response);
     if (!gigTcpResponse) {
@@ -44,10 +46,8 @@ bool GigTcpClosure::extractResponse(ResponsePtr response,
         AUTIL_LOG(ERROR,
                   "tcp response data is empty, ec [%d], err [%s], biz [%s], "
                   "remote [%s]",
-                  gigTcpResponse->getErrorCode(),
-                  gigTcpResponse->errorString().c_str(),
-                  gigTcpResponse->getBizName().c_str(),
-                  gigTcpResponse->getSpecStr().c_str());
+                  gigTcpResponse->getErrorCode(), gigTcpResponse->errorString().c_str(),
+                  gigTcpResponse->getBizName().c_str(), gigTcpResponse->getSpecStr().c_str());
         return false;
     }
     return true;

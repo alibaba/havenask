@@ -1,0 +1,7 @@
+{
+	"tokenizer_config":{
+		"tokenizers":[],
+		"modules":[]
+	},
+	"analyzers":{}
+}

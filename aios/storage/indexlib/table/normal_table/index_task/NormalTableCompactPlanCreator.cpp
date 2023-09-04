@@ -33,14 +33,17 @@
 #include "indexlib/framework/index_task/IndexTaskPlan.h"
 #include "indexlib/framework/index_task/IndexTaskResource.h"
 #include "indexlib/framework/index_task/IndexTaskResourceManager.h"
+#include "indexlib/table/BuiltinDefine.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/table/index_task/merger/MergeStrategy.h"
 #include "indexlib/table/index_task/merger/MergeStrategyDefine.h"
 #include "indexlib/table/index_task/merger/SpecificSegmentsMergeStrategy.h"
 #include "indexlib/table/normal_table/NormalSchemaResolver.h"
 #include "indexlib/table/normal_table/index_task/NormalTableMergeDescriptionCreator.h"
+#include "indexlib/table/normal_table/index_task/PatchedDeletionMapLoader.h"
 #include "indexlib/table/normal_table/index_task/ReclaimMap.h"
 #include "indexlib/table/normal_table/index_task/SortedReclaimMap.h"
+#include "indexlib/table/normal_table/index_task/merger/AdaptiveMergeStrategy.h"
 #include "indexlib/table/normal_table/index_task/merger/BalanceTreeMergeStrategy.h"
 #include "indexlib/table/normal_table/index_task/merger/CombinedMergeStrategy.h"
 #include "indexlib/table/normal_table/index_task/merger/OptimizeMergeStrategy.h"
@@ -53,8 +56,9 @@ AUTIL_LOG_SETUP(indexlib.table, NormalTableCompactPlanCreator);
 
 const std::string NormalTableCompactPlanCreator::TASK_TYPE = MERGE_TASK_TYPE;
 
-NormalTableCompactPlanCreator::NormalTableCompactPlanCreator(const std::string& taskName)
-    : SimpleIndexTaskPlanCreator(taskName)
+NormalTableCompactPlanCreator::NormalTableCompactPlanCreator(const std::string& taskName,
+                                                             const std::map<std::string, std::string>& params)
+    : SimpleIndexTaskPlanCreator(taskName, params)
 {
 }
 
@@ -63,16 +67,25 @@ NormalTableCompactPlanCreator::~NormalTableCompactPlanCreator() {}
 std::pair<Status, std::unique_ptr<framework::IndexTaskPlan>>
 NormalTableCompactPlanCreator::CreateTaskPlan(const framework::IndexTaskContext* taskContext)
 {
-    auto backupOptions = taskContext->GetTabletOptions();
-    auto status = RewriteMergeConfig(taskContext);
-    RETURN2_IF_STATUS_ERROR(status, nullptr, "rewrite merge config fail.");
-    auto mergeConfig = taskContext->GetTabletOptions()->GetOfflineConfig().GetMergeConfig();
+    auto mergeConfig = taskContext->GetMergeConfig();
     bool optimize = false;
     if (!taskContext->GetParameter(IS_OPTIMIZE_MERGE, optimize)) {
         optimize = false;
     }
-
+    auto tabletSchema = taskContext->GetTabletSchema();
+    std::string indexType = index::PRIMARY_KEY_INDEX_TYPE_STR;
+    auto pkConfigs = tabletSchema->GetIndexConfigs(indexType);
+    if (tabletSchema->GetTableType() == indexlib::table::TABLE_TYPE_NORMAL && pkConfigs.size() > 0) {
+        std::vector<std::pair<segmentid_t, std::shared_ptr<index::DeletionMapDiskIndexer>>> patchedIndexers;
+        RETURN2_IF_STATUS_ERROR(
+            PatchedDeletionMapLoader::GetPatchedDeletionMapDiskIndexers(taskContext->GetTabletData(),
+                                                                        /*patchDir*/ nullptr, &patchedIndexers),
+            nullptr, "get patch deletion map indexer from tablet failed");
+    }
     auto [compactionType, mergeStrategy] = CreateCompactStrategy(mergeConfig.GetMergeStrategyStr(), optimize);
+    if (!mergeStrategy) {
+        RETURN2_IF_STATUS_ERROR(Status::ConfigError(), nullptr, "create merge strategy failed");
+    }
     auto mergePlanPair = mergeStrategy->CreateMergePlan(taskContext);
     if (!mergePlanPair.first.IsOK()) {
         return std::make_pair(mergePlanPair.first, nullptr);
@@ -80,14 +93,13 @@ NormalTableCompactPlanCreator::CreateTaskPlan(const framework::IndexTaskContext*
     auto mergePlan = mergePlanPair.second;
     if (mergePlan->Size() == 0) {
         // no merge plan create, restore tablet options
-        const_cast<framework::IndexTaskContext*>(taskContext)->SetTabletOptions(backupOptions);
         return std::make_pair(Status::OK(), nullptr);
     }
 
     // TODO(yijie.zhang): for truncate, all not merged segment should do merge
     // TODO(tianwei): Prepare resource and add split strategy
     // TODO: set taskType with merge strategy name
-    status = CommitTaskLogToVersion(taskContext, mergePlan->GetTargetVersion());
+    auto status = CommitTaskLogToVersion(taskContext, mergePlan->GetTargetVersion());
     if (!status.IsOK()) {
         return std::pair(status, nullptr);
     }
@@ -97,12 +109,9 @@ NormalTableCompactPlanCreator::CreateTaskPlan(const framework::IndexTaskContext*
     }
 
     auto indexTaskPlan = std::make_unique<framework::IndexTaskPlan>(_taskName, TASK_TYPE);
-    auto tabletSchema = taskContext->GetTabletSchema();
-
     NormalTableMergeDescriptionCreator decriptionCreator(tabletSchema, mergeStrategy->GetName(), compactionType,
                                                          optimize);
     assert(tabletSchema);
-    auto [st, sortDescs] = tabletSchema->GetSetting<config::SortDescriptions>("sort_descriptions");
     auto [status1, operationDescriptions] = decriptionCreator.CreateMergeOperationDescriptions(mergePlan);
     if (!status1.IsOK() && !status1.IsNotFound()) {
         return std::make_pair(status1, nullptr);
@@ -128,7 +137,7 @@ Status NormalTableCompactPlanCreator::CommitMergePlans(const std::shared_ptr<Mer
     auto resourceManager = taskContext->GetResourceManager();
     std::shared_ptr<MergePlan> mergePlanResource;
     auto status = resourceManager->LoadResource(/*name*/ MERGE_PLAN, /*type*/ MERGE_PLAN, mergePlanResource);
-    if (status.IsNoEntry()) {
+    if (status.IsNotFound()) {
         status = resourceManager->CreateResource(/*name*/ MERGE_PLAN, /*type*/ MERGE_PLAN, mergePlanResource);
     }
     RETURN_IF_STATUS_ERROR(status, "load or create resource failed");
@@ -165,8 +174,10 @@ NormalTableCompactPlanCreator::CreateCompactStrategy(const std::string& mergeStr
     if (mergeStrategyName == MergeStrategyDefine::SPECIFIC_SEGMENTS_MERGE_STRATEGY_NAME) {
         return {NORMAL_TABLE_MERGE_TYPE, std::make_unique<SpecificSegmentsMergeStrategy>()};
     }
+    if (mergeStrategyName == MergeStrategyDefine::ADAPTIVE_MERGE_STRATEGY_NAME) {
+        return {NORMAL_TABLE_MERGE_TYPE, std::make_unique<AdaptiveMergeStrategy>()};
+    }
     AUTIL_LOG(ERROR, "Unsupport merge strategy name [%s]", mergeStrategyName.c_str());
-    assert(false);
     return {NORMAL_TABLE_MERGE_TYPE, nullptr};
 }
 
@@ -185,26 +196,6 @@ std::string NormalTableCompactPlanCreator::ConstructLogTaskId(const framework::I
     taskId += "_to_";
     taskId += autil::StringUtil::toString(targetVersion.GetVersionId());
     return taskId;
-}
-
-Status NormalTableCompactPlanCreator::RewriteMergeConfig(const framework::IndexTaskContext* taskContext)
-{
-    auto taskConfig = taskContext->GetTabletOptions()->GetIndexTaskConfig(TASK_TYPE, _taskName);
-    if (taskConfig == std::nullopt) {
-        AUTIL_LOG(INFO, "target IndexTaskConfig for taskName [%s] not exist, use default merge config.",
-                  _taskName.c_str());
-        return Status::OK();
-    }
-
-    auto [status, taskMergeConfig] = taskConfig.value().GetSetting<config::MergeConfig>("merge_config");
-    RETURN_IF_STATUS_ERROR(status, "get merge config from indexTaskConfig fail.");
-    AUTIL_LOG(INFO, "rewrite merge config in taskContext from IndexTaskConfig [taskType:%s,taskName:%s]",
-              TASK_TYPE.c_str(), _taskName.c_str());
-    std::shared_ptr<config::TabletOptions> newOption =
-        std::make_shared<config::TabletOptions>(*taskContext->GetTabletOptions());
-    newOption->MutableMergeConfig() = taskMergeConfig;
-    const_cast<framework::IndexTaskContext*>(taskContext)->SetTabletOptions(newOption);
-    return Status::OK();
 }
 
 } // namespace indexlibv2::table

@@ -23,28 +23,30 @@ AUTIL_LOG_SETUP(indexlib.table, NormalTabletInfoHolder);
 std::shared_ptr<framework::IResource> NormalTabletInfoHolder::Clone()
 {
     auto cloneHolder = std::make_shared<NormalTabletInfoHolder>();
-    cloneHolder->SetNormalTabletInfo(GetNormalTabletInfo());
+    auto normalTabletInfo = GetNormalTabletInfo();
+    std::shared_ptr<NormalTabletInfo> cloneInfo(normalTabletInfo->Clone());
+    cloneHolder->SetNormalTabletInfo(cloneInfo);
     return cloneHolder;
 }
 
 size_t NormalTabletInfoHolder::CurrentMemmoryUse() const { return sizeof(NormalTabletInfoHolder); }
 
-Status NormalTabletInfoHolder::Init(const std::shared_ptr<framework::TabletData>& tabletData,
-                                    const std::shared_ptr<NormalTabletMeta>& tabletMeta,
-                                    const std::shared_ptr<index::DeletionMapIndexReader>& deletionMapReader)
+void NormalTabletInfoHolder::Init(const std::shared_ptr<framework::TabletData>& tabletData,
+                                  const std::shared_ptr<NormalTabletMeta>& tabletMeta,
+                                  const std::shared_ptr<index::DeletionMapIndexReader>& deletionMapReader,
+                                  const NormalTabletInfo::HistorySegmentInfos& hisInfos)
 {
     _normalTabletInfo = std::make_shared<NormalTabletInfo>();
-    return _normalTabletInfo->Init(tabletData, tabletMeta, deletionMapReader);
+    _normalTabletInfo->Init(tabletData, tabletMeta, deletionMapReader, hisInfos);
 }
 
-void NormalTabletInfoHolder::UpdateNormalTabletInfo(segmentid_t lastRtSegId, size_t lastRtSegDocCount,
-                                                    segmentid_t refindRtSegmentId)
+void NormalTabletInfoHolder::UpdateNormalTabletInfo(size_t lastRtSegDocCount)
 {
-    if (!_normalTabletInfo->NeedUpdate(lastRtSegId, lastRtSegDocCount, refindRtSegmentId)) {
+    if (!_normalTabletInfo->NeedUpdate(lastRtSegDocCount)) {
         return;
     }
     std::shared_ptr<NormalTabletInfo> cloneInfo(_normalTabletInfo->Clone());
-    cloneInfo->UpdateDocCount(lastRtSegId, lastRtSegDocCount, refindRtSegmentId);
+    cloneInfo->UpdateDocCount(lastRtSegDocCount);
     SetNormalTabletInfo(cloneInfo);
 }
 
@@ -58,6 +60,25 @@ void NormalTabletInfoHolder::SetNormalTabletInfo(const std::shared_ptr<NormalTab
 {
     autil::ScopedReadWriteLock lock(_lock, 'w');
     _normalTabletInfo = normalTabletInfo;
+}
+
+std::shared_ptr<NormalTabletInfoHolder>
+NormalTabletInfoHolder::CreateOrReinit(const std::shared_ptr<framework::IResource>& lastClonedHolder,
+                                       const std::shared_ptr<framework::TabletData>& tabletData,
+                                       const std::shared_ptr<NormalTabletMeta>& tabletMeta,
+                                       const std::shared_ptr<index::DeletionMapIndexReader>& deletionMapReader)
+{
+    NormalTabletInfo::HistorySegmentInfos historySegmentInfos;
+    std::shared_ptr<NormalTabletInfoHolder> result;
+    auto lastHolder = std::dynamic_pointer_cast<NormalTabletInfoHolder>(lastClonedHolder);
+    if (lastHolder && lastHolder->GetNormalTabletInfo()) {
+        result = lastHolder;
+        historySegmentInfos = lastHolder->GetNormalTabletInfo()->GetSegmentSortInfoHis();
+    } else {
+        result = std::make_shared<NormalTabletInfoHolder>();
+    }
+    result->Init(tabletData, tabletMeta, deletionMapReader, historySegmentInfos);
+    return result;
 }
 
 } // namespace indexlibv2::table

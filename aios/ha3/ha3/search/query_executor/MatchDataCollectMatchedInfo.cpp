@@ -28,7 +28,7 @@
 
 namespace matchdoc {
 class MatchDoc;
-}  // namespace matchdoc
+} // namespace matchdoc
 
 using namespace std;
 
@@ -37,26 +37,22 @@ namespace search {
 AUTIL_LOG_SETUP(ha3, MatchDataCollectMatchedInfo);
 
 MatchDataCollectMatchedInfo::MatchDataCollectMatchedInfo(
-        const std::string name,
-        std::vector<std::vector<size_t>>* rowIdInfo)
+    const std::string name, std::vector<std::vector<size_t>> *rowIdInfo)
     : _colName(name)
-    , _rowIdInfo(rowIdInfo)
-{
-}
+    , _rowIdInfo(rowIdInfo) {}
 
-bool MatchDataCollectMatchedInfo::init()
-{
+bool MatchDataCollectMatchedInfo::init() {
     _ref = _matchDocAllocator->declare<autil::MultiUInt64>(_colName, SL_ATTRIBUTE);
     return (_ref != nullptr);
 }
 
-void MatchDataCollectMatchedInfo::collect(QueryExecutor* executor, const matchdoc::MatchDoc &matchDoc)
-{
+void MatchDataCollectMatchedInfo::collect(QueryExecutor *executor,
+                                          const matchdoc::MatchDoc &matchDoc) {
     vector<size_t> rowID;
     _executorQueue.clear();
     search::ExecutorMatched executorMatched;
     _executorQueue.push_back(executor);
-    while(!_executorQueue.empty()) {
+    while (!_executorQueue.empty()) {
         auto cur = _executorQueue.front();
         _executorQueue.pop_front();
         executorMatched.reset();
@@ -71,14 +67,17 @@ void MatchDataCollectMatchedInfo::collect(QueryExecutor* executor, const matchdo
                 AUTIL_LOG(ERROR, "leafId exceed rowIdInfo's size");
                 return;
             }
-        }else {
-            _executorQueue.insert(_executorQueue.end(), result.matchedQueryExecutor.begin(), result.matchedQueryExecutor.end());
+        } else {
+            _executorQueue.insert(_executorQueue.end(),
+                                  result.matchedQueryExecutor.begin(),
+                                  result.matchedQueryExecutor.end());
         }
     }
     fillMatchData(rowID, matchDoc);
 }
 
-void MatchDataCollectMatchedInfo::fillMatchData(const vector<size_t> &rowID, const matchdoc::MatchDoc &matchDoc) {
+void MatchDataCollectMatchedInfo::fillMatchData(const vector<size_t> &rowID,
+                                                const matchdoc::MatchDoc &matchDoc) {
     auto &data = _ref->getReference(matchDoc);
     data.init(autil::MultiValueCreator::createMultiValueBuffer(rowID, _pool));
 }

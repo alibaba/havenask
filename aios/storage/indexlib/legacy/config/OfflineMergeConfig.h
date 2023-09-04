@@ -32,10 +32,10 @@ public:
     bool NeedReclaimTask() const;
 
 public:
-    indexlibv2::config::MergeConfig mergeConfig;
     std::string periodMergeDescription;
     uint32_t mergeParallelNum;
     autil::legacy::json::JsonMap reclaimConfigs;
+    autil::legacy::json::JsonMap mergeConfig;
 
 private:
     AUTIL_LOG_DECLARE();

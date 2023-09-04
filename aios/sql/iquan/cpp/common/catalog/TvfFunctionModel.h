@@ -15,10 +15,11 @@
  */
 #pragma once
 
-#include <string>
+#include <memory>
 #include <vector>
 
 #include "autil/legacy/jsonizable.h"
+#include "iquan/common/catalog/FunctionCommonDef.h"
 #include "iquan/common/catalog/TvfFunctionDef.h"
 
 namespace iquan {
@@ -32,7 +33,9 @@ public:
         json.Jsonize("function_content", functionContent);
     }
 
-    bool isValid() const { return FunctionModelBase::isValid(); }
+    bool isValid() const {
+        return FunctionModelBase::isValid();
+    }
 
 public:
     TvfFunctionDef functionContent;
@@ -42,7 +45,9 @@ typedef std::shared_ptr<TvfModel> TvfModelPtr;
 
 class TvfModels : public autil::legacy::Jsonizable {
 public:
-    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override { json.Jsonize("functions", functions); }
+    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
+        json.Jsonize("functions", functions);
+    }
 
     void merge(const TvfModels &other) {
         functions.insert(functions.end(), other.functions.begin(), other.functions.end());

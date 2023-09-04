@@ -15,71 +15,76 @@
  */
 #pragma once
 
-#include <unistd.h>
 #include <memory>
 #include <string>
+#include <unistd.h>
 
 #include "autil/Log.h" // IWYU pragma: keep
 #include "ha3/common/ErrorDefine.h"
 
 namespace autil {
 class DataBuffer;
-}  // namespace autil
+} // namespace autil
 
 namespace isearch {
 namespace common {
 #define CDATA_BEGIN_STRING "<![CDATA["
 #define CDATA_END_STRING "]]>"
 
-class ErrorResult
-{
+class ErrorResult {
 public:
     ErrorResult(ErrorCode errorCode = ERROR_NONE,
-                const std::string& errMsg = "",
-                const std::string& partitionID = "",
-                const std::string& hostName = "");
+                const std::string &errMsg = "",
+                const std::string &partitionID = "",
+                const std::string &hostName = "");
 
     ~ErrorResult();
 
-    ErrorResult& operator = (const ErrorResult &other);
+    ErrorResult &operator=(const ErrorResult &other);
+
 public:
     bool hasError() const {
         return _errorCode != ERROR_NONE;
     }
 
-    void setHostInfo(const std::string& partitionID,
-                     const std::string& hostName)
-    {
+    void setHostInfo(const std::string &partitionID, const std::string &hostName) {
         _partitionID = partitionID;
         _hostName = hostName;
     }
 
-    void setHostInfo(const std::string& partitionID) {
+    void setHostInfo(const std::string &partitionID) {
         _partitionID = partitionID;
         char tmpHostname[256];
-        //don't care whether error happen
+        // don't care whether error happen
         gethostname(tmpHostname, sizeof(tmpHostname));
         _hostName = tmpHostname;
     }
 
-    const std::string& getPartitionID() const {
+    const std::string &getPartitionID() const {
         return _partitionID;
     }
 
-    void setHostName(std::string hostName)
-    {
+    void setHostName(std::string hostName) {
         _hostName = hostName;
     }
 
-    const std::string& getHostName() const {
+    const std::string &getHostName() const {
         return _hostName;
     }
 
-    void setErrorCode(ErrorCode errorCode) {_errorCode = errorCode;}
-    ErrorCode getErrorCode() const {return _errorCode;}
+    void setErrorCode(ErrorCode errorCode) {
+        _errorCode = errorCode;
+    }
+    ErrorCode getErrorCode() const {
+        return _errorCode;
+    }
 
-    void setErrorMsg(const std::string& errorMsg) {_errorMsg = errorMsg;}
-    const std::string& getErrorMsg() const {return _errorMsg;}
+    void setErrorMsg(const std::string &errorMsg) {
+        _errorMsg = errorMsg;
+    }
+    const std::string &getErrorMsg() const {
+        return _errorMsg;
+    }
 
     void resetError(ErrorCode errorCode, const std::string &errMsg = "");
     std::string getErrorDescription() const;
@@ -95,6 +100,7 @@ protected:
     std::string _errorMsg;
     std::string _partitionID;
     std::string _hostName;
+
 private:
     AUTIL_LOG_DECLARE();
 };

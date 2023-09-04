@@ -19,18 +19,18 @@
 
 namespace autil {
 
-class CommandLineParameter
-{
+class CommandLineParameter {
 public:
-    CommandLineParameter(const std::string& cmd);
+    CommandLineParameter(const std::string &cmd);
     ~CommandLineParameter();
+
 public:
     inline int getArgc() const { return _argc; };
-    inline char** getArgv() const { return _argv; };
+    inline char **getArgv() const { return _argv; };
+
 private:
     int _argc;
-    char** _argv;
+    char **_argv;
 };
 
-}
-
+} // namespace autil

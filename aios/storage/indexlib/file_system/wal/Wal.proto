@@ -1,0 +1,104 @@
+syntax = "proto2";
+
+package indexlib.proto;
+
+enum CompressType {
+    CompressionKind_NONE = 0;
+    CompressionKind_ZLIB = 1;
+    CompressionKind_ZLIB_DEFAULT = 2;
+    CompressionKind_SNAPPY = 3;
+    CompressionKind_LZ4 = 4;
+    CompressionKind_LZ4_HC = 5;
+    CompressionKind_ZSTD = 6;
+};
+
+message WalRecordMeta {
+    optional uint64 offset = 1;
+    optional uint32 crc = 2;
+    optional uint32 dataLen = 3;
+    optional CompressType compressType = 4;
+};
+
+enum LFSOperatorType {
+    SealRecord = 0;
+    MountVersion = 1;
+    MountDir = 2;
+    UpdateFileSize = 3;
+    Merge = 4;
+    Add = 5;
+    Delete = 6;
+    MakeDirectory = 7;
+    Rename = 8;
+    UpdatePackageDataFile = 9;
+    UpdatePackageMetaFile = 10;    
+};
+
+enum LFSMountType {
+    READ_ONLY = 0;
+    READ_WRITE = 1;
+};
+
+message LFSMountVersion {
+    optional string physicalRoot = 1;
+    optional int32 versionId = 2;
+    optional string logicalPath = 3;
+    optional LFSMountType mountType = 4;
+};
+
+message LFSMountDir {
+    optional string physicalRoot = 1;
+    optional string physicalPath = 2;
+    optional string logicalPath = 3;
+    optional LFSMountType mountType = 4;
+    optional bool recursive = 5;
+};
+
+message LFSUpdateFileSize {
+    optional string uptFile = 1;
+    optional uint64 length = 2;
+};
+
+message LFSAdd {
+    optional string rawPath = 1;
+};
+
+message LFSDelete {
+    optional string path = 1;
+};
+
+message LFSMkdir {
+    optional string rawPath = 1;
+    optional bool isRecursive = 2;
+    optional bool packageHint = 3;
+};
+
+message LFSRename {
+    optional string src = 1;
+    optional string dst = 2;
+};
+
+message LFSUpdatePackageDataFile {
+    optional string uptFile = 1;
+    optional string uptPhysicalFile = 2;        
+    optional uint64 offset = 3;
+};
+
+message LFSUpdatePackageMetaFile {
+    optional string uptFile = 1;
+    optional string logicalPath = 2;    
+    optional uint64 length = 3;
+};
+
+message LFSOperator {
+    required LFSOperatorType type = 1;
+    optional uint64 id = 2;
+    optional LFSMountVersion opMountVersion = 3;
+    optional LFSMountDir opMountDir = 4;    
+    optional LFSUpdateFileSize opUpdateFileSize = 5;
+    optional LFSAdd opAdd = 6;
+    optional LFSDelete opDelete = 7;
+    optional LFSMkdir opMkdir = 8;
+    optional LFSRename opRename = 9;
+    optional LFSUpdatePackageDataFile opUpdatePackDataFile = 10;
+    optional LFSUpdatePackageMetaFile opUpdatePackMetaFile = 11;    
+};

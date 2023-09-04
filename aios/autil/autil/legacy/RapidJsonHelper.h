@@ -15,14 +15,14 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <assert.h>
-#include <stdint.h>
-#include <stddef.h>
 #include <limits>
+#include <stddef.h>
+#include <stdint.h>
 #include <string>
 #include <type_traits>
 #include <vector>
-#include <algorithm>
 
 #include "autil/Log.h"
 #include "autil/MultiValueCreator.h"
@@ -30,36 +30,33 @@
 #include "autil/MultiValueType.h"
 #include "autil/MultiValueWriter.h"
 #include "autil/legacy/RapidJsonCommon.h"
+#include "autil/mem_pool/Pool.h"
 #include "rapidjson/document.h"
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
-#include "autil/mem_pool/Pool.h"
 
 namespace autil {
 
-template<typename T, typename = void>
+template <typename T, typename = void>
 struct IsStdVectorType : std::false_type {};
 
-template<typename T>
-struct IsStdVectorType<T, typename std::enable_if<std::is_same<T, std::vector<typename T::value_type>>::value>::type> : std::true_type {};
+template <typename T>
+struct IsStdVectorType<T, typename std::enable_if<std::is_same<T, std::vector<typename T::value_type>>::value>::type>
+    : std::true_type {};
 
-class RapidJsonHelper
-{
+class RapidJsonHelper {
 private:
     RapidJsonHelper(const RapidJsonHelper &);
-    RapidJsonHelper& operator=(const RapidJsonHelper &);
+    RapidJsonHelper &operator=(const RapidJsonHelper &);
+
 public:
-    static std::string SimpleValue2Str(const SimpleValue& value);
+    static std::string SimpleValue2Str(const SimpleValue &value);
 
     template <typename T>
-    static T getWithDefault(const SimpleDocument &doc,
-                            const std::string &key,
-                            const T &defaultValue = T());
+    static T getWithDefault(const SimpleDocument &doc, const std::string &key, const T &defaultValue = T());
     template <typename T>
-    static T getWithDefault(const SimpleValue &doc,
-                            const std::string &key,
-                            const T &defaultValue = T());
+    static T getWithDefault(const SimpleValue &doc, const std::string &key, const T &defaultValue = T());
     template <typename T>
     static T getValue(const SimpleValue &value);
 
@@ -74,6 +71,7 @@ public:
 
     template <typename T>
     static T getValue(const SimpleValue &value, autil::mem_pool::Pool *pool);
+
 private:
     template <typename T>
     static T getValue(const SimpleValue &value, autil::mem_pool::Pool *pool, std::true_type);
@@ -101,10 +99,7 @@ inline T RapidJsonHelper::invalidValue() {
 }
 
 template <typename T>
-T RapidJsonHelper::getWithDefault(const SimpleDocument &doc,
-                                  const std::string &key,
-                                  const T &defaultValue)
-{
+T RapidJsonHelper::getWithDefault(const SimpleDocument &doc, const std::string &key, const T &defaultValue) {
     if (!doc.IsObject()) {
         return defaultValue;
     }
@@ -116,10 +111,7 @@ T RapidJsonHelper::getWithDefault(const SimpleDocument &doc,
 }
 
 template <typename T>
-T RapidJsonHelper::getWithDefault(const SimpleValue &doc,
-                                  const std::string &key,
-                                  const T &defaultValue)
-{
+T RapidJsonHelper::getWithDefault(const SimpleValue &doc, const std::string &key, const T &defaultValue) {
     if (!doc.IsObject()) {
         return defaultValue;
     }
@@ -265,9 +257,8 @@ inline std::vector<T> RapidJsonHelper::getVectorValue(const SimpleValue &value) 
 }
 
 template <>
-inline autil::MultiString RapidJsonHelper::getMultiValue<autil::MultiChar>(
-        const SimpleValue &value, autil::mem_pool::Pool *pool)
-{
+inline autil::MultiString RapidJsonHelper::getMultiValue<autil::MultiChar>(const SimpleValue &value,
+                                                                           autil::mem_pool::Pool *pool) {
     typedef autil::MultiString MultiString;
     if (!value.IsArray()) {
         return MultiString();
@@ -277,29 +268,24 @@ inline autil::MultiString RapidJsonHelper::getMultiValue<autil::MultiChar>(
         assert(value[i].IsString());
         strVec.push_back(getValue<std::string>(value[i]));
     }
-    char* buffer = autil::MultiValueCreator::createMultiStringBuffer(strVec, pool);
+    char *buffer = autil::MultiValueCreator::createMultiStringBuffer(strVec, pool);
     MultiString ms;
     ms.init(buffer);
     return ms;
 }
 
 template <>
-inline autil::MultiChar RapidJsonHelper::getMultiValue<char>(
-        const SimpleValue &value, autil::mem_pool::Pool *pool)
-{
+inline autil::MultiChar RapidJsonHelper::getMultiValue<char>(const SimpleValue &value, autil::mem_pool::Pool *pool) {
     typedef autil::MultiChar MultiChar;
     std::string str = getValue<std::string>(value);
-    char* buffer = autil::MultiValueCreator::createMultiValueBuffer<char>(
-            (char*)str.data(), str.length(), pool);
+    char *buffer = autil::MultiValueCreator::createMultiValueBuffer<char>((char *)str.data(), str.length(), pool);
     MultiChar mc;
     mc.init(buffer);
     return mc;
 }
 
 template <typename T>
-inline autil::MultiValueType<T> RapidJsonHelper::getMultiValue(
-        const SimpleValue &value, autil::mem_pool::Pool *pool)
-{
+inline autil::MultiValueType<T> RapidJsonHelper::getMultiValue(const SimpleValue &value, autil::mem_pool::Pool *pool) {
     typedef autil::MultiValueType<T> MultiValueTyped;
     MultiValueTyped ret;
     if (!value.IsArray()) {
@@ -308,7 +294,7 @@ inline autil::MultiValueType<T> RapidJsonHelper::getMultiValue(
 
     size_t size = value.Size();
     size_t bufLen = autil::MultiValueFormatter::calculateBufferLen(size, sizeof(T));
-    char* buffer = (char *)pool->allocate(bufLen);
+    char *buffer = (char *)pool->allocate(bufLen);
     autil::MultiValueWriter<T> mvWriter;
     bool initFlag = mvWriter.init(buffer, bufLen, size);
     assert(initFlag);
@@ -320,8 +306,7 @@ inline autil::MultiValueType<T> RapidJsonHelper::getMultiValue(
     return ret;
 }
 
-inline std::string RapidJsonHelper::SimpleValue2Str(const SimpleValue& value)
-{
+inline std::string RapidJsonHelper::SimpleValue2Str(const SimpleValue &value) {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
     value.Accept(writer);
@@ -343,4 +328,4 @@ T RapidJsonHelper::getValue(const SimpleValue &value, autil::mem_pool::Pool *poo
     return getValue<T>(value);
 }
 
-}
+} // namespace autil

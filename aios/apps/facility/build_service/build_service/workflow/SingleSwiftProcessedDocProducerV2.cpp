@@ -16,6 +16,7 @@
 #include "build_service/workflow/SingleSwiftProcessedDocProducerV2.h"
 
 #include "autil/DataBuffer.h"
+#include "autil/EnvUtil.h"
 #include "autil/TimeUtility.h"
 #include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/Locator.h"
@@ -56,7 +57,7 @@ BS_LOG_SETUP(workflow, SingleSwiftProcessedDocProducerV2);
 #define LOG_PREFIX _buildIdStr.c_str()
 
 SingleSwiftProcessedDocProducerV2::SingleSwiftProcessedDocProducerV2(
-    const common::SwiftParam& swiftParam, const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    const common::SwiftParam& swiftParam, const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
     const proto::PartitionId& partitionId, const indexlib::util::TaskSchedulerPtr& taskScheduler)
     : _swiftParam(swiftParam)
     , _lastMessageUint16Payload(0)
@@ -82,9 +83,9 @@ SingleSwiftProcessedDocProducerV2::SingleSwiftProcessedDocProducerV2(
     , _fastQueueLastReportTs(-1)
 {
     _ckpDocReportTime = autil::TimeUtility::currentTimeInSeconds();
-    const char* param = getenv("checkpoint_report_interval_in_s");
+    string param = autil::EnvUtil::getEnv("checkpoint_report_interval_in_s");
     int64_t interval;
-    if (param && StringUtil::fromString(string(param), interval)) {
+    if (!param.empty() && StringUtil::fromString(param, interval)) {
         _ckpDocReportInterval = interval;
     }
     if (_ckpDocReportInterval >= 0) {
@@ -264,8 +265,11 @@ FlowError SingleSwiftProcessedDocProducerV2::produce(document::ProcessedDocument
     {
         ScopeLatencyReporter reporter(_readLatencyMetric.get());
         ec = _swiftParam.reader->read(timestamp, message);
-        if (ec == ERROR_NONE) {
-            ec = _swiftParam.reader->getReaderProgress(readerProgress);
+        if (ec == ERROR_NONE || ec == ERROR_CLIENT_NO_MORE_MESSAGE) {
+            if (_swiftParam.reader->getReaderProgress(readerProgress) != ERROR_NONE) {
+                // message already readed, if return FE_RETRY or similiar, message will lost
+                return FE_FATAL;
+            }
         }
     }
     _lastReadTs.store(timestamp, std::memory_order_relaxed);
@@ -321,7 +325,20 @@ FlowError SingleSwiftProcessedDocProducerV2::produce(document::ProcessedDocument
         if (_ckpDocReportInterval >= 0 && currentTime - _ckpDocReportTime >= _ckpDocReportInterval) {
             BS_PREFIX_LOG(DEBUG, "Create CHECKPOINT_DOC, locator: src[%lu], offset[%ld].", _sourceSignature, timestamp);
             _ckpDocReportTime = currentTime;
-            docVec.reset(createSkipProcessedDocument(timestamp));
+            auto [success, progress] =
+                util::LocatorUtil::convertSwiftProgress(readerProgress, _swiftParam.isMultiTopic);
+            if (!success) {
+                AUTIL_LOG(ERROR, "convert swift progress failed [%s]", readerProgress.ShortDebugString().c_str());
+                return FE_FATAL;
+            }
+            if (_swiftMessageFilter.filterOrRewriteProgress(
+                    message.uint16payload(), {message.timestamp(), message.offsetinrawmsg()}, &progress)) {
+                BS_INTERVAL_LOG2(10, WARN, "filter message payload [%u] timestamp [%ld] progress [%s]",
+                                 message.uint16payload(), message.timestamp(),
+                                 readerProgress.ShortDebugString().c_str());
+                return FE_SKIP;
+            }
+            docVec.reset(createSkipProcessedDocument(progress));
             return FE_OK;
             // no message more than 60s, report processor checkpoint use current time
         }
@@ -329,11 +346,6 @@ FlowError SingleSwiftProcessedDocProducerV2::produce(document::ProcessedDocument
     }
     _noMoreMsgBeginTs.store(-1, std::memory_order_relaxed);
     _lastValidReadTs.store(timestamp, std::memory_order_relaxed);
-    auto [success, progress] = util::LocatorUtil::convertSwiftProgress(readerProgress, _swiftParam.isMultiTopic);
-    if (!success) {
-        AUTIL_LOG(ERROR, "convert swift progress failed [%s]", readerProgress.ShortDebugString().c_str());
-        return FE_FATAL;
-    }
 
     if (unlikely(-1 == _lastMessageId)) {
         BS_PREFIX_LOG(INFO, "read swift from msgId[%ld] uint16Payload[%u] uint8Payload[%u]", message.msgid(),
@@ -348,6 +360,17 @@ FlowError SingleSwiftProcessedDocProducerV2::produce(document::ProcessedDocument
     _lastMessageId = message.msgid();
     bool handleProcessedDocSuccess = false;
     try {
+        auto [success, progress] = util::LocatorUtil::convertSwiftProgress(readerProgress, _swiftParam.isMultiTopic);
+        if (!success) {
+            AUTIL_LOG(ERROR, "convert swift progress failed [%s]", readerProgress.ShortDebugString().c_str());
+            return FE_FATAL;
+        }
+        if (_swiftMessageFilter.filterOrRewriteProgress(message.uint16payload(),
+                                                        {message.timestamp(), message.offsetinrawmsg()}, &progress)) {
+            BS_INTERVAL_LOG2(10, WARN, "filter message payload [%u] timestamp [%ld] progress [%s]",
+                             message.uint16payload(), message.timestamp(), readerProgress.ShortDebugString().c_str());
+            return FE_SKIP;
+        }
         if (_swiftParam.disableSwiftMaskFilter && _swiftParam.maskFilterPairs.size() == 1) {
             // disableSwiftMaskFilter=true will filter invalid msg by bs producer
             auto mask = _swiftParam.maskFilterPairs[0].first;
@@ -357,12 +380,13 @@ FlowError SingleSwiftProcessedDocProducerV2::produce(document::ProcessedDocument
                     DEBUG,
                     "msg filtered by mask [%u], will Create CHECKPOINT_DOC, locator: src[%lu], msg timestamp[%ld].",
                     _lastMessageUint8Payload, _sourceSignature, message.timestamp());
-                docVec.reset(createSkipProcessedDocument(message.timestamp()));
+                docVec.reset(createSkipProcessedDocument(progress));
                 return FE_OK;
             }
         }
-        docVec.reset(createProcessedDocument(message.data(), message.timestamp(), timestamp, _lastMessageUint16Payload,
-                                             progress));
+        indexlibv2::document::IDocument::DocInfo docInfo = {_lastMessageUint16Payload, message.timestamp(),
+                                                            message.offsetinrawmsg()};
+        docVec.reset(createProcessedDocument(message.data(), docInfo, timestamp, progress));
         if (!docVec) {
             BS_PREFIX_LOG(ERROR, "create processed document failed");
             return _exceptionHandler.transferProcessResult(handleProcessedDocSuccess);
@@ -432,18 +456,31 @@ std::pair<bool, common::Locator> SingleSwiftProcessedDocProducerV2::seekAndGetLo
                    locator.DebugString().c_str(), _sourceSignature);
             common::Locator resultLocator = locator;
             std::vector<indexlibv2::base::Progress> progress;
-            progress.push_back(indexlibv2::base::Progress(_swiftParam.from, _swiftParam.to, _startTimestamp));
+            progress.push_back(indexlibv2::base::Progress(_swiftParam.from, _swiftParam.to, {_startTimestamp, 0}));
             resultLocator.SetProgress(progress);
             return {true, resultLocator};
         }
     }
-    int64_t timestamp = locator.GetOffset();
-    BS_INTERVAL_LOG2(120, INFO, "[%s] seek swift timestamp [%ld]", _buildIdStr.c_str(), timestamp);
-    string msg = "SingleSwiftProcessedDocProducerV2 seek to [" + StringUtil::toString(timestamp) + "]";
+    int64_t timestamp = locator.GetOffset().first;
+    uint32_t concurrentIdx = locator.GetOffset().second;
+    BS_INTERVAL_LOG2(120, INFO, "[%s] seek swift timestamp [%ld] concurrentIdx [%u]", _buildIdStr.c_str(), timestamp,
+                     concurrentIdx);
+    string msg = "SingleSwiftProcessedDocProducerV2 seek to [" + StringUtil::toString(timestamp) + "," +
+                 StringUtil::toString(concurrentIdx) + "]";
     BEEPER_REPORT(WORKER_STATUS_COLLECTOR_NAME, msg);
     swift::protocol::ReaderProgress swiftProgress = util::LocatorUtil::convertLocatorProgress(
         locator.GetProgress(), _swiftParam.topicName, _swiftParam.maskFilterPairs, _swiftParam.disableSwiftMaskFilter);
-    return {_swiftParam.reader->seekByProgress(swiftProgress, forceSeek) == swift::protocol::ERROR_NONE, locator};
+    if (_swiftParam.reader->seekByProgress(swiftProgress, forceSeek) != swift::protocol::ERROR_NONE) {
+        return {false, locator};
+    }
+    indexlibv2::framework::Locator tmpLocator = locator;
+    if (!tmpLocator.ShrinkToRange(_swiftParam.from, _swiftParam.to)) {
+        BS_LOG(ERROR, "seek failed, shrink failed, locator [%s], from [%d], to [%d]", tmpLocator.DebugString().c_str(),
+               _swiftParam.from, _swiftParam.to);
+        return {false, locator};
+    }
+    _swiftMessageFilter.setSeekProgress(tmpLocator.GetProgress());
+    return {true, locator};
 }
 
 bool SingleSwiftProcessedDocProducerV2::stop(StopOption stopOption)
@@ -522,24 +559,27 @@ void SingleSwiftProcessedDocProducerV2::reportFastQueueSwiftReadDelayMetrics()
             BEEPER_REPORT(WORKER_ERROR_COLLECTOR_NAME, ss.str());
             return;
         }
-        if (progress.progress_size() >= 2) {
-            for (size_t i = 0; i < progress.progress_size(); ++i) {
-                const swift::protocol::SingleReaderProgress& singleReaderProgress = progress.progress(i);
-                if (singleReaderProgress.filter().uint8maskresult() & ProcessedDocument::SWIFT_FILTER_BIT_FASTQUEUE) {
-                    int64_t ts = singleReaderProgress.timestamp();
-                    if (ts == INVALID_TIMESTAMP) {
-                        continue;
-                    }
-                    if (currentTime - ts >= 0) {
-                        if (_isServiceRecovered) {
-                            REPORT_METRIC2(_fastQueueSwiftReadDelayMetric, &End2EndLatencyReporter::TAGS_IS_RECOVERED,
-                                           TimeUtility::us2ms(currentTime - ts));
-                        } else {
-                            REPORT_METRIC2(_fastQueueSwiftReadDelayMetric, &End2EndLatencyReporter::TAGS_NOT_RECOVERED,
-                                           TimeUtility::us2ms(currentTime - ts));
+        if (progress.topicprogress_size() >= 2) {
+            for (const auto& topicProgress : progress.topicprogress()) {
+                if (topicProgress.uint8maskresult() & ProcessedDocument::SWIFT_FILTER_BIT_FASTQUEUE) {
+                    for (const auto& partProgress : topicProgress.partprogress()) {
+                        int64_t ts = partProgress.timestamp();
+                        if (ts == INVALID_TIMESTAMP) {
+                            continue;
                         }
-                    } else {
-                        BS_LOG(WARN, "get reader progress time too long.");
+                        if (currentTime - ts >= 0) {
+                            if (_isServiceRecovered) {
+                                REPORT_METRIC2(_fastQueueSwiftReadDelayMetric,
+                                               &End2EndLatencyReporter::TAGS_IS_RECOVERED,
+                                               TimeUtility::us2ms(currentTime - ts));
+                            } else {
+                                REPORT_METRIC2(_fastQueueSwiftReadDelayMetric,
+                                               &End2EndLatencyReporter::TAGS_NOT_RECOVERED,
+                                               TimeUtility::us2ms(currentTime - ts));
+                            }
+                        } else {
+                            BS_LOG(WARN, "get reader progress time too long.");
+                        }
                     }
                 }
             }
@@ -547,10 +587,9 @@ void SingleSwiftProcessedDocProducerV2::reportFastQueueSwiftReadDelayMetrics()
     }
 }
 
-ProcessedDocumentVec*
-SingleSwiftProcessedDocProducerV2::createProcessedDocument(const string& docStr, int64_t docTimestamp,
-                                                           int64_t locatorTimestamp, uint16_t hashId,
-                                                           const std::vector<indexlibv2::base::Progress>& progress)
+ProcessedDocumentVec* SingleSwiftProcessedDocProducerV2::createProcessedDocument(
+    const string& docStr, indexlibv2::document::IDocument::DocInfo docInfo, int64_t locatorTimestamp,
+    const std::vector<indexlibv2::base::Progress>& progress)
 {
     std::shared_ptr<indexlibv2::document::IDocumentBatch> docBatch = transDocStrToDocumentBatch(docStr);
     if (!docBatch) {
@@ -565,7 +604,7 @@ SingleSwiftProcessedDocProducerV2::createProcessedDocument(const string& docStr,
     string docSource = document->GetSource().to_string();
     _lastDocTs = document->GetDocInfo().timestamp;
     _lastIngestionTs = document->GetIngestionTimestamp();
-    document->SetDocInfo({hashId, docTimestamp});
+    document->SetDocInfo(docInfo);
 
     bool hasReport = false;
     auto normDoc = std::dynamic_pointer_cast<indexlibv2::document::NormalDocument>(document);
@@ -581,9 +620,9 @@ SingleSwiftProcessedDocProducerV2::createProcessedDocument(const string& docStr,
 
     auto kvDoc = std::dynamic_pointer_cast<indexlibv2::document::KVDocument>(document);
     if (kvDoc) {
-        auto docInfo = kvDoc->GetDocInfo();
-        docInfo.timestamp = docTimestamp;
-        kvDoc->SetDocInfo(docInfo);
+        auto lastDocInfo = kvDoc->GetDocInfo();
+        lastDocInfo.timestamp = docInfo.timestamp;
+        kvDoc->SetDocInfo(lastDocInfo);
         auto userTs = kvDoc->GetUserTimestamp();
         if (userTs != INVALID_TIMESTAMP) {
             _lastDocTs = userTs;
@@ -616,11 +655,15 @@ SingleSwiftProcessedDocProducerV2::createProcessedDocument(const string& docStr,
     return processedDocumentVec.release();
 }
 
-ProcessedDocumentVec* SingleSwiftProcessedDocProducerV2::createSkipProcessedDocument(int64_t locatorTimestamp)
+ProcessedDocumentVec*
+SingleSwiftProcessedDocProducerV2::createSkipProcessedDocument(const std::vector<indexlibv2::base::Progress>& progress)
 {
     unique_ptr<ProcessedDocumentVec> processedDocumentVec(new ProcessedDocumentVec);
     ProcessedDocumentPtr processedDoc(new ProcessedDocument);
-    processedDoc->setLocator(common::Locator(_sourceSignature, locatorTimestamp));
+    common::Locator locator;
+    locator.SetSrc(_sourceSignature);
+    locator.SetProgress(progress);
+    processedDoc->setLocator(locator);
     processedDoc->setNeedSkip(true);
     processedDocumentVec->push_back(processedDoc);
     return processedDocumentVec.release();
@@ -773,10 +816,10 @@ void SingleSwiftProcessedDocProducerV2::setRecovered(bool isServiceRecovered)
     _e2eLatencyReporter.setIsServiceRecovered(isServiceRecovered);
 }
 
-bool SingleSwiftProcessedDocProducerV2::updateCommittedCheckpoint(int64_t checkpoint)
+bool SingleSwiftProcessedDocProducerV2::updateCommittedCheckpoint(const indexlibv2::base::Progress::Offset& checkpoint)
 {
     if (_swiftParam.reader) {
-        bool ret = _swiftParam.reader->updateCommittedCheckpoint(checkpoint);
+        bool ret = _swiftParam.reader->updateCommittedCheckpoint(checkpoint.first);
         if (ret) {
             int64_t curTs = TimeUtility::currentTime();
             _lastUpdateCommittedCheckpointTs = curTs;

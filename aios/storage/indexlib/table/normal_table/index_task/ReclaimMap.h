@@ -119,6 +119,8 @@ public:
         return Calculate(0, baseSegId, srcSegments, segmentSplitHandler);
     }
 
+    int64_t TEST_GetOriginDocCount() { return _oldDocIdToNewDocId.size(); }
+
 protected:
     void
     CalculateReverseDocMap(const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& srcSegments);

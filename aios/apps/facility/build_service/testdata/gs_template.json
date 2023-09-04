@@ -1,0 +1,18 @@
+{
+    "buildInfo" : {
+        "clusterInfos": [
+            {
+                "clusterName":"ALL",
+                "taskStatus" : "normal",
+                "lastVersionEffectiveIndexInfo":"ALL"
+            }
+        ]
+    },
+    "buildStep":"incremental",
+    "configPath": "",
+    "dataDescriptions":"data descriptions",
+    "fullIndexInfoSummary":"ALL",
+    "indexInfos":"ALL",
+    "indexRoot":"xxx",
+    "roleCounterInfo":"ALL"
+}

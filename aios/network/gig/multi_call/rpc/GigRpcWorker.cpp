@@ -20,15 +20,15 @@ using namespace autil;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GigRpcWorker);
 
-GigRpcWorker::GigRpcWorker() {}
+GigRpcWorker::GigRpcWorker() {
+}
 
-GigRpcWorker::~GigRpcWorker() {}
+GigRpcWorker::~GigRpcWorker() {
+}
 
-bool GigRpcWorker::addMethod(const std::string &methodName,
-                             const GigRpcMethodArgPtr &arg) {
+bool GigRpcWorker::addMethod(const std::string &methodName, const GigRpcMethodArgPtr &arg) {
     if (!arg->validate()) {
-        AUTIL_LOG(ERROR, "register rpc failed: invalid arg, method[%s]",
-                  methodName.c_str());
+        AUTIL_LOG(ERROR, "register rpc failed: invalid arg, method[%s]", methodName.c_str());
         return false;
     }
     ScopedReadWriteLock lock(_serviceLock, 'w');
@@ -41,8 +41,7 @@ bool GigRpcWorker::addMethod(const std::string &methodName,
     }
 }
 
-GigRpcMethodArgPtr
-GigRpcWorker::getMethodArg(const std::string &methodName) const {
+GigRpcMethodArgPtr GigRpcWorker::getMethodArg(const std::string &methodName) const {
     ScopedReadWriteLock lock(_serviceLock, 'r');
     auto it = _serviceMap.find(methodName);
     if (_serviceMap.end() == it) {
@@ -52,8 +51,7 @@ GigRpcWorker::getMethodArg(const std::string &methodName) const {
     }
 }
 
-bool GigRpcWorker::registerStreamService(
-    const GigServerStreamCreatorPtr &creator) {
+bool GigRpcWorker::registerStreamService(const GigServerStreamCreatorPtr &creator) {
     const auto &methodName = creator->methodName();
     ScopedReadWriteLock lock(_serviceLock, 'w');
     if (_streamServiceMap.end() != _streamServiceMap.find(methodName)) {
@@ -68,7 +66,7 @@ bool GigRpcWorker::registerStreamService(
 bool GigRpcWorker::unRegisterStreamService(const GigServerStreamCreatorPtr &creator) {
     const auto &methodName = creator->methodName();
     ScopedReadWriteLock lock(_serviceLock, 'w');
-    auto it =_streamServiceMap.find(methodName);
+    auto it = _streamServiceMap.find(methodName);
     if (_streamServiceMap.end() == it) {
         AUTIL_LOG(ERROR, "methodName[%s] not exist", methodName.c_str());
         return false;
@@ -84,8 +82,7 @@ bool GigRpcWorker::unRegisterStreamService(const GigServerStreamCreatorPtr &crea
     }
 }
 
-GigServerStreamCreatorPtr
-GigRpcWorker::getStreamService(const std::string &method) const {
+GigServerStreamCreatorPtr GigRpcWorker::getStreamService(const std::string &method) const {
     ScopedReadWriteLock lock(_serviceLock, 'r');
     auto it = _streamServiceMap.find(method);
     if (_streamServiceMap.end() == it) {

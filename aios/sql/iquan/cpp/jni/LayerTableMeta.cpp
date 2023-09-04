@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "iquan/jni/LayerTableMeta.h"
+
 #include <algorithm>
 #include <limits>
-
-#include "iquan/jni/LayerTableMeta.h"
 
 using namespace std;
 namespace iquan {
@@ -28,9 +28,11 @@ LayerTableMeta::LayerTableMeta(const LayerTableDef &layerTable) {
         if (layerFormat.valueType == "string") {
             unordered_set<string> strSet;
             for (const Layer &layer : layerTable.layers) {
-                const vector<autil::legacy::Any> &anyStrVec = autil::legacy::AnyCast<vector<autil::legacy::Any>>(layer.layerInfo.at(fieldName));
+                const vector<autil::legacy::Any> &anyStrVec
+                    = autil::legacy::AnyCast<vector<autil::legacy::Any>>(
+                        layer.layerInfo.at(fieldName));
                 for (auto &anyStr : anyStrVec) {
-                    const string &str{autil::legacy::AnyCast<string>(anyStr)};
+                    const string &str {autil::legacy::AnyCast<string>(anyStr)};
                     strSet.insert(str);
                 }
             }
@@ -41,11 +43,15 @@ LayerTableMeta::LayerTableMeta(const LayerTableDef &layerTable) {
             vec.push_back(numeric_limits<int64_t>::min());
             if (layerFormat.layerMethod == "range") {
                 for (const Layer &layer : layerTable.layers) {
-                    const vector<autil::legacy::Any> &anyIntVecList= autil::legacy::AnyCast<vector<autil::legacy::Any>>(layer.layerInfo.at(fieldName));
+                    const vector<autil::legacy::Any> &anyIntVecList
+                        = autil::legacy::AnyCast<vector<autil::legacy::Any>>(
+                            layer.layerInfo.at(fieldName));
                     for (auto &anyIntVec : anyIntVecList) {
-                        const vector<autil::legacy::Any> &intVec = autil::legacy::AnyCast<vector<autil::legacy::Any>>(anyIntVec);
+                        const vector<autil::legacy::Any> &intVec
+                            = autil::legacy::AnyCast<vector<autil::legacy::Any>>(anyIntVec);
                         if (2 != intVec.size()) {
-                            AUTIL_LOG(ERROR, "[LayerTable layer] rangeValue should have 2 elements!");
+                            AUTIL_LOG(ERROR,
+                                      "[LayerTable layer] rangeValue should have 2 elements!");
                         }
                         vec.push_back(autil::legacy::AnyNumberCast<int64_t>(intVec[0]));
                         vec.push_back(autil::legacy::AnyNumberCast<int64_t>(intVec[1]));
@@ -53,7 +59,9 @@ LayerTableMeta::LayerTableMeta(const LayerTableDef &layerTable) {
                 }
             } else if (layerFormat.layerMethod == "grouping") {
                 for (const Layer &layer : layerTable.layers) {
-                    const vector<autil::legacy::Any> &intVec = autil::legacy::AnyCast<vector<autil::legacy::Any>>(layer.layerInfo.at(fieldName));
+                    const vector<autil::legacy::Any> &intVec
+                        = autil::legacy::AnyCast<vector<autil::legacy::Any>>(
+                            layer.layerInfo.at(fieldName));
                     for (auto &anyValue : intVec) {
                         int64_t intValue = autil::legacy::AnyNumberCast<int64_t>(anyValue);
                         vec.push_back(intValue);
@@ -66,4 +74,4 @@ LayerTableMeta::LayerTableMeta(const LayerTableDef &layerTable) {
     }
 }
 
-}
+} // namespace iquan

@@ -20,11 +20,14 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, VIPSubscribeService);
 
-void VIPSubscribeService::destroy() {}
+void VIPSubscribeService::destroy() {
+}
 
-VIPSubscribeService::VIPSubscribeService(const VipConfig &config) {}
+VIPSubscribeService::VIPSubscribeService(const VipConfig &config) {
+}
 
-VIPSubscribeService::~VIPSubscribeService() {}
+VIPSubscribeService::~VIPSubscribeService() {
+}
 
 bool VIPSubscribeService::init() {
     return false;
@@ -35,8 +38,7 @@ bool VIPSubscribeService::clusterInfoNeedUpdate() {
 }
 
 bool VIPSubscribeService::getClusterInfoMap(TopoNodeVec &topoNodeVec,
-        HeartbeatSpecVec &heartbeatSpecs)
-{
+                                            HeartbeatSpecVec &heartbeatSpecs) {
     return false;
 }
 
@@ -44,9 +46,7 @@ bool VIPSubscribeService::addSubscribe(const std::vector<std::string> &names) {
     return false;
 }
 
-bool VIPSubscribeService::addSubscribeDomainConfig(
-        const std::vector<VIPDomainConfig> &vipDomains)
-{
+bool VIPSubscribeService::addSubscribeDomainConfig(const std::vector<VIPDomainConfig> &vipDomains) {
     return false;
 }
 
@@ -55,14 +55,11 @@ bool VIPSubscribeService::deleteSubscribe(const std::vector<std::string> &names)
 }
 
 bool VIPSubscribeService::deleteSubscribeDomainConfig(
-        const std::vector<VIPDomainConfig> &vipDomains)
-{
+    const std::vector<VIPDomainConfig> &vipDomains) {
     return false;
 }
 
-bool VIPSubscribeService::queryAllIp(const string &clusterName,
-                                     std::any hosts) const
-{
+bool VIPSubscribeService::queryAllIp(const string &clusterName, std::any hosts) const {
     return false;
 }
 

@@ -1,6 +1,6 @@
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
-indexlib_cc_library(
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+strict_cc_library(
     name='kv_document',
     srcs=['KVDocumentBatch.cpp'],
     hdrs=['KVDocumentBatch.h'],
@@ -11,7 +11,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:Exception'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVDocument',
     deps=[
         '//aios/autil:data_buffer',
@@ -19,7 +19,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kv:constants'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVKeyExtractor',
     deps=[
         '//aios/autil:log', '//aios/autil:string_type',
@@ -27,7 +27,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:KeyHasherWrapper'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='ValueConvertor',
     deps=[
         '//aios/autil:log', '//aios/autil:span',
@@ -40,14 +40,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:ErrorLogCollector'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVIndexDocumentParserBase',
     deps=[
         ':KVDocument', ':ValueConvertor',
         '//aios/storage/indexlib/index/kv/config:TTLSettings'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVIndexDocumentParser',
     deps=[
         ':KVIndexDocumentParserBase', ':KVKeyExtractor',
@@ -55,7 +55,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kv/config:KVIndexConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVDocumentParser',
     deps=[
         ':KVIndexDocumentParser', ':kv_document',
@@ -64,7 +64,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/document:ExtendDocument'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVDocumentFactory',
     deps=[
         ':KVDocumentParser',

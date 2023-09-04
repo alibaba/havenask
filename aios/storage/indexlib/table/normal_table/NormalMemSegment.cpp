@@ -17,8 +17,8 @@
 
 #include "autil/CommonMacros.h"
 #include "indexlib/config/BuildOptionConfig.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/TabletOptions.h"
-#include "indexlib/config/TabletSchema.h"
 #include "indexlib/index/DocMapDumpParams.h"
 #include "indexlib/index/attribute/AttributeMemIndexer.h"
 #include "indexlib/index/attribute/AttributeMemReader.h"
@@ -34,7 +34,7 @@ namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, NormalMemSegment);
 
 NormalMemSegment::NormalMemSegment(const config::TabletOptions* options,
-                                   const std::shared_ptr<config::TabletSchema>& schema,
+                                   const std::shared_ptr<config::ITabletSchema>& schema,
                                    const framework::SegmentMeta& segmentMeta)
     : PlainMemSegment(options, schema, segmentMeta)
     , _buildResourceMetricsNode(nullptr)
@@ -112,7 +112,7 @@ void NormalMemSegment::CalcMemCostInCreateDumpParams()
             const std::string& fieldName = desc.GetSortFieldName();
             auto indexConfig = _schema->GetIndexConfig(index::ATTRIBUTE_INDEX_TYPE_STR, fieldName);
             assert(indexConfig);
-            auto attributeConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(indexConfig);
+            auto attributeConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(indexConfig);
             assert(attributeConfig);
             FieldType fieldType = attributeConfig->GetFieldType();
             sortFieldCost += indexlib::index::SizeOfFieldType(fieldType);

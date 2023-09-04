@@ -16,12 +16,12 @@
 #include "autil/codec/StringUtil.h"
 
 #include <ctype.h>
+#include <iosfwd>
+#include <iterator>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
-#include <iosfwd>
-#include <iterator>
 
 #include "autil/CommonMacros.h"
 #include "autil/StringUtil.h"
@@ -29,9 +29,9 @@
 namespace autil {
 namespace codec {
 
-#define SAFE_COPY(dst, src, len)       \
-    if (len > 0) {                     \
-        snprintf(dst, len, "%s", src); \
+#define SAFE_COPY(dst, src, len)                                                                                       \
+    if (len > 0) {                                                                                                     \
+        snprintf(dst, len, "%s", src);                                                                                 \
     }
 
 #define AUTIL_CODE_MAX_BOLD_TERMS 64
@@ -43,13 +43,15 @@ char *StringUtil::trim(char *szStr) {
     char *szRet, *szTrim;
 
     szTmp = szStr;
-    while ((*szTmp) == ' ' || (*szTmp) == '\t' || (*szTmp) == '\r' || (*szTmp) == '\n') szTmp++;
+    while ((*szTmp) == ' ' || (*szTmp) == '\t' || (*szTmp) == '\r' || (*szTmp) == '\n')
+        szTmp++;
     size_t len = strlen(szTmp);
     szTrim = szTmp;
     if (len > 0 &&
         (szTrim[len - 1] == ' ' || szTrim[len - 1] == '\t' || szTrim[len - 1] == '\r' || szTrim[len - 1] == '\n')) {
         szRet = &szTrim[len - 1];
-        while ((*szRet) == ' ' || (*szRet) == '\t' || (*szRet) == '\r' || (*szRet) == '\n') szRet--;
+        while ((*szRet) == ' ' || (*szRet) == '\t' || (*szRet) == '\r' || (*szRet) == '\n')
+            szRet--;
         *(++szRet) = '\0';
     }
 
@@ -69,7 +71,7 @@ string StringUtil::removeSpace(const string &str) {
 
 unsigned int StringUtil::split(vector<string> &v, const string &s, char delimiter, unsigned int maxSegments) {
     v.clear();
-    back_insert_iterator<vector<string> > it(v);
+    back_insert_iterator<vector<string>> it(v);
     return split(it, s, delimiter, maxSegments);
 }
 
@@ -212,8 +214,8 @@ bool StringUtil::isCnCharSemi(const string &str, cn_result &cn_obj) {
     }
 }
 
-int32_t StringUtil::boldLineStr(const vector<string> &segments, const char *src, int32_t src_len, char *dest,
-                                int32_t dest_len) {
+int32_t StringUtil::boldLineStr(
+    const vector<string> &segments, const char *src, int32_t src_len, char *dest, int32_t dest_len) {
     if (unlikely(0 == segments.size())) {
         strncpy(dest, src, src_len < dest_len ? src_len : dest_len);
         return src_len < dest_len ? src_len : dest_len;
@@ -231,11 +233,13 @@ int32_t StringUtil::boldLineStr(const vector<string> &segments, const char *src,
         int32_t len = 0;
         if (' ' != *p) {
             int i = 0;
-            for (vector<string>::const_iterator it = segments.begin(); it != segments.end() && i < AUTIL_CODE_MAX_BOLD_TERMS;
+            for (vector<string>::const_iterator it = segments.begin();
+                 it != segments.end() && i < AUTIL_CODE_MAX_BOLD_TERMS;
                  ++it, ++i) {
                 const string &segment = (*it);
                 len = segment.size();
-                if (end - p < len) continue;
+                if (end - p < len)
+                    continue;
                 if (0 == strncasecmp(p, segment.c_str(), len)) {
                     if (p != src && !need_begin) {
                         need_end = true;
@@ -248,8 +252,7 @@ int32_t StringUtil::boldLineStr(const vector<string> &segments, const char *src,
             // 跳过空格
             match = true;
             const char *blank_str = p;
-            while (*++blank_str && *blank_str == ' ') {
-            }
+            while (*++blank_str && *blank_str == ' ') {}
             len = blank_str - p;
         }
 
@@ -281,5 +284,5 @@ int32_t StringUtil::boldLineStr(const vector<string> &segments, const char *src,
     return index;
 }
 
-}
-}
+} // namespace codec
+} // namespace autil

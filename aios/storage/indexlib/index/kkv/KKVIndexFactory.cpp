@@ -72,10 +72,7 @@ std::shared_ptr<IMemIndexer> KKVIndexFactory::CreateMemIndexer(const std::shared
         return nullptr;
     }
     bool isOnline = indexerParam.isOnline;
-    int64_t maxBuildMemoryUse = indexerParam.maxMemoryUseInBytes / _memoryFactor;
-    if (!isOnline) {
-        maxBuildMemoryUse >>= 1; // for async dump, use half only
-    }
+    int64_t maxBuildMemoryUse = GetMaxBuildMemoryUse(indexerParam);
     if (maxBuildMemoryUse <= 0) {
         AUTIL_LOG(ERROR, "invalid maxMemoryUse: %ld", indexerParam.maxMemoryUseInBytes);
         return nullptr;
@@ -100,6 +97,11 @@ std::shared_ptr<IMemIndexer> KKVIndexFactory::CreateMemIndexer(const std::shared
     size_t pkeyMemUse = maxBuildMemoryUse * pkeyMemRatio;
     size_t skeyMemUse = maxBuildMemoryUse * skeyMemRatio;
     size_t valueMemUse = maxBuildMemoryUse - skeyMemUse;
+
+    AUTIL_LOG(
+        INFO,
+        "[%s] pkey size [%lu], skey size [%lu], value size [%lu], total size [%lu], pkey ratio [%f], skey ratio[%f]",
+        tabletName.c_str(), pkeyMemUse, skeyMemUse, valueMemUse, maxBuildMemoryUse, pkeyMemRatio, skeyMemRatio);
 
     FieldType skeyDictType = kkvIndexConfig->GetSKeyDictKeyType();
     switch (skeyDictType) {
@@ -177,6 +179,20 @@ void KKVIndexFactory::CalculateMemIndexerSKeyMemRatio(double& skeyMemRatio, cons
               prevSKeyMemUse, prevValueMemUse, prevSKeyMemoryRatio, skeyMemRatio);
 }
 
-REGISTER_INDEX(kkv, KKVIndexFactory);
+int64_t KKVIndexFactory::GetMaxBuildMemoryUse(const IndexerParameter& indexerParam) const
+{
+    uint32_t shardNum = (indexerParam.segmentInfo &&
+                         indexerParam.segmentInfo->GetShardCount() != framework::SegmentInfo::INVALID_SHARDING_COUNT)
+                            ? indexerParam.segmentInfo->GetShardCount()
+                            : 1;
+    // reserve 32M / shardNum for dump(compressBufferSize) & pool overhead at most
+    const int64_t overhead = 32 * 1024 * 1024 / shardNum;
+    if (indexerParam.maxMemoryUseInBytes > 2 * overhead) {
+        return indexerParam.maxMemoryUseInBytes - overhead;
+    }
+    return indexerParam.maxMemoryUseInBytes / _memoryFactor;
+}
+
+REGISTER_INDEX_FACTORY(kkv, KKVIndexFactory);
 
 } // namespace indexlibv2::index

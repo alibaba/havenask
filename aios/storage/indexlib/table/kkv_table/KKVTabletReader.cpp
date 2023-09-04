@@ -21,6 +21,7 @@
 #include "indexlib/index/kkv/config/KKVIndexConfig.h"
 #include "indexlib/table/kkv_table/KKVReader.h"
 #include "indexlib/table/kkv_table/KKVReaderFactory.h"
+#include "indexlib/util/ProtoJsonizer.h"
 
 namespace indexlibv2::table {
 
@@ -39,14 +40,42 @@ Status KKVTabletReader::Open(const std::shared_ptr<framework::TabletData>& table
         auto kkvIndexConfig = std::dynamic_pointer_cast<config::KKVIndexConfig>(indexConfig);
         assert(kkvIndexConfig);
         auto indexReader = KKVReaderFactory::Create(readResource, kkvIndexConfig, _schema->GetSchemaId());
+        if (!indexReader) {
+            AUTIL_LOG(ERROR, "create indexReader IndexType[%s] indexName[%s] failed.", indexType.c_str(),
+                      indexName.c_str());
+            return Status::ConfigError("create indexReader failed");
+        }
         auto status = indexReader->Open(kkvIndexConfig, tabletData.get());
         if (!status.IsOK()) {
-            AUTIL_LOG(ERROR, "create indexReader IndexType[%s] indexName[%s] failed, status[%s].", indexType.c_str(),
+            AUTIL_LOG(ERROR, "open indexReader IndexType[%s] indexName[%s] failed, status[%s].", indexType.c_str(),
                       indexName.c_str(), status.ToString().c_str());
             return status;
         }
         _indexReaderMap[std::make_pair(indexType, indexName)] = indexReader;
     }
+    return Status::OK();
+}
+
+Status KKVTabletReader::Search(const std::string& jsonQuery, std::string& result) const
+{
+    auto tabletSchema = GetSchema();
+    if (!tabletSchema) {
+        return Status::InternalError("get tablet schema fail.");
+    }
+    std::shared_ptr<config::IIndexConfig> indexConfig;
+    auto indexConfigs = tabletSchema->GetIndexConfigs("kkv");
+    if (indexConfigs.size() != 1) {
+        std::string errStr = "not support multi kkv index yet";
+        return Status::InvalidArgs(errStr.c_str());
+    }
+    indexConfig = indexConfigs[0];
+    assert(indexConfig);
+
+    base::PartitionQuery query;
+    RETURN_STATUS_DIRECTLY_IF_ERROR(indexlib::util::ProtoJsonizer::FromJson(jsonQuery, &query));
+    base::PartitionResponse partitionResponse;
+    RETURN_STATUS_DIRECTLY_IF_ERROR(QueryIndex(indexConfig, query, partitionResponse));
+    RETURN_STATUS_DIRECTLY_IF_ERROR(indexlib::util::ProtoJsonizer::ToJson(partitionResponse, &result));
     return Status::OK();
 }
 

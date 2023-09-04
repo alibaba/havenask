@@ -42,6 +42,7 @@ public:
     void deleteApplyer(const std::string& applyer) override;
     void syncResources(const std::string& applyer, const proto::WorkerNodes& workerNodes) override;
     std::string getResourceId() override;
+    bool updateResource(const KeyValueMap& params) override;
 
     versionid_t getTargetVersionid() const { return _targetVersion; }
     std::string getClusterName() const { return _clusterName; }

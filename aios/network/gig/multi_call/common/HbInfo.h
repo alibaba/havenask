@@ -31,9 +31,8 @@ MULTI_CALL_TYPEDEF_PTR(HbMetaInfo);
 
 struct HbInfo {
 public:
-    HbInfo()
-        : heartbeatProtocol(MC_PROTOCOL_UNKNOWN), heartbeatSpec(""),
-          lastUpdateTime(0) {}
+    HbInfo() : heartbeatProtocol(MC_PROTOCOL_UNKNOWN), heartbeatSpec(""), lastUpdateTime(0) {
+    }
 
 public:
     ProtocolType heartbeatProtocol;
@@ -44,7 +43,9 @@ public:
     HbMetaInfoPtr getHbMeta(); // return copy of HbMetaInfoPtr
     void updateTime();
     void updateTime(int64_t time);
-    int64_t getTime() { return lastUpdateTime; }
+    int64_t getTime() {
+        return lastUpdateTime;
+    }
 
 private:
     int64_t lastUpdateTime;

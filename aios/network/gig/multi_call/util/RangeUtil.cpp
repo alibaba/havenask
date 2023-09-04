@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/util/RangeUtil.h"
-#include "autil/StringUtil.h"
+
 #include <assert.h>
+
+#include "autil/StringUtil.h"
 
 using namespace std;
 using namespace autil;
@@ -26,9 +28,12 @@ RangeUtil::RangeUtil(uint32_t partCount, uint32_t rangeFrom, uint32_t rangeTo) {
     _ranges = splitRange(partCount, rangeFrom, rangeTo);
 }
 
-RangeUtil::~RangeUtil() {}
+RangeUtil::~RangeUtil() {
+}
 
-const vector<Range> &RangeUtil::getRanges() { return _ranges; }
+const vector<Range> &RangeUtil::getRanges() {
+    return _ranges;
+}
 
 bool RangeUtil::getRange(size_t pos, Range &range) {
     if (pos >= _ranges.size()) {
@@ -39,8 +44,7 @@ bool RangeUtil::getRange(size_t pos, Range &range) {
     }
 }
 
-vector<Range> RangeUtil::splitRange(uint32_t partitionCount, uint32_t rangeFrom,
-                                    uint32_t rangeTo) {
+vector<Range> RangeUtil::splitRange(uint32_t partitionCount, uint32_t rangeFrom, uint32_t rangeTo) {
     assert(rangeTo <= 65535);
 
     vector<Range> ranges;

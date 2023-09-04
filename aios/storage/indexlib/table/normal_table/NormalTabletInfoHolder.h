@@ -20,6 +20,7 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
 #include "indexlib/framework/IResource.h"
+#include "indexlib/table/normal_table/NormalTabletInfo.h"
 
 namespace indexlibv2::framework {
 class TabletData;
@@ -31,26 +32,30 @@ class DeletionMapIndexReader;
 
 namespace indexlibv2::table {
 class NormalTabletMeta;
-class NormalTabletInfo;
 
 class NormalTabletInfoHolder : public framework::IResource
 {
 public:
+    static std::shared_ptr<NormalTabletInfoHolder>
+    CreateOrReinit(const std::shared_ptr<framework::IResource>& lastClonedHolder,
+                   const std::shared_ptr<framework::TabletData>& tabletData,
+                   const std::shared_ptr<NormalTabletMeta>& tabletMeta,
+                   const std::shared_ptr<index::DeletionMapIndexReader>& deletionMapReader);
     NormalTabletInfoHolder() = default;
     ~NormalTabletInfoHolder() = default;
 
     std::shared_ptr<framework::IResource> Clone() override;
     size_t CurrentMemmoryUse() const override;
 
-    Status Init(const std::shared_ptr<framework::TabletData>& tabletData,
-                const std::shared_ptr<NormalTabletMeta>& tabletMeta,
-                const std::shared_ptr<index::DeletionMapIndexReader>& deletionMapReader);
-
-    void UpdateNormalTabletInfo(segmentid_t lastRtSegId, size_t lastRtSegDocCount, segmentid_t refindSegmentId);
+    void UpdateNormalTabletInfo(size_t lastRtSegDocCount);
 
     std::shared_ptr<NormalTabletInfo> GetNormalTabletInfo() const;
 
 private:
+    void Init(const std::shared_ptr<framework::TabletData>& tabletData,
+              const std::shared_ptr<NormalTabletMeta>& tabletMeta,
+              const std::shared_ptr<index::DeletionMapIndexReader>& deletionMapReader,
+              const NormalTabletInfo::HistorySegmentInfos& hisInfos);
     void SetNormalTabletInfo(const std::shared_ptr<NormalTabletInfo>& normalTabletInfo);
 
     mutable autil::ReadWriteLock _lock;

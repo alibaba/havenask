@@ -23,8 +23,7 @@
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class ScopedFileReadWriteLock
-{
+class ScopedFileReadWriteLock {
 public:
     friend class FileSystem;
     friend class ScopedFileReadWriteLockTest;
@@ -35,10 +34,10 @@ public:
 
 private:
     void release();
-    bool init(FileReadWriteLock* lock, const char mode);
+    bool init(FileReadWriteLock *lock, const char mode);
 
 private:
-    FileReadWriteLock* _lock;
+    FileReadWriteLock *_lock;
     char _mode;
 };
 
@@ -46,4 +45,4 @@ FSLIB_TYPEDEF_AUTO_PTR(ScopedFileReadWriteLock);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_SCOPEDFILEREADWRITELOCK_H
+#endif // FSLIB_SCOPEDFILEREADWRITELOCK_H

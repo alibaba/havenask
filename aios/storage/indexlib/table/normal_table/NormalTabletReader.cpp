@@ -15,6 +15,7 @@
  */
 #include "indexlib/table/normal_table/NormalTabletReader.h"
 
+#include "indexlib/config/MutableJson.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/framework/ITabletReader.h"
 #include "indexlib/framework/ResourceMap.h"
@@ -29,6 +30,8 @@
 #include "indexlib/index/inverted_index/builtin_index/date/DateIndexReader.h"
 #include "indexlib/index/inverted_index/builtin_index/range/RangeIndexReader.h"
 #include "indexlib/index/inverted_index/builtin_index/spatial/SpatialIndexReader.h"
+#include "indexlib/index/pack_attribute/Common.h"
+#include "indexlib/index/pack_attribute/PackAttributeReader.h"
 #include "indexlib/index/summary/Common.h"
 #include "indexlib/index/summary/SummaryReader.h"
 #include "indexlib/index/summary/config/SummaryIndexConfig.h"
@@ -45,7 +48,7 @@
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, NormalTabletReader);
 
-NormalTabletReader::NormalTabletReader(const std::shared_ptr<config::TabletSchema>& schema,
+NormalTabletReader::NormalTabletReader(const std::shared_ptr<config::ITabletSchema>& schema,
                                        const std::shared_ptr<NormalTabletMetrics>& normalTabletMetrics)
     : TabletReader(schema)
     , _normalTabletMetrics(normalTabletMetrics)
@@ -90,25 +93,8 @@ Status NormalTabletReader::Open(const std::shared_ptr<framework::TabletData>& ta
         _deletionMapReader = GetIndexReader<index::DeletionMapIndexReader>(index::DELETION_MAP_INDEX_TYPE_STR,
                                                                            index::DELETION_MAP_INDEX_NAME);
     }
-    auto resourceMap = tabletData->GetResourceMap();
-    if (resourceMap == nullptr) {
-        AUTIL_LOG(ERROR, "resource map is empty");
-        return Status::InternalError("resource map is empty");
-    } else {
-        auto resource = resourceMap->GetResource(NORMAL_TABLET_INFO_HOLDER);
-        if (resource) {
-            _normalTabletInfoHolder = std::dynamic_pointer_cast<NormalTabletInfoHolder>(resource);
-            if (!_normalTabletInfoHolder) {
-                RETURN_STATUS_ERROR(Corruption, "get normal tablet info holder failed");
-            }
-        } else {
-            _normalTabletInfoHolder = std::make_shared<NormalTabletInfoHolder>();
-            auto status = InitNormalTabletInfoHolder(tabletData, readResource);
-            RETURN_IF_STATUS_ERROR(status, "init normal tablet info holder failed.");
-            status = resourceMap->AddVersionResource(NORMAL_TABLET_INFO_HOLDER, _normalTabletInfoHolder);
-            RETURN_IF_STATUS_ERROR(status, "add version resource fail, name[%s]", NORMAL_TABLET_INFO_HOLDER.c_str());
-        }
-    }
+
+    RETURN_IF_STATUS_ERROR(InitNormalTabletInfoHolder(tabletData, readResource), "init tablet info failed");
 
     _version = tabletData->GetOnDiskVersion().Clone();
     assert(_normalTabletMeta);
@@ -117,15 +103,17 @@ Status NormalTabletReader::Open(const std::shared_ptr<framework::TabletData>& ta
 
     std::string indexType = index::PRIMARY_KEY_INDEX_TYPE_STR;
     auto pkConfigs = _schema->GetIndexConfigs(indexType);
-    if (pkConfigs.size() != 1) {
+    if (pkConfigs.size() > 1) {
         AUTIL_LOG(ERROR, "invalid pk config size [%lu]", pkConfigs.size());
         assert(false);
         return Status::Corruption("invalid pk config size ", pkConfigs.size());
     }
-    auto pkConfig = pkConfigs[0];
-    if (_primaryKeyIndexReader == nullptr) {
-        _primaryKeyIndexReader = GetIndexReader<indexlib::index::PrimaryKeyIndexReader>(
-            index::PRIMARY_KEY_INDEX_TYPE_STR, pkConfig->GetIndexName());
+    if (pkConfigs.size() == 1) {
+        auto pkConfig = pkConfigs[0];
+        if (_primaryKeyIndexReader == nullptr) {
+            _primaryKeyIndexReader = GetIndexReader<indexlib::index::PrimaryKeyIndexReader>(
+                index::PRIMARY_KEY_INDEX_TYPE_STR, pkConfig->GetIndexName());
+        }
     }
     // summary reader need pkReader && attribute reader
     status = InitSummaryReader();
@@ -136,34 +124,52 @@ Status NormalTabletReader::Open(const std::shared_ptr<framework::TabletData>& ta
 Status NormalTabletReader::InitNormalTabletInfoHolder(const std::shared_ptr<framework::TabletData>& tabletData,
                                                       const framework::ReadResource& readResource)
 {
+    auto resourceMap = tabletData->GetResourceMap();
+    if (resourceMap == nullptr) {
+        AUTIL_LOG(ERROR, "resource map is empty");
+        return Status::InternalError("resource map is empty");
+    }
+    auto resource = resourceMap->GetResource(NORMAL_TABLET_INFO_HOLDER);
+    std::shared_ptr<NormalTabletInfoHolder> lastNormalTabletInfoHolder;
+    if (resource) {
+        lastNormalTabletInfoHolder = std::dynamic_pointer_cast<NormalTabletInfoHolder>(resource);
+        if (!lastNormalTabletInfoHolder) {
+            RETURN_STATUS_ERROR(Corruption, "get normal tablet info holder failed");
+        }
+    }
+
+    std::shared_ptr<index::DeletionMapIndexReader> delReader;
     std::string indexType = index::DELETION_MAP_INDEX_TYPE_STR;
     auto config = _schema->GetIndexConfig(indexType, index::DELETION_MAP_INDEX_NAME);
-    if (!config) {
-        // orc do not have deletionmap
-        return _normalTabletInfoHolder->Init(tabletData, _normalTabletMeta, nullptr);
+    if (config) {
+        auto delConfig = std::dynamic_pointer_cast<index::DeletionMapConfig>(config);
+        assert(delConfig);
+        index::IndexerParameter indexerParam;
+        RETURN_IF_STATUS_ERROR(PrepareIndexerParameter(readResource, indexerParam), "prepare indexer parameter failed");
+        auto indexFactoryCreator = index::IndexFactoryCreator::GetInstance();
+        auto [status, indexFactory] = indexFactoryCreator->Create(indexType);
+        RETURN_IF_STATUS_ERROR(status, "create index factory for index type [%s] failed", indexType.c_str());
+        auto indexReader = indexFactory->CreateIndexReader(delConfig, indexerParam);
+        if (!indexReader) {
+            AUTIL_LOG(ERROR, "create deletion map reader fail");
+            return Status::InternalError();
+        }
+        // Create an independent deletionmap reader for normal tablet info.
+        // Normal tablet info exists in resource map, it's lifetime is longer than reader.
+        // If using deletionmap reader from TabletReader, when TabletReader deconstructs,
+        // deletionmap reader's use_count is 2, while other index reader's use_count is 1.
+        RETURN_IF_STATUS_ERROR(indexReader->Open(delConfig, tabletData.get()), "deletion map reader open fail");
+        std::shared_ptr<index::IIndexReader> reader = std::move(indexReader);
+        delReader = std::dynamic_pointer_cast<index::DeletionMapIndexReader>(reader);
+        assert(delReader);
     }
-    auto delConfig = std::dynamic_pointer_cast<index::DeletionMapConfig>(config);
-    assert(delConfig);
-    index::IndexerParameter indexerParam;
-    RETURN_IF_STATUS_ERROR(PrepareIndexerParameter(readResource, indexerParam), "prepare indexer parameter failed");
-    auto indexFactoryCreator = index::IndexFactoryCreator::GetInstance();
-    auto [status, indexFactory] = indexFactoryCreator->Create(indexType);
-    RETURN_IF_STATUS_ERROR(status, "create index factory for index type [%s] failed", indexType.c_str());
-    auto indexReader = indexFactory->CreateIndexReader(delConfig, indexerParam);
-    if (!indexReader) {
-        AUTIL_LOG(ERROR, "create deletion map reader fail");
-        return Status::InternalError();
+    _normalTabletInfoHolder =
+        NormalTabletInfoHolder::CreateOrReinit(lastNormalTabletInfoHolder, tabletData, _normalTabletMeta, delReader);
+    if (!resource) {
+        RETURN_IF_STATUS_ERROR(resourceMap->AddInheritedResource(NORMAL_TABLET_INFO_HOLDER, _normalTabletInfoHolder),
+                               "add inhert resource fail, name[%s]", NORMAL_TABLET_INFO_HOLDER.c_str());
     }
-    RETURN_IF_STATUS_ERROR(indexReader->Open(delConfig, tabletData.get()), "deletion map reader open fail");
-    std::shared_ptr<index::IIndexReader> reader = std::move(indexReader);
-    auto delReader = std::dynamic_pointer_cast<index::DeletionMapIndexReader>(reader);
-    assert(delReader);
-
-    // Create an independent deletionmap reader for normal tablet info.
-    // Normal tablet info exists in resource map, it's lifetime is longer than reader.
-    // If using deletionmap reader from TabletReader, when TabletReader deconstructs,
-    // deletionmap reader's use_count is 2, while other index reader's use_count is 1.
-    return _normalTabletInfoHolder->Init(tabletData, _normalTabletMeta, delReader);
+    return Status::OK();
 }
 
 std::shared_ptr<indexlib::index::InvertedIndexReader> NormalTabletReader::GetMultiFieldIndexReader() const
@@ -194,9 +200,9 @@ Status NormalTabletReader::InitSortedDocidRangeSearcher()
             AUTIL_LOG(ERROR, "get attribute config fail, indexName[%s]", sortFieldName.c_str());
             return Status::InternalError();
         }
-        auto typedAttrConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(attrConfig);
+        auto typedAttrConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(attrConfig);
         assert(typedAttrConfig);
-        if (!typedAttrConfig->IsDisable()) {
+        if (!typedAttrConfig->IsDisabled()) {
             auto attrReader = GetIndexReader<index::AttributeReader>(typedAttrConfig->GetIndexType(), sortFieldName);
             if (!attrReader) {
                 AUTIL_LOG(ERROR, "attribute reader not found, indexType[%s] indexName[%s]",
@@ -273,7 +279,7 @@ Status NormalTabletReader::InitSummaryReader()
     // add attribute reader
     const auto& attrIndexConfigs = _schema->GetIndexConfigs(index::ATTRIBUTE_INDEX_TYPE_STR);
     for (auto& attrIndexConfig : attrIndexConfigs) {
-        auto attrConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(attrIndexConfig);
+        auto attrConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(attrIndexConfig);
         assert(attrConfig != nullptr);
         auto fieldId = attrConfig->GetFieldId();
         if (!summaryIndexConfig->IsInSummary(fieldId)) {
@@ -285,6 +291,25 @@ Status NormalTabletReader::InitSummaryReader()
             RETURN_STATUS_ERROR(InternalError, "can not find attribute reader for field [%s]", fieldName.c_str());
         }
         summaryReader->AddAttrReader(fieldId, attrReader.get());
+    }
+
+    // add pack attribute reader
+    const auto& packAttrIndexConfigs = _schema->GetIndexConfigs(index::PACK_ATTRIBUTE_INDEX_TYPE_STR);
+    for (const auto& packAttrIndexConfig : packAttrIndexConfigs) {
+        const auto& packName = packAttrIndexConfig->GetIndexName();
+        const auto& fieldConfigs = packAttrIndexConfig->GetFieldConfigs();
+        for (const auto& fieldConfig : fieldConfigs) {
+            auto fieldId = fieldConfig->GetFieldId();
+            if (!summaryIndexConfig->IsInSummary(fieldId)) {
+                continue;
+            }
+            auto packAttrReader =
+                GetIndexReader<index::PackAttributeReader>(index::PACK_ATTRIBUTE_INDEX_TYPE_STR, packName);
+            if (!packAttrReader) {
+                RETURN_STATUS_ERROR(InternalError, "can not find pack attribute reader  [%s]", packName.c_str());
+            }
+            summaryReader->AddPackAttrReader(fieldId, packAttrReader.get());
+        }
     }
     return Status::OK();
 }
@@ -321,13 +346,13 @@ void NormalTabletReader::AddAttributeReader(const std::shared_ptr<indexlib::inde
 Status NormalTabletReader::InitIndexAccessoryReader(const framework::TabletData* tabletData,
                                                     const framework::ReadResource& readResource)
 {
-    if (_schema->GetIndexConfigs(indexlib::index::INVERTED_INDEX_TYPE_STR).size() <= 0) {
+    if (_schema->GetIndexConfigs(indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR).size() <= 0) {
         return Status::OK();
     }
     index::IndexerParameter indexerParameter;
     RETURN_IF_STATUS_ERROR(PrepareIndexerParameter(readResource, indexerParameter), "prepare indexer parameter failed");
     std::vector<std::shared_ptr<config::IIndexConfig>> indexConfigs;
-    for (const auto& originIndexConfig : _schema->GetIndexConfigs(indexlib::index::INVERTED_INDEX_TYPE_STR)) {
+    for (const auto& originIndexConfig : _schema->GetIndexConfigs(indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR)) {
         auto config = std::dynamic_pointer_cast<indexlibv2::config::InvertedIndexConfig>(originIndexConfig);
         if (config == nullptr) {
             return Status::InvalidArgs("inverted index name[%s] invalid index config", config->GetIndexName().c_str());
@@ -356,6 +381,12 @@ std::shared_ptr<index::AttributeReader> NormalTabletReader::GetAttributeReader(c
     return GetIndexReader<index::AttributeReader>(index::ATTRIBUTE_INDEX_TYPE_STR, attrName);
 }
 
+std::shared_ptr<index::PackAttributeReader>
+NormalTabletReader::GetPackAttributeReader(const std::string& packName) const
+{
+    return GetIndexReader<index::PackAttributeReader>(index::PACK_ATTRIBUTE_INDEX_TYPE_STR, packName);
+}
+
 const NormalTabletReader::AccessCounterMap& NormalTabletReader::GetInvertedAccessCounter() const
 {
     if (_normalTabletMetrics) {
@@ -376,7 +407,7 @@ const NormalTabletReader::AccessCounterMap& NormalTabletReader::GetAttributeAcce
 Status NormalTabletReader::PrepareIndexerParameter(const framework::ReadResource& readResource,
                                                    index::IndexerParameter& indexerParameter)
 {
-    auto [status, descs] = _schema->GetSetting<config::SortDescriptions>("sort_descriptions");
+    auto [status, descs] = _schema->GetRuntimeSettings().GetValue<config::SortDescriptions>("sort_descriptions");
     if (!status.IsOK() && !status.IsNotFound()) {
         AUTIL_LOG(ERROR, "parse sort descs from schema has error");
         return status;

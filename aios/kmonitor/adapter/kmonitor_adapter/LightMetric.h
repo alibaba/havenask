@@ -19,30 +19,26 @@
 
 namespace kmonitor_adapter {
 
-class LightMetric
-{
+class LightMetric {
 public:
-    LightMetric(kmonitor::Metric* metric) : _metric(metric)
-    {
+    LightMetric(kmonitor::Metric *metric) : _metric(metric) {
         assert(_metric);
         //_metric->Acquire();
     }
-    ~LightMetric()
-    {
+    ~LightMetric() {
         assert(_metric);
         _metric->Release();
         _metric = NULL;
     }
 
 public:
-    void report(double value)
-    {
+    void report(double value) {
         assert(_metric);
         _metric->Update(value);
     }
 
 private:
-    kmonitor::Metric* _metric = nullptr;
+    kmonitor::Metric *_metric = nullptr;
 };
 typedef std::unique_ptr<LightMetric> LightMetricPtr;
 

@@ -1,0 +1,88 @@
+{
+    "build_option_config": {
+        "sort_build": true,
+        "sort_queue_mem": 8192,
+        "sort_descriptions": [
+            {
+                "sort_field": "category",
+                "sort_pattern": "DESC"
+            },
+            {
+                "sort_field": "auc_money_score_c2c",
+                "sort_pattern": "DESC"
+            }
+        ]
+    },
+    "cluster_config": {
+        "builder_rule_config": {
+            "build_parallel_num": 32,
+            "inc_build_parallel_num": 32,
+            "merge_parallel_num": 48,
+            "partition_count": 6
+        },
+        "cluster_name": "mainse_excellent_search",
+        "hash_mode": {
+            "hash_field": "nid",
+            "hash_function": "HASH"
+        },
+        "enable_fast_slow_queue": true,
+        "table_name": "mainse_excellent_search"
+    },
+    "offline_index_config": {
+        "offline_reader_config": {
+            "index_block_cache_size": 1073741824
+        },
+        "build_config": {
+            "enable_package_file": true,
+            "keep_version_count": 100,
+            "build_total_memory": 36840,
+            "speedup_primary_key_reader": true,
+            "dump_thread_count": 10
+        },
+        "customized_merge_config": {
+            "full": {
+                "inherit_from": "clusters/excellent_full.json"
+            },
+            "inc": {
+                "inherit_from": "clusters/excellent_inc.json",
+                "period": "period=1200"
+            },
+            "inc_merge_1": {
+                "inherit_from": "clusters/excellent_inc_merge.json",
+                "merge_config": {
+                    "merge_strategy": "optimize",
+                    "merge_strategy_param": "max-doc-count=100000000"
+                },
+                "period": "daytime=14:00"
+            }
+        }
+    },
+    "slow_node_detect_config": {
+        "max_kill_times": 3,
+        "slow_time_threshold": 1200,
+        "enable_slow_node_detect": true,
+        "slow_node_handle_strategy": "backup_node",
+        "enable_high_quality_slot": true,
+        "enable_network_speed_strategy": true,
+        "enable_brutal_strategy": true,
+        "not_work_time_threshold": 900
+    },
+    "swift_config": {
+        "topic_full": {
+            "partition_count": 128,
+            "partition_limit": 1,
+            "partition_max_buffer_size": 8192,
+            "partition_resource": 20,
+            "reader_config": "oneRequestReadCount=10000;readBufferSize=50000",
+            "writer_config": "functionChain=hashId2partId;compressThresholdInBytes=1024;mode=async|safe;maxBufferSize=2147483648;mergeMessage=true;maxKeepInBufferTime=10000000"
+        },
+        "topic_inc": {
+            "partition_count": 64,
+            "partition_limit": 1,
+            "partition_max_buffer_size": 8192,
+            "partition_resource": 10,
+            "reader_config": "oneRequestReadCount=10000;readBufferSize=50000",
+            "writer_config": "functionChain=hashId2partId;compressThresholdInBytes=1024;mode=async|safe;maxBufferSize=2147483648;maxKeepInBufferTime=500000;oneRequestSendByteCount=131072"
+        }
+    }
+}

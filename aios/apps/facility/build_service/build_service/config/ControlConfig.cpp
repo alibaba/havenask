@@ -20,7 +20,7 @@
 using namespace std;
 
 namespace build_service { namespace config {
-
+BS_LOG_SETUP(config, ControlConfig);
 class SingleClusterControlConfig : public autil::legacy::Jsonizable
 {
 public:
@@ -37,11 +37,37 @@ public:
     std::string clusterName;
 };
 
+bool ControlConfig::parseDataLinkStr(const std::string& inStr, DataLinkMode& dataLinkMode)
+{
+    if (inStr == "normal" || inStr == "NORMAL" || inStr.empty()) {
+        dataLinkMode = DataLinkMode::NORMAL_MODE;
+    } else if (inStr == "npc" || inStr == "NPC") {
+        dataLinkMode = DataLinkMode::NPC_MODE;
+    } else if (inStr == "fp_inp" || inStr == "FP_INP") {
+        dataLinkMode = DataLinkMode::FP_INP_MODE;
+    } else {
+        return false;
+    }
+    return true;
+}
+
+string ControlConfig::dataLinkModeToStr(DataLinkMode dataLinkMode)
+{
+    switch (dataLinkMode) {
+    case DataLinkMode::NORMAL_MODE:
+        return "normal";
+    case DataLinkMode::NPC_MODE:
+        return "npc";
+    case DataLinkMode::FP_INP_MODE:
+        return "fp_inp";
+    }
+    return "";
+}
+
 void ControlConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
 {
     json.Jsonize("use_v2_index", _useIndexV2, _useIndexV2);
     json.Jsonize("is_inc_processor_exist", _isIncProcessorExistByDefault, _isIncProcessorExistByDefault);
-
     std::vector<SingleClusterControlConfig> clusterConfigs;
     if (json.GetMode() == FROM_JSON) {
         json.Jsonize("clusters", clusterConfigs, clusterConfigs);
@@ -52,7 +78,32 @@ void ControlConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
             }
             _clusterInfoMap.insert(make_pair(singleConf.clusterName, singleConf.isIncProcessorExist));
         }
+        string dataLinkStr;
+        json.Jsonize("data_link_mode", dataLinkStr, "");
+        DataLinkMode mode;
+        if (!parseDataLinkStr(dataLinkStr, mode)) {
+            string errorInfo = "invalid data_link_mode [" + dataLinkStr + "]";
+            throw autil::legacy::ExceptionBase(errorInfo);
+        }
+        switch (mode) {
+        case DataLinkMode::FP_INP_MODE:
+        case DataLinkMode::NPC_MODE: {
+            _dataLinkMode = mode;
+            _isIncProcessorExistByDefault = false;
+            BS_LOG(INFO, "data_link_mode: %s will overwrite is_inc_processor_exist to false", dataLinkStr.c_str());
+            break;
+        }
+        case DataLinkMode::NORMAL_MODE: {
+            if (_isIncProcessorExistByDefault == false) {
+                _dataLinkMode = DataLinkMode::FP_INP_MODE;
+                BS_LOG(INFO, "legacy config is_inc_processor_exist = false will overwrite data_link_mode to bfp_inp");
+            }
+            break;
+        }
+        }
     } else {
+        string dataLinkStr = dataLinkModeToStr(_dataLinkMode);
+        json.Jsonize("data_link_mode", dataLinkStr);
         for (auto& kv : _clusterInfoMap) {
             SingleClusterControlConfig singleConfig;
             singleConfig.clusterName = kv.first;

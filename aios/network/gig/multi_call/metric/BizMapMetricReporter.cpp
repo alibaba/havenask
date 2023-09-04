@@ -21,16 +21,15 @@ namespace multi_call {
 
 AUTIL_LOG_SETUP(multi_call, BizMapMetricReporter);
 
-BizMapMetricReporter::BizMapMetricReporter(kmonitor::KMonitor *kMonitor,
-                                           bool isAgent) {
+BizMapMetricReporter::BizMapMetricReporter(kmonitor::KMonitor *kMonitor, bool isAgent) {
     _kMonitor = kMonitor;
     _isAgent = isAgent;
 }
 
-BizMapMetricReporter::~BizMapMetricReporter() {}
+BizMapMetricReporter::~BizMapMetricReporter() {
+}
 
-void BizMapMetricReporter::reportSnapshotInfo(
-    const SnapshotInfoCollector &snapInfo) {
+void BizMapMetricReporter::reportSnapshotInfo(const SnapshotInfoCollector &snapInfo) {
     if (!_kMonitor) {
         return;
     }
@@ -40,13 +39,10 @@ void BizMapMetricReporter::reportSnapshotInfo(
         const SnapshotBizInfo &bizInfo = iter.second;
         BizMetricReporterPtr bizReporter = getBizMetricReporter(iter.first);
         bizReporter->reportSnapshotVersionCount(bizInfo.versionCount);
-        bizReporter->reportSnapshotCompleteVersionCount(
-            bizInfo.completeVersionCount);
+        bizReporter->reportSnapshotCompleteVersionCount(bizInfo.completeVersionCount);
         bizReporter->reportSnapshotCopyVersionCount(bizInfo.copyVersionCount);
-        bizReporter->reportSnapshotTotalVersionWeight(
-            bizInfo.totalVersionWeight);
-        bizReporter->reportSnapshotCompleteVersionWeight(
-            bizInfo.completeVersionWeight);
+        bizReporter->reportSnapshotTotalVersionWeight(bizInfo.totalVersionWeight);
+        bizReporter->reportSnapshotCompleteVersionWeight(bizInfo.completeVersionWeight);
 
         bizReporter->reportSnapshotProviderCount(bizInfo.providerCount);
         bizReporter->reportSnapshotHealthCount(bizInfo.healthProviderCount);
@@ -54,8 +50,7 @@ void BizMapMetricReporter::reportSnapshotInfo(
         bizReporter->reportSnapshotCopyCount(bizInfo.copyProviderCount);
 
         if (floatMax != bizInfo.minProviderLatency) {
-            bizReporter->reportSnapshotMinAvgLatency(
-                bizInfo.minProviderLatency);
+            bizReporter->reportSnapshotMinAvgLatency(bizInfo.minProviderLatency);
         }
         if (floatMax != bizInfo.minErrorRatio) {
             bizReporter->reportSnapshotMinErrorRatio(bizInfo.minErrorRatio);
@@ -64,8 +59,7 @@ void BizMapMetricReporter::reportSnapshotInfo(
             bizReporter->reportSnapshotMinDegradeRatio(bizInfo.minDegradeRatio);
         }
         if (floatMax != bizInfo.minLoadBalanceLatency) {
-            bizReporter->reportSnapshotMinLoadBalanceLatency(
-                bizInfo.minLoadBalanceLatency);
+            bizReporter->reportSnapshotMinLoadBalanceLatency(bizInfo.minLoadBalanceLatency);
         }
         if (floatMax != bizInfo.minLoadBalanceDegradeRatio) {
             bizReporter->reportSnapshotMinLoadBalanceDegradeRatio(
@@ -73,14 +67,12 @@ void BizMapMetricReporter::reportSnapshotInfo(
         }
         bizReporter->reportReplicaAvgWeight(bizInfo.avgWeight);
         if (bizInfo.delayCount > 0) {
-            bizReporter->reportSnapshotMetricAvgDelay(
-                bizInfo.delaySum / (float)bizInfo.delayCount);
+            bizReporter->reportSnapshotMetricAvgDelay(bizInfo.delaySum / (float)bizInfo.delayCount);
         }
     }
 }
 
-void BizMapMetricReporter::reportReplyInfo(
-    const ReplyInfoCollector &replyInfo) {
+void BizMapMetricReporter::reportReplyInfo(const ReplyInfoCollector &replyInfo) {
     if (!_kMonitor) {
         return;
     }
@@ -96,8 +88,7 @@ void BizMapMetricReporter::reportReplyInfo(
         bizReporter->reportErrorQps(replyBizInfo.errorRequestCount);
         bizReporter->reportTimeoutQps(replyBizInfo.timeoutRequestCount);
 
-        bizReporter->reportMaxRpcLatency(replyBizInfo.rpcLatency /
-                                         FACTOR_US_TO_MS);
+        bizReporter->reportMaxRpcLatency(replyBizInfo.rpcLatency / FACTOR_US_TO_MS);
         bizReporter->reportMaxNetLatency(replyBizInfo.netLatency);
         uint32_t expectProviderCount = replyBizInfo.expectProviderCount;
         uint32_t returnCount = replyBizInfo.returnCount;
@@ -112,14 +103,12 @@ void BizMapMetricReporter::reportReplyInfo(
         const auto &etInfo = replyBizInfo.etInfo;
         if (etInfo.isET) {
             bizReporter->reportEarlyTerminatorQps(1.0);
-            bizReporter->reportEarlyTerminatorTriggerLatency(etInfo.latency /
-                                                             FACTOR_US_TO_MS);
+            bizReporter->reportEarlyTerminatorTriggerLatency(etInfo.latency / FACTOR_US_TO_MS);
         }
         const RetryInfo &retryInfo = replyBizInfo.retryInfo;
         if (retryInfo.isRetry) {
             bizReporter->reportRetryQueryQps(1.0);
-            bizReporter->reportRetryQueryTriggerLatency(retryInfo.latency /
-                                                        FACTOR_US_TO_MS);
+            bizReporter->reportRetryQueryTriggerLatency(retryInfo.latency / FACTOR_US_TO_MS);
         }
         if (replyBizInfo.probeCallNum != 0) {
             bizReporter->reportProbeCallQps(replyBizInfo.probeCallNum);
@@ -129,19 +118,16 @@ void BizMapMetricReporter::reportReplyInfo(
         }
         const BizSizeInfo &requestSizeInfo = replyBizInfo.requestSize;
         if (requestSizeInfo.num != 0) {
-            bizReporter->reportRequestAvgSize(requestSizeInfo.sumSize /
-                                              requestSizeInfo.num);
+            bizReporter->reportRequestAvgSize(requestSizeInfo.sumSize / requestSizeInfo.num);
         }
         const BizSizeInfo &responseSizeInfo = replyBizInfo.responseSize;
         if (responseSizeInfo.num != 0) {
-            bizReporter->reportResponseAvgSize(responseSizeInfo.sumSize /
-                                               responseSizeInfo.num);
+            bizReporter->reportResponseAvgSize(responseSizeInfo.sumSize / responseSizeInfo.num);
         }
     }
 }
 
-BizMetricReporterPtr
-BizMapMetricReporter::getBizMetricReporter(const std::string &bizName) {
+BizMetricReporterPtr BizMapMetricReporter::getBizMetricReporter(const std::string &bizName) {
     if (!_kMonitor) {
         return BizMetricReporterPtr();
     }
@@ -160,8 +146,7 @@ BizMapMetricReporter::getBizMetricReporter(const std::string &bizName) {
         if (iter != _bizMetricReporterMap.end()) {
             return iter->second;
         }
-        BizMetricReporterPtr bizMetricReporter(
-            new BizMetricReporter(bizName, _kMonitor, _isAgent));
+        BizMetricReporterPtr bizMetricReporter(new BizMetricReporter(bizName, _kMonitor, _isAgent));
         _bizMetricReporterMap[bizName] = bizMetricReporter;
         return bizMetricReporter;
     }

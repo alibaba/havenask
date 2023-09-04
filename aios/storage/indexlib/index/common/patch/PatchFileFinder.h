@@ -30,12 +30,12 @@ class IDirectory;
 }
 namespace indexlibv2::config {
 class IIndexConfig;
-class AttributeConfig;
 } // namespace indexlibv2::config
 namespace indexlibv2::framework {
 class Segment;
 }
 namespace indexlibv2::index {
+class AttributeConfig;
 
 class PatchFileFinder : private autil::NoCopyable
 {

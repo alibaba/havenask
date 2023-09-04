@@ -1,0 +1,15 @@
+{
+    "truncate_strategy" : [
+        {
+            "strategy_name" : "distinct_sort",
+            "threshold" : 4,
+            "limit" : 2,
+	    "truncate_profiles" :
+	    [
+		"desc_price",
+                "asc_user_id"
+	    ]
+        }
+    ]
+}
+

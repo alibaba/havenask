@@ -15,8 +15,9 @@
  */
 
 #include "arpc/PooledChannelManager.h"
-#include "arpc/ANetRPCChannelManager.h"
+
 #include "arpc/ANetRPCChannel.h"
+#include "arpc/ANetRPCChannelManager.h"
 #include "autil/StringUtil.h"
 
 using namespace std;
@@ -42,8 +43,8 @@ PooledChannelManager::~PooledChannelManager() {
 shared_ptr<ANetRPCChannel> PooledChannelManager::getRpcChannel(const std::string &addr) {
     unique_lock<mutex> lock(_mu);
     if (_loopThreadPtr.get() == NULL) {
-        _loopThreadPtr =
-            LoopThread::createLoopThread(bind(&PooledChannelManager::cleanBrokenChannelLoop, this), 10 * 1000 * 1000, "cleanChannel");
+        _loopThreadPtr = LoopThread::createLoopThread(
+            bind(&PooledChannelManager::cleanBrokenChannelLoop, this), 10 * 1000 * 1000, "cleanChannel");
     }
     auto it = _rpcChannelPool.find(addr);
     if (it != _rpcChannelPool.end()) {

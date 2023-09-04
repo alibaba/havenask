@@ -20,6 +20,7 @@
 #include "fslib/util/FileUtil.h"
 #include "indexlib/config/schema_differ.h"
 #include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/MergeDirsOption.h"
 #include "indexlib/file_system/archive/ArchiveFolder.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index_base/branch_fs.h"
@@ -200,15 +201,16 @@ void CustomMergerImpl::mergeSegmentDir(const indexlib::file_system::DirectoryPtr
                 for (const auto& subFileName : subFileList) {
                     string physicalPath = segmentDirectory->GetPhysicalPath(PathUtil::JoinPath(fileName, subFileName));
                     THROW_IF_FS_ERROR(rootDirectory->GetFileSystem()->MergeDirs(
-                                          {physicalPath}, PathUtil::JoinPath(segmentPath, fileName, subFileName), false,
-                                          fenceContext),
+                                          {physicalPath}, PathUtil::JoinPath(segmentPath, fileName, subFileName),
+                                          MergeDirsOption::NoMergePackageWithFence(fenceContext)),
                                       "merge dirs failed");
                 }
             } else {
                 string physicalPath = segmentDirectory->GetPhysicalPath(fileName);
-                THROW_IF_FS_ERROR(rootDirectory->GetFileSystem()->MergeDirs(
-                                      {physicalPath}, PathUtil::JoinPath(segmentPath, fileName), false, fenceContext),
-                                  "merge dirs failed");
+                THROW_IF_FS_ERROR(
+                    rootDirectory->GetFileSystem()->MergeDirs({physicalPath}, PathUtil::JoinPath(segmentPath, fileName),
+                                                              MergeDirsOption::NoMergePackageWithFence(fenceContext)),
+                    "merge dirs failed");
             }
         }
     }

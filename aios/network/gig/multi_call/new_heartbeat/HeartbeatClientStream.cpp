@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/new_heartbeat/HeartbeatClientStream.h"
-#include "aios/network/gig/multi_call/new_heartbeat/HostHeartbeatInfo.h"
+
 #include "aios/network/gig/multi_call/new_heartbeat/HeartbeatClientManager.h"
+#include "aios/network/gig/multi_call/new_heartbeat/HostHeartbeatInfo.h"
 #include "aios/network/gig/multi_call/new_heartbeat/ServerTopoMap.h"
 #include "aios/network/gig/multi_call/proto/NewHeartbeat.pb.h"
 
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, HeartbeatClientStream);
 
-HeartbeatClientStream::HeartbeatClientStream(
-    const std::shared_ptr<HostHeartbeatStats> &hostStats,
-    const ClientTopoInfoMapPtr &clientInfoMap,
-    const std::string &clusterName,
-    bool enableClusterBizSearch)
+HeartbeatClientStream::HeartbeatClientStream(const std::shared_ptr<HostHeartbeatStats> &hostStats,
+                                             const ClientTopoInfoMapPtr &clientInfoMap,
+                                             const std::string &clusterName,
+                                             bool enableClusterBizSearch)
     : GigClientStream(GIG_NEW_HEARTBEAT_METHOD_NAME, GIG_HEARTBEAT_METHOD_NAME)
     , _hostStats(hostStats)
     , _notifier(hostStats->notifier)
     , _clientInfoMap(clientInfoMap)
     , _clusterName(clusterName)
-    , _enableClusterBizSearch(enableClusterBizSearch)
-{
+    , _enableClusterBizSearch(enableClusterBizSearch) {
     setDisableRetry(true);
     setDisableProbe(true);
     AUTIL_LOG(DEBUG, "heartbeat client stream constructed [%p]", this);
@@ -90,7 +89,8 @@ bool HeartbeatClientStream::tick() {
         return true;
     } else {
         _hostStats->updateLastHeartbeatTime(false);
-        AUTIL_LOG(ERROR, "send gig heartbeat request failed [%p] [%s]", this,
+        AUTIL_LOG(ERROR, "send gig heartbeat request failed, host [%s] [%p] [%s]",
+                  getSpec().getAnetSpec(MC_PROTOCOL_GRPC_STREAM).c_str(), this,
                   request.DebugString().c_str());
         return false;
     }
@@ -126,10 +126,13 @@ bool HeartbeatClientStream::doReceive(const NewHeartbeatResponse &response, int6
         if (oldTopoInfo && (publishId == oldTopoInfo->getPublishId())) {
             newMap->addInfo(topoSig, oldTopoInfo);
         } else {
+            if (oldTopoInfo) {
+                // disable setTargetWeight in old info destructor
+                oldTopoInfo->unBind();
+            }
             auto newInfo = std::make_shared<ClientTopoInfo>(_hostStats);
             if (newInfo->init(_clusterName, _enableClusterBizSearch, spec, envDef, topoDef,
-                              netLatencyUs))
-            {
+                              netLatencyUs)) {
                 newMap->addInfo(topoSig, newInfo);
             } else {
                 AUTIL_LOG(ERROR,
@@ -141,6 +144,7 @@ bool HeartbeatClientStream::doReceive(const NewHeartbeatResponse &response, int6
             }
         }
     }
+    oldMap.reset();
     setClientMap(newMap);
     _notifier->notify();
     return true;
@@ -164,4 +168,4 @@ ClientTopoInfoPtr HeartbeatClientStream::getOldInfo(const ClientTopoInfoMapPtr &
         return nullptr;
     }
 }
-}
+} // namespace multi_call

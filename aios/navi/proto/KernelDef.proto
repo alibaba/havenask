@@ -1,0 +1,146 @@
+syntax = "proto3";
+
+package navi;
+option cc_enable_arenas = true;
+
+message TypeDef
+{
+    string name = 1;
+    string attr = 2;
+}
+
+enum InputTypeDef {
+    // require input type
+    IT_REQUIRE = 0;
+    // optional input type
+    IT_REQUIRE_WHEN_CONNECTED = 1;
+    IT_OPTIONAL = 2;
+}
+
+message InputDef
+{
+    string name = 1;
+    InputTypeDef type = 2;
+    TypeDef data_type = 3;
+}
+
+message InputGroupDef
+{
+    string name = 1;
+    InputTypeDef type = 2;
+    TypeDef data_type = 3;
+    InputTypeDef group_type = 4;
+}
+
+message OutputDef
+{
+    string name = 1;
+    TypeDef data_type = 2;
+}
+
+message OutputGroupDef
+{
+    string name = 1;
+    TypeDef data_type = 2;
+}
+
+message DependResourceDef
+{
+    string name = 1;
+    bool require = 2;
+}
+
+message DynamicResourceGroupDef
+{
+    string group_name = 1;
+    repeated DependResourceDef depend_resources = 2;
+}
+
+enum DependByTypeDef
+{
+    DBT_RESOURCE = 0;
+    DBT_KERNEL = 1;
+}
+
+message DependByDef
+{
+    DependByTypeDef type = 1;
+    string name = 2;
+    string dynamic_group = 3;
+}
+
+message DependNamedDataDef
+{
+    string name = 1;
+    bool require = 2;
+}
+
+message SelectDependResourceDef {
+    repeated string candidates = 1;
+    bool require = 2;
+}
+
+message EnableBuildDef {
+    repeated string candidates = 1;
+}
+
+message ResourceDependInfoDef
+{
+    repeated DependResourceDef depend_resources = 1;
+    repeated DynamicResourceGroupDef dynamic_resource_groups = 2;
+    repeated DependNamedDataDef depend_named_data = 3;
+    repeated SelectDependResourceDef selectors = 4;
+    EnableBuildDef enable_builds = 5;
+}
+
+message ConfigKeyDef {
+    string name = 1;
+    string config_key = 2;
+}
+
+message KernelDef
+{
+    int64 version = 1;
+    string kernel_name = 2;
+    repeated InputDef inputs = 3;
+    repeated OutputDef outputs = 4;
+    repeated InputGroupDef input_groups = 5;
+    repeated OutputGroupDef output_groups = 6;
+    ResourceDependInfoDef resource_depend_info = 7;
+    bytes json_attrs = 8;
+    repeated ConfigKeyDef config_keys = 9;
+};
+
+enum ResourceStage {
+    RS_EXTERNAL = 0;
+    RS_SNAPSHOT = 1;
+    RS_BIZ = 2;
+    RS_BIZ_PART = 3;
+    RS_RUN_GRAPH_EXTERNAL = 4;
+    RS_GRAPH = 5;
+    RS_SUB_GRAPH = 6;
+    RS_SCOPE = 7;
+    RS_KERNEL = 8;
+    RS_UNKNOWN = 9;
+}
+
+message ProduceInfoDef
+{
+    string name = 1;
+};
+
+message ReplaceEnableDef
+{
+    string name = 1;
+};
+
+message ResourceDef
+{
+    int64 version = 1;
+    string name = 2;
+    ResourceStage stage = 3;
+    ResourceDependInfoDef resource_depend_info = 4;
+    repeated DependByDef depend_bys = 5;
+    ProduceInfoDef produce_info = 6;
+    repeated ReplaceEnableDef replace_enables = 7;
+};

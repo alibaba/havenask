@@ -27,8 +27,7 @@ class BizStat;
 class WarmUpStrategy;
 
 struct QueryInfoImpl {
-    QueryInfoImpl(const std::string &queryInfoStr_,
-                  const std::string &warmUpStrategyName_,
+    QueryInfoImpl(const std::string &queryInfoStr_, const std::string &warmUpStrategyName_,
                   GigStatistic *statistic);
     ~QueryInfoImpl();
     std::string toString() const;

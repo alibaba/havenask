@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/java/GigJavaUtil.h"
+
 #include "aios/network/gig/multi_call/java/GigArpcGenerator.h"
 #include "aios/network/gig/multi_call/java/GigHttpGenerator.h"
 #include "aios/network/gig/multi_call/java/GigTcpGenerator.h"
@@ -23,20 +24,17 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GigJavaUtil);
 
-bool GigJavaUtil::convertToTopoNode(const SubProviderInfos &infos,
-                                    TopoNodeVec &topoNodeVec) {
+bool GigJavaUtil::convertToTopoNode(const SubProviderInfos &infos, TopoNodeVec &topoNodeVec) {
     for (int32_t i = 0; i < infos.infos_size(); i++) {
         if (!addTopoNode(infos.infos(i), topoNodeVec)) {
-            AUTIL_LOG(ERROR, "invalid pb msg [%s]",
-                      infos.infos(i).ShortDebugString().c_str());
+            AUTIL_LOG(ERROR, "invalid pb msg [%s]", infos.infos(i).ShortDebugString().c_str());
             return false;
         }
     }
     return true;
 }
 
-bool GigJavaUtil::addTopoNode(const BizProviderInfos &bizProviderInfos,
-                              TopoNodeVec &topoNodeVec) {
+bool GigJavaUtil::addTopoNode(const BizProviderInfos &bizProviderInfos, TopoNodeVec &topoNodeVec) {
     for (int32_t i = 0; i < bizProviderInfos.specs_size(); i++) {
         const auto &spec = bizProviderInfos.specs(i);
         TopoNode node;
@@ -61,12 +59,12 @@ bool GigJavaUtil::addTopoNode(const BizProviderInfos &bizProviderInfos,
     return true;
 }
 
-void GigJavaUtil::convertResourceInfo(
-    const QuerySessionPtr &querySession, const std::string &bizName,
-    JavaCallback javaCallback, const SearchServiceResourceVector &resourceVec,
-    const MetricReporterManagerPtr &metricReporterManger,
-    const ReplyInfoCollectorPtr &replyInfoCollector,
-    GigSearchResourceInfos &resourceInfos) {
+void GigJavaUtil::convertResourceInfo(const QuerySessionPtr &querySession,
+                                      const std::string &bizName, JavaCallback javaCallback,
+                                      const SearchServiceResourceVector &resourceVec,
+                                      const MetricReporterManagerPtr &metricReporterManger,
+                                      const ReplyInfoCollectorPtr &replyInfoCollector,
+                                      GigSearchResourceInfos &resourceInfos) {
     auto replyInfoCollectorHolder =
         new ReplyInfoCollectorHolder(metricReporterManger, replyInfoCollector);
     auto count = 0;
@@ -81,8 +79,8 @@ void GigJavaUtil::convertResourceInfo(
 
         auto &info = *resourceInfos.add_infos();
         if (likely(!resource->isCopyRequest())) {
-            info.set_resource_ptr(int64_t(new SearchServiceResourceHolder(
-                resource, replyInfoCollectorHolder, javaCallback)));
+            info.set_resource_ptr(int64_t(
+                new SearchServiceResourceHolder(resource, replyInfoCollectorHolder, javaCallback)));
             count++;
             if (resource->isProbeRequest()) {
                 probeCount++;
@@ -92,8 +90,7 @@ void GigJavaUtil::convertResourceInfo(
             copyCount++;
         }
         info.set_type(GigRequestType(resource->getRequestType()));
-        info.set_request_agent_info(
-            resource->getRequest()->getAgentQueryInfo());
+        info.set_request_agent_info(resource->getRequest()->getAgentQueryInfo());
         auto &specProto = *info.mutable_spec();
         const auto &provider = resource->getProvider(false);
         assert(provider);
@@ -151,10 +148,25 @@ void GigJavaUtil::fillGeneratorByPlan(const GigRequestPlan &requestPlan,
     if (requestPlan.has_disable_probe()) {
         generator->setDisableProbe(requestPlan.disable_probe());
     }
+
+    for (int i = 0; i < requestPlan.match_tags_size(); i++) {
+        auto &matchTag = requestPlan.match_tags(i);
+        if (matchTag.has_key() && matchTag.has_value()) {
+            switch (matchTag.value()) {
+            case GIG_TMT_PREFER:
+                generator->addMatchTag(matchTag.key(), TagMatchType::TMT_PREFER);
+                break;
+            case GIG_TMT_REQUIRE:
+                generator->addMatchTag(matchTag.key(), TagMatchType::TMT_REQUIRE);
+                break;
+            default:
+                AUTIL_LOG(WARN, "unsupport gig match tag type %d", matchTag.value());
+            }
+        }
+    }
 }
 
-void GigJavaUtil::fillSessionByPlan(const GigRequestPlan &plan,
-                                    const QuerySessionPtr &session) {
+void GigJavaUtil::fillSessionByPlan(const GigRequestPlan &plan, const QuerySessionPtr &session) {
     for (auto &attr : plan.attrs()) {
         if (GIG_TAG_BIZ == attr.name()) {
             session->setBiz(attr.value());
@@ -162,10 +174,9 @@ void GigJavaUtil::fillSessionByPlan(const GigRequestPlan &plan,
     }
     if (plan.has_trace_context()) {
         auto &traceContext = plan.trace_context();
-        session->setEagleeyeUserData(
-            traceContext.trace_id(), traceContext.rpc_id(),
-            traceContext.user_data(), traceContext.traceparent(),
-            traceContext.tracestate());
+        session->setEagleeyeUserData(traceContext.trace_id(), traceContext.rpc_id(),
+                                     traceContext.user_data(), traceContext.traceparent(),
+                                     traceContext.tracestate());
     }
 }
 
@@ -176,20 +187,19 @@ GigJavaUtil::genGenerator(QuerySessionPtr &session, const char *body, int len,
     GigRequestGeneratorPtr generator;
     switch (requestPlan.protocol()) {
     case GIG_PROTOCOL_TCP:
-        generator.reset(new GigTcpGenerator(requestPlan.cluster_name(),
-                        requestPlan.biz_name(), arena));
+        generator.reset(
+            new GigTcpGenerator(requestPlan.cluster_name(), requestPlan.biz_name(), arena));
         break;
     case GIG_PROTOCOL_HTTP:
-        generator.reset(new GigHttpGenerator(requestPlan.cluster_name(),
-                        requestPlan.biz_name(), arena));
+        generator.reset(
+            new GigHttpGenerator(requestPlan.cluster_name(), requestPlan.biz_name(), arena));
         break;
     case GIG_PROTOCOL_ARPC:
-        generator.reset(new GigArpcGenerator(requestPlan.cluster_name(),
-                        requestPlan.biz_name(), arena));
+        generator.reset(
+            new GigArpcGenerator(requestPlan.cluster_name(), requestPlan.biz_name(), arena));
         break;
     default:
-        AUTIL_LOG(ERROR,
-                  "unsupported protocol type[%d] when parse request plan",
+        AUTIL_LOG(ERROR, "unsupported protocol type[%d] when parse request plan",
                   requestPlan.protocol());
         return GigRequestGeneratorPtr();
     }

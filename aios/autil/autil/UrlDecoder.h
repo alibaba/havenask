@@ -22,15 +22,14 @@ private:
     UrlDecoder();
     ~UrlDecoder();
     UrlDecoder(const UrlDecoder &);
-    UrlDecoder& operator=(const UrlDecoder &);
+    UrlDecoder &operator=(const UrlDecoder &);
 
 public:
-    static std::string Decode(const std::string& str);
+    static std::string Decode(const std::string &str);
     static char *Decode(const char *s);
 
 private:
     static char DecodeChar(const char *bytes);
-
 };
 
 } // namespace autil

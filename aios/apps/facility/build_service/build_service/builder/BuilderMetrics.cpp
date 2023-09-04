@@ -15,6 +15,7 @@
  */
 #include "build_service/builder/BuilderMetrics.h"
 
+#include "autil/EnvUtil.h"
 #include "build_service/util/Monitor.h"
 
 using namespace std;
@@ -26,10 +27,10 @@ BuilderMetrics::~BuilderMetrics() {}
 
 bool BuilderMetrics::declareMetrics(indexlib::util::MetricProviderPtr metricProvider, bool isKVorKKV)
 {
-    const char* param = getenv(BS_ENV_ENABLE_LEGACY_BUILDER_METRICS.c_str());
+    string param = autil::EnvUtil::getEnv(BS_ENV_ENABLE_LEGACY_BUILDER_METRICS.c_str());
     std::string res;
     _metricsEnabled = false;
-    if (param != nullptr and autil::StringUtil::fromString(string(param), res) and res == "true") {
+    if (!param.empty() && autil::StringUtil::fromString(param, res) && res == "true") {
         _metricsEnabled = true;
     }
     res = _metricsEnabled ? "true" : "false";

@@ -21,14 +21,14 @@
 
 namespace multi_call {
 
-class SubscribeServiceFactory {
+class SubscribeServiceFactory
+{
 public:
     static SubscribeServicePtr createCm2Sub(const Cm2Config &cm2Config);
     static SubscribeServicePtr createVipSub(const VipConfig &vipConfig);
     static SubscribeServicePtr createLocalSub(const LocalConfig &localConfig);
-    static SubscribeServicePtr
-    createIstioSub(const IstioConfig &istioConfig,
-                   const IstioMetricReporterPtr &reporter);
+    static SubscribeServicePtr createIstioSub(const IstioConfig &istioConfig,
+                                              const IstioMetricReporterPtr &reporter);
 };
 
 } // namespace multi_call

@@ -15,25 +15,22 @@
  */
 #include "ha3/queryparser/BinaryQueryExpr.h"
 
-#include "ha3/queryparser/QueryExpr.h"
 #include "autil/Log.h"
+#include "ha3/queryparser/QueryExpr.h"
 
 namespace isearch {
 namespace queryparser {
 AUTIL_LOG_SETUP(ha3, BinaryQueryExpr);
 
-BinaryQueryExpr::BinaryQueryExpr(QueryExpr *a, QueryExpr *b) { 
+BinaryQueryExpr::BinaryQueryExpr(QueryExpr *a, QueryExpr *b) {
     _exprA = a;
     _exprB = b;
 }
 
-BinaryQueryExpr::~BinaryQueryExpr() { 
+BinaryQueryExpr::~BinaryQueryExpr() {
     delete _exprA;
     delete _exprB;
 }
 
-
-
 } // namespace queryparser
 } // namespace isearch
-

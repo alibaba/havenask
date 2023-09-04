@@ -35,7 +35,7 @@ AUTIL_LOG_SETUP(indexlib.index, PrimaryKeyIndexConfig);
 
 struct PrimaryKeyIndexConfig::Impl {
     mutable std::optional<PrimaryKeyLoadStrategyParam> pkLoadParam;
-    mutable std::shared_ptr<config::AttributeConfig> pkAttributeConfig;
+    mutable std::shared_ptr<index::AttributeConfig> pkAttributeConfig;
     PrimaryKeyIndexType pkIndexType = pk_sort_array;
     PrimaryKeyHashType pkHashType = pk_default_hash;
     int32_t pkDataBlockSize = DEFAULT_PK_DATA_BLOCK_SIZE;
@@ -296,15 +296,16 @@ std::optional<PrimaryKeyLoadStrategyParam> PrimaryKeyIndexConfig::TEST_GetPrimar
     return _impl->pkLoadParam;
 }
 
-std::shared_ptr<config::AttributeConfig> PrimaryKeyIndexConfig::GetPKAttributeConfig() const
+std::shared_ptr<index::AttributeConfig> PrimaryKeyIndexConfig::GetPKAttributeConfig() const
 {
     if (HasPrimaryKeyAttribute() && !_impl->pkAttributeConfig) {
-        auto attributeConfig = std::make_shared<indexlibv2::config::AttributeConfig>();
+        auto attributeConfig = std::make_shared<indexlibv2::index::AttributeConfig>();
         FieldType fieldType = GetInvertedIndexType() == it_primarykey64 ? ft_uint64 : ft_hash_128;
         auto fieldConfig = std::make_shared<indexlibv2::config::FieldConfig>(
             std::string(indexlib::index::PRIMARY_KEY_ATTRIBUTE_PREFIX) + "_" + GetFieldConfig()->GetFieldName(),
             fieldType, false);
-        attributeConfig->Init(fieldConfig);
+        [[maybe_unused]] auto status = attributeConfig->Init(fieldConfig);
+        assert(status.IsOK());
         attributeConfig->SetUpdatable(false);
         _impl->pkAttributeConfig = attributeConfig;
     }

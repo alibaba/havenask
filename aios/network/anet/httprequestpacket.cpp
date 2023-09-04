@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 #include "aios/network/anet/httprequestpacket.h"
-#include "aios/network/anet/databuffer.h"
-#include "aios/network/anet/log.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <utility>
 
+#include "aios/network/anet/databuffer.h"
 #include "aios/network/anet/ilogger.h"
+#include "aios/network/anet/log.h"
 #include "aios/network/anet/packet.h"
 
 namespace anet {
@@ -48,37 +49,36 @@ HttpRequestPacket::~HttpRequestPacket() {
 /*
  * 组装
  */
-bool HttpRequestPacket::encode(DataBuffer *output) {
-    return true;
-}
+bool HttpRequestPacket::encode(DataBuffer *output) { return true; }
 
 /*
  * 解开
  */
 bool HttpRequestPacket::decode(DataBuffer *input, PacketHeader *header) {
     int len = header->_dataLen;
-    _strHeader = (char*) malloc(len+1);
+    _strHeader = (char *)malloc(len + 1);
     assert(_strHeader);
     input->readBytes(_strHeader, len);
     _strHeader[len] = '\0';
     int line = 0;
     int first = 1;
     bool notSeeConnection = true;
-    ANET_LOG(SPAM,"Http Header:\n%sHttp Header End.",_strHeader);
+    ANET_LOG(SPAM, "Http Header:\n%sHttp Header End.", _strHeader);
     char *p, *name = NULL, *value;
     p = value = _strHeader;
     while (*p) {
         // 找每一行
-        if (*p == '\r' && *(p+1) == '\n') {
+        if (*p == '\r' && *(p + 1) == '\n') {
             if (value == p && line > 0) { // header 结束了
                 break;
             }
             *p = '\0';
             // 去前空格
-            while (*value == ' ') value ++;
+            while (*value == ' ')
+                value++;
             if (line > 0) {
                 if (strcmp(name, "Connection") == 0) {
-                    if ( strcasecmp(value, CONNECTION_CLOSE) == 0) {
+                    if (strcasecmp(value, CONNECTION_CLOSE) == 0) {
                         _isKeepAlive = false;
                     } else if (strcasecmp(value, CONNECTION_KEEP_ALIVE) != 0) {
                         _isKeepAlive = _version > 1;
@@ -100,57 +100,52 @@ bool HttpRequestPacket::decode(DataBuffer *input, PacketHeader *header) {
                 }
             }
             value = p + 2;
-            line ++;
+            line++;
             first = 1;
         } else if (line == 0 && *p == ' ') { // 首行
             if (value < p) {
                 switch (first) {
                 case 1:
-                    if (strncmp(value, "GET ", 4) == 0) {    // 是GET 方法
+                    if (strncmp(value, "GET ", 4) == 0) { // 是GET 方法
                         _method = 1;
                     } else {
                         ANET_LOG(WARN, "Only support \"GET \" method now!");
-                        return  false;
+                        return false;
                     }
                     break;
                 case 2:
                     _strQuery = value;
                     break;
                 }
-                first ++;
+                first++;
             }
             *p = '\0';
-            value = p+1;
+            value = p + 1;
         } else if (*p == ':' && first == 1) {
             *p = '\0';
             name = value;
             value = p + 1;
             first = 0;
         }
-        p ++;
+        p++;
     }
 
     if (notSeeConnection) {
         _isKeepAlive = _version > 1;
     }
-    ANET_LOG(SPAM,"Method: %d, Version: %d. Keep-Alive: %s", _method,
-             _version, _isKeepAlive ? "yes" : "no");
+    ANET_LOG(SPAM, "Method: %d, Version: %d. Keep-Alive: %s", _method, _version, _isKeepAlive ? "yes" : "no");
     return true;
 }
 
 /*
  * 查询串
  */
-char *HttpRequestPacket::getQuery() {
-    return _strQuery;
-}
+char *HttpRequestPacket::getQuery() { return _strQuery; }
 
 /*
  * 是否keepalive
  */
-bool HttpRequestPacket::isKeepAlive() {
-    return _isKeepAlive;
-}
+bool HttpRequestPacket::isKeepAlive() { return _isKeepAlive; }
 
 /*
  * 寻找其他头信息
@@ -163,7 +158,4 @@ const char *HttpRequestPacket::findHeader(const char *name) {
     return NULL;
 }
 
-
-}
-
-
+} // namespace anet

@@ -19,8 +19,8 @@
 #include "autil/Lock.h"
 #include "autil/LoopThread.h"
 #include "build_service/common_define.h"
-#include "build_service/processor/Processor.h"
 #include "build_service/processor/BatchRawDocumentDeduper.h"
+#include "build_service/processor/Processor.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace processor {
@@ -46,15 +46,14 @@ public:
     void stop(bool instant = false, bool seal = false) override;
 
 private:
-    bool parseParam(const std::string& paramStr, uint32_t& batchSize,
-                    int64_t& maxEnQueueTime, bool& splitDocBatch,
+    bool parseParam(const std::string& paramStr, uint32_t& batchSize, int64_t& maxEnQueueTime, bool& splitDocBatch,
                     std::string& dedupField, std::string& syncConfigPath) const;
 
     void checkConsumeTimeout();
     void resetDocQueue();
     void FlushDocQueue();
     void syncConfig();
-    
+
 private:
     document::RawDocumentVecPtr _docQueue;
     mutable autil::RecursiveThreadMutex _queueMutex;
@@ -64,7 +63,7 @@ private:
     volatile int64_t _maxEnQueueTime;
     volatile int64_t _inQueueTime;
     volatile int64_t _lastFlushTime;
-    volatile int64_t _lastSyncConfigTime;    
+    volatile int64_t _lastSyncConfigTime;
     volatile bool _splitDocBatch;
     int64_t _syncConfigInterval;
 

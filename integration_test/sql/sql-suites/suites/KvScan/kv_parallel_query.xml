@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="kv_parallel_query">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT cat_id, category_name FROM kv2 where cat_id=2 and auction_count>50000
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"cat_id", "category_name"</Resource>
+        <Resource name="column_types">int32, multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:kv2;parallel:2;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+2, "pad"
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#2(type=api)
+    ExchangeOp#1(distribution={type:SINGLETON})
+        TableScanOp#0(catalog_name=default,db_name=kv2,limit=100,output_fields=[$cat_id,$category_name],push_down_ops=[{attrs:{condition:{op:AND,params:[{op:=,params:[$cat_id,2],type:OTHER},{op:>,params:[$auction_count,50000],type:OTHER}],type:OTHER},output_field_exprs:{$cat_id:2},output_fields:[$cat_id,$category_name]},op_name:CalcOp}],table_name=kv2,table_type=kv,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

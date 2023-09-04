@@ -25,7 +25,6 @@ class IndexPartitionSchema;
 } // namespace indexlib::config
 
 namespace indexlibv2::config {
-class TabletSchema;
 class UnresolvedSchema;
 
 class LegacySchemaConvertor

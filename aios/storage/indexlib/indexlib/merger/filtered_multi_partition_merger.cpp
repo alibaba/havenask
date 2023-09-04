@@ -86,14 +86,9 @@ bool FilteredMultiPartitionMerger::Init(const std::vector<std::string>& mergeSrc
 
 int64_t FilteredMultiPartitionMerger::getCacheBlockSize()
 {
-    char* envParam = getenv("CACHE_BLOCK_SIZE");
-    if (envParam) {
-        int64_t value = -1;
-        if (StringUtil::fromString(envParam, value)) {
-            if (value > 0) {
-                return value;
-            }
-        }
+    int64_t value = -1;
+    if (autil::EnvUtil::getEnvWithoutDefault("CACHE_BLOCK_SIZE", value) && value > 0) {
+        return value;
     }
     return (int64_t)2 * 1024 * 1024; // default 2M
 }

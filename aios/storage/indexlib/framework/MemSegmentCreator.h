@@ -23,7 +23,7 @@ class IDirectory;
 } // namespace indexlib::file_system
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 class TabletOptions;
 } // namespace indexlibv2::config
 
@@ -41,11 +41,11 @@ public:
     ~MemSegmentCreator();
     std::pair<Status, std::shared_ptr<MemSegment>>
     CreateMemSegment(const BuildResource& buildResource, const std::shared_ptr<TabletData>& tabletData,
-                     const std::shared_ptr<config::TabletSchema>& writeSchema);
+                     const std::shared_ptr<config::ITabletSchema>& writeSchema);
 
 private:
     Status CreateSegmentMeta(segmentid_t newSegId, const std::shared_ptr<TabletData>& tabletData,
-                             const std::shared_ptr<config::TabletSchema>& writeSchema, SegmentMeta* segMeta);
+                             const std::shared_ptr<config::ITabletSchema>& writeSchema, SegmentMeta* segMeta);
     std::pair<Status, std::shared_ptr<indexlib::file_system::IDirectory>> PrepareSegmentDir(const std::string& segDir);
 
 private:

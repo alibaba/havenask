@@ -49,7 +49,8 @@ public:
 public:
     std::string GetName() const override { return MergeStrategyDefine::REALTIME_MERGE_STRATEGY_NAME; }
     std::pair<Status, std::shared_ptr<MergePlan>> CreateMergePlan(const framework::IndexTaskContext* context) override;
-    std::pair<Status, std::shared_ptr<MergePlan>> DoCreateMergePlan(const framework::IndexTaskContext* context);
+    std::pair<Status, std::shared_ptr<MergePlan>> DoCreateMergePlan(const framework::IndexTaskContext* context,
+                                                                    const config::MergeStrategyParameter& param);
 
 public:
     static std::pair<Status, struct RealtimeMergeParams> ExtractParams(const config::MergeStrategyParameter& param);

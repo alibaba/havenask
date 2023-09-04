@@ -22,7 +22,9 @@ namespace iquan {
 
 AUTIL_LOG_SETUP(iquan, PlanOp);
 
-bool PlanOp::PlanOpHandle::writeAny(const autil::legacy::Any &any, const std::string &expectedType, bool copy) {
+bool PlanOp::PlanOpHandle::writeAny(const autil::legacy::Any &any,
+                                    const std::string &expectedType,
+                                    bool copy) {
     if (IsJsonBool(any) && expectedType == "boolean") {
         bool value = autil::legacy::AnyCast<bool>(any);
         return Bool(value);
@@ -73,10 +75,10 @@ bool PlanOp::PlanOpHandle::writeAny(const autil::legacy::Any &any, const std::st
 #ifdef RETURN_TYPE_STRING
 #undef RETURN_TYPE_STRING
 #endif
-#define RETURN_TYPE_STRING(TARGETTYPE, FUNC)                                                                           \
-    if (type == typeid(TARGETTYPE)) {                                                                                  \
-        TARGETTYPE value = autil::legacy::AnyCast<TARGETTYPE>(any);                                                    \
-        return FUNC(value);                                                                                            \
+#define RETURN_TYPE_STRING(TARGETTYPE, FUNC)                                                       \
+    if (type == typeid(TARGETTYPE)) {                                                              \
+        TARGETTYPE value = autil::legacy::AnyCast<TARGETTYPE>(any);                                \
+        return FUNC(value);                                                                        \
     }
 
         RETURN_TYPE_STRING(int8_t, Int);
@@ -95,11 +97,11 @@ bool PlanOp::PlanOpHandle::writeAny(const autil::legacy::Any &any, const std::st
 #ifdef RETURN_TYPE_STRING
 #undef RETURN_TYPE_STRING
 #endif
-#define RETURN_TYPE_STRING(TARGETTYPE)                                                                                 \
-    if (type == typeid(TARGETTYPE)) {                                                                                  \
-        TARGETTYPE value = autil::legacy::AnyCast<TARGETTYPE>(any);                                                    \
-        std::string valueStr = autil::StringUtil::toString(value);                                                     \
-        return writer.String(valueStr.c_str(), valueStr.size(), copy);                                                 \
+#define RETURN_TYPE_STRING(TARGETTYPE)                                                             \
+    if (type == typeid(TARGETTYPE)) {                                                              \
+        TARGETTYPE value = autil::legacy::AnyCast<TARGETTYPE>(any);                                \
+        std::string valueStr = autil::StringUtil::toString(value);                                 \
+        return writer.String(valueStr.c_str(), valueStr.size(), copy);                             \
     }
 
         RETURN_TYPE_STRING(int8_t);
@@ -117,8 +119,8 @@ bool PlanOp::PlanOpHandle::writeAny(const autil::legacy::Any &any, const std::st
     }
 
     const std::string &typeName = GetJsonTypeName(any);
-    throw IquanException(
-        std::string("any type(" + typeName + ") cast to expect type(" + expectedType + ") is not support"));
+    throw IquanException(std::string("any type(" + typeName + ") cast to expect type("
+                                     + expectedType + ") is not support"));
 }
 
 bool PlanOp::PlanOpHandle::parseDynamicParamsContent(autil::StringView &planStr,
@@ -140,13 +142,14 @@ bool PlanOp::PlanOpHandle::parseDynamicParamsContent(autil::StringView &planStr,
     }
 
     // 3. get the string of the dynamic params, and check it
-    autil::StringView contentStr =
-        planStr.substr(prefixPos + prefixStr.size(), suffixPos - prefixPos - prefixStr.size());
+    autil::StringView contentStr
+        = planStr.substr(prefixPos + prefixStr.size(), suffixPos - prefixPos - prefixStr.size());
 
     // 4. get key and type
     size_t indexOfSepPos = contentStr.find(IQUAN_DYNAMIC_PARAMS_SEPARATOR);
     if (unlikely(indexOfSepPos == std::string::npos)) {
-        throw IquanException("can not find " + IQUAN_DYNAMIC_PARAMS_SEPARATOR + " in " + contentStr.to_string());
+        throw IquanException("can not find " + IQUAN_DYNAMIC_PARAMS_SEPARATOR + " in "
+                             + contentStr.to_string());
     }
     keyStr = contentStr.substr(0, indexOfSepPos).to_string();
     if (unlikely(keyStr.empty())) {
@@ -170,9 +173,8 @@ bool PlanOp::PlanOpHandle::parseDynamicParamsContent(autil::StringView &planStr,
 bool PlanOp::PlanOpHandle::doReplaceParams(autil::StringView &planStr, bool copy) {
     std::string keyStr;
     std::string typeStr;
-    if (!parseDynamicParamsContent(planStr, IQUAN_REPLACE_PARAMS_PREFIX,
-                                   IQUAN_REPLACE_PARAMS_SUFFIX, keyStr, typeStr))
-    {
+    if (!parseDynamicParamsContent(
+            planStr, IQUAN_REPLACE_PARAMS_PREFIX, IQUAN_REPLACE_PARAMS_SUFFIX, keyStr, typeStr)) {
         return false;
     }
 
@@ -193,9 +195,8 @@ bool PlanOp::PlanOpHandle::doReplaceParams(autil::StringView &planStr, bool copy
 bool PlanOp::PlanOpHandle::doReplaceDynamicParams(autil::StringView &planStr, bool copy) {
     std::string keyStr;
     std::string typeStr;
-    if (!parseDynamicParamsContent(planStr, IQUAN_DYNAMIC_PARAMS_PREFIX,
-                                   IQUAN_DYNAMIC_PARAMS_SUFFIX, keyStr, typeStr))
-    {
+    if (!parseDynamicParamsContent(
+            planStr, IQUAN_DYNAMIC_PARAMS_PREFIX, IQUAN_DYNAMIC_PARAMS_SUFFIX, keyStr, typeStr)) {
         return false;
     }
     uint32_t index = -1;
@@ -225,19 +226,18 @@ bool PlanOp::PlanOpHandle::doReplaceHintParams(autil::StringView &planStr, bool 
     assert(prefixPos == 0);
 
     // 2. find suffix of hint params
-    size_t suffixPos =
-            planStr.find(IQUAN_HINT_PARAMS_SUFFIX,
-                         prefixPos + IQUAN_HINT_PARAMS_PREFIX.size());
+    size_t suffixPos
+        = planStr.find(IQUAN_HINT_PARAMS_SUFFIX, prefixPos + IQUAN_HINT_PARAMS_PREFIX.size());
     if (unlikely(suffixPos == std::string::npos)) {
         return false;
     }
 
     // 3. get the key of the HINT params, and check it
-    autil::StringView contentStr = planStr.substr(
-            prefixPos + IQUAN_HINT_PARAMS_PREFIX.size(),
-            suffixPos - prefixPos - IQUAN_HINT_PARAMS_PREFIX.size());
+    autil::StringView contentStr
+        = planStr.substr(prefixPos + IQUAN_HINT_PARAMS_PREFIX.size(),
+                         suffixPos - prefixPos - IQUAN_HINT_PARAMS_PREFIX.size());
 
-    std::string keyStr(contentStr.c_str(), contentStr.size());
+    std::string keyStr(contentStr.data(), contentStr.size());
 
     if (unlikely(!dynamicParams->findHintParam(keyStr))) {
         throw IquanException("key [" + keyStr + "] not found in HintParams");
@@ -249,11 +249,9 @@ bool PlanOp::PlanOpHandle::doReplaceHintParams(autil::StringView &planStr, bool 
     return true;
 }
 
-std::string PlanOp::jsonAttr2Str(
-    const DynamicParams *dynamicParams,
-    const DynamicParams *innerDynamicParams,
-    autil::legacy::RapidValue *attr) const
-{
+std::string PlanOp::jsonAttr2Str(const DynamicParams *dynamicParams,
+                                 const DynamicParams *innerDynamicParams,
+                                 autil::legacy::RapidValue *attr) const {
     rapidjson::StringBuffer buf;
     autil::legacy::RapidWriter writer(buf);
     PlanOpHandle handle(writer, dynamicParams, innerDynamicParams);
@@ -278,7 +276,7 @@ std::string PlanOp::jsonAttr2Str(
     return buf.GetString();
 }
 
-void PlanOp::patchJson(autil::legacy::RapidWriter &writer, std::set<std::string>& patchKeys) const {
+void PlanOp::patchJson(autil::legacy::RapidWriter &writer, std::set<std::string> &patchKeys) const {
     patchJson(writer, patchStrAttrs, patchKeys);
     patchJson(writer, patchDoubleAttrs, patchKeys);
     patchJson(writer, patchInt64Attrs, patchKeys);

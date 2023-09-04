@@ -138,7 +138,7 @@ FileRawDocumentReader::createMultiFileDocumentReader(const CollectResults& colle
     }
 
     std::unique_ptr<MultiFileDocumentReader> reader(new MultiFileDocumentReader(collectResults, metricProvider));
-    autil::cipher::CipherOption option(autil::cipher::CT_UNKNOWN);
+    autil::cipher::CipherOption option(autil::cipher::CipherType::CT_UNKNOWN);
     bool hasError = false;
     if (extractCipherOption(kvMap, option, hasError)) {
         if (!reader->initForCipherFormatDocument(option, rawDocPrefix, rawDocSuffix)) {

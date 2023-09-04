@@ -20,42 +20,40 @@
 
 #include "autil/Log.h"
 #include "autil/legacy/md5.h"
-#include "fslib/fslib.h"
 #include "fslib/fs/File.h"
 #include "fslib/fs/SpeedController.h"
+#include "fslib/fslib.h"
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class ProxyFile : public File
-{
+class ProxyFile : public File {
 public:
-    ProxyFile(const std::string& filePath, File* file, Flag flag, 
-              SpeedController* controller);
+    ProxyFile(const std::string &filePath, File *file, Flag flag, SpeedController *controller);
     ~ProxyFile();
-    
+
 public:
-    ssize_t read(void* buffer, size_t length) override;
-    ssize_t write(const void* buffer, size_t length) override;
-    ssize_t pread(void* buffer, size_t length, off_t offset) override;
+    ssize_t read(void *buffer, size_t length) override;
+    ssize_t write(const void *buffer, size_t length) override;
+    ssize_t pread(void *buffer, size_t length, off_t offset) override;
 
 #if (__cplusplus >= 201703L)
-    void pread(IOController* controller, void* buffer, size_t length, off_t offset,
-               std::function<void()> callback) override;
+    void
+    pread(IOController *controller, void *buffer, size_t length, off_t offset, std::function<void()> callback) override;
 #endif
-    ssize_t preadv(const iovec* iov, int iovcnt, off_t offset) override;
-
-    #if (__cplusplus >= 201703L)
-    void preadv(IOController* controller, const iovec* iov, int iovcnt, off_t offset,
-                std::function<void()> callback) override;
-    #endif
-    ssize_t pwrite(const void* buffer, size_t length, off_t offset) override;
+    ssize_t preadv(const iovec *iov, int iovcnt, off_t offset) override;
 
 #if (__cplusplus >= 201703L)
-    void pwrite(IOController* controller, void* buffer, size_t length, off_t offset,
-               std::function<void()> callback) override;
+    void preadv(
+        IOController *controller, const iovec *iov, int iovcnt, off_t offset, std::function<void()> callback) override;
+#endif
+    ssize_t pwrite(const void *buffer, size_t length, off_t offset) override;
 
-    void pwritev(IOController* controller, const iovec* iov, int iovcnt,
-                 off_t offset, std::function<void()> callback) override;
+#if (__cplusplus >= 201703L)
+    void pwrite(
+        IOController *controller, void *buffer, size_t length, off_t offset, std::function<void()> callback) override;
+
+    void pwritev(
+        IOController *controller, const iovec *iov, int iovcnt, off_t offset, std::function<void()> callback) override;
 #endif
     ErrorCode getLastError() const override;
     ErrorCode flush() override;
@@ -72,21 +70,21 @@ private:
     std::string GetMD5String() const;
     std::string GetIp() const;
     std::string GetHostName() const;
-    
+
 private:
     typedef autil::legacy::Md5Stream Md5Stream;
     FSLIB_TYPEDEF_AUTO_PTR(Md5Stream);
-    
-    File* _file;
+
+    File *_file;
     std::string _filePath;
     Flag _flag;
     Md5StreamPtr _md5Stream;
     size_t _writeLen;
-    SpeedController* _controller;
+    SpeedController *_controller;
 };
 
 FSLIB_TYPEDEF_AUTO_PTR(ProxyFile);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_PROXYFILE_H
+#endif // FSLIB_PROXYFILE_H

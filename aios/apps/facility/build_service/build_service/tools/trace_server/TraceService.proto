@@ -1,0 +1,107 @@
+syntax = "proto2";
+import "arpc/proto/rpc_extensions.proto";
+package build_service.tools.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+enum ErrorCode {
+    ERROR_NONE = 0;
+    ERROR_SWIFT_INIT = 1;
+    ERROR_SWIFT_READ = 2;
+    ERROR_DOCUMENT_PARSE = 3;
+    ERROR_STOP_TIMESTAMP = 4;
+}
+
+message Field {
+    required string name = 1;
+    required string value = 2;
+}
+
+message Document {
+    optional string swiftHashId = 1;
+    optional string swiftMsgTime = 2;
+    optional string swiftMsgId = 3;
+    optional string swiftOffset = 4;
+    repeated string names = 5;
+    repeated string values = 6;
+    repeated Document documents = 7;
+}
+
+message TestRequest {
+    required string zkroot = 1;
+    required string topicName = 2;
+    optional string config = 3;
+    optional bool processed = 4 [default = false];
+}
+
+message TestResponse {
+    required ErrorCode errorCode = 1;
+    required string request = 2;
+    optional string results = 4;
+    map<string, string> documentMap = 5; 
+    repeated Document documents = 6;
+}
+
+message ReadSwiftRequest {
+    required string swiftRoot = 1;
+    required string topicName = 2;
+    optional string swiftClientConfig = 3;
+    optional string swiftReaderConfig = 4;
+    optional string swiftFilterConfig = 5;
+    optional string needFieldFilter = 6 [default = "false"];
+    optional string useFieldSchema = 7 [default = "false"];
+    optional uint32 from = 8 [default = 0];
+    optional uint32 to = 9 [default = 65535];
+    optional int64 startTimestamp = 10 [default = -1];
+    optional int64 stopTimestamp = 11 [default = -1];
+    optional int32 readLimit = 12 [default = 1];
+    repeated Field filter = 15; // AND [Field1, Filed2...]
+}
+
+message ReadSwiftResponse {
+    required ErrorCode errorCode = 1;
+    required string errorMsg = 2;
+    required string request = 3;
+    optional string result = 4;
+    optional int32 readCount = 5;
+    optional int32 matchCount = 6;
+    optional Document lastDocument = 7;
+    repeated Document documents = 8;
+}
+
+message ReadProcessedSwiftRequest {
+    required string swiftRoot = 1;
+    required string topicName = 2;
+    optional string swiftClientConfig = 3;
+    optional string swiftReaderConfig = 4;
+    optional string swiftFilterConfig = 5;
+    optional string needFieldFilter = 6 [default = "false"];
+    optional string useFieldSchema = 7 [default = "false"];
+    optional uint32 from = 8 [default = 0];
+    optional uint32 to = 9 [default = 65535];
+    optional int64 startTimestamp = 10 [default = -1];
+    optional int64 stopTimestamp = 11 [default = -1];
+    optional int32 readLimit = 12 [default = 1];
+    optional bool safeMode = 13 [default = false];
+    required string schemaPath = 14;
+    repeated Field filter = 15; // AND [Field1, Filed2...]
+}
+
+service TraceService {
+    option (arpc.global_service_id) = 7000;
+
+    rpc test (TestRequest) returns (TestResponse) {
+        option (arpc.local_method_id) = 1;
+    }
+
+    rpc readSwift (ReadSwiftRequest) returns (ReadSwiftResponse) {
+        option (arpc.local_method_id) = 2;
+    }
+
+    rpc readProcessedSwift (ReadProcessedSwiftRequest) returns (ReadSwiftResponse) {
+        option (arpc.local_method_id) = 3;
+    }
+}
+
+// curl -s "http://127.0.0.1:56789/TraceService/readSwift" -d '{"swiftRoot":"zfs://100.81.231.95:10088/swift/swift_daily","topicName":"cn_minas_engine_swiftreader", "needFieldFilter":"true", "useFieldSchema": "false", "startTimestamp":166924448419295, "count":2}' |python -m json.tool

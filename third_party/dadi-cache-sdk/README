@@ -1,0 +1,19 @@
+git:xxxx://invalid:dadi/dadi-c-sdk.git
+
+
+branch:gcc-6.5.1-cache-only
+
+build:build.sh
+
+
+files:
+
+.
+├── dadi-cache
+│   └── dadi.h
+├── dadi_commit
+└── usr
+    └── local
+        └── lib
+            ├── libdadi.a
+            └── libdadi.so

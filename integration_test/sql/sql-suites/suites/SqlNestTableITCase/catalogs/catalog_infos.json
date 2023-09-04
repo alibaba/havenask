@@ -1,0 +1,33 @@
+[
+  {
+    "catalog_name": "default", 
+    "databases": [
+      {
+        "database_name": "simple4", 
+        "functions": [
+          "catalogs/default/simple4/functions/buildtin_udaf.json", 
+          "catalogs/default/simple4/functions/builtin_udf.json", 
+          "catalogs/default/simple4/functions/udaf.json", 
+          "catalogs/default/simple4/functions/udf.json", 
+          "catalogs/default/simple4/functions/udtf.json"
+        ], 
+        "tables": [
+          "catalogs/default/simple4/tables/simple4.json"
+        ]
+      }, 
+      {
+        "database_name": "simple5", 
+        "functions": [
+          "catalogs/default/simple5/functions/buildtin_udaf.json", 
+          "catalogs/default/simple5/functions/builtin_udf.json", 
+          "catalogs/default/simple5/functions/udaf.json", 
+          "catalogs/default/simple5/functions/udf.json", 
+          "catalogs/default/simple5/functions/udtf.json"
+        ], 
+        "tables": [
+          "catalogs/default/simple5/tables/simple5.json"
+        ]
+      }
+    ]
+  }
+]

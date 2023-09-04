@@ -1,0 +1,72 @@
+{
+    "fields":[
+	      {
+	          "compress_type":"equal",
+	          "field_type":"INT64",
+	          "field_name":"biz_order_id"
+	      },
+	      {
+	          "compress_type":"equal",
+	          "field_type":"UINT64",
+	          "field_name":"buyer_id"
+	      },
+	      {
+	          "compress_type":"equal",
+	          "field_type":"UINT64",
+	          "field_name":"seller_id"
+	      }
+    ],
+    "indexs": [
+        {
+            "index_fields": "biz_order_id",
+            "index_name": "biz_order_id",
+            "index_type": "PRIMARYKEY64",
+            "pk_hash_type": "default_hash"
+        },
+        {
+	          "index_fields":"seller_id",
+            "file_compress":"hot_compressor",
+	          "index_name":"seller_id",
+	          "index_type":"NUMBER",
+	          "term_frequency_flag":0
+	      }
+    ],
+    "attributes" : [
+        {
+            "field_name" : "biz_order_id",
+            "file_compress" : "hot_compressor"
+        },
+        {
+            "field_name" : "buyer_id",
+            "file_compress" : "cold_compressor"
+        }
+    ],
+    "summarys": {
+        "summary_fields": [
+            "buyer_id",
+            "seller_id"
+        ],
+        "parameter":{
+            "file_compress":"hot_compressor"
+        }
+    },
+            "file_compressors": [
+            {
+                "name":"hot_compressor",
+                "type":"zstd"
+            },
+            {
+                "name":"cold_compressor",
+                "type":"snappy"
+            },
+            {
+                "name":"combined_compressor",
+                "type":"combined",
+                "statistic_key":"segment_group",
+                "statistic_values": ["hot", "cold"],
+                "compressor_names": ["hot_compressor", "cold_compressor"],
+                "default_compressor":"cold_compressor"
+            }
+            ],
+    "table_name":"simple"
+}

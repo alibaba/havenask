@@ -1,0 +1,68 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+strict_cc_fast_test(
+    name='OptimizeMergeStrategyTest',
+    srcs=['OptimizeMergeStrategyTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/table/index_task/merger/test:MergeTestHelper',
+        '//aios/storage/indexlib/table/normal_table/index_task/merger:OptimizeMergeStrategy',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='PriorityQueueMergeStrategyTest',
+    srcs=['PriorityQueueMergeStrategyTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/table/index_task/merger/test:MergeTestHelper',
+        '//aios/storage/indexlib/table/normal_table/index_task/merger:PriorityQueueMergeStrategy',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='BalanceTreeMergeStrategyTest',
+    srcs=['BalanceTreeMergeStrategyTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
+        '//aios/storage/indexlib/table/index_task/merger/test:MergeTestHelper',
+        '//aios/storage/indexlib/table/normal_table/index_task/merger:BalanceTreeMergeStrategy',
+        '//aios/storage/indexlib/table/normal_table/test:NormalTabletSchemaMaker',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='AdaptiveMergeStrategyTest',
+    srcs=['AdaptiveMergeStrategyTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
+        '//aios/storage/indexlib/table/index_task/merger/test:MergeTestHelper',
+        '//aios/storage/indexlib/table/normal_table/index_task/merger:AdaptiveMergeStrategy',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='CombinedMergeStrategyTest',
+    srcs=['CombinedMergeStrategyTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/framework/mock:FakeSegment',
+        '//aios/storage/indexlib/table/index_task/merger/test:MergeTestHelper',
+        '//aios/storage/indexlib/table/normal_table/index_task:NormalTableCompactPlanCreator',
+        '//aios/storage/indexlib/table/normal_table/index_task/merger:CombinedMergeStrategy',
+        '//aios/storage/indexlib/table/normal_table/test:NormalTabletSchemaMaker',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='SplitStrategyTest',
+    srcs=['SplitStrategyTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/*']),
+    deps=[
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
+        '//aios/storage/indexlib/framework/mock:FakeSegment',
+        '//aios/storage/indexlib/table/normal_table:NormalTableFactory',
+        '//aios/storage/indexlib/table/normal_table/index_task/merger:SplitStrategy',
+        '//aios/unittest_framework'
+    ]
+)

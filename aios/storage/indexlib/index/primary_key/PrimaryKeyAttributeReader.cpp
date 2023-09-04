@@ -49,8 +49,7 @@ Status PrimaryKeyAttributeReader<Key>::DoOpen(const std::shared_ptr<config::IInd
             assert(false);
         }
     }
-    return this->template InitAllIndexers<SingleValueAttributeDiskIndexer<Key>, SingleValueAttributeMemIndexer<Key>,
-                                          SingleValueAttributeMemReader<Key>>(
+    return this->template InitAllIndexers<SingleValueAttributeDiskIndexer<Key>, SingleValueAttributeMemReader<Key>>(
         primaryKeyIndexConfig->GetPKAttributeConfig(), attributeIndexers, this->_onDiskIndexers, this->_memReaders,
         this->_defaultValueReader);
 }

@@ -15,7 +15,7 @@
  */
 #include "indexlib/table/normal_table/index_task/document_reclaim/IndexReclaimerCreator.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/inverted_index/InvertedIndexFactory.h"
@@ -27,7 +27,7 @@
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, IndexReclaimerCreator);
 
-IndexReclaimerCreator::IndexReclaimerCreator(std::shared_ptr<config::TabletSchema> tabletSchema,
+IndexReclaimerCreator::IndexReclaimerCreator(std::shared_ptr<config::ITabletSchema> tabletSchema,
                                              std::shared_ptr<framework::TabletData> tabletData,
                                              std::map<segmentid_t, docid_t> segmentId2BaseDocId,
                                              std::map<segmentid_t, size_t> segmentId2DocCount,
@@ -61,7 +61,7 @@ IndexReclaimer* IndexReclaimerCreator::Create(const IndexReclaimerParam& param) 
 
     for (auto& indexName : indexNames) {
         auto indexConfig = std::dynamic_pointer_cast<indexlibv2::config::InvertedIndexConfig>(
-            _tabletSchema->GetIndexConfig(indexlib::index::INVERTED_INDEX_TYPE_STR, indexName));
+            _tabletSchema->GetIndexConfig(indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR, indexName));
         if (!indexConfig) {
             AUTIL_LOG(ERROR, "reclaim index [%s] not exist", indexName.c_str());
             return nullptr;

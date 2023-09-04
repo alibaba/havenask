@@ -1,0 +1,98 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "simple_cluster"
+            ],
+            "document_processor_chain" : [
+            ],
+            "modules" : [
+            ]
+        },
+        {
+            "clusters" : [
+                "simple_cluster",
+                "simple_cluster2",
+                "simple_cluster3"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "SimpleDocumentProcessor",
+                    "module_name" : "simple_document_processor",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+                {
+                    "module_name" : "simple_document_processor",
+                    "module_path" : "libsimple_document_processor.so",
+                    "parameters" : {
+                    }
+                }
+            ]
+        },
+        {
+            "clusters" : [
+                "simple_with_sub_cluster",
+                "simple_with_sub_cluster2"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+                {
+                    "module_name" : "simple_document_processor",
+                    "module_path" : "libsimple_document_processor.so",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "sub_document_processor_chain" : [
+                {
+                    "class_name" : "SimpleDocumentProcessor",
+                    "module_name" : "simple_document_processor",
+                    "parameters" : {
+                    }
+                },
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ]
+        },
+        {
+            "clusters" : [
+                "simple_with_sub_cluster3"
+            ],
+            "document_processor_chain" : [
+            ],
+            "modules" : [
+            ],
+            "sub_document_processor_chain" : [
+            ]
+        },
+        {
+            "clusters" : [
+                "simple_cluster"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "ModifiedFieldsDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+            ]
+        }
+    ]
+}

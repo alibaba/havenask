@@ -16,10 +16,10 @@ LatencyTimeSnapshot::LatencyTimeSnapshot() {
     _latencyMap.reset(new LatencyTimeWindowMap());
 }
 
-LatencyTimeSnapshot::~LatencyTimeSnapshot() {}
+LatencyTimeSnapshot::~LatencyTimeSnapshot() {
+}
 
-void LatencyTimeSnapshot::updateLatencyTimeWindow(const std::string &bizName,
-                                                  int64_t windowSize) {
+void LatencyTimeSnapshot::updateLatencyTimeWindow(const std::string &bizName, int64_t windowSize) {
     if (0 == windowSize) {
         ScopedReadWriteLock lock(_mapLock, 'w');
         _latencyMap->erase(bizName);
@@ -41,8 +41,7 @@ void LatencyTimeSnapshot::updateLatencyTimeWindow(const std::string &bizName,
     }
 }
 
-LatencyTimeWindowPtr
-LatencyTimeSnapshot::getLatencyTimeWindow(const std::string &bizName) {
+LatencyTimeWindowPtr LatencyTimeSnapshot::getLatencyTimeWindow(const std::string &bizName) {
     ScopedReadWriteLock lock(_mapLock, 'r');
     auto it = _latencyMap->find(bizName);
     if (it != _latencyMap->end()) {
@@ -61,8 +60,7 @@ int64_t LatencyTimeSnapshot::getAvgLatency(const std::string &bizName) {
     }
 }
 
-int64_t LatencyTimeSnapshot::pushLatency(const std::string &bizName,
-                                         int64_t latency) {
+int64_t LatencyTimeSnapshot::pushLatency(const std::string &bizName, int64_t latency) {
     auto latencyTimeWindow = getLatencyTimeWindow(bizName);
     if (latencyTimeWindow) {
         return latencyTimeWindow->push(latency);

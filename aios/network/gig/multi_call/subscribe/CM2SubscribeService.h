@@ -16,12 +16,13 @@
 #ifndef ISEARCH_MULTI_CALL_CM2SUBSCRIBESERVICE_H
 #define ISEARCH_MULTI_CALL_CM2SUBSCRIBESERVICE_H
 
+#include <unordered_set>
+
 #include "aios/apps/facility/cm2/cm_sub/cm_sub.h"
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/config/MultiCallConfig.h"
 #include "aios/network/gig/multi_call/subscribe/SubscribeService.h"
 #include "autil/Lock.h"
-#include <unordered_set>
 
 namespace cm_basic {
 class CMCentralSub;
@@ -31,7 +32,8 @@ namespace multi_call {
 
 typedef std::shared_ptr<cm_sub::CMSubscriber> CMSubscriberPtr;
 
-class CM2SubscribeService : public SubscribeService {
+class CM2SubscribeService : public SubscribeService
+{
 public:
     CM2SubscribeService(const Cm2Config &config);
     ~CM2SubscribeService();
@@ -42,7 +44,9 @@ private:
 
 public:
     bool init() override;
-    SubscribeType getType() override { return ST_CM2; }
+    SubscribeType getType() override {
+        return ST_CM2;
+    }
     bool clusterInfoNeedUpdate() override;
     bool getClusterInfoMap(TopoNodeVec &topoNodeVec, HeartbeatSpecVec &heartbeatSpecs) override;
     bool addSubscribe(const std::vector<std::string> &names) override;
@@ -53,8 +57,7 @@ public:
 private:
     bool initGroupSub();
     bool initPartSub();
-    virtual CMSubscriberPtr
-    createSubscriber(cm_sub::SubscriberConfig *subConfig);
+    virtual CMSubscriberPtr createSubscriber(cm_sub::SubscriberConfig *subConfig);
     bool addClusters(cm_basic::CMCentralSub *central, TopoNodeVec &topoNodeVec,
                      HeartbeatSpecVec &heartbeatSpecs);
     bool checkClusters(cm_basic::CMCentralSub *central);
@@ -65,8 +68,7 @@ private:
                            const std::string &clusterName, bool ignoreTopo,
                            bool enableClusterBizSearch, VersionTy subProtocolVersion,
                            TopoNodeVec &topoNodeVec, HeartbeatSpecVec &heartbeatSpecs);
-    static void addTopoNode(cm_basic::CMNode *node,
-                            const std::string &clusterName,
+    static void addTopoNode(cm_basic::CMNode *node, const std::string &clusterName,
                             TopoNodeVec &topoNodeVec);
     static void addTopoNodeFromTopoStr(cm_basic::CMNode *node, const std::string &clusterName,
                                        bool enableClusterBizSearch, VersionTy subProtocolVersion,

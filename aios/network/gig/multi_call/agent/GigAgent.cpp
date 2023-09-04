@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/agent/GigAgent.h"
+
+#include <assert.h>
+
 #include "aios/network/gig/multi_call/agent/GigStatistic.h"
 #include "aios/network/gig/multi_call/metric/MetricReporterManager.h"
-#include <assert.h>
 
 using namespace std;
 
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GigAgent);
 
-GigAgent::GigAgent()
-    : _statistic(NULL), _metricReporterManager(new MetricReporterManager()) {}
+GigAgent::GigAgent() : _statistic(NULL), _metricReporterManager(new MetricReporterManager()) {
+}
 
 GigAgent::~GigAgent() {
     DELETE_AND_SET_NULL(_statistic);
@@ -39,20 +41,24 @@ bool GigAgent::init(const std::string &logPrefix, bool enableAgentStat) {
     return _metricReporterManager->init(true);
 }
 
-QueryInfoPtr GigAgent::getQueryInfo(const std::string &queryInfo,
-                                    const std::string &warmUpStrategy,
+std::string GigAgent::getLogPrefix() const {
+    if (_statistic) {
+        return _statistic->getLogPrefix();
+    } else {
+        return "";
+    }
+}
+
+QueryInfoPtr GigAgent::getQueryInfo(const std::string &queryInfo, const std::string &warmUpStrategy,
                                     bool withBizStat) {
-    return QueryInfoPtr(new QueryInfo(queryInfo, warmUpStrategy,
-                                      withBizStat ? _statistic : nullptr,
+    return QueryInfoPtr(new QueryInfo(queryInfo, warmUpStrategy, withBizStat ? _statistic : nullptr,
                                       _metricReporterManager));
 }
 
-void GigAgent::updateWarmUpStrategy(const std::string &warmUpStrategy,
-                                    int64_t timeoutInSecond,
+void GigAgent::updateWarmUpStrategy(const std::string &warmUpStrategy, int64_t timeoutInSecond,
                                     int64_t queryCountLimit) {
     if (_statistic) {
-        _statistic->updateWarmUpStrategy(warmUpStrategy, timeoutInSecond,
-                                         queryCountLimit);
+        _statistic->updateWarmUpStrategy(warmUpStrategy, timeoutInSecond, queryCountLimit);
     }
 }
 
@@ -96,11 +102,8 @@ bool GigAgent::longTimeNoQuery(int64_t noQueryTimeInSecond) const {
     return _statistic ? _statistic->longTimeNoQuery(noQueryTimeInSecond) : true;
 }
 
-bool GigAgent::longTimeNoQuery(const std::string &bizName,
-                               int64_t noQueryTimeInSecond) const {
-    return _statistic
-               ? _statistic->longTimeNoQuery(bizName, noQueryTimeInSecond)
-               : true;
+bool GigAgent::longTimeNoQuery(const std::string &bizName, int64_t noQueryTimeInSecond) const {
+    return _statistic ? _statistic->longTimeNoQuery(bizName, noQueryTimeInSecond) : true;
 }
 
 std::shared_ptr<BizStat> GigAgent::getBizStat(const std::string &bizName, PartIdTy partId) {

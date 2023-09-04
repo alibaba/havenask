@@ -29,14 +29,13 @@ class RankQuery;
 class TableQuery;
 class TermQuery;
 class DocIdsQuery;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace common {
 
-class QueryVisitor
-{
+class QueryVisitor {
 public:
     virtual void visitTermQuery(const TermQuery *query) = 0;
     virtual void visitPhraseQuery(const PhraseQuery *query) = 0;
@@ -49,6 +48,7 @@ public:
     virtual void visitTableQuery(const TableQuery *query) {}
     virtual void visitDocIdsQuery(const DocIdsQuery *query) {}
     virtual ~QueryVisitor() {}
+
 private:
     AUTIL_LOG_DECLARE();
 };

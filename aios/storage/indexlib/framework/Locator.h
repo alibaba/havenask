@@ -30,7 +30,11 @@ namespace indexlibv2::framework {
 class Locator final
 {
 public:
-    static_assert(sizeof(base::Progress) == 16, "Progress has been modified, deserialize may failed");
+    static_assert(sizeof(base::Progress) == 24, "Progress has been modified, deserialize may failed");
+    static constexpr int32_t MAGIC_NUMBER = -502344248;
+    static constexpr int32_t LOCATOR_DEFAULT_VERSION = 0;
+    static constexpr int32_t LOCATOR_SUBOFFSET_VERSION = 1;
+
     enum class LocatorCompareResult {
         LCR_INVALID,        // source不合法
         LCR_SLOWER,         //比这个locator慢
@@ -49,11 +53,41 @@ public:
     }
     bool operator!=(const Locator& other) const { return !(*this == other); }
 
-    Locator() : _src(0), _minOffset(-1) {}
-    Locator(uint64_t src, int64_t minOffset) : _src(src), _minOffset(minOffset)
+    Locator() : _src(0), _minOffset(base::Progress::INVALID_OFFSET) {}
+    // TODO(tianxiao) remove structor
+    Locator(uint64_t src, int64_t minOffset) : _src(src), _minOffset({minOffset, 0})
     {
-        _progress.emplace_back(base::Progress(minOffset));
+        _progress.emplace_back(base::Progress(_minOffset));
     }
+    Locator(uint64_t src, const base::Progress::Offset minOffset) : _src(src), _minOffset(minOffset)
+    {
+        _progress.emplace_back(base::Progress(_minOffset));
+    }
+
+    Locator(const Locator& other)
+    {
+        if (&other == this) {
+            return;
+        }
+        this->_src = other._src;
+        this->_minOffset = other._minOffset;
+        this->_progress = other._progress;
+        this->_userData = other._userData;
+        this->_isLegacyLocator = other._isLegacyLocator;
+    }
+    Locator& operator=(const Locator& other)
+    {
+        if (&other == this) {
+            return *this;
+        }
+        this->_src = other._src;
+        this->_minOffset = other._minOffset;
+        this->_progress = other._progress;
+        this->_userData = other._userData;
+        this->_isLegacyLocator = other._isLegacyLocator;
+        return *this;
+    }
+
     // other locator muster fully faster than current locator, or return false
     bool Update(const Locator& other);
     std::string Serialize() const;
@@ -63,16 +97,22 @@ public:
     uint64_t GetSrc() const { return _src; }
 
     bool IsSameSrc(const Locator& otherLocator, bool ignoreLegacyDiffSrc) const;
-    void SetOffset(int64_t offset)
+    // void SetOffset(int64_t offset)
+    // {
+    //     _minOffset = {offset, 0};
+    //     _progress.clear();
+    //     _progress.emplace_back(base::Progress(_minOffset));
+    // }
+    void SetOffset(const base::Progress::Offset& offset)
     {
         _minOffset = offset;
         _progress.clear();
         _progress.emplace_back(base::Progress(offset));
     }
-    int64_t GetOffset() const { return _minOffset; }
-    int64_t GetMaxOffset() const
+    base::Progress::Offset GetOffset() const { return _minOffset; }
+    base::Progress::Offset GetMaxOffset() const
     {
-        int64_t ret = -1;
+        base::Progress::Offset ret = base::Progress::INVALID_OFFSET;
         for (const auto& progress : _progress) {
             ret = std::max(ret, progress.offset);
         }
@@ -97,13 +137,10 @@ public:
     void SetUserData(std::string userData) { _userData = std::move(userData); }
     const std::string& GetUserData() const { return _userData; }
 
-    size_t Size() const
-    {
-        return sizeof(_src) + sizeof(_minOffset) + ProgressSize(_progress.size()) + UserDataSize(_userData.size());
-    }
+    size_t Size() const;
     std::string DebugString() const;
     bool IsValid() const;
-    Locator::LocatorCompareResult IsFasterThan(uint16_t hashId, int64_t timestamp) const;
+    Locator::LocatorCompareResult IsFasterThan(uint16_t hashId, const base::Progress::Offset& offset) const;
     Locator::LocatorCompareResult IsFasterThan(const Locator& locator, bool ignoreLegacyDiffSrc) const;
     std::pair<uint32_t, uint32_t> GetLocatorRange() const;
 
@@ -111,6 +148,8 @@ public:
     void Reset();
     void SetLegacyLocator() { _isLegacyLocator = true; }
     bool IsLegacyLocator() const { return _isLegacyLocator; }
+
+    bool TEST_IsLegal() const;
 
 private:
     struct CompareStruct {
@@ -127,7 +166,7 @@ private:
             progress.from = from;
             return progress;
         }
-        int64_t GetCurrentOffset()
+        base::Progress::Offset GetCurrentOffset()
         {
             assert(!IsEof());
             return (*progressPtr)[cursor].offset;
@@ -145,7 +184,11 @@ private:
     };
 
 private:
-    size_t ProgressSize(size_t count) const { return sizeof(uint64_t) + sizeof(base::Progress) * count; }
+    int32_t calculateSerializeVersion() const;
+    std::string SerializeV1() const;
+    std::string SerializeV0() const;
+    size_t ProgressSize(size_t count) const;
+
     size_t UserDataSize(size_t len) const
     {
         if (len == 0) {
@@ -156,12 +199,14 @@ private:
     std::pair<bool, base::Progress> GetLeftProgress(CompareStruct& currentProgress, CompareStruct& updateProgress);
     void MergeProgress(std::vector<base::Progress>& mergeProgress);
     bool IsFullyFasterThan(const Locator& other) const;
-    bool DeserializeProgress(const char*& data, const char* end);
+    bool DeserializeProgressV0(const char*& data, const char* end);
 
 private:
+    bool DeserializeV0(const char* str, const char* end);
+    bool DeserializeV1(const char* str, const char* end);
     bool Deserialize(const char* str, size_t size);
     uint64_t _src = 0;
-    int64_t _minOffset = -1;
+    base::Progress::Offset _minOffset;
     std::vector<base::Progress> _progress;
     std::string _userData;
     bool _isLegacyLocator = false;
@@ -171,29 +216,29 @@ class ThreadSafeLocatorGuard
 {
 public:
     ThreadSafeLocatorGuard() {}
-    ThreadSafeLocatorGuard(const ThreadSafeLocatorGuard& other) { mLocator = other.mLocator; }
-    void operator=(const ThreadSafeLocatorGuard& other) { mLocator = other.mLocator; }
+    ThreadSafeLocatorGuard(const ThreadSafeLocatorGuard& other) { _locator = other._locator; }
+    void operator=(const ThreadSafeLocatorGuard& other) { _locator = other._locator; }
 
 public:
     void Update(const Locator& locator)
     {
-        autil::ScopedLock lock(mLock);
-        mLocator.Update(locator);
+        autil::ScopedLock lock(_lock);
+        _locator.Update(locator);
     }
     void Set(const Locator& locator)
     {
-        autil::ScopedLock lock(mLock);
-        mLocator = locator;
+        autil::ScopedLock lock(_lock);
+        _locator = locator;
     }
     Locator Get() const
     {
-        autil::ScopedLock lock(mLock);
-        return mLocator;
+        autil::ScopedLock lock(_lock);
+        return _locator;
     }
 
 private:
-    Locator mLocator;
-    mutable autil::ThreadMutex mLock;
+    Locator _locator;
+    mutable autil::ThreadMutex _lock;
 };
 
 } // namespace indexlibv2::framework

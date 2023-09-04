@@ -103,7 +103,7 @@ FSResult<void> SingleFileFlushOperation::Store(const string& filePath) noexcept
             return ec;
         }
     }
-    AUTIL_LOG(INFO, "flush file[%s], len=%luB", path.c_str(), dataLen);
+    AUTIL_LOG(INFO, "flush file[%s], len [%lu] B", path.c_str(), dataLen);
     return file->Close();
 }
 

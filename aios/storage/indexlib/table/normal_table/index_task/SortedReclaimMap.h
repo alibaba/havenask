@@ -36,10 +36,10 @@ class DocInfoAllocator;
 class MultiAttributeEvaluator;
 }} // namespace indexlib::index
 
-namespace indexlibv2 { namespace config {
+namespace indexlibv2 { namespace index {
 class AttributeConfig;
 
-}} // namespace indexlibv2::config
+}} // namespace indexlibv2::index
 
 namespace indexlibv2 { namespace table {
 
@@ -55,29 +55,29 @@ public:
     ~SortedReclaimMap() {}
 
 public:
-    Status Init(const std::shared_ptr<config::TabletSchema>& schema, const config::SortDescriptions& sortDescriptions,
+    Status Init(const std::shared_ptr<config::ITabletSchema>& schema, const config::SortDescriptions& sortDescriptions,
                 const SegmentMergePlan& segmentMergePlan, const std::shared_ptr<framework::TabletData>& tabletData,
                 const ReclaimMap::SegmentSplitHandler& segmentSplitHandler);
 
     Status TEST_Init(segmentid_t baseSegmentId,
                      const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& srcSegments,
-                     const std::vector<std::shared_ptr<indexlibv2::config::AttributeConfig>>& attrConfigs,
+                     const std::vector<std::shared_ptr<index::AttributeConfig>>& attrConfigs,
                      const std::vector<indexlibv2::config::SortPattern>& sortPatterns,
                      const SegmentSplitHandler& segmentSplitHandler);
 
 private:
-    void InitMultiComparator(const std::vector<std::shared_ptr<indexlibv2::config::AttributeConfig>>& attrConfigs,
+    void InitMultiComparator(const std::vector<std::shared_ptr<index::AttributeConfig>>& attrConfigs,
                              const std::vector<config::SortPattern>& sortPatterns,
                              const std::shared_ptr<indexlib::index::MultiComparator>& multiComparator,
                              const std::shared_ptr<indexlib::index::DocInfoAllocator>& docInfoAllocator) const;
     Status
     InitMultiAttrEvaluator(const std::pair<docid_t, std::shared_ptr<framework::Segment>>& srcSegment,
-                           const std::vector<std::shared_ptr<indexlibv2::config::AttributeConfig>>& attrConfigs,
+                           const std::vector<std::shared_ptr<index::AttributeConfig>>& attrConfigs,
                            const std::shared_ptr<indexlib::index::DocInfoAllocator>& docInfoAllocator,
                            const std::shared_ptr<indexlib::index::MultiAttributeEvaluator>& multiEvaluatorPtr) const;
     Status SortByWeightInit(size_t targetSegmentCount, segmentid_t baseSegmentId,
                             const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& srcSegments,
-                            const std::vector<std::shared_ptr<indexlibv2::config::AttributeConfig>>& attrConfigs,
+                            const std::vector<std::shared_ptr<index::AttributeConfig>>& attrConfigs,
                             const std::vector<config::SortPattern>& sortPatterns,
                             const SegmentSplitHandler& segmentSplitHandler);
 

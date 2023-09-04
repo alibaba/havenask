@@ -1,0 +1,15 @@
+{
+    "tables" : [
+        {
+            "table_name" : "simple4",
+            "is_main_table" : true,
+            "data_path" : "data/sub_table.data"
+        },
+        {
+            "table_name" : "simple5",
+            "is_main_table" : false,
+            "data_path" : "data/sub_table.data"
+        }
+    ],
+    "config_path" : "config/config_sub_table"
+}

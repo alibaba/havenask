@@ -78,7 +78,9 @@
 #include "ha3/search/SubTermQueryExecutor.h"
 #include "ha3/search/TermQueryExecutor.h"
 #include "ha3/search/WeakAndQueryExecutor.h"
+#include "indexlib/index/common/Term.h"
 #include "indexlib/index/inverted_index/InvertedIndexReader.h"
+#include "indexlib/index/inverted_index/MultiFieldIndexReader.h"
 #include "indexlib/index/inverted_index/PostingIterator.h"
 #include "indexlib/index/inverted_index/SeekAndFilterIterator.h"
 #include "indexlib/index/normal/inverted_index/accessor/multi_field_index_reader.h"
@@ -86,7 +88,6 @@
 #include "indexlib/index/normal/primarykey/primary_key_posting_iterator.h"
 #include "indexlib/index_define.h"
 #include "indexlib/util/PoolUtil.h"
-#include "indexlib/index/common/Term.h"
 #include "matchdoc/ValueType.h"
 #include "suez/turing/expression/common.h"
 using namespace std;
@@ -404,10 +405,16 @@ void QueryExecutorCreator::visitColumnTerm(const ColumnTerm &term,
         AUTIL_LOG(WARN, "GetIndexReader failed for indexName[%s]", indexName.c_str());
         return;
     }
-    auto multiIndexReader
+    auto legacyMultiIndexReader
         = DYNAMIC_POINTER_CAST(indexlib::index::legacy::MultiFieldIndexReader, indexReader);
-    if (multiIndexReader) {
-        indexReader = multiIndexReader->GetInvertedIndexReader(indexName);
+    if (legacyMultiIndexReader) {
+        indexReader = legacyMultiIndexReader->GetInvertedIndexReader(indexName);
+    } else {
+        auto multiIndexReader
+            = DYNAMIC_POINTER_CAST(indexlib::index::MultiFieldIndexReader, indexReader);
+        if (multiIndexReader) {
+            indexReader = multiIndexReader->GetIndexReader(indexName);
+        }
     }
     if (!indexReader) {
         AUTIL_LOG(WARN, "GetInvertedIndexReader failed for indexName[%s]", indexName.c_str());
@@ -466,14 +473,15 @@ void NormalTermTraits<MultiChar>::setTermWord(indexlib::index::Term &term,
 
 template <class T>
 struct Pk64TermTraits {
-    docid_t calDocid(const std::shared_ptr<indexlib::index::PrimaryKeyIndexReader> &p, const T &value) {
+    docid_t calDocid(const std::shared_ptr<indexlib::index::PrimaryKeyIndexReader> &p,
+                     const T &value) {
         return p->LookupWithType(value);
     }
 };
 
 template <>
-docid_t Pk64TermTraits<MultiChar>::calDocid(const std::shared_ptr<indexlib::index::PrimaryKeyIndexReader> &p,
-                                            const MultiChar &value) {
+docid_t Pk64TermTraits<MultiChar>::calDocid(
+    const std::shared_ptr<indexlib::index::PrimaryKeyIndexReader> &p, const MultiChar &value) {
     StringView word(value.data(), value.size());
     return p->Lookup(word);
 }
@@ -490,10 +498,11 @@ public:
     }
 };
 
-void QueryExecutorCreator::visitNumberColumnTerm(const std::shared_ptr<InvertedIndexReader> &indexReader,
-                                                 bool isSubIndex,
-                                                 const ColumnTerm &term,
-                                                 vector<QueryExecutor *> &results) {
+void QueryExecutorCreator::visitNumberColumnTerm(
+    const std::shared_ptr<InvertedIndexReader> &indexReader,
+    bool isSubIndex,
+    const ColumnTerm &term,
+    vector<QueryExecutor *> &results) {
 #define CASE_MACRO(bt)                                                                             \
     case bt: {                                                                                     \
         using T = typename MatchDocBuiltinType2CppType<bt, false>::CppType;                        \
@@ -513,10 +522,11 @@ void QueryExecutorCreator::visitNumberColumnTerm(const std::shared_ptr<InvertedI
 #undef CASE_MACRO
 }
 
-void QueryExecutorCreator::visitPk64ColumnTerm(const std::shared_ptr<InvertedIndexReader> &indexReader,
-                                               bool isSubIndex,
-                                               const ColumnTerm &term,
-                                               vector<QueryExecutor *> &results) {
+void QueryExecutorCreator::visitPk64ColumnTerm(
+    const std::shared_ptr<InvertedIndexReader> &indexReader,
+    bool isSubIndex,
+    const ColumnTerm &term,
+    vector<QueryExecutor *> &results) {
 #define CASE_MACRO(bt)                                                                             \
     case bt: {                                                                                     \
         using T = typename MatchDocBuiltinType2CppType<bt, false>::CppType;                        \
@@ -536,10 +546,11 @@ void QueryExecutorCreator::visitPk64ColumnTerm(const std::shared_ptr<InvertedInd
 #undef CASE_MACRO
 }
 
-void QueryExecutorCreator::visitNormalColumnTerm(const std::shared_ptr<InvertedIndexReader> &indexReader,
-                                                 bool isSubIndex,
-                                                 const ColumnTerm &term,
-                                                 vector<QueryExecutor *> &results) {
+void QueryExecutorCreator::visitNormalColumnTerm(
+    const std::shared_ptr<InvertedIndexReader> &indexReader,
+    bool isSubIndex,
+    const ColumnTerm &term,
+    vector<QueryExecutor *> &results) {
 #define CASE_MACRO(bt)                                                                             \
     case bt: {                                                                                     \
         using T = typename MatchDocBuiltinType2CppType<bt, false>::CppType;                        \
@@ -575,11 +586,12 @@ LookupResult QueryExecutorCreator::lookupNormalIndexWithoutCache(
 }
 
 template <class T, class Traits>
-void QueryExecutorCreator::lookupNormalIndex(Traits traits,
-                                             const std::shared_ptr<InvertedIndexReader> &indexReader,
-                                             bool isSubIndex,
-                                             const ColumnTerm &term,
-                                             vector<QueryExecutor *> &results) {
+void QueryExecutorCreator::lookupNormalIndex(
+    Traits traits,
+    const std::shared_ptr<InvertedIndexReader> &indexReader,
+    bool isSubIndex,
+    const ColumnTerm &term,
+    vector<QueryExecutor *> &results) {
     auto p = dynamic_cast<const ColumnTermTyped<T> *>(&term);
     if (!p) {
         return;

@@ -1,0 +1,25 @@
+{
+    "tables" : [
+        {
+            "table_name" : "normal",
+            "is_main_table" : true,
+            "data_path" : "data/normal.dat"
+        },
+        {
+            "table_name" : "normal2",
+            "is_main_table" : false,
+            "data_path" : "data/normal2.dat"
+        },
+        {
+            "table_name" : "kv1",
+            "is_main_table" : false,
+            "data_path" : "data/kv1.dat"
+        },
+        {
+            "table_name" : "kkv1",
+            "is_main_table" : false,
+            "data_path" : "data/kkv1.dat"
+        }
+    ],
+    "config_path" : "config/config_multi_kv_table"
+}

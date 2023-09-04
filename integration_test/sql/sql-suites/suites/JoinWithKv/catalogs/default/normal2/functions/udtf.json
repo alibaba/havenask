@@ -1,0 +1,32 @@
+{
+  "functions": [
+    {
+      "catalog_name": "default",
+      "database_name": "normal2",
+      "function_version": 300,
+      "function_name": "_split",
+      "function_type": "UDTF",
+      "is_deterministic": 1,
+      "function_content_version": "json_default_0.1",
+      "function_content": {
+        "prototypes": [
+          {
+            "params": [
+              {
+                "type": "string"
+              }
+            ],
+            "returns": [
+              {
+                "type": "int32"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

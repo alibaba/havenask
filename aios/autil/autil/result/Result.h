@@ -247,8 +247,7 @@ struct Resultify {
     }
 };
 
-enum class Discriminant : uint8_t
-{
+enum class Discriminant : uint8_t {
     None = 0,
     Ok = 1,
     Err = 2,
@@ -396,7 +395,8 @@ protected:
         case detail::Discriminant::Err:
             (void)new (&_error) ErrorType(std::move(other._error));
             break;
-        default: break;
+        default:
+            break;
         }
         return what;
     }
@@ -409,7 +409,8 @@ protected:
         case detail::Discriminant::Err:
             _error.~ErrorType();
             break;
-        default: break;
+        default:
+            break;
         }
     }
 
@@ -570,9 +571,9 @@ protected:
         }                                                                                                              \
     } while (0)
 
-}    // namespace autil::result
+} // namespace autil::result
 
 namespace autil {
 using result::Result;
 using result::SourceLocation;
-}
+} // namespace autil

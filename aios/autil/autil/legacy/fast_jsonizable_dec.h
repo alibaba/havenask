@@ -16,21 +16,21 @@
 #pragma once
 
 #if defined(__SSE4_2__)
-#  ifndef AUTIL_RAPIDJSON_SSE42
-#    define AUTIL_RAPIDJSON_SSE42
-#  endif
+#ifndef AUTIL_RAPIDJSON_SSE42
+#define AUTIL_RAPIDJSON_SSE42
+#endif
 #elif defined(__SSE2__)
-#  ifndef AUTIL_RAPIDJSON_SSE2
-#    define AUTIL_RAPIDJSON_SSE2
-#  endif
+#ifndef AUTIL_RAPIDJSON_SSE2
+#define AUTIL_RAPIDJSON_SSE2
+#endif
 #endif
 
-#include <stdint.h>
 #include <map>
+#include <stdint.h>
 #include <string>
 
-#include "autil/legacy/fast_jsonizable.h"
 #include "autil/legacy/exception.h"
+#include "autil/legacy/fast_jsonizable.h"
 #include "autil/legacy/jsonizable_exception.h"
 // #include "autil/legacy/fast_jsonizable_any.h"
 
@@ -41,83 +41,74 @@
 namespace autil {
 namespace legacy {
 
-class FastJsonizableBase
-{
+class FastJsonizableBase {
 public:
-    enum Mode { TO_JSON, FROM_JSON };
+    enum Mode {
+        TO_JSON,
+        FROM_JSON
+    };
 
-    class JsonWrapper
-    {
+    class JsonWrapper {
     public:
-        JsonWrapper()
-            : mMode(TO_JSON)
-        {}
+        JsonWrapper() : mMode(TO_JSON) {}
 
-        JsonWrapper(RapidWriter *writer)
-            : mMode(TO_JSON)
-            , mWriter(writer)
-        {}
+        JsonWrapper(RapidWriter *writer) : mMode(TO_JSON), mWriter(writer) {}
 
-        JsonWrapper(RapidValue *value)
-            : mMode(FROM_JSON)
-            , mValue(value)
-        {}
+        JsonWrapper(RapidValue *value) : mMode(FROM_JSON), mValue(value) {}
 
-        Mode GetMode() const
-        { return mMode; }
+        Mode GetMode() const { return mMode; }
 
-        RapidValue* GetRapidValue() const
-        { return mValue; }
+        RapidValue *GetRapidValue() const { return mValue; }
 
-        template<typename T>
-        void Jsonize(const std::string& key, const T& value) {
+        template <typename T>
+        void Jsonize(const std::string &key, const T &value) {
             assert(mMode == TO_JSON);
             FastJsonize(key, value);
         }
 
-        template<typename T>
-        void Jsonize(const std::string& key, T& value) {
+        template <typename T>
+        void Jsonize(const std::string &key, T &value) {
             FastJsonize(key, value);
         }
 
-        template<typename T>
-        void Jsonize(const std::string& key, T& value, const T& defaultValue) {
+        template <typename T>
+        void Jsonize(const std::string &key, T &value, const T &defaultValue) {
             FastJsonize(key, value, defaultValue);
         }
 
-        inline void JsonizeAsString(const std::string& key, std::string& value);
-        inline void JsonizeAsString(const std::string &key, std::string &value,
-                const std::string &defautValue);
+        inline void JsonizeAsString(const std::string &key, std::string &value);
+        inline void JsonizeAsString(const std::string &key, std::string &value, const std::string &defautValue);
 
-        void Jsonize(const std::string& key, std::string& value, const std::string& defaultValue)
-        { return Jsonize<std::string>(key, value, defaultValue); }
+        void Jsonize(const std::string &key, std::string &value, const std::string &defaultValue) {
+            return Jsonize<std::string>(key, value, defaultValue);
+        }
 
-        void Jsonize(const std::string& key, int64_t& value, const int64_t& defaultValue)
-        { return Jsonize<int64_t>(key, value, defaultValue); }
-    protected:
-
-        inline void FastJsonize(const std::string &key, RapidValue *&value);
-        inline void FastJsonize(const std::string &key, RapidValue *&value, RapidValue * const &defaultValue);
-
-        template <typename T>
-        void FastJsonize(const std::string& key, const T& value);
-
-        template <typename T>
-        void FastJsonize(const std::string& key, T& value);
-
-        template<typename T>
-        void FastJsonize(const std::string& key, T& value, const T& defaultValue);
-
-    public:
-        RapidValue *getRapidValue() const {
-            return mValue;
+        void Jsonize(const std::string &key, int64_t &value, const int64_t &defaultValue) {
+            return Jsonize<int64_t>(key, value, defaultValue);
         }
 
     protected:
+        inline void FastJsonize(const std::string &key, RapidValue *&value);
+        inline void FastJsonize(const std::string &key, RapidValue *&value, RapidValue *const &defaultValue);
+
+        template <typename T>
+        void FastJsonize(const std::string &key, const T &value);
+
+        template <typename T>
+        void FastJsonize(const std::string &key, T &value);
+
+        template <typename T>
+        void FastJsonize(const std::string &key, T &value, const T &defaultValue);
+
+    public:
+        RapidValue *getRapidValue() const { return mValue; }
+
+    protected:
         Mode mMode;
+
     private:
-        RapidWriter *mWriter;
-        RapidValue *mValue;
+        RapidWriter *mWriter = nullptr;
+        RapidValue *mValue = nullptr;
     };
 };
 
@@ -125,7 +116,7 @@ class FastJsonizable : public FastJsonizableBase {
 public:
     virtual ~FastJsonizable() {}
     using FastJsonizableBase::JsonWrapper;
-    virtual void Jsonize(JsonWrapper& json) = 0;
+    virtual void Jsonize(JsonWrapper &json) = 0;
 };
 
 inline void FastJsonizableBase::JsonWrapper::FastJsonize(const std::string &key, RapidValue *&value) {
@@ -138,15 +129,14 @@ inline void FastJsonizableBase::JsonWrapper::FastJsonize(const std::string &key,
         if (mValue->HasMember(key.c_str())) {
             value = &(*mValue)[key];
         } else {
-            AUTIL_LEGACY_THROW(NotJsonizableException, key +
-                    " not found when try to parse from Json.");
+            AUTIL_LEGACY_THROW(NotJsonizableException, key + " not found when try to parse from Json.");
         }
     }
 }
 
-inline void FastJsonizableBase::JsonWrapper::FastJsonize(const std::string &key, RapidValue *&value,
-                                                 RapidValue *const &defaultValue)
-{
+inline void FastJsonizableBase::JsonWrapper::FastJsonize(const std::string &key,
+                                                         RapidValue *&value,
+                                                         RapidValue *const &defaultValue) {
     if (mMode == TO_JSON) {
         if (value) {
             mWriter->Key(key.c_str(), key.size());
@@ -162,14 +152,14 @@ inline void FastJsonizableBase::JsonWrapper::FastJsonize(const std::string &key,
 }
 
 template <typename T>
-void FastJsonizableBase::JsonWrapper::FastJsonize(const std::string& key, const T& value) {
+void FastJsonizableBase::JsonWrapper::FastJsonize(const std::string &key, const T &value) {
     assert(mMode == TO_JSON);
     mWriter->Key(key.c_str(), key.size());
     serializeToWriter(mWriter, value);
 }
 
 template <typename T>
-void FastJsonizableBase::JsonWrapper::FastJsonize(const std::string& key, T& value) {
+void FastJsonizableBase::JsonWrapper::FastJsonize(const std::string &key, T &value) {
     if (mMode == TO_JSON) {
         mWriter->Key(key.c_str(), key.size());
         serializeToWriter(mWriter, value);
@@ -177,17 +167,13 @@ void FastJsonizableBase::JsonWrapper::FastJsonize(const std::string& key, T& val
         if (mValue->HasMember(key.c_str())) {
             FromRapidValue(value, (*mValue)[key]);
         } else {
-            AUTIL_LEGACY_THROW(NotJsonizableException, key +
-                    " not found when try to parse from Json.");
+            AUTIL_LEGACY_THROW(NotJsonizableException, key + " not found when try to parse from Json.");
         }
     }
 }
 
 template <typename T>
-void FastJsonizableBase::JsonWrapper::FastJsonize(
-        const std::string& key, T& value,
-        const T& defaultValue)
-{
+void FastJsonizableBase::JsonWrapper::FastJsonize(const std::string &key, T &value, const T &defaultValue) {
     if (mMode == TO_JSON) {
         mWriter->Key(key.c_str(), key.size());
         serializeToWriter(mWriter, value);
@@ -208,9 +194,9 @@ inline void FastJsonizableBase::JsonWrapper::JsonizeAsString(const std::string &
     }
 }
 
-inline void FastJsonizableBase::JsonWrapper::JsonizeAsString(const std::string &key, std::string &value,
-        const std::string &defautValue)
-{
+inline void FastJsonizableBase::JsonWrapper::JsonizeAsString(const std::string &key,
+                                                             std::string &value,
+                                                             const std::string &defautValue) {
     RapidValue *jsonValue = nullptr;
     FastJsonize(key, jsonValue, jsonValue);
     if (jsonValue) {
@@ -220,11 +206,9 @@ inline void FastJsonizableBase::JsonWrapper::JsonizeAsString(const std::string &
     }
 }
 
-
-inline void FromRapidValue(FastJsonizable& t, RapidValue& value) {
+inline void FromRapidValue(FastJsonizable &t, RapidValue &value) {
     if (!value.IsObject()) {
-        AUTIL_LEGACY_THROW(TypeNotMatchException,
-                           "type not match, expect Object but get: " + FastToJsonString(value));
+        AUTIL_LEGACY_THROW(TypeNotMatchException, "type not match, expect Object but get: " + FastToJsonString(value));
     }
     FastJsonizable::JsonWrapper w(&value);
     t.Jsonize(w);
@@ -233,9 +217,9 @@ inline void FromRapidValue(FastJsonizable& t, RapidValue& value) {
 inline void serializeToWriter(RapidWriter *writer, const FastJsonizable &t) {
     FastJsonizable::JsonWrapper w(writer);
     writer->StartObject();
-    const_cast<FastJsonizable&>(t).Jsonize(w);
+    const_cast<FastJsonizable &>(t).Jsonize(w);
     writer->EndObject();
 }
 
-}
-}
+} // namespace legacy
+} // namespace autil

@@ -16,29 +16,22 @@
 #include "aios/network/arpc/arpc/MessageCodec.h"
 
 #include "aios/network/arpc/arpc/MessageSerializable.h"
+#include "aios/network/arpc/arpc/PacketArg.h"
 #include "aios/network/arpc/arpc/RPCMessageSerializable.h"
 #include "aios/network/arpc/arpc/Tracer.h"
 #include "aios/network/arpc/arpc/util/Log.h"
-#include "aios/network/arpc/arpc/PacketArg.h"
 
 ARPC_BEGIN_NAMESPACE(arpc);
 ARPC_DECLARE_AND_SETUP_LOGGER(MessageCodec);
 
-MessageCodec::MessageCodec()
-{
-}
+MessageCodec::MessageCodec() {}
 
-MessageCodec::~MessageCodec()
-{
-}
+MessageCodec::~MessageCodec() {}
 
-CallId MessageCodec::GenerateCallId(const RPCMethodDescriptor *method,
-        version_t version) const
-{
+CallId MessageCodec::GenerateCallId(const RPCMethodDescriptor *method, version_t version) const {
     CallId callId;
     callId.intId = PacketCodeBuilder()(method);
     return callId;
 }
 
 ARPC_END_NAMESPACE(arpc);
-

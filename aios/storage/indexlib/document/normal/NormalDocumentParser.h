@@ -44,7 +44,7 @@ public:
     virtual ~NormalDocumentParser();
 
 public:
-    Status Init(const std::shared_ptr<config::TabletSchema>& schema,
+    Status Init(const std::shared_ptr<config::ITabletSchema>& schema,
                 const std::shared_ptr<DocumentInitParam>& initParam) override;
     std::unique_ptr<IDocumentBatch> Parse(const std::string& docString, const std::string& docFormat) const override;
 
@@ -68,7 +68,7 @@ private:
 private:
     std::shared_ptr<analyzer::IAnalyzerFactory> _analyzerFactory;
     std::shared_ptr<TokenizeDocumentConvertor> _tokenizeDocConvertor;
-    std::shared_ptr<config::TabletSchema> _schema;
+    std::shared_ptr<config::ITabletSchema> _schema;
     std::shared_ptr<SingleDocumentParser> _mainParser;
     std::vector<std::shared_ptr<IDocumentRewriter>> _docRewriters;
     IE_DECLARE_METRIC(UselessUpdateQps);

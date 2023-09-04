@@ -1,0 +1,165 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+strict_cc_library(
+    name='tablet_test_helper',
+    testonly=True,
+    srcs=[],
+    hdrs=[],
+    visibility=['//visibility:public'],
+    deps=[':TabletTestAgent']
+)
+strict_cc_library(
+    name='TabletTestAgent',
+    testonly=True,
+    visibility=['//visibility:public'],
+    deps=['//aios/storage/indexlib/framework:Tablet']
+)
+strict_cc_library(
+    name='FakeTabletReader',
+    testonly=True,
+    srcs=[],
+    deps=['//aios/storage/indexlib/framework:TabletReader']
+)
+strict_cc_fast_test(
+    name='framework_unittest',
+    srcs=[
+        'BuildDocumentMetricsTest.cpp', 'DeployIndexUtilTest.cpp',
+        'FenceTest.cpp', 'IdGeneratorTest.cpp', 'IndexRecoverStrategyTest.cpp',
+        'LevelInfoTest.cpp', 'LocatorTest.cpp', 'MetricsManagerTest.cpp',
+        'ResourceMapTest.cpp', 'SegmentDescriptionsTest.cpp',
+        'TabletCommitterTest.cpp', 'TabletDataTest.cpp', 'TabletDumperTest.cpp',
+        'TabletLoaderTest.cpp', 'TabletMemoryCalculatorTest.cpp',
+        'TabletMetricsTest.cpp', 'TabletReaderContainerTest.cpp',
+        'TabletTest.cpp', 'VersionCommitterTest.cpp', 'VersionLineTest.cpp',
+        'VersionLoaderTest.cpp', 'VersionMergerTest.cpp', 'VersionMetaTest.cpp',
+        'VersionTest.cpp'
+    ],
+    copts=['-fno-access-control'],
+    deps=[
+        ':FakeTablet', ':FakeTabletReader',
+        '//aios/future_lite/future_lite/executors:simple_executor',
+        '//aios/kmonitor:kmonitor_client_cpp',
+        '//aios/storage/indexlib/base:NoExceptionWrapper',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework:DeployIndexUtil',
+        '//aios/storage/indexlib/framework:Fence',
+        '//aios/storage/indexlib/framework:IdGenerator',
+        '//aios/storage/indexlib/framework:IndexRecoverStrategy',
+        '//aios/storage/indexlib/framework:OpenOptions',
+        '//aios/storage/indexlib/framework:ReadResource',
+        '//aios/storage/indexlib/framework:ResourceMap',
+        '//aios/storage/indexlib/framework:SegmentMeta',
+        '//aios/storage/indexlib/framework:Tablet',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework:TabletDataInfo',
+        '//aios/storage/indexlib/framework:TabletInfos',
+        '//aios/storage/indexlib/framework:TabletMemoryCalculator',
+        '//aios/storage/indexlib/framework:TabletMetrics',
+        '//aios/storage/indexlib/framework:TabletReaderContainer',
+        '//aios/storage/indexlib/framework:Version',
+        '//aios/storage/indexlib/framework:VersionCommitter',
+        '//aios/storage/indexlib/framework:VersionLine',
+        '//aios/storage/indexlib/framework:VersionLoader',
+        '//aios/storage/indexlib/framework:tablet_schema_loader',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskPlan',
+        '//aios/storage/indexlib/framework/mock:FakeSegment',
+        '//aios/storage/indexlib/framework/mock:MockBuildOptionConfig',
+        '//aios/storage/indexlib/framework/mock:MockDiskSegment',
+        '//aios/storage/indexlib/framework/mock:MockDocumentBatch',
+        '//aios/storage/indexlib/framework/mock:MockMemSegment',
+        '//aios/storage/indexlib/framework/mock:MockSegmentDumpItem',
+        '//aios/storage/indexlib/framework/mock:MockSegmentDumper',
+        '//aios/storage/indexlib/framework/mock:MockTablet',
+        '//aios/storage/indexlib/framework/mock:MockTabletFactory',
+        '//aios/storage/indexlib/framework/mock:MockTabletLoader',
+        '//aios/storage/indexlib/framework/mock:MockTabletOptions',
+        '//aios/storage/indexlib/framework/mock:MockTabletReader',
+        '//aios/storage/indexlib/framework/mock:MockTabletSchema',
+        '//aios/storage/indexlib/framework/mock:MockTabletWriter',
+        '//aios/storage/indexlib/framework/test:tablet_test_helper',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_library(
+    name='FakeTablet',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/framework:Tablet',
+        '//aios/storage/indexlib/framework/mock:MockTabletFactory'
+    ]
+)
+strict_cc_fast_test(
+    name='TabletSchemaLoaderTest',
+    srcs=['TabletSchemaLoaderTest.cpp'],
+    data=['testdata/schema.json.1', 'testdata/schema.json.2'],
+    deps=[
+        '//aios/storage/indexlib/framework:TabletSchemaLoader',
+        '//aios/storage/indexlib/framework/mock:MockTabletFactory',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='TabletDeployerTest',
+    srcs=['TabletDeployerTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/framework:TabletDeployer',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='VersionDeployDescriptionTest',
+    srcs=['VersionDeployDescriptionTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/framework:VersionDeployDescription',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='SegmentStatisticsTest',
+    srcs=['SegmentStatisticsTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/framework:SegmentStatistics',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='SegmentMetricsTest',
+    srcs=['SegmentMetricsTest.cpp'],
+    deps=[
+        '//aios/storage/indexlib/framework:SegmentMetrics',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='VersionCleanerTest',
+    srcs=['VersionCleanerTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/framework:TabletId',
+        '//aios/storage/indexlib/framework:VersionCleaner',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='TabletIdTest',
+    srcs=['TabletIdTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        '//aios/storage/indexlib/framework:TabletId',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='TabletFaultTest',
+    srcs=['TabletFaultTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        '//aios/storage/indexlib/framework:TabletFault',
+        '//aios/unittest_framework'
+    ]
+)

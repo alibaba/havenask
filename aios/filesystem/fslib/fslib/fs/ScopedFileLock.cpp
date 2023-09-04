@@ -18,12 +18,9 @@
 FSLIB_BEGIN_NAMESPACE(fs);
 AUTIL_DECLARE_AND_SETUP_LOGGER(fs, ScopedFileLock);
 
-ScopedFileLock::ScopedFileLock() 
-    : _lock(NULL)
-{ 
-}
+ScopedFileLock::ScopedFileLock() : _lock(NULL) {}
 
-ScopedFileLock::~ScopedFileLock() { 
+ScopedFileLock::~ScopedFileLock() {
     if (_lock) {
         release();
     }
@@ -35,12 +32,12 @@ void ScopedFileLock::release() {
     _lock = NULL;
 }
 
-bool ScopedFileLock::init(FileLock* lock) {
+bool ScopedFileLock::init(FileLock *lock) {
     if (lock == NULL) {
         AUTIL_LOG(ERROR, "lock passed is NULL");
         return false;
-    } 
-    
+    }
+
     if (_lock) {
         // TODO: currently not support recursively init
         AUTIL_LOG(ERROR, "current ScopedFileLock is still used");
@@ -48,7 +45,7 @@ bool ScopedFileLock::init(FileLock* lock) {
         _lock = lock;
         return false;
     }
-       
+
     _lock = lock;
     if (_lock->lock() == -1) {
         return false;
@@ -58,4 +55,3 @@ bool ScopedFileLock::init(FileLock* lock) {
 }
 
 FSLIB_END_NAMESPACE(fs);
-

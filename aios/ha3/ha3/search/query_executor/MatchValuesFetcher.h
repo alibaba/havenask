@@ -15,13 +15,13 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 #include <string>
 
 #include "autil/Log.h" // IWYU pragma: keep
-#include "ha3/search/QueryExecutor.h"
 #include "ha3/search/MatchValues.h"
+#include "ha3/search/QueryExecutor.h"
 #include "indexlib/index/common/ErrorCode.h"
 #include "indexlib/misc/common.h"
 
@@ -29,38 +29,42 @@ namespace matchdoc {
 class MatchDoc;
 class MatchDocAllocator;
 class ReferenceBase;
-template <typename T> class Reference;
-}  // namespace matchdoc
+template <typename T>
+class Reference;
+} // namespace matchdoc
 
 namespace isearch {
 namespace search {
 
-class MatchValuesFetcher
-{
+class MatchValuesFetcher {
 public:
     MatchValuesFetcher();
     ~MatchValuesFetcher();
+
 private:
     MatchValuesFetcher(const MatchValuesFetcher &);
-    MatchValuesFetcher& operator=(const MatchValuesFetcher &);
+    MatchValuesFetcher &operator=(const MatchValuesFetcher &);
+
 public:
     void setAccTermCount(uint32_t accTermCount) {
         _accTermCount = accTermCount;
     }
-    matchdoc::ReferenceBase *require(matchdoc::MatchDocAllocator *allocator,
-            const std::string &refName, uint32_t termCount);
-    matchdoc::Reference<rank::MatchValues> *createReference(
-            matchdoc::MatchDocAllocator *allocator,
-            const std::string &refName, uint32_t termCount);
-    indexlib::index::ErrorCode fillMatchValues(
-            const SingleLayerExecutors &singleLayerExecutors,
-            matchdoc::MatchDoc);
+    matchdoc::ReferenceBase *
+    require(matchdoc::MatchDocAllocator *allocator, const std::string &refName, uint32_t termCount);
+    matchdoc::Reference<rank::MatchValues> *createReference(matchdoc::MatchDocAllocator *allocator,
+                                                            const std::string &refName,
+                                                            uint32_t termCount);
+    indexlib::index::ErrorCode fillMatchValues(const SingleLayerExecutors &singleLayerExecutors,
+                                               matchdoc::MatchDoc);
+
 private:
     matchdoc::Reference<rank::MatchValues> *_ref;
     uint32_t _termCount;
     uint32_t _accTermCount;
+
 private:
     friend class MatchValuesFetcherTest;
+
 private:
     AUTIL_LOG_DECLARE();
 };

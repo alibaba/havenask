@@ -18,14 +18,13 @@
 #include <limits>
 
 #include "autil/mem_pool/PoolVector.h"
-
 #include "ha3/isearch.h"
 
 namespace autil {
 namespace mem_pool {
 class Pool;
-}  // namespace mem_pool
-}  // namespace autil
+} // namespace mem_pool
+} // namespace autil
 
 using namespace std;
 
@@ -37,31 +36,26 @@ DocIdRangeMeta::DocIdRangeMeta()
     , end(0)
     , quota(0)
     , begin(0)
-    , ordered(OT_UNKNOWN)
-{
-}
+    , ordered(OT_UNKNOWN) {}
 
 DocIdRangeMeta::DocIdRangeMeta(docid_t begin_, docid_t end_, OrderedType ot, uint32_t quota_)
     : nextBegin(begin_)
     , end(end_)
     , quota(quota_)
     , begin(begin_)
-    , ordered(ot)
-{
-}
+    , ordered(ot) {}
 
-DocIdRangeMeta::DocIdRangeMeta(const indexlib::DocIdRange& docIdRange, OrderedType ot, uint32_t quota_)
+DocIdRangeMeta::DocIdRangeMeta(const indexlib::DocIdRange &docIdRange,
+                               OrderedType ot,
+                               uint32_t quota_)
     : nextBegin(docIdRange.first)
     , end(docIdRange.second)
     , quota(quota_)
     , begin(docIdRange.first)
-    , ordered(ot)
-{
-}
+    , ordered(ot) {}
 
 LayerMeta::LayerMeta(autil::mem_pool::Pool *pool)
-    : autil::mem_pool::PoolVector<DocIdRangeMeta>(pool)
-{
+    : autil::mem_pool::PoolVector<DocIdRangeMeta>(pool) {
     quota = 0;
     maxQuota = std::numeric_limits<uint32_t>::max();
     quotaMode = QM_PER_DOC;
@@ -71,12 +65,8 @@ LayerMeta::LayerMeta(autil::mem_pool::Pool *pool)
 
 std::string LayerMeta::toString() const {
     std::stringstream ss;
-    ss << "(quota: " << quota
-       << " maxQuota: " << maxQuota
-       << " quotaMode: " << quotaMode
-       << " needAggregate: " << needAggregate
-       << " quotaType: " << quotaType
-       << ") ";
+    ss << "(quota: " << quota << " maxQuota: " << maxQuota << " quotaMode: " << quotaMode
+       << " needAggregate: " << needAggregate << " quotaType: " << quotaType << ") ";
     for (const_iterator it = begin(); it != end(); it++) {
         ss << *it << ";";
     }
@@ -95,10 +85,8 @@ std::string LayerMeta::getRangeString() const {
     return rangeString;
 }
 
-std::ostream& operator << (std::ostream &os, const DocIdRangeMeta &range) {
-    os << "begin: " << range.begin
-       << " end: " << range.end
-       << " nextBegin: " << range.nextBegin
+std::ostream &operator<<(std::ostream &os, const DocIdRangeMeta &range) {
+    os << "begin: " << range.begin << " end: " << range.end << " nextBegin: " << range.nextBegin
        << " quota: " << range.quota;
     return os;
 }

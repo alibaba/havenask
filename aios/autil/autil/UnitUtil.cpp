@@ -22,7 +22,7 @@ namespace autil {
 double UnitUtil::GiB(int64_t sizeInB) noexcept { return sizeInB / 1024.0 / 1024 / 1024; }
 
 std::string UnitUtil::GiBDebugString(int64_t sizeInB) noexcept {
-    return StringUtil::formatString("%.1fG ~ %ldB", UnitUtil::GiB(sizeInB), sizeInB);
+    return StringUtil::formatString("%.1fG ~ %ld B", UnitUtil::GiB(sizeInB), sizeInB);
 }
 
 } // namespace autil

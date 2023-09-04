@@ -142,8 +142,8 @@ void LeaderedWorkerBase::preempted() {
     int64_t currentTs = autil::TimeUtility::currentTimeInSeconds();
     if (_impl->forceExitTs == -1) {
         int64_t waitTsInSecond = 120, tmpTs = -1;
-        const char *value = getenv("WF_PREEMPTED_WAIT_TS");
-        if (value) {
+        string value = autil::EnvUtil::getEnv("WF_PREEMPTED_WAIT_TS");
+        if (!value.empty()) {
             if (StringUtil::fromString(value, tmpTs) && tmpTs > 0) {
                 waitTsInSecond = tmpTs;
             }

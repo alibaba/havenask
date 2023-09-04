@@ -15,12 +15,14 @@
  */
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
 
+#include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
-#include "iquan/common/catalog/LocationDef.h"
 #include "iquan/common/catalog/IndexDef.h"
+#include "iquan/common/catalog/LocationDef.h"
 
 namespace iquan {
 
@@ -72,7 +74,8 @@ public:
     }
 
     bool isValid() const {
-        return (indexType.empty() && indexName.empty()) || (!indexType.empty() && !indexName.empty());
+        return (indexType.empty() && indexName.empty())
+               || (!indexType.empty() && !indexName.empty());
     }
 
 public:
@@ -92,7 +95,9 @@ public:
         json.Jsonize("hash_params", hashParams, hashParams);
     }
 
-    bool isValid() const { return true; }
+    bool isValid() const {
+        return true;
+    }
 
 public:
     int partitionCnt = 0;
@@ -108,7 +113,9 @@ public:
         json.Jsonize("order", order);
     }
 
-    bool isValid() const { return true; }
+    bool isValid() const {
+        return true;
+    }
 
 public:
     std::string field;
@@ -130,7 +137,8 @@ public:
     }
 
     bool isValid() const {
-        return (tableName.empty() && joinField.empty()) || (!tableName.empty() && !joinField.empty());
+        return (tableName.empty() && joinField.empty())
+               || (!tableName.empty() && !joinField.empty());
     }
 
 public:
@@ -145,7 +153,9 @@ public:
         json.Jsonize("sub_fields", subFields);
     }
 
-    bool isValid() const { return true; }
+    bool isValid() const {
+        return true;
+    }
 
 public:
     std::string subTableName;
@@ -182,7 +192,10 @@ public:
         jsonJoinInfo(json);
     }
 
-    bool isValid() const { return true; }
+    bool isValid() const {
+        return true;
+    }
+
 private:
     void jsonJoinInfo(autil::legacy::Jsonizable::JsonWrapper &json) {
         if (json.GetMode() == FROM_JSON) {
@@ -194,11 +207,11 @@ private:
                     joinInfo.push_back(def);
                 }
                 return;
-            } catch (...) {
-            }
+            } catch (...) {}
         }
         json.Jsonize("join_info", joinInfo, joinInfo);
     }
+
 public:
     std::string tableName;
     std::string tableType;

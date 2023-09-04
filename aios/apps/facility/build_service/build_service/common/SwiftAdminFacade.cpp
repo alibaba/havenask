@@ -15,6 +15,7 @@
  */
 #include "build_service/common/SwiftAdminFacade.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 #include "autil/legacy/jsonizable.h"
 #include "build_service/config/BuildServiceConfig.h"
@@ -355,9 +356,9 @@ string SwiftAdminFacade::getLastErrorMsg()
 
 uint32_t SwiftAdminFacade::getSwiftTimeout()
 {
-    const char* param = getenv(BS_ENV_ADMIN_SWIFT_TIMEOUT.c_str());
+    string param = autil::EnvUtil::getEnv(BS_ENV_ADMIN_SWIFT_TIMEOUT.c_str());
     uint32_t timeout = DEFAULT_SWIFT_TIMEOUT;
-    if (!param || !StringUtil::fromString(string(param), timeout)) {
+    if (param.empty() || !StringUtil::fromString(param, timeout)) {
         return DEFAULT_SWIFT_TIMEOUT;
     }
     return timeout;

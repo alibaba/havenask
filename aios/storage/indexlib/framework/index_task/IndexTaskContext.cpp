@@ -15,7 +15,9 @@
  */
 #include "indexlib/framework/index_task/IndexTaskContext.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/MergeConfig.h"
+#include "indexlib/config/TabletOptions.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/ListOption.h"
@@ -25,6 +27,7 @@
 #include "indexlib/framework/Fence.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/framework/TabletSchemaLoader.h"
+#include "indexlib/framework/index_task/Constant.h"
 #include "indexlib/util/PathUtil.h"
 
 namespace {
@@ -52,16 +55,34 @@ IndexTaskContext::GetDependOperationFenceRoot(IndexOperationId id) const
     return iter->second;
 }
 
-std::shared_ptr<config::TabletSchema> IndexTaskContext::GetTabletSchema(schemaid_t schemaId) const
+config::MergeConfig IndexTaskContext::GetMergeConfig() const
+{
+    assert(_designateTaskConfig);
+    auto [status, taskMergeConfig] = _designateTaskConfig->GetSetting<indexlibv2::config::MergeConfig>("merge_config");
+    if (!status.IsOK()) {
+        assert(_designateTaskConfig->GetTaskType() != "merge");
+        return _tabletOptions->GetDefaultMergeConfig();
+    }
+    return taskMergeConfig;
+}
+
+std::shared_ptr<config::ITabletSchema> IndexTaskContext::GetTabletSchema(schemaid_t schemaId) const
 {
     auto schema = _tabletData->GetTabletSchema(schemaId);
     if (schema) {
         return schema;
     }
-    std::string root = GetIndexRoot()->GetPhysicalPath("");
-    schema = std::make_shared<config::TabletSchema>();
-    return TabletSchemaLoader::LoadSchema(GetIndexRoot()->GetIDirectory(),
-                                          config::TabletSchema::GetSchemaFileName(schemaId));
+    std::shared_ptr<config::TabletSchema> loadedSchema = TabletSchemaLoader::LoadSchema(
+        GetIndexRoot()->GetIDirectory(), config::TabletSchema::GetSchemaFileName(schemaId));
+    if (!loadedSchema) {
+        return nullptr;
+    }
+    auto status = TabletSchemaLoader::ResolveSchema(_tabletOptions, _indexRoot->GetOutputPath(), loadedSchema.get());
+    if (!status.IsOK()) {
+        TABLET_LOG(ERROR, "resolve schema [%d] failed", schemaId);
+        return nullptr;
+    }
+    return loadedSchema;
 }
 
 const std::shared_ptr<indexlib::file_system::Directory>& IndexTaskContext::GetIndexRoot() const { return _indexRoot; }
@@ -100,6 +121,8 @@ IndexTaskContext::GetOpFenceRoot(IndexOperationId id, bool useOpFenceDir) const
 
 const std::shared_ptr<util::Clock>& IndexTaskContext::GetClock() const { return _clock; }
 
+const std::string& IndexTaskContext::GetTableName() const { return _tableName; }
+
 const std::shared_ptr<TabletData>& IndexTaskContext::GetTabletData() const { return _tabletData; }
 
 const std::shared_ptr<config::TabletOptions>& IndexTaskContext::GetTabletOptions() const { return _tabletOptions; }
@@ -109,7 +132,7 @@ void IndexTaskContext::SetTabletOptions(const std::shared_ptr<config::TabletOpti
     _tabletOptions = options;
 }
 
-const std::shared_ptr<config::TabletSchema>& IndexTaskContext::GetTabletSchema() const { return _tabletSchema; }
+const std::shared_ptr<config::ITabletSchema>& IndexTaskContext::GetTabletSchema() const { return _tabletSchema; }
 
 const std::shared_ptr<IndexTaskResourceManager>& IndexTaskContext::GetResourceManager() const
 {
@@ -129,6 +152,8 @@ const std::shared_ptr<framework::MetricsManager>& IndexTaskContext::GetMetricsMa
 segmentid_t IndexTaskContext::GetMaxMergedSegmentId() const { return _maxMergedSegmentId; }
 
 versionid_t IndexTaskContext::GetMaxMergedVersionId() const { return _maxMergedVersionId; }
+
+versionid_t IndexTaskContext::GetBaseVersionId() const { return _baseVersionId; }
 
 const IndexTaskContext::Parameters& IndexTaskContext::GetAllParameters() const { return _parameters; }
 
@@ -167,19 +192,6 @@ void IndexTaskContext::Log() const
     for (const auto& [opId, dir] : _finishedOpFenceRoots) {
         TABLET_LOG(INFO, "op[%ld] finished in path[%s]", opId, dir->DebugString().c_str());
     }
-}
-
-void IndexTaskContext::SetDesignateTask(const std::string& taskType, const std::string& taskName)
-{
-    _designateTask = std::pair(taskType, taskName);
-}
-
-std::optional<std::pair<std::string, std::string>> IndexTaskContext::GetDesignateTask() const
-{
-    if (_designateTask) {
-        return std::make_optional<std::pair<std::string, std::string>>(_designateTask.value());
-    }
-    return std::nullopt;
 }
 
 bool IndexTaskContext::NeedSwitchIndexPath() const
@@ -232,6 +244,46 @@ void IndexTaskContext::SetFinishedOpFences(
     std::map<IndexOperationId, std::shared_ptr<indexlib::file_system::IDirectory>> opFences)
 {
     _finishedOpFenceRoots = std::move(opFences);
+}
+
+bool IndexTaskContext::SetDesignateTask(const std::string& taskType, const std::string& taskName) const
+{
+    std::string taskConfigStr;
+    _taskType = taskType;
+    _taskName = taskName;
+    if (GetParameter(INDEX_TASK_CONFIG_IN_PARAM, taskConfigStr)) {
+        _designateTaskConfig.reset(new config::IndexTaskConfig(taskType, taskName, "manual"));
+        try {
+            autil::legacy::FromJsonString(*_designateTaskConfig, taskConfigStr);
+        } catch (const autil::legacy::ExceptionBase& e) {
+            AUTIL_LOG(ERROR, "parse index task config str failed [%s]", taskConfigStr.c_str());
+            return false;
+        }
+        return true;
+    }
+    auto taskConfig = _tabletOptions->GetIndexTaskConfig(taskType, taskName);
+    if (taskConfig == std::nullopt) {
+        AUTIL_LOG(WARN, "target IndexTaskConfig for taskName [%s] not exist, use default task config.",
+                  taskName.c_str());
+        _designateTaskConfig.reset(new config::IndexTaskConfig(taskName, taskType, "manual"));
+        if (taskType == "merge") {
+            _designateTaskConfig->FillMergeConfig(taskName, _tabletOptions->GetDefaultMergeConfig());
+            AUTIL_LOG(WARN, "index task config not exist, use default merge config.");
+        }
+        return true;
+    }
+    // check merge config if merge type
+    if (taskType == "merge") {
+        auto [status, taskMergeConfig] = taskConfig.value().GetSetting<indexlibv2::config::MergeConfig>("merge_config");
+        if (!status.IsOK()) {
+            AUTIL_LOG(ERROR, "target IndexTaskConfig for taskName [%s] do not has merge config.", taskName.c_str());
+            return false;
+        }
+    }
+    _designateTaskConfig.reset(new config::IndexTaskConfig(taskConfig.value()));
+    _taskType = taskType;
+    _taskName = taskName;
+    return true;
 }
 
 } // namespace indexlibv2::framework

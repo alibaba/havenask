@@ -17,7 +17,7 @@
 
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
-#include "indexlib/indexlib/document/raw_document_parser.h"
+#include "indexlib/document/raw_document_parser.h"
 
 namespace build_service { namespace reader {
 

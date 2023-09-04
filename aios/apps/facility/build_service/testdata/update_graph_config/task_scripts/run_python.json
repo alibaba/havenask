@@ -1,0 +1,8 @@
+{
+    "script_type" : "python",
+    "script_file" : "run_python.py",
+    "resources" : [],
+    "force_retry" : false,
+    "max_retry_times" : 3,
+    "min_retry_interval" : 3
+}

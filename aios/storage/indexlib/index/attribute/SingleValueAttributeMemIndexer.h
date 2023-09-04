@@ -44,8 +44,23 @@ public:
     public:
         FieldType GetAttributeType() const override { return TypeInfo<T>::GetFieldType(); }
 
-        std::unique_ptr<AttributeMemIndexer> Create(const IndexerParameter& indexerParam) const override
+        std::unique_ptr<AttributeMemIndexer> Create(const std::shared_ptr<config::IIndexConfig>& indexConfig,
+                                                    const IndexerParameter& indexerParam) const override
         {
+            std::shared_ptr<AttributeConfig> attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
+            assert(nullptr != attrConfig);
+            auto fieldConfig = attrConfig->GetFieldConfig();
+            assert(nullptr != fieldConfig);
+            FieldType fieldType = fieldConfig->GetFieldType();
+            if (fieldType == FieldType::ft_float) {
+                auto compressType = attrConfig->GetCompressType();
+                if (compressType.HasInt8EncodeCompress()) {
+                    return std::make_unique<SingleValueAttributeMemIndexer<int8_t>>(indexerParam);
+                }
+                if (compressType.HasFp16EncodeCompress()) {
+                    return std::make_unique<SingleValueAttributeMemIndexer<int16_t>>(indexerParam);
+                }
+            }
             return std::make_unique<SingleValueAttributeMemIndexer<T>>(indexerParam);
         }
     };

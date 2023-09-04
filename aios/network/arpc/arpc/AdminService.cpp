@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <string.h>
+#include "aios/network/arpc/arpc/AdminService.h"
+
 #include <sstream>
+#include <string.h>
 #include <string>
 
-#include "aios/network/arpc/arpc/util/Log.h"
-#include "aios/network/arpc/arpc/AdminService.h"
-#include "aios/network/arpc/arpc/RPCServerList.h"
+#include "aios/autil/autil/Lock.h"
 #include "aios/network/anet/admincmds.h"
 #include "aios/network/anet/adminserver.h"
 #include "aios/network/anet/ilogger.h"
 #include "aios/network/anet/runnable.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
-#include "aios/autil/autil/Lock.h"
+#include "aios/network/arpc/arpc/RPCServerList.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 
 using namespace std;
 using namespace anet;
@@ -40,8 +41,7 @@ static int dump(char *params, ostringstream &out);
 /* just for test */
 static int test(char *params, ostringstream &out);
 
-void AdminService::Start()
-{
+void AdminService::Start() {
     autil::ScopedLock lock(mAdminServiceMutex);
 
     if (isAdminServiceStart)
@@ -69,8 +69,7 @@ void AdminService::Start()
     isAdminServiceStart = true;
 }
 
-bool AdminService::Stop()
-{
+bool AdminService::Stop() {
     bool rc = false;
     autil::ScopedLock lock(mAdminServiceMutex);
 
@@ -85,25 +84,25 @@ bool AdminService::Stop()
     return rc;
 }
 
-anet::AdminServer *AdminService::GetAdminInstance(std::string spec)
-{
+anet::AdminServer *AdminService::GetAdminInstance(std::string spec) {
     if (adm == NULL)
         adm = new anet::AdminServer(spec);
 
     return adm;
 }
 
-static int dump(char *params, ostringstream &out)
-{
+static int dump(char *params, ostringstream &out) {
     int rc = 0;
     bool dumpall = false;
     /* If no params are available, params will be set to NULL. */
     const char *p = params;
 
     /* If no parameter, assume "all" */
-    if (p == NULL || *p == '\0') p = "all";
+    if (p == NULL || *p == '\0')
+        p = "all";
 
-    if (strncmp(p, "all", 3) == 0) dumpall = true;
+    if (strncmp(p, "all", 3) == 0)
+        dumpall = true;
 
     if (strncmp(p, "rpcservers", 10) == 0 || dumpall) {
         rc = dumpRPCServerList(out);
@@ -114,18 +113,19 @@ static int dump(char *params, ostringstream &out)
     return rc;
 }
 
-static int test(char *params, ostringstream &out)
-{
+static int test(char *params, ostringstream &out) {
     int rc = -1;
     const char *p = params;
 
-    if (p == NULL || *p == '\0') p = "fail";
+    if (p == NULL || *p == '\0')
+        p = "fail";
 
     if (strncmp(p, "echo", 4) == 0) {
         const char *blabla = p + 4;
 
         // strip leading spaces
-        while (*blabla != '\0' && *blabla == ' ') blabla++;
+        while (*blabla != '\0' && *blabla == ' ')
+            blabla++;
 
         out << blabla << endl;
         rc = 0;
@@ -138,4 +138,3 @@ static int test(char *params, ostringstream &out)
 }
 
 ARPC_END_NAMESPACE(arpc);
-

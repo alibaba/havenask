@@ -39,7 +39,9 @@ public:
     bool IsCompress() const;
     const std::string& GetIndexType() const override;
     const std::string& GetIndexName() const override;
+    const std::string& GetIndexCommonPath() const override;
     std::vector<std::string> GetIndexPath() const override;
+    std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>> GetFieldConfigs() const override;
     void Deserialize(const autil::legacy::Any& any, size_t idxInJsonArray,
                      const indexlibv2::config::IndexConfigDeserializeResource& resource) override
     {
@@ -47,6 +49,9 @@ public:
     void Serialize(autil::legacy::Jsonizable::JsonWrapper& json) const override {}
     void Check() const override { assert(false); }
     Status CheckCompatible(const IIndexConfig* other) const override;
+    bool IsDisabled() const override;
+
+public:
     std::shared_ptr<indexlibv2::config::SingleFieldIndexConfig> GetPrimaryKeyIndexConfig() const;
 
     void AddIndexConfigs(const std::string& indexType, const std::vector<std::shared_ptr<IIndexConfig>>& indexConfigs);
@@ -54,12 +59,14 @@ public:
 
     const std::vector<std::shared_ptr<indexlibv2::config::IIndexConfig>>&
     GetIndexConfigs(const std::string& indexType) const;
-    std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>> GetFieldConfigs() const override;
+    std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>> GetAllFieldConfigs() const;
     bool HasIndexConfig(const std::string& indexType, const std::string& indexName);
 
 private:
     std::map<std::string, std::vector<std::shared_ptr<indexlibv2::config::IIndexConfig>>> _indexConfigs;
-    std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>> _fieldConfigs;
+    std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>> _allFieldConfigs;
+    std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>> _usingFieldConfigs;
+
     size_t _maxBlockSize;
     bool _isCompress;
 

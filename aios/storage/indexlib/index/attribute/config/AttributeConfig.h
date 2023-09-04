@@ -26,53 +26,44 @@ class FileCompressConfig;
 } // namespace indexlib::config
 
 namespace indexlibv2::config {
-class PackAttributeConfig;
 class FileCompressConfigV2;
+}
 
-class AttributeConfig : public IIndexConfig
+namespace indexlibv2::index {
+class PackAttributeConfig;
+
+class AttributeConfig : public config::IIndexConfig
 {
 public:
-    enum ConfigType {
-        ct_normal,
-        ct_virtual,
-        ct_section,
-        ct_pk,
-        ct_unknown,
-        ct_index_accompany,
-        ct_summary_accompany,
-    };
-
-public:
-    AttributeConfig(ConfigType type = ct_normal);
+    AttributeConfig();
     ~AttributeConfig();
 
-public:
-    void Init(const std::shared_ptr<FieldConfig>& fieldConfig);
-    Status AssertEqual(const AttributeConfig& other) const;
+    Status Init(const std::shared_ptr<config::FieldConfig>& fieldConfig);
 
+public:
+    const std::string& GetIndexType() const override;
+    const std::string& GetIndexName() const override;
+    const std::string& GetIndexCommonPath() const override;
+    std::vector<std::string> GetIndexPath() const override;
+    std::vector<std::shared_ptr<config::FieldConfig>> GetFieldConfigs() const override;
     void Deserialize(const autil::legacy::Any& any, size_t idxInJsonArray,
                      const config::IndexConfigDeserializeResource& resource) override;
     void Serialize(autil::legacy::Jsonizable::JsonWrapper& json) const override;
     void Check() const override;
-    Status CheckCompatible(const IIndexConfig* other) const override;
+    Status CheckCompatible(const config::IIndexConfig* other) const override;
+    bool IsDisabled() const override;
 
 public:
     // Read
-    const std::string& GetIndexType() const override;
-    const std::string& GetIndexName() const override;
-    std::vector<std::string> GetIndexPath() const override; //获取index从segment开始的相对路径
-    std::string GetSliceDir() const;
-    std::vector<std::shared_ptr<FieldConfig>> GetFieldConfigs() const override;
-
-    const std::shared_ptr<FieldConfig>& GetFieldConfig() const;
+    Status AssertEqual(const AttributeConfig& other) const;
+    const std::shared_ptr<config::FieldConfig>& GetFieldConfig() const;
     const std::string& GetAttrName() const;
     attrid_t GetAttrId() const;
-    indexlib::config::CompressTypeOption GetCompressType() const;
-    ConfigType GetConfigType() const;
-    float GetDefragSlicePercent();
+    const indexlib::config::CompressTypeOption& GetCompressType() const;
+    uint64_t GetDefragSlicePercent() const;
     fieldid_t GetFieldId() const;
     const std::shared_ptr<indexlib::config::FileCompressConfig>& GetFileCompressConfig() const;
-    const std::shared_ptr<FileCompressConfigV2>& GetFileCompressConfigV2() const;
+    const std::shared_ptr<config::FileCompressConfigV2>& GetFileCompressConfigV2() const;
     PackAttributeConfig* GetPackAttributeConfig() const;
     bool IsAttributeUpdatable() const;
     bool IsLengthFixed() const;
@@ -85,30 +76,35 @@ public:
     uint32_t GetFixLenFieldSize() const;
     bool IsMultiString() const;
     uint64_t GetU32OffsetThreshold() const;
-    bool IsDisable() const;
     bool IsDeleted() const;
     bool IsNormal() const;
     indexlib::IndexStatus GetStatus() const;
     int64_t GetSliceCount() const;
     int64_t GetSliceIdx() const;
-    std::vector<std::shared_ptr<AttributeConfig>> CreateSliceAttributeConfigs(int64_t sliceCount);
+    std::string GetSliceDir() const;
 
 public:
     // Write
-    void SetUpdatable(bool isUpdatable);
+    void SetUpdatable(bool updatable);
     void SetAttrId(attrid_t id);
-    void SetConfigType(ConfigType type);
     void SetPackAttributeConfig(PackAttributeConfig* packAttrConfig);
     void SetFileCompressConfig(const std::shared_ptr<indexlib::config::FileCompressConfig>& fileCompressConfig);
-    void SetFileCompressConfigV2(const std::shared_ptr<FileCompressConfigV2>& fileCompressConfigV2);
+    void SetFileCompressConfigV2(const std::shared_ptr<config::FileCompressConfigV2>& fileCompressConfigV2);
     void SetU32OffsetThreshold(uint64_t offsetThreshold);
     void SetDefragSlicePercent(uint64_t percent);
     void Disable();
     Status Delete();
+    std::vector<std::shared_ptr<AttributeConfig>> CreateSliceAttributeConfigs(int64_t sliceCount);
 
 public:
     virtual bool IsLegacyAttributeConfig() const;
     virtual Status SetCompressType(const std::string& compressStr);
+
+private:
+    void CheckUniqEncode() const;
+    void CheckEquivalentCompress() const;
+    void CheckBlockFpEncode() const;
+    void CheckFieldType() const;
 
 public:
     void TEST_ClearCompressType();
@@ -122,4 +118,4 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-} // namespace indexlibv2::config
+} // namespace indexlibv2::index

@@ -16,30 +16,30 @@
 #ifndef FSLIB_SPEEDCONTROLLER_H
 #define FSLIB_SPEEDCONTROLLER_H
 
-#include <autil/Log.h>
 #include <autil/Lock.h>
+#include <autil/Log.h>
+
 #include "fslib/fslib.h"
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class SpeedController
-{
+class SpeedController {
 public:
     SpeedController();
     ~SpeedController();
 
 public:
     // format : quota_size=10485760,quota_interval=1000
-    void initFromString(const std::string& paramStr);
-    bool matchPathPattern(const std::string& path) const;
+    void initFromString(const std::string &paramStr);
+    bool matchPathPattern(const std::string &path) const;
     int64_t reserveQuota(int64_t quota);
-    const std::string& getPathPattern() const { return _pathPattern; }
+    const std::string &getPathPattern() const { return _pathPattern; }
     int64_t getQuotaPerSecond() const;
     void resetQuotaPerSecond(int64_t quota);
 
     double getQuotaUsageRatio() const { return _quotaUsageRatio; }
 
-// for test
+    // for test
 public:
     int64_t TEST_getInterval() const;
     std::string TEST_getPathPattern() const;
@@ -63,4 +63,4 @@ FSLIB_TYPEDEF_AUTO_PTR(SpeedController);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_SPEEDCONTROLLER_H
+#endif // FSLIB_SPEEDCONTROLLER_H

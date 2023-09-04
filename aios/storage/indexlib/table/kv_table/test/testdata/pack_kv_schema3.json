@@ -1,0 +1,38 @@
+{
+    "table_name": "single_kv_table",
+    "table_type": "kv",
+    "settings": {
+        "need_store_pk_value": true
+    },
+    "fields": [
+        {
+            "field_type": "STRING",
+            "field_name": "key"
+        },
+        {
+            "field_type": "FLOAT",
+            "binary_field": false,
+            "field_name": "weights1",
+            "multi_value": true
+        },
+        {
+            "field_type": "FLOAT",
+            "binary_field": false,
+            "field_name": "weights2",
+            "multi_value": true
+        }
+    ],
+    "indexes": {
+        "kv": [
+            {
+                "index_name": "index1",
+                "key_field": "key",
+                "value_fields": [
+                    "weights1",
+                    "weights2"
+                ],
+                "index_preference": {}
+            }
+        ]
+    }
+}

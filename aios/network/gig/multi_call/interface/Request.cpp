@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/interface/Request.h"
+
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
 #include "aios/network/gig/multi_call/util/MiscUtil.h"
 #include "aios/network/opentelemetry/core/eagleeye/EagleeyePropagator.h"
@@ -26,12 +27,10 @@ Request::Request(ProtocolType type, const std::shared_ptr<google::protobuf::Aren
     : _arena(arena)
     , _type(type)
     , _timeout(DEFAULT_TIMEOUT)
-    , _providerAttributeMap(NULL)
-{
+    , _providerAttributeMap(NULL) {
     if (_arena) {
-        _queryInfo.reset(
-            google::protobuf::Arena::CreateMessage<GigQueryInfo>(_arena.get()),
-            freeProtoMessage);
+        _queryInfo.reset(google::protobuf::Arena::CreateMessage<GigQueryInfo>(_arena.get()),
+                         freeProtoMessage);
     } else {
         _queryInfo.reset(new GigQueryInfo(), freeProtoMessage);
     }
@@ -125,7 +124,9 @@ void Request::setProviderWeight(WeightTy weight) {
     _queryInfo->set_gig_weight(weight);
 }
 
-int32_t Request::getProviderWeight() const { return _queryInfo->gig_weight(); }
+int32_t Request::getProviderWeight() const {
+    return _queryInfo->gig_weight();
+}
 
 void Request::setProviderAttributes(const NodeAttributeMap *attrs) {
     _providerAttributeMap = attrs;
@@ -159,9 +160,13 @@ float Request::getBeginDegradeErrorRatio() const {
     return _queryInfo->begin_degrade_error_ratio();
 }
 
-void Request::setReturnMetaEnv(bool b) { _queryInfo->set_return_meta_env(b); }
+void Request::setReturnMetaEnv(bool b) {
+    _queryInfo->set_return_meta_env(b);
+}
 
-bool Request::getReturnMetaEnv() const { return _queryInfo->return_meta_env(); }
+bool Request::getReturnMetaEnv() const {
+    return _queryInfo->return_meta_env();
+}
 
 PropagationStats *Request::getPropagationStats() {
     return _queryInfo->mutable_propagation_stats();
@@ -176,9 +181,8 @@ void Request::setSpan(const opentelemetry::SpanPtr &span) {
 
     std::string eTraceId, eRpcId, traceparent, tracestate;
     std::map<std::string, std::string> eUserDatas;
-    opentelemetry::EagleeyePropagator::inject(span->getContext(), eTraceId,
-                                              eRpcId, eUserDatas, traceparent,
-                                              tracestate);
+    opentelemetry::EagleeyePropagator::inject(span->getContext(), eTraceId, eRpcId, eUserDatas,
+                                              traceparent, tracestate);
 
     gigTraceContext->set_trace_id(eTraceId);
     gigTraceContext->set_rpc_id(eRpcId);

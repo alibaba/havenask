@@ -16,33 +16,33 @@
 #ifndef ARPC_RPCSERVER_H
 #define ARPC_RPCSERVER_H
 #include <assert.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <sstream>
 #include <list>
 #include <map>
 #include <memory>
+#include <sstream>
+#include <stddef.h>
+#include <stdint.h>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include "aios/network/arpc/arpc/CommonMacros.h"
-#include "aios/network/arpc/arpc/util/Log.h"
-#include "autil/LockFreeThreadPool.h"
-#include "aios/network/arpc/arpc/ThreadPoolDescriptor.h"
-#include "aios/network/arpc/arpc/RPCServerWorkItem.h"
-#include "aios/network/arpc/arpc/MessageCodec.h"
 #include "aios/autil/autil/Lock.h"
+#include "aios/network/arpc/arpc/CommonMacros.h"
+#include "aios/network/arpc/arpc/MessageCodec.h"
 #include "aios/network/arpc/arpc/RPCServerAdapter.h"
+#include "aios/network/arpc/arpc/RPCServerWorkItem.h"
+#include "aios/network/arpc/arpc/ThreadPoolDescriptor.h"
 #include "aios/network/arpc/arpc/proto/rpc_extensions.pb.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 #include "autil/Lock.h"
+#include "autil/LockFreeThreadPool.h"
 
 ARPC_BEGIN_NAMESPACE(arpc);
 
 /**
  * Default time span to break idle connections.
  */
-const int MAX_IDLE_TIME = 900000; //15 minutes
+const int MAX_IDLE_TIME = 900000; // 15 minutes
 
 /**
  * Default backlog for server's listen socket
@@ -58,13 +58,12 @@ const int LISTEN_BACKLOG = 256;
  * be responsible to create and maintain the lifecycle of the instance for
  * this class.
  */
-class RPCServer
-{
+class RPCServer {
 public:
-    typedef std::pair<RPCService *, RPCMethodDescriptor *> ServiceMethodPair;
+    typedef std::pair<std::pair<std::shared_ptr<RPCService>, RPCService *>, RPCMethodDescriptor *> ServiceMethodPair;
     typedef std::map<std::string, autil::ThreadPoolBasePtr> ThreadPoolMap;
     typedef std::map<RPCService *, autil::ThreadPoolBasePtr> ServiceThreadPoolMap;
-    typedef std::unordered_map<uint32_t, ServiceMethodPair > RPCCallMap;
+    typedef std::unordered_map<uint32_t, ServiceMethodPair> RPCCallMap;
 
 public:
     /**
@@ -114,17 +113,18 @@ public:
      *        map to. If not indicated, this service will be binded to default
      *        thread pool.
      */
-    bool RegisterService(RPCService *rpcService,
-                         ThreadPoolDescriptor threadPoolDescriptor = ThreadPoolDescriptor());
-    
+    bool RegisterService(RPCService *rpcService, ThreadPoolDescriptor threadPoolDescriptor = ThreadPoolDescriptor());
+    bool RegisterService(const std::shared_ptr<RPCService> &rpcService,
+                         const std::string &methodName,
+                         ThreadPoolDescriptor threadPoolDescriptor);
+
     bool RegisterService(RPCService *rpcService, const autil::ThreadPoolBasePtr &pool);
 
     bool RegisterThreadPool(const autil::ThreadPoolBasePtr &pool);
     /**
      * Get thread pool shared pointer by its name.
      */
-    autil::ThreadPoolBasePtr GetThreadPool(
-        const std::string &threadPoolName = DEFAULT_TREAHDPOOL_NAME) const;
+    autil::ThreadPoolBasePtr GetThreadPool(const std::string &threadPoolName = DEFAULT_TREAHDPOOL_NAME) const;
 
     /**
      * Get all thread pool names
@@ -137,13 +137,7 @@ public:
      */
     autil::ThreadPoolBasePtr GetServiceThreadPool(RPCService *rpcService) const;
 
-    const RPCCallMap &GetRPCCallMap() const {
-        return _rpcCallMap;
-    }
-
-    version_t GetVersion() {
-        return _version;
-    }
+    version_t GetVersion() { return _version; }
 
     virtual void dump(std::ostringstream &out);
 
@@ -160,16 +154,24 @@ public:
 
     MessageCodec *GetMessageCodec() { return _messageCodec; }
     void stopThreadPools();
+    void removeServiceThreadPool(RPCService *rpcService);
+
+    RPCCallMap GetRPCCallMap() const;
+    void SetRPCCallMap(const RPCCallMap &newMap);
+    void unRegisterService(const std::shared_ptr<RPCService> &rpcService);
 
 protected:
-    bool addAndStartThreadPool(const ThreadPoolDescriptor& desc);
+    bool addAndStartThreadPool(const ThreadPoolDescriptor &desc);
+    bool doRegisterService(const std::shared_ptr<RPCService> &rpcService, const std::string &methodName);
     virtual bool doRegisterService(RPCService *rpcService);
+    void reconstructThreadPoolMap();
 
 protected:
     bool _isStopped;
     RPCServerAdapter *_serverAdapter;
     MessageCodec *_messageCodec;
 
+    mutable autil::ReadWriteLock _mutex;
     RPCCallMap _rpcCallMap;
 
     ThreadPoolMap _threadPoolMap;
@@ -189,4 +191,4 @@ TYPEDEF_PTR(RPCServer);
 
 ARPC_END_NAMESPACE(arpc);
 
-#endif //ARPC_RPCSERVER_H
+#endif // ARPC_RPCSERVER_H

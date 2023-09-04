@@ -18,16 +18,16 @@
 #include "indexlib/index/common/field_format/attribute/AttributeValueInitializerCreator.h"
 
 namespace indexlibv2::config {
-class AttributeConfig;
 class FieldConfig;
 } // namespace indexlibv2::config
 
 namespace indexlibv2::index {
+class AttributeConfig;
 
 class DefaultAttributeValueInitializerCreator : public AttributeValueInitializerCreator
 {
 public:
-    explicit DefaultAttributeValueInitializerCreator(const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    explicit DefaultAttributeValueInitializerCreator(const std::shared_ptr<index::AttributeConfig>& attrConfig);
 
     ~DefaultAttributeValueInitializerCreator();
 

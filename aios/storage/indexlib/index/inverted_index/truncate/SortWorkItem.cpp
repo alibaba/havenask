@@ -27,7 +27,7 @@ AUTIL_LOG_SETUP(indexlib.index, SortWorkItem);
 SortWorkItem::SortWorkItem(const indexlibv2::config::TruncateProfile& truncProfile, uint32_t newDocCount,
                            TruncateAttributeReaderCreator* truncateAttrCreator,
                            const std::shared_ptr<BucketMap>& bucketMap,
-                           const std::shared_ptr<indexlibv2::config::TabletSchema>& tabletSchema)
+                           const std::shared_ptr<indexlibv2::config::ITabletSchema>& tabletSchema)
     : _truncateProfile(truncProfile)
     , _newDocCount(newDocCount)
     , _truncateAttrCreator(truncateAttrCreator)

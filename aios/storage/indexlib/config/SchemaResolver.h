@@ -41,7 +41,7 @@ private:
     Status LegacySchemaToTabletSchema(const indexlib::config::IndexPartitionSchema& legacySchema, TabletSchema* schema);
 
 protected:
-    virtual Status Check(const config::TabletSchema& schema) = 0;
+    virtual Status Check(const config::TabletSchema& schema) const = 0;
 
 protected:
     virtual Status LegacySchemaToTabletSchema(const indexlib::config::IndexPartitionSchema& legacySchema,

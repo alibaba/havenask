@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="where_and_or_1">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT nid, brand, price, size FROM phone WHERE nid < 2 OR nid > 8
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"nid", "brand", "price", "size"</Resource>
+        <Resource name="column_types">uint64, multi_char, double, double</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1, "Huawei", 3599, 5.9
+9, "Apple", 4298, 4.7
+10, "Samsung", 5688, 5.6
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#2(type=api)
+    ExchangeOp#1(distribution={type:SINGLETON})
+        TableScanOp#0(catalog_name=default,db_name=phone,limit=100,output_fields=[$nid,$brand,$price,$size],push_down_ops=[{attrs:{condition:{op:OR,params:[{op:<,params:[$nid,2],type:OTHER},{op:>,params:[$nid,8],type:OTHER}],type:OTHER},output_fields:[$nid,$brand,$price,$size]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

@@ -358,7 +358,7 @@ void OnlinePartitionReader::InitSortedDocidRangeSearcher()
     for (size_t i = 0; i < sortDescs.size(); i++) {
         const string& sortFieldName = sortDescs[i].GetSortFieldName();
         assert(attributeSchema);
-        if (!attributeSchema->GetAttributeConfig(sortFieldName)->IsDisable()) {
+        if (!attributeSchema->GetAttributeConfig(sortFieldName)->IsDisabled()) {
             sortAttributes.push_back(sortFieldName);
         }
     }
@@ -393,7 +393,7 @@ void OnlinePartitionReader::AddAttrReadersToSummaryReader()
             }
             PackAttributeConfig* packConfig = attrConfig->GetPackAttributeConfig();
             if (packConfig) {
-                mSummaryReader->AddPackAttrReader(fieldId, GetPackAttributeReader(packConfig->GetAttrName()));
+                mSummaryReader->AddPackAttrReader(fieldId, GetPackAttributeReader(packConfig->GetPackName()));
             }
         }
     }

@@ -1,11 +1,11 @@
-load('//bazel:defs.bzl', 'cc_proto', 'gen_conf_lib')
+load('//bazel:defs.bzl', 'gen_conf_lib')
 cc_library(
     name='http_arpc',
     srcs=glob([
         'HTTPRPCServer.cpp', 'HTTPRPCServerAdapter.cpp',
         'HTTPRPCServerWorkItem.cpp', 'HTTPRPCController.cpp',
         'HTTPRPCServerClosure.cpp', 'ProtoJsonizer.cpp', 'Log.cpp',
-        'HTTPANetApp.cpp', '*.h'
+        'HTTPANetApp.cpp', 'SimpleProtoJsonizer.cpp', '*.h'
     ]),
     hdrs=glob(['http_arpc/*.h']),
     deps=[
@@ -25,9 +25,4 @@ gen_conf_lib(
         '@DOTEST_LOGGER_CONF@': '',
         '@INSTALLROOT@': '.'
     }
-)
-cc_proto(
-    name='http_arpc_test_proto',
-    srcs=['test/TestJsonize.proto', 'test/TestMessage.proto'],
-    deps=['//aios/network/arpc:proto']
 )

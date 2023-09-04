@@ -27,6 +27,7 @@
 #include "indexlib/index/common/Constant.h"
 #include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
 #include "indexlib/index/primary_key/Constant.h"
+#include "indexlib/index/primary_key/PrimaryKeyDiskIndexer.h"
 #include "indexlib/index/primary_key/SegmentDataAdapter.h"
 
 namespace indexlibv2::index {
@@ -59,8 +60,9 @@ public:
     size_t GetSegmentNum() const { return _segments.size(); }
     std::vector<SegmentDataAdapter::SegmentDataType>& GetLoadSegmentDatas() { return _segments; }
 
+    template <typename Key>
     bool SetSegmentIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                           std::shared_ptr<IDiskIndexer> indexer)
+                           std::shared_ptr<PrimaryKeyDiskIndexer<Key>> indexer)
     {
         assert(_segments.size() > 0);
         std::string indexType = indexConfig->GetIndexType();
@@ -79,20 +81,35 @@ public:
         // We fill pk indexer into last segment (4), and fill empty pk into 0-3 for pk attribute loading
         // If a segment already has pk indexer, we should remove this (clean old reader's combined-pk indexer)
         for (size_t i = 0; i < _segments.size(); i++) {
-            if (auto segment = _segments[i]._segment) {
-                // for combine mode delete before segment disk indexer
-                segment->DeleteIndexer(indexType, indexName);
-                if (i == _segments.size() - 1) {
-                    segment->AddIndexer(indexType, indexName, indexer);
-                } else {
-                    // add for pk attribute need a plain disk indexer
-                    IndexerParameter indexerParam;
-                    indexerParam.docCount = segment->GetSegmentInfo()->GetDocCount();
-                    auto indexer = indexFactory->CreateDiskIndexer(indexConfig, indexerParam);
-                    assert(indexer);
-                    segment->AddIndexer(indexType, indexName, indexer);
+            auto segment = _segments[i]._segment;
+            if (!segment) {
+                continue;
+            }
+            // for combine mode delete before segment disk indexer
+            decltype(indexer) newIndexer = indexer;
+            if (i != _segments.size() - 1) {
+                // add for pk attribute need a plain disk indexer
+                IndexerParameter indexerParam;
+                indexerParam.docCount = segment->GetSegmentInfo()->GetDocCount();
+                newIndexer = std::dynamic_pointer_cast<PrimaryKeyDiskIndexer<Key>>(
+                    indexFactory->CreateDiskIndexer(indexConfig, indexerParam));
+            }
+            if (!newIndexer) {
+                AUTIL_LOG(ERROR, "not indexer to add");
+                return false;
+            }
+            auto [st, oldIndexer] = segment->GetIndexer(indexType, indexName);
+            if (st.IsOK()) {
+                std::shared_ptr<PrimaryKeyDiskIndexer<Key>> oldTypedIndexer;
+                if (oldIndexer) {
+                    oldTypedIndexer = std::dynamic_pointer_cast<PrimaryKeyDiskIndexer<Key>>(oldIndexer);
+                    if (oldTypedIndexer) {
+                        indexer->InhertPkAttributeDiskIndexer(oldTypedIndexer.get());
+                    }
                 }
             }
+            segment->DeleteIndexer(indexType, indexName);
+            segment->AddIndexer(indexType, indexName, newIndexer);
         }
         return true;
     }

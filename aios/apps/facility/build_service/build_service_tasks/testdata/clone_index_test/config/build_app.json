@@ -1,0 +1,28 @@
+{
+"amonitor_port":
+  10086,
+"counter_config":
+  {
+  "parameters":
+    {
+    },
+  "position":
+    "zookeeper"
+  },
+"full_builder_tmp_root":
+  "",
+"heartbeat_type":
+  "",
+"hippo_root":
+  "path\/to\/hippo\/leader\/elector\/root",
+"index_root":
+  "\/home\/yida.ywq\/ha3_develop_tools\/bs_release\/build_service_tasks\/testdata\/\/runtime_testdata\/N13build_service9task_base41CloneIndexTaskTest_testMadroxChannel_TestE\/",
+"service_name":
+  "service_name",
+"swift_root":
+  "zfs:\/\/root\/",
+"user_name":
+  "user_name",
+"zookeeper_root":
+  "path\/to\/zk\/root"
+}

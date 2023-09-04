@@ -17,11 +17,8 @@
 
 #include <memory>
 
-namespace indexlibv2::config {
-class AttributeConfig;
-}
-
 namespace indexlibv2::index {
+class AttributeConfig;
 
 class AttributeCompressInfo
 {
@@ -30,9 +27,9 @@ public:
     ~AttributeCompressInfo();
 
 public:
-    static bool NeedCompressData(const std::shared_ptr<config::AttributeConfig>& attrConfig);
-    static bool NeedCompressOffset(const std::shared_ptr<config::AttributeConfig>& attrConfig);
-    static bool NeedEnableAdaptiveOffset(const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    static bool NeedCompressData(const std::shared_ptr<index::AttributeConfig>& attrConfig);
+    static bool NeedCompressOffset(const std::shared_ptr<index::AttributeConfig>& attrConfig);
+    static bool NeedEnableAdaptiveOffset(const std::shared_ptr<index::AttributeConfig>& attrConfig);
 };
 
 } // namespace indexlibv2::index

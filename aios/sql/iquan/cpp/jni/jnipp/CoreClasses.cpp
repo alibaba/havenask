@@ -33,7 +33,9 @@ LocalRef<jclass> findClassLocal(const std::string &name) {
     return {clazz};
 }
 
-GlobalRef<jclass> findClassGlobal(const std::string &name) { return {findClassLocal(name)}; }
+GlobalRef<jclass> findClassGlobal(const std::string &name) {
+    return {findClassLocal(name)};
+}
 
 jmethodID getMethodID(jclass clazz, const std::string &name, const std::string &signature) {
     JNIEnv *env = getIquanJNIEnv();
@@ -106,32 +108,36 @@ LocalRef<jthrowable> JThrowable::getCause() {
     return method(self());
 }
 
-std::string JObjectArray::javaDescriptor() { return "[" + JTypeTraits<jobject>::descriptor(); }
+std::string JObjectArray::javaDescriptor() {
+    return "[" + JTypeTraits<jobject>::descriptor();
+}
 
-std::string JObjectArray::baseName() { return JObjectArray::javaDescriptor(); }
+std::string JObjectArray::baseName() {
+    return JObjectArray::javaDescriptor();
+}
 
-#define DEFINE_PRIMITIVE_ARRAY_METHODS(TYPE, NAME)                                                                     \
-    template <>                                                                                                        \
-    LocalRef<TYPE##Array> J##NAME##Array::newArray(size_t size) {                                                      \
-        auto array = getIquanJNIEnv()->New##NAME##Array(size);                                                         \
-        return {array};                                                                                                \
-    }                                                                                                                  \
-    template <>                                                                                                        \
-    void J##NAME##Array::getRegion(jsize start, jsize length, TYPE *elements) {                                        \
-        auto env = getIquanJNIEnv();                                                                                   \
-        env->Get##NAME##ArrayRegion(self(), start, length, elements);                                                  \
-        transJniException();                                                                                           \
-    }                                                                                                                  \
-    template <>                                                                                                        \
-    std::vector<TYPE> J##NAME##Array::getRegion(jsize start, jsize length) {                                           \
-        std::vector<TYPE> buf(length);                                                                                 \
-        getRegion(start, length, buf.data());                                                                          \
-        return buf;                                                                                                    \
-    }                                                                                                                  \
-    template <>                                                                                                        \
-    void J##NAME##Array::setRegion(jsize start, jsize length, const TYPE *elements) {                                  \
-        auto env = getIquanJNIEnv();                                                                                   \
-        env->Set##NAME##ArrayRegion(self(), start, length, elements);                                                  \
+#define DEFINE_PRIMITIVE_ARRAY_METHODS(TYPE, NAME)                                                 \
+    template <>                                                                                    \
+    LocalRef<TYPE##Array> J##NAME##Array::newArray(size_t size) {                                  \
+        auto array = getIquanJNIEnv()->New##NAME##Array(size);                                     \
+        return {array};                                                                            \
+    }                                                                                              \
+    template <>                                                                                    \
+    void J##NAME##Array::getRegion(jsize start, jsize length, TYPE *elements) {                    \
+        auto env = getIquanJNIEnv();                                                               \
+        env->Get##NAME##ArrayRegion(self(), start, length, elements);                              \
+        transJniException();                                                                       \
+    }                                                                                              \
+    template <>                                                                                    \
+    std::vector<TYPE> J##NAME##Array::getRegion(jsize start, jsize length) {                       \
+        std::vector<TYPE> buf(length);                                                             \
+        getRegion(start, length, buf.data());                                                      \
+        return buf;                                                                                \
+    }                                                                                              \
+    template <>                                                                                    \
+    void J##NAME##Array::setRegion(jsize start, jsize length, const TYPE *elements) {              \
+        auto env = getIquanJNIEnv();                                                               \
+        env->Set##NAME##ArrayRegion(self(), start, length, elements);                              \
     }
 
 DEFINE_PRIMITIVE_ARRAY_METHODS(jboolean, Boolean)
@@ -159,7 +165,8 @@ LocalRef<JByteArray> JByteArrayFromStdString(const std::string &s) {
 }
 
 LocalRef<JObjectArrayT<JStackTraceElement>> JThrowable::getStackTrace() {
-    static auto method = javaClass()->getMethod<JObjectArrayT<JStackTraceElement>()>("getStackTrace");
+    static auto method
+        = javaClass()->getMethod<JObjectArrayT<JStackTraceElement>()>("getStackTrace");
     return method(self());
 }
 

@@ -34,7 +34,6 @@ public:
 public:
     Status Init(const OperationBlockVec& opBlocks);
     Status Dump(const std::shared_ptr<file_system::Directory>& directory, autil::mem_pool::PoolBase* dumpPool);
-    static size_t GetDumpSize(OperationBase* op);
 
 private:
     Status CheckOperationBlocks() const;

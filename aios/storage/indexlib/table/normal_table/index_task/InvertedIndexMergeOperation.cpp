@@ -16,14 +16,15 @@
 #include "indexlib/table/normal_table/index_task/InvertedIndexMergeOperation.h"
 
 #include "indexlib/base/PathUtil.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/IndexTaskConfig.h"
 #include "indexlib/config/MergeConfig.h"
 #include "indexlib/config/TabletOptions.h"
-#include "indexlib/config/TabletSchema.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/IFileSystem.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/framework/index_task/IndexTaskResourceManager.h"
 #include "indexlib/index/DocMapper.h"
 #include "indexlib/index/IIndexFactory.h"
@@ -49,7 +50,7 @@ InvertedIndexMergeOperation::InvertedIndexMergeOperation(const indexlibv2::frame
 {
 }
 
-Status InvertedIndexMergeOperation::Init(const std::shared_ptr<indexlibv2::config::TabletSchema> schema)
+Status InvertedIndexMergeOperation::Init(const std::shared_ptr<indexlibv2::config::ITabletSchema> schema)
 {
     std::string indexType;
     if (!_desc.GetParameter(indexlibv2::table::MERGE_INDEX_TYPE, indexType)) {
@@ -89,8 +90,6 @@ Status InvertedIndexMergeOperation::Execute(const indexlibv2::framework::IndexTa
 {
     auto [status, segmentMergeInfos] = PrepareSegmentMergeInfos(context, true);
     RETURN_STATUS_DIRECTLY_IF_ERROR(status);
-    status = RewriteMergeConfig(context);
-    RETURN_IF_STATUS_ERROR(status, "rewrite merge config failed");
     std::map<std::string, std::any> params;
     status = GetAllParameters(context, segmentMergeInfos, params);
     RETURN_IF_STATUS_ERROR(status, "get all param failed.");
@@ -168,11 +167,21 @@ Status InvertedIndexMergeOperation::GetAllParameters(
     params[TRUNCATE_ATTRIBUTE_READER_CREATOR] = truncateAttributeReaderCreator;
 
     auto [st, truncateProfileConfigs] =
-        schema->GetSetting<std::vector<indexlibv2::config::TruncateProfileConfig>>("truncate_profiles");
-    RETURN_IF_STATUS_ERROR(status, "get truncate profile settings failed.");
-    auto option = context.GetTabletOptions();
-    auto truncateOptionConfig =
-        std::make_shared<indexlibv2::config::TruncateOptionConfig>(option->GetMergeConfig().GetTruncateStrategys());
+        schema->GetRuntimeSettings().GetValue<std::vector<indexlibv2::config::TruncateProfileConfig>>(
+            "truncate_profiles");
+    if (!st.IsOKOrNotFound()) {
+        AUTIL_LOG(ERROR, "get truncate profile settings failed.");
+        return st;
+    }
+    auto mergeConfig = context.GetMergeConfig();
+    const auto* truncateStrategy = std::any_cast<std::vector<indexlibv2::config::TruncateStrategy>>(
+        mergeConfig.GetHookOption(index::TRUNCATE_STRATEGY));
+    if (!truncateStrategy) {
+        status = Status::Corruption("get truncate strategy from merge config failed");
+        AUTIL_LOG(ERROR, "%s", status.ToString().c_str());
+        return status;
+    }
+    auto truncateOptionConfig = std::make_shared<indexlibv2::config::TruncateOptionConfig>(*truncateStrategy);
     truncateOptionConfig->Init({_indexConfig}, truncateProfileConfigs);
     params[TRUNCATE_OPTION_CONFIG] = truncateOptionConfig;
 
@@ -202,41 +211,11 @@ InvertedIndexMergeOperation::PrepareTruncateMetaDir(const std::shared_ptr<indexl
     auto status = rootDir->GetFileSystem()
                       ->MountDir(/*physicalRoot=*/rootDir->GetPhysicalPath(""), /*physicalPath=*/TRUNCATE_META_DIR_NAME,
                                  /*logicalPath=*/TRUNCATE_META_DIR_NAME,
-                                 /*MountDirOption=*/indexlib::file_system::FSMT_READ_WRITE,
+                                 /*MountOption=*/indexlib::file_system::FSMT_READ_WRITE,
                                  /*enableLazyMount=*/false)
                       .Status();
     RETURN_IF_STATUS_ERROR(status, "mount truncate meta dir failed.");
     *result = truncateMetaDir;
-    return Status::OK();
-}
-
-Status InvertedIndexMergeOperation::RewriteMergeConfig(const indexlibv2::framework::IndexTaskContext& taskContext)
-{
-    auto designateTask = taskContext.GetDesignateTask();
-    if (designateTask == std::nullopt) {
-        AUTIL_LOG(
-            WARN, "DesignateTask not set in taskContext, use default merge config: [%s]",
-            autil::legacy::ToJsonString(taskContext.GetTabletOptions()->GetMergeConfig(), /*compact*/ true).c_str());
-        return Status::OK();
-    }
-    auto [taskType, taskName] = designateTask.value();
-    auto taskConfig = taskContext.GetTabletOptions()->GetIndexTaskConfig(taskType, taskName);
-    if (taskConfig == std::nullopt) {
-        AUTIL_LOG(WARN, "Skip rewrite merge config, target IndexTaskConfig for taskName [%s] not exist",
-                  taskName.c_str());
-        return Status::OK();
-    }
-
-    auto [status, taskMergeConfig] = taskConfig.value().GetSetting<indexlibv2::config::MergeConfig>("merge_config");
-    RETURN_IF_STATUS_ERROR(status, "get merge config from indexTaskConfig fail [%s].", status.ToString().c_str());
-
-    AUTIL_LOG(INFO,
-              "Rewrite taskContext merge config with IndexTaskConfig [taskType:%s, taskName:%s], "
-              "truncate strategys count [%lu] => [%lu]",
-              taskType.c_str(), taskName.c_str(),
-              taskContext.GetTabletOptions()->GetMergeConfig().GetTruncateStrategys().size(),
-              taskMergeConfig.GetTruncateStrategys().size());
-    taskContext.GetTabletOptions()->MutableMergeConfig() = taskMergeConfig;
     return Status::OK();
 }
 

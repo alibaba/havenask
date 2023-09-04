@@ -59,7 +59,8 @@ Status IquanEnvImpl::load(const std::string &jarPath) {
 
     // 6. get the object iquan class loader
     LocalRef<JClassLoader> extClassLoader = JClassLoader::getExtClassLoader();
-    IQUAN_RETURN_ERROR_IF_NULL(extClassLoader, IQUAN_NEW_INSTANCE_FAILED, "failed to get extClassLoader");
+    IQUAN_RETURN_ERROR_IF_NULL(
+        extClassLoader, IQUAN_NEW_INSTANCE_FAILED, "failed to get extClassLoader");
 
     _gIquanClassLoader = JURLClassLoader::newInstance(urlArray, extClassLoader);
     IQUAN_RETURN_ERROR_IF_NULL(
@@ -69,6 +70,8 @@ Status IquanEnvImpl::load(const std::string &jarPath) {
     return Status::OK();
 }
 
-AliasRef<JClassLoader> IquanEnvImpl::getIquanClassLoader() { return _gIquanClassLoader; }
+AliasRef<JClassLoader> IquanEnvImpl::getIquanClassLoader() {
+    return _gIquanClassLoader;
+}
 
 } // namespace iquan

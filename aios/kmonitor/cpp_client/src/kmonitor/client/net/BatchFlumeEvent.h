@@ -8,10 +8,11 @@
 #ifndef KMONITOR_CLIENT_NET_BATCH_FLUME_EVENT_H_
 #define KMONITOR_CLIENT_NET_BATCH_FLUME_EVENT_H_
 
-#include <vector>
 #include <string>
-#include "kmonitor/client/common/Common.h"
+#include <vector>
+
 #include "autil/Log.h"
+#include "kmonitor/client/common/Common.h"
 #include "kmonitor/client/net/thrift/ThriftFlumeEvent.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
@@ -19,37 +20,28 @@ BEGIN_KMONITOR_NAMESPACE(kmonitor);
 class ThriftFlumeEvent;
 
 class BatchFlumeEvent {
- public:
-    BatchFlumeEvent() {
-       events = new std::vector<ThriftFlumeEvent*>;
-    }
+public:
+    BatchFlumeEvent() { events = new std::vector<ThriftFlumeEvent *>; }
     ~BatchFlumeEvent() {
-      // clean thrift event
-      for (auto event : *events) {
-         delete event;
-      }
-      delete events;
+        // clean thrift event
+        for (auto event : *events) {
+            delete event;
+        }
+        delete events;
     }
 
-    bool IsEmpty() {
-      return events->empty();
-    }
+    bool IsEmpty() { return events->empty(); }
 
-    size_t Size() {
-       return events->size();
-    }
+    size_t Size() { return events->size(); }
 
-    void AppendFlumeEvent(ThriftFlumeEvent* event) {
-      events->push_back(event);
-    }
+    void AppendFlumeEvent(ThriftFlumeEvent *event) { events->push_back(event); }
 
-    std::vector<ThriftFlumeEvent*>* Get() {
-       return events;
-    }
+    std::vector<ThriftFlumeEvent *> *Get() { return events; }
 
- private:
-    std::vector<ThriftFlumeEvent*>* events;
- private:
+private:
+    std::vector<ThriftFlumeEvent *> *events;
+
+private:
     AUTIL_LOG_DECLARE();
 };
 
@@ -57,4 +49,4 @@ TYPEDEF_PTR(BatchFlumeEvent)
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_NET_BASEAGENTCLIENT_H_
+#endif // KMONITOR_CLIENT_NET_BASEAGENTCLIENT_H_

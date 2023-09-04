@@ -69,6 +69,9 @@ public:
     static FSResult<void> RenameWithFenceContext(const std::string& srcName, const std::string& dstName,
                                                  FenceContext* fenceContext) noexcept;
     static FSResult<void> Copy(const std::string& srcName, const std::string& dstName) noexcept;
+    // create a hard link to a file
+    static FSResult<void> Link(const std::string& srcPath, const std::string& dstPath) noexcept;
+    // create a symbolic link to a file
     static FSResult<void> SymLink(const std::string& srcPath, const std::string& dstPath) noexcept;
     static FSResult<size_t> GetFileLength(const std::string& fileName) noexcept;
     static FSResult<size_t> GetDirSize(const std::string& dirPath) noexcept;

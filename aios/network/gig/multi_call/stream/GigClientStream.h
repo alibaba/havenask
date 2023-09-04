@@ -28,7 +28,8 @@ typedef std::map<PartIdTy, google::protobuf::Message *> PartMessageMap;
 class GigClientStreamImpl;
 struct ControllerFeedBack;
 
-class GigClientStream : public GigStreamBase, public RequestGenerator {
+class GigClientStream : public GigStreamBase, public RequestGenerator
+{
 public:
     GigClientStream(const std::string &bizName, const std::string &methodName);
     virtual ~GigClientStream();
@@ -38,15 +39,16 @@ private:
     GigClientStream &operator=(const GigClientStream &);
 
 public:
-    bool send(PartIdTy partId, bool eof,
-              google::protobuf::Message *message) override;
-    void sendCancel(PartIdTy partId,
-                    google::protobuf::Message *message) override;
+    bool send(PartIdTy partId, bool eof, google::protobuf::Message *message) override;
+    void sendCancel(PartIdTy partId, google::protobuf::Message *message) override;
+
 public:
     void generate(PartIdTy partCnt, PartRequestMap &requestMap) override final;
     bool hasError() const override final;
+
 private:
     void createRequest(PartIdTy partId, PartRequestMap &requestMap);
+
 public:
     void enablePartId(PartIdTy partId);
     const std::set<PartIdTy> &getPartIds() const;
@@ -55,16 +57,23 @@ public:
     void setMethodName(const std::string &methodName) {
         _methodName = methodName;
     }
-    const std::string &getMethodName() const { return _methodName; }
+    const std::string &getMethodName() const {
+        return _methodName;
+    }
     // ms
-    void setTimeout(uint64_t timeout) { _timeout = timeout; }
-    uint64_t getTimeout() const { return _timeout; }
+    void setTimeout(uint64_t timeout) {
+        _timeout = timeout;
+    }
+    uint64_t getTimeout() const {
+        return _timeout;
+    }
     void setForceStop(bool force) {
         _forceStop = force;
     }
     bool getForceStop() const {
         return _forceStop;
     }
+
 private:
     GigClientStreamImpl *getImpl();
 
@@ -75,7 +84,7 @@ private:
     GigClientStreamImpl *_impl;
     std::string _methodName;
     uint64_t _timeout;
-    bool _hasError : 1;
+    bool _hasError  : 1;
     bool _forceStop : 1;
     std::set<PartIdTy> _partIds;
 };

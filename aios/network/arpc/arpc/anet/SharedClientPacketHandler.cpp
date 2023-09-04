@@ -17,18 +17,18 @@
 
 #include <stddef.h>
 
-#include "aios/network/arpc/arpc/RPCChannelBase.h"
+#include "aios/autil/autil/Lock.h"
 #include "aios/network/anet/controlpacket.h"
 #include "aios/network/anet/ilogger.h"
 #include "aios/network/anet/packet.h"
 #include "aios/network/anet/runnable.h"
+#include "aios/network/arpc/arpc/ANetRPCChannel.h"
 #include "aios/network/arpc/arpc/ANetRPCController.h"
 #include "aios/network/arpc/arpc/MessageCodec.h"
 #include "aios/network/arpc/arpc/PacketArg.h"
+#include "aios/network/arpc/arpc/RPCChannelBase.h"
 #include "aios/network/arpc/arpc/Tracer.h"
 #include "aios/network/arpc/arpc/util/Log.h"
-#include "aios/network/arpc/arpc/ANetRPCChannel.h"
-#include "aios/autil/autil/Lock.h"
 
 using namespace anet;
 
@@ -40,12 +40,9 @@ SharedClientPacketHandler::SharedClientPacketHandler() {
     _func = NULL;
 }
 
-SharedClientPacketHandler::~SharedClientPacketHandler() { 
-}
+SharedClientPacketHandler::~SharedClientPacketHandler() {}
 
-IPacketHandler::HPRetCode SharedClientPacketHandler::handlePacket(
-        Packet *packet, void *args)
-{
+IPacketHandler::HPRetCode SharedClientPacketHandler::handlePacket(Packet *packet, void *args) {
     ARPC_LOG(DEBUG, "handle package in shared client package handler");
     if (_func != NULL) {
         (*_func)();
@@ -55,23 +52,19 @@ IPacketHandler::HPRetCode SharedClientPacketHandler::handlePacket(
     return ret;
 }
 
-IPacketHandler::HPRetCode SharedClientPacketHandler::doHandlePacket(
-        Packet *packet, void *args)
-{
+IPacketHandler::HPRetCode SharedClientPacketHandler::doHandlePacket(Packet *packet, void *args) {
     RpcReqArg *pArgs = (RpcReqArg *)args;
     if (!packet->isRegularPacket()) {
-        ARPC_LOG(WARN, "receive control packet[%d]", 
-                  ((ControlPacket*)packet)->getCommand());
+        ARPC_LOG(WARN, "receive control packet[%d]", ((ControlPacket *)packet)->getCommand());
         return handleCmdPacket(packet, pArgs);
     }
-    
+
     pArgs->sController->GetTracer().BeginHandleResponse();
 
-    ARPC_LOG(TRACE1, "channel pointer: %p, msg chid: %lu", _channel,
-             packet->getChannelId());
+    ARPC_LOG(TRACE1, "channel pointer: %p, msg chid: %lu", _channel, packet->getChannelId());
     {
-        /* Check the error code and remote version. 
-         * Repost the request if necessary. 
+        /* Check the error code and remote version.
+         * Repost the request if necessary.
          */
         autil::ScopedLock lock(_channelLock);
         if (_channel && !_channel->CheckResponsePacket(packet, pArgs)) {
@@ -79,8 +72,8 @@ IPacketHandler::HPRetCode SharedClientPacketHandler::doHandlePacket(
         }
     }
 
-    decodePacket(pArgs->sController, packet, pArgs->sResponse,
-                 pArgs->sContext->arena);
+    decodePacket(pArgs->sController, packet, pArgs->sResponse, pArgs->sContext->arena);
+    pArgs->sController->GetTracer().EndCallMethod(ARPC_ERROR_NONE);
     pArgs->sClosure->Run();
     delete pArgs;
 
@@ -104,18 +97,13 @@ void SharedClientPacketHandler::subRef() {
         autil::ScopedLock lock(_mutex);
         ref = --_ref;
     }
-    
+
     ARPC_LOG(DEBUG, "sub ref, ref count:%ld.", ref);
     if (ref == 0) {
         delete this;
     }
 }
 
-void SharedClientPacketHandler::setHandlePacketPreFunc(
-        const std::function<void ()> *func)
-{
-    _func = func;
-}
+void SharedClientPacketHandler::setHandlePacketPreFunc(const std::function<void()> *func) { _func = func; }
 
 ARPC_END_NAMESPACE(arpc);
-

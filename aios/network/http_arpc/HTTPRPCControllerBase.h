@@ -17,12 +17,12 @@
 #define HTTP_ARPC_HTTPRPCCONTROLLERBASE_H
 
 #include <string>
+
 #include "aios/network/arpc/arpc/CommonMacros.h"
 
 namespace http_arpc {
 
-class HTTPRPCControllerBase : public RPCController
-{
+class HTTPRPCControllerBase : public RPCController {
 public:
     virtual void SetErrorCode(int32_t errorCode) = 0;
     virtual int32_t GetErrorCode() = 0;
@@ -32,6 +32,6 @@ public:
     virtual const std::string &GetAddr() const = 0;
 };
 
-}
+} // namespace http_arpc
 
-#endif //HTTP_ARPC_HTTPRPCCONTROLLERBASE_H
+#endif // HTTP_ARPC_HTTPRPCCONTROLLERBASE_H

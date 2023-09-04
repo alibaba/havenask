@@ -1,0 +1,522 @@
+syntax = "proto3";
+
+package catalog.proto;
+
+option java_multiple_files = true;
+option java_package = "catalog.proto.entity";
+option java_outer_classname = "CatalogEntityProto";
+
+option cc_enable_arenas = true;
+
+message EntityStatus {
+    enum Code {
+        UNKNOWN = 0;
+        PENDING_PUBLISH = 1;
+        PUBLISHED = 2;
+        EXPIRED = 3;        // unreferenced
+        PENDING_DELETE = 4; // 过期清理 与 手动触发删除
+        DELETED = 5;        // 调度关联的实体已被清理，当前记录仅做历史记录
+    }
+    Code code = 1;
+}
+
+message EntityType {
+    enum Code {
+        UNKNOWN = 0;
+        ROOT = 1;
+        CATALOG = 2;
+        DATABASE = 3;
+        TABLE = 5;
+        PARTITION = 6;
+        TABLE_STRUCTURE = 7;
+        FUNCTION = 8;
+        TABLE_GROUP = 9;
+        LOAD_STRATEGY = 10;
+        USER = 11;
+        PRIVILEGE = 12;
+        OPERATION_LOG = 13;
+    }
+    Code code = 1;
+}
+
+message TableType {
+    enum Code {
+        UNKNOWN = 0;
+        NORMAL = 1;
+        KV = 2;
+        KKV = 3;
+        ORC = 4;
+    }
+    Code code = 1;
+}
+
+message BuildType {
+    enum Code {
+        OFFLINE = 0;  // normal 通过bs构建全量
+        ONLINE = 1;   // ha3 orc table  读写分离的直写模式
+        DIRECT = 2;   // 读写一体 直写模式
+    }
+    Code code = 1;
+}
+
+message TableStructureConfig {
+    message ShardInfo {
+        message HashParams {
+            string hash_func = 1;
+            string routing_ratio = 11;
+            string hot_values = 12;
+            string hot_values_ratio = 13;
+        }
+        repeated string shard_fields = 1;
+        string shard_func = 2;
+        int32 shard_count = 3; // 受限于MongoDB的存储不能使用uint类型
+        HashParams hash_params = 4;
+    }
+
+    // build的索引排序选项
+    message SortOption {
+        message SortDescription {
+            enum SortPattern {
+                UNKNOWN = 0;
+                ASC = 1;
+                DESC = 2;
+            }
+            string sort_field = 1;
+            SortPattern sort_pattern = 2;
+        }
+
+        bool sort_build = 1;
+        repeated SortDescription sort_descriptions = 2;
+    }
+
+    message TtlOption {
+        bool enable_ttl = 1;
+        // 仅NORMAL表支持按照字段值来设置ttl逻辑; 仅在enable_ttl为true时生效
+        string ttl_field_name = 2;
+        // 单位是秒; 仅在enable_ttl为true时生效
+        int64 default_ttl = 3;
+    }
+
+    ShardInfo shard_info = 1;
+    TableType.Code table_type = 2;
+    string comment = 3;
+    TtlOption ttl_option = 4;
+    SortOption sort_option = 5;
+    BuildType.Code build_type = 6;
+}
+
+// unique_index: table_name & database_name & catalog_name & version
+// using TableStructureForStore = TableStructure;
+message TableStructure {
+    message Column {
+        enum DataType {
+            UNKNOWN = 0;
+            INT8 = 1;
+            INT16 = 2;
+            INT32 = 3;
+            INT64 = 4;
+            UINT8 = 5;
+            UINT16 = 6;
+            UINT32 = 7;
+            UINT64 = 8;
+            FLOAT = 9;
+            DOUBLE = 10;
+            STRING = 11;
+            TEXT = 12;
+            RAW = 13;
+        }
+        string name = 1;
+        DataType type = 2;
+        bool primary_key = 3;
+        bool multi_value = 4;
+        string default_value = 5;
+        string comment = 6;
+        bool nullable = 7;
+        bool updatable = 8;
+        string separator = 9;
+        string analyzer = 10;
+    }
+
+    message Index {
+        enum IndexType {
+            UNKNOWN = 0;
+            NUMBER = 1;
+            STRING = 2;
+            TEXT = 3;
+            EXPACK = 4;
+            DATE = 5;
+            RANGE = 6;
+            SPATIAL = 7;
+            CUSTOMIZED = 8;
+            SUMMARY = 9;
+            PACK = 10;
+            PRIMARY_KEY = 11;
+            PRIMARY_KEY64 = 12;
+            PRIMARY_KEY128 = 13;
+            ORC = 14;
+            ATTRIBUTE = 15;
+            ANN = 16;
+        }
+        message IndexConfig {
+            enum CompressType {
+                NONE = 0;
+                SNAPPY = 1;
+                ZSTD = 2;
+                LZ4 = 3;
+                LZ4HC = 4;
+                ZLIB = 5;
+            }
+            message IndexField {
+                string field_name = 1;
+                int32 boost = 2;
+            }
+            repeated IndexField index_fields = 1;
+            CompressType compress_type = 2;
+            string analyzer = 3;
+            map<string, string> index_params = 4;
+        }
+        string name = 1;
+        IndexType index_type = 2;
+        IndexConfig index_config = 3;
+    }
+
+    int64 version = 1;
+    EntityStatus status = 2;
+    string table_name = 3;
+    string database_name = 4;
+    string catalog_name = 5;
+    repeated Column columns = 6;
+    repeated Index indexes = 7;
+    TableStructureConfig table_structure_config = 8;
+    OperationMeta operation_meta = 9;
+}
+
+// unique_index: database_name & table_name & partition_name & version
+// no partition table: partition_name = "__default__"
+// using DataSourceForStore = DataSource;
+message DataSource {
+    message DataVersion {
+        message DataDescription {
+            string src = 1;
+            // for saro and zk
+            string data_path = 2;
+            // for odps
+            string odps_account_type = 3;
+            string odps_access_id = 4;
+            string odps_access_key = 5;
+            string odps_endpoint = 6;
+            string odps_project_name = 7;
+            string odps_table_name = 8;
+            string odps_partition_name = 9;
+            // for swift
+            string swift_root = 10;
+            string swift_topic_name = 11;
+            string swift_start_timestamp = 12;
+        }
+
+        message DataInfo {
+            int32 field_count = 1;
+            int64 full_data_record_count = 2;
+            int64 full_data_physical_size = 3;
+            int64 full_data_logical_size = 4;
+            int64 full_data_modified_time = 5;
+        }
+        string version = 1;
+        repeated DataDescription data_descriptions = 2;
+        DataInfo data_info = 3;
+    }
+
+    message ProcessConfig {
+        int64 version = 1;
+        // 约束当前ProcessConfig对哪个Table生效
+        string table_name = 2;
+        // 配置的详情
+        string detail = 3;
+    }
+    DataVersion data_version = 1;
+    repeated ProcessConfig process_configs = 2;
+}
+
+message PartitionConfig {
+    int64 version = 1;
+    EntityStatus status = 2;
+    map<string, string> custom_metas = 3;
+}
+
+message PartitionType {
+    enum Code {
+        UNKNOWN = 0;
+        TABLE_PARTITION = 1;
+    }
+    Code code = 1;
+}
+
+message Shard {
+    message Range {
+        int32 from = 1;
+        int32 to = 2;
+    }
+    Range shard_range = 1;
+    int32 index_version = 2;
+    int64 index_version_timestamp = 3;
+}
+
+enum BuildState {
+    NONE = 0;
+    RUNNING = 1;
+    STOPPED = 2;
+}
+
+message BuildTarget {
+    enum Type {
+        NONE = 0;
+        DIRECT_BUILD = 1; // 不需要离线build
+        BATCH_BUILD = 2;  // bs build
+    }
+    Type type = 1;
+    BuildState build_state = 2;
+    string config_path = 3;
+}
+
+message BuildId {
+    int64 generation_id = 1;
+    string partition_name = 2;
+    string table_name = 3;
+    string database_name = 4;
+    string catalog_name = 5;
+}
+
+message Build {
+    message BuildCurrent {
+        BuildState build_state = 1;
+        string config_path = 2;
+        string last_error = 3;
+        string index_root = 4;
+        repeated Shard shards = 5;
+    }
+    BuildId build_id = 1;
+    BuildTarget target = 2;
+    BuildCurrent current = 3;
+}
+
+message BuildList {
+    repeated Build builds = 1;
+}
+
+// 与PartitionForStore对齐，仅用于catalog服务请求返回
+message Partition {
+    int64 version = 1;
+    EntityStatus status = 2;
+    string partition_name = 3;
+    string table_name = 4;
+    string database_name = 5;
+    string catalog_name = 6;
+    PartitionType.Code partition_type = 7;
+    PartitionConfig partition_config = 8;
+    DataSource data_source = 9;
+    TableStructure table_structure = 10;
+    OperationMeta operation_meta = 11;
+}
+
+// 将配置从主体中剥离出来，主要是为了方便维护版本信息和变更状态
+message TableConfig {
+    int64 version = 1;
+    EntityStatus status = 2;
+    int32 partition_ttl = 3;
+    string offline_app_name = 4;
+    // TODO(chekong.ygm): 暂无明确需求，预留配置入口
+}
+
+// 与TableForStore对齐，仅用于catalog服务请求返回
+message Table {
+    int64 version = 1;
+    EntityStatus status = 2;
+    string table_name = 3;
+    string database_name = 4;
+    string catalog_name = 5;
+    TableConfig table_config = 6;
+    TableStructure table_structure = 7;
+    repeated Partition partitions = 8;
+    OperationMeta operation_meta = 10;
+}
+
+message FunctionConfig {
+    enum FunctionType {
+        UDF = 0;
+        UDAF = 1;
+        TVF = 2;
+    }
+
+    int64 version = 1;
+    FunctionType function_type = 2;
+    // TODO(chekong.ygm): need impl
+}
+
+// unique_index: function_name & database_name & version
+// using FunctionForStore = Function;
+message Function {
+    int64 version = 1;
+    EntityStatus status = 2;
+    string function_name = 3;
+    string database_name = 4;
+    string catalog_name = 5;
+    FunctionConfig function_config = 6;
+    OperationMeta operation_meta = 7;
+}
+
+// 暂时只透出在线sql planner关心的配置，完备的配置变更可以直接在suezops侧bypass
+// 将配置从Database主体中剥离出来，主要是为了方便维护版本信息和变更状态
+message DatabaseConfig {
+    int64 version = 1;
+    EntityStatus status = 2;
+    repeated string configs = 3;
+    map<string, string> custom_meta = 4;
+    repeated string access_tokens = 5; // 简化方案，支持基础的访问鉴权
+    // TODO(chekong.ygm): 暂无明确需求，预留配置入口
+    string store_root = 10; // index path and config path root
+}
+
+// 与DatabaseForStore对齐，仅用于catalog服务请求返回
+message Database {
+    int64 version = 1;
+    EntityStatus status = 2;
+    string database_name = 3;
+    string catalog_name = 4;
+    DatabaseConfig database_config = 5;
+    repeated Table tables = 6;
+    repeated TableGroup table_groups = 7;
+    repeated Function functions = 8;
+    OperationMeta operation_meta = 10;
+}
+
+message LoadStrategyConfig {
+    enum LoadMode {
+        MEMORY = 0;
+        LOCAL_DISK = 1; //deploy
+        REMOTE = 2;
+    }
+    
+    int64 version = 1;
+    EntityStatus status = 2;
+    LoadMode key_load_mode = 3;
+    LoadMode value_load_mode = 4;
+    // TODO(chekong.ygm): need impl
+}
+
+// unique_index: table_group_name & catalog_name & table_name & database_name & version
+// using LoadStrategyConfig = LoadStrategy;
+message LoadStrategy {
+    int64 version = 1;
+    EntityStatus status = 2;
+    string table_group_name = 3;
+    string catalog_name = 4;
+    string table_name = 5;
+    string database_name = 6;
+    LoadStrategyConfig load_strategy_config = 7;
+    OperationMeta operation_meta = 8;
+}
+
+// 将配置从主体中剥离出来，主要是为了方便维护版本信息和变更状态
+message TableGroupConfig {
+    int64 version = 1;
+    EntityStatus status = 2;
+    LoadStrategyConfig default_load_strategy_config = 3;
+    // TODO(chekong.ygm): 暂无明确需求，预留配置入口
+}
+
+// 与TableGroupForStore对齐，仅用于catalog服务请求返回
+message TableGroup {
+    int64 version = 1;
+    EntityStatus status = 2;
+    string table_group_name = 3;
+    string database_name = 4;
+    string catalog_name = 5;
+    TableGroupConfig table_group_config = 6;
+    repeated LoadStrategy load_strategies = 7;
+    OperationMeta operation_meta = 8;
+}
+
+// 暂时只透出在线sql planner关心的配置，完备的配置变更可以直接在suezops侧bypass
+// 将配置从Catalog主体中剥离出来，主要是为了方便维护版本信息和变更状态
+message CatalogConfig {
+    int64 version = 1;
+    EntityStatus status = 2;
+    // TODO(chekong.ygm): 暂无明确需求，预留配置入口
+    string workspace_name = 3;
+    string data_space_name = 4;
+}
+
+message Catalog {
+    int64 version = 1;
+    EntityStatus status = 2;
+    string catalog_name = 3;
+    CatalogConfig catalog_config = 4;
+    repeated Database databases = 5;
+    OperationMeta operation_meta = 6;
+}
+
+// ------------ 其他非调度核心链路相关 ----------------
+
+// unique_index: user_id
+// unique_index: emp_id
+// using UserForStore = User;
+message User {
+    string user_id = 1; // 可以等价于emp_id
+    string user_name = 2;
+    string emp_id = 3;
+}
+
+// unique_index: None
+// using OperationLogForStore = OperationLog;
+message OperationLog {
+    enum OperationType {
+        UNKNOWN = 0;
+        CREATE = 1;
+        DELETE = 2;
+        UPDATE = 3; // 待细化
+        PUBLISH = 4;
+    }
+    string user_id = 1;
+    EntityType entity_type = 2;
+    string entity_key = 3;
+    OperationType operation_type = 4;
+    string data = 5;
+    OperationMeta operation_meta = 6;
+}
+
+// unique_index: user_id & entity_type & entity_key
+// using PrivilegeForStore = Privilege;
+message Privilege {
+    enum AccessLevel {
+        UNKNOWN = 0;
+        READONLY = 1;
+        READ_AND_WRITE = 2;
+    }
+    string user_id = 1;
+    EntityType entity_type = 2;
+    string entity_key = 3;
+    AccessLevel access_level = 4;
+    OperationMeta operation_meta = 5;
+}
+
+message OperationMeta {
+    repeated User owners = 1;
+    string last_operator = 2;
+    int64 created_time = 3;
+    int64 modified_time = 4;
+}
+
+// 根节点，记录整体有效的catalog记录
+// TODO: should rename to CatalogSet
+message Root {
+    int64 version = 1;
+    string root_name = 2;
+    repeated string catalog_names = 3;
+    OperationMeta operation_meta = 4;
+}
+
+message CatalogStateEntity {
+    repeated Catalog catalogs = 1;
+    repeated Build builds = 2;
+}
+

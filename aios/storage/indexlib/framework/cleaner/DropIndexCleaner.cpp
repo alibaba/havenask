@@ -27,7 +27,7 @@ DropIndexCleaner::~DropIndexCleaner() {}
 
 std::vector<std::string>
 DropIndexCleaner::CaclulateDropIndexDirs(const std::shared_ptr<TabletData>& originTabletData,
-                                         const std::shared_ptr<config::TabletSchema>& targetSchema)
+                                         const std::shared_ptr<config::ITabletSchema>& targetSchema)
 {
     std::vector<std::string> dropIndexDirs;
     auto slice = originTabletData->CreateSlice();
@@ -46,7 +46,7 @@ DropIndexCleaner::CaclulateDropIndexDirs(const std::shared_ptr<TabletData>& orig
 }
 
 Status DropIndexCleaner::CleanIndexInLogical(const std::shared_ptr<TabletData>& originTabletData,
-                                             const std::shared_ptr<config::TabletSchema>& targetSchema,
+                                             const std::shared_ptr<config::ITabletSchema>& targetSchema,
                                              const std::shared_ptr<indexlib::file_system::IDirectory>& rootDirectory)
 {
     auto slice = originTabletData->CreateSlice();

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/TcpConnection.h"
+
 #include "aios/network/anet/connection.h"
 #include "aios/network/anet/defaultpacketfactory.h"
 #include "aios/network/anet/defaultpacketstreamer.h"
@@ -28,10 +29,11 @@ using namespace autil;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, TcpConnection);
 
-TcpConnection::TcpConnection(anet::Transport *transport, const string &spec,
-                             size_t queueSize)
-    : Connection(spec, MC_PROTOCOL_TCP, queueSize), _transport(transport),
-      _connection(NULL) {}
+TcpConnection::TcpConnection(anet::Transport *transport, const string &spec, size_t queueSize)
+    : Connection(spec, MC_PROTOCOL_TCP, queueSize)
+    , _transport(transport)
+    , _connection(NULL) {
+}
 
 TcpConnection::~TcpConnection() {
     ScopedReadWriteLock lock(_connectLock, 'w');
@@ -78,8 +80,7 @@ anet::Connection *TcpConnection::getAnetConnection() {
     return createAnetConnection();
 }
 
-void TcpConnection::post(const RequestPtr &request,
-                         const CallBackPtr &callBack) {
+void TcpConnection::post(const RequestPtr &request, const CallBackPtr &callBack) {
     assert(callBack);
     const auto &resource = callBack->getResource();
     auto tcpRequest = dynamic_cast<TcpRequest *>(request.get());
@@ -89,8 +90,7 @@ void TcpConnection::post(const RequestPtr &request,
     }
     auto con = getAnetConnection();
     if (!con) {
-        callBack->run(NULL, MULTI_CALL_REPLY_ERROR_CONNECTION, string(),
-                      string());
+        callBack->run(NULL, MULTI_CALL_REPLY_ERROR_CONNECTION, string(), string());
         return;
     }
 
@@ -98,8 +98,7 @@ void TcpConnection::post(const RequestPtr &request,
     anet::DefaultPacket *packet = tcpRequest->makeTcpPacket();
     if (!packet) {
         con->subRef();
-        callBack->run(NULL, MULTI_CALL_REPLY_ERROR_PROTOCOL_MESSAGE, string(),
-                      string());
+        callBack->run(NULL, MULTI_CALL_REPLY_ERROR_PROTOCOL_MESSAGE, string(), string());
         return;
     }
 

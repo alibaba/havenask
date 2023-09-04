@@ -16,7 +16,6 @@
 #include "indexlib/config/TabletSchema.h"
 
 #include "indexlib/config/UnresolvedSchema.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
 
 namespace indexlibv2::config {
 
@@ -102,32 +101,13 @@ UnresolvedSchema* TabletSchema::TEST_GetImpl() const { return _impl.get(); }
 
 void TabletSchema::TEST_SetTableName(const std::string& name) { _impl->TEST_SetTableName(name); }
 
-std::pair<bool, const autil::legacy::Any&> TabletSchema::GetSettingConfig(const std::string& key) const
+std::pair<bool, const autil::legacy::Any&> TabletSchema::GetRuntimeSetting(const std::string& key) const
 {
-    return _impl->GetSettingConfig(key);
+    return _impl->GetRuntimeSetting(key);
 }
 
-std::pair<bool, autil::legacy::Any> TabletSchema::GetRuntimeSettingObject(const std::string& path) const
-{
-    return _impl->GetRuntimeSetting<autil::legacy::Any>(path);
-}
-
-bool TabletSchema::SetRuntimeSettingObject(const std::string& path, const autil::legacy::Any& any)
-{
-    return _impl->SetRuntimeSetting(path, any);
-}
-
-bool TabletSchema::GetValueFromUserDefinedParam(const std::string& key, std::string& value) const
-{
-    return _impl->GetValueFromUserDefinedParam(key, value);
-}
-
-void TabletSchema::SetUserDefinedParam(const std::string& key, const std::string& value)
-{
-    _impl->SetUserDefinedParam(key, value);
-}
-
-autil::legacy::json::JsonMap TabletSchema::GetUserDefinedParam() const { return _impl->GetSettings(); }
+const indexlib::util::JsonMap& TabletSchema::GetUserDefinedParam() const { return _impl->GetUserDefinedParam(); }
+const MutableJson& TabletSchema::GetRuntimeSettings() const { return _impl->GetRuntimeSettings(); }
 
 std::shared_ptr<IIndexConfig> TabletSchema::GetPrimaryKeyIndexConfig() const
 {

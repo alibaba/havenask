@@ -1,0 +1,42 @@
+load('//bazel:bundle.bzl', 'bundle_files', 'bundle_install')
+bundle_files(
+    name='aios_open_source_sql',
+    srcs=[],
+    deps=[
+        '//package/sql:sql_open_source_package',
+        '//package/havenask/swift:aios_open_source_swift',
+        '//package/build_service:bs_admin_package',
+        '//package/build_service:bs_worker_package', ':havenask_plugin_package',
+        ':bs_tools_package'
+    ],
+    visibility=['//visibility:public']
+)
+bundle_install(
+    name='aios_open_source_sql_package',
+    srcs=[':aios_open_source_sql'],
+    visibility=['//visibility:public']
+)
+bundle_files(
+    name='havenask_plugin_package',
+    prefix='usr/local/lib64',
+    deps=[
+        '//aios/plugins/havenask_plugins/analyzer_plugins:jieba_analyzer_plugin_package'
+    ]
+)
+bundle_files(
+    name='bs_tools_package',
+    deps=[
+        ':bs_tools_binary_package',
+        '//aios/apps/facility/build_service:bs_tools_python_package',
+        '//aios/apps/facility/build_service:bs_tools_etc_package'
+    ]
+)
+bundle_files(
+    name='bs_tools_binary_package',
+    prefix='usr/local/bin',
+    srcs=[
+        '//aios/apps/facility/build_service:bs_local_job',
+        '//aios/apps/facility/build_service/build_service/tools:bs_config_validator',
+        '//aios/apps/facility/build_service/build_service/tools:bs_generation_scanner'
+    ]
+)

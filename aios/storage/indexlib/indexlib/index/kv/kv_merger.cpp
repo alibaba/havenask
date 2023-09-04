@@ -15,6 +15,7 @@
  */
 #include "indexlib/index/kv/kv_merger.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/mem_pool/Pool.h"
 #include "autil/memory.h"
 #include "indexlib/config/kv_index_config.h"
@@ -70,14 +71,12 @@ void KVMerger::Init(const index_base::PartitionDataPtr& partData, const IndexPar
     mKeyHasherType = mKVIndexConfig->GetKeyHashFunctionType();
 
     bool needMerge = false;
-    char* needMergeValue = getenv("NEED_MERGE");
-    if (needMergeValue && autil::StringUtil::fromString(std::string(needMergeValue), needMerge)) {
+    if (autil::EnvUtil::getEnvWithoutDefault("NEED_MERGE", needMerge)) {
         mNeedMerge = needMerge;
     }
 
     bool storePKey = false;
-    char* needStorePKeyValue = getenv(NEED_STORE_PKEY_VALUE);
-    if (needStorePKeyValue && autil::StringUtil::fromString(std::string(needStorePKeyValue), storePKey)) {
+    if (autil::EnvUtil::getEnvWithoutDefault(NEED_STORE_PKEY_VALUE, storePKey)) {
         mNeedStorePKeyValue = storePKey;
     }
 }

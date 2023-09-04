@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stddef.h>
 #include <deque>
+#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -26,27 +26,33 @@
 
 namespace matchdoc {
 class MatchDoc;
-template <typename T> class Reference;
-}  // namespace matchdoc
+template <typename T>
+class Reference;
+} // namespace matchdoc
 
 namespace isearch {
 namespace search {
 class QueryExecutor;
 
-class MatchDataCollectMatchedInfo: public MatchDataCollectorBase {
+class MatchDataCollectMatchedInfo : public MatchDataCollectorBase {
 public:
-    MatchDataCollectMatchedInfo(const std::string name, std::vector<std::vector<size_t>>* rowIdInfo);
+    MatchDataCollectMatchedInfo(const std::string name,
+                                std::vector<std::vector<size_t>> *rowIdInfo);
     ~MatchDataCollectMatchedInfo() = default;
     bool init();
+
 public:
-    void collect(QueryExecutor* executor, const matchdoc::MatchDoc &matchDoc) override;
+    void collect(QueryExecutor *executor, const matchdoc::MatchDoc &matchDoc) override;
+
 private:
     void fillMatchData(const std::vector<size_t> &rowID, const matchdoc::MatchDoc &matchDoc);
+
 private:
     std::string _colName;
-    std::vector<std::vector<size_t>>* _rowIdInfo;
-    std::deque<const QueryExecutor*> _executorQueue;
+    std::vector<std::vector<size_t>> *_rowIdInfo;
+    std::deque<const QueryExecutor *> _executorQueue;
     matchdoc::Reference<autil::MultiUInt64> *_ref;
+
 private:
     AUTIL_LOG_DECLARE();
 };

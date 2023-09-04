@@ -26,7 +26,7 @@ namespace internal {
 struct stack_context {
   char* bottom = nullptr;
   std::size_t size = 0;
-#if defined(UTHREAD_SPLIT_STACK) && !defined(SEASTAR_ASAN_ENABLED)
+#if defined(UTHREAD_SPLIT_STACK) && !defined(FL_ASAN_ENABLED)
   using split_stack_context = void* [NUMBER_OFFSETS];
   split_stack_context ss_ctx{0};
   split_stack_context link{0};
@@ -35,7 +35,7 @@ struct stack_context {
 
 inline void* allocate_stack(stack_context& sc, std::size_t size) {
   sc.size = size;
-#if defined(UTHREAD_SPLIT_STACK) && !defined(SEASTAR_ASAN_ENABLED)
+#if defined(UTHREAD_SPLIT_STACK) && !defined(FL_ASAN_ENABLED)
   sc.bottom = static_cast<char*>(__splitstack_makecontext(sc.size, sc.ss_ctx, &sc.size));
   int off = 0;
   __splitstack_block_signals_context(sc.ss_ctx, &off, 0);
@@ -47,7 +47,7 @@ inline void* allocate_stack(stack_context& sc, std::size_t size) {
   sc.bottom = new char[sc.size];
 #endif
 
-#ifdef SEASTAR_ASAN_ENABLED
+#ifdef FL_ASAN_ENABLED
   std::fill_n(sc.bottom, sc.size, 0);
 #endif
 
@@ -56,7 +56,7 @@ inline void* allocate_stack(stack_context& sc, std::size_t size) {
 }
 
 inline void deallocate_stack(stack_context& sc) noexcept {
-#if defined(UTHREAD_SPLIT_STACK) && !defined(SEASTAR_ASAN_ENABLED)
+#if defined(UTHREAD_SPLIT_STACK) && !defined(FL_ASAN_ENABLED)
   __splitstack_releasecontext(sc.ss_ctx);
 #else
 

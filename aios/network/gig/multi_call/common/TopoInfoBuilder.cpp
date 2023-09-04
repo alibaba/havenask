@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/common/TopoInfoBuilder.h"
+
 #include <sstream>
 
 using namespace std;
@@ -21,15 +22,17 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, TopoInfoBuilder);
 
-TopoInfoBuilder::TopoInfoBuilder() : _grpcPort(INVALID_PORT) {}
+TopoInfoBuilder::TopoInfoBuilder() : _grpcPort(INVALID_PORT) {
+}
 
-TopoInfoBuilder::TopoInfoBuilder(int32_t grpcPort) : _grpcPort(grpcPort) {}
+TopoInfoBuilder::TopoInfoBuilder(int32_t grpcPort) : _grpcPort(grpcPort) {
+}
 
-TopoInfoBuilder::~TopoInfoBuilder() {}
+TopoInfoBuilder::~TopoInfoBuilder() {
+}
 
-void TopoInfoBuilder::addBiz(const std::string &bizName, PartIdTy partCnt,
-                             PartIdTy partId, VersionTy version,
-                             WeightTy targetWeight, VersionTy protocolVersion,
+void TopoInfoBuilder::addBiz(const std::string &bizName, PartIdTy partCnt, PartIdTy partId,
+                             VersionTy version, WeightTy targetWeight, VersionTy protocolVersion,
                              int32_t gigRpcPort) {
     BizTopoInfo bizInfo;
     bizInfo.bizName = bizName;
@@ -43,11 +46,9 @@ void TopoInfoBuilder::addBiz(const std::string &bizName, PartIdTy partCnt,
     _infos.emplace_back(std::move(bizInfo));
 }
 
-void TopoInfoBuilder::addBiz(const std::string &bizName, PartIdTy partCnt,
-                             PartIdTy partId, VersionTy version,
-                             WeightTy targetWeight, VersionTy protocolVersion) {
-    addBiz(bizName, partCnt, partId, version, targetWeight, protocolVersion,
-           _grpcPort);
+void TopoInfoBuilder::addBiz(const std::string &bizName, PartIdTy partCnt, PartIdTy partId,
+                             VersionTy version, WeightTy targetWeight, VersionTy protocolVersion) {
+    addBiz(bizName, partCnt, partId, version, targetWeight, protocolVersion, _grpcPort);
 }
 
 void TopoInfoBuilder::flushAllBizVersion(VersionTy version) {

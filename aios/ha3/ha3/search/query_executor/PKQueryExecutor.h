@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 #include <string>
 
 #include "autil/Log.h" // IWYU pragma: keep
@@ -28,12 +28,11 @@
 namespace isearch {
 namespace search {
 
-class PKQueryExecutor : public QueryExecutor
-{
+class PKQueryExecutor : public QueryExecutor {
 public:
-    PKQueryExecutor(QueryExecutor* queryExecutor,
-                    docid_t docId);
+    PKQueryExecutor(QueryExecutor *queryExecutor, docid_t docId);
     ~PKQueryExecutor();
+
 public:
     const std::string getName() const override {
         return "PKQueryExecutor";
@@ -42,17 +41,24 @@ public:
         return 1;
     }
     void reset() override;
-    indexlib::index::ErrorCode seekSubDoc(docid_t docId, docid_t subDocId,
-                       docid_t subDocEnd, bool needSubMatchdata, docid_t& result) override;
+    indexlib::index::ErrorCode seekSubDoc(docid_t docId,
+                                          docid_t subDocId,
+                                          docid_t subDocEnd,
+                                          bool needSubMatchdata,
+                                          docid_t &result) override;
     bool isMainDocHit(docid_t docId) const override;
+
 public:
     std::string toString() const override;
+
 private:
     indexlib::index::ErrorCode doSeek(docid_t id, docid_t &result) override;
+
 private:
     QueryExecutor *_queryExecutor;
     docid_t _docId;
     int32_t _count;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -61,4 +67,3 @@ typedef std::shared_ptr<PKQueryExecutor> PKQueryExecutorPtr;
 
 } // namespace search
 } // namespace isearch
-

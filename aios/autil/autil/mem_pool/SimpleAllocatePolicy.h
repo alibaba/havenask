@@ -15,21 +15,21 @@
  */
 #pragma once
 
-#include <stddef.h>
 #include <new>
+#include <stddef.h>
 
 #include "autil/Log.h"
+#include "autil/SanitizerUtil.h"
 #include "autil/mem_pool/AllocatePolicy.h"
 #include "autil/mem_pool/ChunkAllocatorBase.h"
 #include "autil/mem_pool/MemoryChunk.h"
-#include "autil/SanitizerUtil.h"
 
-namespace autil { namespace mem_pool {
+namespace autil {
+namespace mem_pool {
 
-class SimpleAllocatePolicy : public AllocatePolicy
-{
+class SimpleAllocatePolicy : public AllocatePolicy {
 public:
-    SimpleAllocatePolicy(ChunkAllocatorBase* allocator, size_t chunkSize, bool ownAllocator = false);
+    SimpleAllocatePolicy(ChunkAllocatorBase *allocator, size_t chunkSize, bool ownAllocator = false);
     SimpleAllocatePolicy(size_t chunkSize);
     ~SimpleAllocatePolicy();
 
@@ -39,7 +39,7 @@ public:
      * @param nBytes number of bytes to allocate
      * @return allocated chunk
      */
-    MemoryChunk* allocate(size_t nBytes) override;
+    MemoryChunk *allocate(size_t nBytes) override;
 
     /**
      * release allocated chunks
@@ -84,14 +84,15 @@ public:
     bool isInChunk(const void *ptr) const override;
 
 protected:
-    ChunkAllocatorBase* _allocator;
+    ChunkAllocatorBase *_allocator;
     bool _ownAllocator;
 
-    ChainedMemoryChunk* _chunkHeader;
-    ChainedMemoryChunk* _currentChunk;
+    ChainedMemoryChunk *_chunkHeader;
+    ChainedMemoryChunk *_currentChunk;
     size_t _chunkSize;
     size_t _usedBytes;
     size_t _totalBytes;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -99,39 +100,30 @@ private:
 /////////////////////////////////////////////////////////////////////////
 //
 
-inline MemoryChunk* SimpleAllocatePolicy::allocate(size_t nBytes)
-{
+inline MemoryChunk *SimpleAllocatePolicy::allocate(size_t nBytes) {
     size_t nAllocSize = nBytes + sizeof(ChainedMemoryChunk);
-    if (nAllocSize <= _chunkSize)
-    {
+    if (nAllocSize <= _chunkSize) {
         nAllocSize = _chunkSize;
     }
 
-    ChainedMemoryChunk* nextChunk = _currentChunk ? _currentChunk->next() : _chunkHeader;
-    if (nextChunk && nAllocSize <= _chunkSize)
-    {
+    ChainedMemoryChunk *nextChunk = _currentChunk ? _currentChunk->next() : _chunkHeader;
+    if (nextChunk && nAllocSize <= _chunkSize) {
         _currentChunk = nextChunk;
-    }
-    else
-    {
+    } else {
         const auto allocatedChunk = _allocator->allocate(nAllocSize);
         if (!allocatedChunk) {
             return nullptr;
         }
         nextChunk = new (allocatedChunk) ChainedMemoryChunk(nAllocSize);
-        SanitizerUtil::PoisonMemoryRegion(((char*) nextChunk) + sizeof(ChainedMemoryChunk),
-                nAllocSize - sizeof(ChainedMemoryChunk));
-        if (!nextChunk)
-        {
+        SanitizerUtil::PoisonMemoryRegion(((char *)nextChunk) + sizeof(ChainedMemoryChunk),
+                                          nAllocSize - sizeof(ChainedMemoryChunk));
+        if (!nextChunk) {
             return NULL;
         }
         _totalBytes += nAllocSize;
-        if (!_chunkHeader)
-        {
+        if (!_chunkHeader) {
             _currentChunk = _chunkHeader = nextChunk;
-        }
-        else
-        {
+        } else {
             if (_currentChunk) {
                 nextChunk->next() = _currentChunk->next();
                 if (_currentChunk->next()) {
@@ -151,16 +143,14 @@ inline MemoryChunk* SimpleAllocatePolicy::allocate(size_t nBytes)
     return _currentChunk;
 }
 
-inline size_t SimpleAllocatePolicy::release()
-{
-    ChainedMemoryChunk* pChunk = _chunkHeader;
-    ChainedMemoryChunk* pChunk2 = NULL;
-    while (pChunk)
-    {
+inline size_t SimpleAllocatePolicy::release() {
+    ChainedMemoryChunk *pChunk = _chunkHeader;
+    ChainedMemoryChunk *pChunk2 = NULL;
+    while (pChunk) {
         pChunk2 = pChunk;
         pChunk = pChunk2->next();
-        SanitizerUtil::UnpoisonMemoryRegion((void*)pChunk2, pChunk2->getTotalBytes());
-        _allocator->deallocate((void*)pChunk2, pChunk2->getTotalBytes());
+        SanitizerUtil::UnpoisonMemoryRegion((void *)pChunk2, pChunk2->getTotalBytes());
+        _allocator->deallocate((void *)pChunk2, pChunk2->getTotalBytes());
     }
     _chunkHeader = _currentChunk = NULL;
     size_t totalBytes = _totalBytes;
@@ -168,38 +158,29 @@ inline size_t SimpleAllocatePolicy::release()
     return totalBytes;
 }
 
-inline size_t SimpleAllocatePolicy::reset()
-{
+inline size_t SimpleAllocatePolicy::reset() {
     size_t totalBytes = _totalBytes;
     if (_currentChunk == nullptr) {
         // skip useless reset to avoid cache-miss
         return totalBytes;
     }
-    for (ChainedMemoryChunk* chunk = _chunkHeader; chunk; )
-    {
-        if (chunk->getTotalBytes() <= _chunkSize)
-        {
+    for (ChainedMemoryChunk *chunk = _chunkHeader; chunk;) {
+        if (chunk->getTotalBytes() <= _chunkSize) {
             chunk->reset();
             chunk = chunk->next();
-        }
-        else
-        {
-            ChainedMemoryChunk* prevChunk = chunk->prev();
-            ChainedMemoryChunk* nextChunk = chunk->next();
+        } else {
+            ChainedMemoryChunk *prevChunk = chunk->prev();
+            ChainedMemoryChunk *nextChunk = chunk->next();
             _totalBytes -= chunk->getTotalBytes();
-            SanitizerUtil::UnpoisonMemoryRegion((void*)chunk, chunk->getTotalBytes());
-            _allocator->deallocate((void*)chunk, chunk->getTotalBytes());
+            SanitizerUtil::UnpoisonMemoryRegion((void *)chunk, chunk->getTotalBytes());
+            _allocator->deallocate((void *)chunk, chunk->getTotalBytes());
             chunk = nextChunk;
-            if (prevChunk)
-            {
+            if (prevChunk) {
                 prevChunk->next() = nextChunk;
-            }
-            else
-            {
+            } else {
                 _chunkHeader = nextChunk;
             }
-            if (nextChunk)
-            {
+            if (nextChunk) {
                 nextChunk->prev() = prevChunk;
             }
         }
@@ -210,37 +191,24 @@ inline size_t SimpleAllocatePolicy::reset()
 }
 
 inline void SimpleAllocatePolicy::clear() {
-    ChainedMemoryChunk* pChunk = _chunkHeader;
-    while (pChunk)
-    {
-        SanitizerUtil::UnpoisonMemoryRegion((void*)pChunk, pChunk->getTotalBytes());
+    ChainedMemoryChunk *pChunk = _chunkHeader;
+    while (pChunk) {
+        SanitizerUtil::UnpoisonMemoryRegion((void *)pChunk, pChunk->getTotalBytes());
         pChunk->clear();
         pChunk = pChunk->next();
     }
 }
 
-inline size_t SimpleAllocatePolicy::getUsedBytes() const
-{
-    return _usedBytes;
-}
+inline size_t SimpleAllocatePolicy::getUsedBytes() const { return _usedBytes; }
 
-inline size_t SimpleAllocatePolicy::getTotalBytes() const
-{
-    return _totalBytes;
-}
+inline size_t SimpleAllocatePolicy::getTotalBytes() const { return _totalBytes; }
 
-inline size_t SimpleAllocatePolicy::getChunkSize() const
-{
-    return _chunkSize;
-}
+inline size_t SimpleAllocatePolicy::getChunkSize() const { return _chunkSize; }
 
-inline size_t SimpleAllocatePolicy::getAvailableChunkSize() const
-{
-    return _chunkSize - sizeof(ChainedMemoryChunk);
-}
+inline size_t SimpleAllocatePolicy::getAvailableChunkSize() const { return _chunkSize - sizeof(ChainedMemoryChunk); }
 
 inline bool SimpleAllocatePolicy::isInChunk(const void *ptr) const {
-    ChainedMemoryChunk* chunk = _chunkHeader;
+    ChainedMemoryChunk *chunk = _chunkHeader;
     while (chunk) {
         if (chunk->isInChunk(ptr)) {
             return true;
@@ -250,5 +218,5 @@ inline bool SimpleAllocatePolicy::isInChunk(const void *ptr) const {
     return false;
 }
 
-}}
-
+} // namespace mem_pool
+} // namespace autil

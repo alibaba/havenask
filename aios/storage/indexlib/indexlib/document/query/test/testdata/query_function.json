@@ -1,0 +1,9 @@
+{  
+    "type" : "AND",   
+    "sub_query" : [                                                   
+        { "type" : "RANGE", "field" : "func1_value", "function" : "plus(f1,20)", "value" : "(-183, 257]" }, 
+        { "type" : "TERM", "field" : "func2_value", "function" : "append(f2,123)", "value" : "hello world123"}, 
+        { "type" : "SUB_TERM", "function" : "append(f3,456)", "value" : "hello"}, 
+        { "type" : "PATTERN", "field" : "func4_value", "function" : "append(f4,ern)", "pattern" : ".*pattern.*"} 
+    ]
+}

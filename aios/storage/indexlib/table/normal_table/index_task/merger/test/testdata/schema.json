@@ -1,0 +1,31 @@
+{
+    "fields": [
+        {
+            "binary_field": false,
+            "field_name": "nid",
+            "field_type": "LONG"
+        }
+    ],
+    "indexs": [
+        {
+            "format_version_id": 0,
+            "index_fields": "nid",
+            "index_name": "nid",
+            "index_type": "PRIMARYKEY64",
+            "pk_data_block_size": 4096,
+            "pk_hash_type": "default_hash",
+            "pk_storage_type": "sort_array"
+        }
+    ],
+    "settings": {
+        "segment_group_config": {
+            "groups": [
+                "HOT",
+                "WARM",
+                "COLD"
+            ]
+        }
+    },
+    "table_name": "table1",
+    "table_type": "normal"
+}

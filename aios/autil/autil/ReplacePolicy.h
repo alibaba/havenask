@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 
 #include "autil/Block.h"
 #include "autil/BlockLinkListNode.h"
@@ -24,24 +24,18 @@
 
 namespace autil {
 
-class ReplacePolicy
-{
+class ReplacePolicy {
 public:
-    struct TryReplacePredicate
-    {
+    struct TryReplacePredicate {
     public:
-        TryReplacePredicate(ReferencedHashMap<blockid_t, BlockLinkListNode*>& blockMap)
-            :_blockMap(blockMap)
-        {
-        }
-        bool operator()(BlockLinkListNode* node)
-        {
-            bool ret =  _blockMap.tryDelete((BlockLinkListNode*)node);
+        TryReplacePredicate(ReferencedHashMap<blockid_t, BlockLinkListNode *> &blockMap) : _blockMap(blockMap) {}
+        bool operator()(BlockLinkListNode *node) {
+            bool ret = _blockMap.tryDelete((BlockLinkListNode *)node);
             return ret;
         }
 
     private:
-        ReferencedHashMap<blockid_t, BlockLinkListNode*>& _blockMap;
+        ReferencedHashMap<blockid_t, BlockLinkListNode *> &_blockMap;
     };
 
 public:
@@ -50,14 +44,13 @@ public:
 
 private:
     ReplacePolicy(const ReplacePolicy &);
-    ReplacePolicy& operator = (const ReplacePolicy &);
+    ReplacePolicy &operator=(const ReplacePolicy &);
+
 public:
-    virtual void accessBlock(BlockLinkListNode* blockNode) = 0;
-    virtual uint32_t replaceBlocks(TryReplacePredicate& tryReplace,
-                                   BlockLinkListNode*& firstReplacedBlock) = 0;
+    virtual void accessBlock(BlockLinkListNode *blockNode) = 0;
+    virtual uint32_t replaceBlocks(TryReplacePredicate &tryReplace, BlockLinkListNode *&firstReplacedBlock) = 0;
 };
 
 typedef std::shared_ptr<ReplacePolicy> ReplacePolicyPtr;
 
-}
-
+} // namespace autil

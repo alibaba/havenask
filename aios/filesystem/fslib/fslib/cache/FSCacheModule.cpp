@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 #include "fslib/cache/FSCacheModule.h"
-#include "fslib/cache/FileDataCache.h"
-#include "fslib/cache/PathMetaCache.h"
-#include "fslib/util/PathUtil.h"
-#include "fslib/fs/File.h"
-#include "fslib/fs/FileSystem.h"
+
+#include <unistd.h>
+
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
-#include <unistd.h>
+#include "fslib/cache/FileDataCache.h"
+#include "fslib/cache/PathMetaCache.h"
+#include "fslib/fs/File.h"
+#include "fslib/fs/FileSystem.h"
+#include "fslib/util/PathUtil.h"
 
 using namespace std;
 using namespace autil;
@@ -35,16 +38,11 @@ const int64_t FSCacheModule::DEFAULT_CACHE_SINGLE_FILE_THRESHOLD = 64 * 1024;
 const int64_t FSCacheModule::MAX_CACHE_SINGLE_FILE_THRESHOLD = 4 * 1024 * 1024;
 const int64_t FSCacheModule::DEFAULT_TOTAL_DATA_CACHE_SIZE = 32 * 1024 * 1024;
 
-FSCacheModule::PatternMatcher::PatternMatcher()
-    : _mode(MM_DISABLE)
-{}
+FSCacheModule::PatternMatcher::PatternMatcher() : _mode(MM_DISABLE) {}
 
-FSCacheModule::PatternMatcher::~PatternMatcher()
-{}
+FSCacheModule::PatternMatcher::~PatternMatcher() {}
 
-void FSCacheModule::PatternMatcher::init(
-        const string& mode, const vector<string>& patterns)
-{
+void FSCacheModule::PatternMatcher::init(const string &mode, const vector<string> &patterns) {
     if (patterns.empty() || mode == "disable") {
         _mode = MM_DISABLE;
         return;
@@ -59,13 +57,14 @@ void FSCacheModule::PatternMatcher::init(
         RegularExprPtr expr(new RegularExpr);
         if (expr->init(patterns[i])) {
             _regExprVec.push_back(expr);
-        } 
+        }
     }
 }
 
-bool FSCacheModule::PatternMatcher::match(const string& filePath) const
-{
-    if (_mode == MM_DISABLE) { return true; }
+bool FSCacheModule::PatternMatcher::match(const string &filePath) const {
+    if (_mode == MM_DISABLE) {
+        return true;
+    }
     bool match = false;
     for (size_t i = 0; i < _regExprVec.size(); i++) {
         if (_regExprVec[i]->match(filePath)) {
@@ -80,11 +79,7 @@ bool FSCacheModule::PatternMatcher::match(const string& filePath) const
     return !match;
 }
 
-FSCacheModule::FSCacheModule()
-    : _cacheFileThreshold(DEFAULT_CACHE_SINGLE_FILE_THRESHOLD)
-{
-    initFromEnv();
-}
+FSCacheModule::FSCacheModule() : _cacheFileThreshold(DEFAULT_CACHE_SINGLE_FILE_THRESHOLD) { initFromEnv(); }
 
 FSCacheModule::~FSCacheModule() {}
 
@@ -99,9 +94,8 @@ void FSCacheModule::initFromEnv() {
     initFslibMetaCache();
 }
 
-bool FSCacheModule::addPathMeta(const string& filePath, int64_t fileLength,
-                                uint64_t createTime, uint64_t modifyTime, bool isDirectory)
-{
+bool FSCacheModule::addPathMeta(
+    const string &filePath, int64_t fileLength, uint64_t createTime, uint64_t modifyTime, bool isDirectory) {
     string normPath = PathUtil::normalizePath(filePath);
     if (!needCacheMeta(normPath)) {
         return false;
@@ -110,16 +104,14 @@ bool FSCacheModule::addPathMeta(const string& filePath, int64_t fileLength,
     if (!_patternMatcher.match(normPath)) {
         return false;
     }
-    _metaCache->addPathMeta(normPath, fileLength,
-                            createTime, modifyTime, isDirectory);
+    _metaCache->addPathMeta(normPath, fileLength, createTime, modifyTime, isDirectory);
 
     FileSystem::reportMetaCachedPathCount(getMetaCachedPathCount());
     return true;
 }
 
-bool FSCacheModule::setImmutablePath(const string& immutablePath,
-                                     const vector<pair<string, PathMeta>>& innerPathMetas)
-{
+bool FSCacheModule::setImmutablePath(const string &immutablePath,
+                                     const vector<pair<string, PathMeta>> &innerPathMetas) {
     string normPath = PathUtil::normalizePath(immutablePath);
     if (!needCacheMeta(normPath)) {
         return false;
@@ -132,21 +124,19 @@ bool FSCacheModule::setImmutablePath(const string& immutablePath,
             hasFilter = true;
             continue;
         }
-        _metaCache->addPathMeta(path, p.second.length, p.second.createTime,
-                                p.second.lastModifyTime, !p.second.isFile);
+        _metaCache->addPathMeta(path, p.second.length, p.second.createTime, p.second.lastModifyTime, !p.second.isFile);
     }
     if (!hasFilter) {
         _metaCache->markImmutablePath(normPath, true);
-        AUTIL_LOG(INFO, "mark immutable path [%s] with [%lu] inner path nodes",
-                  normPath.c_str(), innerPathMetas.size());
-    } 
+        AUTIL_LOG(
+            INFO, "mark immutable path [%s] with [%lu] inner path nodes", normPath.c_str(), innerPathMetas.size());
+    }
     FileSystem::reportMetaCachedPathCount(getMetaCachedPathCount());
     FileSystem::reportMetaCacheImmutablePathCount(getMetaCacheImmutablePathCount());
     return true;
 }
 
-bool FSCacheModule::matchImmutablePath(const string& path) const
-{
+bool FSCacheModule::matchImmutablePath(const string &path) const {
     string normPath = PathUtil::normalizePath(path);
     if (!needCacheMeta(normPath)) {
         return false;
@@ -154,8 +144,7 @@ bool FSCacheModule::matchImmutablePath(const string& path) const
     return _metaCache->matchImmutablePath(normPath);
 }
 
-bool FSCacheModule::getPathMeta(const string& filePath, PathMeta& pathMeta) const
-{
+bool FSCacheModule::getPathMeta(const string &filePath, PathMeta &pathMeta) const {
     string normPath = PathUtil::normalizePath(filePath);
     if (!needCacheMeta(normPath)) {
         return false;
@@ -167,10 +156,9 @@ bool FSCacheModule::getPathMeta(const string& filePath, PathMeta& pathMeta) cons
     return true;
 }
 
-bool FSCacheModule::listInImmutablePath(const string& path,
-                                        vector<pair<string, PathMeta>>& subFiles,
-                                        bool recursive) const
-{
+bool FSCacheModule::listInImmutablePath(const string &path,
+                                        vector<pair<string, PathMeta>> &subFiles,
+                                        bool recursive) const {
     string normPath = PathUtil::normalizePath(path);
     if (!needCacheMeta(normPath)) {
         return false;
@@ -185,24 +173,22 @@ bool FSCacheModule::listInImmutablePath(const string& path,
     return true;
 }
 
-void FSCacheModule::parseDataCacheParam(const string& dataCacheParam,
+void FSCacheModule::parseDataCacheParam(const string &dataCacheParam,
                                         int64_t &cacheFileThreshold,
-                                        int64_t &totalCacheSize)
-{
+                                        int64_t &totalCacheSize) {
     vector<vector<string>> kvPairs;
     StringUtil::fromString(dataCacheParam, kvPairs, "=", ",");
     for (auto &kvpair : kvPairs) {
         if (kvpair.size() != 2) {
-            AUTIL_LOG(ERROR, "invalid kvpair [%s] in FSLIB_DATA_CACHE_PARAM",
-                      StringUtil::toString(kvpair, "=").c_str());
-            cerr << "invalid kvpair [" << StringUtil::toString(kvpair, "=")
-                 << "] in FSLIB_DATA_CACHE_PARAM" << endl;
+            AUTIL_LOG(
+                ERROR, "invalid kvpair [%s] in FSLIB_DATA_CACHE_PARAM", StringUtil::toString(kvpair, "=").c_str());
+            cerr << "invalid kvpair [" << StringUtil::toString(kvpair, "=") << "] in FSLIB_DATA_CACHE_PARAM" << endl;
             continue;
         }
         if (kvpair[0] == "cache_file_threshold") {
             if (!StringUtil::fromString(kvpair[1], cacheFileThreshold)) {
                 AUTIL_LOG(ERROR, "invalid cache_file_threshold [%s]", kvpair[1].c_str());
-                cerr << "invalid cache_file_threshold [" << kvpair[1] <<  "]" << endl;
+                cerr << "invalid cache_file_threshold [" << kvpair[1] << "]" << endl;
                 continue;
             }
         }
@@ -216,25 +202,29 @@ void FSCacheModule::parseDataCacheParam(const string& dataCacheParam,
     }
 
     if (cacheFileThreshold > totalCacheSize) {
-        AUTIL_LOG(INFO, "cache_file_threshold [%ld] is bigger than total_cache_size [%ld]",
-                  cacheFileThreshold, totalCacheSize);
-        cerr << "cache_file_threshold [" << cacheFileThreshold
-             << "] is bigger than total_cache_size [" << totalCacheSize << "]" << endl;
+        AUTIL_LOG(INFO,
+                  "cache_file_threshold [%ld] is bigger than total_cache_size [%ld]",
+                  cacheFileThreshold,
+                  totalCacheSize);
+        cerr << "cache_file_threshold [" << cacheFileThreshold << "] is bigger than total_cache_size ["
+             << totalCacheSize << "]" << endl;
         cacheFileThreshold = min(DEFAULT_CACHE_SINGLE_FILE_THRESHOLD, totalCacheSize);
     }
     if (cacheFileThreshold > MAX_CACHE_SINGLE_FILE_THRESHOLD) {
-        AUTIL_LOG(INFO, "cache_file_threshold [%ld] too big, set to max [%ld]",
-                  DEFAULT_CACHE_SINGLE_FILE_THRESHOLD, MAX_CACHE_SINGLE_FILE_THRESHOLD);
-        cerr << "cache_file_threshold [" << DEFAULT_CACHE_SINGLE_FILE_THRESHOLD
-             << "] too big, set to max [" << MAX_CACHE_SINGLE_FILE_THRESHOLD << "]" << endl;
+        AUTIL_LOG(INFO,
+                  "cache_file_threshold [%ld] too big, set to max [%ld]",
+                  DEFAULT_CACHE_SINGLE_FILE_THRESHOLD,
+                  MAX_CACHE_SINGLE_FILE_THRESHOLD);
+        cerr << "cache_file_threshold [" << DEFAULT_CACHE_SINGLE_FILE_THRESHOLD << "] too big, set to max ["
+             << MAX_CACHE_SINGLE_FILE_THRESHOLD << "]" << endl;
         cacheFileThreshold = MAX_CACHE_SINGLE_FILE_THRESHOLD;
     }
 }
 
 void FSCacheModule::initCacheSupportFsTypes() {
     string supportFsType;
-    char* tmp = getenv("FSLIB_CACHE_SUPPORTING_FS_TYPE");
-    if (tmp) {
+    string tmp = autil::EnvUtil::getEnv("FSLIB_CACHE_SUPPORTING_FS_TYPE");
+    if (!tmp.empty()) {
         supportFsType = tmp;
     } else {
         supportFsType = "hdfs|pangu|dfs";
@@ -243,15 +233,15 @@ void FSCacheModule::initCacheSupportFsTypes() {
     AUTIL_LOG(INFO, "fslib cache-supporting fsType [%s]", supportFsType.c_str());
     vector<string> fsTypes;
     StringUtil::fromString(supportFsType, fsTypes, "|");
-    for (auto& type: fsTypes) {
+    for (auto &type : fsTypes) {
         _supportFsTypeSet.insert(type);
     }
 }
 
 void FSCacheModule::initCacheFileMatchPatterns() {
     string cachePatternParam;
-    char* tmp = getenv("FSLIB_CACHE_FILE_PATTERN");
-    if (tmp) {
+    string tmp = autil::EnvUtil::getEnv("FSLIB_CACHE_FILE_PATTERN");
+    if (!tmp.empty()) {
         cachePatternParam = tmp;
     } else {
         cachePatternParam = "mode=disable";
@@ -264,8 +254,7 @@ void FSCacheModule::initCacheFileMatchPatterns() {
     StringUtil::fromString(cachePatternParam, kvPairs, "=", ",");
     for (auto kv : kvPairs) {
         if (kv.size() != 2) {
-            AUTIL_LOG(ERROR, "invalid FSLIB_CACHE_FILE_PATTERN [%s]",
-                      cachePatternParam.c_str());
+            AUTIL_LOG(ERROR, "invalid FSLIB_CACHE_FILE_PATTERN [%s]", cachePatternParam.c_str());
             cerr << "invalid FSLIB_CACHE_FILE_PATTERN [" << cachePatternParam << "]" << endl;
             modeTypeStr = "disable";
             patternVec.clear();
@@ -279,22 +268,20 @@ void FSCacheModule::initCacheFileMatchPatterns() {
             patternVec.push_back(kv[1]);
             continue;
         }
-        AUTIL_LOG(ERROR, "invalid key [%s] in FSLIB_CACHE_FILE_PATTERN [%s]",
-                  kv[0].c_str(), cachePatternParam.c_str());
-        cerr << "invalid key [" << kv[0]
-             << "] in FSLIB_CACHE_FILE_PATTERN [" << cachePatternParam << "]" << endl;
+        AUTIL_LOG(ERROR, "invalid key [%s] in FSLIB_CACHE_FILE_PATTERN [%s]", kv[0].c_str(), cachePatternParam.c_str());
+        cerr << "invalid key [" << kv[0] << "] in FSLIB_CACHE_FILE_PATTERN [" << cachePatternParam << "]" << endl;
         modeTypeStr = "disable";
         patternVec.clear();
         break;
     }
 
-    if (modeTypeStr != "disable" &&
-        modeTypeStr != "blacklist" && modeTypeStr != "whitelist")
-    {
-        AUTIL_LOG(ERROR, "invalid mode [%s] in FSLIB_CACHE_FILE_PATTERN [%s]",
-                  modeTypeStr.c_str(), cachePatternParam.c_str());
-        cerr << "invalid mode [" << modeTypeStr
-             << "] in FSLIB_CACHE_FILE_PATTERN [" << cachePatternParam << "]" << endl;
+    if (modeTypeStr != "disable" && modeTypeStr != "blacklist" && modeTypeStr != "whitelist") {
+        AUTIL_LOG(ERROR,
+                  "invalid mode [%s] in FSLIB_CACHE_FILE_PATTERN [%s]",
+                  modeTypeStr.c_str(),
+                  cachePatternParam.c_str());
+        cerr << "invalid mode [" << modeTypeStr << "] in FSLIB_CACHE_FILE_PATTERN [" << cachePatternParam << "]"
+             << endl;
 
         modeTypeStr = "disable";
         patternVec.clear();
@@ -305,18 +292,18 @@ void FSCacheModule::initCacheFileMatchPatterns() {
 void FSCacheModule::initFslibDataCache() {
     int64_t cacheFileThreshold = DEFAULT_CACHE_SINGLE_FILE_THRESHOLD;
     int64_t totalCacheSize = DEFAULT_TOTAL_DATA_CACHE_SIZE;
-    char* useDataCache = getenv("FSLIB_ENABLE_DATA_CACHE");
-    if (!useDataCache || string(useDataCache) != "true") {
+    string useDataCache = autil::EnvUtil::getEnv("FSLIB_ENABLE_DATA_CACHE");
+    if (useDataCache != "true") {
         return;
     }
-    
-    char* dataCacheParam = getenv("FSLIB_DATA_CACHE_PARAM");
-    if (dataCacheParam) {
+
+    string dataCacheParam = autil::EnvUtil::getEnv("FSLIB_DATA_CACHE_PARAM");
+    if (!dataCacheParam.empty()) {
         parseDataCacheParam(dataCacheParam, cacheFileThreshold, totalCacheSize);
     }
-        
-    AUTIL_LOG(INFO, "Enable DataCache, cacheFileThreshold [%ld], totalCacheSize [%ld]",
-              cacheFileThreshold, totalCacheSize);
+
+    AUTIL_LOG(
+        INFO, "Enable DataCache, cacheFileThreshold [%ld], totalCacheSize [%ld]", cacheFileThreshold, totalCacheSize);
 
     _dataCache.reset(new FileDataCache(totalCacheSize));
     _cacheFileThreshold = cacheFileThreshold;
@@ -325,8 +312,8 @@ void FSCacheModule::initFslibDataCache() {
 }
 
 void FSCacheModule::initFslibMetaCache() {
-    char* useMetaCache = getenv("FSLIB_ENABLE_META_CACHE");
-    if (!useMetaCache || string(useMetaCache) != "true") {
+    string useMetaCache = autil::EnvUtil::getEnv("FSLIB_ENABLE_META_CACHE");
+    if (useMetaCache != "true") {
         return;
     }
     AUTIL_LOG(INFO, "Enable MetaCache");
@@ -335,8 +322,7 @@ void FSCacheModule::initFslibMetaCache() {
     FileSystem::reportMetaCacheImmutablePathCount(0);
 }
 
-bool FSCacheModule::getFileDataFromCache(const string& filePath, string& data) const
-{
+bool FSCacheModule::getFileDataFromCache(const string &filePath, string &data) const {
     string normPath = PathUtil::normalizePath(filePath);
     if (!needCacheData(normPath)) {
         return false;
@@ -351,7 +337,7 @@ bool FSCacheModule::getFileDataFromCache(const string& filePath, string& data) c
     return true;
 }
 
-void FSCacheModule::putFileDataToCache(const string& filePath, File* file) {
+void FSCacheModule::putFileDataToCache(const string &filePath, File *file) {
     string normPath = PathUtil::normalizePath(filePath);
     if (!needCacheData(normPath) || !file || !file->isOpened()) {
         return;
@@ -382,13 +368,10 @@ void FSCacheModule::putFileDataToCache(const string& filePath, File* file) {
     if (ret != EC_OK) {
         return;
     }
-    ssize_t rlen = file->read((void*)content.data(), len);
+    ssize_t rlen = file->read((void *)content.data(), len);
     if (rlen != len) {
-        AUTIL_LOG(ERROR, "read fail [%ld:%ld] get file length for [%s]",
-                  rlen, len, normPath.c_str());
-        cerr << "read fail [" << rlen << ":"
-             << len << "] get file length for ["
-             << normPath << "]" << endl;
+        AUTIL_LOG(ERROR, "read fail [%ld:%ld] get file length for [%s]", rlen, len, normPath.c_str());
+        cerr << "read fail [" << rlen << ":" << len << "] get file length for [" << normPath << "]" << endl;
         return;
     }
     _dataCache->put(normPath, content);
@@ -396,14 +379,14 @@ void FSCacheModule::putFileDataToCache(const string& filePath, File* file) {
     FileSystem::reportDataCachedFileCount(getDataCachedFileCount());
 }
 
-bool FSCacheModule::getFileLength(const string& filePath, File* file, int64_t &len) {
+bool FSCacheModule::getFileLength(const string &filePath, File *file, int64_t &len) {
     string normPath = PathUtil::normalizePath(filePath);
     PathMeta pMeta;
     if (_metaCache && _metaCache->getPathMeta(normPath, pMeta)) {
         len = pMeta.length;
         return true;
-    } 
-    
+    }
+
     assert(file && file->isOpened());
     if (!file->isEof()) {
         ErrorCode ret = file->seek(0, FILE_SEEK_END);
@@ -423,14 +406,14 @@ void FSCacheModule::reset() {
     initFromEnv();
 }
 
-void FSCacheModule::invalidatePath(const string& path) {
+void FSCacheModule::invalidatePath(const string &path) {
     string normPath = PathUtil::normalizePath(path);
     if (_metaCache) {
         PathMeta pMeta;
         if (_metaCache->getPathMeta(normPath, pMeta) && pMeta.isFile) {
             _metaCache->removeFile(normPath);
         } else {
-            _metaCache->removeDirectory(normPath);            
+            _metaCache->removeDirectory(normPath);
         }
         FileSystem::reportMetaCachedPathCount(getMetaCachedPathCount());
         FileSystem::reportMetaCacheImmutablePathCount(getMetaCacheImmutablePathCount());
@@ -440,7 +423,7 @@ void FSCacheModule::invalidatePath(const string& path) {
         string content;
         int64_t ts = -1;
         if (_dataCache->get(normPath, content, ts)) {
-            _dataCache->removeFile(normPath);            
+            _dataCache->removeFile(normPath);
         } else {
             _dataCache->removeDirectory(normPath);
         }
@@ -449,37 +432,33 @@ void FSCacheModule::invalidatePath(const string& path) {
     }
 }
 
-bool FSCacheModule::needCache(const string& normPath) const {
+bool FSCacheModule::needCache(const string &normPath) const {
     FsType fsType = FileSystem::getFsType(normPath);
     return _supportFsTypeSet.find(fsType) != _supportFsTypeSet.end();
 }
 
-int64_t FSCacheModule::getMetaCachedPathCount() const
-{
+int64_t FSCacheModule::getMetaCachedPathCount() const {
     if (!_metaCache) {
         return 0;
     }
     return _metaCache->getCachedPathCount();
 }
 
-int64_t FSCacheModule::getMetaCacheImmutablePathCount() const
-{
+int64_t FSCacheModule::getMetaCacheImmutablePathCount() const {
     if (!_metaCache) {
         return 0;
     }
     return _metaCache->getImmutablePathCount();
 }
 
-int64_t FSCacheModule::getDataCacheMemUse() const
-{
+int64_t FSCacheModule::getDataCacheMemUse() const {
     if (!_dataCache) {
         return 0;
     }
     return _dataCache->getCacheMemUse();
 }
 
-int64_t FSCacheModule::getDataCachedFileCount() const
-{
+int64_t FSCacheModule::getDataCachedFileCount() const {
     if (!_dataCache) {
         return 0;
     }
@@ -487,4 +466,3 @@ int64_t FSCacheModule::getDataCachedFileCount() const
 }
 
 FSLIB_END_NAMESPACE(cache);
-

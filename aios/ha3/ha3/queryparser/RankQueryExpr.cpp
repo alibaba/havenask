@@ -15,8 +15,8 @@
  */
 #include "ha3/queryparser/RankQueryExpr.h"
 
-#include "ha3/queryparser/QueryExprEvaluator.h"
 #include "autil/Log.h"
+#include "ha3/queryparser/QueryExprEvaluator.h"
 
 namespace isearch {
 namespace queryparser {
@@ -26,7 +26,5 @@ void RankQueryExpr::evaluate(QueryExprEvaluator *qee) {
     qee->evaluateRankExpr(this);
 }
 
-
 } // namespace queryparser
 } // namespace isearch
-

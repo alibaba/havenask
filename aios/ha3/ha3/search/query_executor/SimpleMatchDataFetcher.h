@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 #include <string>
 
 #include "autil/Log.h" // IWYU pragma: keep
@@ -30,29 +30,34 @@
 namespace matchdoc {
 class MatchDoc;
 class MatchDocAllocator;
-}  // namespace matchdoc
+} // namespace matchdoc
 
 namespace isearch {
 namespace search {
 
-class SimpleMatchDataFetcher : public MatchDataFetcher
-{
+class SimpleMatchDataFetcher : public MatchDataFetcher {
 public:
     SimpleMatchDataFetcher();
     ~SimpleMatchDataFetcher();
+
 private:
     SimpleMatchDataFetcher(const SimpleMatchDataFetcher &);
-    SimpleMatchDataFetcher& operator=(const SimpleMatchDataFetcher &);
+    SimpleMatchDataFetcher &operator=(const SimpleMatchDataFetcher &);
+
 public:
     matchdoc::ReferenceBase *require(matchdoc::MatchDocAllocator *allocator,
-            const std::string &refName, uint32_t termCount) override;
+                                     const std::string &refName,
+                                     uint32_t termCount) override;
     indexlib::index::ErrorCode fillMatchData(const SingleLayerExecutors &singleLayerExecutors,
-                                                  matchdoc::MatchDoc matchDoc,
-                                                  matchdoc::MatchDoc subDoc) const override;
+                                             matchdoc::MatchDoc matchDoc,
+                                             matchdoc::MatchDoc subDoc) const override;
+
 private:
     matchdoc::Reference<rank::SimpleMatchData> *_ref;
+
 private:
     friend class SimpleMatchDataFetcherTest;
+
 private:
     AUTIL_LOG_DECLARE();
 };

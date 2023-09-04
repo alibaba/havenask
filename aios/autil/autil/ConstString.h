@@ -15,11 +15,11 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <assert.h>
+#include <iosfwd>
 #include <stdint.h>
 #include <string.h>
-#include <algorithm>
-#include <iosfwd>
 #include <string>
 
 #include "autil/Span.h"
@@ -34,13 +34,13 @@ StringView MakeCStringImpl(const char *data, std::size_t size, Allocator *alloca
     // it makes StringView easier to debug
     // example: data = "abc", size = 3 => _data="abc\0",_size=3
     // then you print _data then show "abc" bur data (withou \0) not
-    char *buf = (char*)allocator->allocate(size + 1);
+    char *buf = (char *)allocator->allocate(size + 1);
     memcpy(buf, data, size);
     buf[size] = '\0';
     return {buf, size};
 }
 
-}
+} // namespace detail
 
 template <typename Allocator>
 StringView MakeCString(const char *data, Allocator *allocator) {
@@ -57,4 +57,4 @@ StringView MakeCString(const StringView &str, Allocator *allocator) {
     return detail::MakeCStringImpl(str.data(), str.size(), allocator);
 }
 
-}
+} // namespace autil

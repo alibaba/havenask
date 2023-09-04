@@ -64,7 +64,7 @@ MemSegmentCreator::PrepareSegmentDir(const std::string& segDir)
 }
 
 Status MemSegmentCreator::CreateSegmentMeta(segmentid_t newSegId, const std::shared_ptr<TabletData>& tabletData,
-                                            const std::shared_ptr<config::TabletSchema>& writeSchema,
+                                            const std::shared_ptr<config::ITabletSchema>& writeSchema,
                                             SegmentMeta* segMeta)
 {
     assert(segMeta != nullptr);
@@ -92,8 +92,8 @@ Status MemSegmentCreator::CreateSegmentMeta(segmentid_t newSegId, const std::sha
             segMeta->segmentInfo->SetShardCount(levelInfo->GetShardCount());
         } else {
             AUTIL_LOG(INFO, "get shard count from on disk version failed, set it to[%u]",
-                      framework::SegmentInfo::INVALID_COLUMN_COUNT);
-            segMeta->segmentInfo->SetShardCount(framework::SegmentInfo::INVALID_COLUMN_COUNT);
+                      framework::SegmentInfo::INVALID_SHARDING_COUNT);
+            segMeta->segmentInfo->SetShardCount(framework::SegmentInfo::INVALID_SHARDING_COUNT);
         }
     } else {
         const std::shared_ptr<SegmentInfo>& segInfo = lastSegment->GetSegmentInfo();
@@ -106,7 +106,7 @@ Status MemSegmentCreator::CreateSegmentMeta(segmentid_t newSegId, const std::sha
 
 std::pair<Status, std::shared_ptr<MemSegment>>
 MemSegmentCreator::CreateMemSegment(const BuildResource& buildResource, const std::shared_ptr<TabletData>& tabletData,
-                                    const std::shared_ptr<config::TabletSchema>& writeSchema)
+                                    const std::shared_ptr<config::ITabletSchema>& writeSchema)
 {
     if (tabletData == nullptr) {
         TABLET_LOG(ERROR, "tablet data is null!");

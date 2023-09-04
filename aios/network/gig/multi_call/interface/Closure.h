@@ -20,16 +20,21 @@
 
 namespace multi_call {
 
-class Closure {
+class Closure
+{
 public:
-    Closure() {}
-    virtual ~Closure() {}
+    Closure() {
+    }
+    virtual ~Closure() {
+    }
 
 public:
     virtual void Run() = 0;
 };
 
 MULTI_CALL_TYPEDEF_PTR(Closure);
+
+typedef Closure SnapshotChangeCallback;
 
 } // namespace multi_call
 

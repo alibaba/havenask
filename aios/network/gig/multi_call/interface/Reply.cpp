@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/interface/Reply.h"
+
 #include "aios/network/gig/multi_call/service/ChildNodeReply.h"
 #include "aios/network/gig/multi_call/service/ConnectionManager.h"
 #include "autil/StringUtil.h"
@@ -24,16 +25,19 @@ namespace multi_call {
 
 AUTIL_LOG_SETUP(multi_call, Reply);
 
-Reply::Reply() {}
+Reply::Reply() {
+}
 
-Reply::~Reply() {}
+Reply::~Reply() {
+}
 
 vector<ResponsePtr> Reply::getResponses(size_t &lackCount) {
     vector<LackResponseInfo> lackInfos;
     return getResponses(lackCount, lackInfos);
 }
 
-vector<ResponsePtr> Reply::getResponses(size_t &lackCount, std::vector<LackResponseInfo> &lackInfos) {
+vector<ResponsePtr> Reply::getResponses(size_t &lackCount,
+                                        std::vector<LackResponseInfo> &lackInfos) {
     lackCount = 0;
     vector<ResponsePtr> ret;
     if (_childNodeReply) {
@@ -44,9 +48,9 @@ vector<ResponsePtr> Reply::getResponses(size_t &lackCount, std::vector<LackRespo
     return ret;
 }
 
-map<string, vector<ResponsePtr> > Reply::getResponseMap(size_t &lackCount) {
+map<string, vector<ResponsePtr>> Reply::getResponseMap(size_t &lackCount) {
     auto responseVec = getResponses(lackCount);
-    map<string, vector<ResponsePtr> > responseMap;
+    map<string, vector<ResponsePtr>> responseMap;
     for (const auto &response : responseVec) {
         responseMap[response->getBizName()].push_back(response);
     }

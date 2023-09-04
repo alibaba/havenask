@@ -22,7 +22,7 @@ AUTIL_LOG_SETUP(indexlib.index, MultiValueAttributeDefragSliceArray);
 
 MultiValueAttributeDefragSliceArray::MultiValueAttributeDefragSliceArray(
     const std::shared_ptr<indexlib::util::DefragSliceArray::SliceArray>& sliceArray, const std::string& attrName,
-    float defragPercentThreshold, framework::IIndexMemoryReclaimer* indexMemoryReclaimer)
+    uint64_t defragPercentThreshold, framework::IIndexMemoryReclaimer* indexMemoryReclaimer)
     : DefragSliceArray(sliceArray)
     , _offsetReader(nullptr)
     , _attributeMetrics(nullptr)
@@ -114,7 +114,7 @@ bool MultiValueAttributeDefragSliceArray::NeedDefrag(int64_t sliceIdx)
     }
 
     size_t wastedSize = GetWastedSize(sliceIdx);
-    size_t threshold = (size_t)(GetSliceLen() * _defragPercentThreshold);
+    size_t threshold = (size_t)(GetSliceLen() * (_defragPercentThreshold / 100.0));
 
     return wastedSize >= threshold;
 }

@@ -1,0 +1,10 @@
+{
+    "tables" : [
+        {
+            "table_name" : "phone",
+            "is_main_table" : true,
+            "data_path" : "data/phone.data"
+        }
+    ],
+    "config_path" : "config/config_select_basic"
+}

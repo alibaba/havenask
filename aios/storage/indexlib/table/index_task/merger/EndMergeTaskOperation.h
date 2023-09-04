@@ -37,12 +37,16 @@ public:
     static framework::IndexOperationDescription CreateOperationDescription(framework::IndexOperationId opId,
                                                                            const framework::Version& version);
 
+    static framework::IndexOperationDescription CreateOperationDescription(framework::IndexOperationId opId,
+                                                                           versionid_t targetVersionId);
+
     Status Execute(const framework::IndexTaskContext& context) override;
 
 private:
+    std::pair<Status, versionid_t> GetTargetVersionId() const;
+
     framework::IndexOperationDescription _desc;
 
-private:
     AUTIL_LOG_DECLARE();
 };
 

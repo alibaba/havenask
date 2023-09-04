@@ -18,9 +18,9 @@
 #include <string>
 #include <unordered_map>
 
-#include "autil/Log.h"
 #include "autil/ConstString.h"
 #include "autil/DataBuffer.h"
+#include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
 #include "iquan/common/Common.h"
 #include "iquan/common/IquanException.h"
@@ -33,7 +33,9 @@ namespace iquan {
 
 class PlanOp : public autil::legacy::Jsonizable {
 public:
-    PlanOp() : id(0), jsonAttrs(nullptr) {}
+    PlanOp()
+        : id(0)
+        , jsonAttrs(nullptr) {}
 
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
@@ -46,7 +48,8 @@ public:
             json.Jsonize("outputs", outputs, {});
 
             autil::legacy::RapidValue *rapidValue = json.getRapidValue();
-            if (unlikely(rapidValue == nullptr || !rapidValue->IsObject() || !rapidValue->HasMember(IQUAN_ATTRS))) {
+            if (unlikely(rapidValue == nullptr || !rapidValue->IsObject()
+                         || !rapidValue->HasMember(IQUAN_ATTRS))) {
                 throw IquanException("FROM_JSON fail, PlanOp json not contain attrs");
             }
             jsonAttrs = &(*rapidValue)[IQUAN_ATTRS];
@@ -57,8 +60,7 @@ public:
     }
 
     std::string jsonAttr2Str(const DynamicParams *dynamicParams,
-                             const DynamicParams *innerDynamicParams) const
-    {
+                             const DynamicParams *innerDynamicParams) const {
         return jsonAttr2Str(dynamicParams, innerDynamicParams, jsonAttrs);
     }
     std::string jsonAttr2Str(const DynamicParams *dynamicParams,
@@ -75,17 +77,29 @@ public:
                      const DynamicParams *innerDynamicParams)
             : writer(writer)
             , dynamicParams(dynamicParams)
-            , innerDynamicParams(innerDynamicParams)
-        {
-        }
+            , innerDynamicParams(innerDynamicParams) {}
 
-        bool Null() { return writer.Null(); }
-        bool Bool(bool b) { return writer.Bool(b); }
-        bool Int(int i) { return writer.Int(i); }
-        bool Uint(unsigned u) { return writer.Uint(u); }
-        bool Int64(int64_t i64) { return writer.Int64(i64); }
-        bool Uint64(uint64_t u64) { return writer.Uint64(u64); }
-        bool Double(double d) { return writer.Double(d); }
+        bool Null() {
+            return writer.Null();
+        }
+        bool Bool(bool b) {
+            return writer.Bool(b);
+        }
+        bool Int(int i) {
+            return writer.Int(i);
+        }
+        bool Uint(unsigned u) {
+            return writer.Uint(u);
+        }
+        bool Int64(int64_t i64) {
+            return writer.Int64(i64);
+        }
+        bool Uint64(uint64_t u64) {
+            return writer.Uint64(u64);
+        }
+        bool Double(double d) {
+            return writer.Double(d);
+        }
         bool String(const Ch *str, SizeType length, bool copy = false) {
             autil::StringView constString(str, length);
             if (dynamicParams && length >= IQUAN_HINT_PARAMS_MIN_SIZE) {
@@ -106,11 +120,21 @@ public:
 
             return writer.String(str, length, copy);
         }
-        bool Key(const Ch *str, SizeType length, bool copy) { return writer.Key(str, length, copy); }
-        bool StartObject() { return writer.StartObject(); }
-        bool EndObject(SizeType memberCount) { return writer.EndObject(memberCount); }
-        bool StartArray() { return writer.StartArray(); }
-        bool EndArray(SizeType elementCount = 0) { return writer.EndArray(elementCount); }
+        bool Key(const Ch *str, SizeType length, bool copy) {
+            return writer.Key(str, length, copy);
+        }
+        bool StartObject() {
+            return writer.StartObject();
+        }
+        bool EndObject(SizeType memberCount) {
+            return writer.EndObject(memberCount);
+        }
+        bool StartArray() {
+            return writer.StartArray();
+        }
+        bool EndArray(SizeType elementCount = 0) {
+            return writer.EndArray(elementCount);
+        }
 
     private:
         bool writeAny(const autil::legacy::Any &any, const std::string &expectedType, bool copy);
@@ -118,23 +142,24 @@ public:
         bool doReplaceHintParams(autil::StringView &planStr, bool copy);
         bool doReplaceParams(autil::StringView &planStr, bool copy);
         bool parseDynamicParamsContent(autil::StringView &planStr,
-                const std::string &prefixStr, const std::string &suffixStr,
-                std::string &keyStr, std::string &typeStr);
+                                       const std::string &prefixStr,
+                                       const std::string &suffixStr,
+                                       std::string &keyStr,
+                                       std::string &typeStr);
 
     private:
         autil::legacy::RapidWriter &writer;
         const DynamicParams *dynamicParams;
         const DynamicParams *innerDynamicParams;
     };
+
 private:
-    void patchJson(autil::legacy::RapidWriter &writer, std::set<std::string>& patchKeys) const;
+    void patchJson(autil::legacy::RapidWriter &writer, std::set<std::string> &patchKeys) const;
 
     template <class T>
-    void patchJson(
-        autil::legacy::RapidWriter &writer,
-        const std::map<std::string, T>& patchAttrs,
-        std::set<std::string>& patchKeys) const
-    {
+    void patchJson(autil::legacy::RapidWriter &writer,
+                   const std::map<std::string, T> &patchAttrs,
+                   std::set<std::string> &patchKeys) const {
         for (const auto &pair : patchAttrs) {
             const auto &key = pair.first;
             auto ret = patchKeys.insert(key);
@@ -147,7 +172,7 @@ private:
         }
     }
 
-    void patchJsonValue(autil::legacy::RapidWriter &writer, const std::string& value) const {
+    void patchJsonValue(autil::legacy::RapidWriter &writer, const std::string &value) const {
         writer.String(value.c_str(), value.size());
     }
 
@@ -162,6 +187,7 @@ private:
     void patchJsonValue(autil::legacy::RapidWriter &writer, bool value) const {
         writer.Bool(value);
     }
+
 public:
     size_t id;
     std::string opName;
@@ -174,6 +200,7 @@ public:
     std::map<std::string, double> patchDoubleAttrs;
     std::map<std::string, int64_t> patchInt64Attrs;
     std::map<std::string, bool> patchBoolAttrs;
+
 private:
     AUTIL_LOG_DECLARE();
 };
@@ -230,13 +257,15 @@ public:
         json.Jsonize("plan_meta", sqlPlanMeta, sqlPlanMeta);
     }
 
-    void serialize(autil::DataBuffer &dataBuffer) const { dataBuffer.write(autil::legacy::ToJsonString(this)); }
+    void serialize(autil::DataBuffer &dataBuffer) const {
+        dataBuffer.write(autil::legacy::FastToJsonString(this, true));
+    }
 
     Status deserialize(autil::DataBuffer &dataBuffer) {
         std::string strBuf;
         dataBuffer.read(strBuf);
         try {
-            autil::legacy::FromJsonString(*this, strBuf);
+            autil::legacy::FastFromJsonString(*this, strBuf);
         } catch (const autil::legacy::ExceptionBase &e) {
             return Status(IQUAN_JSON_FORMAT_ERROR, e.GetMessage());
         } catch (const IquanException &e) { return Status(IQUAN_JSON_FORMAT_ERROR, e.what()); }
@@ -250,8 +279,9 @@ public:
     std::map<std::string, std::string> execParams;
     std::map<std::string, std::vector<OptimizeInfos>> optimizeInfosMap;
     SqlPlanMeta sqlPlanMeta;
-    DynamicParams innerDynamicParams;   // for optimizer
-    std::shared_ptr<autil::legacy::RapidDocument> rawRapidDoc; // need hold, plan node use attribute info
+    DynamicParams innerDynamicParams; // for optimizer
+    std::shared_ptr<autil::legacy::RapidDocument>
+        rawRapidDoc; // need hold, plan node use attribute info
 };
 
 typedef std::shared_ptr<SqlPlan> SqlPlanPtr;
@@ -271,7 +301,8 @@ public:
 
         Status status = Utils::fromJson(attrMap, attrMapStr);
         if (!status.ok()) {
-            throw IquanException("from json fail: " + attrMapStr);
+            throw IquanException("from json fail: " + attrMapStr
+                                 + ", msg: " + status.errorMessage());
         }
         return true;
     }
@@ -299,8 +330,7 @@ class SqlPlanWrapper : public autil::legacy::Jsonizable {
 public:
     SqlPlanWrapper() = default;
 
-    bool convert(const SqlPlan &sqlPlan,
-                 const DynamicParams &dynamicParams) {
+    bool convert(const SqlPlan &sqlPlan, const DynamicParams &dynamicParams) {
         relPlanVersion = sqlPlan.relPlanVersion;
         execParams = sqlPlan.execParams;
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/new_heartbeat/ServerTopoMap.h"
+
 #include "aios/network/gig/multi_call/common/TopoInfoBuilder.h"
 #include "autil/HashAlgorithm.h"
 #include "autil/StringConvertor.h"
@@ -48,8 +49,7 @@ void ServerId::initSignature() {
 }
 
 void ServerId::fillServerIdDef(const SignatureMapPtr &clientSignatureMap,
-                               NewHeartbeatResponse &response) const
-{
+                               NewHeartbeatResponse &response) const {
     response.set_server_signature(_signature);
     if (clientSignatureMap && (clientSignatureMap->serverSignature == _signature)) {
         return;
@@ -147,7 +147,7 @@ std::string ServerTopoMap::toString() const {
     auto serverId = getServerId();
     if (!serverId) {
         ret += "empty server id";
-    }else {
+    } else {
         serverId->toString(ret);
     }
     ret += "\n";
@@ -164,4 +164,4 @@ std::string ServerTopoMap::toString() const {
     return ret;
 }
 
-}
+} // namespace multi_call

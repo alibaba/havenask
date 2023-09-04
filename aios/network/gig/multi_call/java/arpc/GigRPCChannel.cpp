@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/java/arpc/GigRPCChannel.h"
+
 #include "aios/network/arpc/arpc/SyncClosure.h"
 #include "aios/network/gig/multi_call/java/arpc/GigRPCArg.h"
 
@@ -24,11 +25,11 @@ using namespace anet;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GigRPCChannel);
 
-GigRPCChannel::GigRPCChannel(anet::Connection *pConnection,
-                             GigRPCMessageCodec *gigMessageCodec, bool block)
-    : ANetRPCChannel(pConnection, gigMessageCodec, block),
-      _gigMessageCodec(gigMessageCodec),
-      _gigClientPacketHandler(new GigClientPacketHandler()) {
+GigRPCChannel::GigRPCChannel(anet::Connection *pConnection, GigRPCMessageCodec *gigMessageCodec,
+                             bool block)
+    : ANetRPCChannel(pConnection, gigMessageCodec, block)
+    , _gigMessageCodec(gigMessageCodec)
+    , _gigClientPacketHandler(new GigClientPacketHandler()) {
     _gigClientPacketHandler->setGigRpcChannel(this);
     _gigClientPacketHandler->addRef();
     // clear default package handler
@@ -52,10 +53,9 @@ GigRPCChannel::~GigRPCChannel() {
     }
 }
 
-void GigRPCChannel::CallMethod(uint32_t serviceId, uint32_t methodId,
-                               RPCController *controller,
-                               const std::string *request,
-                               std::string *response, RPCClosure *done) {
+void GigRPCChannel::CallMethod(uint32_t serviceId, uint32_t methodId, RPCController *controller,
+                               const std::string *request, std::string *response,
+                               RPCClosure *done) {
     version_t version = GetVersion();
     ANetRPCController *pController = (ANetRPCController *)controller;
     SetTraceFlag(pController);
@@ -78,8 +78,7 @@ void GigRPCChannel::CallMethod(uint32_t serviceId, uint32_t methodId,
         return;
     }
 
-    GigRpcReqArg *pArg =
-        new (nothrow) GigRpcReqArg(pController, response, done, context);
+    GigRpcReqArg *pArg = new (nothrow) GigRpcReqArg(pController, response, done, context);
 
     if (pArg == NULL) {
         AUTIL_LOG(ERROR, "new GigRpcReqArg return NULL");
@@ -136,8 +135,7 @@ bool GigRPCChannel::AsyncCall(Packet *pPack, GigRpcReqArg *pArg) {
     return true;
 }
 
-void GigRPCChannel::SetError(ANetRPCController *pController,
-                             ErrorCode errorCode) {
+void GigRPCChannel::SetError(ANetRPCController *pController, ErrorCode errorCode) {
     pController->SetErrorCode(errorCode);
     pController->SetFailed(errorCodeToString(errorCode));
     return;
@@ -165,32 +163,27 @@ bool GigRPCChannel::CheckResponsePacket(Packet *packet, GigRpcReqArg *pArgs) {
 
     SetVersion(remoteVersion);
     GigCodecContext *context = pArgs->sContext;
-    Packet *newPacket =
-        _gigMessageCodec->EncodeRequest(context, pcode, remoteVersion);
+    Packet *newPacket = _gigMessageCodec->EncodeRequest(context, pcode, remoteVersion);
 
     if (newPacket == NULL) {
-        AUTIL_LOG(ERROR, "encode repost packet falied. packetVersion [%d]",
-                  remoteVersion);
+        AUTIL_LOG(ERROR, "encode repost packet falied. packetVersion [%d]", remoteVersion);
         return true;
     }
 
     delete packet;
     AsyncCall(newPacket, pArgs);
-    AUTIL_LOG(INFO, "repost the request for remote version [%d]",
-              remoteVersion);
+    AUTIL_LOG(INFO, "repost the request for remote version [%d]", remoteVersion);
     return false;
 }
 
-bool GigRPCChannel::needRepostPacket(ErrorCode errorCode,
-                                     version_t remoteVersion,
+bool GigRPCChannel::needRepostPacket(ErrorCode errorCode, version_t remoteVersion,
                                      version_t postedPacketVersion) const {
     if (errorCode == ARPC_ERROR_NONE) {
         return false;
     }
 
     if (errorCode == ARPC_ERROR_RPCCALL_MISMATCH) {
-        if (remoteVersion == ARPC_VERSION_0 &&
-            postedPacketVersion > ARPC_VERSION_0) {
+        if (remoteVersion == ARPC_VERSION_0 && postedPacketVersion > ARPC_VERSION_0) {
             return true;
         } else {
             return false;

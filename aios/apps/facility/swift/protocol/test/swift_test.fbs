@@ -1,0 +1,24 @@
+namespace swift.protocol.flat.test;
+
+table Message {
+    data:string;
+    compress:bool = false;
+    msgId:long;
+    timestamp:long;
+    uint16Payload:ushort = 0;
+    uint8MaskPayload:ubyte = 0;
+}
+
+table Messages {
+      msgs:[Message];
+}
+
+table ProductionRequest {
+    topicName:string;
+    partitionId:ushort;
+    msgs:[Message];
+    sessionId:long;
+    compressedMsgs:string;
+    compressMsgInBroker:bool = false;
+}
+

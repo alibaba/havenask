@@ -13,17 +13,6 @@ cc_binary(
     deps=[':fsutil_lib'],
     visibility=['//visibility:public']
 )
-py_test(
-    name='pyfsutil_test',
-    srcs=[
-        'pyfsutil/test/test_main.py', 'pyfsutil/test/globalVal.py',
-        'pyfsutil/test/example_test.py', 'pyfsutil/test/fsutil_test.py'
-    ],
-    main='pyfsutil/test/test_main.py',
-    python_version='PY3',
-    data=[':libpyfsutil.so'],
-    imports=[':libpyfsutil.so']
-)
 filegroup(
     name='fsutil_tools', srcs=['fsutil/fs_util', 'fsutil/class_path_util']
 )

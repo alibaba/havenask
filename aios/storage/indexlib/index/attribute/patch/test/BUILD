@@ -1,0 +1,115 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+strict_cc_fast_test(
+    name='SingleValueAttributePatchReaderTest',
+    srcs=['SingleValueAttributePatchReaderTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/autil:log', '//aios/autil:string_helper',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/index/attribute/patch:SingleValueAttributePatchReader',
+        '//aios/storage/indexlib/index/common/field_format:attribute_field_format',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='SingleValueAttributePatchMergerTest',
+    srcs=['SingleValueAttributePatchMergerTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/autil:log', '//aios/autil:string_helper',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:SegmentMeta',
+        '//aios/storage/indexlib/framework/mock:FakeSegment',
+        '//aios/storage/indexlib/index/attribute/patch:AttributePatchFileFinder',
+        '//aios/storage/indexlib/index/attribute/patch:AttributeUpdater',
+        '//aios/storage/indexlib/index/attribute/patch:SingleValueAttributePatchMerger',
+        '//aios/storage/indexlib/index/common/field_format:attribute_field_format',
+        '//aios/storage/indexlib/index/common/patch:PatchFileFinder',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='MultiValueAttributePatchReaderTest',
+    srcs=['MultiValueAttributePatchReaderTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/autil:log', '//aios/autil:string_helper',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/index/attribute/patch:MultiValueAttributePatchReader',
+        '//aios/storage/indexlib/index/common/field_format:attribute_field_format',
+        '//aios/storage/indexlib/index/test:IndexTestUtil',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='MultiValueAttributePatchMergerTest',
+    srcs=['MultiValueAttributePatchMergerTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/autil:log', '//aios/autil:string_helper',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:SegmentMeta',
+        '//aios/storage/indexlib/framework/mock:FakeSegment',
+        '//aios/storage/indexlib/index/attribute/patch:AttributePatchFileFinder',
+        '//aios/storage/indexlib/index/attribute/patch:AttributeUpdater',
+        '//aios/storage/indexlib/index/attribute/patch:MultiValueAttributePatchMerger',
+        '//aios/storage/indexlib/index/common/field_format:attribute_field_format',
+        '//aios/storage/indexlib/index/common/patch:PatchFileFinder',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='MultiValueAttributePatchFileTest',
+    srcs=['MultiValueAttributePatchFileTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/autil:log', '//aios/autil:string_helper',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/index/attribute/patch:MultiValueAttributePatchFile',
+        '//aios/storage/indexlib/index/common/field_format:attribute_field_format',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='SingleValueAttributeUpdaterTest',
+    srcs=['SingleValueAttributePatchUpdaterTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/autil:string_helper', '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/index/attribute/patch:AttributeUpdater',
+        '//aios/storage/indexlib/index/attribute/patch:SingleValueAttributePatchReader',
+        '//aios/storage/indexlib/index/common/field_format:attribute_field_format',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='MultiValueAttributeUpdaterTest',
+    srcs=['MultiValueAttributePatchUpdaterTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/autil:string_helper', '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/index/attribute/patch:AttributeUpdater',
+        '//aios/storage/indexlib/index/attribute/patch:MultiValueAttributePatchReader',
+        '//aios/storage/indexlib/index/common/field_format:attribute_field_format',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='DefaultValueAttributePatchTest',
+    srcs=['DefaultValueAttributePatchTest.cpp'],
+    deps=[
+        '//aios/autil:multi_value_helper',
+        '//aios/storage/indexlib/index/attribute/patch:DefaultValueAttributePatch',
+        '//aios/storage/indexlib/index/common/field_format/attribute:AttributeFieldPrinter',
+        '//aios/unittest_framework'
+    ]
+)

@@ -1,0 +1,84 @@
+{
+    "role_default" : {
+        "processInfos" : [
+            {
+                "envs" : [
+                    ["-cc" , "/path/to/logconf"]
+                ]
+            }
+        ]
+    },
+    "role_customize" : [
+	{
+            "_bs_role" : "builder.*.full",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        { "name" : "cpu", "amount" : 2 }
+                    ]
+                }
+            ]
+	},
+	{
+            "_bs_role" : ".*.cluster1.full",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        { "name" : "cpu", "amount" : 5 }
+                    ]
+                }
+            ]
+	},
+	{
+            "_bs_role" : "builder.*.inc",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        { "name" : "cpu", "amount" : 5 }
+                    ]
+                }
+            ]
+	},
+	{
+            "_bs_role" : "merger.cluster1.*",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        { "name" : "cpu", "amount" : 5 }
+                    ]
+                }
+            ]
+	},
+	{
+            "_bs_role" : "merger.cluster2.*",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        { "name" : "cpu", "amount" : 5 }
+                    ]
+                }
+            ]
+	},
+	{
+            "_bs_role" : "processor.*",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        { "name" : "cpu", "amount" : 5 }
+                    ]
+                }
+            ]
+	}
+    ],
+    "role_resource" : {
+        "builder.cluster1" : [
+            { "name" : "cpu", "amount" : 3 }
+        ],
+        "builder.cluster1.inc" : [
+            { "name" : "cpu", "amount" : 4 }
+        ],
+        "processor.full" : [
+            { "name" : "cpu", "amount" : 3 }
+        ]
+    }
+}

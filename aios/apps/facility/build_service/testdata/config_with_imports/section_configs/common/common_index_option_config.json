@@ -1,0 +1,55 @@
+{
+    "MaxMemoryUse": 5120,
+    "MaxReopenMemoryUse": 20480,
+    "ReaderKeepAliveTime": 10000,
+    "KeepVersionCount": 20,
+    "MergeStrategy": "balance_tree",
+    "MergeStrategyParam": "conflict-segment-number=3;base-doc-count=10240;max-doc-count=512000;conflict-delete-percent=80;max-valid-doc-count=20000000",
+    "Index" :
+    {
+        "ReadMode" : "mmap",
+        "Parameter" : "lock",
+        "EnableWarmUp" : true
+    },
+    "Attribute" :
+    {
+        "ReadMode" : "mmap",
+        "Parameter" : "lock",
+        "EnableWarmUp" : true
+    },
+    "Summary" :
+    {
+        "ReadMode" : "mmap",
+        "Parameter" : "lock",
+        "EnableWarmUp" : false
+    },
+    "MergeThreadCount" : 1,
+    "RtOptions" :
+    {
+        "KeepVersionCount": 10,
+        "MergeStrategy" : "realtime",
+        "MergeStrategyParam" :"max-small-segment-count=5;merge-size-upperbound=128;merge-size-lowerbound=128",
+        "TrimmerType" : "doc_trimmer",
+        "MaxMemoryUse": 512,
+        "MaxIndexSize": 1024,
+        "ReservedOlderIndex" : true,
+        "Index" :
+        {
+	    "ReadMode" : "mmap",
+	    "Parameter" : "none",
+	    "EnableWarmUp" : false
+        },
+        "Attribute" :
+        {
+	    "ReadMode" : "mmap",
+	    "Parameter" : "none",
+	    "EnableWarmUp" : false
+        },
+        "Summary" :
+        {
+	    "ReadMode" : "mmap",
+	    "Parameter" : "none",
+	    "EnableWarmUp" : false
+        }
+    }
+}

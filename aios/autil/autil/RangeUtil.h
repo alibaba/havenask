@@ -16,35 +16,38 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include <utility>
 #include <vector>
 
 namespace autil {
 
 typedef std::pair<uint16_t, uint16_t> PartitionRange;
-typedef std::vector<PartitionRange > RangeVec;
+typedef std::vector<PartitionRange> RangeVec;
 
-class RangeUtil
-{
+class RangeUtil {
 private:
     RangeUtil();
     ~RangeUtil();
+
 private:
     RangeUtil(const RangeUtil &);
-    RangeUtil& operator=(const RangeUtil &);
+    RangeUtil &operator=(const RangeUtil &);
+
 public:
     static bool getRange(uint32_t partCount, uint32_t partId, PartitionRange &range);
 
-    static RangeVec splitRange(uint32_t rangeFrom, uint32_t rangeTo,
-                               uint32_t partitionCount);
+    static RangeVec splitRange(uint32_t rangeFrom, uint32_t rangeTo, uint32_t partitionCount);
 
-    static int32_t getRangeIdx(uint32_t rangeFrom, uint32_t rangeTo,
-                               uint32_t partitionCount, const PartitionRange &range);
+    static int32_t
+    getRangeIdx(uint32_t rangeFrom, uint32_t rangeTo, uint32_t partitionCount, const PartitionRange &range);
 
     static int32_t getRangeIdxByHashId(uint32_t rangeFrom, uint32_t rangeTo, uint32_t partitionCount, uint32_t hashId);
+
+    static std::string getRangeName(const autil::PartitionRange &range);
 
 public:
     static const uint32_t MAX_PARTITION_RANGE;
 };
 
-}
+} // namespace autil

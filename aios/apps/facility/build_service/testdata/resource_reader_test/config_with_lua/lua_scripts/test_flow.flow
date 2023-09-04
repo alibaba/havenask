@@ -1,0 +1,59 @@
+--[[
+Flow.parameter : flow related kv parameters 
+Flow.createTask(taskId, taskType, taskKvParam = nil) 
+Flow.getTaskProperty(taskId, key, flowId = nil) 
+Flow.getTaskInFlow(taskId, flowId) 
+Flow.setError(msg) 
+Flow.setFatalError(msg) 
+Flow.setProperty(key, value) 
+Flow.getProperty(key) 
+Flow.startTask(taskObj, kvParam = nil) 
+Flow.stopTask(taskObj, kvParam = nil) 
+######################################################### 
+function stepRunFlow() will be called by single TaskFlow, return true means eof of flow 
+--]]
+
+--#import(Tool)
+
+function stepRunFlow()
+    for k,v in pairs(Flow.parameter)
+    do
+        local task = Flow.createTask(k, "", {new_config_path="value"})
+	Flow.startTask(task)
+    end
+    
+    -- create task
+    local processorTask = Flow.createTask("processor", "")
+    Flow.startTask(processorTask)
+
+    print(processorTask:getIdentifier())
+    if (processorTask:isValid())
+    then
+        print(processorTask:getIdentifier().." is valid!")
+        -- create task with param
+        local builderTask = Flow.createTask("builder", "", {key="abc"})
+	Flow.startTask("builder", {key="value"})
+        print(builderTask:getIdentifier())
+        local value = builderTask:getProperty("not_exist")
+        print(value)
+        if (value == nil or value == "")
+        then
+            print("key not find!")
+        else
+            print("value is "..value)	
+        end
+
+        -- get task status in other flow
+        local otherFlowStat = Flow.getTaskProperty("processor", "checkpoint", "full_processor")
+	print(otherFlowStat)
+
+        -- get task in other flow
+	local processorTask = Flow.getTaskInFlow("processor", "full_processor")
+	if (processorTask:isValid()) then
+            print("valid processor!")
+        else
+            print("invalid processor!")	
+	end
+    end
+    return true
+end

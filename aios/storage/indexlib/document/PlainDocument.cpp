@@ -89,6 +89,7 @@ void PlainDocument::SetTrace(bool trace) { _trace = trace; }
 size_t PlainDocument::EstimateMemory() const
 {
     size_t memSize = sizeof(*this);
+    memSize += _pool->getUsedBytes();
     for (auto& [_, indexFields] : _indexFieldsMap) {
         memSize += indexFields->EstimateMemory();
     }
@@ -132,7 +133,7 @@ void PlainDocument::deserialize(autil::DataBuffer& dataBuffer)
     auto factoryCreator = index::IndexFactoryCreator::GetInstance();
     assert(factoryCreator);
     auto allFactories = factoryCreator->GetAllFactories();
-    std::unordered_map<autil::StringView, std::unique_ptr<IIndexFieldsParser>> parserMap;
+    std::unordered_map<autil::StringView, std::unique_ptr<const IIndexFieldsParser>> parserMap;
     for (auto& [indexType, factory] : allFactories) {
         auto parser = factory->CreateIndexFieldsParser();
         assert(parser);
@@ -145,7 +146,7 @@ void PlainDocument::deserialize(autil::DataBuffer& dataBuffer)
 
 void PlainDocument::deserialize(
     autil::DataBuffer& dataBuffer,
-    const std::unordered_map<autil::StringView, std::unique_ptr<IIndexFieldsParser>>& parsers)
+    const std::unordered_map<autil::StringView, std::unique_ptr<const IIndexFieldsParser>>& parsers)
 {
     uint32_t serializeVersion = 0;
     dataBuffer.read(serializeVersion);

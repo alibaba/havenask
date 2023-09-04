@@ -141,7 +141,7 @@ bool InplaceAttributeModifier::Update(docid_t docId, const AttributeDocumentPtr&
         assert(attrConfig);
         PackAttributeConfig* packAttrConfig = attrConfig->GetPackAttributeConfig();
         if (packAttrConfig) {
-            if (packAttrConfig->IsDisable()) {
+            if (packAttrConfig->IsDisabled()) {
                 continue;
             }
             _packIdToPackFields[packAttrConfig->GetPackAttrId()].push_back(make_pair(attrConfig->GetAttrId(), value));
@@ -193,7 +193,7 @@ void InplaceAttributeModifier::UpdatePackAttribute(docid_t docId, const document
                                                    packattrid_t packAttrId)
 {
     const PackAttributeConfigPtr& packAttrConfig = mSchema->GetAttributeSchema()->GetPackAttributeConfig(packAttrId);
-    assert(attrDoc && packAttrConfig && !packAttrConfig->IsDisable());
+    assert(attrDoc && packAttrConfig && !packAttrConfig->IsDisabled());
 
     for (const AttributeConfigPtr& attrConfig : packAttrConfig->GetAttributeConfigVec()) {
         if (!attrConfig->IsNormal()) {

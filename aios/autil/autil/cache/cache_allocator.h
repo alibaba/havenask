@@ -19,17 +19,16 @@
 
 namespace autil {
 
-class CacheAllocator
-{
+class CacheAllocator {
 public:
     CacheAllocator() = default;
     ~CacheAllocator() = default;
 
 public:
-    virtual void* Allocate() = 0;
-    virtual void Deallocate(void* const addr) = 0;
+    virtual void *Allocate() = 0;
+    virtual void Deallocate(void *const addr) = 0;
 };
 
 using CacheAllocatorPtr = std::shared_ptr<CacheAllocator>;
 
-}
+} // namespace autil

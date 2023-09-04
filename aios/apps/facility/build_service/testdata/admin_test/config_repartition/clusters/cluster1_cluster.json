@@ -1,0 +1,46 @@
+{
+    "cluster_config" : {
+	"table_name" : "mainse_searcher",
+	"hash_mode" : {
+            "hash_field" : "nid",
+            "hash_function" : "NUMBER_HASH"
+	},
+        "cluster_name" : "cluster1",
+        "cluster_type" : "inc_with_realtime",
+	"builder_rule_config" : {
+            "partition_count" : part_count,
+            "build_parallel_num" : 3,
+            "merge_parallel_num" : 1,
+            "map_reduce_ratio" : 1,
+            "need_partition" : true
+	},
+        "need_sync_table_meta" : true
+    },
+    "build_option_config" : {
+        "sort_build" : true,
+        "sort_queue_size" : 100000,
+	"sort_descriptions" : [
+	    {
+		"sort_field" : "category",
+		"sort_pattern" : "desc"
+	    },
+	    {
+		"sort_field" : "ends",
+		"sort_pattern" : "desc"
+	    }
+	]
+    },
+    "offline_index_config" : {
+        "merge_config" : {
+            "truncate_strategy" : [
+                {
+                    "strategy_name" : "distinct_sort",
+                    "threshold" : 2,
+                    "truncate_profiles" : [
+                        "asc_price"
+                    ]
+                }
+            ]
+        }
+    }
+}

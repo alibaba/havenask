@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/common/HbInfo.h"
+
 #include "autil/TimeUtility.h"
 
 using namespace std;
@@ -39,6 +40,8 @@ void HbInfo::updateTime() {
     lastUpdateTime = autil::TimeUtility::currentTime();
 }
 
-void HbInfo::updateTime(int64_t time) { lastUpdateTime = time; }
+void HbInfo::updateTime(int64_t time) {
+    lastUpdateTime = time;
+}
 
 } // namespace multi_call

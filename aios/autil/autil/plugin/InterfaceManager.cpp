@@ -23,9 +23,7 @@ namespace autil {
 
 AUTIL_LOG_SETUP(plugin, InterfaceManager);
 
-InterfaceManager::~InterfaceManager() {
-    clear();
-}
+InterfaceManager::~InterfaceManager() { clear(); }
 
 void InterfaceManager::clear() {
     for (auto it : _interfaceMap) {
@@ -34,7 +32,7 @@ void InterfaceManager::clear() {
     _interfaceMap.clear();
 }
 
-bool InterfaceManager::addInterface(const std::string &name, BaseInterface* interface) {
+bool InterfaceManager::addInterface(const std::string &name, BaseInterface *interface) {
     if (name.empty() || interface == nullptr) {
         AUTIL_LOG(ERROR, "register interface failed, empty interface name or pointer ");
         return false;
@@ -58,6 +56,5 @@ BaseInterface *InterfaceManager::find(const std::string &name) const {
     }
     return iter->second;
 }
-
 
 } // namespace autil

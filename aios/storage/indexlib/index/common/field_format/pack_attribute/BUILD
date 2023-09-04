@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=[':__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='pack_attribute',
     srcs=[],
     hdrs=[],
@@ -10,7 +10,7 @@ indexlib_cc_library(
         ':PackAttributeFormatter', ':PackValueAdapter', ':PlainFormatEncoder'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeReference',
     srcs=[],
     hdrs=['AttributeReference.h', 'AttributeReferenceTyped.h'],
@@ -23,25 +23,26 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format/attribute:MultiValueAttributeFormatter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PlainFormatEncoder',
     deps=[
         ':AttributeReference', '//aios/autil:NoCopyable', '//aios/autil:log',
         '//aios/storage/indexlib/util:ByteSimilarityHasher'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PackAttributeFormatter',
     deps=[
         ':AttributeReference', ':PlainFormatEncoder',
         '//aios/autil:const_string_util', '//aios/autil:mem_pool_base',
         '//aios/autil:multi_value',
         '//aios/storage/indexlib/index/common/field_format/attribute:DefaultAttributeValueInitializer',
+        '//aios/storage/indexlib/index/pack_attribute:config',
         '//aios/storage/indexlib/util:MemBuffer',
         '//aios/storage/indexlib/util/slice_array'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='FloatCompressConvertor',
     srcs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
@@ -51,19 +52,19 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format/attribute:MultiValueAttributeFormatter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PackValueAdapter',
     deps=[
         ':PackAttributeFormatter',
         '//aios/storage/indexlib/index/common/field_format/attribute:attribute_convertor'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PackValueComparator',
+    visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[
         ':PackAttributeFormatter',
         '//aios/storage/indexlib/config:SortDescription',
         '//aios/storage/indexlib/index/kv/config:ValueConfig'
-    ],
-    visibility=['//aios/storage/indexlib:__subpackages__']
+    ]
 )

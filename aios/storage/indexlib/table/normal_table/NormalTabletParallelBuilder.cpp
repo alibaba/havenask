@@ -16,8 +16,11 @@
 #include "indexlib/table/normal_table/NormalTabletParallelBuilder.h"
 
 #include "autil/ThreadPool.h"
+#include "indexlib/config/TabletOptions.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/document/IDocumentBatch.h"
+#include "indexlib/index/ann/aitheta2/AithetaBuildWorkItem.h"
+#include "indexlib/index/ann/aitheta2/SingleAithetaBuilder.h"
 #include "indexlib/index/attribute/AttributeBuildWorkItem.h"
 #include "indexlib/index/attribute/SingleAttributeBuilder.h"
 #include "indexlib/index/deletionmap/DeletionMapBuildWorkItem.h"
@@ -56,11 +59,17 @@ NormalTabletParallelBuilder::NormalTabletParallelBuilder()
 {
 }
 
-NormalTabletParallelBuilder::~NormalTabletParallelBuilder() {}
+NormalTabletParallelBuilder::~NormalTabletParallelBuilder()
+{
+    if (_buildThreadPool != nullptr) {
+        _buildThreadPool->WaitFinish();
+        _buildThreadPool = nullptr;
+    }
+}
 
 template <typename SingleBuilderType>
 Status
-NormalTabletParallelBuilder::InitSingleBuilders(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+NormalTabletParallelBuilder::InitSingleBuilders(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                                 const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData,
                                                 const std::string& indexTypeStr,
                                                 std::vector<std::unique_ptr<SingleBuilderType>>* builders)
@@ -75,13 +84,28 @@ NormalTabletParallelBuilder::InitSingleBuilders(const std::shared_ptr<indexlibv2
     return Status::OK();
 }
 
-Status NormalTabletParallelBuilder::ValidateConfigs(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema)
+Status NormalTabletParallelBuilder::InitSingleDeletionMapBuilders(
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
+    const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData,
+    std::vector<std::unique_ptr<indexlib::index::SingleDeletionMapBuilder>>* builders)
+{
+    for (const auto& indexConfig : schema->GetIndexConfigs(indexlibv2::index::DELETION_MAP_INDEX_TYPE_STR)) {
+        auto singleBuilder = std::make_unique<indexlib::index::SingleDeletionMapBuilder>();
+        auto status = singleBuilder->Init(*tabletData, indexConfig);
+        RETURN_IF_STATUS_ERROR(status, "init single deletion map builder failed");
+        builders->emplace_back(std::move(singleBuilder));
+    }
+    return Status::OK();
+}
+
+Status NormalTabletParallelBuilder::ValidateConfigs(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema)
 {
     for (const auto& indexConfig : schema->GetIndexConfigs()) {
         if (indexConfig->GetIndexType() != index::INVERTED_INDEX_TYPE_STR &&
             indexConfig->GetIndexType() != indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR &&
             indexConfig->GetIndexType() != indexlibv2::table::VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR &&
             indexConfig->GetIndexType() != indexlibv2::index::SUMMARY_INDEX_TYPE_STR &&
+            indexConfig->GetIndexType() != indexlibv2::index::ANN_INDEX_TYPE_STR &&
             indexConfig->GetIndexType() != index::OPERATION_LOG_INDEX_TYPE_STR &&
             indexConfig->GetIndexType() != indexlibv2::index::PRIMARY_KEY_INDEX_TYPE_STR &&
             indexConfig->GetIndexType() != indexlibv2::index::DELETION_MAP_INDEX_TYPE_STR) {
@@ -90,28 +114,11 @@ Status NormalTabletParallelBuilder::ValidateConfigs(const std::shared_ptr<indexl
             return SwitchBuildMode(OpenOptions::STREAM);
         }
     }
-    for (const auto& indexConfig : schema->GetIndexConfigs(indexlib::index::INVERTED_INDEX_TYPE_STR)) {
-        auto invertedIndexConfig = std::dynamic_pointer_cast<indexlibv2::config::InvertedIndexConfig>(indexConfig);
-        assert(invertedIndexConfig);
-        auto invertedIndexType = invertedIndexConfig->GetInvertedIndexType();
-        if (invertedIndexType == it_pack || invertedIndexType == it_expack) {
-            auto packageIndexConfig =
-                std::dynamic_pointer_cast<indexlibv2::config::PackageIndexConfig>(invertedIndexConfig);
-            assert(packageIndexConfig);
-            auto sectionAttributeConfig = packageIndexConfig->GetSectionAttributeConfig();
-            if (packageIndexConfig->HasSectionAttribute() && sectionAttributeConfig) {
-                // TODO: support
-                AUTIL_LOG(ERROR, "multi-thread build mode does not support section attribute for index [%s]",
-                          invertedIndexConfig->GetIndexName().c_str());
-                return SwitchBuildMode(OpenOptions::STREAM);
-            }
-        }
-    }
     return Status::OK();
 }
 
 Status
-NormalTabletParallelBuilder::PrepareForWrite(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+NormalTabletParallelBuilder::PrepareForWrite(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                              const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData)
 {
     RETURN_STATUS_DIRECTLY_IF_ERROR(ValidateConfigs(schema));
@@ -120,22 +127,25 @@ NormalTabletParallelBuilder::PrepareForWrite(const std::shared_ptr<indexlibv2::c
     RETURN_IF_STATUS_ERROR(InitSingleAttributeBuilders(schema, tabletData), "init attribute builders failed");
     RETURN_IF_STATUS_ERROR(InitSingleVirtualAttributeBuilders(schema, tabletData), "init attribute builders failed");
     RETURN_IF_STATUS_ERROR(InitSinglePrimaryKeyBuilders(schema, tabletData), "init primary key builders failed");
+    RETURN_STATUS_DIRECTLY_IF_ERROR(InitSingleDeletionMapBuilders(schema, tabletData, &_singleDeletionMapBuilders));
+    RETURN_STATUS_DIRECTLY_IF_ERROR(InitSingleBuilders<index::ann::SingleAithetaBuilder>(
+        schema, tabletData, indexlibv2::index::ANN_INDEX_TYPE_STR, &_singleAnnBuilders));
     RETURN_STATUS_DIRECTLY_IF_ERROR(InitSingleBuilders<index::SingleSummaryBuilder>(
         schema, tabletData, indexlibv2::index::SUMMARY_INDEX_TYPE_STR, &_singleSummaryBuilders));
     RETURN_STATUS_DIRECTLY_IF_ERROR(InitSingleBuilders<index::SingleOperationLogBuilder>(
         schema, tabletData, index::OPERATION_LOG_INDEX_TYPE_STR, &_singleOpLogBuilders));
-    RETURN_STATUS_DIRECTLY_IF_ERROR(InitSingleBuilders<index::SingleDeletionMapBuilder>(
-        schema, tabletData, indexlibv2::index::DELETION_MAP_INDEX_TYPE_STR, &_singleDeletionMapBuilders));
     _isPreparedForWrite = true;
     return Status::OK();
 }
 
 Status
 NormalTabletParallelBuilder::Init(const std::shared_ptr<indexlibv2::table::NormalMemSegment>& normalBuildingSegment,
+                                  const indexlibv2::config::TabletOptions* tabletOptions,
                                   const std::shared_ptr<autil::ThreadPool>& consistentModeBuildThreadPool,
                                   const std::shared_ptr<autil::ThreadPool>& inconsistentModeBuildThreadPool)
 {
     _normalBuildingSegment = normalBuildingSegment;
+    _isOnline = tabletOptions->IsOnline();
     _docBatchMemController = std::make_unique<indexlib::util::WaitMemoryQuotaController>((size_t)128 * 1024 * 1024);
     _consistentModeBuildThreadPool = consistentModeBuildThreadPool;
     _inconsistentModeBuildThreadPool = inconsistentModeBuildThreadPool;
@@ -153,7 +163,7 @@ Status NormalTabletParallelBuilder::SwitchBuildMode(OpenOptions::BuildMode build
     }
     if (buildMode == OpenOptions::CONSISTENT_BATCH) {
         if (_consistentModeBuildThreadPool == nullptr) {
-            AUTIL_LOG(ERROR, "consistentModeBuildThreadPool is null, force using STREAM mode");
+            AUTIL_LOG(INFO, "consistentModeBuildThreadPool is null, force using STREAM mode");
             _buildMode = OpenOptions::STREAM;
             _buildThreadPool = nullptr;
             return Status::OK();
@@ -162,12 +172,13 @@ Status NormalTabletParallelBuilder::SwitchBuildMode(OpenOptions::BuildMode build
         RETURN_IF_STATUS_ERROR(
             _buildThreadPool->Start(_consistentModeBuildThreadPool, /*maxGroupCount=*/65536, /*maxBatchCount=*/128),
             "start build thread pool failed");
+        _consistentModeBuildThreadPool->start();
         _buildMode = buildMode;
         return Status::OK();
     }
     if (buildMode == OpenOptions::INCONSISTENT_BATCH) {
         if (_inconsistentModeBuildThreadPool == nullptr) {
-            AUTIL_LOG(ERROR, "inconsistentModeBuildThreadPool is null, force using STREAM mode");
+            AUTIL_LOG(INFO, "inconsistentModeBuildThreadPool is null, force using STREAM mode");
             _buildMode = OpenOptions::STREAM;
             _buildThreadPool = nullptr;
             return Status::OK();
@@ -176,6 +187,7 @@ Status NormalTabletParallelBuilder::SwitchBuildMode(OpenOptions::BuildMode build
         RETURN_IF_STATUS_ERROR(
             _buildThreadPool->Start(_inconsistentModeBuildThreadPool, /*maxGroupCount=*/65536, /*maxBatchCount=*/128),
             "start build thread pool failed");
+        _inconsistentModeBuildThreadPool->start();
         _buildMode = buildMode;
         return Status::OK();
     }
@@ -188,13 +200,13 @@ Status NormalTabletParallelBuilder::SwitchBuildMode(OpenOptions::BuildMode build
 OpenOptions::BuildMode NormalTabletParallelBuilder::GetBuildMode() const { return _buildMode; }
 
 Status NormalTabletParallelBuilder::InitSingleInvertedIndexBuilders(
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
     const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData)
 {
     for (const auto& indexConfig : schema->GetIndexConfigs(indexlib::index::INVERTED_INDEX_TYPE_STR)) {
         auto invertedIndexConfig = std::dynamic_pointer_cast<indexlibv2::config::InvertedIndexConfig>(indexConfig);
         assert(invertedIndexConfig);
-        if (invertedIndexConfig->IsDisable() || !invertedIndexConfig->IsNormal()) {
+        if (invertedIndexConfig->IsDisabled() || !invertedIndexConfig->IsNormal()) {
             continue;
         }
         auto invertedIndexType = invertedIndexConfig->GetInvertedIndexType();
@@ -208,16 +220,16 @@ Status NormalTabletParallelBuilder::InitSingleInvertedIndexBuilders(
             // For n=shardingIndexConfigs.size() shards, we need n+1 builders. The extra is for section attribute.
             for (size_t i = 0; i <= shardingIndexConfigs.size(); ++i) {
                 auto singleBuilder = std::make_unique<index::SingleInvertedIndexBuilder>();
-                auto status =
-                    singleBuilder->Init(*tabletData, invertedIndexConfig,
-                                        i == shardingIndexConfigs.size() ? nullptr : shardingIndexConfigs[i], i);
+                auto status = singleBuilder->Init(*tabletData, invertedIndexConfig,
+                                                  i == shardingIndexConfigs.size() ? nullptr : shardingIndexConfigs[i],
+                                                  i, _isOnline);
                 RETURN_IF_STATUS_ERROR(status, "init single inverted index builder [%s] failed",
                                        shardingIndexConfigs[i]->GetIndexName().c_str());
                 _singleInvertedIndexBuilders.emplace_back(std::move(singleBuilder));
             }
         } else {
             auto singleBuilder = std::make_unique<index::SingleInvertedIndexBuilder>();
-            auto status = singleBuilder->Init(*tabletData, invertedIndexConfig, nullptr, INVALID_SHARDID);
+            auto status = singleBuilder->Init(*tabletData, invertedIndexConfig, nullptr, INVALID_SHARDID, _isOnline);
             RETURN_IF_STATUS_ERROR(status, "init single inverted index builder [%s] failed",
                                    invertedIndexConfig->GetIndexName().c_str());
             _singleInvertedIndexBuilders.emplace_back(std::move(singleBuilder));
@@ -227,33 +239,34 @@ Status NormalTabletParallelBuilder::InitSingleInvertedIndexBuilders(
 }
 
 Status NormalTabletParallelBuilder::InitSingleAttributeBuilders(
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
     const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData)
 {
     for (const auto& indexConfig : schema->GetIndexConfigs(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR)) {
-        auto attributeConfig = std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(indexConfig);
+        auto attributeConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(indexConfig);
         assert(attributeConfig);
-        if (attributeConfig->IsDisable() || !attributeConfig->IsNormal()) {
+        if (attributeConfig->IsDisabled() || !attributeConfig->IsNormal()) {
             continue;
         }
         auto singleBuilder =
             std::make_unique<index::SingleAttributeBuilder<indexlibv2::index::AttributeDiskIndexer,
                                                            indexlibv2::index::AttributeMemIndexer>>(schema);
-        auto status = singleBuilder->Init(*tabletData, attributeConfig);
+        auto status = singleBuilder->Init(*tabletData, attributeConfig, _isOnline);
         RETURN_IF_STATUS_ERROR(status, "init single attribute builder [%s] failed",
                                attributeConfig->GetIndexName().c_str());
         _singleAttributeBuilders.emplace_back(std::move(singleBuilder));
     }
+    // TODO(ZQ): support pack attribute
     return Status::OK();
 }
 
 Status NormalTabletParallelBuilder::InitSingleVirtualAttributeBuilders(
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
     const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData)
 {
     for (const auto& indexConfig : schema->GetIndexConfigs(indexlibv2::table::VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR)) {
         auto singleBuilder = std::make_unique<SingleVirtualAttributeBuilder>(schema);
-        auto status = singleBuilder->Init(*tabletData, indexConfig);
+        auto status = singleBuilder->Init(*tabletData, indexConfig, _isOnline);
         RETURN_IF_STATUS_ERROR(status, "Init single virtual attribute builder [%s] failed",
                                indexConfig->GetIndexName().c_str());
         _singleVirtualAttributeBuilders.emplace_back(std::move(singleBuilder));
@@ -262,7 +275,7 @@ Status NormalTabletParallelBuilder::InitSingleVirtualAttributeBuilders(
 }
 
 Status NormalTabletParallelBuilder::InitSinglePrimaryKeyBuilders(
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
     const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData)
 {
     for (const auto& indexConfig : schema->GetIndexConfigs(indexlibv2::index::PRIMARY_KEY_INDEX_TYPE_STR)) {
@@ -279,10 +292,10 @@ Status NormalTabletParallelBuilder::InitSinglePrimaryKeyBuilders(
                                primaryKeyIndexConfig->GetIndexName().c_str());
         _singlePrimaryKeyBuilders.emplace_back(std::move(singleBuilder));
     }
-    if (unlikely(_singlePrimaryKeyBuilders.size() == 0)) {
-        return Status::Unimplement("not support multi-thread build when no primary key index found, table [%s]",
-                                   schema->GetTableName().c_str());
-    }
+    // if (unlikely(_singlePrimaryKeyBuilders.size() == 0)) {
+    //     return Status::Unimplement("not support multi-thread build when no primary key index found, table [%s]",
+    //                                schema->GetTableName().c_str());
+    // }
     return Status::OK();
 }
 
@@ -309,7 +322,8 @@ Status NormalTabletParallelBuilder::Build(const std::shared_ptr<indexlibv2::docu
     }
     assert(_buildMode == OpenOptions::CONSISTENT_BATCH || _buildMode == OpenOptions::INCONSISTENT_BATCH);
     int64_t startTimeInMs = autil::TimeUtility::currentTimeInMicroSeconds() / 1000;
-    AUTIL_LOG(INFO, "Begin batch build [%ld / %ld] docs", batch->GetValidDocCount(), batch->GetBatchSize());
+    AUTIL_INTERVAL_LOG2(60, INFO, "Begin batch build [%ld / %ld] docs, log interval 60s", batch->GetValidDocCount(),
+                        batch->GetBatchSize());
 
     int64_t docBatchMemUse = batch->EstimateMemory();
     while (!_docBatchMemController->Allocate(docBatchMemUse)) {
@@ -340,9 +354,16 @@ Status NormalTabletParallelBuilder::Build(const std::shared_ptr<indexlibv2::docu
             buildWorkItem->process();
         }
     }
-    // Update segment meta data after PK and DeletionMap is built. This will cause a small period of time that docs are
-    // not fully built but can be queries partially.
-    _normalBuildingSegment->PostBuildActions(batch.get());
+
+    auto lastLocator = batch->GetLastLocator();
+    auto maxTimestamp = batch->GetMaxTimestamp();
+    auto maxTTL = batch->GetMaxTTL();
+    auto addDocCount = batch->GetAddedDocCount();
+    if (_buildMode == OpenOptions::INCONSISTENT_BATCH) {
+        // Update segment meta data after PK and DeletionMap is built. This will cause a small period of time that docs
+        // are not fully built but can be queries partially.
+        _normalBuildingSegment->PostBuildActions(lastLocator, maxTimestamp, maxTTL, addDocCount);
+    }
 
     CreateBuildWorkItems<
         indexlib::index::SingleAttributeBuilder<indexlibv2::index::AttributeDiskIndexer,
@@ -355,9 +376,12 @@ Status NormalTabletParallelBuilder::Build(const std::shared_ptr<indexlibv2::docu
         _singleInvertedIndexBuilders, batch);
     CreateBuildWorkItems<indexlib::index::SingleSummaryBuilder, index::SummaryBuildWorkItem>(_singleSummaryBuilders,
                                                                                              batch);
+    CreateBuildWorkItems<indexlib::index::ann::SingleAithetaBuilder, index::ann::AithetaBuildWorkItem>(
+        _singleAnnBuilders, batch);
     CreateBuildWorkItems<indexlib::index::SingleOperationLogBuilder, index::OperationLogBuildWorkItem>(
         _singleOpLogBuilders, batch);
 
+    // TODO (远轫）这里写的太丑了，在这里释放batch非常危险！
     // 通过 hook 并行析构参与 build 的 docs，确保不会干预 build 任务
     size_t batchSize = batch->GetBatchSize();
     size_t destructDocParallelNum = std::min(std::max((size_t)1, batchSize / 512), _buildThreadPool->GetThreadNum());
@@ -374,15 +398,18 @@ Status NormalTabletParallelBuilder::Build(const std::shared_ptr<indexlibv2::docu
     };
     if (_buildMode == OpenOptions::CONSISTENT_BATCH) {
         _buildThreadPool->WaitCurrentBatchWorkItemsFinish();
+        _normalBuildingSegment->PostBuildActions(lastLocator, maxTimestamp, maxTTL, addDocCount);
     }
-    AUTIL_LOG(INFO, "End generation workitems for batch build [%ld] docs, use [%ld] ms", batchSize,
-              autil::TimeUtility::currentTimeInMicroSeconds() / 1000 - startTimeInMs);
+    AUTIL_INTERVAL_LOG2(60, INFO, "End generation workitems for batch build [%ld] docs, use [%ld] ms, log interval 60s",
+                        batchSize, autil::TimeUtility::currentTimeInMicroSeconds() / 1000 - startTimeInMs);
     return Status::OK();
 }
 
 void NormalTabletParallelBuilder::WaitFinish()
 {
-    assert(_buildThreadPool != nullptr);
+    if (_buildThreadPool == nullptr) {
+        return;
+    }
     _buildThreadPool->WaitFinish();
 }
 

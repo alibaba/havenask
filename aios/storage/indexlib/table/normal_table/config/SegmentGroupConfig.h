@@ -23,6 +23,7 @@ class SegmentGroupConfig : public autil::legacy::Jsonizable
 public:
     SegmentGroupConfig();
     SegmentGroupConfig(const SegmentGroupConfig& other);
+    SegmentGroupConfig& operator=(const SegmentGroupConfig& other);
     ~SegmentGroupConfig();
 
 public:

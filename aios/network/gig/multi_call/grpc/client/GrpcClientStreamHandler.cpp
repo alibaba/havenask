@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/grpc/client/GrpcClientStreamHandler.h"
+
 #include "aios/network/gig/multi_call/controller/ControllerFeedBack.h"
 #include "aios/network/gig/multi_call/grpc/CompletionQueueStatus.h"
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
@@ -33,7 +34,7 @@ AUTIL_LOG_SETUP(multi_call, GrpcClientStreamHandler);
 
 GrpcClientStreamHandler::GrpcClientStreamHandler(const std::shared_ptr<GigStreamBase> &stream,
                                                  PartIdTy partId, const std::string &bizName,
-                                                 const std::string &spec)
+                                                 const std::string &spec, bool corked)
     : GigStreamHandlerBase(partId, stream)
     , _bizName(bizName)
     , _spec(spec)
@@ -41,13 +42,12 @@ GrpcClientStreamHandler::GrpcClientStreamHandler(const std::shared_ptr<GigStream
     , _request(nullptr)
     , _callInfo(nullptr)
     , _cleaned(true)
-    , _isRetry(false)
-{
+    , _corked(corked)
+    , _isRetry(false) {
     HANDLER_LOG(DEBUG,
                 "client handler [%p] constructed, stream [%p] type: %s, biz: "
                 "%s, spec: %s",
-                this, _stream.get(), typeid(*this).name(), _bizName.c_str(),
-                _spec.c_str());
+                this, _stream.get(), typeid(*this).name(), _bizName.c_str(), _spec.c_str());
     _streamRpc = true;
     if (stream) {
         _asyncIo = stream->isAsyncMode();
@@ -60,14 +60,13 @@ GrpcClientStreamHandler::~GrpcClientStreamHandler() {
         _streamState.logState(true);
     }
     if (_cancelBuffer.valid) {
-        HANDLER_LOG(DEBUG, "cancel message not sent, this type: %s",
-                    typeid(*this).name());
+        HANDLER_LOG(DEBUG, "cancel message not sent, this type: %s", typeid(*this).name());
         _streamState.logState();
     }
     auto count = closureCount();
     if (count > 0) {
-        HANDLER_LOG(ERROR, "closure count: %ld, not zero when finish, %s",
-                    count, typeid(*this).name());
+        HANDLER_LOG(ERROR, "closure count: %ld, not zero when finish, %s", count,
+                    typeid(*this).name());
         _streamState.logState(true);
     }
     notifyFinish();
@@ -87,15 +86,13 @@ grpc::ClientContext *GrpcClientStreamHandler::getClientContext() {
 }
 
 void GrpcClientStreamHandler::setGrpcReaderWriter(
-    const CompletionQueueStatusPtr &cqs,
-    grpc::GenericClientAsyncReaderWriter *readerWriter) {
+    const CompletionQueueStatusPtr &cqs, grpc::GenericClientAsyncReaderWriter *readerWriter) {
     _cqs = cqs;
     _grpcReaderWriter = readerWriter;
 }
 
 void GrpcClientStreamHandler::setRequestInfo(GigStreamRequest *request,
-                                             const CallBackPtr &callBack)
-{
+                                             const CallBackPtr &callBack) {
     request->fillSpan();
     _request = request;
     _span = request->getSpan();
@@ -118,11 +115,18 @@ GigStreamRpcInfo GrpcClientStreamHandler::snapshotStreamRpcInfo() const {
 
 bool GrpcClientStreamHandler::init() {
     HANDLER_LOG(DEBUG, "begin init, host: %s", _spec.c_str());
-    _callBack->rpcBegin();
+    if (!_corked && _callBack) {
+        _callBack->rpcBegin();
+    }
     _cleaned.store(false, std::memory_order_relaxed);
     autil::ScopedReadWriteLock lock(_cqs->enqueueLock, 'r');
     if (!_cqs->stopped) {
-        _grpcReaderWriter->StartCall(getInitClosure());
+        if (_corked) {
+            _grpcReaderWriter->StartCall(nullptr);
+            dynamic_cast<GigStreamClosureBase *>(getInitClosure())->run(true);
+        } else {
+            _grpcReaderWriter->StartCall(getInitClosure());
+        }
         return true;
     } else {
         _streamState.setErrorCode(MULTI_CALL_ERROR_STREAM_STOPPED);
@@ -144,10 +148,11 @@ void GrpcClientStreamHandler::initCallback(bool ok) {
     }
 }
 
-GigStreamClosureBase *GrpcClientStreamHandler::doSend(
-        bool sendEof, grpc::ByteBuffer *message,
-        GigStreamClosureBase *closure)
-{
+GigStreamClosureBase *GrpcClientStreamHandler::doSend(bool sendEof, grpc::ByteBuffer *message,
+                                                      GigStreamClosureBase *closure, bool &ok) {
+    if (_corked && _callBack) {
+        _callBack->rpcBegin();
+    }
     if (_provider) {
         _provider->incStreamQueryCount();
     }
@@ -156,6 +161,7 @@ GigStreamClosureBase *GrpcClientStreamHandler::doSend(
         _grpcReaderWriter->Write(*message, closure);
         return nullptr;
     } else {
+        ok = false;
         return closure;
     }
 }
@@ -175,10 +181,8 @@ GigStreamClosureBase *GrpcClientStreamHandler::receiveNext() {
     }
 }
 
-bool GrpcClientStreamHandler::doStreamReceive(
-    const std::shared_ptr<GigStreamBase> &stream,
-    const GigStreamMessage &message)
-{
+bool GrpcClientStreamHandler::doStreamReceive(const std::shared_ptr<GigStreamBase> &stream,
+                                              const GigStreamMessage &message) {
     if (!_request) {
         return false;
     }
@@ -188,10 +192,9 @@ bool GrpcClientStreamHandler::doStreamReceive(
     return _request->receive(_callInfo, stream, message);
 }
 
-void GrpcClientStreamHandler::doStreamReceiveCancel(
-    const std::shared_ptr<GigStreamBase> &stream,
-    const GigStreamMessage &message, MultiCallErrorCode ec)
-{
+void GrpcClientStreamHandler::doStreamReceiveCancel(const std::shared_ptr<GigStreamBase> &stream,
+                                                    const GigStreamMessage &message,
+                                                    MultiCallErrorCode ec) {
     if (!_request) {
         return;
     }
@@ -220,7 +223,9 @@ GigStreamClosureBase *GrpcClientStreamHandler::finish() {
     }
 }
 
-void GrpcClientStreamHandler::doFinishCallback(bool ok) { clean(); }
+void GrpcClientStreamHandler::doFinishCallback(bool ok) {
+    clean();
+}
 
 void GrpcClientStreamHandler::clean() {
     bool expect = false;
@@ -236,8 +241,10 @@ void GrpcClientStreamHandler::clean() {
     }
     updateClockDrift();
     initChildSpan();
-    _callBack->run(nullptr, _streamState.getErrorCode(), "", responseInfo);
-    _callBack.reset();
+    if (_callBack) {
+        _callBack->run(nullptr, _streamState.getErrorCode(), "", responseInfo);
+        _callBack.reset();
+    }
     _provider.reset();
     HANDLER_LOG(DEBUG, "client finished");
 }
@@ -279,6 +286,8 @@ void GrpcClientStreamHandler::tryCancel() {
 }
 
 void GrpcClientStreamHandler::abort() {
+    _streamState.setErrorCode(MULTI_CALL_ERROR_STREAM_STOPPED);
+    _streamState.initFailed();
     stealStream();
     _callBack.reset();
     _provider.reset();

@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=[':__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='factory',
     srcs=[],
     hdrs=[],
@@ -12,7 +12,7 @@ indexlib_cc_library(
     ],
     deps=[':KKVIndexFactory']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='reader',
     srcs=[],
     hdrs=[],
@@ -22,7 +22,7 @@ indexlib_cc_library(
     ],
     deps=['//aios/storage/indexlib/index/kkv/search:kkv_index_reader']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='merger',
     srcs=[],
     hdrs=[],
@@ -32,14 +32,14 @@ indexlib_cc_library(
     ],
     deps=['//aios/storage/indexlib/index/kkv/merge:kkv_index_merger']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='constants',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':Constant']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KKVIndexFactory',
     deps=[
         ':KKVShardRecordIterator', '//aios/autil:log',
@@ -58,9 +58,12 @@ indexlib_cc_library(
     ],
     alwayslink=True
 )
-indexlib_cc_library(name='Constant', srcs=[])
-indexlib_cc_library(name='Types', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='Constant', srcs=[])
+strict_cc_library(name='Types', srcs=[])
+strict_cc_library(
     name='KKVShardRecordIterator',
-    deps=[':merger', '//aios/storage/indexlib/index/kv:reader']
+    deps=[
+        ':merger', '//aios/storage/indexlib/index:IShardRecordIterator',
+        '//aios/storage/indexlib/index/kv:reader'
+    ]
 )

@@ -19,6 +19,7 @@
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/WriterOption.h"
+#include "indexlib/file_system/file/CompressFileWriter.h"
 #include "indexlib/index/common/data_structure/ExpandableValueAccessor.h"
 #include "indexlib/index/kv/KVCommonDefine.h"
 #include "indexlib/index/kv/MemoryUsage.h"
@@ -39,20 +40,20 @@ InMemoryValueWriter::InMemoryValueWriter(const std::shared_ptr<indexlibv2::confi
 
 InMemoryValueWriter::~InMemoryValueWriter() {}
 
-Status InMemoryValueWriter::Init(autil::mem_pool::PoolBase* pool, size_t maxMemoryUse,
+Status InMemoryValueWriter::Init(autil::mem_pool::PoolBase* pool, size_t maxValueMemUse, float lastValueCompressRatio,
                                  indexlibv2::framework::IIndexMemoryReclaimer* memReclaimer)
 {
     bool enableRewrite = false;
+    _lastValueCompressRatio = lastValueCompressRatio;
     if (memReclaimer != nullptr) {
         _reclaimedValueCollector = ReclaimedValueCollector<uint64_t>::Create(memReclaimer);
         enableRewrite = true;
     }
 
     const uint64_t kMaxSliceLen = 32 * 1024 * 1024; // 32MB;
-    uint64_t sliceLen = (maxMemoryUse > kMaxSliceLen) ? kMaxSliceLen : maxMemoryUse;
-    size_t sliceNum = maxMemoryUse / sliceLen;
+    size_t sliceNum = (maxValueMemUse > kMaxSliceLen) ? std::ceil(maxValueMemUse * 1.0 / kMaxSliceLen) : 1;
+    uint64_t sliceLen = maxValueMemUse / sliceNum; // 16MB ~ 32MB
     _valueAccessor = std::make_shared<indexlibv2::index::ExpandableValueAccessor<uint64_t>>(pool, enableRewrite);
-
     return _valueAccessor->Init(sliceLen, sliceNum);
 }
 
@@ -80,9 +81,9 @@ Status InMemoryValueWriter::Dump(const std::shared_ptr<indexlib::file_system::Di
 
     if (NeedCompress()) {
         double ratio = 1.0 * result.Value() / GetLength();
-        AUTIL_LOG(INFO, "value compression ratio for index %s is %f", _indexConfig->GetIndexName().c_str(), ratio);
+        AUTIL_LOG(INFO, "value compression ratio for index %s is [%f]", _indexConfig->GetIndexName().c_str(), ratio);
     } else if (result.Value() != GetLength()) {
-        return Status::IOError("write kv value failed, expected %ld actual %lu", GetLength(), result.Value());
+        return Status::IOError("write kv value failed, expected [%ld] actual [%lu]", GetLength(), result.Value());
     }
     return status;
 }
@@ -100,11 +101,18 @@ void InMemoryValueWriter::FillStatistics(SegmentStatistics& stat) const
     stat.valueMemoryUse = _valueAccessor->GetUsedBytes();
 }
 
-void InMemoryValueWriter::UpdateMemoryUsage(MemoryUsage& memUsage) const
+void InMemoryValueWriter::FillMemoryUsage(MemoryUsage& memUsage) const
 {
     memUsage.buildMemory = _valueAccessor->GetExpandMemoryInBytes();
     memUsage.dumpMemory = 0;
     memUsage.dumpedFileSize = _valueAccessor->GetUsedBytes();
+    if (NeedCompress()) {
+        memUsage.dumpedFileSize *= _lastValueCompressRatio;
+        const auto& valueParam = _indexConfig->GetIndexPreference().GetValueParam();
+        memUsage.buildMemory += indexlib::file_system::CompressFileWriter::EstimateCompressBufferSize(
+            valueParam.GetFileCompressType(), valueParam.GetFileCompressBufferSize(),
+            valueParam.GetFileCompressParameter());
+    }
 }
 
 bool InMemoryValueWriter::NeedCompress() const
@@ -164,7 +172,7 @@ Status InMemoryValueWriter::Append(const autil::StringView& data, uint64_t& valu
     Status status = _valueAccessor->Append(data, valueOffset);
     if (status.IsNoMem()) {
         AUTIL_LOG(INFO, "append failed, message: [%s]", status.ToString().c_str());
-        return Status::NeedDump();
+        return Status::NeedDump("value no space");
     }
     return status;
 }

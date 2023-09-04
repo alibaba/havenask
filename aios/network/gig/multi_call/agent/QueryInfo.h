@@ -29,13 +29,13 @@ MULTI_CALL_TYPEDEF_PTR(MetricReporterManager);
 class QueryInfoStatistics;
 MULTI_CALL_TYPEDEF_PTR(QueryInfoStatistics);
 
-class QueryInfo {
+class QueryInfo
+{
 public:
     QueryInfo(const std::string &queryInfoStr);
-    QueryInfo(
-        const std::string &queryInfoStr, const std::string &warmUpStrategy,
-        GigStatistic *statistic,
-        const std::shared_ptr<MetricReporterManager> &metricReporterManager);
+    QueryInfo(const std::string &queryInfoStr, const std::string &warmUpStrategy,
+              GigStatistic *statistic,
+              const std::shared_ptr<MetricReporterManager> &metricReporterManager);
     QueryInfo();
     virtual ~QueryInfo();
 
@@ -48,9 +48,9 @@ public:
     // 0.0f to 1.0f
     RequestType requestType() const;
     // return this string to client side gig, must be called
-    virtual std::string finish(
-        float responseLatencyMs /* ms */, MultiCallErrorCode ec,
-        WeightTy targetWeight /* pass weight if needed else pass MAX_WEIGHT */);
+    virtual std::string
+    finish(float responseLatencyMs /* ms */, MultiCallErrorCode ec,
+           WeightTy targetWeight /* pass weight if needed else pass MAX_WEIGHT */);
 
     const std::string &getQueryInfoStr() const;
     const GigQueryInfo *getQueryInfo() const;
@@ -63,8 +63,7 @@ private:
     void init(const std::string &queryInfoStr);
     void fillGigMetaEnv();
     void reportQueryReceiveMetric();
-    void reportAgentMetrics(float responseLatencyMs, MultiCallErrorCode ec,
-                            WeightTy targetWeight);
+    void reportAgentMetrics(float responseLatencyMs, MultiCallErrorCode ec, WeightTy targetWeight);
     bool getDecWeightFlag() const;
 
 private:

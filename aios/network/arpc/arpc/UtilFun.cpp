@@ -13,34 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "aios/network/arpc/arpc/UtilFun.h"
+
 #include <assert.h>
+#include <cstddef>
 #include <google/protobuf/arena.h>
 #include <google/protobuf/descriptor.h>
-#include <stdint.h>
-#include <cstddef>
 #include <memory>
 #include <new>
+#include <stdint.h>
 #include <string>
 
-#include "aios/network/arpc/arpc/util/Log.h"
-#include "aios/network/arpc/arpc/UtilFun.h"
-#include "aios/network/arpc/arpc/CommonMacros.h"
-#include "aios/network/arpc/arpc/proto/msg_header.pb.h"
-#include "aios/network/arpc/arpc/RPCMessageSerializable.h"
 #include "aios/network/anet/delaydecodepacket.h"
 #include "aios/network/anet/runnable.h"
 #include "aios/network/arpc/arpc/ANetRPCController.h"
+#include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/arpc/arpc/MessageSerializable.h"
+#include "aios/network/arpc/arpc/RPCMessageSerializable.h"
+#include "aios/network/arpc/arpc/proto/msg_header.pb.h"
 #include "aios/network/arpc/arpc/proto/rpc_extensions.pb.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 
 using namespace std;
 using namespace anet;
 
 ARPC_BEGIN_NAMESPACE(arpc);
 
-ErrorMsg *BuildErrorMsg(const string &errMsg, const ErrorCode errCode,
-                        const std::shared_ptr<google::protobuf::Arena> &arena)
-{
+ErrorMsg *
+BuildErrorMsg(const string &errMsg, const ErrorCode errCode, const std::shared_ptr<google::protobuf::Arena> &arena) {
     assert(arena);
     ErrorMsg *pErrMsg = google::protobuf::Arena::CreateMessage<ErrorMsg>(arena.get());
 
@@ -53,9 +53,8 @@ ErrorMsg *BuildErrorMsg(const string &errMsg, const ErrorCode errCode,
     return pErrMsg;
 }
 
-//pSeri must be newed
-DelayDecodePacket *BuildPacket(PacketHeader *header, MessageSerializable *pSeri, bool ownSeri)
-{
+// pSeri must be newed
+DelayDecodePacket *BuildPacket(PacketHeader *header, MessageSerializable *pSeri, bool ownSeri) {
     DelayDecodePacket *resPacket = new (nothrow) DelayDecodePacket;
 
     if (resPacket == NULL) {
@@ -72,13 +71,12 @@ void DecodePacket(ANetRPCController *pController,
                   DelayDecodePacket *pPacket,
                   RPCMessage *message,
                   const std::shared_ptr<google::protobuf::Arena> &arenaPtr,
-                  bool bResponse)
-{
+                  bool bResponse) {
     DataBufferSerializable *pSeri = NULL;
     ErrorMsg *pErrMsg = NULL;
     int32_t pcode = pPacket->getPcode();
     version_t version = pPacket->getPacketVersion();
-    RpcMsgHeader* msgHeader = NULL;
+    RpcMsgHeader *msgHeader = NULL;
 
     auto arena = getArena(message, arenaPtr);
     assert(arena);
@@ -134,4 +132,3 @@ void DecodePacket(ANetRPCController *pController,
 }
 
 ARPC_END_NAMESPACE(arpc);
-

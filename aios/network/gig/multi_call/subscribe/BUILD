@@ -13,7 +13,8 @@ cc_library(
     deps=([
         '//aios/network/gig/multi_call/config:config',
         '//aios/network/gig/multi_call/metric:metric', '//aios/autil:log',
-        '@cm2//:cm2', '//aios/filesystem/fslib:fslib-framework',
-        '@grpc//:grpc++', ':subscribe_headers'
+        '//aios/apps/facility/cm2/cm_basic/basic_struct:xds_proto_cc_proto',
+        '//aios/filesystem/fslib:fslib-framework', '@grpc//:grpc++',
+        ':subscribe_headers', '//aios/apps/facility/cm2/cm_sub'
     ] + [])
 )

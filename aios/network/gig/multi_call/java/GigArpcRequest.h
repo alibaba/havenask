@@ -19,18 +19,23 @@
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/interface/Request.h"
 #include "aios/network/gig/multi_call/java/GigArpcResponse.h"
-#include "autil/legacy/base64.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/base64.h"
 
 namespace multi_call {
 
-class GigArpcRequest : public Request {
+class GigArpcRequest : public Request
+{
 public:
     GigArpcRequest(const std::shared_ptr<google::protobuf::Arena> &arena =
-                   std::shared_ptr<google::protobuf::Arena>())
-        : Request(MC_PROTOCOL_ARPC, arena),
-          _serviceId(0), _methodId(0), _packet("") {}
-    ~GigArpcRequest() {}
+                       std::shared_ptr<google::protobuf::Arena>())
+        : Request(MC_PROTOCOL_ARPC, arena)
+        , _serviceId(0)
+        , _methodId(0)
+        , _packet("") {
+    }
+    ~GigArpcRequest() {
+    }
 
 private:
     GigArpcRequest(const GigArpcRequest &);
@@ -41,19 +46,33 @@ public:
         return ResponsePtr(new GigArpcResponse());
     }
 
-    bool serialize() override { return true; }
+    bool serialize() override {
+        return true;
+    }
 
-    size_t size() const override { return _packet.length(); }
+    size_t size() const override {
+        return _packet.length();
+    }
 
 public:
-    void setServiceId(uint32_t sId) { _serviceId = sId; }
-    uint32_t getServiceId() { return _serviceId; }
-    void setMethodId(uint32_t mId) { _methodId = mId; }
-    uint32_t getMethodId() { return _methodId; }
+    void setServiceId(uint32_t sId) {
+        _serviceId = sId;
+    }
+    uint32_t getServiceId() {
+        return _serviceId;
+    }
+    void setMethodId(uint32_t mId) {
+        _methodId = mId;
+    }
+    uint32_t getMethodId() {
+        return _methodId;
+    }
     void setPacket(const std::string &packet) {
         _packet = packet;
     }
-    const std::string &getPacket() const { return _packet; }
+    const std::string &getPacket() const {
+        return _packet;
+    }
     void fillSpan() override {
         auto &span = getSpan();
         if (span && span->isDebug()) {
@@ -67,6 +86,7 @@ public:
             span->addEvent("request", attrs);
         }
     }
+
 private:
     uint32_t _serviceId;
     uint32_t _methodId;

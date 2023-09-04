@@ -15,18 +15,15 @@
  */
 #pragma once
 
-#include "autil/WorkItem.h"
-
 #include <functional>
+
+#include "autil/WorkItem.h"
 
 namespace autil {
 
 class LambdaWorkItem : public autil::WorkItem {
 public:
-    LambdaWorkItem(std::function<void()> func)
-        : _func(std::move(func))
-    {
-    }
+    LambdaWorkItem(std::function<void()> func) : _func(std::move(func)) {}
 
 public:
     void process() override {
@@ -37,8 +34,6 @@ public:
 
 private:
     std::function<void()> _func;
-
 };
 
-}
-
+} // namespace autil

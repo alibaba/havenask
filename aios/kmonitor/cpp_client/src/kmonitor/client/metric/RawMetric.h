@@ -10,30 +10,33 @@
 
 #include <string>
 #include <vector>
+
 #include "kmonitor/client/common/Common.h"
 #include "kmonitor/client/metric/Metric.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
 class RawMetric : public Metric {
- public:
+public:
     virtual ~RawMetric();
     explicit RawMetric(const std::string &name);
- protected:
+
+protected:
     void doUpdate(double value) override;
     void doSnapshot(MetricsRecord *record, int64_t period) override;
 
- private:
+private:
     RawMetric(const RawMetric &);
     RawMetric &operator=(const RawMetric &);
 
- private:
+private:
     std::vector<double> values_;
- private:
+
+private:
     friend class RawMetricTest_TestUpdate_Test;
     friend class RawMetricTest_TestSnapshot_Test;
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_METRIC_RAWMETRIC_H_
+#endif // KMONITOR_CLIENT_METRIC_RAWMETRIC_H_

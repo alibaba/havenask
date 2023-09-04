@@ -28,7 +28,7 @@ public:
 
 public:
     std::unique_ptr<document::IDocumentParser>
-    CreateDocumentParser(const std::shared_ptr<config::TabletSchema>& schema,
+    CreateDocumentParser(const std::shared_ptr<config::ITabletSchema>& schema,
                          const std::shared_ptr<document::DocumentInitParam>& initParam) override;
 
 private:

@@ -1,5 +1,12 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
-indexlib_cc_library(
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+strict_cc_library(
+    name='config',
+    srcs=['PackageFileTagConfig.cpp', 'PackageFileTagConfigList.cpp'],
+    hdrs=['PackageFileTagConfig.h', 'PackageFileTagConfigList.h'],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=['//aios/storage/indexlib/file_system/load_config']
+)
+strict_cc_library(
     name='meta',
     srcs=[
         'InnerFileMeta.cpp', 'PackageFileMeta.cpp',
@@ -17,23 +24,21 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system/fslib'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='package',
     srcs=[
         'BufferedPackageFileWriter.cpp', 'DirectoryMerger.cpp',
         'PackageDiskStorage.cpp', 'PackageFileFlushOperation.cpp',
-        'PackageFileTagConfig.cpp', 'PackageFileTagConfigList.cpp',
         'PackageMemStorage.cpp'
     ],
     hdrs=[
         'BufferedPackageFileWriter.h', 'DirectoryMerger.h',
         'PackageDiskStorage.h', 'PackageFileFlushOperation.h',
-        'PackageFileTagConfig.h', 'PackageFileTagConfigList.h',
         'PackageFileWriter.h', 'PackageMemStorage.h'
     ],
     visibility=['//aios/storage/indexlib/file_system:__subpackages__'],
     deps=[
-        ':MergePackageUtil', ':meta',
+        ':MergePackageUtil', ':config', ':meta',
         '//aios/storage/indexlib/file_system:DiskStorage',
         '//aios/storage/indexlib/file_system:MemStorage',
         '//aios/storage/indexlib/file_system:Storage',
@@ -41,9 +46,9 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system/flush'
     ]
 )
-indexlib_cc_library(name='MergePackageMeta', srcs=[])
-indexlib_cc_library(name='PackagingPlan', deps=['//aios/autil:json'])
-indexlib_cc_library(
+strict_cc_library(name='MergePackageMeta', srcs=[])
+strict_cc_library(name='PackagingPlan', deps=['//aios/autil:json'])
+strict_cc_library(
     name='MergePackageUtil',
     deps=[
         ':meta', '//aios/storage/indexlib/file_system:FSResult',

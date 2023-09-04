@@ -23,46 +23,33 @@
 namespace autil {
 AUTIL_DECLARE_AND_SETUP_LOGGER(autil, LRUReplacePolicy);
 
-LRUReplacePolicy::LRUReplacePolicy(uint32_t maxBlockCountPerReplacement,
-                                   uint32_t maxScanCountPerReplacement) 
+LRUReplacePolicy::LRUReplacePolicy(uint32_t maxBlockCountPerReplacement, uint32_t maxScanCountPerReplacement)
     : _maxBlockCountPerReplacement(maxBlockCountPerReplacement)
-    , _maxScanCountPerReplacement(maxScanCountPerReplacement)
-{ 
+    , _maxScanCountPerReplacement(maxScanCountPerReplacement) {
     assert(maxBlockCountPerReplacement <= maxScanCountPerReplacement);
 }
 
-LRUReplacePolicy::~LRUReplacePolicy() { 
-}
+LRUReplacePolicy::~LRUReplacePolicy() {}
 
-uint32_t LRUReplacePolicy::replaceBlocks(
-        TryReplacePredicate& tryReplace,
-        BlockLinkListNode*& firstReplacedBlock)
-{
+uint32_t LRUReplacePolicy::replaceBlocks(TryReplacePredicate &tryReplace, BlockLinkListNode *&firstReplacedBlock) {
     uint32_t scannedCount = 0, freeCount = 0;
 
     ScopedLock lock(_lock);
-    DoubleLinkListNode<Block*>* node = _accessQueue.getTail();
+    DoubleLinkListNode<Block *> *node = _accessQueue.getTail();
     BlockLinkListNode *lastReplacedBlock = NULL;
-    while (node != NULL
-           && scannedCount < _maxScanCountPerReplacement 
-           && freeCount < _maxBlockCountPerReplacement)
-    {
-        DoubleLinkListNode<Block*>* prev = node->_prevListNode;
-        if (tryReplace((BlockLinkListNode*)node))
-        {
+    while (node != NULL && scannedCount < _maxScanCountPerReplacement && freeCount < _maxBlockCountPerReplacement) {
+        DoubleLinkListNode<Block *> *prev = node->_prevListNode;
+        if (tryReplace((BlockLinkListNode *)node)) {
             _accessQueue.deleteNode(node);
-            
-            BlockLinkListNode *replacedBlock = (BlockLinkListNode*)node;
+
+            BlockLinkListNode *replacedBlock = (BlockLinkListNode *)node;
             assert(replacedBlock->getRefCount() == 0);
 
-            if (lastReplacedBlock != NULL)
-            {
+            if (lastReplacedBlock != NULL) {
                 lastReplacedBlock->_nextListNode = replacedBlock;
                 replacedBlock->_prevListNode = lastReplacedBlock;
                 replacedBlock->_nextListNode = NULL;
-            }
-            else
-            {
+            } else {
                 firstReplacedBlock = replacedBlock;
                 replacedBlock->_nextListNode = NULL;
                 replacedBlock->_prevListNode = NULL;
@@ -81,10 +68,9 @@ uint32_t LRUReplacePolicy::replaceBlocks(
     return freeCount;
 }
 
-void LRUReplacePolicy::accessBlock(BlockLinkListNode* blockNode) {
+void LRUReplacePolicy::accessBlock(BlockLinkListNode *blockNode) {
     ScopedLock lock(_lock);
     _accessQueue.moveToHead(blockNode);
 }
 
-}
-
+} // namespace autil

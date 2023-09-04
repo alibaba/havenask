@@ -29,12 +29,13 @@ public:
      * 设置当前时间到now中
      */
     static void setNow();
-    
-    /* 
-     * convert a time usec value to a date str. 
+
+    /*
+     * convert a time usec value to a date str.
      * buf should have at least 26 slot in size.
      */
-    static void getTimeStr(int64_t tval, char * buf);
+    static void getTimeStr(int64_t tval, char *buf);
+
 public:
     static int64_t _now;
     static const int64_t MIN;
@@ -42,6 +43,6 @@ public:
     static const int64_t PRE_MAX;
 };
 
-}
+} // namespace anet
 
 #endif

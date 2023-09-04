@@ -1,0 +1,28 @@
+<doc>
+id=1
+company_id=1
+subject=Mobile 商务笔记本
+keywords=笔记本
+cat_id=123
+</doc>
+<doc>
+id=2
+company_id=2
+subject=Mobile Phone
+keywords=智能手机
+cat_id=234
+</doc>
+<doc>
+id=3
+company_id=1
+subject=Mobile OPPO Mp3
+keywords=Mp3
+cat_id=345
+</doc>
+<doc>
+id=4
+company_id=2
+subject=Mobile 诺基亚_5320
+keywords=Nokia手机
+cat_id=456
+</doc>

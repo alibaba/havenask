@@ -73,7 +73,7 @@ AttributeConfigPtr AttributeConfigCreator::Create(const FieldSchemaPtr& fieldSch
     }
 
     indexlibv2::config::MutableJson runtimeSetting;
-    indexlibv2::config::IndexConfigDeserializeResource resource({fieldSchema->GetFieldConfig(fieldName)}, {},
+    indexlibv2::config::IndexConfigDeserializeResource resource({fieldSchema->GetFieldConfig(fieldName)},
                                                                 runtimeSetting);
     config->Deserialize(any, INVALID_ATTRID, resource);
     return config;

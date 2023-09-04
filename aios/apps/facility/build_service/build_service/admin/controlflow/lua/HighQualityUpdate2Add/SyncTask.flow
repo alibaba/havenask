@@ -1,0 +1,21 @@
+#import(Tool)
+#import(Log)
+
+function stepRunFlow()
+   local clusterName = Flow.parameter["clusterName"]   
+   local indexResourceName = clusterName.."_src_indexCheckpoint"
+   local processResourceName = Flow.parameter["srcResourceName"]
+   local value = Flow.getProperty("hasInited")
+   if (value ~= "true")
+   then
+      Flow.setProperty("hasInited", "true")
+      local syncTask = Flow.createTask("syncTask", "sync_index_task", Flow.parameter)
+      Flow.startTask(syncTask, Flow.parameter)
+   end
+   local syncTask = Flow.getTask("syncTask")
+   if (syncTask:isTaskFinish())
+   then
+      return true
+   end
+   return false
+end

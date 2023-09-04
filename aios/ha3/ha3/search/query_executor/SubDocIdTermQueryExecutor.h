@@ -27,20 +27,20 @@
 namespace isearch {
 namespace search {
 
-class SubDocIdTermQueryExecutor : public TermQueryExecutor
-{
+class SubDocIdTermQueryExecutor : public TermQueryExecutor {
 public:
     SubDocIdTermQueryExecutor(docid_t docId, docid_t subDocId)
         : TermQueryExecutor(nullptr, {})
         , _docId(docId)
-        , _subDocId(subDocId)
-    {
+        , _subDocId(subDocId) {
         _hasSubDocExecutor = true;
     }
     virtual ~SubDocIdTermQueryExecutor() {}
+
 private:
     SubDocIdTermQueryExecutor(const DocIdTermQueryExecutor &);
-    SubDocIdTermQueryExecutor& operator=(const DocIdTermQueryExecutor &);
+    SubDocIdTermQueryExecutor &operator=(const DocIdTermQueryExecutor &);
+
 public:
     const std::string getName() const override {
         return "SubDocIdTermQueryExecutor";
@@ -51,15 +51,18 @@ public:
     bool isMainDocHit(docid_t docId) const override {
         return false;
     }
+
 protected:
-    indexlib::index::ErrorCode doSeek(docid_t id, docid_t& result) override {
+    indexlib::index::ErrorCode doSeek(docid_t id, docid_t &result) override {
         result = _docId >= id ? _docId : END_DOCID;
         return indexlib::index::ErrorCode::OK;
     }
 
-    indexlib::index::ErrorCode seekSubDoc(docid_t docId, docid_t subDocId,
-                       docid_t subDocEnd, bool needSubMatchdata, docid_t& result) override
-    {
+    indexlib::index::ErrorCode seekSubDoc(docid_t docId,
+                                          docid_t subDocId,
+                                          docid_t subDocEnd,
+                                          bool needSubMatchdata,
+                                          docid_t &result) override {
         if (docId == _docId && subDocId <= _subDocId) {
             result = _subDocId;
         } else {
@@ -67,6 +70,7 @@ protected:
         }
         return indexlib::index::ErrorCode::OK;
     }
+
 private:
     docid_t _docId;
     docid_t _subDocId;

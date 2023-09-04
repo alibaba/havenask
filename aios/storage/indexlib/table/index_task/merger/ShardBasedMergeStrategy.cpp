@@ -59,7 +59,7 @@ ShardBasedMergeStrategy::CreateMergePlan(const framework::IndexTaskContext* cont
         return std::make_pair(Status::ConfigError(), nullptr);
     }
 
-    auto mergeConfig = context->GetTabletOptions()->GetOfflineConfig().GetMergeConfig();
+    auto mergeConfig = context->GetMergeConfig();
     assert(mergeConfig.GetMergeStrategyStr() == GetName());
     SetParameter(mergeConfig.GetMergeStrategyParameter());
     auto [status, mergeTag] = GenerateMergeTag(levelInfo, tabletData);

@@ -21,13 +21,18 @@
 #include "indexlib/index/IndexerParameter.h"
 #include "indexlib/index/attribute/AttributeMemIndexer.h"
 
+namespace indexlib2::config {
+class IIndexConfig;
+}
+
 namespace indexlibv2::index {
 #define DECLARE_ATTRIBUTE_MEM_INDEXER_CREATOR(classname, indextype)                                                    \
     class classname##Creator : public AttributeMemIndexerCreator                                                       \
     {                                                                                                                  \
     public:                                                                                                            \
         FieldType GetAttributeType() const override { return indextype; }                                              \
-        std::unique_ptr<AttributeMemIndexer> Create(const IndexerParameter& indexerParam) const override               \
+        std::unique_ptr<AttributeMemIndexer> Create(const std::shared_ptr<config::IIndexConfig>& indexConfig,          \
+                                                    const IndexerParameter& indexerParam) const override               \
         {                                                                                                              \
             return std::make_unique<classname>(indexerParam);                                                          \
         }                                                                                                              \
@@ -40,7 +45,8 @@ public:
     virtual ~AttributeMemIndexerCreator() = default;
 
     virtual FieldType GetAttributeType() const = 0;
-    virtual std::unique_ptr<AttributeMemIndexer> Create(const IndexerParameter& indexerParam) const = 0;
+    virtual std::unique_ptr<AttributeMemIndexer> Create(const std::shared_ptr<config::IIndexConfig>& indexConfig,
+                                                        const IndexerParameter& indexerParam) const = 0;
 };
 
 } // namespace indexlibv2::index

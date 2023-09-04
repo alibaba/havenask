@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include "multi_call/common/common.h"
 #include "aios/network/gig/multi_call/common/ControllerParam.h"
+#include "multi_call/common/common.h"
 
 namespace multi_call {
 

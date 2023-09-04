@@ -1,0 +1,390 @@
+{
+  "plan": {
+    "exec_params": {}, 
+    "optimize_infos": {}, 
+    "plan_meta": {}, 
+    "rel_plan": [
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "daogou", 
+          "limit": 2147483647, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "daogou"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$company_id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "part_fix_fields": {
+              "company_id": "default.daogou.company.company_id"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$company_id", 
+            "$company_name"
+          ], 
+          "output_fields_hash": -1863235759, 
+          "output_fields_internal": [
+            "$company_id", 
+            "$company_name"
+          ], 
+          "output_fields_internal_type": [
+            "INTEGER", 
+            "VARCHAR"
+          ], 
+          "output_fields_type": [
+            "INTEGER", 
+            "VARCHAR"
+          ], 
+          "push_down_ops": [
+            {
+              "attrs": {
+                "output_fields": [
+                  "$company_id", 
+                  "$company_name"
+                ], 
+                "output_fields_type": [
+                  "INTEGER", 
+                  "VARCHAR"
+                ]
+              }, 
+              "op_name": "CalcOp"
+            }
+          ], 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$company_id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "partition_cnt": 1
+          }, 
+          "table_meta": {
+            "field_meta": [
+              {
+                "field_name": "$company_id", 
+                "field_type": "int32", 
+                "index_name": "company_id", 
+                "index_type": "primarykey64", 
+                "is_attribute": "true"
+              }, 
+              {
+                "field_name": "$company_name", 
+                "field_type": "string", 
+                "is_attribute": "true"
+              }
+            ]
+          }, 
+          "table_name": "company", 
+          "table_type": "normal", 
+          "use_nest_table": false, 
+          "used_fields": [
+            "$company_id", 
+            "$company_name"
+          ], 
+          "used_fields_type": [
+            "INTEGER", 
+            "VARCHAR"
+          ]
+        }, 
+        "id": 0, 
+        "inputs": {
+          "input": []
+        }, 
+        "op_name": "TableScanOp", 
+        "outputs": [
+          2
+        ]
+      }, 
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "daogou", 
+          "limit": 2147483647, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "daogou"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "partition_cnt": 1, 
+            "type": "BROADCAST_DISTRIBUTED"
+          }, 
+          "output_fields": [
+            "$id"
+          ], 
+          "output_fields_hash": -1606165281, 
+          "output_fields_internal": [
+            "$id"
+          ], 
+          "output_fields_internal_type": [
+            "INTEGER"
+          ], 
+          "output_fields_type": [
+            "INTEGER"
+          ], 
+          "push_down_ops": [
+            {
+              "attrs": {
+                "output_fields": [
+                  "$id"
+                ], 
+                "output_fields_type": [
+                  "INTEGER"
+                ]
+              }, 
+              "op_name": "CalcOp"
+            }
+          ], 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_fields": [
+                "$id"
+              ], 
+              "hash_function": "HASH"
+            }, 
+            "partition_cnt": 1
+          }, 
+          "table_meta": {
+            "field_meta": [
+              {
+                "field_name": "$id", 
+                "field_type": "int32", 
+                "is_attribute": "true"
+              }
+            ]
+          }, 
+          "table_name": "daogou", 
+          "table_type": "normal", 
+          "use_nest_table": false, 
+          "used_fields": [
+            "$id"
+          ], 
+          "used_fields_type": [
+            "INTEGER"
+          ]
+        }, 
+        "id": 1, 
+        "inputs": {
+          "input": []
+        }, 
+        "op_name": "TableScanOp", 
+        "outputs": [
+          2
+        ]
+      }, 
+      {
+        "attrs": {
+          "condition": {
+            "op": "<=", 
+            "params": [
+              {
+                "op": "+", 
+                "params": [
+                  "$id", 
+                  "$company_id"
+                ], 
+                "type": "OTHER"
+              }, 
+              5
+            ], 
+            "type": "OTHER"
+          }, 
+          "is_equi_join": false, 
+          "is_internal_build": true, 
+          "join_type": "SEMI", 
+          "left_input_fields": [
+            "$company_id", 
+            "$company_name"
+          ], 
+          "left_is_build": false, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "daogou"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields": [
+            "$company_id", 
+            "$company_name"
+          ], 
+          "output_fields_hash": -1863235759, 
+          "output_fields_internal": [
+            "$company_id", 
+            "$company_name", 
+            "$id"
+          ], 
+          "output_fields_type": [
+            "INTEGER", 
+            "VARCHAR"
+          ], 
+          "remaining_condition": {
+            "op": "<=", 
+            "params": [
+              {
+                "op": "+", 
+                "params": [
+                  "$id", 
+                  "$company_id"
+                ], 
+                "type": "OTHER"
+              }, 
+              5
+            ], 
+            "type": "OTHER"
+          }, 
+          "right_input_fields": [
+            "$id"
+          ], 
+          "semi_join_type": "SEMI", 
+          "system_field_num": 0
+        }, 
+        "id": 2, 
+        "inputs": {
+          "input0": [
+            0
+          ], 
+          "input1": [
+            1
+          ]
+        }, 
+        "op_name": "NestedLoopJoinOp", 
+        "outputs": [
+          3
+        ]
+      }, 
+      {
+        "attrs": {
+          "limit": 100, 
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "daogou"
+          }, 
+          "offset": 0, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": -1863235759
+        }, 
+        "id": 3, 
+        "inputs": {
+          "input": [
+            2
+          ]
+        }, 
+        "op_name": "LimitOp", 
+        "outputs": [
+          4
+        ]
+      }, 
+      {
+        "attrs": {
+          "catalog_name": "default", 
+          "db_name": "daogou", 
+          "distribution": {
+            "type": "SINGLETON"
+          }, 
+          "input_fields": [
+            "$company_id", 
+            "$company_name"
+          ], 
+          "input_fields_type": [
+            "INTEGER", 
+            "VARCHAR"
+          ], 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": -1863235759, 
+          "output_prunable": 0, 
+          "table_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "table_group_name": "daogou"
+        }, 
+        "id": 4, 
+        "inputs": {
+          "input": [
+            3
+          ]
+        }, 
+        "op_name": "ExchangeOp", 
+        "outputs": [
+          5
+        ]
+      }, 
+      {
+        "attrs": {
+          "location": {
+            "partition_cnt": 1, 
+            "table_group_name": "qrs"
+          }, 
+          "op_scope": "default", 
+          "output_distribution": {
+            "hash_mode": {
+              "hash_function": "INVALID"
+            }, 
+            "partition_cnt": 1, 
+            "type": "SINGLETON"
+          }, 
+          "output_fields_hash": -1863235759, 
+          "type": "api"
+        }, 
+        "id": 5, 
+        "inputs": {
+          "input": [
+            4
+          ]
+        }, 
+        "op_name": "SinkOp"
+      }
+    ], 
+    "rel_plan_version": "plan_version_0.0.1"
+  }, 
+  "sql_params": {
+    "iquan.optimizer.debug.enable": "false", 
+    "iquan.plan.format.object.enable": "true", 
+    "iquan.plan.format.type": "json", 
+    "iquan.plan.format.version": "plan_version_0.0.1", 
+    "iquan.plan.output.exec_params": "false", 
+    "iquan.plan.prepare.level": "end"
+  }, 
+  "sqls": [
+    "SELECT company_id, company_name FROM company where EXISTS (SELECT company_id from daogou WHERE id + company.company_id <= 5)"
+  ]
+}

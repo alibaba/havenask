@@ -1,0 +1,182 @@
+--[[
+SimpleBuildFlow: only supports inc builder , inc merger
+--]]
+
+#import(Tool)
+#import(Log)
+
+function stepRunFlow()
+   local schemaId = Flow.parameter["schemaId"]
+   local mergeCrontabFlowId = Flow.parameter['mergeCrontabFlowId']
+   local cloneIndexFlowId = Flow.parameter['cloneIndexFlowId']
+
+   local udfStartTime = Flow.getProperty("userDefineStartTimestamp")
+   local builderStartTime = Flow.parameter["builderStartTimestamp"]
+   if (builderStartTime == udfStartTime or builderStartTime == nil)
+   then
+      builderStartTime = ""
+   end
+   
+   local incBuilder = Flow.createTask("incBuilder", "builder", Flow.parameter)
+   local incMerger = Flow.createTask("incMerger", "merger", Flow.parameter)
+   local mergeCrontab = Flow.getTaskInFlow("mergeCrontab", mergeCrontabFlowId)
+   local flowState = Flow.getProperty("_flow_status_")
+   
+   local hasIncProcessor = true
+   if (Flow.parameter["hasIncProcessor"] == "false")
+   then
+      hasIncProcessor = false
+   else
+      Log.log("ERROR", "hasIncProcessor == true in SimpleIncBuildFlow. UNEXPECTED!")
+      return false
+   end
+   
+   Log.log("INFO", "inc flow for cluster["..Flow.parameter["clusterName"].."], is running", 10) 
+
+   local mergeConfig
+   local hasMergingTask
+   local mergingTaskFinish
+   if (mergeCrontab:isValid())
+   then
+      mergeConfig = mergeCrontab:getProperty("merging_task_name")
+      hasMergingTask = mergeCrontab:getProperty("has_merging_task")
+      mergingTaskFinish = mergeCrontab:getProperty("current_merging_task_finished")
+      if (hasMergingTask == "true" and mergingTaskFinish == "true")
+      then
+	 hasMergingTask = "false"
+      end
+   end
+   local isFirstRound = Flow.getProperty("is_first_round")
+   
+   if (isFirstRound == "")
+   then
+      Flow.setProperty("is_first_round", "true")
+      isFirstRound = "true"
+   end
+   if (flowState == "")
+   then
+      local param = {}
+      if (schemaId ~= nil)
+      then
+            param["schemaId"] = schemaId
+      end
+
+      if (builderStartTime ~= "")
+      then
+	 param["startTimestamp"] = builderStartTime
+      end
+      
+      local batchMode = incBuilder:getProperty("batchMode")
+      if (batchMode == "true" and hasMergingTask ~= "true")
+      then
+         return false
+      end
+
+      if (Flow.parameter["useRandomInitialPathVersion"] ~= nil)
+      then
+         param["useRandomInitialPathVersion"] = Flow.parameter["useRandomInitialPathVersion"]
+      end
+      
+      if (hasIncProcessor == false)
+      then
+         if (Flow.parameter["realtimeDataDescription"] ~= nil)
+         then
+            local dsJson = Flow.parameter["realtimeDataDescription"]
+            param["data_description"] = dsJson
+            Log.log("WARN", "dsJson: "..dsJson)
+            
+            if (isFirstRound == "true")
+            then
+               local startTs = Tool.getJsonStringValue(dsJson, "swift_start_timestamp")
+               if (startTs ~= nil and startTs ~= "-1" and startTs ~= "")
+               then
+                  param["startTimestamp"] = startTs
+                  Log.log("WARN", "startTs: "..startTs) 
+               elseif (cloneIndexFlowId ~= nil)
+               then
+                  local cloneIndexTask = Flow.getTaskInFlow("cloneIndex", cloneIndexFlowId)
+                  if (cloneIndexTask:isValid())
+                  then
+                     -- the locator key of single cluster format like: ${clusterName}-cloned-index-locator
+                     local locator = cloneIndexTask:getProperty(Flow.parameter["clusterName"].."-cloned-index-locator")
+                     if (locator == "")
+                     then
+                        Log.log("ERROR", "no cloned-index-locator defined in CloneIndexTask: "..Flow.parameter["buildId"]);
+                        return false
+                     end
+                     param["startTimestamp"] = locator;
+                  end
+               end
+            end
+         else
+            Log.log("ERROR", "no realtimeDescription defined! when inc processor not exists in cluster["..Flow.parameter["clusterName"].."]");
+            return false
+         end
+      end
+
+      if (Flow.startTask(incBuilder, param))
+      then
+	 Flow.setProperty("_flow_status_", "incBuilding")
+	 if (builderStartTime ~= "")
+	 then
+	    Flow.setProperty("userDefineStartTimestamp", builderStartTime)
+	 end
+      end
+      return false
+   end
+   
+   if (flowState == "incBuilding")
+   then
+      if (hasMergingTask ~= "true")
+      then
+	 return false
+      end
+      if (Flow.finishTask(incBuilder, nil))
+      then
+            Flow.setProperty("_flow_status_", "incBuildStopping")
+      end
+      return false
+   end
+
+   if (flowState == "incBuildStopping")
+   then
+      if (incBuilder:isTaskFinish())
+      then
+         local mergeParam = {}
+         mergeParam["mergeConfigName"] = mergeConfig
+         if (schemaId ~= nil)
+         then
+             mergeParam["schemaId"] = schemaId
+         end
+
+         if (isFirstRound == "true")
+         then
+            Flow.setProperty("is_first_round", "false")
+         end
+
+         
+         Log.log("INFO", "begin merge "..Flow.parameter["clusterName"].." with mergeConfig["..mergeConfig.."]")
+         if (Flow.startTask(incMerger, mergeParam))
+         then
+                  Flow.setProperty("_flow_status_", "incMerging")
+         end
+         return false         
+      end
+      return false
+   end
+
+   if (flowState == "incMerging")
+   then
+      if (incMerger:isTaskFinish())
+      then
+         mergeCrontab:setProperty("current_merging_task_finished", "true")
+         Log.log("INFO", "merge "..Flow.parameter["clusterName"].." with mergeConfig["..mergeConfig.."] end")
+         --incBuilder:start()
+         Flow.setProperty("_flow_status_", "")
+         return false
+      end
+      return false
+   end
+   
+   return true
+end

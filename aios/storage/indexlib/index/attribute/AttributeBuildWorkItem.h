@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/normal/AttributeDocument.h"
 #include "indexlib/document/normal/NormalDocument.h"
 #include "indexlib/index/attribute/SingleAttributeBuilder.h"
@@ -67,9 +68,13 @@ AttributeBuildWorkItem<DiskIndexerType, MemIndexerType>::~AttributeBuildWorkItem
 template <typename DiskIndexerType, typename MemIndexerType>
 Status AttributeBuildWorkItem<DiskIndexerType, MemIndexerType>::doProcess()
 {
-    for (size_t i = 0; i < _documentBatch->GetBatchSize(); ++i) {
-        std::shared_ptr<indexlibv2::document::IDocument> iDoc = (*_documentBatch)[i];
-        RETURN_STATUS_DIRECTLY_IF_ERROR(BuildOneDoc(iDoc.get()));
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(_documentBatch);
+    while (iter->HasNext()) {
+        std::shared_ptr<indexlibv2::document::IDocument> doc = iter->Next();
+        auto st = BuildOneDoc(doc.get());
+        if (!st.IsOK()) {
+            AUTIL_LOG(ERROR, "build one doc failed, docId[%d] [%s]", doc->GetDocId(), st.ToString().c_str());
+        }
     }
     return Status::OK();
 }

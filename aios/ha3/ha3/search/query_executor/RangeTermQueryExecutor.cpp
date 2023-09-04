@@ -51,7 +51,9 @@ RangeTermQueryExecutor::RangeTermQueryExecutor(indexlib::index::PostingIterator 
 
 RangeTermQueryExecutor::~RangeTermQueryExecutor() {}
 
-uint32_t RangeTermQueryExecutor::getSeekDocCount() { return _rangeIter->GetSeekDocCount(); }
+uint32_t RangeTermQueryExecutor::getSeekDocCount() {
+    return _rangeIter->GetSeekDocCount();
+}
 
 indexlib::index::ErrorCode RangeTermQueryExecutor::doSeek(docid_t id, docid_t &result) {
     docid_t tempDocId = INVALID_DOCID;

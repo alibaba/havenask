@@ -23,7 +23,7 @@ namespace indexlibv2 { namespace document {
 class DocumentRewriteChain;
 }} // namespace indexlibv2::document
 namespace indexlibv2 { namespace config {
-class TabletSchema;
+class ITabletSchema;
 }} // namespace indexlibv2::config
 namespace indexlibv2::table {
 
@@ -31,12 +31,12 @@ class NormalDocumentRewriteChainCreator
 {
 public:
     static std::pair<Status, std::shared_ptr<document::DocumentRewriteChain>>
-    Create(const std::shared_ptr<config::TabletSchema>& schema);
+    Create(const std::shared_ptr<config::ITabletSchema>& schema);
 
 private:
-    static Status AppendDocInfoRewriterIfNeed(const std::shared_ptr<config::TabletSchema>& schema,
+    static Status AppendDocInfoRewriterIfNeed(const std::shared_ptr<config::ITabletSchema>& schema,
                                               document::DocumentRewriteChain* rewriteChain);
-    static Status AppendTTLSetterIfNeed(const std::shared_ptr<config::TabletSchema>& schema,
+    static Status AppendTTLSetterIfNeed(const std::shared_ptr<config::ITabletSchema>& schema,
                                         document::DocumentRewriteChain* rewriteChain);
 
 private:

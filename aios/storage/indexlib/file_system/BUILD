@@ -1,15 +1,16 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(
     default_visibility=['//aios/storage/indexlib/file_system:__subpackages__']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='interface',
     srcs=[],
     hdrs=[
         'Directory.h', 'DirectoryOption.h', 'FileSystemCreator.h',
         'FileSystemDefine.h', 'FileSystemOptions.h', 'IDirectory.h',
         'IFileSystem.h', 'LifecycleConfig.h', 'ListOption.h',
-        'MountDirOption.h', 'ReaderOption.h', 'RemoveOption.h', 'WriterOption.h'
+        'MergeDirsOption.h', 'MountOption.h', 'ReaderOption.h',
+        'RemoveOption.h', 'WriterOption.h'
     ],
     visibility=['//visibility:public'],
     deps=[
@@ -19,7 +20,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system/load_config:interface'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='common',
     srcs=[
         'FileBlockCache.cpp', 'FileBlockCacheContainer.cpp',
@@ -39,7 +40,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system/load_config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='entry_table',
     srcs=[
         'EntryMeta.cpp', 'EntryTable.cpp', 'EntryTableBuilder.cpp',
@@ -59,7 +60,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system/package:meta'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='byte_slice_rw',
     srcs=['ByteSliceReader.cpp', 'ByteSliceWriter.cpp'],
     hdrs=['ByteSliceReader.h', 'ByteSliceWriter.h'],
@@ -73,7 +74,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util/byte_slice_list'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='deploy',
     srcs=['IndexFileDeployer.cpp'],
     hdrs=['DeployIndexMeta.h', 'IndexFileDeployer.h'],
@@ -85,7 +86,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system/fslib'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='file_system',
     srcs=[
         'Directory.cpp', 'DirectoryImpl.cpp', 'DiskStorage.cpp',
@@ -111,8 +112,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system/package'
     ]
 )
-indexlib_cc_library(name='FSResult', srcs=[], deps=[':ErrorCode'])
-indexlib_cc_library(
+strict_cc_library(name='FSResult', srcs=[], deps=[':ErrorCode'])
+strict_cc_library(
     name='ErrorCode',
     srcs=[],
     deps=[
@@ -121,11 +122,11 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:Exception'
     ]
 )
-indexlib_cc_library(name='FileSystemDefine', srcs=[], deps=[])
-indexlib_cc_library(name='Storage', srcs=[], deps=[':entry_table'])
-indexlib_cc_library(name='MemStorage', srcs=[])
-indexlib_cc_library(name='DiskStorage', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='FileSystemDefine', srcs=[], deps=[])
+strict_cc_library(name='Storage', srcs=[], deps=[':entry_table'])
+strict_cc_library(name='MemStorage', srcs=[])
+strict_cc_library(name='DiskStorage', srcs=[])
+strict_cc_library(
     name='JsonUtil',
     deps=[
         ':interface', '//aios/autil:synchronized_queue',

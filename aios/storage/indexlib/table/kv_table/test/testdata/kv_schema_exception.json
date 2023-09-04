@@ -1,0 +1,41 @@
+{
+    "table_name": "kv_table",
+    "table_type": "kv",
+    "fields": [
+        {
+            "field_name": "nid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "pidvid",
+            "field_type": "INT64",
+            "multi_value": true
+        },
+        {
+            "field_name": "timestamp",
+            "field_type": "INT64"
+        }
+    ],
+    "indexs": [
+        {
+            "index_name": "nid",
+            "index_fields": "nid",
+            "index_type": "PRIMARY_KEY",
+            "index_preference": {
+                "type": "STORE",
+                "parameters": {
+                    "value": {
+                        "encode": true,
+                        "file_compressor": "zstd",
+                        "file_compressor_buffer_size": 10
+                    }
+                }
+            }
+        }
+    ],
+    "attributes": [
+        "nid",
+        "pidvid",
+        "timestamp"
+    ]
+}

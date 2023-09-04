@@ -28,9 +28,6 @@
 
 DECLARE_REFERENCE_CLASS(file_system, Directory);
 DECLARE_REFERENCE_CLASS(config, FieldConfig);
-DECLARE_REFERENCE_CLASS(config, TruncateTermVocabulary);
-DECLARE_REFERENCE_CLASS(config, TruncateProfileConfig);
-DECLARE_REFERENCE_CLASS(config, PayloadConfig);
 DECLARE_REFERENCE_CLASS(config, CustomizedConfig);
 DECLARE_REFERENCE_CLASS(config, IndexConfigImpl);
 
@@ -84,22 +81,7 @@ public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override;
 
 public:
-    // Truncate
-    void SetHasTruncateFlag(bool flag);
-    bool HasTruncate() const;
-    void SetUseTruncateProfiles(const std::string& useTruncateProfiles);
-    bool HasTruncateProfile(const TruncateProfileConfig* truncateProfileConfig) const;
-    std::vector<std::string> GetUseTruncateProfiles() const;
-    void LoadTruncateTermVocabulary(const file_system::ArchiveFolderPtr& metaFolder,
-                                    const std::vector<std::string>& truncIndexNames);
-    void LoadTruncateTermVocabulary(const file_system::DirectoryPtr& truncMetaDir,
-                                    const std::vector<std::string>& truncIndexNames);
-    const TruncateTermVocabularyPtr& GetTruncateTermVocabulary() const;
-    bool IsTruncateTerm(const index::DictKeyInfo& key) const override;
-    bool GetTruncatePostingCount(const index::DictKeyInfo& key, int32_t& count) const;
-    void SetTruncatePayloadConfig(const PayloadConfig& payloadConfig);
-    const PayloadConfig& GetTruncatePayloadConfig() const;
-
+    void SetUseTruncateProfiles(const std::vector<std::string>& profiles) override;
     void SetCustomizedConfig(const CustomizedConfigVector& customizedConfigs);
     const CustomizedConfigVector& GetCustomizedConfigs() const;
 
@@ -108,7 +90,6 @@ public:
 
 public:
     static InvertedIndexType StrToIndexType(const std::string& typeStr, TableType tableType);
-    static std::string CreateTruncateIndexName(const std::string& indexName, const std::string& truncateProfileName);
 
 protected:
     InvertedIndexConfig::Iterator DoCreateIterator() const override;

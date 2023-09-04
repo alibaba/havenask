@@ -19,17 +19,15 @@
 #include <iomanip>
 #include <ostream>
 
-#include "autil/StringUtil.h"
 #include "autil/HashUtil.h"
+#include "autil/StringUtil.h"
 #include "autil/legacy/jsonizable.h"
 #include "matchdoc/ValueType.h"
-#include "matchdoc/VectorDocStorage.h"
-
 #include "table/ColumnData.h"
 #include "table/ColumnSchema.h"
+#include "table/Comparator.h"
 #include "table/Table.h"
 #include "table/TableJson.h"
-#include "table/ComboComparator.h"
 #include "table/ValueTypeSwitch.h"
 
 using namespace std;
@@ -40,22 +38,15 @@ using namespace autil::legacy;
 namespace table {
 AUTIL_LOG_SETUP(table, TableUtil);
 
-TableUtil::TableUtil() {
-}
-
-TableUtil::~TableUtil() {
-}
-
-void TableUtil::sort(const TablePtr &table, ComboComparator *comparator) {
+void TableUtil::sort(const TablePtr &table, Comparator *comparator) {
     assert(table != nullptr);
     assert(comparator);
     vector<Row> rows = table->getRows();
-    std::sort(rows.begin(), rows.end(),
-              [&comparator] (Row a, Row b) { return comparator->compare(a, b); });
-    table->setRows(rows);
+    std::sort(rows.begin(), rows.end(), [&comparator](Row a, Row b) { return comparator->compare(a, b); });
+    table->setRows(std::move(rows));
 }
 
-void TableUtil::topK(const TablePtr &table, ComboComparator *comparator, size_t topk, bool reserve) {
+void TableUtil::topK(const TablePtr &table, Comparator *comparator, size_t topk, bool reserve) {
     assert(table != nullptr);
     assert(comparator);
     size_t rowCount = table->getRowCount();
@@ -63,32 +54,30 @@ void TableUtil::topK(const TablePtr &table, ComboComparator *comparator, size_t 
         return;
     }
     vector<Row> rows = table->getRows();
-    nth_element(rows.begin(), rows.begin() + topk, rows.end(),
-                [&comparator] (Row a, Row b) { return comparator->compare(a, b); });
+    nth_element(rows.begin(), rows.begin() + topk, rows.end(), [&comparator](Row a, Row b) {
+        return comparator->compare(a, b);
+    });
     if (!reserve) {
         rows.resize(topk);
     }
-    table->setRows(rows);
+    table->setRows(std::move(rows));
 }
 
-void TableUtil::topK(const TablePtr &table, ComboComparator *comparator, size_t topk, vector<Row> &rowVec) {
+void TableUtil::topK(const TablePtr &table, Comparator *comparator, size_t topk, vector<Row> &rowVec) {
     assert(table != nullptr);
     assert(comparator);
     if (topk >= rowVec.size()) {
         return;
     }
-    nth_element(rowVec.begin(), rowVec.begin() + topk, rowVec.end(),
-                [&comparator] (Row a, Row b) { return comparator->compare(a, b); });
+    nth_element(rowVec.begin(), rowVec.begin() + topk, rowVec.end(), [&comparator](Row a, Row b) {
+        return comparator->compare(a, b);
+    });
     rowVec.resize(topk);
 }
 
-string TableUtil::toString(const TablePtr &table) {
-    return toString(table, 0, std::numeric_limits<size_t>::max());
-}
+string TableUtil::toString(const TablePtr &table) { return toString(table, 0, std::numeric_limits<size_t>::max()); }
 
-string TableUtil::toString(const TablePtr &table, size_t maxRowCount) {
-    return toString(table, 0, maxRowCount);
-}
+string TableUtil::toString(const TablePtr &table, size_t maxRowCount) { return toString(table, 0, maxRowCount); }
 
 string TableUtil::toString(const TablePtr &table, size_t rowOffset, size_t maxRowCount) {
     if (table == nullptr) {
@@ -105,8 +94,7 @@ string TableUtil::toString(const TablePtr &table, size_t rowOffset, size_t maxRo
         << "), cols:" << colCount << endl;
     oss.flags(ios::right);
     for (size_t col = 0; col < colCount; col++) {
-        oss << setw(30) << table->getColumnName(col)
-            + " (" + valueTypeToString(table->getColumnType(col)) + ")" + " |";
+        oss << setw(30) << table->getColumnName(col) + " (" + valueTypeToString(table->getColumnType(col)) + ")" + " |";
     }
     oss << "\n";
 
@@ -130,30 +118,66 @@ std::string TableUtil::tailToString(const TablePtr &table, size_t maxRowCount) {
     return toString(table, rowOffset, maxRowCount);
 }
 
-string TableUtil::rowToString(const TablePtr &table, size_t rowOffset) {
-    return toString(table, rowOffset, 1);
-}
+string TableUtil::rowToString(const TablePtr &table, size_t rowOffset) { return toString(table, rowOffset, 1); }
 
 std::string TableUtil::valueTypeToString(ValueType vt) {
-    if (!vt.isBuiltInType()) return "unknown_type";
+    if (!vt.isBuiltInType())
+        return "unknown_type";
     std::string ret = "";
     if (vt.isMultiValue()) {
         ret = "multi_";
     }
     switch (vt.getBuiltinType()) {
-    case matchdoc::bt_bool   : { ret += "bool"; break; }
-    case matchdoc::bt_int8   : { ret += "int8"; break; }
-    case matchdoc::bt_int16  : { ret += "int16"; break; }
-    case matchdoc::bt_int32  : { ret += "int32"; break; }
-    case matchdoc::bt_int64  : { ret += "int64"; break; }
-    case matchdoc::bt_uint8  : { ret += "uint8"; break; }
-    case matchdoc::bt_uint16 : { ret += "uint16"; break; }
-    case matchdoc::bt_uint32 : { ret += "uint32"; break; }
-    case matchdoc::bt_uint64 : { ret += "uint64"; break; }
-    case matchdoc::bt_float  : { ret += "float"; break; }
-    case matchdoc::bt_double : { ret += "double"; break; }
-    case matchdoc::bt_string : { ret += "multi_char"; break; }
-    default : ret = "unknown_type";
+    case matchdoc::bt_bool: {
+        ret += "bool";
+        break;
+    }
+    case matchdoc::bt_int8: {
+        ret += "int8";
+        break;
+    }
+    case matchdoc::bt_int16: {
+        ret += "int16";
+        break;
+    }
+    case matchdoc::bt_int32: {
+        ret += "int32";
+        break;
+    }
+    case matchdoc::bt_int64: {
+        ret += "int64";
+        break;
+    }
+    case matchdoc::bt_uint8: {
+        ret += "uint8";
+        break;
+    }
+    case matchdoc::bt_uint16: {
+        ret += "uint16";
+        break;
+    }
+    case matchdoc::bt_uint32: {
+        ret += "uint32";
+        break;
+    }
+    case matchdoc::bt_uint64: {
+        ret += "uint64";
+        break;
+    }
+    case matchdoc::bt_float: {
+        ret += "float";
+        break;
+    }
+    case matchdoc::bt_double: {
+        ret += "double";
+        break;
+    }
+    case matchdoc::bt_string: {
+        ret += "multi_char";
+        break;
+    }
+    default:
+        ret = "unknown_type";
     }
     return ret;
 }
@@ -174,37 +198,37 @@ bool TableUtil::toTableJson(const TablePtr &table, TableJson &tableJson) {
         auto vt = column->getColumnSchema()->getType();
         bool isMulti = vt.isMultiValue();
         switch (vt.getBuiltinType()) {
-#define CASE_MACRO(ft)                                                  \
-            case ft: {                                                  \
-                typedef MatchDocBuiltinType2CppType<ft, false>::CppType T; \
-                if (isMulti) {                                          \
-                    auto columnData = column->getColumnData<autil::MultiValueType<T>>(); \
-                    if (columnData == nullptr) {                        \
-                        AUTIL_LOG(ERROR, "get column data [%lu] failed", col); \
-                        return false;                                      \
-                    }                                                   \
-                    vector<T> valVec;                                   \
-                    for (size_t row = 0; row < rowCount; row++) {       \
-                        valVec.clear();                                 \
-                        auto val = columnData->get(row);                \
-                        for (size_t i = 0; i < val.size(); ++i) {       \
-                            valVec.emplace_back(val[i]);                \
-                        }                                               \
-                        tableJson.data[row][col] = ToJson(valVec);      \
-                    }                                                   \
-                } else {                                                \
-                    auto columnData = column->getColumnData<T>();       \
-                    if (columnData == nullptr) {                        \
-                        AUTIL_LOG(ERROR, "get column data [%lu] failed", col); \
-                        return false;                                      \
-                    }                                                   \
-                    for (size_t row = 0; row < rowCount; row++) {       \
-                        T val = columnData->get(row);                   \
-                        tableJson.data[row][col] = ToJson(val);         \
-                    }                                                   \
-                }                                                       \
-                break;                                                  \
-            }
+#define CASE_MACRO(ft)                                                                                                 \
+    case ft: {                                                                                                         \
+        typedef MatchDocBuiltinType2CppType<ft, false>::CppType T;                                                     \
+        if (isMulti) {                                                                                                 \
+            auto columnData = column->getColumnData<autil::MultiValueType<T>>();                                       \
+            if (columnData == nullptr) {                                                                               \
+                AUTIL_LOG(ERROR, "get column data [%lu] failed", col);                                                 \
+                return false;                                                                                          \
+            }                                                                                                          \
+            vector<T> valVec;                                                                                          \
+            for (size_t row = 0; row < rowCount; row++) {                                                              \
+                valVec.clear();                                                                                        \
+                auto val = columnData->get(row);                                                                       \
+                for (size_t i = 0; i < val.size(); ++i) {                                                              \
+                    valVec.emplace_back(val[i]);                                                                       \
+                }                                                                                                      \
+                tableJson.data[row][col] = ToJson(valVec);                                                             \
+            }                                                                                                          \
+        } else {                                                                                                       \
+            auto columnData = column->getColumnData<T>();                                                              \
+            if (columnData == nullptr) {                                                                               \
+                AUTIL_LOG(ERROR, "get column data [%lu] failed", col);                                                 \
+                return false;                                                                                          \
+            }                                                                                                          \
+            for (size_t row = 0; row < rowCount; row++) {                                                              \
+                T val = columnData->get(row);                                                                          \
+                tableJson.data[row][col] = ToJson(val);                                                                \
+            }                                                                                                          \
+        }                                                                                                              \
+        break;                                                                                                         \
+    }
             NUMBER_BUILTIN_TYPE_MACRO_HELPER(CASE_MACRO);
 #undef CASE_MACRO
         case bt_string: {
@@ -235,7 +259,6 @@ bool TableUtil::toTableJson(const TablePtr &table, TableJson &tableJson) {
                 }
             }
             break;
-
         }
         case bt_bool: {
             if (isMulti) {
@@ -282,14 +305,12 @@ string TableUtil::toJsonString(const TablePtr &table) {
     try {
         return FastToJsonString(tableJson, true);
     } catch (const ExceptionBase &e) {
-        AUTIL_LOG(ERROR, "format table json failed. exception:[%s]",  e.what());
+        AUTIL_LOG(ERROR, "format table json failed. exception:[%s]", e.what());
         return "";
     }
 }
 
-bool TableUtil::calculateGroupKeyHash(TablePtr table,
-                                    const vector<string> &groupKeyVec,
-                                    vector<size_t> &hashValue) {
+bool TableUtil::calculateGroupKeyHash(TablePtr table, const vector<string> &groupKeyVec, vector<size_t> &hashValue) {
     size_t rowCount = table->getRowCount();
     hashValue.resize(rowCount, 0);
     for (size_t keyIdx = 0; keyIdx < groupKeyVec.size(); ++keyIdx) {
@@ -334,9 +355,9 @@ bool TableUtil::calculateGroupKeyHash(TablePtr table,
 }
 
 bool TableUtil::calculateGroupKeyHashWithSpecificRow(TablePtr table,
-        const vector<string> &groupKeyVec, const vector<Row> &rows,
-        vector<size_t> &hashValue)
-{
+                                                     const vector<string> &groupKeyVec,
+                                                     const vector<Row> &rows,
+                                                     vector<size_t> &hashValue) {
     size_t rowCount = rows.size();
     hashValue.resize(rowCount, 0);
     for (size_t keyIdx = 0; keyIdx < groupKeyVec.size(); ++keyIdx) {
@@ -380,4 +401,4 @@ bool TableUtil::calculateGroupKeyHashWithSpecificRow(TablePtr table,
     return true;
 }
 
-}
+} // namespace table

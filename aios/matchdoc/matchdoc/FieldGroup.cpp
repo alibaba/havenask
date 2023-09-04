@@ -15,19 +15,19 @@
  */
 #include "matchdoc/FieldGroup.h"
 
+#include <algorithm>
+
 #include "alog/Logger.h"
 #include "autil/DataBuffer.h"
 #include "autil/legacy/exception.h"
-#include <algorithm>
-
 #include "matchdoc/Trait.h"
 #include "matchdoc/ValueType.h"
 
 namespace autil {
 namespace mem_pool {
 class Pool;
-}  // namespace mem_pool
-}  // namespace autil
+} // namespace mem_pool
+} // namespace autil
 
 using namespace std;
 using namespace autil::mem_pool;
@@ -37,272 +37,91 @@ namespace matchdoc {
 
 AUTIL_LOG_SETUP(matchdoc, FieldGroup);
 
-FieldGroup::FieldGroup(Pool *pool, ReferenceTypesWrapper *referenceTypesWrapper,
-                       const string &groupName)
-    : _pool(pool),
-      _storage(new DocStorage(pool)),
-      _referenceTypesWrapper(referenceTypesWrapper),
-      _groupName(groupName),
-      _needConstruct(false),
-      _needDestruct(false) {}
-
-FieldGroup::FieldGroup(Pool *pool, const string &name, ReferenceTypesWrapper *referenceTypesWrapper,
-                       char *data, uint32_t docSize, uint32_t docCount, uint32_t capacity)
-    : _pool(pool),
-      _storage(new DocStorage(pool, data, docSize, docCount, capacity)),
-      _referenceTypesWrapper(referenceTypesWrapper),
-      _groupName(name),
-      _needConstruct(false),
-      _needDestruct(false) {}
-
-FieldGroup::~FieldGroup() {
-    for (auto ref : _referenceVec) {
-        delete ref;
-    }
-    _referenceVec.clear();
-    _referenceMap.clear();
-    if (_storage) {
-        delete _storage;
-        _storage = NULL;
-    }
+FieldGroup::FieldGroup(const std::string &groupName,
+                       std::unique_ptr<VectorStorage> storage,
+                       std::unique_ptr<ReferenceSet> refSet)
+    : _groupName(groupName)
+    , _storage(std::move(storage))
+    , _referenceSet(std::move(refSet))
+    , _needConstruct(false)
+    , _needDestruct(false) {
+    init();
 }
 
-void FieldGroup::sortReference() {
-    sort(_referenceVec.begin(), _referenceVec.end(), [](ReferenceBase *l, ReferenceBase *r)
-         {return l->getName() < r->getName();});
-}
-
-void FieldGroup::serializeMeta(DataBuffer &dataBuffer, uint8_t serializeLevel) const {
-    ReferenceVector refVec;
-    getAllSerializeElements(refVec, serializeLevel);
-    dataBuffer.write(refVec.size());
-
-    for (auto ref : refVec) {
-        dataBuffer.write(ref->getReferenceMeta());
-    }
-}
-
-void FieldGroup::deserializeMeta(DataBuffer &dataBuffer) {
-    size_t size = 0;
-    dataBuffer.read(size);
-    for (size_t i = 0; i < size; i++) {
-        ReferenceMeta meta;
-        dataBuffer.read(meta, _pool);
-        ReferenceTypes::const_iterator it;
-        bool ret = _referenceTypesWrapper->find(meta.vt, it);
-        if (ret) {
-            ReferenceBase *ref = it->second.first->getTypedRef(NULL, _storage,
-                    meta.allocateSize, _groupName, meta.valueType.needConstruct());
-            ref->setSerializeLevel(meta.serializeLevel);
-            ref->setName(meta.name);
-            ref->setValueType(meta.valueType);
-            _referenceVec.push_back(ref);
-            _referenceMap[meta.name] = ref;
-            if (!_needConstruct && ref->needConstructMatchDoc())
-            {
-                _needConstruct = true;
-            }
-            if (!_needDestruct && ref->needDestructMatchDoc())
-            {
-                _needDestruct = true;
-            }
-        } else {
-            throw legacy::ExceptionBase("unknown type " + meta.vt);
-        }
-    }
-}
-
-void FieldGroup::serialize(DataBuffer &dataBuffer, const MatchDoc &doc,
-                           uint8_t serializeLevel)
-{
-    for (auto ref : _referenceVec) {
-        if (ref->getSerializeLevel() < serializeLevel) {
-            continue;
-        }
-        ref->serialize(doc, dataBuffer);
-    }
-}
-
-void FieldGroup::deserialize(autil::DataBuffer &dataBuffer, const MatchDoc &doc) {
-    for (auto ref : _referenceVec) {
-        ref->deserialize(doc, dataBuffer, _pool);
-    }
-}
-
-void FieldGroup::setCurrentRef(Reference<MatchDoc> *current) {
-    for (auto ref : _referenceVec) {
-        ref->setCurrentRef(current);
-    }
-}
-
-const ReferenceMap& FieldGroup::getReferenceMap() const {
-    return _referenceMap;
-}
-
-ReferenceBase* FieldGroup::cloneReference(const ReferenceBase *reference,
-                                          const string &name)
-{
-    uint32_t allocateSize = reference->getAllocateSize();
-    bool needConstruct = reference->getValueType().needConstruct();
-    ReferenceBase* ref = reference->getTypedRef(NULL, _storage, allocateSize,
-            _groupName, needConstruct);
-    ref->setSerializeLevel(reference->getSerializeLevel());
-    ref->setName(name);
-    ref->setValueType(reference->getValueType());
-    _referenceVec.push_back(ref);
-    _referenceMap[name] = ref;
-    if (!_needConstruct && ref->needConstructMatchDoc())
-    {
-        _needConstruct = true;
-    }
-    if (!_needDestruct && ref->needDestructMatchDoc())
-    {
-        _needDestruct = true;
-    }
-    return ref;
-}
-
-ReferenceBase* FieldGroup::cloneMountedReference(const ReferenceBase *reference,
-                                                 const std::string &name,
-                                                 uint32_t mountId)
-{
-    assert(reference->isMount());
-    auto mountIdOffset = getSharedOffset(mountId);
-    if (mountIdOffset == INVALID_OFFSET) {
-        mountIdOffset = _storage->getDocSize();
-        _storage->incDocSize(sizeof(void *));
-        setSharedOffset(mountId, mountIdOffset);
-    }
-    auto *ref = reference->getTypedMountRef(NULL, _storage, mountIdOffset, reference->getMountOffset(),
-                                            reference->getAllocateSize(), _groupName);
-    ref->setSerializeLevel(reference->getSerializeLevel());
-    ref->setName(name);
-    ref->setValueType(reference->getValueType());
-    _referenceVec.push_back(ref);
-    _referenceMap[name] = ref;
-    _needConstruct = true;
-    return ref;
-}
-
-void FieldGroup::getAllSerializeElements(
-        ReferenceVector &vec, uint8_t serializeLevel) const {
-    vec.reserve(_referenceVec.size());
-    for (auto ref : _referenceVec) {
-        if (ref->getSerializeLevel() < serializeLevel) {
-            continue;
-        }
-        vec.push_back(ref);
-    }
-}
-
-void FieldGroup::getAllSerializeElements(ReferenceMap& map, uint8_t serializeLevel) const {
-    ReferenceMap::const_iterator iter = _referenceMap.begin();
-    for (; iter != _referenceMap.end(); iter++) {
-        if (iter->second->getSerializeLevel() < serializeLevel) {
-            continue;
-        }
-        map.insert(*iter);
-    }
-}
-
-void FieldGroup::getRefBySerializeLevel(
-        ReferenceVector &vec, uint8_t serializeLevel) const {
-    vec.reserve(_referenceVec.size());
-    for (auto ref : _referenceVec) {
-        if (ref->getSerializeLevel() != serializeLevel) {
-            continue;
-        }
-        vec.push_back(ref);
-    }
-}
+FieldGroup::~FieldGroup() = default;
 
 void FieldGroup::resetSerializeLevel(uint8_t level) {
-    for (auto ref : _referenceVec) {
-        ref->setSerializeLevel(level);
-    }
+    _referenceSet->for_each([&level](auto r) { r->setSerializeLevel(level); });
 }
 
 void FieldGroup::resetSerializeLevelAndAlias(uint8_t serializeLevel) {
-    for (size_t i = 0; i < _referenceVec.size(); ++i) {
-        _referenceVec[i]->setSerializeLevel(serializeLevel);
-        _referenceVec[i]->resetSerialAliasName();
-    }
+    _referenceSet->for_each([&serializeLevel](auto r) {
+        r->setSerializeLevel(serializeLevel);
+        r->resetSerialAliasName();
+    });
 }
 
 bool FieldGroup::needSerialize(uint8_t serializeLevel) const {
-    for (auto ref : _referenceVec) {
-        if (ref->getSerializeLevel() >= serializeLevel) {
-            return true;
-        }
-    }
-    return false;
+    bool ret = false;
+    _referenceSet->for_each([&](auto *r) { ret = ret || r->getSerializeLevel() >= serializeLevel; });
+    return ret;
 }
 
-void FieldGroup::check() const {
-    auto iter = _referenceMap.begin();
-    for (; iter != _referenceMap.end(); iter++) {
-        ReferenceBase* ref = iter->second;
-        if (ref->getName() != iter->first) {
-            throw autil::legacy::ExceptionBase("ref name not match!");
-        }
+bool FieldGroup::isSame(const FieldGroup &other) const { return _referenceSet->equals(*other._referenceSet); }
 
-        if (ref->getGroupName() != _groupName) {
-            throw autil::legacy::ExceptionBase("group name not match!");
-        }
-    }
+void FieldGroup::cloneDoc(FieldGroup *other, const MatchDoc &newDoc, const MatchDoc &cloneDoc) {
+    _referenceSet->for_each([&](auto src) {
+        const auto &name = src->getName();
+        auto dst = other->_referenceSet->get(name);
+        assert(dst);
+        src->cloneConstruct(newDoc, cloneDoc, dst);
+    });
 }
 
-bool FieldGroup::isSame(const FieldGroup &other) const {
-    if (_referenceMap.size() != other._referenceMap.size()) {
-        return false;
-    }
-    for (const auto &refPair : _referenceMap) {
-        auto it = other._referenceMap.find(refPair.first);
-        if (other._referenceMap.end() == it) {
-            return false;
-        }
-        if (refPair.second->getReferenceMeta() != it->second->getReferenceMeta() ||
-            refPair.second->getOffset() != it->second->getOffset() || 
-            refPair.second->getMountOffset() != it->second->getMountOffset())
-        {
-            AUTIL_LOG(WARN, "meta for reference %s not same", refPair.first.c_str());
-            return false;
-        }
-    }
-    return true;
-}
+void FieldGroup::appendGroup(FieldGroup *other) { _storage->append(*other->_storage); }
 
-void FieldGroup::cloneDoc(FieldGroup *other,
-                          const MatchDoc &newDoc,
-                          const MatchDoc &cloneDoc)
-{
-    for (auto ref : _referenceVec) {
-        const string &name = ref->getName();
-        ReferenceBase *otherRef = other->_referenceMap[name];
-        ref->cloneConstruct(newDoc, cloneDoc, otherRef);
-    }
-}
-
-void FieldGroup::getAllReferenceNames(ReferenceNameSet &names) const {
-    for (const auto &ref : _referenceVec) {
-        names.insert(ref->getName());
-    }
-}
-
-void FieldGroup::appendGroup(FieldGroup *other) {
-    _storage->addChunk(*other->_storage);
-}
-
-void FieldGroup::truncateGroup(uint32_t size) {
-    _storage->truncate(size);
-}
+void FieldGroup::truncateGroup(uint32_t size) { _storage->truncate(size); }
 
 void FieldGroup::swapDocStorage(FieldGroup &other) {
     swap(_storage, other._storage);
-    for (size_t i = 0; i < _referenceVec.size(); i++) {
-        _referenceVec[i]->replaceStorage(_storage);
-        other._referenceVec[i]->replaceStorage(other._storage);
+    _referenceSet->for_each([this](auto r) { r->attachStorage(_storage.get()); });
+    other._referenceSet->for_each([&](auto r) { r->attachStorage(other._storage.get()); });
+}
+
+void FieldGroup::maybeResetMount(const MatchDoc &doc) {
+    for (auto mountOffset : _mountOffsets) {
+        char *addr = _storage->get(doc.getIndex()) + mountOffset;
+        *(char **)addr = nullptr;
     }
 }
 
+void FieldGroup::maybeResetMount(const MatchDoc *docs, size_t count) {
+    for (auto mountOffset : _mountOffsets) {
+        for (size_t i = 0; i < count; ++i) {
+            char *addr = _storage->get(docs[i].getIndex()) + mountOffset;
+            *(char **)addr = nullptr;
+        }
+    }
 }
+
+void FieldGroup::init() {
+    std::set<uint32_t> mountOffsets;
+    for (auto ref : _referenceSet->referenceVec) {
+        ref->attachStorage(_storage.get());
+        _needConstruct = _needConstruct || ref->needConstructMatchDoc();
+        _needDestruct = _needDestruct || ref->needDestructMatchDoc();
+        if (ref->isMount()) {
+            mountOffsets.insert(ref->getOffset());
+        }
+    }
+    _mountOffsets.insert(_mountOffsets.end(), mountOffsets.begin(), mountOffsets.end());
+    _needConstruct = _needConstruct || !_mountOffsets.empty();
+}
+
+std::unique_ptr<FieldGroup> FieldGroup::make(const std::string &groupName,
+                                             std::unique_ptr<VectorStorage> storage,
+                                             std::unique_ptr<ReferenceSet> refSet) {
+    return std::make_unique<FieldGroup>(groupName, std::move(storage), std::move(refSet));
+}
+
+} // namespace matchdoc

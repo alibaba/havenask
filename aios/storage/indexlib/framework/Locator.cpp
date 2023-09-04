@@ -48,9 +48,9 @@ std::pair<bool, base::Progress> Locator::GetLeftProgress(CompareStruct& currentP
         }
         return {true, update};
     } else {
-        int64_t updateOffset = updateProgress.GetCurrentOffset();
-        int64_t currentOffset = currentProgress.GetCurrentOffset();
-        if (updateOffset != -1 && updateOffset < currentOffset) {
+        base::Progress::Offset updateOffset = updateProgress.GetCurrentOffset();
+        base::Progress::Offset currentOffset = currentProgress.GetCurrentOffset();
+        if (updateOffset != base::Progress::INVALID_OFFSET && updateOffset < currentOffset) {
             return {false, base::Progress()};
         }
         if (update.to < current.to) {
@@ -137,13 +137,9 @@ bool Locator::Update(const Locator& other)
     MergeProgress(updateResult);
     _progress.swap(updateResult);
 
-    _minOffset = -1;
+    _minOffset = base::Progress::INVALID_OFFSET;
     for (const auto& progress : _progress) {
-        if (progress.offset == -1) {
-            // TODO: by yijie.zhang delete -1 offset
-            continue;
-        }
-        if (_minOffset == -1) {
+        if (_minOffset == base::Progress::INVALID_OFFSET) {
             _minOffset = progress.offset;
         } else {
             _minOffset = std::min(_minOffset, progress.offset);
@@ -159,7 +155,7 @@ bool Locator::IsFullyFasterThan(const Locator& other) const
     for (auto otherProgress : other._progress) {
         bool hasFullyFaster = false;
         for (const auto& currentProgress : _progress) {
-            if (otherProgress.offset <= 0) {
+            if (otherProgress.offset <= base::Progress::MIN_OFFSET) {
                 hasFullyFaster = true;
                 break;
             }
@@ -190,66 +186,122 @@ bool Locator::IsFullyFasterThan(const Locator& other) const
     }
     return isFullyFaster;
 }
+namespace {
+template <typename T>
+inline void write(char*& str, const T& value)
+{
+    *(T*)str = value;
+    str += sizeof(value);
+}
+
+template <typename T>
+inline bool read(const char*& begin, const char* end, T& value)
+{
+    if (begin + sizeof(T) > end) {
+        return false;
+    }
+    value = *(T*)begin;
+    begin += sizeof(value);
+    return true;
+}
+} // namespace
 
 std::string Locator::Serialize() const
 {
-    std::string result;
-    result.resize(Size());
-    char* data = result.data();
-    *(uint64_t*)data = _src;
-    data += sizeof(_src);
-    *(int64_t*)data = _minOffset;
-    data += sizeof(_minOffset);
-
-    *(uint64_t*)data = (uint64_t)_progress.size();
-    data += sizeof(uint64_t);
-    for (int i = 0; i < _progress.size(); i++) {
-        *(int64_t*)data = _progress[i].offset;
-        data += sizeof(int64_t);
-        *(uint32_t*)data = _progress[i].from;
-        data += sizeof(uint32_t);
-        *(uint32_t*)data = _progress[i].to;
-        data += sizeof(uint32_t);
+    int32_t serializeVersion = calculateSerializeVersion();
+    assert(serializeVersion <= LOCATOR_SUBOFFSET_VERSION);
+    if (0 == serializeVersion) {
+        return SerializeV0();
     }
+    if (1 == serializeVersion) {
+        return SerializeV1();
+    }
+    assert(false);
+    return "";
+}
 
+std::string Locator::SerializeV0() const
+{
+    /*
+      [   src   ][min offset ][progressCount][progresses(offset.first, from, to)][userdata(length and data if bexist)]
+      [<-8byte->][<--8byte-->][<---4byte--->][<-16byte * progress count-------->][<-----0 or 8 + userdata length---->]
+     */
+    std::string result;
+    auto size = Size();
+    result.resize(size);
+    char* data = result.data();
+    write(data, _src);
+    write(data, _minOffset.first);
+    write(data, (uint64_t)_progress.size());
+    for (int i = 0; i < _progress.size(); i++) {
+        write(data, _progress[i].offset.first);
+        write(data, _progress[i].from);
+        write(data, _progress[i].to);
+    }
     if (!_userData.empty()) {
-        *(uint64_t*)data = _userData.size();
-        data += sizeof(uint64_t);
+        write(data, (uint64_t)_userData.size());
         memcpy(data, _userData.data(), _userData.size());
         data += _userData.size();
     }
-
+    assert(data == result.data() + size);
     return result;
 }
 
-bool Locator::DeserializeProgress(const char*& data, const char* end)
+std::string Locator::SerializeV1() const
 {
-    const char* originData = data;
-    uint64_t progressSize = 0;
-    if (data + sizeof(progressSize) > end) {
-        data = originData;
-        return false;
+    /*
+      [      src      ][MAGIC_NUMER][LOCATOR_TYPE][min offset ][progressCount][progresses(offset.first, offset.second,
+      from, to)] [userdata(length and data if bexist)]
+      [<----8byte---->][<--4byte-->][<--4byte--->][<-12byte-->][<---4byte--->][<----------20byte * progress
+      count-------------->][<---0 if no userdata, or 8 + userdata length byte->] LOCATOR_TYPE 这版本为 0，
+      未来用于实现locator自定义
+     */
+    std::string result;
+    auto size = Size();
+    result.resize(size);
+    char* data = result.data();
+    write(data, _src);
+    write(data, MAGIC_NUMBER);
+    write(data, LOCATOR_SUBOFFSET_VERSION);
+    write(data, _minOffset.first);
+    write(data, _minOffset.second);
+    write(data, (uint64_t)_progress.size());
+    for (int i = 0; i < _progress.size(); i++) {
+        write(data, _progress[i].offset.first);
+        write(data, _progress[i].offset.second);
+        write(data, _progress[i].from);
+        write(data, _progress[i].to);
     }
-    progressSize = *(uint64_t*)data;
-    data += sizeof(progressSize);
+    if (!_userData.empty()) {
+        write(data, (uint64_t)_userData.size());
+        memcpy(data, _userData.data(), _userData.size());
+        data += _userData.size();
+    }
+    assert(data == result.data() + size);
+    return result;
+}
 
-    if (data + progressSize * sizeof(base::Progress) > end) {
-        data = originData;
+bool Locator::DeserializeProgressV0(const char*& data, const char* end)
+{
+    uint64_t progressSize = 0;
+    if (!read(data, end, progressSize)) {
         return false;
     }
+    if (progressSize > 65535) {
+        return false;
+    }
+
     _progress.reserve(progressSize);
     for (size_t i = 0; i < progressSize; i++) {
         base::Progress singleProgress;
-        singleProgress.offset = *(int64_t*)data;
-        data += sizeof(int64_t);
-        singleProgress.from = *(uint32_t*)data;
-        data += sizeof(uint32_t);
-        singleProgress.to = *(uint32_t*)data;
-        data += sizeof(uint32_t);
+        if (!read(data, end, singleProgress.offset.first) || !read(data, end, singleProgress.from) ||
+            !read(data, end, singleProgress.to)) {
+            _progress.clear();
+            return false;
+        }
         if (singleProgress.offset < _minOffset || singleProgress.from < 0 || singleProgress.from > 65535 ||
             singleProgress.to < 0 || singleProgress.to > 65535) {
             _progress.clear();
-            data = originData;
             return false;
         }
         _progress.emplace_back(singleProgress);
@@ -257,17 +309,11 @@ bool Locator::DeserializeProgress(const char*& data, const char* end)
     return true;
 }
 
-bool Locator::Deserialize(const char* data, size_t size)
+bool Locator::DeserializeV0(const char* data, const char* end)
 {
-    Reset();
-    const char* end = data + size;
-    if (data == nullptr || size < sizeof(_src) + sizeof(_minOffset)) {
+    if (!read(data, end, _minOffset.first)) {
         return false;
     }
-    _src = *(uint64_t*)data;
-    data += sizeof(_src);
-    _minOffset = *(int64_t*)data;
-    data += sizeof(_minOffset);
 
     if (data == end) {
         base::Progress singleProgress;
@@ -275,30 +321,26 @@ bool Locator::Deserialize(const char* data, size_t size)
         singleProgress.to = 65535;
         singleProgress.offset = _minOffset;
         _progress.emplace_back(singleProgress);
+        _isLegacyLocator = true;
         return true;
     }
-    if (!DeserializeProgress(data, end)) {
+    const char* userDataPtr = data;
+    if (!DeserializeProgressV0(data, end)) {
         // deserialize progress failed, legacy code for compatible with old user data format
         base::Progress singleProgress;
         singleProgress.from = 0;
         singleProgress.to = 65535;
         singleProgress.offset = _minOffset;
         _progress.emplace_back(singleProgress);
-        _userData.append(data, end - data);
+        _userData.append(userDataPtr, end - userDataPtr);
+        _isLegacyLocator = true;
         return true;
     }
     if (data == end) {
         return true;
     }
     uint64_t userDataLen = 0;
-    if (data + sizeof(userDataLen) > end) {
-        Reset();
-        return false;
-    }
-    userDataLen = *(uint64_t*)data;
-    data += sizeof(userDataLen);
-    if (data + userDataLen != end) {
-        Reset();
+    if (!read(data, end, userDataLen) || data + userDataLen != end) {
         return false;
     }
     if (userDataLen > 0) {
@@ -307,11 +349,79 @@ bool Locator::Deserialize(const char* data, size_t size)
     return true;
 }
 
-Locator::LocatorCompareResult Locator::IsFasterThan(uint16_t hashId, int64_t timestamp) const
+bool Locator::DeserializeV1(const char* data, const char* end)
+{
+    uint64_t progressSize = 0;
+    if (!read(data, end, _minOffset.first) || !read(data, end, _minOffset.second) || !read(data, end, progressSize)) {
+        return false;
+    }
+    _progress.reserve(progressSize);
+    for (size_t i = 0; i < progressSize; i++) {
+        base::Progress singleProgress;
+        if (!read(data, end, singleProgress.offset.first) || !read(data, end, singleProgress.offset.second) ||
+            !read(data, end, singleProgress.from) || !read(data, end, singleProgress.to)) {
+            return false;
+        }
+        if (singleProgress.offset < _minOffset || singleProgress.from < 0 || singleProgress.from > 65535 ||
+            singleProgress.to < 0 || singleProgress.to > 65535) {
+            return false;
+        }
+        _progress.emplace_back(singleProgress);
+    }
+    if (data == end) {
+        return true;
+    }
+    uint64_t userDataLen = 0;
+    if (!read(data, end, userDataLen) || data + userDataLen != end) {
+        return false;
+    }
+    if (userDataLen > 0) {
+        _userData.append(data, userDataLen);
+    }
+    return true;
+}
+
+bool Locator::Deserialize(const char* data, size_t size)
+{
+    Reset();
+    const char* end = data + size;
+    if (!read(data, end, _src)) {
+        Reset();
+        return false;
+    }
+    const char* legacyLocatorPtr = data;
+    int32_t maybeMagicNumber = 0;
+    if (!read(data, end, maybeMagicNumber)) {
+        Reset();
+        return false;
+    }
+
+    // legacy locator which has no magic number
+    if (maybeMagicNumber != MAGIC_NUMBER) {
+        if (!DeserializeV0(legacyLocatorPtr, end)) {
+            Reset();
+            return false;
+        }
+        return true;
+    }
+    int32_t locatorType = 0;
+    read(data, end, locatorType);
+
+    if (locatorType == LOCATOR_SUBOFFSET_VERSION) {
+        if (!DeserializeV1(data, end)) {
+            Reset();
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
+Locator::LocatorCompareResult Locator::IsFasterThan(uint16_t hashId, const base::Progress::Offset& offset) const
 {
     for (size_t i = 0; i < _progress.size(); i++) {
         if (_progress[i].from <= hashId && hashId <= _progress[i].to) {
-            if (_progress[i].offset > timestamp) {
+            if (_progress[i].offset > offset) {
                 return LocatorCompareResult::LCR_FULLY_FASTER;
             } else {
                 return LocatorCompareResult::LCR_SLOWER;
@@ -336,8 +446,8 @@ Locator::LocatorCompareResult Locator::IsFasterThan(const Locator& locator, bool
     }
     if (ignoreLegacyDiffSrc && (IsLegacyLocator() || locator.IsLegacyLocator())) {
         if (IsLegacyLocator()) {
-            int64_t maxOffset = -1;
-            int64_t minOffset = locator.GetOffset();
+            base::Progress::Offset maxOffset = base::Progress::INVALID_OFFSET;
+            base::Progress::Offset minOffset = locator.GetOffset();
             for (const auto& progress : locator.GetProgress()) {
                 maxOffset = std::max(maxOffset, progress.offset);
             }
@@ -349,8 +459,8 @@ Locator::LocatorCompareResult Locator::IsFasterThan(const Locator& locator, bool
             }
             return LocatorCompareResult::LCR_PARTIAL_FASTER;
         } else {
-            int64_t maxOffset = -1;
-            int64_t minOffset = _minOffset;
+            base::Progress::Offset maxOffset = base::Progress::INVALID_OFFSET;
+            base::Progress::Offset minOffset = _minOffset;
             for (const auto& progress : _progress) {
                 maxOffset = std::max(maxOffset, progress.offset);
             }
@@ -363,7 +473,6 @@ Locator::LocatorCompareResult Locator::IsFasterThan(const Locator& locator, bool
             return LocatorCompareResult::LCR_PARTIAL_FASTER;
         }
     }
-    // TODO(tianxiao.ttx) locator is invalid
     if (!locator.IsValid()) {
         return LocatorCompareResult::LCR_FULLY_FASTER;
     }
@@ -401,14 +510,14 @@ bool Locator::ShrinkToRange(uint32_t from, uint32_t to)
 // TODO(xiaohao.yxh): add progress
 std::string Locator::DebugString() const
 {
-    std::string debugString = std::to_string(_src) + ":" + std::to_string(_minOffset);
+    std::string debugString = std::to_string(_src) + ":" + std::to_string(_minOffset.first);
     if (!_userData.empty()) {
         debugString += ":" + _userData;
     }
     debugString += ":[";
     for (const auto& progress : _progress) {
         debugString += "{" + std::to_string(progress.from) + "," + std::to_string(progress.to) + "," +
-                       std::to_string(progress.offset) + "}";
+                       std::to_string(progress.offset.first) + "," + std::to_string(progress.offset.second) + "}";
     }
     debugString += "]";
     return debugString;
@@ -428,21 +537,78 @@ std::pair<uint32_t, uint32_t> Locator::GetLocatorRange() const
 void Locator::Reset()
 {
     _src = 0;
-    _minOffset = -1;
+    _minOffset = base::Progress::INVALID_OFFSET;
     _progress.clear();
     _userData.clear();
 }
 
 bool Locator::IsValid() const
 {
-    if (_minOffset >= 0) {
+    if (_minOffset >= base::Progress::MIN_OFFSET) {
         return true;
     }
     for (auto& p : _progress) {
-        if (p.offset >= 0) {
+        if (p.offset >= base::Progress::MIN_OFFSET) {
             return true;
         }
     }
     return false;
+}
+size_t Locator::Size() const
+{
+    size_t ret =
+        sizeof(_src) + +sizeof(_minOffset.first) + ProgressSize(_progress.size()) + UserDataSize(_userData.size());
+    if (calculateSerializeVersion() == LOCATOR_SUBOFFSET_VERSION) {
+        ret += (sizeof(MAGIC_NUMBER) + sizeof(LOCATOR_SUBOFFSET_VERSION) + sizeof(_minOffset.second));
+    }
+    return ret;
+}
+bool Locator::TEST_IsLegal() const
+{
+    std::vector<base::Progress> progresses = _progress;
+    std::sort(progresses.begin(), progresses.end(), [](const base::Progress& l, const base::Progress& r) {
+        return l.from == r.from ? (l.to < r.to) : (l.from < r.from);
+    });
+    for (const base::Progress& progress : progresses) {
+        if (progress.from > progress.to) {
+            return false;
+        }
+    }
+    for (size_t i = 1; i < progresses.size(); ++i) {
+        if (progresses[i - 1].to > progresses[i].from) {
+            return false;
+        }
+    }
+    return true;
+}
+
+int32_t Locator::calculateSerializeVersion() const
+{
+    if (_minOffset.second > 0) {
+        return LOCATOR_SUBOFFSET_VERSION;
+    }
+    for (const auto& progress : _progress) {
+        if (progress.offset.second > 0) {
+            return LOCATOR_SUBOFFSET_VERSION;
+        }
+    }
+    return LOCATOR_DEFAULT_VERSION;
+}
+size_t Locator::ProgressSize(size_t count) const
+{
+    auto serializeVersion = calculateSerializeVersion();
+
+    size_t ret = 0;
+
+    if (serializeVersion >= LOCATOR_DEFAULT_VERSION) {
+        ret =
+            ret + sizeof(uint64_t) +
+            (sizeof(base::Progress::from) + sizeof(base::Progress::to) + sizeof(base::Progress::Offset::first)) * count;
+    }
+
+    if (serializeVersion >= LOCATOR_SUBOFFSET_VERSION) {
+        ret = ret + sizeof(base::Progress::Offset::second) * count;
+    }
+    return ret;
 }
 } // namespace indexlibv2::framework

@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="local_parallel_join">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT id, normal.company_id, company_name FROM normal /*+ LOCAL_PARALLEL(tableName='normal', parallelNum='2') */ JOIN kkv1 ON normal.id = kkv1.company_id
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"id", "company_id", "company_name"</Resource>
+        <Resource name="column_types">int32, int32, multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:normal;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1, 1, "APPLE"
+2, 1, "NOKIA"
+2, 1, "NOKIA_2"
+3, 2, "LG"
+4, 2, "SAMSUNG"
+5, 3, "HUAWEI"
+6, 3, "XIAOMI"
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#9(type=api)
+    ExchangeOp#8(distribution={type:SINGLETON})
+        LimitOp#7(limit=100)
+            UnionOp#6(all=true,block=false)
+                CalcOp#2(output_fields=[$id,$company_id,$company_name],parallel_index=0,parallel_num=2)
+                    LookupJoinOp#1(build_node={catalog_name:default,db_name:normal,limit:2147483647,output_fields:[$company_id,$company_name],push_down_ops:[{attrs:{output_fields:[$company_id,$company_name]},op_name:CalcOp}],table_name:kkv1,table_type:kkv,use_nest_table:false},condition==($id,$company_id0),equi_condition==($id,$company_id0),is_equi_join=true,is_internal_build=false,join_type=INNER,left_is_build=false,output_fields=[$id,$company_id,$company_id0,$company_name],parallel_index=0,parallel_num=2,semi_join_type=INNER)
+                        TableScanOp#0(catalog_name=default,db_name=normal,limit=2147483647,output_fields=[$id,$company_id],parallel_index=0,parallel_num=2,push_down_ops=[{attrs:{output_fields:[$id,$company_id]},op_name:CalcOp}],table_name=normal,table_type=normal,use_nest_table=false)
+                CalcOp#5(output_fields=[$id,$company_id,$company_name],parallel_index=1,parallel_num=2)
+                    LookupJoinOp#4(build_node={catalog_name:default,db_name:normal,limit:2147483647,output_fields:[$company_id,$company_name],push_down_ops:[{attrs:{output_fields:[$company_id,$company_name]},op_name:CalcOp}],table_name:kkv1,table_type:kkv,use_nest_table:false},condition==($id,$company_id0),equi_condition==($id,$company_id0),is_equi_join=true,is_internal_build=false,join_type=INNER,left_is_build=false,output_fields=[$id,$company_id,$company_id0,$company_name],parallel_index=1,parallel_num=2,semi_join_type=INNER)
+                        TableScanOp#3(catalog_name=default,db_name=normal,limit=2147483647,output_fields=[$id,$company_id],parallel_index=1,parallel_num=2,push_down_ops=[{attrs:{output_fields:[$id,$company_id]},op_name:CalcOp}],table_name=normal,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

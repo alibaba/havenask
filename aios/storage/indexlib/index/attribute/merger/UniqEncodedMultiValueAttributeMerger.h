@@ -31,8 +31,10 @@ class UniqEncodedMultiValueAttributeMerger : public MultiValueAttributeMerger<T>
 protected:
     using MultiValueAttributeMerger<T>::_segOutputMapper;
     using MultiValueAttributeMerger<T>::_dataBuf;
-    using OutputData = typename MultiValueAttributeMerger<T>::OutputData;
+    using MultiValueAttributeMerger<T>::_diskIndexers;
+    using typename MultiValueAttributeMerger<T>::OutputData;
     using typename MultiValueAttributeMerger<T>::DiskIndexerWithCtx;
+    using MultiValueAttributeMerger<T>::ReserveMemBuffers;
 
 public:
     struct OffsetPair {
@@ -133,7 +135,7 @@ inline Status UniqEncodedMultiValueAttributeMerger<T>::MergeData(const std::shar
                                                                  const DocIdSet& patchedGlobalDocIdSet,
                                                                  OffsetMapVec& offsetMapVec)
 {
-    const std::vector<DiskIndexerWithCtx>& diskIndexers = this->_diskIndexers;
+    const std::vector<DiskIndexerWithCtx>& diskIndexers = _diskIndexers;
     for (size_t i = 0; i < diskIndexers.size(); ++i) {
         auto st = ConstructSegmentOffsetMap(segMergeInfos.srcSegments[i], docMapper, patchedGlobalDocIdSet,
                                             diskIndexers[i].first, offsetMapVec[i]);
@@ -244,7 +246,7 @@ inline Status UniqEncodedMultiValueAttributeMerger<T>::MergeNoPatchedDocOffsets(
     const IIndexMerger::SegmentMergeInfos& segMergeInfos, const std::shared_ptr<DocMapper>& docMapper,
     const OffsetMapVec& offsetMapVec, DocIdSet& patchedGlobalDocIdSet)
 {
-    const std::vector<DiskIndexerWithCtx>& diskIndexers = this->_diskIndexers;
+    const std::vector<DiskIndexerWithCtx>& diskIndexers = _diskIndexers;
     DocumentMergeInfoHeap heap;
     heap.Init(segMergeInfos, docMapper);
     DocumentMergeInfo info;
@@ -304,7 +306,7 @@ Status UniqEncodedMultiValueAttributeMerger<T>::MergePatchesInMergingSegments(
     auto status = GetPatchReaders(segMergeInfos.srcSegments, patchReaders);
     RETURN_IF_STATUS_ERROR(status, "get patch reader failed.");
 
-    this->ReserveMemBuffers(this->_diskIndexers);
+    ReserveMemBuffers(_diskIndexers);
     DocumentMergeInfoHeap heap;
     heap.Init(segMergeInfos, docMapper);
     DocumentMergeInfo info;

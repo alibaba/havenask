@@ -17,9 +17,9 @@
 
 #include <string>
 
+#include "autil/EnvUtil.h"
 #include "fslib/fslib.h"
 #include "iquan/common/IquanException.h"
-#include "iquan/common/Utils.h"
 #include "iquan/jni/ConstantJvmDefine.h"
 
 // export from libhdfs.so
@@ -33,12 +33,13 @@ JvmType Jvm::_jvmType = jt_invalid_jvm;
 
 AUTIL_LOG_SETUP(iquan, Jvm);
 
-Status Jvm::setup(JvmType jvmType, const std::vector<std::string> &classPaths, const std::string &jvmStartOpts) {
-    if (unlikely(_jvmType != jt_invalid_jvm)) {
-        return Status(IQUAN_INVALID_PARAMS, "Jvm::setup() has done before");
+Status Jvm::setup(JvmType jvmType,
+                  const std::vector<std::string> &classPaths,
+                  const std::string &jvmStartOpts) {
+    if (_jvmType != jt_invalid_jvm) {
+        return Status::OK();
     }
-
-    if (likely(jvmType == jt_hdfs_jvm)) {
+    if (jvmType == jt_hdfs_jvm) {
         return hdfsSetup(classPaths, jvmStartOpts);
     } else {
         return Status(IQUAN_INVALID_JVM_TYPE, "invalid type of jvm");
@@ -46,10 +47,9 @@ Status Jvm::setup(JvmType jvmType, const std::vector<std::string> &classPaths, c
 }
 
 JNIEnv *Jvm::env() noexcept {
-    if (likely(_jvmType == jt_hdfs_jvm)) {
+    if (_jvmType == jt_hdfs_jvm) {
         return getJNIEnv();
     }
-
     return NULL;
 }
 
@@ -62,7 +62,7 @@ JNIEnv *Jvm::checkedEnv() {
 }
 
 Status Jvm::hdfsSetup(const std::vector<std::string> &classPaths, const std::string &jvmStartOpts) {
-    std::string oldHdfsOpts = Utils::getEnv(HDFSOPTS_KEY, "");
+    std::string oldHdfsOpts = autil::EnvUtil::getEnv(HDFSOPTS_KEY, "");
     AUTIL_LOG(INFO, "get original JVM env, key[%s], value[%s]", HDFSOPTS_KEY, oldHdfsOpts.c_str());
 
     std::string currentHdfsOpts = oldHdfsOpts;
@@ -70,9 +70,9 @@ Status Jvm::hdfsSetup(const std::vector<std::string> &classPaths, const std::str
         currentHdfsOpts = JVM_START_OPTS;
     }
 
-    std::string debugJvmFlags = Utils::getEnv(START_JVM_DEBUG, "");
+    std::string debugJvmFlags = autil::EnvUtil::getEnv(START_JVM_DEBUG, "");
     if (unlikely(!debugJvmFlags.empty())) {
-        std::string debugJvmPort = Utils::getEnv(JVM_DEBUG_PORT, "");
+        std::string debugJvmPort = autil::EnvUtil::getEnv(JVM_DEBUG_PORT, "");
         if (debugJvmPort.empty()) {
             debugJvmPort = JVM_DEFAULT_DEBUG_PORT;
         }
@@ -83,14 +83,14 @@ Status Jvm::hdfsSetup(const std::vector<std::string> &classPaths, const std::str
     }
 
     if (currentHdfsOpts != oldHdfsOpts) {
-        Status status = Utils::setEnv(HDFSOPTS_KEY, currentHdfsOpts, true);
-        if (!status.ok()) {
-            std::string msg =
-                std::string("failed to set JVM env, key [") + HDFSOPTS_KEY + "], value [" + currentHdfsOpts + "]";
+        if (!autil::EnvUtil::setEnv(HDFSOPTS_KEY, currentHdfsOpts, true)) {
+            std::string msg = std::string("failed to set JVM env, key [") + HDFSOPTS_KEY
+                              + "], value [" + currentHdfsOpts + "]";
             AUTIL_LOG(ERROR, "%s", msg.c_str());
             return Status(IQUAN_FAIL_TO_SET_ENV, msg);
         }
-        AUTIL_LOG(INFO, "set JVM env success, key[%s], value[%s]", HDFSOPTS_KEY, currentHdfsOpts.c_str());
+        AUTIL_LOG(
+            INFO, "set JVM env success, key[%s], value[%s]", HDFSOPTS_KEY, currentHdfsOpts.c_str());
     }
 
     fslib::fs::AbstractFileSystem *fs = NULL;

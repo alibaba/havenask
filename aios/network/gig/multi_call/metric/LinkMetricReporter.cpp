@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/metric/LinkMetricReporter.h"
+
 #include "aios/network/gig/multi_call/common/ControllerParam.h"
 
 using namespace kmonitor;
@@ -23,20 +24,22 @@ namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, LinkMetricReporter);
 
 LinkMetricReporter::LinkMetricReporter(KMonitor *kMonitor, MetaEnv &metaEnv)
-    : _kMonitor(kMonitor), _metaEnv(metaEnv), _reportSampling(0) {
+    : _kMonitor(kMonitor)
+    , _metaEnv(metaEnv)
+    , _reportSampling(0) {
     DEFINE_MUTABLE_METRIC(kMonitor, Qps, "qps", QPS, NORMAL);
     DEFINE_MUTABLE_METRIC(kMonitor, Latency, "latency", SUMMARY, NORMAL);
     DEFINE_MUTABLE_METRIC(kMonitor, ErrorQps, "errorQps", QPS, NORMAL);
     DEFINE_MUTABLE_METRIC(kMonitor, TimeoutQps, "timeoutQps", QPS, NORMAL);
 }
 
-LinkMetricReporter::~LinkMetricReporter() {}
+LinkMetricReporter::~LinkMetricReporter() {
+}
 
-void LinkMetricReporter::reportMetric(
-    const MetaEnv &targetMetaEnv, const std::string &biz,
-    const std::string &targetBiz, const std::string &src,
-    const std::string &srcAb, const std::string &stressTest, int64_t latency,
-    bool timeout, bool error) {
+void LinkMetricReporter::reportMetric(const MetaEnv &targetMetaEnv, const std::string &biz,
+                                      const std::string &targetBiz, const std::string &src,
+                                      const std::string &srcAb, const std::string &stressTest,
+                                      int64_t latency, bool timeout, bool error) {
     if (_reportSampling > 0) {
         if (_counter.fetch_add(1) > _reportSampling) {
             _counter = 0;
@@ -44,20 +47,18 @@ void LinkMetricReporter::reportMetric(
             return;
         }
     }
-    doReportMetric(targetMetaEnv, biz, targetBiz, src, srcAb, stressTest,
-                   latency, timeout, error);
+    doReportMetric(targetMetaEnv, biz, targetBiz, src, srcAb, stressTest, latency, timeout, error);
 }
 
-void LinkMetricReporter::doReportMetric(
-    const MetaEnv &targetMetaEnv, const std::string &biz,
-    const std::string &targetBiz, const std::string &src,
-    const std::string &srcAb, const std::string &stressTest, int64_t latency,
-    bool timeout, bool error) {
+void LinkMetricReporter::doReportMetric(const MetaEnv &targetMetaEnv, const std::string &biz,
+                                        const std::string &targetBiz, const std::string &src,
+                                        const std::string &srcAb, const std::string &stressTest,
+                                        int64_t latency, bool timeout, bool error) {
     if (!_kMonitor) {
         return;
     }
-    kmonitor::MetricsTagsPtr linkTags = getLinkMetricsTags(
-        targetMetaEnv, biz, targetBiz, src, srcAb, stressTest);
+    kmonitor::MetricsTagsPtr linkTags =
+        getLinkMetricsTags(targetMetaEnv, biz, targetBiz, src, srcAb, stressTest);
     reportQps(1, linkTags);
     reportLatency(latency / FACTOR_US_TO_MS, linkTags);
     if (timeout) {
@@ -68,13 +69,12 @@ void LinkMetricReporter::doReportMetric(
     }
 }
 
-kmonitor::MetricsTagsPtr LinkMetricReporter::getLinkMetricsTags(
-    const MetaEnv &targetMetaEnv, const std::string &biz,
-    const std::string &targetBiz, const std::string &src,
-    const std::string &srcAb, const std::string &stressTest) {
+kmonitor::MetricsTagsPtr
+LinkMetricReporter::getLinkMetricsTags(const MetaEnv &targetMetaEnv, const std::string &biz,
+                                       const std::string &targetBiz, const std::string &src,
+                                       const std::string &srcAb, const std::string &stressTest) {
     std::map<std::string, std::string> linkTags = _metaEnv.getEnvTags();
-    std::map<std::string, std::string> targetMetaEnvTag =
-        targetMetaEnv.getTargetTags();
+    std::map<std::string, std::string> targetMetaEnvTag = targetMetaEnv.getTargetTags();
     linkTags.insert(targetMetaEnvTag.begin(), targetMetaEnvTag.end());
     linkTags.emplace(GIG_TAG_BIZ, MetricUtil::normalizeTag(biz));
     linkTags.emplace(GIG_TAG_SRC, src);

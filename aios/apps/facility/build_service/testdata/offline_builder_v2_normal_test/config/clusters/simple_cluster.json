@@ -1,0 +1,29 @@
+{
+	"build_option_config": {
+		"async_build": true,
+		"batch_build_size": 10000
+	},
+	"cluster_config": {
+		"builder_rule_config": {
+			"build_parallel_num": 32,
+			"inc_build_parallel_num": 2,
+			"partition_count": 6
+		},
+		"cluster_name": "simple",
+		"hash_mode": {
+			"hash_field": "nid",
+			"hash_function": "HASH"
+		},
+		"table_name": "simple"
+	},
+	"offline_index_config": {
+		"build_config": {
+			"enable_package_file": true,
+			"keep_version_count": 100,
+			"build_total_memory": 36840,
+			"building_memory_limit_mb": 16578,
+			"speedup_primary_key_reader": true,
+			"dump_thread_count": 10
+		}
+	}
+}

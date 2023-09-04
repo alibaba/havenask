@@ -15,15 +15,15 @@
  */
 #pragma once
 
-#include "autil/Log.h"
 #include "autil/Lock.h"
+#include "autil/Log.h"
 
-namespace autil { namespace cipher {
+namespace autil {
+namespace cipher {
 
 // sync read & write
 // maybe support one thread read & one thread write
-class MemoryDataPipeline
-{
+class MemoryDataPipeline {
 public:
     MemoryDataPipeline(size_t blockUnitSize = 64 * 1024,
                        size_t maxCapacity = std::numeric_limits<size_t>::max(),
@@ -33,66 +33,59 @@ public:
     ~MemoryDataPipeline();
 
 public:
-    bool write(const char* data, size_t size);
-    size_t read(char* buffer, size_t bufLen);
+    bool write(const char *data, size_t size);
+    size_t read(char *buffer, size_t bufLen);
 
     // for optimize: reuse memory buffer, avoid copy once by write interface
     // first: getMemoryBuffer, second: increase length <= allocate length
-    char* getMemoryBuffer(size_t length);
+    char *getMemoryBuffer(size_t length);
     bool increaseDataLength(size_t length);
 
     size_t getCurrentMemoryUse() const;
     size_t getInpipeDataSize() const;
-    
+
     void seal();
     bool isEof() const;
-    
+
 private:
-    class SafeBuffer
-    {
+    class SafeBuffer {
     public:
-        SafeBuffer(int64_t size)
-            : _size(size)
-        {
-            _buffer = new char[size];
-        }
+        SafeBuffer(int64_t size) : _size(size) { _buffer = new char[size]; }
         ~SafeBuffer() {
             if (_buffer) {
                 delete[] _buffer;
                 _buffer = NULL;
             }
         }
-        char* getBuffer() const { return _buffer; }
+        char *getBuffer() const { return _buffer; }
         int64_t size() const { return _size; }
+
     private:
-        char* _buffer;
+        char *_buffer;
         int64_t _size;
     };
-    
-    struct MemBufferNode
-    {
-        MemBufferNode(size_t bufSize)
-            : buffer(bufSize)
-        {}
+
+    struct MemBufferNode {
+        MemBufferNode(size_t bufSize) : buffer(bufSize) {}
         SafeBuffer buffer;
         volatile size_t writeCursor = 0;
         volatile size_t readCursor = 0;
-        MemBufferNode* next = nullptr;
+        MemBufferNode *next = nullptr;
     };
 
-    void freeNode(MemBufferNode* node);
-    MemBufferNode* newBufferNode(size_t unitSize);
+    void freeNode(MemBufferNode *node);
+    MemBufferNode *newBufferNode(size_t unitSize);
 
-    bool addNodeToFreelist(MemBufferNode* node);
-    MemBufferNode* getNodeFromFreelist(size_t unitSize);
+    bool addNodeToFreelist(MemBufferNode *node);
+    MemBufferNode *getNodeFromFreelist(size_t unitSize);
     void waitDataReady() const;
     void makeDataReady();
     void waitCapacity();
-    
+
 private:
-    MemBufferNode* _datalistHeader = nullptr;
-    MemBufferNode* _datalistTail = nullptr;    
-    MemBufferNode* _freelist = nullptr;
+    MemBufferNode *_datalistHeader = nullptr;
+    MemBufferNode *_datalistTail = nullptr;
+    MemBufferNode *_freelist = nullptr;
     size_t _totalFreeNodeCnt = 0;
     size_t _blockUnitSize = 0;
     size_t _maxFreeListNodeCnt = 0;
@@ -100,14 +93,14 @@ private:
     size_t _readTimeoutInMs = 0;
     mutable autil::SpinLock _freelistLock;
     mutable autil::ThreadCond _dataLock;
-    mutable autil::ThreadCond _capacityLock;    
-    std::atomic_uint_fast64_t _validDataSize {0};    
-    std::atomic_uint_fast64_t _totalDataNodeCapacity {0};
+    mutable autil::ThreadCond _capacityLock;
+    std::atomic_uint_fast64_t _validDataSize{0};
+    std::atomic_uint_fast64_t _totalDataNodeCapacity{0};
     volatile bool _sealed = false;
-    
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
-}}
-
+} // namespace cipher
+} // namespace autil

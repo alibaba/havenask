@@ -36,18 +36,30 @@ LineDataDocumentProcessor::~LineDataDocumentProcessor() {}
 LineDataDocumentProcessor::LineDataDocumentProcessor(const LineDataDocumentProcessor& other)
     : DocumentProcessor(other)
     , _schema(other._schema)
+    , _fieldAttrName(other._fieldAttrName)
+    , _hasAttrs(other._hasAttrs)
 {
 }
 
 bool LineDataDocumentProcessor::init(const DocProcessorInitParam& param)
 {
     _schema = param.schema;
-    auto fieldCount = _schema->GetFieldCount();
+    auto legacySchema = _schema->GetLegacySchema();
+    auto fieldCount = legacySchema->GetFieldCount();
     _fieldAttrName.resize(fieldCount);
-    auto attrConfigs = _schema->GetIndexConfigs(indexlib::index::ATTRIBUTE_INDEX_TYPE_STR);
-    _hasAttrs = (!attrConfigs.empty());
+    auto attrSchema = legacySchema->GetAttributeSchema();
+    if (!attrSchema) {
+        BS_LOG(ERROR, "attribute schema is null");
+        return false;
+    }
+    auto attrConfigs = attrSchema->GetAttributeConfigs();
+    _hasAttrs = (attrConfigs.size() > 0);
+    if (!_hasAttrs) {
+        BS_LOG(ERROR, "attribute schema is null");
+        return false;
+    }
     for (const auto& attrConfig : attrConfigs) {
-        auto attrName = attrConfig->GetIndexName();
+        auto attrName = attrConfig->GetAttrName();
         auto fieldConfigs = attrConfig->GetFieldConfigs();
         for (const auto& fieldConfig : fieldConfigs) {
             fieldid_t fieldId = fieldConfig->GetFieldId();

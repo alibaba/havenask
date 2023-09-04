@@ -1,0 +1,9 @@
+{
+    "merge_config" : {
+
+	"merge_strategy" : "balance_tree",
+        "max_merge_memory_use" : 22528,
+	"merge_strategy_param" : "conflict-segment-number=2;base-doc-count=1024000;max-doc-count=10240000;conflict-delete-percent=80",
+	"merge_thread_count" : 3
+    }
+}

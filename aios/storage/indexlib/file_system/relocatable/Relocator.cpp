@@ -21,9 +21,9 @@
 #include "indexlib/file_system/FileSystemCreator.h"
 #include "indexlib/file_system/FileSystemOptions.h"
 #include "indexlib/file_system/IDirectory.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/relocatable/RelocatableFolder.h"
-
 namespace indexlib::file_system {
 AUTIL_LOG_SETUP(indexlib.file_system, Relocator);
 

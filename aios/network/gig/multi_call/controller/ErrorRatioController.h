@@ -21,7 +21,8 @@
 
 namespace multi_call {
 
-class ErrorRatioController : public RatioControllerBase {
+class ErrorRatioController : public RatioControllerBase
+{
 public:
     ErrorRatioController();
 
@@ -34,14 +35,12 @@ public:
     void updateLoadBalance(ControllerFeedBack &feedBack);
 
 public:
-    bool isLegal(const ControllerChain *bestChain,
-                 const MetricLimits &metricLimits) const override;
+    bool isLegal(const ControllerChain *bestChain, const MetricLimits &metricLimits) const override;
     float getLegalLimit(const FlowControlConfigPtr &flowControlConfig) const;
 
 protected:
     void updateLocalRatio(const QueryResultStatistic &stat) override;
-    const ServerRatioFilter &
-    getServerRatioFilter(const GigResponseInfo &agentInfo) const override;
+    const ServerRatioFilter &getServerRatioFilter(const GigResponseInfo &agentInfo) const override;
     const ServerRatioFilter &
     getMirrorServerRatioFilter(const PropagationStatDef &stat) const override;
 

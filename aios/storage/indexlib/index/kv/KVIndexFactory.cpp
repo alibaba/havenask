@@ -16,6 +16,7 @@
 #include "indexlib/index/kv/KVIndexFactory.h"
 
 #include "autil/Log.h"
+#include "indexlib/framework/SegmentInfo.h"
 #include "indexlib/framework/SegmentMetrics.h"
 #include "indexlib/index/IndexerParameter.h"
 #include "indexlib/index/kv/FixedLenKVMemIndexer.h"
@@ -49,7 +50,7 @@ std::shared_ptr<IMemIndexer> KVIndexFactory::CreateMemIndexer(const std::shared_
         return nullptr;
     }
 
-    int64_t maxBuildMemoryUse = indexerParam.maxMemoryUseInBytes / _memoryFactor;
+    int64_t maxBuildMemoryUse = GetMaxBuildMemoryUse(indexerParam);
     if (maxBuildMemoryUse <= 0) {
         AUTIL_LOG(ERROR, "invalid maxMemoryUse: %ld", indexerParam.maxMemoryUseInBytes);
         return nullptr;
@@ -80,11 +81,9 @@ KVIndexFactory::CreateVarLenKVMemIndexer(const std::shared_ptr<indexlibv2::confi
         }
     }
 
-    // TODO: delete when use buffer file writer
-    // half memory for dump
-    int64_t maxBuildMemoryUse = indexerParam.maxMemoryUseInBytes / _memoryFactor;
-    return std::make_shared<VarLenKVMemIndexer>(maxBuildMemoryUse, keyValueMemRatio, valueCompressRatio,
-                                                indexerParam.sortDescriptions, indexerParam.indexMemoryReclaimer);
+    return std::make_shared<VarLenKVMemIndexer>(GetMaxBuildMemoryUse(indexerParam), keyValueMemRatio,
+                                                valueCompressRatio, indexerParam.sortDescriptions,
+                                                indexerParam.indexMemoryReclaimer);
 }
 
 std::shared_ptr<IDiskIndexer>
@@ -127,5 +126,19 @@ std::unique_ptr<document::IIndexFieldsParser> KVIndexFactory::CreateIndexFieldsP
     return std::make_unique<KVIndexFieldsParser>();
 }
 
-REGISTER_INDEX(kv, KVIndexFactory);
+int64_t KVIndexFactory::GetMaxBuildMemoryUse(const IndexerParameter& indexerParam) const
+{
+    uint32_t shardNum = (indexerParam.segmentInfo &&
+                         indexerParam.segmentInfo->GetShardCount() != framework::SegmentInfo::INVALID_SHARDING_COUNT)
+                            ? indexerParam.segmentInfo->GetShardCount()
+                            : 1;
+    // reserve 32M / shardNum for dump(compressBufferSize) & pool overhead at most
+    const int64_t overhead = 32 * 1024 * 1024 / shardNum;
+    if (indexerParam.maxMemoryUseInBytes > 2 * overhead) {
+        return indexerParam.maxMemoryUseInBytes - overhead;
+    }
+    return indexerParam.maxMemoryUseInBytes / _memoryFactor;
+}
+
+REGISTER_INDEX_FACTORY(kv, KVIndexFactory);
 } // namespace indexlibv2::index

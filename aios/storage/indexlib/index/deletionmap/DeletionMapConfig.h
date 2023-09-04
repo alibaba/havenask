@@ -21,24 +21,33 @@ namespace indexlibv2::index {
 class DeletionMapConfig final : public config::IIndexConfig
 {
 public:
+    static constexpr uint32_t DEFAULT_BITMAP_SIZE = 8 * 1024 * 1024;
+
+public:
     DeletionMapConfig() {}
     ~DeletionMapConfig() {}
 
     const std::string& GetIndexType() const override;
     const std::string& GetIndexName() const override;
-    void Check() const override { assert(false); }
+    const std::string& GetIndexCommonPath() const override;
+    std::vector<std::string> GetIndexPath() const override;
+    // wiil access by AddToUpdateDocumentRewriter
+    std::vector<std::shared_ptr<config::FieldConfig>> GetFieldConfigs() const override { return {}; }
     void Deserialize(const autil::legacy::Any& any, size_t idxInJsonArray,
                      const config::IndexConfigDeserializeResource& resource) override
     {
     }
     void Serialize(autil::legacy::Jsonizable::JsonWrapper& json) const override {}
+    void Check() const override { assert(false); }
     Status CheckCompatible(const IIndexConfig* other) const override { return Status::OK(); }
-    std::vector<std::string> GetIndexPath() const override;
-    std::vector<std::shared_ptr<config::FieldConfig>> GetFieldConfigs() const override
-    {
-        // 去掉 assert false，因为 AddToUpdateDocumentRewriter 检查的时候会遍历到
-        return {};
-    }
+    bool IsDisabled() const override { return false; }
+
+public:
+    uint32_t GetBitmapSize() { return _bitmapSize; }
+    void TEST_SetBitmapSize(uint32_t bitmapSize) { _bitmapSize = bitmapSize; }
+
+private:
+    uint32_t _bitmapSize = DEFAULT_BITMAP_SIZE;
 };
 
 } // namespace indexlibv2::index

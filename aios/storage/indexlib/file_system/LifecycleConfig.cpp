@@ -119,34 +119,44 @@ struct LifecycleConfig::LifecycleConfigImpl : public autil::legacy::Jsonizable {
             if (patternsIter != jsonMap.end()) {
                 patterns = Create(patternsIter->second);
             }
+            bool defaultValueForDeployManifest = (strategy == DYNAMIC_STRATEGY);
+            json.Jsonize("enable_local_deploy_manifest", enableLocalDeployManifest, defaultValueForDeployManifest);
+            if (strategy == DYNAMIC_STRATEGY && enableLocalDeployManifest == false) {
+                AUTIL_LOG(WARN, "attention: enable_local_deploy_manifest = false"
+                                "in dynamic lifecycle strategy");
+            }
+            if (!Validate()) {
+                INDEXLIB_THROW(util::BadParameterException, "invalid patterns in LifecycleConfig");
+            }
+
         } else {
             std::vector<autil::legacy::Any> values;
             for (const auto& pattern : patterns) {
                 values.push_back(ToJson(*pattern));
             }
             json.Jsonize("patterns", values, values);
-        }
-        if (strategy == DYNAMIC_STRATEGY) {
-            json.Jsonize("enable_local_deploy_manifest", enableLocalDeployManifest, true);
-            if (enableLocalDeployManifest == false) {
-                INDEXLIB_THROW(util::BadParameterException,
-                               "enable_local_deploy_manifest should be true in dynamic strategy");
-            }
-        } else {
-            json.Jsonize("enable_local_deploy_manifest", enableLocalDeployManifest, enableLocalDeployManifest);
+            json.Jsonize("enable_local_deploy_manifest", enableLocalDeployManifest);
         }
     }
 
-    bool EnableLocalDeployManifestChecking() const
+    bool Validate() const
     {
-        if (strategy == DYNAMIC_STRATEGY) {
-            return true;
+        if (strategy != DYNAMIC_STRATEGY && strategy != STATIC_STRATEGY) {
+            AUTIL_LOG(ERROR, "invalid lifecyle strategy[%s]", strategy.c_str());
+            return false;
         }
         if (strategy == STATIC_STRATEGY) {
-            return enableLocalDeployManifest;
+            for (size_t i = 0; i < patterns.size(); i++) {
+                if (true == patterns[i]->isOffset) {
+                    AUTIL_LOG(ERROR, "static strategy not support offset-based pattern[%zu]", i);
+                    return false;
+                }
+            }
         }
-        return false;
+        return true;
     }
+
+    bool EnableLocalDeployManifestChecking() const { return enableLocalDeployManifest; }
     bool InitOffsetBase(const std::map<std::string, std::string>& arguments)
     {
         for (auto pattern : patterns) {

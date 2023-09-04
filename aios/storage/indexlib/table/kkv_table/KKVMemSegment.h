@@ -24,11 +24,11 @@ class KKVMemSegment : public plain::PlainMemSegment
 {
 public:
     static std::shared_ptr<plain::PlainMemSegment>
-    CreatePlainMemSegment(const config::TabletOptions* options, const std::shared_ptr<config::TabletSchema>& schema,
+    CreatePlainMemSegment(const config::TabletOptions* options, const std::shared_ptr<config::ITabletSchema>& schema,
                           const framework::SegmentMeta& segmentMeta);
 
 public:
-    KKVMemSegment(const config::TabletOptions* options, const std::shared_ptr<config::TabletSchema>& schema,
+    KKVMemSegment(const config::TabletOptions* options, const std::shared_ptr<config::ITabletSchema>& schema,
                   const framework::SegmentMeta& segmentMeta);
     ~KKVMemSegment() {}
 

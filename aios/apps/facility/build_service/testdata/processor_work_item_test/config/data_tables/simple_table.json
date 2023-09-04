@@ -1,0 +1,47 @@
+{
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "simple_cluster"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "EraseFieldProcessor",
+                    "module_name" : "simple_document_processor",
+                    "parameters" : {
+                        "erase_fields" : "price2"
+                    }
+                },
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+                {
+                    "module_name" : "simple_document_processor",
+                    "module_path" : "libsimple_document_processor.so",
+                    "parameters" : {
+                    }
+                }
+            ]
+        },
+        {
+            "clusters" : [
+                "simple_no_summary_cluster"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                }
+            ],
+            "modules" : [
+            ]
+        }
+    ]
+}

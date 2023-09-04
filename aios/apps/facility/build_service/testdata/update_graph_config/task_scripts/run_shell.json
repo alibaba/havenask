@@ -1,0 +1,10 @@
+{
+    "script_type" : "shell",
+    "script_file" : "run_shell.sh",
+    "resources" : [],
+    "force_retry" : false,
+    "max_retry_times" : 3,
+    "min_retry_interval" : 3,
+    "partition_count" : 3,
+    "parallel_num" : 4
+}

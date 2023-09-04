@@ -22,22 +22,36 @@ namespace multi_call {
 
 struct VersionInfo {
 public:
-    VersionInfo() { clear(); }
-    ~VersionInfo() {}
+    VersionInfo() {
+        clear();
+    }
+    ~VersionInfo() {
+    }
 
 public:
-    bool complete() const { return partCount > 0 && partCount == healthCount; }
+    bool complete() const {
+        return partCount > 0 && partCount == healthCount;
+    }
     bool heartbeatComplete() const {
         return partCount > 0 && partCount == heartbeatHealthCount;
     }
     bool subscribeComplete() const {
         return partCount > 0 && partCount == subscribeCount;
     }
-    bool hasSubscribe() const { return partCount > 0 && subscribeCount > 0; }
-    bool hasStopped() const { return stopCount > 0; }
+    bool hasSubscribe() const {
+        return partCount > 0 && subscribeCount > 0;
+    }
+    bool hasStopped() const {
+        return stopCount > 0;
+    }
     bool operator==(const VersionInfo &rhs) const {
-        return partCount == rhs.partCount &&
-               subscribeCount == rhs.subscribeCount &&
+        bool metaEqual = false;
+        if (!metas && !rhs.metas) {
+            metaEqual = true;
+        } else if (metas && rhs.metas) {
+            metaEqual = (*metas == *rhs.metas);
+        }
+        return metaEqual && partCount == rhs.partCount && subscribeCount == rhs.subscribeCount &&
                stopCount == rhs.stopCount && healthCount == rhs.healthCount &&
                heartbeatHealthCount == rhs.heartbeatHealthCount &&
                minHeartbeatHealthCount == rhs.minHeartbeatHealthCount;
@@ -64,8 +78,15 @@ public:
     size_t heartbeatHealthCount;
     size_t minHeartbeatHealthCount;
 
+    MetaMapPtr metas;
+
 private:
     AUTIL_LOG_DECLARE();
+};
+
+struct BizMetaInfo {
+    std::string bizName;
+    std::map<VersionTy, VersionInfo> versions;
 };
 
 MULTI_CALL_TYPEDEF_PTR(VersionInfo);

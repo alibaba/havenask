@@ -94,7 +94,7 @@ void InplaceIndexModifier::UpdateWithShardId(const config::IndexConfigPtr& index
 void InplaceIndexModifier::UpdateOneField(docid_t docId, indexid_t indexId, const document::ModifiedTokens& tokens)
 {
     const auto& indexConfig = _schema->GetIndexSchema()->GetIndexConfig(indexId);
-    if (!indexConfig || indexConfig->IsDisable() || indexConfig->IsDeleted()) {
+    if (!indexConfig || indexConfig->IsDisabled() || indexConfig->IsDeleted()) {
         return;
     }
     if (!indexConfig->IsIndexUpdatable()) {
@@ -131,7 +131,7 @@ bool InplaceIndexModifier::UpdateIndex(IndexUpdateTermIterator* iterator)
         IE_LOG(WARN, "update index on null index config");
         return true;
     }
-    if (indexConfig->IsDisable()) {
+    if (indexConfig->IsDisabled()) {
         IE_LOG(WARN, "update index on disabled index config");
         return true;
     }

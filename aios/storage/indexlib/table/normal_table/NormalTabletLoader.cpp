@@ -17,7 +17,7 @@
 
 #include <any>
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/document/document_rewriter/DocumentInfoToAttributeRewriter.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/framework/ResourceMap.h"
@@ -39,6 +39,7 @@
 #include "indexlib/table/normal_table/NormalTabletPatcher.h"
 #include "indexlib/table/normal_table/virtual_attribute/VirtualAttributeIndexFactory.h"
 #include "indexlib/table/normal_table/virtual_attribute/VirtualAttributeIndexReader.h"
+#include "indexlib/util/memory_control/MemoryReserver.h"
 
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, NormalTabletLoader);
@@ -152,12 +153,19 @@ Status NormalTabletLoader::RemoveObsoleteRtDocs(
         TABLET_LOG(ERROR, "create hasid reader failed");
         return Status::InvalidArgs("create hash id reader failed");
     }
+    auto concurrentIdxReader = std::dynamic_pointer_cast<VirtualAttributeIndexReader<uint32_t>>(
+        createReader(document::DocumentInfoToAttributeRewriter::VIRTUAL_CONCURRENT_IDX_FIELD_NAME));
+    if (concurrentIdxReader == nullptr) {
+        TABLET_LOG(ERROR, "create concurrent idx reader failed");
+        return Status::InvalidArgs("create concurrent idx reader failed");
+    }
     size_t removedDocCount = 0;
     for (const auto& [segment, baseDocId] : segments) {
         size_t segmentRemovedCount = 0;
         for (docid_t docId = 0; docId < segment->GetSegmentInfo()->docCount; docId++) {
             uint16_t hashId;
             int64_t timestamp;
+            uint32_t concurrentIdx;
             docid_t globalDocId = baseDocId + docId;
             if (!hashIdReader->Seek(globalDocId, hashId)) {
                 TABLET_LOG(INFO, "get hash id failed, docId[%d]]", globalDocId);
@@ -166,9 +174,14 @@ Status NormalTabletLoader::RemoveObsoleteRtDocs(
 
             if (!timestampReader->Seek(globalDocId, timestamp)) {
                 TABLET_LOG(INFO, "get timestamp failed, docId[%d]", globalDocId);
-                return Status::InvalidArgs("get hash id failed");
+                return Status::InvalidArgs("get timestamp failed");
             }
-            auto result = versionLocator.IsFasterThan(hashId, timestamp);
+            if (!concurrentIdxReader->Seek(globalDocId, concurrentIdx)) {
+                TABLET_LOG(INFO, "get concurrentIdx failed, docId[%d]", globalDocId);
+                return Status::InvalidArgs("get concurrentIdx failed");
+            }
+
+            auto result = versionLocator.IsFasterThan(hashId, {timestamp, concurrentIdx});
             assert(result != framework::Locator::LocatorCompareResult::LCR_PARTIAL_FASTER);
             if (result == framework::Locator::LocatorCompareResult::LCR_INVALID) {
                 TABLET_LOG(ERROR, "locator compare failed, hash id[%u]", hashId);
@@ -192,7 +205,7 @@ std::pair<Status, bool> NormalTabletLoader::IsRtFullyFasterThanInc(const framewo
 {
     framework::Locator rtLocator = lastTabletData.GetLocator();
     auto newOnDiskVersionLocator = newOnDiskVersion.GetLocator();
-    if (rtLocator.IsValid() && !newOnDiskVersionLocator.IsSameSrc(rtLocator, true)) {
+    if (rtLocator.IsValid() && !newOnDiskVersionLocator.IsSameSrc(rtLocator, /*ignoreLegacyDiffSrc=*/true)) {
         TABLET_LOG(INFO, "src not same rtLocator [%s], incLocator [%s]", rtLocator.DebugString().c_str(),
                    newOnDiskVersion.GetLocator().DebugString().c_str());
         return {Status::OK(), false};
@@ -201,7 +214,7 @@ std::pair<Status, bool> NormalTabletLoader::IsRtFullyFasterThanInc(const framewo
         // when offline parallel build, reopen version range bigger than current version range
         return {Status::OK(), true};
     }
-    auto result = rtLocator.IsFasterThan(newOnDiskVersionLocator, true);
+    auto result = rtLocator.IsFasterThan(newOnDiskVersionLocator, /*ignoreLegacyDiffSrc=*/true);
     TABLET_LOG(INFO, "rtLocator [%s], incLocator [%s]", rtLocator.DebugString().c_str(),
                newOnDiskVersion.GetLocator().DebugString().c_str());
     if (result == framework::Locator::LocatorCompareResult::LCR_FULLY_FASTER) {
@@ -212,30 +225,11 @@ std::pair<Status, bool> NormalTabletLoader::IsRtFullyFasterThanInc(const framewo
     return {Status::OK(), false};
 }
 
-static Status ValidatePreloadParams(const std::vector<std::shared_ptr<framework::Segment>>& newOnDiskVersionSegments,
-                                    const framework::Version& newOnDiskVersion)
-{
-    if (newOnDiskVersionSegments.size() != newOnDiskVersion.GetSegmentCount()) {
-        return Status::InvalidArgs("new segments count is not equal to new version's segment count ",
-                                   newOnDiskVersionSegments.size(), " vs ", newOnDiskVersion.GetSegmentCount());
-    }
-    size_t segmentIdx = 0;
-    for (auto [segId, _] : newOnDiskVersion) {
-        if (segId != newOnDiskVersionSegments[segmentIdx]->GetSegmentId()) {
-            return Status::InvalidArgs("version segment id ", segId, " and ",
-                                       newOnDiskVersionSegments[segmentIdx]->GetSegmentId(), " inconsistent");
-        }
-        ++segmentIdx;
-    }
-    return Status::OK();
-}
-
 Status NormalTabletLoader::DoPreLoad(const framework::TabletData& lastTabletData, Segments newOnDiskVersionSegments,
                                      const framework::Version& newOnDiskVersion)
 {
     assert(_schema);
     assert(_schema->GetTableType() == indexlib::table::TABLE_TYPE_NORMAL);
-    RETURN_IF_STATUS_ERROR(ValidatePreloadParams(newOnDiskVersionSegments, newOnDiskVersion), "params invalid");
     _segmentIdsOnPreload.clear();
     _newVersion = newOnDiskVersion.Clone();
     _tabletName = lastTabletData.GetTabletName();
@@ -247,9 +241,6 @@ Status NormalTabletLoader::DoPreLoad(const framework::TabletData& lastTabletData
     // collect new version segments
     docid_t baseDocId = 0;
     _newSegments.insert(_newSegments.end(), newOnDiskVersionSegments.begin(), newOnDiskVersionSegments.end());
-    for (const auto& segment : newOnDiskVersionSegments) {
-        baseDocId += segment->GetSegmentInfo()->docCount;
-    }
     std::vector<std::pair<std::shared_ptr<framework::Segment>, docid_t>> partialReclaimRtSegments;
     if (!fullyFaster) {
         TABLET_LOG(INFO, "rt is not fully faster than inc, need drop rt");
@@ -257,22 +248,26 @@ Status NormalTabletLoader::DoPreLoad(const framework::TabletData& lastTabletData
         _resourceMap = lastTabletData.GetResourceMap()->Clone();
     } else {
         TABLET_LOG(INFO, "rt is fully faster than inc, keep rt segments");
-        auto lastOnDiskSegmentId = INVALID_SEGMENTID;
-        if (!newOnDiskVersionSegments.empty()) {
-            lastOnDiskSegmentId = (*newOnDiskVersionSegments.rbegin())->GetSegmentId();
+        auto [status, allSegments] = GetRemainSegments(lastTabletData, newOnDiskVersionSegments, newOnDiskVersion);
+        if (!status.IsOK()) {
+            TABLET_LOG(ERROR, "get remain segments failed, tablet data locator [%s], new version locator [%s]",
+                       lastTabletData.GetLocator().DebugString().c_str(),
+                       newOnDiskVersion.GetLocator().DebugString().c_str());
+            return status;
         }
         auto slice = lastTabletData.CreateSlice();
-        for (const auto& oldSegment : slice) {
-            _segmentIdsOnPreload.insert(oldSegment->GetSegmentId());
-            auto [status, segLocator] = oldSegment->GetLastLocator();
-            assert(status.IsOK()); // mem segment will not deserialize failed
-            if (!NeedReclaimFullSegment(_newVersion.GetLocator(), lastOnDiskSegmentId, oldSegment)) {
-                TABLET_LOG(INFO, "reserve segment [%d]", oldSegment->GetSegmentId());
-                _newSegments.push_back(oldSegment);
-                partialReclaimRtSegments.emplace_back(std::make_pair(oldSegment, baseDocId));
-                baseDocId += oldSegment->GetSegmentInfo()->docCount;
-            }
+        for (const auto& segment : slice) {
+            _segmentIdsOnPreload.insert(segment->GetSegmentId());
         }
+
+        for (const auto& segment : allSegments) {
+            if (!newOnDiskVersion.HasSegment(segment->GetSegmentId())) {
+                partialReclaimRtSegments.emplace_back(std::make_pair(segment, baseDocId));
+            }
+            baseDocId += segment->GetSegmentInfo()->docCount;
+        }
+        _newSegments = allSegments;
+
         framework::TabletData newTabletData(_tabletName);
         RETURN_IF_STATUS_ERROR(
             newTabletData.Init(_newVersion.Clone(), _newSegments, lastTabletData.GetResourceMap()->Clone()),
@@ -281,9 +276,13 @@ Status NormalTabletLoader::DoPreLoad(const framework::TabletData& lastTabletData
             RETURN_IF_STATUS_ERROR(
                 RemoveObsoleteRtDocs(_newVersion.GetLocator(), partialReclaimRtSegments, newTabletData),
                 "create reclaim resource failed");
-            RETURN_IF_STATUS_ERROR(
-                PatchAndRedo(newOnDiskVersion, newOnDiskVersionSegments, lastTabletData, newTabletData),
-                "redo operation and patch failed");
+            std::string indexType = index::PRIMARY_KEY_INDEX_TYPE_STR;
+            auto pkConfigs = _schema->GetIndexConfigs(indexType);
+            if (pkConfigs.size() > 0) {
+                RETURN_IF_STATUS_ERROR(
+                    PatchAndRedo(newOnDiskVersion, newOnDiskVersionSegments, lastTabletData, newTabletData),
+                    "redo operation and patch failed");
+            }
         } else {
             TABLET_LOG(INFO, "skip patch and redo for offline");
         }
@@ -292,41 +291,6 @@ Status NormalTabletLoader::DoPreLoad(const framework::TabletData& lastTabletData
     return Status::OK();
 }
 
-bool NormalTabletLoader::NeedReclaimFullSegment(const framework::Locator& versionLocator,
-                                                segmentid_t lastOnDiskSegmentId,
-                                                const std::shared_ptr<framework::Segment> segment) const
-{
-    // TODO(xiaohao.yxh) reclaim segment with no operation log and valid doc
-    if (_newVersion.HasSegment(segment->GetSegmentId())) {
-        return true;
-    }
-
-    schemaid_t segSchemaId = segment->GetSegmentSchema()->GetSchemaId();
-    if (segSchemaId != INVALID_SCHEMAID && _newVersion.GetReadSchemaId() != INVALID_SCHEMAID) {
-        if (segSchemaId < _newVersion.GetReadSchemaId()) {
-            TABLET_LOG(INFO,
-                       "reclaim status[%d] segment [%d], segment schema id[%u] is"
-                       " smaller than new version read schema id[%u].",
-                       (int)(segment->GetSegmentStatus()), segment->GetSegmentId(), segSchemaId,
-                       _newVersion.GetReadSchemaId());
-            return true;
-        }
-    }
-
-    auto [status, segLocator] = segment->GetLastLocator();
-    assert(status.IsOK());
-    if (!versionLocator.IsSameSrc(segLocator, true)) {
-        TABLET_LOG(INFO, "segment[%d] locator [%s] src not equal with new version locator [%s] src",
-                   segment->GetSegmentId(), segLocator.DebugString().c_str(), versionLocator.DebugString().c_str());
-        return true;
-    }
-    auto compareResult = versionLocator.IsFasterThan(segLocator, true);
-    if (compareResult == framework::Locator::LocatorCompareResult::LCR_FULLY_FASTER) {
-        TABLET_LOG(INFO, "reclaim segment [%d]", segment->GetSegmentId());
-        return true;
-    }
-    return false;
-}
 Status NormalTabletLoader::PatchAndRedo(const framework::Version& newOnDiskVersion, Segments newOnDiskVersionSegments,
                                         const framework::TabletData& lastTabletData,
                                         const framework::TabletData& newTabletData)
@@ -356,6 +320,10 @@ Status NormalTabletLoader::PatchAndRedo(const framework::Version& newOnDiskVersi
     RETURN_IF_STATUS_ERROR(paramStatus, "prepare redo params failed");
 
     TABLET_LOG(INFO, "load patch begin");
+
+    if (_isOnline) {
+        _memReserver->Reserve(NormalTabletPatcher::CalculatePatchLoadExpandSize(_schema, diffDiskSegments));
+    }
     RETURN_IF_STATUS_ERROR(
         NormalTabletPatcher::LoadPatch(diffDiskSegments, newTabletData, _schema, nullptr /*op2patch*/, modifier.get()),
         "load patch failed");
@@ -448,8 +416,13 @@ NormalTabletLoader::FinalLoad(const framework::TabletData& currentTabletData)
                                 "new tablet data init failed, version[%s]", _newVersion.ToString().c_str());
         framework::TabletData emptyTabletData(_tabletName);
         if (_isOnline) {
-            RETURN2_IF_STATUS_ERROR(PatchAndRedo(_newVersion, std::move(_newSegments), emptyTabletData, *tabletData),
-                                    nullptr, "redo operation and patch failed");
+            std::string indexType = index::PRIMARY_KEY_INDEX_TYPE_STR;
+            auto pkConfigs = _schema->GetIndexConfigs(indexType);
+            if (pkConfigs.size() > 0) {
+                RETURN2_IF_STATUS_ERROR(
+                    PatchAndRedo(_newVersion, std::move(_newSegments), emptyTabletData, *tabletData), nullptr,
+                    "redo operation and patch failed");
+            }
         }
     }
 
@@ -457,39 +430,39 @@ NormalTabletLoader::FinalLoad(const framework::TabletData& currentTabletData)
     return make_pair(Status::OK(), std::move(tabletData));
 }
 
-size_t NormalTabletLoader::EstimateMemUsed(const std::shared_ptr<config::TabletSchema>& schema,
+size_t NormalTabletLoader::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema,
                                            const std::vector<framework::Segment*>& segments)
 {
+    // 普通表内存预估包括2个部分：
+    // （1） 各个segment已经加载起来的indexer(包括pk attribute)，和尚未打开的pk，由本方法进行计算
+    // （2） patch/op的贡献，在加载过程中计算
+    // 注意：
+    // （1） 在mmap非lock场景下，update就地更新时部分被pin住的内存大小并没有被计算进去
+    // （2） 在blockcache场景，update是不会生效的，这部分patch内存大小是多算的（还有其他类似场景吗）
     size_t totalMemUsed = 0;
-    auto indexConfigs = schema->GetIndexConfigs();
-    for (const auto& indexConfig : indexConfigs) {
-        auto indexType = indexConfig->GetIndexType();
-        if (index::PRIMARY_KEY_INDEX_TYPE_STR == indexType) {
-            auto pkConfig = std::dynamic_pointer_cast<indexlibv2::index::PrimaryKeyIndexConfig>(indexConfig);
-            assert(pkConfig);
-            auto pkType = pkConfig->GetInvertedIndexType();
-            try {
-                if (it_primarykey64 == pkType) {
-                    index::PrimaryKeyReader<uint64_t> pkReader(nullptr /*metric*/);
-                    totalMemUsed += pkReader.EstimateLoadSize(segments, indexConfig);
-                } else if (it_primarykey128 == pkType) {
-                    index::PrimaryKeyReader<autil::uint128_t> pkReader(nullptr /*metric*/);
-                    totalMemUsed += pkReader.EstimateLoadSize(segments, indexConfig);
-                } else {
-                    assert(false); // never got hear
-                }
-            } catch (...) {
-                // TODO: if exception occurs, how-to?
-                TABLET_LOG(ERROR, "fail to estimate memory size for primary key [%s].",
-                           pkConfig->GetIndexName().c_str());
+    auto pkConfigs = schema->GetIndexConfigs(index::PRIMARY_KEY_INDEX_TYPE_STR);
+    if (!pkConfigs.empty()) {
+        auto pkConfig = std::dynamic_pointer_cast<indexlibv2::index::PrimaryKeyIndexConfig>(pkConfigs[0]);
+        assert(pkConfig);
+        auto pkType = pkConfig->GetInvertedIndexType();
+        try {
+            if (it_primarykey64 == pkType) {
+                index::PrimaryKeyReader<uint64_t> pkReader(nullptr /*metric*/);
+                totalMemUsed += pkReader.EstimateLoadSize(segments, pkConfig);
+            } else {
+                assert(it_primarykey128 == pkType);
+                index::PrimaryKeyReader<autil::uint128_t> pkReader(nullptr /*metric*/);
+                totalMemUsed += pkReader.EstimateLoadSize(segments, pkConfig);
             }
+        } catch (...) {
+            // TODO: if exception occurs, how-to?
+            TABLET_LOG(ERROR, "fail to estimate memory size for primary key [%s].", pkConfig->GetIndexName().c_str());
         }
     }
 
     for (auto segment : segments) {
         totalMemUsed += segment->EstimateMemUsed(schema);
     }
-
     return totalMemUsed;
 }
 

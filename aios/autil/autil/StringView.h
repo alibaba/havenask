@@ -29,4 +29,4 @@ struct hash<autil::StringView> {
     }
 };
 
-}
+} // namespace std

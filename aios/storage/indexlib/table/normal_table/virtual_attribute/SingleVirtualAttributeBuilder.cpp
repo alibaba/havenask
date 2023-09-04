@@ -23,7 +23,7 @@ namespace indexlib::table {
 AUTIL_LOG_SETUP(indexlib.table, SingleVirtualAttributeBuilder);
 
 SingleVirtualAttributeBuilder::SingleVirtualAttributeBuilder(
-    const std::shared_ptr<indexlibv2::config::TabletSchema>& schema)
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema)
     : SingleAttributeBuilder(schema)
 {
 }
@@ -46,7 +46,7 @@ SingleVirtualAttributeBuilder::InitConfigRelated(const std::shared_ptr<indexlibv
         return Status::InvalidArgs("Invalid indexConfig, name: %s", indexConfig->GetIndexName().c_str());
     }
     auto attributeConfig =
-        std::dynamic_pointer_cast<indexlibv2::config::AttributeConfig>(virtualAttributeConfig->GetAttributeConfig());
+        std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(virtualAttributeConfig->GetAttributeConfig());
     if (attributeConfig == nullptr) {
         return Status::InvalidArgs("Invalid indexConfig, name: %s", indexConfig->GetIndexName().c_str());
     }

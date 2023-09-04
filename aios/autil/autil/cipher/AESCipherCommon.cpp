@@ -14,48 +14,50 @@
  * limitations under the License.
  */
 #include "autil/cipher/AESCipherCommon.h"
-#include "autil/legacy/base64.h"
-#include "autil/StringUtil.h"
+
 #include <string.h>
 #include <vector>
 
-namespace autil { namespace cipher {
+#include "autil/StringUtil.h"
+#include "autil/legacy/base64.h"
+
+namespace autil {
+namespace cipher {
 AUTIL_LOG_SETUP(autil, CipherOption);
 
-CipherType CipherOption::parseCipherType(const std::string& typeStr) {
+CipherType CipherOption::parseCipherType(const std::string &typeStr) {
     if (typeStr == "aes-128-cbc") {
-        return CT_AES_128_CBC;
+        return CipherType::CT_AES_128_CBC;
     }
     if (typeStr == "aes-192-cbc") {
-        return CT_AES_192_CBC;
+        return CipherType::CT_AES_192_CBC;
     }
     if (typeStr == "aes-256-cbc") {
-        return CT_AES_256_CBC;
+        return CipherType::CT_AES_256_CBC;
     }
     if (typeStr == "aes-128-ctr") {
-        return CT_AES_128_CTR;
+        return CipherType::CT_AES_128_CTR;
     }
     if (typeStr == "aes-192-ctr") {
-        return CT_AES_192_CTR;
+        return CipherType::CT_AES_192_CTR;
     }
     if (typeStr == "aes-256-ctr") {
-        return CT_AES_256_CTR;
+        return CipherType::CT_AES_256_CTR;
     }
-    return CT_UNKNOWN;
+    return CipherType::CT_UNKNOWN;
 }
 
 DigistType CipherOption::parseDigistType(const std::string str) {
     if (str == "md5") {
-        return DT_MD5;
+        return DigistType::DT_MD5;
     }
     if (str == "sha256") {
-        return DT_SHA256;
+        return DigistType::DT_SHA256;
     }
-    return DT_UNKNOWN;
+    return DigistType::DT_UNKNOWN;
 }
 
-bool CipherOption::operator==(const CipherOption& other) const
-{
+bool CipherOption::operator==(const CipherOption &other) const {
     if (type != other.type) {
         return false;
     }
@@ -65,26 +67,23 @@ bool CipherOption::operator==(const CipherOption& other) const
     if (hasSecretKey()) {
         return keyHexString == other.keyHexString && ivHexString == other.ivHexString;
     }
-    return passwd == other.passwd && digist == other.digist &&
-        saltHexString == other.saltHexString &&
-        needSalt == other.needSalt && usePbkdf2 == other.usePbkdf2;
+    return passwd == other.passwd && digist == other.digist && saltHexString == other.saltHexString &&
+           needSalt == other.needSalt && usePbkdf2 == other.usePbkdf2;
 }
 
-std::string CipherOption::cipherTypeToString(CipherType type)
-{
-    switch (type)
-    {
-    case CT_AES_128_CBC:
+std::string CipherOption::cipherTypeToString(CipherType type) {
+    switch (type) {
+    case CipherType::CT_AES_128_CBC:
         return std::string("aes-128-cbc");
-    case CT_AES_192_CBC:
-        return std::string("aes-192-cbc");        
-    case CT_AES_256_CBC:
+    case CipherType::CT_AES_192_CBC:
+        return std::string("aes-192-cbc");
+    case CipherType::CT_AES_256_CBC:
         return std::string("aes-256-cbc");
-    case CT_AES_128_CTR:
-        return std::string("aes-128-ctr");        
-    case CT_AES_192_CTR:
+    case CipherType::CT_AES_128_CTR:
+        return std::string("aes-128-ctr");
+    case CipherType::CT_AES_192_CTR:
         return std::string("aes-192-ctr");
-    case CT_AES_256_CTR:
+    case CipherType::CT_AES_256_CTR:
         return std::string("aes-256-ctr");
     default:
         return std::string("unknown");
@@ -92,13 +91,11 @@ std::string CipherOption::cipherTypeToString(CipherType type)
     return std::string("unknown");
 }
 
-std::string CipherOption::digistTypeToString(DigistType type)
-{
-    switch (type)
-    {
-    case DT_MD5:
+std::string CipherOption::digistTypeToString(DigistType type) {
+    switch (type) {
+    case DigistType::DT_MD5:
         return std::string("md5");
-    case DT_SHA256:
+    case DigistType::DT_SHA256:
         return std::string("sha256");
     default:
         return std::string("unknown");
@@ -106,16 +103,11 @@ std::string CipherOption::digistTypeToString(DigistType type)
     return std::string("unknown");
 }
 
+bool CipherOption::hasSecretKey() const { return !keyHexString.empty() && !ivHexString.empty(); }
 
-bool CipherOption::hasSecretKey() const
-{
-    return !keyHexString.empty() && !ivHexString.empty();
-}
-
-std::string CipherOption::toKVString(bool useBase64)
-{
+std::string CipherOption::toKVString(bool useBase64) {
     std::vector<std::string> kvStrVec;
-    if (type != CT_UNKNOWN) {
+    if (type != CipherType::CT_UNKNOWN) {
         std::string value = "type=" + cipherTypeToString(type);
         kvStrVec.push_back(value);
     }
@@ -133,11 +125,11 @@ std::string CipherOption::toKVString(bool useBase64)
         } else {
             value += ivHexString;
         }
-        kvStrVec.push_back(value);        
+        kvStrVec.push_back(value);
         return autil::StringUtil::toString(kvStrVec, ";");
     }
-    
-    if (digist != DT_UNKNOWN) {
+
+    if (digist != DigistType::DT_UNKNOWN) {
         std::string value = "digist=" + digistTypeToString(digist);
         kvStrVec.push_back(value);
     }
@@ -157,7 +149,7 @@ std::string CipherOption::toKVString(bool useBase64)
         } else {
             value += saltHexString;
         }
-        kvStrVec.push_back(value);        
+        kvStrVec.push_back(value);
     }
 
     if (needSalt) {
@@ -166,15 +158,15 @@ std::string CipherOption::toKVString(bool useBase64)
     if (usePbkdf2) {
         kvStrVec.push_back("use_pbkdf2=true");
     }
-    return autil::StringUtil::toString(kvStrVec, ";");        
+    return autil::StringUtil::toString(kvStrVec, ";");
 }
 
-bool CipherOption::fromKVString(const std::string& str, bool useBase64) {
+bool CipherOption::fromKVString(const std::string &str, bool useBase64) {
     std::vector<std::string> kvStrVec;
     autil::StringUtil::fromString(str, kvStrVec, ";");
     for (auto kvStr : kvStrVec) {
         std::string key;
-        std::string value;        
+        std::string value;
         autil::StringUtil::getKVValue(kvStr, key, value, "=", true);
         if (key.empty() || value.empty()) {
             AUTIL_LOG(ERROR, "invalid kv parameter [%s]", kvStr.c_str());
@@ -222,7 +214,7 @@ bool CipherOption::fromKVString(const std::string& str, bool useBase64) {
             continue;
         }
         if (key == "use_pbkdf2") {
-            autil::StringUtil::toLowerCase(value);            
+            autil::StringUtil::toLowerCase(value);
             usePbkdf2 = (value == "true");
             continue;
         }
@@ -232,5 +224,5 @@ bool CipherOption::fromKVString(const std::string& str, bool useBase64) {
     return true;
 }
 
-}}
-
+} // namespace cipher
+} // namespace autil

@@ -1,0 +1,10 @@
+{
+    "realtime" : false,
+    "merge_controller" : {
+        "mode" : "local"
+    },
+    "online_index_config" : {
+	"need_deploy_index" : false,
+	"need_read_remote_index" : true
+    }
+}

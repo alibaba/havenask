@@ -33,11 +33,13 @@ class SearchServiceResource;
 typedef std::map<std::string, std::string> NodeAttributeMap;
 class PropagationStats;
 
-class Request {
+class Request
+{
 public:
-    Request(ProtocolType type,
-            const std::shared_ptr<google::protobuf::Arena> &arena);
-    virtual ~Request() { _queryInfo.reset(); }
+    Request(ProtocolType type, const std::shared_ptr<google::protobuf::Arena> &arena);
+    virtual ~Request() {
+        _queryInfo.reset();
+    }
 
 private:
     Request(const Request &);
@@ -50,11 +52,19 @@ public:
     virtual void fillSpan() {};
 
 public:
-    ProtocolType getProtocolType() const { return _type; }
+    ProtocolType getProtocolType() const {
+        return _type;
+    }
     // ms
-    void setTimeout(uint64_t timeout) { _timeout = timeout; }
-    uint64_t getTimeout() const { return _timeout; }
-    std::shared_ptr<GigQueryInfo> &getQueryInfo() { return _queryInfo; }
+    void setTimeout(uint64_t timeout) {
+        _timeout = timeout;
+    }
+    uint64_t getTimeout() const {
+        return _timeout;
+    }
+    std::shared_ptr<GigQueryInfo> &getQueryInfo() {
+        return _queryInfo;
+    }
     void setBizName(const std::string &bizName);
     const std::string &getBizName() const;
     void setPartId(PartIdTy partId);
@@ -65,20 +75,30 @@ public:
     RequestType getUserRequestType() const;
     void setReturnMetaEnv(bool return_meta_env);
     bool getReturnMetaEnv() const;
-    bool isProbeRequest() const { return RT_PROBE == getRequestType(); }
-    bool isCopyRequest() const { return RT_COPY == getRequestType(); }
-    bool isNormalRequest() const { return RT_NORMAL == getRequestType(); }
+    bool isProbeRequest() const {
+        return RT_PROBE == getRequestType();
+    }
+    bool isCopyRequest() const {
+        return RT_COPY == getRequestType();
+    }
+    bool isNormalRequest() const {
+        return RT_NORMAL == getRequestType();
+    }
     void setMethodName(const std::string &methodName) {
         _methodName = methodName;
     }
-    const std::string &getMethodName() const { return _methodName; }
+    const std::string &getMethodName() const {
+        return _methodName;
+    }
     std::string getAgentQueryInfo() const;
     std::string getProviderAttribute(const std::string &key) const;
     const std::shared_ptr<google::protobuf::Arena> &getProtobufArena() const {
         return _arena;
     }
     void setSpan(const opentelemetry::SpanPtr &span);
-    const opentelemetry::SpanPtr &getSpan() { return _span; }
+    const opentelemetry::SpanPtr &getSpan() {
+        return _span;
+    }
     void setUserData(const std::map<std::string, std::string> &dataMap);
 
 private:

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 #include "aios/network/anet/timeutil.h"
-#include <time.h>
-#include <sys/time.h>
+
 #include <stdlib.h>
+#include <sys/time.h>
+#include <time.h>
 namespace anet {
 
 int64_t TimeUtil::_now = 0;
@@ -36,16 +37,14 @@ int64_t TimeUtil::getTime() {
 /*
  * 设置当前时间
  */
-void TimeUtil::setNow() {
-    _now = getTime();
-}
+void TimeUtil::setNow() { _now = getTime(); }
 
-/* 
+/*
  * buf should have at least 26 char in length.
  */
-void TimeUtil::getTimeStr(int64_t tval, char * buf) {
-    time_t t = tval/1000000;
+void TimeUtil::getTimeStr(int64_t tval, char *buf) {
+    time_t t = tval / 1000000;
     ctime_r(&t, buf);
 }
 
-}
+} // namespace anet

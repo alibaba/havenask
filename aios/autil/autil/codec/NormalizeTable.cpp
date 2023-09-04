@@ -24,12 +24,10 @@ namespace autil {
 namespace codec {
 AUTIL_LOG_SETUP(autil::codec, NormalizeTable);
 
-
 NormalizeTable::NormalizeTable(bool caseSensitive,
                                bool traditionalSensitive,
                                bool widthSensitive,
-                               const map<uint16_t, uint16_t> *traditionalTablePatch)
-{
+                               const map<uint16_t, uint16_t> *traditionalTablePatch) {
     _table = new uint16_t[0x10000];
     if (!traditionalSensitive) {
         for (int i = 0; i < 0x10000; ++i) {
@@ -56,19 +54,17 @@ NormalizeTable::NormalizeTable(bool caseSensitive,
             _table[i] += 'a' - 'A';
         }
     }
-    
+
     if (!traditionalSensitive && traditionalTablePatch) {
-        for(map<uint16_t, uint16_t>::const_iterator it = traditionalTablePatch->begin();
-                it != traditionalTablePatch->end(); ++it)
-            {
-                _table[it->first] = it->second;
-            }
+        for (map<uint16_t, uint16_t>::const_iterator it = traditionalTablePatch->begin();
+             it != traditionalTablePatch->end();
+             ++it) {
+            _table[it->first] = it->second;
+        }
     }
 }
 
-NormalizeTable::~NormalizeTable() {
-    delete[] _table;
-}
+NormalizeTable::~NormalizeTable() { delete[] _table; }
 
-}
-}
+} // namespace codec
+} // namespace autil

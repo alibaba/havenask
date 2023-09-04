@@ -22,12 +22,12 @@
 #include "indexlib/common_define.h"
 #include "indexlib/config/attribute_config.h"
 #include "indexlib/config/field_type_traits.h"
-#include "indexlib/index/attribute/config/PackAttributeConfig.h"
+#include "indexlib/index/pack_attribute/PackAttributeConfig.h"
 #include "indexlib/indexlib.h"
 
 namespace indexlib { namespace config {
 
-class PackAttributeConfig : public autil::legacy::Jsonizable, public indexlibv2::config::PackAttributeConfig
+class PackAttributeConfig : public autil::legacy::Jsonizable, public indexlibv2::index::PackAttributeConfig
 {
 public:
     PackAttributeConfig(const std::string& attrName, const CompressTypeOption& compressType,
@@ -35,7 +35,7 @@ public:
     ~PackAttributeConfig();
 
 public:
-    Status AddAttributeConfig(const std::shared_ptr<indexlibv2::config::AttributeConfig>& attributeConfig) override;
+    Status AddAttributeConfig(const AttributeConfigPtr& attributeConfig);
     const std::vector<AttributeConfigPtr>& GetAttributeConfigVec() const;
     void AssertEqual(const PackAttributeConfig& other) const;
     AttributeConfigPtr CreateAttributeConfig() const;

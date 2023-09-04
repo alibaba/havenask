@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "build_service/reader/CipherFormatFileDocumentReader.h"
+
 #include "build_service/reader/AESCipherFileReader.h"
 #include "build_service/reader/AESCipherGZipFileReader.h"
 

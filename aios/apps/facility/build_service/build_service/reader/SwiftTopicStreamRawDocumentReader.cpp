@@ -17,7 +17,9 @@
 
 #include "autil/StringUtil.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/util/LocatorUtil.h"
 #include "build_service/util/SwiftTopicStreamReaderCreator.h"
+#include "swift/client/SwiftTopicStreamReader.h"
 
 namespace build_service::reader {
 BS_LOG_SETUP(reader, SwiftTopicStreamRawDocumentReader);
@@ -67,7 +69,8 @@ SwiftReaderWrapper* SwiftTopicStreamRawDocumentReader::createSwiftReader(const R
     if (!reader) {
         return nullptr;
     }
-
+    _swiftTopicStreamReader = dynamic_cast<swift::client::SwiftTopicStreamReader*>(reader.get());
+    assert(_swiftTopicStreamReader);
     // fill swift param
     _swiftParam.reader = reader.get();
     _swiftParam.isMultiTopic = false;
@@ -78,6 +81,60 @@ SwiftReaderWrapper* SwiftTopicStreamRawDocumentReader::createSwiftReader(const R
     _swiftParam.maskFilterPairs.push_back({0, 0});
 
     return new SwiftReaderWrapper(reader.release());
+}
+
+RawDocumentReader::ErrorCode SwiftTopicStreamRawDocumentReader::readDocStr(std::string& docStr, Checkpoint* checkpoint,
+                                                                           DocInfo& docInfo)
+{
+    auto ec = SwiftRawDocumentReader::readDocStr(docStr, checkpoint, docInfo);
+    if (ec != ERROR_NONE) {
+        return ec;
+    }
+    if (!_swiftTopicStreamReader) {
+        return ERROR_EXCEPTION;
+    }
+    auto streamIdx = _swiftTopicStreamReader->getCurrentIdx();
+    for (auto& singleProgress : checkpoint->progress) {
+        if (!util::LocatorUtil::EncodeOffset(streamIdx, singleProgress.offset.first, &singleProgress.offset.first)) {
+            BS_LOG(ERROR, "encode offset failed, streamIdx [%d], singleProgress offset [%ld]", streamIdx,
+                   singleProgress.offset.first);
+            return ERROR_EXCEPTION;
+        }
+    }
+    if (!util::LocatorUtil::EncodeOffset(streamIdx, docInfo.timestamp, &docInfo.timestamp)) {
+        BS_LOG(ERROR, "encode timestamp failed, streamIdx [%d], tiemstamp [%ld]", streamIdx, docInfo.timestamp);
+        return ERROR_EXCEPTION;
+    }
+    if (!util::LocatorUtil::EncodeOffset(streamIdx, checkpoint->offset, &checkpoint->offset)) {
+        BS_LOG(ERROR, "encode offset failed, streamIdx [%d], tiemstamp [%ld]", streamIdx, checkpoint->offset);
+        return ERROR_EXCEPTION;
+    }
+    return ERROR_NONE;
+}
+
+bool SwiftTopicStreamRawDocumentReader::seek(const Checkpoint& checkpoint)
+{
+    auto progress = checkpoint.progress;
+    int8_t streamIdx;
+    int64_t timestamp;
+    util::LocatorUtil::DecodeOffset(checkpoint.offset, &streamIdx, &timestamp);
+    auto expectTopicName = checkpoint.userData;
+    auto topicName = _swiftTopicStreamReader->getTopicName((size_t)streamIdx);
+    if (topicName.empty()) {
+        BS_LOG(ERROR, "get topic name failed. idx [%d]", streamIdx);
+        return false;
+    }
+    if (expectTopicName != topicName) {
+        BS_LOG(ERROR, "check topic name failed. topicname in locator [%s], topicname in topic list [%s]",
+               expectTopicName.c_str(), topicName.c_str());
+        return false;
+    }
+    for (auto& singleProgress : progress) {
+        util::LocatorUtil::DecodeOffset(singleProgress.offset.first, &streamIdx, &singleProgress.offset.first);
+    }
+    BS_LOG(INFO, "topic stream seek start, timestamp [%ld], topicName [%s], checkpoint [%s]", timestamp,
+           topicName.c_str(), checkpoint.debugString().c_str());
+    return SwiftRawDocumentReader::doSeek(timestamp, progress, topicName);
 }
 
 } // namespace build_service::reader

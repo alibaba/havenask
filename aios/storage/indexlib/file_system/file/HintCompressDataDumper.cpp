@@ -387,4 +387,13 @@ void HintCompressDataDumper::EndTrainCompressData(const autil::StringView& hintD
     _compressor->Reset();
 }
 
+size_t HintCompressDataDumper::EstimateCompressBufferSize(const std::string& compressorName, size_t bufferSize,
+                                                          const util::KeyValueMap& compressorParam) noexcept
+{
+    size_t trainHintBlockCount =
+        GetTypeValueFromKeyValueMap(compressorParam, COMPRESS_HINT_SAMPLE_BLOCK_COUNT, DEFAULT_SAMPLE_BLOCK_COUNT);
+    // BufferInLen + BufferOutLen + trainHintBlock
+    return bufferSize * 2 + trainHintBlockCount * bufferSize;
+}
+
 }} // namespace indexlib::file_system

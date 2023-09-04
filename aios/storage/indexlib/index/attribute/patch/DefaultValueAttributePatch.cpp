@@ -34,7 +34,7 @@
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, DefaultValueAttributePatch);
 
-Status DefaultValueAttributePatch::Open(const std::shared_ptr<config::AttributeConfig>& attrConfig)
+Status DefaultValueAttributePatch::Open(const std::shared_ptr<AttributeConfig>& attrConfig)
 {
     auto [status, defaultValue] = GetDecodedDefaultValue(attrConfig, &_pool);
     RETURN_STATUS_DIRECTLY_IF_ERROR(status);
@@ -43,7 +43,7 @@ Status DefaultValueAttributePatch::Open(const std::shared_ptr<config::AttributeC
 }
 
 std::pair<Status, autil::StringView>
-DefaultValueAttributePatch::GetDecodedDefaultValue(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+DefaultValueAttributePatch::GetDecodedDefaultValue(const std::shared_ptr<AttributeConfig>& attrConfig,
                                                    autil::mem_pool::Pool* pool)
 {
     auto fieldConfigs = attrConfig->GetFieldConfigs();

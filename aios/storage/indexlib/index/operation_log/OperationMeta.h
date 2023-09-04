@@ -17,6 +17,8 @@
 
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/base/Constant.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/index/operation_log/OperationBase.h"
 #include "indexlib/index/operation_log/OperationBlock.h"
 
 namespace indexlib::index {
@@ -26,22 +28,23 @@ class OperationMeta : public autil::legacy::Jsonizable
 public:
     struct BlockMeta : public autil::legacy::Jsonizable {
     public:
-        BlockMeta();
+        BlockMeta() {}
         void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override;
 
     public:
-        int64_t minTimestamp;
-        int64_t maxTimestamp;
-        size_t serializeSize;
-        size_t maxOperationSerializeSize;
-        size_t dumpSize;
-        uint32_t operationCount;
-        bool operationCompress;
+        indexlibv2::base::Progress::Offset minOffset = indexlibv2::base::Progress::INVALID_OFFSET;
+        indexlibv2::base::Progress::Offset maxOffset = indexlibv2::base::Progress::INVALID_OFFSET;
+        size_t serializeSize = 0;
+        size_t maxOperationSerializeSize = 0;
+        size_t dumpSize = 0;
+        uint32_t operationCount = 0;
+        bool operationCompress = false;
+        bool hasConcurrentIdx = false;
     };
     typedef std::vector<BlockMeta> BlockMetaVec;
 
 public:
-    OperationMeta();
+    OperationMeta() {}
     ~OperationMeta() {}
 
 public:
@@ -49,57 +52,46 @@ public:
     std::string ToString() const { return autil::legacy::ToJsonString(*this); }
 
     void InitFromString(const std::string& metaContent) { autil::legacy::FromJsonString(*this, metaContent); }
-    void Update(size_t opSerializeSize);
+    void Update(OperationBase* op);
     void EndOneBlock(const std::shared_ptr<OperationBlock>& opBlock, int64_t blockIdx);
     void EndOneCompressBlock(const std::shared_ptr<OperationBlock>& opBlock, int64_t blockIdx, size_t compressSize);
-    size_t GetLastBlockSerializeSize() const { return _totalSerializeSize - _noLastBlockSerializeSize; }
+    size_t GetBuildingBlockSerializeSize() const
+    {
+        if (!_hasBuildingBlock) {
+            return 0;
+        }
+        return _blockMetaVec.rbegin()->serializeSize;
+    }
     size_t GetMaxOperationSerializeSize() const { return _maxOperationSerializeSize; }
     size_t GetTotalDumpSize() const { return _totalDumpSize; }
-    size_t GetTotalSerializeSize() const { return _totalSerializeSize; }
     size_t GetOperationCount() const { return _operationCount; }
     const OperationMeta::BlockMetaVec& GetBlockMetaVec() const { return _blockMetaVec; }
-    int64_t GetMaxTimestamp() const;
+    indexlibv2::base::Progress::Offset GetMaxOffset() const;
 
 private:
-    size_t _maxOperationSerializeSize;
-    size_t _maxOperationSerializeSizeInCurBlock;
-    size_t _operationCount;
-    size_t _noLastBlockSerializeSize;
-    size_t _totalSerializeSize;
-    size_t _totalDumpSize;
-    BlockMetaVec _blockMetaVec;
-};
+    size_t GetOperaionSize(OperationBase* op) const;
 
-inline OperationMeta::BlockMeta::BlockMeta()
-    : minTimestamp(INVALID_TIMESTAMP)
-    , maxTimestamp(INVALID_TIMESTAMP)
-    , serializeSize(0)
-    , maxOperationSerializeSize(0)
-    , dumpSize(0)
-    , operationCount(0)
-    , operationCompress(false)
-{
-}
+private:
+    size_t _maxOperationSerializeSize = 0;
+    size_t _operationCount = 0;
+    size_t _totalSerializeSize = 0;
+    size_t _totalDumpSize = 0;
+    BlockMetaVec _blockMetaVec;
+    bool _hasBuildingBlock = false;
+};
 
 inline void OperationMeta::BlockMeta::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
 {
-    json.Jsonize("min_operation_timestamp", minTimestamp, minTimestamp);
-    json.Jsonize("max_operation_timestamp", maxTimestamp, maxTimestamp);
+    json.Jsonize("min_operation_timestamp", minOffset.first, minOffset.first);
+    json.Jsonize("max_operation_timestamp", maxOffset.first, maxOffset.first);
+    json.Jsonize("min_operation_concurrent_idx", minOffset.second, minOffset.second);
+    json.Jsonize("max_operation_concurrent_idx", maxOffset.second, maxOffset.second);
     json.Jsonize("block_serialize_size", serializeSize, serializeSize);
     json.Jsonize("max_operation_serialize_size", maxOperationSerializeSize, maxOperationSerializeSize);
     json.Jsonize("block_dump_size", dumpSize, dumpSize);
     json.Jsonize("operation_count", operationCount, operationCount);
     json.Jsonize("operation_compress", operationCompress, operationCompress);
-}
-
-inline OperationMeta::OperationMeta()
-    : _maxOperationSerializeSize(0)
-    , _maxOperationSerializeSizeInCurBlock(0)
-    , _operationCount(0)
-    , _noLastBlockSerializeSize(0)
-    , _totalSerializeSize(0)
-    , _totalDumpSize(0)
-{
+    json.Jsonize("has_concurrent_idx", hasConcurrentIdx, hasConcurrentIdx);
 }
 
 inline void OperationMeta::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
@@ -111,23 +103,51 @@ inline void OperationMeta::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
     json.Jsonize("operation_block_meta", _blockMetaVec, _blockMetaVec);
 }
 
-inline void OperationMeta::Update(size_t opSerializeSize)
+inline size_t OperationMeta::GetOperaionSize(OperationBase* op) const
 {
-    _maxOperationSerializeSizeInCurBlock = std::max(_maxOperationSerializeSizeInCurBlock, opSerializeSize);
-    _maxOperationSerializeSize = std::max(_maxOperationSerializeSize, opSerializeSize);
+    return sizeof(uint8_t)    // 1 byte(operation type)
+           + sizeof(int64_t)  // 8 byte timestamp
+           + sizeof(uint16_t) // 1 byte hash id
+           + op->GetSerializeSize();
+}
+
+inline void OperationMeta::Update(OperationBase* op)
+{
+    if (!_hasBuildingBlock) {
+        _blockMetaVec.emplace_back();
+        _hasBuildingBlock = true;
+    }
+    assert(_blockMetaVec.size());
+
+    auto opSerializeSize = GetOperaionSize(op);
+    auto blockMeta = _blockMetaVec.rbegin();
+    if (op->GetDocInfo().concurrentIdx && !blockMeta->hasConcurrentIdx) {
+        blockMeta->serializeSize += sizeof(uint32_t) * blockMeta->operationCount;
+        _totalSerializeSize += sizeof(uint32_t) * blockMeta->operationCount;
+        blockMeta->maxOperationSerializeSize += sizeof(uint32_t);
+        blockMeta->hasConcurrentIdx = true;
+    }
+    if (blockMeta->hasConcurrentIdx) {
+        opSerializeSize += sizeof(uint32_t);
+    }
+
+    blockMeta->operationCount++;
+    blockMeta->serializeSize += opSerializeSize;
+    blockMeta->maxOperationSerializeSize = std::max(blockMeta->maxOperationSerializeSize, opSerializeSize);
+    _maxOperationSerializeSize = std::max(_maxOperationSerializeSize, blockMeta->maxOperationSerializeSize);
     ++_operationCount;
     _totalSerializeSize += opSerializeSize;
 }
 
-inline int64_t OperationMeta::GetMaxTimestamp() const
+inline indexlibv2::base::Progress::Offset OperationMeta::GetMaxOffset() const
 {
-    int64_t maxTimestamp = INVALID_TIMESTAMP;
+    auto maxOffset = indexlibv2::base::Progress::INVALID_OFFSET;
     for (auto blockMeta : _blockMetaVec) {
-        if (blockMeta.maxTimestamp > maxTimestamp) {
-            maxTimestamp = blockMeta.maxTimestamp;
+        if (blockMeta.maxOffset > maxOffset) {
+            maxOffset = blockMeta.maxOffset;
         }
     }
-    return maxTimestamp;
+    return maxOffset;
 }
 
 inline void OperationMeta::EndOneBlock(const std::shared_ptr<OperationBlock>& opBlock, int64_t blockIdx)
@@ -137,27 +157,24 @@ inline void OperationMeta::EndOneBlock(const std::shared_ptr<OperationBlock>& op
         return;
     }
 
-    if (blockIdx + 1 == (int64_t)_blockMetaVec.size()) {
+    if (!_hasBuildingBlock) {
         // already end current block
         return;
     }
 
-    assert(blockIdx == (int64_t)_blockMetaVec.size());
-    assert(opBlock->GetMinTimestamp() <= opBlock->GetMaxTimestamp());
+    assert(blockIdx == (int64_t)_blockMetaVec.size() - 1);
+    assert(opBlock->GetMinOffset() <= opBlock->GetMaxOffset());
 
-    BlockMeta blockMeta;
-    blockMeta.minTimestamp = opBlock->GetMinTimestamp();
-    blockMeta.maxTimestamp = opBlock->GetMaxTimestamp();
-    blockMeta.operationCount = opBlock->Size();
-    blockMeta.serializeSize = _totalSerializeSize - _noLastBlockSerializeSize;
-    blockMeta.maxOperationSerializeSize = _maxOperationSerializeSizeInCurBlock;
-    blockMeta.dumpSize = blockMeta.serializeSize;
-    blockMeta.operationCompress = false;
+    auto blockMeta = _blockMetaVec.rbegin();
+    assert(blockMeta != _blockMetaVec.rend());
+    blockMeta->minOffset = opBlock->GetMinOffset();
+    blockMeta->maxOffset = opBlock->GetMaxOffset();
+    assert(blockMeta->operationCount == opBlock->Size());
+    blockMeta->dumpSize = blockMeta->serializeSize;
+    blockMeta->operationCompress = false;
 
-    _noLastBlockSerializeSize = _totalSerializeSize;
-    _totalDumpSize += blockMeta.dumpSize;
-    _blockMetaVec.push_back(blockMeta);
-    _maxOperationSerializeSizeInCurBlock = 0;
+    _totalDumpSize += blockMeta->dumpSize;
+    _hasBuildingBlock = false;
 }
 
 inline void OperationMeta::EndOneCompressBlock(const std::shared_ptr<OperationBlock>& opBlock, int64_t blockIdx,
@@ -168,27 +185,24 @@ inline void OperationMeta::EndOneCompressBlock(const std::shared_ptr<OperationBl
         return;
     }
 
-    if (blockIdx + 1 == (int64_t)_blockMetaVec.size()) {
+    if (!_hasBuildingBlock) {
         // already end current block
         return;
     }
 
-    assert(blockIdx == (int64_t)_blockMetaVec.size());
-    assert(opBlock->GetMinTimestamp() <= opBlock->GetMaxTimestamp());
+    assert(blockIdx == (int64_t)_blockMetaVec.size() - 1);
+    assert(opBlock->GetMinOffset() <= opBlock->GetMaxOffset());
 
-    BlockMeta blockMeta;
-    blockMeta.minTimestamp = opBlock->GetMinTimestamp();
-    blockMeta.maxTimestamp = opBlock->GetMaxTimestamp();
-    blockMeta.operationCount = opBlock->Size();
-    blockMeta.serializeSize = _totalSerializeSize - _noLastBlockSerializeSize;
-    blockMeta.maxOperationSerializeSize = _maxOperationSerializeSizeInCurBlock;
-    blockMeta.dumpSize = compressSize;
-    blockMeta.operationCompress = true;
+    auto blockMeta = _blockMetaVec.rbegin();
+    assert(blockMeta != _blockMetaVec.rend());
+    blockMeta->minOffset = opBlock->GetMinOffset();
+    blockMeta->maxOffset = opBlock->GetMaxOffset();
+    assert(blockMeta->operationCount == opBlock->Size());
+    blockMeta->dumpSize = compressSize;
+    blockMeta->operationCompress = true;
 
-    _noLastBlockSerializeSize = _totalSerializeSize;
-    _totalDumpSize += blockMeta.dumpSize;
-    _blockMetaVec.push_back(blockMeta);
-    _maxOperationSerializeSizeInCurBlock = 0;
+    _totalDumpSize += blockMeta->dumpSize;
+    _hasBuildingBlock = false;
 }
 
 } // namespace indexlib::index

@@ -65,9 +65,19 @@ bool operator!=(const TaskTarget& lft, const TaskTarget& rht) { return !(lft == 
 
 bool operator==(const AgentTarget& lft, const AgentTarget& rht)
 {
-    bool ret = lft.configpath() == rht.configpath() && lft.suspendtask() == rht.suspendtask();
+    bool ret = lft.configpath() == rht.configpath() && lft.suspendtask() == rht.suspendtask() &&
+               lft.isglobalagent() == rht.isglobalagent();
     if (!ret) {
         return false;
+    }
+
+    if (lft.globalconfigs_size() != rht.globalconfigs_size()) {
+        return false;
+    }
+    for (int i = 0; i < lft.globalconfigs_size(); i++) {
+        if (lft.globalconfigs(i) != rht.globalconfigs(i)) {
+            return false;
+        }
     }
     if (lft.targetroles_size() != rht.targetroles_size()) {
         return false;
@@ -77,6 +87,9 @@ bool operator==(const AgentTarget& lft, const AgentTarget& rht)
             return false;
         }
         if (lft.targetroles(i).processinfo() != rht.targetroles(i).processinfo()) {
+            return false;
+        }
+        if (lft.targetroles(i).configpath() != rht.targetroles(i).configpath()) {
             return false;
         }
     }

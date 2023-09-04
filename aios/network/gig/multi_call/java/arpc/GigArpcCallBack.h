@@ -21,7 +21,8 @@
 
 namespace multi_call {
 
-class GigArpcCallBack : public ArpcCallBack {
+class GigArpcCallBack : public ArpcCallBack
+{
 public:
     GigArpcCallBack(const std::string &requestStr, const CallBackPtr &callBack,
                     autil::LockFreeThreadPool *callBackThreadPool);
@@ -35,8 +36,12 @@ public:
     void callBack() override;
 
 public:
-    const std::string &getRequestStr() { return _requestStr; }
-    std::string &getResponseStr() { return _responseStr; }
+    const std::string &getRequestStr() {
+        return _requestStr;
+    }
+    std::string &getResponseStr() {
+        return _responseStr;
+    }
 
 private:
     std::string _requestStr;

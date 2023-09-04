@@ -27,10 +27,11 @@ std::once_flag MetricReporterManager::_sKMonitorInitFlag;
 
 AUTIL_LOG_SETUP(multi_call, MetricReporterManager);
 
-MetricReporterManager::MetricReporterManager()
-    : _kMonitor(NULL), _isAgent(false) {}
+MetricReporterManager::MetricReporterManager() : _kMonitor(NULL), _isAgent(false) {
+}
 
-MetricReporterManager::~MetricReporterManager() {}
+MetricReporterManager::~MetricReporterManager() {
+}
 
 bool MetricReporterManager::init(bool isAgent, bool disableMetricReport,
                                  bool simplifyMetricReport) {
@@ -58,10 +59,8 @@ bool MetricReporterManager::init(bool isAgent, bool disableMetricReport,
 
     _isAgent = isAgent;
     if (!simplifyMetricReport) {
-        _bizMapMetricReporter.reset(
-            new BizMapMetricReporter(_kMonitor, isAgent));
-        _workerMetricReporter.reset(
-            new WorkerMetricReporter(_kMonitor, _metaEnv));
+        _bizMapMetricReporter.reset(new BizMapMetricReporter(_kMonitor, isAgent));
+        _workerMetricReporter.reset(new WorkerMetricReporter(_kMonitor, _metaEnv));
         _heartbeatReporter.reset(new HeartbeatMetricReporter(_kMonitor));
         _istioMetricReporter.reset(new IstioMetricReporter(_kMonitor));
         AUTIL_LOG(INFO, "init all metric reporter");
@@ -81,53 +80,47 @@ void MetricReporterManager::initKMonitor() {
     }
 }
 
-const WorkerMetricReporterPtr &
-MetricReporterManager::getWorkerMetricReporter() const {
+const WorkerMetricReporterPtr &MetricReporterManager::getWorkerMetricReporter() const {
     return _workerMetricReporter;
 }
 
-const HeartbeatMetricReporterPtr &
-MetricReporterManager::getHeartbeatMetricReporter() const {
+const HeartbeatMetricReporterPtr &MetricReporterManager::getHeartbeatMetricReporter() const {
     return _heartbeatReporter;
 }
 
-const IstioMetricReporterPtr &
-MetricReporterManager::getIstioMetricReporter() const {
+const IstioMetricReporterPtr &MetricReporterManager::getIstioMetricReporter() const {
     return _istioMetricReporter;
 }
 
-BizMetricReporterPtr
-MetricReporterManager::getBizMetricReporter(const string &bizName) {
+BizMetricReporterPtr MetricReporterManager::getBizMetricReporter(const string &bizName) {
     if (!_bizMapMetricReporter) {
         return BizMetricReporterPtr();
     }
     return _bizMapMetricReporter->getBizMetricReporter(bizName);
 }
 
-void MetricReporterManager::reportSnapshotInfo(
-    const SnapshotInfoCollector &snapInfo) {
+void MetricReporterManager::reportSnapshotInfo(const SnapshotInfoCollector &snapInfo) {
     if (_bizMapMetricReporter) {
         _bizMapMetricReporter->reportSnapshotInfo(snapInfo);
     }
 }
 
-void MetricReporterManager::reportReplyInfo(
-    const ReplyInfoCollector &replyInfo) {
+void MetricReporterManager::reportReplyInfo(const ReplyInfoCollector &replyInfo) {
     if (_bizMapMetricReporter) {
         _bizMapMetricReporter->reportReplyInfo(replyInfo);
     }
 }
 
-void MetricReporterManager::reportLinkMetric(
-    const MetaEnv &targetMetaEnv, const std::string &biz,
-    const std::string &targetBiz, const std::string &src,
-    const std::string &srcAb, const std::string &stressTest, int64_t latency,
-    bool timeout, bool error) {
+void MetricReporterManager::reportLinkMetric(const MetaEnv &targetMetaEnv, const std::string &biz,
+                                             const std::string &targetBiz, const std::string &src,
+                                             const std::string &srcAb,
+                                             const std::string &stressTest, int64_t latency,
+                                             bool timeout, bool error) {
     if (!_linkMetricReporter) {
         return;
     }
-    _linkMetricReporter->reportMetric(targetMetaEnv, biz, targetBiz, src, srcAb,
-                                      stressTest, latency, timeout, error);
+    _linkMetricReporter->reportMetric(targetMetaEnv, biz, targetBiz, src, srcAb, stressTest,
+                                      latency, timeout, error);
 }
 
 void MetricReporterManager::setReportSampling(int32_t sampling) {

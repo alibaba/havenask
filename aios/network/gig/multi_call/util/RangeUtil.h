@@ -21,17 +21,18 @@
 namespace multi_call {
 struct Range {
 public:
-    Range(uint32_t from, uint32_t to) : _from(from), _to(to) {}
+    Range(uint32_t from, uint32_t to) : _from(from), _to(to) {
+    }
 
 public:
     uint32_t _from;
     uint32_t _to;
 };
 
-class RangeUtil {
+class RangeUtil
+{
 public:
-    RangeUtil(uint32_t partCount, uint32_t rangeFrom = 0,
-              uint32_t rangeTo = 65535);
+    RangeUtil(uint32_t partCount, uint32_t rangeFrom = 0, uint32_t rangeTo = 65535);
     ~RangeUtil();
 
 private:
@@ -39,8 +40,7 @@ private:
     RangeUtil &operator=(const RangeUtil &);
 
 public:
-    static std::vector<Range> splitRange(uint32_t partitionCount,
-                                         uint32_t rangeFrom = 0,
+    static std::vector<Range> splitRange(uint32_t partitionCount, uint32_t rangeFrom = 0,
                                          uint32_t rangeTo = 65535);
 
 public:

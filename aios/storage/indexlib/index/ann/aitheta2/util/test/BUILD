@@ -1,0 +1,30 @@
+load('//aios/storage/indexlib/index/ann/aitheta2:defs.bzl', 'aitheta_cc_test')
+aitheta_cc_test(
+    name='ResultHolderTest',
+    srcs=['ResultHolderTest.cpp'],
+    copts=['-fno-access-control'],
+    data=[],
+    deps=[
+        '//aios/storage/indexlib/index/ann/aitheta2/util:result_holder',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+aitheta_cc_test(
+    name='IndexContextHolderTest',
+    srcs=['IndexContextHolderTest.cpp'],
+    data=[],
+    deps=[
+        '//aios/storage/indexlib/index/ann/aitheta2/util:aitheta_factory_wrapper',
+        '//aios/storage/indexlib/index/ann/aitheta2/util:index_context_holder',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+aitheta_cc_test(
+    name='CustomizedAithetaContainerTest',
+    srcs=['CustomizedAithetaContainerTest.cpp'],
+    data=[],
+    deps=[
+        '//aios/storage/indexlib/index/ann/aitheta2/util:aitheta_factory_wrapper',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)

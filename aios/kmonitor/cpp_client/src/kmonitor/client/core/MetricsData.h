@@ -8,19 +8,19 @@
 #ifndef KMONITOR_CLIENT_CORE_METRICSDATA_H_
 #define KMONITOR_CLIENT_CORE_METRICSDATA_H_
 
-#include <string>
 #include <map>
 #include <queue>
-#include <vector>
-#include <utility>
+#include <string>
 #include <unordered_map>
-#include "autil/Lock.h"
-#include "kmonitor/client/common/Common.h"
-#include "autil/Log.h"
-#include "kmonitor/client/MetricType.h"
-#include "kmonitor/client/MetricLevel.h"
-#include "kmonitor/client/core/MetricsTags.h"
+#include <utility>
+#include <vector>
 
+#include "autil/Lock.h"
+#include "autil/Log.h"
+#include "kmonitor/client/MetricLevel.h"
+#include "kmonitor/client/MetricType.h"
+#include "kmonitor/client/common/Common.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
@@ -30,39 +30,42 @@ class MetricsTagsManager;
 class MetricsCache;
 
 class MetricsData {
- public:
-    MetricsData(const std::string &name, MetricType type, MetricLevel level,
-                MetricsTagsManager *tags_manager = NULL, MetricsCache* metricsCache = NULL);
+public:
+    MetricsData(const std::string &name,
+                MetricType type,
+                MetricLevel level,
+                MetricsTagsManager *tags_manager = NULL,
+                MetricsCache *metricsCache = NULL);
     ~MetricsData();
     int Size();
-    void Snapshot(MetricsCollector* collector, int64_t curTime);
-    Metric* GetMetric(const MetricsTagsPtr& tags);
-    Metric* GetMetric(const MetricsTags *tags);
+    void Snapshot(MetricsCollector *collector, int64_t curTime);
+    Metric *GetMetric(const MetricsTagsPtr &tags);
+    Metric *GetMetric(const MetricsTags *tags);
     MetricType GetMetricType();
     void Unregister();
 
- private:
+private:
     MetricsData(const MetricsData &);
     MetricsData &operator=(const MetricsData &);
 
- private:
+private:
     std::string metric_name_;
     MetricType type_;
     MetricLevel level_;
     bool registered_;
-    //metrics_tags_vec_ and metric_map_ should in one map
-    //std::vector<MetricsTags*> metrics_tags_vec_;
-    //std::map<int64_t, Metric*> metric_map_;
-    std::unordered_map<int64_t, std::pair<MetricsTagsPtr, Metric*> > metric_map_;
-    std::queue<Metric*> metric_pool_; //回收metric
+    // metrics_tags_vec_ and metric_map_ should in one map
+    // std::vector<MetricsTags*> metrics_tags_vec_;
+    // std::map<int64_t, Metric*> metric_map_;
+    std::unordered_map<int64_t, std::pair<MetricsTagsPtr, Metric *>> metric_map_;
+    std::queue<Metric *> metric_pool_; //回收metric
     autil::ReadWriteLock metric_rwlock_;
     MetricsTagsManager *tags_manager_ = nullptr;
-    MetricsCache* metricsCache_ = nullptr;  // for release cache for metric
+    MetricsCache *metricsCache_ = nullptr; // for release cache for metric
 
- private:
+private:
     AUTIL_LOG_DECLARE();
 };
 
 END_KMONITOR_NAMESPACE(kmonitor);
 
-#endif  // KMONITOR_CLIENT_CORE_METRICSDATA_H_
+#endif // KMONITOR_CLIENT_CORE_METRICSDATA_H_

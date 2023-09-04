@@ -1,0 +1,46 @@
+{
+    "packages" : [
+	    {
+	        "type" : "RPM",
+	        "packageURI" : "swift_package"
+	    },
+	    {
+	        "type" : "ARCHIVE",
+	        "packageURI" : "other_packages"
+	    }
+    ],
+    "role_default" : {
+        "count" : 1,
+        "processInfos" : [
+        ],
+        "properties" : {
+            "key" : "value"
+        }
+    },
+    "role_customize" : {
+    	"admin" : {},
+	"broker" : {}
+    },
+    "role_resource" : {
+        "admin" : [
+            {
+                "name" : "cpu",
+                "amount" : 100
+            },
+            {
+                "name" : "mem",
+                "amount" : 1000  
+            }
+        ],
+        "broker" : [
+            {
+                "name" : "cpu",
+                "amount" : 100
+            },
+            {
+                "name" : "mem",
+                "amount" : 1000  
+            }
+        ]
+    }
+}

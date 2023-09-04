@@ -25,8 +25,8 @@ class IPacketFactory;
 
 class IPacketStreamer {
     friend class DefaultPacketStreamerTest_testGetPacketInfo_Test;
-public:
 
+public:
     IPacketStreamer(IPacketFactory *factory) {
         _factory = factory;
         _existPacketHeader = true;
@@ -34,12 +34,12 @@ public:
 
     virtual ~IPacketStreamer() {}
 
-    virtual StreamingContext* createContext() = 0;
+    virtual StreamingContext *createContext() = 0;
 
     /*
      * Determine whether data in DataBuffer is enough.
-     * If return true,  ANET will process DataBuffer and construct 
-     * a Packet. If return false, ANET will read more data from 
+     * If return true,  ANET will process DataBuffer and construct
+     * a Packet. If return false, ANET will read more data from
      * socket.
      *
      * @param input  data source
@@ -60,9 +60,9 @@ public:
 
     /*
      * 对Packet的组装
-     * 
+     *
      * @param packet 数据包
-     * @param output 组装后的数据流 
+     * @param output 组装后的数据流
      * @return 是否成功
      */
     virtual bool encode(Packet *packet, DataBuffer *output) = 0;
@@ -70,32 +70,27 @@ public:
     /*
      * 是否有数据包头
      */
-    virtual bool existPacketHeader() {
-        return _existPacketHeader;
-    }
-    
+    virtual bool existPacketHeader() { return _existPacketHeader; }
+
     /**
-     * Read Data from DataBuffer and construct Packet. The Packet 
-     * is recorded in StreamingContext. This function is added 
-     * because muliti steps is needed when constructing a packet 
+     * Read Data from DataBuffer and construct Packet. The Packet
+     * is recorded in StreamingContext. This function is added
+     * because muliti steps is needed when constructing a packet
      * from DataBuffer.
      * This virtual function is implemented in DefaultPacketStreamer.
-     
+
      * @param dataBuffer source data
      * @param context The context when you processData.
      * @return true return true when processData successfully and a
-     * packet will be generated. Return false when processData 
+     * packet will be generated. Return false when processData
      * failed.
      */
-    virtual bool processData(DataBuffer *dataBuffer, 
-			     StreamingContext *context) = 0;
-
-
+    virtual bool processData(DataBuffer *dataBuffer, StreamingContext *context) = 0;
 
 protected:
-    IPacketFactory *_factory;   // 产生packet
-    bool _existPacketHeader;    // 是否有packet header, 如http有自己协议就不需要输出头信息
+    IPacketFactory *_factory; // 产生packet
+    bool _existPacketHeader;  // 是否有packet header, 如http有自己协议就不需要输出头信息
 };
-}
+} // namespace anet
 
 #endif /*RUNNABLE_H_*/

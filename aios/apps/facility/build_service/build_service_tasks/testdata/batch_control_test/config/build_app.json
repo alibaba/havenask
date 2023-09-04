@@ -1,0 +1,28 @@
+{
+"amonitor_port":
+  10086,
+"counter_config":
+  {
+  "parameters":
+    {
+    },
+  "position":
+    "zookeeper"
+  },
+"full_builder_tmp_root":
+  "",
+"heartbeat_type":
+  "",
+"hippo_root":
+  "",
+"index_root":
+  "",
+"service_name":
+  "",
+"swift_root":
+  "",
+"user_name":
+  "",
+"zookeeper_root":
+  "zfs:\/\/127.0.0.1:1234\/"
+}

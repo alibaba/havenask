@@ -1,10 +1,10 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(
     default_visibility=[
         '//aios/storage/indexlib/index/attribute:__subpackages__'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeFormatter',
     deps=[
         '//aios/autil:NoCopyable', '//aios/autil:const_string_util',
@@ -15,10 +15,10 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format:attribute_field_format'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleEncodedNullValue', srcs=[], deps=['//aios/autil:NoCopyable']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleValueNullAttributeFormatter',
     srcs=[],
     deps=[
@@ -29,7 +29,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format:attribute_field_format'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleValueAttributeMemFormatter',
     srcs=[],
     deps=[
@@ -44,12 +44,12 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:FileCompressParamHelper'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleValueAttributeFormatter',
     srcs=[],
     deps=[':AttributeFormatter', ':SingleValueNullAttributeFormatter']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleValueNullAttributeReadOnlyFormatter',
     srcs=[],
     visibility=['//visibility:private'],
@@ -61,7 +61,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format/pack_attribute:FloatCompressConvertor'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleValueNullAttributeUpdatableFormatter',
     srcs=[],
     visibility=['//visibility:private'],
@@ -71,7 +71,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format/pack_attribute:FloatCompressConvertor'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleValueAttributeReadOnlyFormatter',
     srcs=[],
     deps=[
@@ -79,7 +79,7 @@ indexlib_cc_library(
         ':SingleValueNullAttributeReadOnlyFormatter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleValueAttributeUpdatableFormatter',
     srcs=[],
     deps=[
@@ -87,7 +87,7 @@ indexlib_cc_library(
         ':SingleValueNullAttributeUpdatableFormatter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleValueAttributePatchFormatter',
     deps=[
         '//aios/storage/indexlib/base:Status',
@@ -95,7 +95,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/file_system'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiValueAttributeDataFormatter',
     deps=[
         '//aios/autil:NoCopyable', '//aios/autil:log',
@@ -104,8 +104,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format:attribute_field_format'
     ]
 )
-indexlib_cc_library(name='MultiValueAttributeOffsetUpdatableFormatter', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='MultiValueAttributeOffsetUpdatableFormatter', srcs=[])
+strict_cc_library(
     name='SingleValueDataAppender',
     deps=[
         ':SingleValueAttributeUpdatableFormatter', '//aios/autil:NoCopyable',

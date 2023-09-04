@@ -25,7 +25,7 @@ class IFileSystem;
 }} // namespace indexlib::file_system
 namespace indexlibv2::config {
 class TabletOptions;
-class TabletSchema;
+class ITabletSchema;
 } // namespace indexlibv2::config
 namespace indexlibv2::framework {
 class ITabletFactory;
@@ -41,14 +41,14 @@ public:
     ~TabletSchemaManager();
 
 public:
-    std::map<schemaid_t, std::shared_ptr<config::TabletSchema>> GetTabletSchemaCache() const;
-    std::shared_ptr<config::TabletSchema> GetSchema(schemaid_t schemaId) const;
-    void InsertSchemaToCache(const std::shared_ptr<config::TabletSchema>& schema);
+    std::map<schemaid_t, std::shared_ptr<config::ITabletSchema>> GetTabletSchemaCache() const;
+    std::shared_ptr<config::ITabletSchema> GetSchema(schemaid_t schemaId) const;
+    void InsertSchemaToCache(const std::shared_ptr<config::ITabletSchema>& schema);
     Status LoadAllSchema(const Version& version);
-    Status StoreSchema(const config::TabletSchema& schema);
+    Status StoreSchema(const config::ITabletSchema& schema);
     // get schemaList from baseSchemaId to lastSchemaId in versin roadmap
     Status GetSchemaList(schemaid_t baseSchema, schemaid_t targetVersion, const Version& version,
-                         std::vector<std::shared_ptr<config::TabletSchema>>& schemaList);
+                         std::vector<std::shared_ptr<config::ITabletSchema>>& schemaList);
 
 private:
     Status LoadSchema(schemaid_t schemaId);
@@ -60,7 +60,7 @@ private:
     std::string _globalRoot;
     std::string _remoteRoot;
     std::shared_ptr<indexlib::file_system::IFileSystem> _fileSystem;
-    std::map<schemaid_t, std::shared_ptr<config::TabletSchema>> _tabletSchemaCache;
+    std::map<schemaid_t, std::shared_ptr<config::ITabletSchema>> _tabletSchemaCache;
 
 private:
     AUTIL_LOG_DECLARE();

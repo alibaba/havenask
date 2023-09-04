@@ -29,7 +29,7 @@ class MetricsTags;
 
 namespace indexlibv2::config {
 class TabletOptions;
-class TabletSchema;
+class ITabletSchema;
 } // namespace indexlibv2::config
 
 namespace indexlib::document {
@@ -55,7 +55,7 @@ namespace indexlibv2::table {
 class CommonTabletWriter : public framework::TabletWriter
 {
 public:
-    CommonTabletWriter(const std::shared_ptr<config::TabletSchema>& schema, const config::TabletOptions* options);
+    CommonTabletWriter(const std::shared_ptr<config::ITabletSchema>& schema, const config::TabletOptions* options);
     ~CommonTabletWriter() = default;
 
     Status Open(const std::shared_ptr<framework::TabletData>& tabletData, const framework::BuildResource& buildResource,
@@ -66,9 +66,11 @@ public:
     size_t GetBuildingSegmentDumpExpandSize() const override;
     void ReportMetrics() override;
     bool IsDirty() const override;
+    void Close() override {};
 
 protected:
     static const float MIN_DUMP_MEM_LIMIT_RATIO;
+    static const float MEM_USE_RATIO;
     virtual Status DoOpen(const std::shared_ptr<framework::TabletData>& tabletData,
                           const framework::BuildResource& buildResource, const framework::OpenOptions& openOptions);
     virtual Status DoBuild(const std::shared_ptr<document::IDocumentBatch>& batch);
@@ -89,7 +91,7 @@ private:
     virtual void ReportTableSepecificMetrics(const kmonitor::MetricsTags& tags);
 
 protected:
-    std::shared_ptr<config::TabletSchema> _schema;
+    std::shared_ptr<config::ITabletSchema> _schema;
     const config::TabletOptions* _options;
     std::shared_ptr<framework::TabletData> _tabletData;
     framework::BuildResource _buildResource;

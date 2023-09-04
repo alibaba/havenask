@@ -1,0 +1,58 @@
+{
+    "table_name": "simple_table",
+    "file_compress": [
+        {
+            "name":"compress1",
+            "type":"zstd",
+            "parameters":{
+                "level":"10"
+            }
+        }
+    ],
+    "fields": 
+    [
+        {"field_name":"pk","field_type":"INTEGER"},
+        {"field_name":"title","field_type":"TEXT","analyzer":"internet_analyzer"},
+	{"field_name":"multi_value","field_type":"INTEGER","multi_value":true}
+    ],
+    "indexs":
+    [
+        {
+            "index_name" : "main_pk_index",
+            "index_type" : "PRIMARYKEY64",
+            "index_fields" : "pk",
+            "has_primary_key_attribute" : true
+        },
+        {
+            "index_name" : "title_index",
+            "index_type" : "TEXT",
+            "index_fields" : "title",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "position_payload_flag" :  1,
+	    "file_compress" : "compress1"
+        }
+    ],
+    "attributes": [ "pk"],
+    "summarys": {"summary_fields": ["pk", "multi_value"], "compress":true},
+    "sub_schema":
+    {
+        "table_name": "sub_simple_table",
+        "fields": 
+	[
+            {"field_name":"sub_pk","field_type":"INTEGER"},
+            {"field_name":"sub_title","field_type":"TEXT","analyzer":"simple_analyzer"},
+            {"field_name":"sub_price","field_type":"INTEGER"}
+	],
+	"indexs": 
+	[
+            {
+                "index_name": "sub_pk_index",
+                "index_type" : "PRIMARYKEY64",
+                "index_fields": "sub_pk",
+                "has_primary_key_attribute": true
+            }
+        ],
+        "attributes": ["sub_pk", "sub_price"]
+    }
+}

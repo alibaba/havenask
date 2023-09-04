@@ -23,7 +23,8 @@ namespace multi_call {
 
 class AverageLatency;
 
-class ControllerBase {
+class ControllerBase
+{
 public:
     ControllerBase(const std::string &controllerName);
     virtual ~ControllerBase();
@@ -68,8 +69,12 @@ public:
 
 public:
     // for ut
-    void setCurrent(float current) { _localFilter.setCurrent(current); }
-    void setFilterCounter(int64_t counter) { _localFilter.setCounter(counter); }
+    void setCurrent(float current) {
+        _localFilter.setCurrent(current);
+    }
+    void setFilterCounter(int64_t counter) {
+        _localFilter.setCounter(counter);
+    }
 
 private:
     std::string _controllerName;

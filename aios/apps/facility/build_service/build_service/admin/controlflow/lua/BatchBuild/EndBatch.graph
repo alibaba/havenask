@@ -1,0 +1,43 @@
+#import(Tool)
+#import(Log)
+#import(BatchBuild/FlowIdTools)
+
+function graphDef()
+   local batchId = Graph.parameter["batchId"]
+   local batchMask = Graph.parameter["batchMask"]
+   if (batchId == nil)
+   then
+      Log.log("ERROR", "lack of batchId")
+      return false
+   end
+   if (batchMask == nil)
+   then
+      Log.log("ERROR", "lack of batchMask")
+      return false
+   end      
+   local endTime = Graph.parameter["endTime"]
+   if (endTime == nil)
+   then
+      Log.log("ERROR", "lack of endTime")
+      return false
+   end
+
+   local processorIds = Graph.getFlowIdByTag(FlowIdTools.getBatchProcessor(batchId))
+   if (table.getn(processorIds) == 0)
+   then
+      Log.log("ERROR", "invalid processorId,  batch["..batchId.."]")
+      return false
+   end
+   local processorId = processorIds[1]
+
+   Log.log("INFO", "try to stop batch["..batchId.."]" ..
+          "processor["..processorId.."]")
+   local processorFlow = Graph.getFlow(processorId)
+   if (processorFlow == nil)
+   then
+      Log.log("ERROR", "failed to end batch["..batchId.."], processor flow is null")
+      return false
+   end
+   processorFlow:setProperty("endTime", Graph.parameter['endTime'])
+   return true
+end

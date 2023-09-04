@@ -1,0 +1,52 @@
+{
+    "clusters" : [
+        "cluster1"
+    ],
+    "processor_chain_config" : [
+        
+    ],
+    "processor_config" : {
+        "processor_queue_size" : 2000,
+        "processor_thread_num" : 10
+            
+    },
+    "processor_rule_config" : {
+        "partition_count" : 8,
+        "parallel_num" : 1
+            
+    },
+    "control_config" : {
+        "is_shared_broker_topic" : false,
+        "is_inc_processor_exist" : false,
+        "data_link_mode" : "npc"
+    },
+    "data_descriptions" : [
+        {
+            "data" : "","file_pattern" : "","src" : "file","type" : "file",
+            "document_format" : ""
+            
+        },
+        {
+            "src":"swift",
+            "type":"swift",
+            "parser_config" : [
+                {
+                    "type" : "swift_field_filter",
+                    "parameters" : {
+                                        
+                    }
+                                  
+                },
+                {
+                    "type" : "ha3",
+                    "parameters" : {
+                                        
+                    }
+                                  
+                }
+                          
+            ]
+            
+        }
+    ]    
+}

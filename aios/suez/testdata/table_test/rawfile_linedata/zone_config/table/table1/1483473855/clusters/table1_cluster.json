@@ -1,0 +1,10 @@
+{
+    "cluster_config" : {
+        "cluster_name" : "table1",
+        "hash_mode" : {
+            "hash_field" : "id",
+            "hash_function" : "HASH"
+        },
+        "table_name" : "table1"
+    }
+}

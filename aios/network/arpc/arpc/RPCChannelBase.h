@@ -20,12 +20,12 @@
 #include <string>
 #include <unistd.h>
 
-#include "aios/network/arpc/arpc/util/Log.h"
-#include "aios/network/arpc/arpc/CommonMacros.h"
-#include "aios/network/arpc/arpc/ANetRPCController.h"
-#include "aios/network/arpc/arpc/MessageCodec.h"
 #include "aios/network/anet/connectionpriority.h"
+#include "aios/network/arpc/arpc/ANetRPCController.h"
+#include "aios/network/arpc/arpc/CommonMacros.h"
+#include "aios/network/arpc/arpc/MessageCodec.h"
 #include "aios/network/arpc/arpc/proto/rpc_extensions.pb.h"
+#include "aios/network/arpc/arpc/util/Log.h"
 
 ARPC_BEGIN_NAMESPACE(arpc);
 
@@ -33,18 +33,17 @@ ARPC_BEGIN_NAMESPACE(arpc);
  * @addtogroup ClientClasses RPC Client Classes
  */
 
-class RPCChannelBase : public RPCChannel
-{
+class RPCChannelBase : public RPCChannel {
 public:
     RPCChannelBase();
     virtual ~RPCChannelBase();
+
 public:
     virtual void CallMethod(const RPCMethodDescriptor *method,
                             RPCController *controller,
                             const RPCMessage *request,
                             RPCMessage *response,
-                            RPCClosure *done)
-    {
+                            RPCClosure *done) {
         assert(false);
     }
 
@@ -62,35 +61,23 @@ public:
      */
     virtual bool ChannelConnected() = 0;
 
-    version_t GetVersion()
-    {
-        return _version;
-    };
-    void SetVersion(version_t version)
-    {
-        _version = version;
-    };
+    version_t GetVersion() { return _version; };
+    void SetVersion(version_t version) { _version = version; };
 
-    void SetTraceFlag(bool flag)
-    {
-        _enableTrace = flag;
-    }
-    bool GetTraceFlag() const
-    {
-        return _enableTrace;
-    }
+    void SetTraceFlag(bool flag) { _enableTrace = flag; }
+    bool GetTraceFlag() const { return _enableTrace; }
 
     void SetTraceFlag(ANetRPCController *controller);
 
 protected:
     void RunClosure(RPCClosure *pClosure);
-    void SetError(ANetRPCController *pController,
-                  ErrorCode errorCode);
+    void SetError(ANetRPCController *pController, ErrorCode errorCode);
 
 private:
     friend class RPCChannelBaseTest;
     friend class RPCServerAdapterTest;
     friend class ANetRPCChannelCloseBugTest;
+
 protected:
     version_t _version;
     bool _enableTrace;
@@ -98,4 +85,4 @@ protected:
 
 ARPC_END_NAMESPACE(arpc);
 
-#endif //ARPC_RPCCHANNELBASE_H
+#endif // ARPC_RPCCHANNELBASE_H

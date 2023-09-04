@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stddef.h>
+#include "autil/SharedObjectMap.h"
+
 #include <iosfwd>
+#include <stddef.h>
 #include <string>
 #include <unordered_map>
 #include <utility>
 
 #include "autil/Lock.h"
 #include "autil/Log.h"
-#include "autil/mem_pool/PoolBase.h"
-#include "autil/SharedObjectMap.h"
 #include "autil/TimeUtility.h"
+#include "autil/mem_pool/PoolBase.h"
 
 using namespace std;
 using namespace autil;
@@ -35,13 +36,9 @@ namespace autil {
 const std::string VIRTUAL_ATTRIBUTES = "__virtual_attributes__";
 const std::string FILTER_SYNTAX_EXPR = "__filter_syntax_expr__";
 
+SharedObjectMap::SharedObjectMap() {}
 
-SharedObjectMap::SharedObjectMap() {
-}
-
-SharedObjectMap::~SharedObjectMap() {
-    reset();
-}
+SharedObjectMap::~SharedObjectMap() { reset(); }
 
 bool SharedObjectMap::setWithoutDelete(const std::string &name, void *object) {
     ScopedWriteLock lock(_lock);
@@ -100,4 +97,4 @@ size_t SharedObjectMap::size() const {
     return _objectMap.size();
 }
 
-}
+} // namespace autil

@@ -24,7 +24,7 @@
 #include "autil/NoCopyable.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/document/IDocument.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/index/primary_key/PrimaryKeyWriter.h"

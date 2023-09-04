@@ -177,6 +177,7 @@ extern const std::string BS_ENV_BROKER_TOPIC_MAX_BATCH_SIZE;
 // checkpoint
 extern const std::string BS_RESOURCE_CHECKPOINT_ID;
 extern const std::string BS_BUILDER_CHECKPOINT_ID;
+extern const std::string BS_CHECKPOINT_VISIABLE_ID;
 extern const std::string BS_INDEX_INFO_ID;
 extern const std::string BS_INDEX_CHECKPOINT_ID;
 extern const std::string BS_INDEX_TOTAL_SIZE_ID;
@@ -220,7 +221,7 @@ extern const std::string BS_ENV_DEFAULT_KMON_SERVICE_NAME;
 extern const std::string BS_ENV_DOC_TRACE_FIELD;
 extern const std::string BS_ENV_DOC_TRACE_INTERVAL; // second
 extern const std::string BS_ENV_READER_CHECKPOINT_STEP;
+extern const std::string BS_ENV_ALLOW_UPDATE_SCHEMA;
 
 extern const std::string BS_BACKUP_NODE_LABEL;
-
 }; // namespace build_service

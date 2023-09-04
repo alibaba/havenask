@@ -439,7 +439,7 @@ bool DeployIndexWrapper::GenerateDisableLoadConfig(const string& rootPath, versi
         PackAttributeConfigIteratorPtr packConfigs = attrSchema->CreatePackAttrIterator(is_disable);
         for (auto iter = packConfigs->Begin(); iter != packConfigs->End(); iter++) {
             // pack attribute not support delete
-            packAttrNames.insert((*iter)->GetAttrName());
+            packAttrNames.insert((*iter)->GetPackName());
         }
     }
     bool disableSummaryField = false;
@@ -649,7 +649,10 @@ bool DeployIndexWrapper::GenerateDisableLoadConfig(const indexlibv2::config::Tab
                                                    file_system::LoadConfig& loadConfig)
 {
     config::DisableFieldsConfig disableFieldsConfig;
-    if (!tabletOptions.GetFromRawJson("online_index_config.disable_fields", &disableFieldsConfig)) {
+    if (auto status = tabletOptions.GetFromRawJson("online_index_config.disable_fields", &disableFieldsConfig);
+        !status.IsOKOrNotFound()) {
+        IE_LOG(ERROR, "get config from tablet options failed, status[%s]", status.ToString().c_str());
+    } else if (!status.IsOK()) {
         return false;
     }
     if (!disableFieldsConfig.rewriteLoadConfig) {

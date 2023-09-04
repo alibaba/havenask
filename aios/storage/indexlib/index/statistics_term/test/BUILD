@@ -1,0 +1,43 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+strict_cc_fast_test(
+    name='StatisticsTermMemIndexerTest',
+    srcs=['StatisticsTermMemIndexerTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/file_system:interface',
+        '//aios/storage/indexlib/index/statistics_term:StatisticsTermLeafReader',
+        '//aios/storage/indexlib/index/statistics_term:StatisticsTermMemIndexer',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='StatisticsTermIndexConfigTest',
+    srcs=['StatisticsTermIndexConfigTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/index/statistics_term:StatisticsTermIndexConfig',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='StatisticsTermFormatterTest',
+    srcs=['StatisticsTermFormatterTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/index/statistics_term:StatisticsTermFormatter',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='StatisticsTermMergerTest',
+    srcs=['StatisticsTermMergerTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/file_system/test:test-util',
+        '//aios/storage/indexlib/framework:DumpParams',
+        '//aios/storage/indexlib/index/statistics_term:StatisticsTermDiskIndexer',
+        '//aios/storage/indexlib/index/statistics_term:StatisticsTermMemIndexer',
+        '//aios/storage/indexlib/index/statistics_term:StatisticsTermMerger',
+        '//aios/unittest_framework'
+    ]
+)

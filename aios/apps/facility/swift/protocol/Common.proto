@@ -1,0 +1,327 @@
+package swift.protocol;
+option java_package="com.alibaba.search.swift.protocol";
+
+message BrokerInfo {
+    optional string address = 1;
+}
+
+message BrokerVersionInfo {
+    optional string version = 1;
+    optional bool supportFB = 2 [default = false];
+    optional bool supportMergeMsg = 3 [default = false];
+}
+
+enum ClientType {
+    CT_CPP = 0;
+    CT_UNKNOWN = 1;
+}
+
+message ClientVersionInfo {
+    optional string version = 1;
+    optional bool supportFB = 2 [default = false];
+    optional ClientType clientType = 3 [default = CT_UNKNOWN];
+    optional bool supportMergeMsg = 4 [default = false];
+    optional bool supportAuthentication = 5 [default = false];
+}
+
+enum SysStatus {
+    SYS_STATUS_NONE = 0;
+    SYS_STATUS_STARTING = 1;
+    SYS_STATUS_RUNNING = 2;
+    SYS_STATUS_STOPPING = 3;
+    SYS_STATUS_STOPPED = 4;
+}
+
+enum PartitionStatus {
+    PARTITION_STATUS_NONE = 0;
+    PARTITION_STATUS_WAITING = 1;
+    PARTITION_STATUS_STARTING = 2;
+    PARTITION_STATUS_RUNNING = 3;
+    PARTITION_STATUS_STOPPING = 4;
+    PARTITION_STATUS_RECOVERING = 5;
+    PARTITION_STATUS_DONE = 6;
+}
+
+message PartitionInfo {
+    optional uint32 id = 1;
+    optional string brokerAddress = 2;
+    optional PartitionStatus status = 3;
+    optional string roleName = 4;
+    optional BrokerVersionInfo versionInfo = 5;
+    optional int64 sessionId = 6 [default = -1];
+}
+
+message PartitionInMetric {
+    optional string topicName = 1;
+    optional uint32 partId = 2;
+    optional uint32 lastWriteTime = 3; //s
+    optional uint32 lastReadTime = 4;  //s
+    optional uint64 writeRate1min = 5; //byte
+    optional uint64 writeRate5min = 6; //byte
+    optional uint64 readRate1min = 7; //byte
+    optional uint64 readRate5min = 8; //byte
+    optional uint32 writeRequest1min = 9;
+    optional uint32 writeRequest5min = 10;
+    optional uint32 readRequest1min = 11;
+    optional uint32 readRequest5min = 12;
+    optional int64 commitDelay = 13 [default = -1];
+}
+
+message BrokerInMetric {
+    optional uint32 reportTime = 1;
+    optional string roleName = 2; //role ip port
+    optional double cpuRatio = 3;
+    optional double memRatio = 4;
+    repeated PartitionInMetric partInMetrics = 5;
+    optional int64 zfsTimeout = 6 [default = -1];
+}
+
+message BrokerInStatus {
+    optional uint32 reportTime = 1;
+    optional string roleName = 2;
+    optional double cpuRatio = 3;
+    optional double memRatio = 4;
+    optional uint64 writeRate1min = 5; //byte
+    optional uint64 writeRate5min = 6; //byte
+    optional uint64 readRate1min = 7; //byte
+    optional uint64 readRate5min = 8; //byte
+    optional uint32 writeRequest1min = 9;
+    optional uint32 writeRequest5min = 10;
+    optional uint32 readRequest1min = 11;
+    optional uint32 readRequest5min = 12;
+    optional int64 commitDelay = 13;
+    optional int64 zfsTimeout = 14;
+}
+
+enum TopicMode{
+    TOPIC_MODE_NORMAL = 0;
+    TOPIC_MODE_SECURITY = 1;
+    TOPIC_MODE_MEMORY_ONLY = 2;
+    TOPIC_MODE_MEMORY_PREFER = 3;
+    TOPIC_MODE_PERSIST_DATA = 4;
+}
+
+enum TopicType{
+    TOPIC_TYPE_NORMAL = 0;
+    TOPIC_TYPE_PHYSIC = 1;
+    TOPIC_TYPE_LOGIC = 2;
+    TOPIC_TYPE_LOGIC_PHYSIC = 3;
+}
+
+enum TopicStatus{
+    TOPIC_STATUS_NONE = 0;
+    TOPIC_STATUS_WAITING = 1;
+    TOPIC_STATUS_RUNNING = 2;
+    TOPIC_STATUS_PARTIAL_RUNNING = 3;
+    TOPIC_STATUS_STOPPING = 4;
+    TOPIC_STATUS_STOPPED = 5;
+}
+
+message SchemaInfo {
+    optional int32 version = 1;
+    optional uint32 registerTime = 2;
+    optional string schema = 3;
+}
+
+message SchemaInfos {
+    repeated SchemaInfo sinfos = 1;
+}
+
+message TopicPermission {
+    optional bool canRead = 1 [default = true];
+    optional bool canWrite = 2 [default = true];
+    optional bool canModify = 3 [deprecated = true];
+    optional bool canDelete = 4 [deprecated = true];
+}
+
+message TopicInfo {
+    optional string name = 1;
+    repeated PartitionInfo partitionInfos = 2;
+    optional TopicStatus status = 3;
+    optional uint32 partitionCount = 4;
+    optional uint32 partitionBufferSize = 5 [deprecated = true];
+    optional uint32 resource = 6;
+    optional uint32 partitionLimit = 7;
+    optional TopicMode topicMode = 8;
+    optional bool needFieldFilter = 9;
+    optional int64 obsoleteFileTimeInterval = 10;
+    optional int32 reservedFileCount = 11;
+    optional uint32 partitionFileBufferSize = 12 [deprecated = true];
+    optional bool deleteTopicData = 13 [deprecated = true];
+    optional uint32 partitionMinBufferSize = 14;
+    optional uint32 partitionMaxBufferSize = 15;
+    optional int64 maxWaitTimeForSecurityCommit = 16;
+    optional int64 maxDataSizeForSecurityCommit = 17;
+    optional bool compressMsg = 18;
+    optional bool compressThres = 19;
+    optional int64 createTime = 20;
+    optional string dfsRoot = 21;
+    optional string topicGroup = 22;
+    repeated string extendDfsRoot = 23;
+    optional int64 topicExpiredTime = 24;
+    optional uint32 rangeCountInPartition = 25;
+    optional int64 modifyTime = 26;
+    repeated string owners = 27;
+    optional bool needSchema = 28 [default = false];
+    repeated int32 schemaVersions = 29;
+    optional bool sealed = 30 [default = false];
+    optional TopicType topicType = 31 [default = TOPIC_TYPE_NORMAL];
+    repeated string physicTopicLst = 32;
+    optional bool enableTTLDel = 33 [default = true];
+    optional int32 readSizeLimitSec = 34 [default = -1];
+    optional bool versionControl = 35 [default = false];
+    optional bool enableLongPolling = 36 [default = false];
+    optional bool enableMergeData = 37 [default = false];
+    optional TopicPermission opControl = 38;
+    repeated string permitUser = 39;
+    optional bool readNotCommittedMsg = 40 [default = true];
+}
+
+message TopicSimpleInfo {
+    optional string name = 1;
+    optional uint32 partitionCount = 2;
+    optional uint32 runningCount = 3;
+    repeated string owners = 4;
+}
+
+enum RoleType
+{
+    ROLE_TYPE_NONE = 0;
+    ROLE_TYPE_ALL = 1;
+    ROLE_TYPE_ADMIN = 2;
+    ROLE_TYPE_BROKER = 3;
+    // ROLE_TYPE_MERGER = 4;
+}
+
+message InlineVersion {
+    optional uint64 masterVersion = 1 [ default = 0 ];
+    optional uint64 partVersion = 2 [ default = 0 ];
+}
+
+message PartitionId {
+    optional string topicName = 1;
+    optional uint32 id = 2;
+    optional string topicGroup = 3;
+    optional uint32 from = 4;
+    optional uint32 to = 5;
+    optional uint32 partitionCount = 6;
+    optional uint32 rangeCount = 7;
+    optional int64 version = 8;
+    optional bool forceUnload = 9;
+    optional InlineVersion inlineVersion = 10;
+}
+
+message TaskInfo {
+    optional PartitionId partitionId = 1;
+    optional uint32 bufferSize = 2 ; //[deprecated = true]
+    optional TopicMode topicMode = 3;
+    optional bool needFieldFilter = 4;
+    optional int64 obsoleteFileTimeInterval = 5;
+    optional int32 reservedFileCount = 6;
+    optional int32 fileBufferSize = 7 [deprecated = true];
+    optional uint32 minBufferSize = 8;
+    optional uint32 maxBufferSize = 9;
+    optional uint32 maxWaitTimeForSecurityCommit = 10;
+    optional uint32 maxDataSizeForSecurityCommit = 11;
+    optional bool compressMsg = 12;
+    optional bool compressThres = 13; // FIXME: should be int32
+    optional string dfsRoot = 14;
+    repeated string extendDfsRoot = 15;
+    optional bool sealed = 16 [default = false];
+    optional bool enableTTLDel = 17 [default = true];
+    optional int32 readSizeLimitSec = 18 [default = -1];
+    optional bool versionControl = 19 [default = false];
+    optional bool enableLongPolling = 20 [default = false];
+    optional int64 mergeTimestamp = 21 [default = -1];;
+    repeated string permission = 22;
+    optional bool readNotCommittedMsg = 23 [default = true];
+}
+
+message DispatchInfo {
+    optional string brokerAddress = 1;
+    repeated TaskInfo taskInfos = 2;
+    optional string roleName = 3;
+    optional int64 sessionId = 4;
+}
+message AdminInfo {
+    optional string address = 1;
+    optional bool isPrimary = 2;
+    optional bool isAlive = 3;
+}
+
+message LeaderInfo {
+    optional string address = 1;
+    optional bool sysStop = 2;
+    optional int64 startTimeSec = 3;
+    repeated AdminInfo adminInfos = 4;
+    optional string httpAddress = 5;
+    optional uint64 selfMasterVersion = 6;
+}
+
+message LeaderInfoHistory {
+    repeated LeaderInfo leaderInfos = 1;
+}
+
+message TopicRWInfo {
+    optional string topicName = 1;
+    optional uint32 lastWriteTime = 2; //s
+    optional uint32 lastReadTime = 3;  //s
+}
+
+message TopicRWInfos {
+    repeated TopicRWInfo infos = 1;
+}
+
+message SetLoggerLevelRequest {
+    enum LogLevel {
+        DISABLE = 0;
+        FATAL   = 1;
+        ERROR   = 2;
+        WARN    = 3;
+        INFO    = 4;
+        DEBUG   = 5;
+        TRACE1  = 6;
+        TRACE2  = 7;
+        TRACE3  = 8;
+        NOTSET  = 9;
+    }
+    required string logger = 1;
+    required LogLevel level = 2;
+}
+
+message SetLoggerLevelResponse {
+    optional bytes errorInfo = 1;
+}
+
+message CleanAtDeleteTopicTask {
+    optional string topicName = 1;
+    repeated string dfsPath = 2;
+    optional uint32 deleteTimestampSec = 3;
+}
+
+message CleanAtDeleteTopicTasks {
+    repeated CleanAtDeleteTopicTask tasks = 1;
+}
+
+message WriterVersion {
+    optional string name = 1;
+    optional uint32 version = 2;
+}
+
+message TopicWriterVersionInfo {
+    optional string topicName = 1;
+    optional uint32 majorVersion = 2;
+    repeated WriterVersion writerVersions = 3;
+}
+
+message AccessAuthInfo {
+    optional string accessId = 1;
+    optional string accessKey = 2;
+}
+
+message AuthenticationInfo {
+    optional string username = 1;
+    optional string passwd = 2;
+    optional AccessAuthInfo accessAuthInfo = 3;
+}
+

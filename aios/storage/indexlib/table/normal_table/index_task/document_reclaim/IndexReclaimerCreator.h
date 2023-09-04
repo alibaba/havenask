@@ -23,7 +23,7 @@ namespace kmonitor {
 class MetricsReporter;
 }
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace indexlibv2::framework {
@@ -42,7 +42,7 @@ namespace indexlibv2::table {
 class IndexReclaimerCreator : private autil::NoCopyable
 {
 public:
-    IndexReclaimerCreator(std::shared_ptr<config::TabletSchema> tabletSchema,
+    IndexReclaimerCreator(std::shared_ptr<config::ITabletSchema> tabletSchema,
                           std::shared_ptr<framework::TabletData> tabletData,
                           std::map<segmentid_t, docid_t> segmentId2BaseDocId,
                           std::map<segmentid_t, size_t> segmentId2DocCount,
@@ -53,7 +53,7 @@ public:
     IndexReclaimer* Create(const IndexReclaimerParam& param) const;
 
 private:
-    std::shared_ptr<config::TabletSchema> _tabletSchema;
+    std::shared_ptr<config::ITabletSchema> _tabletSchema;
     std::shared_ptr<framework::TabletData> _tabletData;
     std::map<segmentid_t, docid_t> _segmentId2BaseDocId;
     std::map<segmentid_t, size_t> _segmentId2DocCount;

@@ -17,10 +17,10 @@
 #define ANET_RUNNABLE_H_
 
 namespace anet {
-  class Thread;
-  class Runnable {
+class Thread;
+class Runnable {
 
-  public:
+public:
     /*
      * 析构
      */
@@ -29,7 +29,7 @@ namespace anet {
      * 运行入口函数
      */
     virtual void run(Thread *thread, void *arg) = 0;
-  };
-}
+};
+} // namespace anet
 
 #endif /*RUNNABLE_H_*/

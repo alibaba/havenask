@@ -22,7 +22,8 @@ namespace multi_call {
 
 class GigStreamHandlerBase;
 
-class GigServerStream : public GigStreamBase {
+class GigServerStream : public GigStreamBase
+{
 public:
     GigServerStream();
     virtual ~GigServerStream();
@@ -32,13 +33,13 @@ private:
     GigServerStream &operator=(const GigServerStream &);
 
 public:
-    bool send(PartIdTy partId, bool eof,
-              google::protobuf::Message *message) override;
-    void sendCancel(PartIdTy partId,
-                    google::protobuf::Message *message) override;
+    bool send(PartIdTy partId, bool eof, google::protobuf::Message *message) override;
+    void sendCancel(PartIdTy partId, google::protobuf::Message *message) override;
+
 public:
     std::shared_ptr<QueryInfo> getQueryInfo() const override;
     std::string getPeer() const override;
+
 public:
     void setHandler(const std::shared_ptr<GigStreamHandlerBase> &handler);
 

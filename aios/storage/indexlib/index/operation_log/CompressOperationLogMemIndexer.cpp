@@ -55,7 +55,7 @@ Status CompressOperationLogMemIndexer::CreateNewBlock(size_t maxBlockSize)
 std::pair<Status, std::shared_ptr<CompressOperationBlock>>
 CompressOperationLogMemIndexer::CreateCompressOperationBlock()
 {
-    size_t blockSerializeSize = _operationMeta.GetLastBlockSerializeSize();
+    size_t blockSerializeSize = _operationMeta.GetBuildingBlockSerializeSize();
     if (blockSerializeSize == 0) {
         return {Status::OK(), std::shared_ptr<CompressOperationBlock>()};
     }
@@ -67,9 +67,11 @@ CompressOperationLogMemIndexer::CreateCompressOperationBlock()
     char* buffer = inBuffer.getBuffer();
     size_t bufLen = blockSerializeSize;
     size_t opCount = _blockInfo._curBlock->Size();
+    auto hasConcurrentIdx = _operationMeta.GetBlockMetaVec().rbegin()->hasConcurrentIdx;
     assert(opCount > 0);
     for (size_t i = 0; i < opCount; ++i) {
-        size_t dumpSize = OperationBlock::DumpSingleOperation(_blockInfo._curBlock->GetOperations()[i], buffer, bufLen);
+        size_t dumpSize = OperationBlock::DumpSingleOperation(_blockInfo._curBlock->GetOperations()[i], buffer, bufLen,
+                                                              hasConcurrentIdx);
         buffer += dumpSize;
         bufLen -= dumpSize;
     }
@@ -87,8 +89,8 @@ CompressOperationLogMemIndexer::CreateCompressOperationBlock()
     const char* outBuffer = compressor.GetBufferOut();
     size_t compressedSize = compressor.GetBufferOutLen();
     std::shared_ptr<CompressOperationBlock> opBlock(new CompressOperationBlock);
-    opBlock->Init(opCount, outBuffer, compressedSize, _blockInfo._curBlock->GetMinTimestamp(),
-                  _blockInfo._curBlock->GetMaxTimestamp());
+    opBlock->Init(opCount, outBuffer, compressedSize, _blockInfo._curBlock->GetMinOffset(),
+                  _blockInfo._curBlock->GetMaxOffset(), *(_operationMeta.GetBlockMetaVec().rbegin()));
     return {Status::OK(), opBlock};
 }
 
@@ -107,7 +109,8 @@ Status CompressOperationLogMemIndexer::FlushBuildingOperationBlock()
 
 bool CompressOperationLogMemIndexer::NeedCreateNewBlock() const
 {
-    return _operationMeta.GetLastBlockSerializeSize() >= _maxBlockSize || _blockInfo._curBlock->Size() >= _maxBlockSize;
+    return _operationMeta.GetBuildingBlockSerializeSize() >= _maxBlockSize ||
+           _blockInfo._curBlock->Size() >= _maxBlockSize;
 }
 
 } // namespace indexlib::index

@@ -31,7 +31,7 @@
 #include "swift/protocol/AdminRequestResponse.pb.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace swift { namespace network {
@@ -114,7 +114,7 @@ private:
 private:
     proto::BuildId _buildId;
     config::BuildServiceConfig _serviceConfig;
-    std::shared_ptr<indexlibv2::config::TabletSchema> _schema;
+    std::shared_ptr<indexlibv2::config::ITabletSchema> _schema;
     std::string _clusterName;
     config::SwiftConfig _swiftConfig;
     util::SwiftClientCreatorPtr _swiftClientCreator;

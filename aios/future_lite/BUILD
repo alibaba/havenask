@@ -1,5 +1,4 @@
 load('//bazel:defs.bzl', 'gen_conf_lib', 'if_arm')
-load('//bazel:bundle.bzl', 'bundle_files')
 config_setting(name='use_coro', values={'define': 'use_coro=yes'})
 genrule(
     name='future_lite_coro_config_h',

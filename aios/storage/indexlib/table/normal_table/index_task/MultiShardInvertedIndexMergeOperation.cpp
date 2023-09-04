@@ -15,7 +15,7 @@
  */
 #include "indexlib/table/normal_table/index_task/MultiShardInvertedIndexMergeOperation.h"
 
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 
@@ -33,7 +33,7 @@ MultiShardInvertedIndexMergeOperation::~MultiShardInvertedIndexMergeOperation() 
 std::pair<Status, std::shared_ptr<config::IIndexConfig>>
 MultiShardInvertedIndexMergeOperation::GetIndexConfig(const framework::IndexOperationDescription& opDesc,
                                                       const std::string& indexType, const std::string& indexName,
-                                                      const std::shared_ptr<config::TabletSchema>& schema)
+                                                      const std::shared_ptr<config::ITabletSchema>& schema)
 {
     std::string shardingIndexName;
     if (!opDesc.GetParameter(SHARD_INDEX_NAME, shardingIndexName)) {

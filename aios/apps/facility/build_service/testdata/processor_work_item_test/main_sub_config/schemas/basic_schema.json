@@ -1,0 +1,40 @@
+{
+    "table_name": "basic",
+    "fields":[
+        {"field_name":"id",          "field_type":"INTEGER"},
+        {"field_name":"title",       "field_type":"TEXT",     "analyzer":"multi_level_analyzer"},
+        {"field_name":"price",       "field_type":"INTEGER"},
+
+        {"field_name":"sub_id",      "field_type":"STRING"},
+        {"field_name":"sub_price",   "field_type":"TEXT",      "analyzer":"multi_level_analyzer"}
+    ],
+    "indexs": [{
+	    "index_name": "id",
+	    "index_type": "PRIMARYKEY64",
+	    "index_fields": "id"
+	}, {
+        "index_name": "title",
+        "index_type": "TEXT",
+        "term_payload_flag" :  1 ,
+        "doc_payload_flag" :  1 ,
+        "position_payload_flag" : 1,
+        "position_list_flag" : 1,
+        "index_analyzer" : "multi_level_analyzer",
+        "index_fields": "title"
+    }, {
+        "index_name": "sub_price",
+        "index_type": "TEXT",
+        "term_payload_flag" :  1 ,
+        "doc_payload_flag" :  1 ,
+        "position_payload_flag" : 1,
+        "position_list_flag" : 1,
+    	"term_frequency_bitmap": 0,
+        "index_analyzer" : "multi_level_analyzer",
+        "index_fields": "sub_price"
+    }],
+    "attributes": ["price", "sub_id"],
+    "summarys":{
+        "summary_fields": ["title", "sub_price"],
+        "compress_block_size": 5
+    }
+}

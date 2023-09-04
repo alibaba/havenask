@@ -27,10 +27,11 @@
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, KVTableAlterTablePlanCreator);
 
-const std::string KVTableAlterTablePlanCreator::TASK_TYPE = ALTER_TABLE_TASK_TYPE;
+const std::string KVTableAlterTablePlanCreator::TASK_TYPE = framework::ALTER_TABLE_TASK_TYPE;
 
-KVTableAlterTablePlanCreator::KVTableAlterTablePlanCreator(const std::string& taskName)
-    : SimpleIndexTaskPlanCreator(taskName)
+KVTableAlterTablePlanCreator::KVTableAlterTablePlanCreator(const std::string& taskName,
+                                                           const std::map<std::string, std::string>& params)
+    : SimpleIndexTaskPlanCreator(taskName, params)
 {
 }
 

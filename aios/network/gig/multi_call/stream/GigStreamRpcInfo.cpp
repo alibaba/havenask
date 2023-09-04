@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/stream/GigStreamRpcInfo.h"
+
 #include "autil/DataBuffer.h"
 #include "autil/TimeUtility.h"
 
@@ -33,7 +34,8 @@ const char *convertGigStreamRpcStatus(GigStreamRpcStatus status) {
     return "INVALID";
 }
 
-GigStreamRpcInfo::GigStreamRpcInfo(int64_t partId_) : partId(partId_) {}
+GigStreamRpcInfo::GigStreamRpcInfo(int64_t partId_) : partId(partId_) {
+}
 
 void GigStreamRpcInfo::serialize(autil::DataBuffer &dataBuffer) const {
     dataBuffer.write(partId);
@@ -66,7 +68,9 @@ void GigStreamRpcInfo::deserialize(autil::DataBuffer &dataBuffer) {
     dataBuffer.read(isRetry);
 }
 
-bool GigStreamRpcInfo::isLack() const { return receiveStatus != GSRS_EOF; }
+bool GigStreamRpcInfo::isLack() const {
+    return receiveStatus != GSRS_EOF;
+}
 
 std::ostream &operator<<(std::ostream &os, const GigStreamRpcInfo &rpcInfo) {
     return os << "{"
@@ -75,25 +79,17 @@ std::ostream &operator<<(std::ostream &os, const GigStreamRpcInfo &rpcInfo) {
               << " SS:" << convertGigStreamRpcStatus(rpcInfo.sendStatus)
               << " RS:" << convertGigStreamRpcStatus(rpcInfo.receiveStatus)
               << " SPEC:" << rpcInfo.spec << " SC:" << rpcInfo.sendCount
-              << " RC:" << rpcInfo.receiveCount
-              << " SBT:" << rpcInfo.sendBeginTs << " SET:" << rpcInfo.sendEndTs
-              << " RBT:" << rpcInfo.receiveBeginTs
-              << " RET:" << rpcInfo.receiveEndTs
-              << " Retry:" << rpcInfo.isRetry<< "}";
+              << " RC:" << rpcInfo.receiveCount << " SBT:" << rpcInfo.sendBeginTs
+              << " SET:" << rpcInfo.sendEndTs << " RBT:" << rpcInfo.receiveBeginTs
+              << " RET:" << rpcInfo.receiveEndTs << " Retry:" << rpcInfo.isRetry << "}";
 }
 
 bool GigStreamRpcInfo::operator==(const GigStreamRpcInfo &other) const {
-    return (partId == other.partId
-            && sendCount == other.sendCount
-            && receiveCount == other.receiveCount
-            && sendBeginTs == other.sendBeginTs
-            && sendEndTs == other.sendEndTs
-            && sendStatus == other.sendStatus
-            && receiveBeginTs == other.receiveBeginTs
-            && receiveEndTs == other.receiveEndTs
-            && receiveStatus == other.receiveStatus
-            && spec == other.spec
-            && isRetry == other.isRetry);
+    return (partId == other.partId && sendCount == other.sendCount &&
+            receiveCount == other.receiveCount && sendBeginTs == other.sendBeginTs &&
+            sendEndTs == other.sendEndTs && sendStatus == other.sendStatus &&
+            receiveBeginTs == other.receiveBeginTs && receiveEndTs == other.receiveEndTs &&
+            receiveStatus == other.receiveStatus && spec == other.spec && isRetry == other.isRetry);
 }
 
 void GigStreamRpcRecord::begin() {
@@ -143,8 +139,7 @@ void GigStreamRpcRecord::snapshot(GigStreamRpcStatus &status, int64_t &beginTs,
     endTs = _endTs;
 }
 
-GigStreamRpcInfoController::GigStreamRpcInfoController(PartIdTy partId)
-    : _partId(partId) {
+GigStreamRpcInfoController::GigStreamRpcInfoController(PartIdTy partId) : _partId(partId) {
     atomic_set(&_closureCount, 0);
     atomic_set(&_totalSendClosureCount, 0);
     atomic_set(&_totalReceiveClosureCount, 0);
@@ -157,20 +152,19 @@ GigStreamRpcInfoController::GigStreamRpcInfoController(PartIdTy partId)
     atomic_set(&_totalReceiveSize, 0);
 }
 
-GigStreamRpcInfoController::~GigStreamRpcInfoController() {}
+GigStreamRpcInfoController::~GigStreamRpcInfoController() {
+}
 
 void GigStreamRpcInfoController::snapshot(GigStreamRpcInfo &rpcInfo) const {
     rpcInfo.partId = _partId;
     rpcInfo.sendCount = atomic_read(&_totalSendCount);
     rpcInfo.receiveCount = atomic_read(&_totalReceiveCount);
-    _sendRecord.snapshot(rpcInfo.sendStatus, rpcInfo.sendBeginTs,
-                         rpcInfo.sendEndTs);
-    _receiveRecord.snapshot(rpcInfo.receiveStatus, rpcInfo.receiveBeginTs,
-                            rpcInfo.receiveEndTs);
+    _sendRecord.snapshot(rpcInfo.sendStatus, rpcInfo.sendBeginTs, rpcInfo.sendEndTs);
+    _receiveRecord.snapshot(rpcInfo.receiveStatus, rpcInfo.receiveBeginTs, rpcInfo.receiveEndTs);
 }
 
-void calcStreamRpcConverage(const GigStreamRpcInfoMap &rpcInfo,
-                            size_t &usedRpcCount, size_t &lackRpcCount) {
+void calcStreamRpcConverage(const GigStreamRpcInfoMap &rpcInfo, size_t &usedRpcCount,
+                            size_t &lackRpcCount) {
     usedRpcCount = 0;
     lackRpcCount = 0;
     for (auto &pair : rpcInfo) {
@@ -181,8 +175,8 @@ void calcStreamRpcConverage(const GigStreamRpcInfoMap &rpcInfo,
     }
 }
 
-void calcStreamRpcConverage(const GigStreamRpcInfoVec &rpcInfoVec,
-                            size_t &usedRpcCount, size_t &lackRpcCount) {
+void calcStreamRpcConverage(const GigStreamRpcInfoVec &rpcInfoVec, size_t &usedRpcCount,
+                            size_t &lackRpcCount) {
     usedRpcCount = 0;
     lackRpcCount = 0;
     for (auto &partRpcInfo : rpcInfoVec) {

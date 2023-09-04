@@ -17,31 +17,29 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <iosfwd>
 #include <stdlib.h>
 #include <strings.h>
-#include <iosfwd>
 
 using namespace std;
 
 namespace autil {
 
-URLUtil::URLUtil() {
-}
+URLUtil::URLUtil() {}
 
-URLUtil::~URLUtil() {
-}
+URLUtil::~URLUtil() {}
 
 string URLUtil::decode(const string &str) {
     size_t nlen = str.length();
-    char *dstBuf = (char *)malloc(nlen+1);
+    char *dstBuf = (char *)malloc(nlen + 1);
     assert(dstBuf);
-    bzero(dstBuf, nlen+1);
+    bzero(dstBuf, nlen + 1);
     char *dst = dstBuf;
     const char *src = str.c_str();
     char temp[3]; // store two char for strtol, end with '\0'
     temp[2] = '\0';
 
-    for (size_t i=0; i <= nlen;) {
+    for (size_t i = 0; i <= nlen;) {
         if (src[i] == '+') {
             *dst++ = ' ';
             ++i;
@@ -61,6 +59,4 @@ string URLUtil::decode(const string &str) {
     return ss;
 }
 
-}
-
-
+} // namespace autil

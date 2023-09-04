@@ -16,7 +16,6 @@
 #include "indexlib/index/kv/kv_reader_impl.h"
 
 using namespace std;
-using namespace indexlib::codegen;
 
 namespace indexlib { namespace index {
 IE_LOG_SETUP(index, KVReaderImpl);
@@ -26,8 +25,8 @@ void KVReaderImpl::Open(const config::KVIndexConfigPtr& kvIndexConfig,
                         const util::SearchCachePartitionWrapperPtr& searchCache, int64_t latestIncSkipTs)
 {
     KVReader::Open(kvIndexConfig, partitionData, searchCache, latestIncSkipTs);
-    char* envParam = getenv("READ_REPORT_METRICS");
-    if (envParam && string(envParam) == "false") {
+    string envParam = autil::EnvUtil::getEnv("READ_REPORT_METRICS");
+    if (envParam == "false") {
         mKVReportMetrics = false;
     }
     if (kvIndexConfig && kvIndexConfig->GetRegionCount() > 1) {
@@ -116,7 +115,7 @@ bool KVReaderImpl::doCollectAllCode()
 
 void KVReaderImpl::TEST_collectCodegenResult(CodegenCheckers& checkers, std::string id)
 {
-    CodegenCheckerPtr checker(new CodegenChecker);
+    codegen::CodegenCheckerPtr checker(new codegen::CodegenChecker);
     COLLECT_CONST_MEM(checker, mHasTTL);
     COLLECT_CONST_MEM(checker, mHasBuildingSegment);
     COLLECT_CONST_MEM(checker, mHasOnlineSegment);

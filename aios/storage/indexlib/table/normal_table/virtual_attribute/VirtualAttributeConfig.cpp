@@ -21,18 +21,24 @@
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, VirtualAttributeConfig);
 
-VirtualAttributeConfig::VirtualAttributeConfig(const std::shared_ptr<indexlibv2::config::AttributeConfig>& attrConfig)
+VirtualAttributeConfig::VirtualAttributeConfig(const std::shared_ptr<index::AttributeConfig>& attrConfig)
     : _attrConfig(attrConfig)
 {
 }
 VirtualAttributeConfig::~VirtualAttributeConfig() {}
 const std::string& VirtualAttributeConfig::GetIndexType() const { return VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR; }
 const std::string& VirtualAttributeConfig::GetIndexName() const { return _attrConfig->GetIndexName(); }
-void VirtualAttributeConfig::Check() const { return _attrConfig->Check(); }
+const std::string& VirtualAttributeConfig::GetIndexCommonPath() const { return _attrConfig->GetIndexCommonPath(); }
+std::vector<std::string> VirtualAttributeConfig::GetIndexPath() const { return _attrConfig->GetIndexPath(); }
 std::shared_ptr<config::IIndexConfig> VirtualAttributeConfig::GetAttributeConfig() const { return _attrConfig; }
 std::vector<std::shared_ptr<config::FieldConfig>> VirtualAttributeConfig::GetFieldConfigs() const { return {}; }
-
-std::vector<std::string> VirtualAttributeConfig::GetIndexPath() const { return _attrConfig->GetIndexPath(); }
+void VirtualAttributeConfig::Deserialize(const autil::legacy::Any&, size_t idxInJsonArray,
+                                         const indexlibv2::config::IndexConfigDeserializeResource&)
+{
+}
+void VirtualAttributeConfig::Serialize(autil::legacy::Jsonizable::JsonWrapper& json) const {}
+void VirtualAttributeConfig::Check() const { return _attrConfig->Check(); }
 Status VirtualAttributeConfig::CheckCompatible(const IIndexConfig* other) const { return Status::OK(); }
+bool VirtualAttributeConfig::IsDisabled() const { return false; }
 
 } // namespace indexlibv2::table

@@ -217,7 +217,21 @@ void Logger::removeAllAppenders()
         m_appenderSet.clear();
     }
 }
+void Logger::logVaList(uint32_t level, const char *format, va_list ap) {
+    if (__builtin_expect((!isLevelEnabled(level)),1))
+        return;
 
+    char *buffer = getTLSBufferStorage<Logger>();
+    if (!buffer) {
+        return;
+    }
+    vsnprintf(buffer, MAX_MESSAGE_LENGTH, format, ap);
+    std::string msg(buffer);
+    LoggingEvent event(m_loggerName, msg, level);
+
+    _log(event);
+    
+}
 void Logger::logVaList(uint32_t level, const char * file, int line, const char * func, const char* fmt, va_list ap)
 {
     if (__builtin_expect((!isLevelEnabled(level)),1))

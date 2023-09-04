@@ -1,0 +1,31 @@
+#import(Tool)
+#import(Log)
+
+function stepRunFlow() 
+    local task = Flow.createTask("incProcessor", "processor", Flow.parameter)
+    if (not task:isValid())
+    then
+        Flow.setFatalError("create batch processor Task fail!")
+        return false
+    end
+    
+    if (not Flow.startTask(task, Flow.parameter))
+    then
+        Flow.setFatalError("start batch processor Task fail!")
+        return false
+    end
+    local endTime = Flow.getProperty("endTime")
+    if (endTime ~= nil and endTime ~= "")
+    then
+       local kvParam = {}
+       kvParam["endTime"] = endTime
+       if (Flow.finishTask(task, kvParam) == false)
+       then
+          Log.log("ERROR", "failed to finish batch processor "..Flow.getFlowId())
+          return false
+       end
+       Log.log("INFO", "finish batch processor "..Flow.getFlowId().." at "..endTime)
+       return true
+    end
+    return false
+end

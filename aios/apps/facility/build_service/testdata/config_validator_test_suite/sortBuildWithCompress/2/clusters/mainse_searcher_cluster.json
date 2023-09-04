@@ -1,0 +1,32 @@
+{
+    "build_option_config" : {
+        "sort_build" : true,
+        "sort_queue_size" : 5,
+        "sort_descriptions" : [
+            {
+                "sort_field" : "score2",
+                "sort_pattern" : "desc"
+            }
+        ]
+    },
+    "cluster_config" : {
+        "builder_rule_config" : {
+            "partition_count" : 1
+        },
+        "hash_mode" : {
+            "hash_field" : "id",
+            "hash_function" : "HASH"
+        },
+        "table_name" : "sample"
+    },
+    "swift_config" : {
+        "topic" : {
+            "obsolete_file_interval" : 3600,
+            "partition_buffer_size" : 1000,
+            "partition_count" : 2,
+            "partition_file_buf_size" : 1000,
+            "partition_resource" : 1,
+            "reserved_file_count" : 10
+        }
+    }
+}

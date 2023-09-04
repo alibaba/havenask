@@ -1,0 +1,57 @@
+{
+    "attributes" : [
+        "id",
+        "int32_field"
+    ],
+    "fields" : [
+        {
+            "field_name" : "id",
+            "field_type" : "UINT64"
+        },
+        {
+            "field_name" : "int32_field",
+            "field_type" : "INTEGER"
+        }
+    ],
+    "indexs" : [
+        {
+            "has_primary_key_attribute" : true,
+            "index_fields" : "id",
+            "index_name" : "primary_key_index",
+            "index_type" : "PRIMARYKEY64"
+        }
+    ],
+    "summarys" : {
+        "compress" : true,
+        "summary_fields" : [
+
+        ]
+    },
+    "table_name" : "simple",
+    "modify_operations" :
+    [
+        {
+            "delete" : {
+                "fields" : [ "int32_field" ],
+                "attributes" : [ "int32_field" ]
+            },
+            "parameters" : {
+                "execute_mode" : "block"
+            }
+        },
+        {
+            "add" : {
+                "fields" : [
+                    {
+                        "field_name" : "int32_field",
+                        "field_type" : "UINT64"
+                    }
+                ],
+                "attributes" : [ "int32_field" ]
+            },
+            "parameters" : {
+                "execute_mode" : "block"
+            }
+        }
+    ]
+}

@@ -1,0 +1,22 @@
+[
+    {
+        "file_patterns":[
+            "/index/service_id/"
+        ],
+        "load_strategy":"mmap",
+        "load_strategy_param":{
+            "lock":true
+        }
+    },
+    {
+        "file_patterns":[
+            "/index/.*",
+            "/summary/data"
+        ],
+        "load_strategy":"cache",
+        "load_strategy_param":{
+            "global_cache":true
+        }
+    }
+]
+

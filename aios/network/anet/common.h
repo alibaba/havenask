@@ -22,7 +22,10 @@
 #define BEGIN_ANET_NS() namespace anet {
 #define END_ANET_NS() }
 #define USE_ANET_NS() using namespace anet;
-#define DELETE_AND_SET_NULL_ANET(x) if ( x ) {delete x; x = NULL;}
+#define DELETE_AND_SET_NULL_ANET(x)                                                                                    \
+    if (x) {                                                                                                           \
+        delete x;                                                                                                      \
+        x = NULL;                                                                                                      \
+    }
 
-#endif/*End of ANET_COMMON_H*/
-
+#endif /*End of ANET_COMMON_H*/

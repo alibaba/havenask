@@ -21,12 +21,9 @@ namespace isearch {
 namespace queryparser {
 AUTIL_LOG_SETUP(ha3, QueryExpr);
 
-QueryExpr::QueryExpr() { 
-}
+QueryExpr::QueryExpr() {}
 
-QueryExpr::~QueryExpr() { 
-}
+QueryExpr::~QueryExpr() {}
 
 } // namespace queryparser
 } // namespace isearch
-

@@ -15,9 +15,9 @@
  */
 #include "autil/metric/Memory.h"
 
-#include <string.h>
-#include <stdlib.h>
 #include <fstream>
+#include <stdlib.h>
+#include <string.h>
 
 #include "autil/metric/MetricUtil.h"
 
@@ -28,16 +28,13 @@ namespace metric {
 
 const string Memory::MEM_PROC_STAT("/proc/meminfo");
 
-Memory::Memory() { 
-    _memInfoFile = MEM_PROC_STAT;
-}
+Memory::Memory() { _memInfoFile = MEM_PROC_STAT; }
 
-Memory::~Memory() { 
-}
+Memory::~Memory() {}
 
 void Memory::update() {
     ifstream fin(_memInfoFile.c_str());
-    
+
     string line;
     while (std::getline(fin, line)) {
         parseMemInfoLine(line.c_str(), _curStat);
@@ -45,12 +42,13 @@ void Memory::update() {
 }
 
 void Memory::parseMemInfoLine(const char *str, MemStat &stat) {
-#define EXTRACT_FIELD(field, value) {                   \
-        if (!strncmp(str, field, strlen(field))) {      \
-            const char *p = MetricUtil::skipToken(str); \
-            value = strtol(p, NULL, 10);                \
-            return;                                     \
-        }                                               \
+#define EXTRACT_FIELD(field, value)                                                                                    \
+    {                                                                                                                  \
+        if (!strncmp(str, field, strlen(field))) {                                                                     \
+            const char *p = MetricUtil::skipToken(str);                                                                \
+            value = strtol(p, NULL, 10);                                                                               \
+            return;                                                                                                    \
+        }                                                                                                              \
     }
     EXTRACT_FIELD("MemTotal", stat.memTotal);
     EXTRACT_FIELD("MemFree", stat.memFree);
@@ -63,7 +61,7 @@ void Memory::parseMemInfoLine(const char *str, MemStat &stat) {
     EXTRACT_FIELD("Writeback", stat.writeBack);
     EXTRACT_FIELD("AnonPages", stat.anonPages);
     EXTRACT_FIELD("Mapped", stat.mapped);
-    //if a is substr of b, so a should extract after b 
+    // if a is substr of b, so a should extract after b
     EXTRACT_FIELD("Active(anon)", stat.activeAnon);
     EXTRACT_FIELD("Active(file)", stat.activeFile);
     EXTRACT_FIELD("Active", stat.active);
@@ -81,10 +79,7 @@ void Memory::parseMemInfoLine(const char *str, MemStat &stat) {
 #undef EXTRACT_FIELD
 }
 
-void Memory::setMemInfoFile(const string &file) {
-    _memInfoFile = file;
-}
+void Memory::setMemInfoFile(const string &file) { _memInfoFile = file; }
 
-}
-}
-
+} // namespace metric
+} // namespace autil

@@ -1,0 +1,11 @@
+{
+    "field" : {
+        "name" : "f1",
+        "type" : [
+            "bbb"
+        ]
+    },
+    "plugin" : [
+        "plugin/a.so"
+    ]
+}

@@ -317,9 +317,6 @@ bool GZipFileReader::seek(int64_t offset)
     return false;
 }
 
-FileReaderBase* GZipFileReader::createInnerFileReader()
-{
-    return new (nothrow) FileReader;        
-}
+FileReaderBase* GZipFileReader::createInnerFileReader() { return new (nothrow) FileReader; }
 
 }} // namespace build_service::reader

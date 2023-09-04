@@ -1,0 +1,108 @@
+{
+    "packages" : [
+    ],
+    "role_customize" : [
+        {
+            "_bs_role" : "admin",
+            "priority" : {
+                "major_priority" : 32,
+                "minor_priority" : 0
+            },
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        {
+                            "amount" : 0,
+                            "name" : "cpu"
+                        },
+                        {
+                            "amount" : 0,
+                            "name" : "mem"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "_bs_role" : ".*",
+            "slotResources" : [
+                {
+                    "slotResources" : [
+                        {
+                            "amount" : 0,
+                            "name" : "cpu"
+                        },
+                        {
+                            "amount" : 0,
+                            "name" : "mem"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "role_default" : {
+        "count" : 1,
+        "priority" : {
+            "major_priority" : 64,
+            "minor_priority" : 0
+        },
+        "processInfos" : [
+            {
+                "args" : [
+                    [
+                        "-l",
+                        "$HIPPO_APP_INST_ROOT/usr/local/etc/bs/bs_test_alog.conf"
+                    ]
+                ],
+                "envs" : [
+                    [
+                        "JAVA_HOME",
+                        "$HIPPO_APP_INST_ROOT/hippo_hadoop_root/usr/local/java/jdk1.7.0_79"
+                    ],
+                    [
+                        "CLASSPATH",
+                        ".:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar"
+                    ],
+                    [
+                        "HADOOP_HOME",
+                        "$HIPPO_APP_INST_ROOT/hippo_hadoop_root/usr/local/hadoop/hadoop/"
+                    ],
+                    [
+                        "LD_LIBRARY_PATH",
+                        "$JAVA_HOME/jre/lib/amd64/server:/opt/taobao/java/jre/lib/amd64/server/"
+                    ],
+                    [
+                        "HADOOP_JAVA_PLATFORM_OPTS",
+                        "-XX:-UsePerfData"
+                    ],
+                    [
+                        "FSLIB_KMONITOR_SINK_ADDRESS",
+                        "11.158.132.186:4141"
+                    ],
+                    [
+                        "fill_counter_info",
+                        "true"
+                    ],
+                    [
+                        "INDEXLIB_PLUGIN_PATH",
+                        "$HIPPO_APP_INST_ROOT/usr/local/lib64/"
+                    ],
+                    [
+                        "FSLIB_ENABLE_META_CACHE",
+                        "true"
+                    ],
+                    [
+                        "FSLIB_ENABLE_DATA_CACHE",
+                        "true"
+                    ],
+                    [
+                        "control_flow_config_path",
+                        "$HIPPO_APP_INST_ROOT/usr/local/etc/bs/lua/lua.conf"
+                    ]
+                ],
+                "isDaemon" : true
+            }
+        ]
+    }
+}

@@ -25,7 +25,7 @@ class IMemIndexer;
 }
 
 namespace indexlib::file_system {
-class Directory;
+class IDirectory;
 }
 
 namespace indexlibv2::plain {
@@ -34,7 +34,7 @@ class SegmentMetricsDumpItem : public framework::SegmentDumpItem
 {
 public:
     SegmentMetricsDumpItem(const std::shared_ptr<indexlib::framework::SegmentMetrics>& segmentMetrics,
-                           const std::shared_ptr<indexlib::file_system::Directory>& dir);
+                           const std::shared_ptr<indexlib::file_system::IDirectory>& dir);
 
     SegmentMetricsDumpItem(const SegmentMetricsDumpItem&) = delete;
     SegmentMetricsDumpItem& operator=(const SegmentMetricsDumpItem&) = delete;
@@ -48,7 +48,7 @@ public:
 
 private:
     std::shared_ptr<indexlib::framework::SegmentMetrics> _segmentMetrics;
-    std::shared_ptr<indexlib::file_system::Directory> _dir;
+    std::shared_ptr<indexlib::file_system::IDirectory> _dir;
     bool _dumped;
 
     AUTIL_LOG_DECLARE();

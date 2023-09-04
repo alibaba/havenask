@@ -19,7 +19,7 @@
 namespace anet {
 
 class Packet;
- 
+
 /**
  * IPacketFactory is used to construct IPacketStreamer.
  * When ANET read response form peer, it will use IPacketFactory
@@ -27,8 +27,8 @@ class Packet;
  */
 class IPacketFactory {
 public:
-    virtual ~IPacketFactory(){}
-    
+    virtual ~IPacketFactory() {}
+
     /**
      * The function is called when ANET need to construct a new
      * Packet. Which type of Packet will be generated in ANET is
@@ -39,6 +39,6 @@ public:
      */
     virtual Packet *createPacket(int pcode) = 0;
 };
-}
+} // namespace anet
 
 #endif /*IPACKET_FACTORY_H_*/

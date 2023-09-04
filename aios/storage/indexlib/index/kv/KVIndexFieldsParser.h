@@ -51,9 +51,9 @@ public:
     Status Init(const std::vector<std::shared_ptr<config::IIndexConfig>>& indexConfigs,
                 const std::shared_ptr<document::DocumentInitParam>& initParam) override;
     indexlib::util::PooledUniquePtr<document::IIndexFields> Parse(const document::ExtendDocument& extendDoc,
-                                                                  autil::mem_pool::Pool* pool) override;
+                                                                  autil::mem_pool::Pool* pool) const override;
     indexlib::util::PooledUniquePtr<document::IIndexFields> Parse(autil::StringView serializedData,
-                                                                  autil::mem_pool::Pool* pool) override;
+                                                                  autil::mem_pool::Pool* pool) const override;
 
 private:
     std::shared_ptr<indexlib::util::AccumulativeCounter>

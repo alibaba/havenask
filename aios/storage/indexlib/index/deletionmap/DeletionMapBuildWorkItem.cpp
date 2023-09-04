@@ -15,6 +15,8 @@
  */
 #include "indexlib/index/deletionmap/DeletionMapBuildWorkItem.h"
 
+#include "indexlib/document/DocumentIterator.h"
+
 namespace indexlib::index {
 AUTIL_LOG_SETUP(indexlib.index, DeletionMapBuildWorkItem);
 
@@ -29,16 +31,24 @@ DeletionMapBuildWorkItem::~DeletionMapBuildWorkItem() {}
 
 Status DeletionMapBuildWorkItem::doProcess()
 {
-    for (size_t i = 0; i < _documentBatch->GetBatchSize(); ++i) {
-        std::shared_ptr<indexlibv2::document::IDocument> iDoc = (*_documentBatch)[i];
-        DocOperateType opType = iDoc->GetDocOperateType();
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(_documentBatch);
+    while (iter->HasNext()) {
+        std::shared_ptr<indexlibv2::document::IDocument> doc = iter->Next();
+        DocOperateType opType = doc->GetDocOperateType();
         assert(opType != UNKNOWN_OP);
+        Status st;
         if (opType == ADD_DOC) {
-            RETURN_STATUS_DIRECTLY_IF_ERROR(_builder->AddDocument(iDoc.get()));
+            st = _builder->AddDocument(doc.get());
+            if (!st.IsOK()) {
+                AUTIL_LOG(ERROR, "add doc failed for deletion map, docid:%d, %s", doc->GetDocId(),
+                          st.ToString().c_str());
+            }
         } else if (opType == DELETE_DOC) {
-            RETURN_STATUS_DIRECTLY_IF_ERROR(_builder->DeleteDocument(iDoc.get()));
-        } else {
-            continue;
+            st = _builder->DeleteDocument(doc.get());
+            if (!st.IsOK()) {
+                AUTIL_LOG(ERROR, "delete doc failed for deletion map, docid:%d, %s", doc->GetDocId(),
+                          st.ToString().c_str());
+            }
         }
     }
     return Status::OK();

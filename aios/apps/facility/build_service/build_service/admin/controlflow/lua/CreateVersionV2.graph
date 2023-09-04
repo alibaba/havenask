@@ -1,0 +1,32 @@
+#import(Tool)
+#import(Log)
+
+function graphDef()
+   local param = Tool.copyMap(Graph.parameter)
+   local clusterName = param["clusterName"]
+
+   --get last inc flow, set upstream
+   local incFlowTag = clusterName..":IncBuild"
+   local incFlowIds = Graph.getFlowIdByTag(incFlowTag)
+   local lastFlowId = incFlowIds[#incFlowIds]
+   local lastIncFlow = Graph.getFlow(lastFlowId)
+   Log.log("", "last inc flow id:"..lastFlowId)
+   if (lastIncFlow)
+   then
+      Log.log("", "finishing task:"..lastFlowId)
+      local kvMap = KVParamUtil()
+      for k,v in pairs(param) do
+          kvMap:setValue(k, v)
+      end
+      if (lastIncFlow:finishTask("incBuilder", kvMap:toJsonString()))
+      then
+         Log.log("", "inc builder finishing")
+         local incBuild = Graph.loadSimpleFlow("builderV2", "incBuilder", kvMap:toJsonString())
+         incBuild:addTag(clusterName..":IncBuild")
+         incBuild:addTag("BSBuildV2")
+         Graph.setUpstream(incBuild, lastIncFlow)
+         return true
+      end
+   end
+   return false
+end

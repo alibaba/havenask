@@ -36,7 +36,8 @@ FlowError DocHandlerProducer::produce(document::ProcessedDocumentVecPtr& process
         if (fe != FE_OK) {
             return fe;
         }
-        if (_seekLocator.IsValid() && docTimestamp != INVALID_TIMESTAMP && docTimestamp < _seekLocator.GetOffset()) {
+        if (_seekLocator.IsValid() && docTimestamp != INVALID_TIMESTAMP &&
+            docTimestamp < _seekLocator.GetOffset().first) {
             continue;
         }
         processedDocVec.reset(new document::ProcessedDocumentVec());

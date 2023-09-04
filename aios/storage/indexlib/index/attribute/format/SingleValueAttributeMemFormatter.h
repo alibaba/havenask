@@ -45,7 +45,7 @@ template <typename T>
 class SingleValueAttributeMemFormatter : public SingleValueAttributeMemFormatterBase
 {
 public:
-    SingleValueAttributeMemFormatter(const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    SingleValueAttributeMemFormatter(const std::shared_ptr<AttributeConfig>& attrConfig);
     ~SingleValueAttributeMemFormatter() = default;
 
 private:
@@ -79,7 +79,7 @@ private:
                                     std::vector<docid_t>* new2old);
 
 private:
-    std::shared_ptr<config::AttributeConfig> _attrConfig;
+    std::shared_ptr<AttributeConfig> _attrConfig;
     bool _supportNull;
     T _encodedNullValue;
     indexlib::index::TypedSliceList<T>* _data;
@@ -94,7 +94,7 @@ AUTIL_LOG_SETUP_TEMPLATE(indexlib.index, SingleValueAttributeMemFormatter, T);
 
 template <typename T>
 SingleValueAttributeMemFormatter<T>::SingleValueAttributeMemFormatter(
-    const std::shared_ptr<config::AttributeConfig>& attrConfig)
+    const std::shared_ptr<AttributeConfig>& attrConfig)
     : _attrConfig(attrConfig)
     , _data(NULL)
     , _nullFieldBitmap(NULL)
@@ -246,22 +246,35 @@ Status SingleValueAttributeMemFormatter<T>::DumpUncompressedFileImpl(
     const std::shared_ptr<indexlib::file_system::FileWriter>& dataFile, std::vector<docid_t>* new2old)
 {
     assert(!new2old || _data->Size() == new2old->size());
-    for (uint32_t i = 0; i < _data->Size(); ++i) {
-        docid_t docId = i;
-        if constexpr (IsSortDump) {
-            docId = new2old->at(i);
-        }
+    for (size_t i = 0; i < _data->Size(); ++i) {
         if constexpr (SupportNull) {
-            if (docId % SingleEncodedNullValue::NULL_FIELD_BITMAP_SIZE == 0) {
-                uint64_t* nullValue = NULL;
-                _nullFieldBitmap->Read(docId / SingleEncodedNullValue::NULL_FIELD_BITMAP_SIZE, nullValue);
-
-                auto [writeSt, len] = dataFile->Write((char*)nullValue, sizeof(uint64_t)).StatusWith();
+            if (i % SingleEncodedNullValue::NULL_FIELD_BITMAP_SIZE == 0) {
+                uint64_t nullValue = 0;
+                if constexpr (IsSortDump) {
+                    for (size_t j = i; j < _data->Size() && j < i + SingleEncodedNullValue::NULL_FIELD_BITMAP_SIZE;
+                         ++j) {
+                        docid_t docId = new2old->at(j);
+                        int ref = docId % SingleEncodedNullValue::NULL_FIELD_BITMAP_SIZE;
+                        uint64_t* bitMap = NULL;
+                        _nullFieldBitmap->Read(docId / SingleEncodedNullValue::NULL_FIELD_BITMAP_SIZE, bitMap);
+                        if ((*bitMap) & (1UL << ref)) {
+                            nullValue |= (1UL << (j % SingleEncodedNullValue::NULL_FIELD_BITMAP_SIZE));
+                        }
+                    }
+                } else {
+                    _nullFieldBitmap->Read(i / SingleEncodedNullValue::NULL_FIELD_BITMAP_SIZE, nullValue);
+                }
+                auto [writeSt, len] = dataFile->Write((char*)&nullValue, sizeof(uint64_t)).StatusWith();
                 if (!writeSt.IsOK()) {
                     AUTIL_LOG(ERROR, "fail to dump , ErrorInfo: [%s]", writeSt.ToString().c_str());
                     return writeSt;
                 }
             }
+        }
+
+        docid_t docId = i;
+        if constexpr (IsSortDump) {
+            docId = new2old->at(i);
         }
         T* value = NULL;
         _data->Read(docId, value);

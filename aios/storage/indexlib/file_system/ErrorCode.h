@@ -104,7 +104,7 @@ inline Status toStatus(ErrorCode ec)
     case FSEC_ISDIR:
         return Status::InternalError("is a dir");
     case FSEC_NOENT:
-        return Status::InternalError("is not exist");
+        return Status::NotFound("is not exist");
     case FSEC_NOTDIR:
         return Status::InternalError("is not a dir");
     case FSEC_NOTSUP:

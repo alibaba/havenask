@@ -1,0 +1,40 @@
+{
+    "build_option_config" : {
+        "sort_build" : true,
+        "sort_queue_size" : 5,
+        "sort_descriptions" : [
+            {
+                "sort_field" : "company_id",
+                "sort_pattern" : "desc"
+            }
+        ]
+    },
+    "cluster_config" : {
+        "builder_rule_config" : {
+            "partition_count" : 1
+        },
+        "hash_mode" : {
+            "hash_field" : "id",
+            "hash_function" : "HASH"
+        },
+        "table_name" : "sample"
+    },
+    "swift_config" : {
+        "topic_full": {
+            "topic_mode" : "persist_data",
+            "reserved_file_count": 2,
+            "obsolete_file_interval": 48,
+            "partition_count": 1024,
+            "partition_max_buffer_size": 8192,
+            "reader_config": "oneRequestReadCount=10000;readBufferSize=50000",
+            "writer_config": "functionChain=hashId2partId;compressThresholdInBytes=1024;mode=async|safe;maxBufferSize=4294967296;mergeMessage=true;maxKeepInBufferTime=10000000"
+        },
+        "topic_inc": {
+            "obsolete_file_interval": 96,
+            "partition_count": 128,
+            "partition_max_buffer_size": 8192,
+            "reader_config": "oneRequestReadCount=10000;readBufferSize=50000",
+            "writer_config": "functionChain=hashId2partId;compressThresholdInBytes=1024;mode=async|safe;maxBufferSize=2147483648;maxKeepInBufferTime=100000;mergeMessage=false"
+        }
+    }
+}

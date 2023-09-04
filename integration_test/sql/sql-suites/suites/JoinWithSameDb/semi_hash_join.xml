@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="semi_hash_join">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT /*+ HASH_JOIN(daogou)*/ company_id, company_name FROM company WHERE company_id IN (SELECT company_id from daogou WHERE id + company.company_id <= 5)
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"company_id", "company_name"</Resource>
+        <Resource name="column_types">int32, multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:daogou;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1, "APPLE"
+2, "NOKIA"
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#4(type=api)
+    ExchangeOp#3(distribution={type:SINGLETON})
+        LimitOp#2(limit=100)
+            LookupJoinOp#1(build_node={catalog_name:default,db_name:daogou,limit:2147483647,output_fields:[$company_id,$company_name],push_down_ops:[{attrs:{output_fields:[$company_id,$company_name]},op_name:CalcOp}],table_name:company,table_type:normal,use_nest_table:false},condition=AND(=($company_id,$company_id0),<=(+($id,$company_id),5)),equi_condition==($company_id,$company_id0),is_equi_join=true,is_internal_build=false,join_type=SEMI,left_is_build=true,output_fields=[$company_id,$company_name],remaining_condition=<=(+($id,$company_id),5),semi_join_type=SEMI)
+                TableScanOp#0(catalog_name=default,db_name=daogou,limit=2147483647,output_fields=[$company_id,$id],push_down_ops=[{attrs:{output_fields:[$company_id,$id]},op_name:CalcOp}],table_name=daogou,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

@@ -49,7 +49,7 @@ namespace indexlibv2::framework {
 class ITablet;
 }
 namespace indexlibv2::config {
-class TabletSchema;
+class ITabletSchema;
 }
 
 namespace build_service { namespace common {
@@ -80,7 +80,7 @@ public:
         indexlib::util::CounterMapPtr counterMap;
         common::CounterSynchronizerPtr counterSynchronizer;
         indexlib::config::IndexPartitionSchemaPtr schema;
-        std::shared_ptr<indexlibv2::config::TabletSchema> schemav2;
+        std::shared_ptr<indexlibv2::config::ITabletSchema> schemav2;
         bool isTablet = false;
     };
 
@@ -162,7 +162,6 @@ private:
 
     bool initSwiftLinkReporter(const RoleInitParam& initParam, int64_t totalSwiftPartitionCount,
                                const std::string& topicName, SwiftProcessedDocProducer* producer);
-    bool needProcessRawdoc(const RoleInitParam& initParam);
 
 private:
     common::ResourceKeeperMap _availableResources, _usingResources;

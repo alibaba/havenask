@@ -18,25 +18,22 @@
  * Author: lizhang
  * Create time: 2010-11-07 18:38:34
  * $Id$
- * 
+ *
  * Description: ***add description here***
- * 
+ *
  */
 
 #include "aios/network/anet/delaydecodepacketfactory.h"
+
 #include "aios/network/anet/delaydecodepacket.h"
 
 namespace anet {
 class Packet;
 
-DelayDecodePacketFactory::DelayDecodePacketFactory() {
-}
+DelayDecodePacketFactory::DelayDecodePacketFactory() {}
 
-DelayDecodePacketFactory::~DelayDecodePacketFactory() {
-}
+DelayDecodePacketFactory::~DelayDecodePacketFactory() {}
 
-Packet* DelayDecodePacketFactory::createPacket(int /*pcode*/)  {
-    return new DelayDecodePacket;
-}
+Packet *DelayDecodePacketFactory::createPacket(int /*pcode*/) { return new DelayDecodePacket; }
 
-}/*end namespace anet*/
+} /*end namespace anet*/

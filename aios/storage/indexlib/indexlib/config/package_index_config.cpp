@@ -126,7 +126,7 @@ void PackageIndexConfig::AddFieldConfig(const FieldConfigPtr& fieldConfig, int32
 
     if (mImpl->indexFields.size() >= maxFieldNum) {
         stringstream ss;
-        ss << "Only support at last " << maxFieldNum << " fields in package index";
+        ss << "Only support at most " << maxFieldNum << " fields in package index";
         INDEXLIB_FATAL_ERROR(Schema, "%s", ss.str().c_str());
     }
 

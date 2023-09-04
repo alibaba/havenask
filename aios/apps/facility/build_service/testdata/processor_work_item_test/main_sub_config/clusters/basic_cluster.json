@@ -1,0 +1,8 @@
+{
+    "cluster_config" : {
+        "table_name" : "basic",
+	    "hash_mode" : {
+            "hash_field" : "id"
+	    }
+    }
+}

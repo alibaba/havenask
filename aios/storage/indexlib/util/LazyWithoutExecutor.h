@@ -115,7 +115,7 @@ struct VoidFunctionAwaiter {
     std::function<void()> _func;
 };
 
-template <int32_t STARTEGY = _MM_HINT_NTA>
+template <auto STRATEGY = _MM_HINT_NTA>
 struct PrefetchAwaiter {
     template <typename T>
     PrefetchAwaiter(T* address, size_t len = 64) : _address(static_cast<void const*>(address))
@@ -129,7 +129,7 @@ struct PrefetchAwaiter {
     await_suspend(std::coroutine_handle<PromiseType> handle) noexcept
     {
         for (size_t start = 0; start < _len; start += 64) {
-            _mm_prefetch((void*)((size_t)_address + start), STARTEGY);
+            _mm_prefetch((void*)((size_t)_address + start), STRATEGY);
         }
         auto* scheduleQueue = handle.promise()._scheduleQueue;
         scheduleQueue->push_back(handle);

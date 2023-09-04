@@ -108,7 +108,9 @@ void SummarySchemaImpl::AssertCompatible(const SummarySchemaImpl& other) const
     IE_CONFIG_ASSERT(mSummaryConfigs.size() <= other.mSummaryConfigs.size(), "mSummaryConfigs' size not compatible");
     for (size_t i = 0; i < mSummaryConfigs.size(); ++i) {
         auto status = mSummaryConfigs[i]->CheckEqual(*(other.mSummaryConfigs[i]));
-        THROW_IF_STATUS_ERROR(status);
+        if (!status.IsOK()) {
+            AUTIL_LEGACY_THROW(util::AssertEqualException, status.ToString());
+        }
     }
     IE_CONFIG_ASSERT(mSummaryGroups.size() <= other.mSummaryGroups.size(), "mSummaryGroups's size not compatible");
     for (size_t i = 0; i < mSummaryGroups.size(); ++i) {

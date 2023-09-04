@@ -1,0 +1,92 @@
+#import(Log)
+   
+function stepRunFlow()
+    local fullBuilder = Flow.createTask("fullBuilder", "builder", Flow.parameter)
+    local fullMerger = Flow.createTask("fullMerger", "merger", Flow.parameter)
+    local flowState = Flow.getProperty("_flow_status_")
+    if (flowState == "")
+    then
+        if (Flow.startTask(fullBuilder))
+        then
+                Log.log("", "start full builder-------")
+                Flow.setProperty("_flow_status_", "fullBuilding")
+        end
+        return false
+    end
+    --local builderState = fullBuilder:getProperty("_task_status_")
+    if (flowState == "fullBuilding")
+    then   
+       if (fullBuilder:isTaskRunning())
+       then
+            Log.log("", "full builder running--------")
+            local fullProcessorFlowId = Flow.parameter['fullProcessorFlowId']
+            local processorFlowStatus = Flow.getFlowStatus(fullProcessorFlowId)
+            if (processorFlowStatus == "finish")
+            then
+                if (Flow.finishTask(fullBuilder, nil))
+                then
+                    Log.log("", "full builder stopping")
+                    Flow.setProperty("_flow_status_", "fullBuildStopping")
+                end
+            end
+        end
+        return false
+    end
+    local mergeCrontabFlowId = Flow.parameter['mergeCrontabFlowId']
+    local mergeCrontab = Flow.getTaskInFlow("mergeCrontab", mergeCrontabFlowId);
+    if (flowState == "fullBuildStopping")
+    then
+        if (fullBuilder:isTaskFinish())
+        then
+            local mergeConfig
+            local hasMergingTask
+            local mergingTaskFinish
+            if (mergeCrontab:isValid())
+            then
+                mergeConfig = mergeCrontab:getProperty("merging_task_name")
+                hasMergingTask = mergeCrontab:getProperty("has_merging_task")
+                mergingTaskFinish = mergeCrontab:getProperty("current_merging_task_finished")
+                if (hasMergingTask == "true" and mergingTaskFinish == "true")
+                then
+                    hasMergingTask = "false"
+                end
+            end
+            if (hasMergingTask ~= "true")
+            then
+                return false
+            end
+            local mergeParam = {}
+            mergeParam["mergeConfigName"] = mergeConfig
+            mergeParam["disableFillIndexInfo"] = "false"
+
+            local disableFillIndexInfo = Flow.parameter["disable_fill_index_info"]
+            if (disableFillIndexInfo ~= nil)
+            then
+                mergeParam["disableFillIndexInfo"] = disableFillIndexInfo
+            end
+            if (Flow.startTask(fullMerger, mergeParam))
+            then
+                Flow.setProperty("_flow_status_", "fullMerging")
+            end
+        end
+        return false
+   end
+    
+   if (flowState == "fullMerging")
+   then
+        if (fullMerger:isTaskFinish())
+        then
+            mergeCrontab:setProperty("current_merging_task_finished", "true")
+            Flow.setProperty("_flow_status_", "fullDone")
+            return true
+        end
+        return false
+   end
+
+   if (flowState == "fullDone")
+   then
+       return true
+   end
+   return true
+end
+    

@@ -1,0 +1,53 @@
+{
+    "table_name": "customized_document_miss_id",
+    "table_type": "customized",
+    "customized_table_config" : {
+        "plugin_name" : "plugin1",
+        "parameters" : {"key":"param1"}
+    },
+    "customized_document_config" :
+    [
+        {
+            "plugin_name" : "plugin2",
+            "parameters" : {"key":"param2"},
+        },
+        {
+            "plugin_name" : "plugin3",
+            "parameters" : {"key":"param3"},
+            "id" : "accessor.raw"
+        }
+    ],
+    "fields": 
+    [
+        {"field_name":"pk","field_type":"INTEGER"},
+        {"field_name":"title","field_type":"TEXT","analyzer":"internet_analyzer"},
+	{"field_name":"multi_value","field_type":"INTEGER","multi_value":true}
+    ],
+    "indexs":
+    [
+        {
+            "index_name" : "main_pk_index",
+            "index_type" : "PRIMARYKEY64",
+            "index_fields" : "pk",
+            "has_primary_key_attribute" : true
+        },
+        {
+            "index_name" : "title_index",
+            "index_type" : "TEXT",
+            "index_fields" : "title",
+            "term_payload_flag" :  1 ,
+            "doc_payload_flag" :  1 ,
+            "position_payload_flag" :  1,
+            "customized_config" :
+            [
+                {
+                    "plugin_name" : "plugin4",
+                    "parameters" : {"key":"param4"},
+                    "id" : "accessor.writer"
+                }
+            ]            
+        }
+    ],
+    "attributes": [ "pk"],
+    "summarys": {"summary_fields": ["pk", "multi_value"], "compress":true}
+}

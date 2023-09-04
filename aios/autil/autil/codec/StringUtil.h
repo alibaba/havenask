@@ -33,33 +33,33 @@ struct cn_result {
 };
 
 class StringUtil {
- public:
-    static char* trim(char* szStr);
-    static std::string removeSpace(const std::string& str);
+public:
+    static char *trim(char *szStr);
+    static std::string removeSpace(const std::string &str);
 
-    static unsigned int split(std::vector<std::string>& v, const std::string& s, char delimiter,
-                              unsigned int maxSegments = INT_MAX);
+    static unsigned int
+    split(std::vector<std::string> &v, const std::string &s, char delimiter, unsigned int maxSegments = INT_MAX);
     template <typename T>
-    static unsigned int split(T& output, const std::string& s, char delimiter, unsigned int maxSegments = INT_MAX);
+    static unsigned int split(T &output, const std::string &s, char delimiter, unsigned int maxSegments = INT_MAX);
 
-    static std::string join(const std::vector<std::string>& array, const std::string& seperator);
+    static std::string join(const std::vector<std::string> &array, const std::string &seperator);
 
-    static bool strToKV32(const char* str, uint64_t& value);
-    static bool strToKVFloat(const char* str, uint64_t& value);
+    static bool strToKV32(const char *str, uint64_t &value);
+    static bool strToKVFloat(const char *str, uint64_t &value);
 
     // 是否全是非中文字符
-    static bool isAllChar(const std::string& str);
+    static bool isAllChar(const std::string &str);
     // 是否包含非中文字符
-    static bool containsChar(const std::string& str);
+    static bool containsChar(const std::string &str);
     // 是否是中文和英文的混合
-    static bool isCnCharSemi(const std::string& str, cn_result& cn_obj);
+    static bool isCnCharSemi(const std::string &str, cn_result &cn_obj);
     // 根据分词将src 字符串加粗
-    static int32_t boldLineStr(const std::vector<std::string>& segments, const char* src, int32_t src_len, char* dst,
-                               int32_t dest_len);
+    static int32_t boldLineStr(
+        const std::vector<std::string> &segments, const char *src, int32_t src_len, char *dst, int32_t dest_len);
 };
 
 template <typename T>
-inline unsigned int StringUtil::split(T& output, const std::string& s, char delimiter, unsigned int maxSegments) {
+inline unsigned int StringUtil::split(T &output, const std::string &s, char delimiter, unsigned int maxSegments) {
     std::string::size_type left = 0;
     unsigned int i = 0;
     unsigned int num = 0;
@@ -80,6 +80,5 @@ inline unsigned int StringUtil::split(T& output, const std::string& s, char deli
     return num;
 }
 
-}
-}
-
+} // namespace codec
+} // namespace autil

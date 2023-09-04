@@ -18,8 +18,7 @@
 namespace anet {
 class Packet;
 
-class StreamingContext
-{
+class StreamingContext {
 public:
     StreamingContext();
     virtual ~StreamingContext();
@@ -43,6 +42,7 @@ public:
     virtual Packet *stealPacket();
     void setPacket(Packet *packet);
     virtual void reset();
+
 protected:
     Packet *_packet;
     bool _completed;
@@ -52,5 +52,5 @@ protected:
     const char *_errorString;
 };
 
-}/*end namespace anet*/
+} /*end namespace anet*/
 #endif /*ANET_STREAMINGCONTEXT_H_*/

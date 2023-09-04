@@ -67,7 +67,7 @@ public:
     bool initV2(std::unique_ptr<indexlibv2::document::IDocumentFactory> documentFactory,
                 const indexlib::document::DocumentInitParamPtr& initParam,
                 const indexlib::document::SourceSchemaParserFactoryGroupPtr& srcSchemaParserGroup,
-                const std::shared_ptr<indexlibv2::config::TabletSchema>& schema);
+                const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema);
 
     bool initQueryEvaluator(const config::ResourceReaderPtr& resourceReader, const KeyValueMap& kvMap);
     indexlib::config::IndexPartitionSchemaPtr getIndexPartitionSchema() { return _schema; }

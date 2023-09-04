@@ -159,11 +159,10 @@ Status NormalTableAddIndexOperation::PrepareDocIterAndParser(const framework::In
     }
     std::vector<docid_t> docRange = {baseDocId, endDocId};
 
-    params["read_index_required_fields"] = autil::legacy::ToJsonString(fieldNames);
     params["__buildin_reserve_deleted_doc__"] = autil::StringUtil::toString(true);
     params["__buildin_docid_range__"] = autil::StringUtil::toString(docRange, "_");
 
-    status = iter->Init(_newTabletData, {100, 100}, context.GetMetricsManager(), params);
+    status = iter->Init(_newTabletData, {100, 100}, context.GetMetricsManager(), fieldNames, params);
     RETURN_IF_STATUS_ERROR(status, "doc iter init failed");
     _docIter = iter;
 

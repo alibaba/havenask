@@ -16,7 +16,9 @@
 #pragma once
 
 #include <map>
+#include <stdint.h>
 #include <string>
+#include <utility>
 
 #include "autil/legacy/jsonizable.h"
 #include "iquan/common/Common.h"
@@ -25,10 +27,15 @@ namespace iquan {
 
 class CacheConfig : public autil::legacy::Jsonizable {
 public:
-    CacheConfig() : initialCapcity(1024), concurrencyLevel(8), maxSize(4096) {}
+    CacheConfig()
+        : initialCapcity(1024)
+        , concurrencyLevel(8)
+        , maxSize(4096) {}
 
     CacheConfig(int64_t maxSize)
-        : initialCapcity(1024), concurrencyLevel(8), maxSize(maxSize) {}
+        : initialCapcity(1024)
+        , concurrencyLevel(8)
+        , maxSize(maxSize) {}
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("initial_capacity", initialCapcity, initialCapcity);
@@ -51,7 +58,8 @@ public:
 
 class ClientConfig : public autil::legacy::Jsonizable {
 public:
-    ClientConfig() : debugFlag(false) {
+    ClientConfig()
+        : debugFlag(false) {
         cacheConfigs[IQUAN_SQL_PARSE] = CacheConfig();
         cacheConfigs[IQUAN_REL_TRANSFORM] = CacheConfig();
         cacheConfigs[IQUAN_REL_POST_OPTIMIZE] = CacheConfig();

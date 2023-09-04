@@ -22,13 +22,16 @@
 #include "indexlib/document/normal/NullFieldAppender.h"
 
 namespace indexlibv2::config {
-class TabletSchema;
-class AttributeConfig;
+class ITabletSchema;
 class SummaryIndexConfig;
 } // namespace indexlibv2::config
 
 namespace indexlib::util {
 class AccumulativeCounter;
+}
+
+namespace indexlibv2::index {
+class AttributeConfig;
 }
 
 namespace indexlibv2 { namespace document {
@@ -43,7 +46,7 @@ public:
     virtual ~SingleDocumentParser();
 
 public:
-    bool Init(const std::shared_ptr<config::TabletSchema>& schema,
+    bool Init(const std::shared_ptr<config::ITabletSchema>& schema,
               std::shared_ptr<indexlib::util::AccumulativeCounter>& attrConvertErrorCounter);
     std::shared_ptr<NormalDocument> Parse(NormalExtendDocument* extendDoc);
 
@@ -66,7 +69,7 @@ protected:
     virtual bool prepareIndexConfigMap();
 
 private:
-    const std::shared_ptr<indexlibv2::config::AttributeConfig>& GetAttributeConfig(fieldid_t fieldId) const;
+    const std::shared_ptr<index::AttributeConfig>& GetAttributeConfig(fieldid_t fieldId) const;
 
     void SetPrimaryKeyField(NormalExtendDocument* document);
 
@@ -77,8 +80,8 @@ private:
     bool Validate(const NormalExtendDocument* document);
 
 protected:
-    std::shared_ptr<config::TabletSchema> _schema;
-    std::vector<std::shared_ptr<config::AttributeConfig>> _fieldIdToAttrConfigs;
+    std::shared_ptr<config::ITabletSchema> _schema;
+    std::vector<std::shared_ptr<index::AttributeConfig>> _fieldIdToAttrConfigs;
     std::shared_ptr<config::SummaryIndexConfig> _summaryIndexConfig;
 
 private:

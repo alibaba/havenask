@@ -19,15 +19,12 @@
 
 using namespace std;
 
-namespace autil { namespace mem_pool {
+namespace autil {
+namespace mem_pool {
 
-SimpleAllocator::SimpleAllocator()
-{
-}
+SimpleAllocator::SimpleAllocator() {}
 
-SimpleAllocator::~SimpleAllocator() 
-{
-}
+SimpleAllocator::~SimpleAllocator() {}
 
-}}
-
+} // namespace mem_pool
+} // namespace autil

@@ -27,20 +27,21 @@ class OrQuery;
 class PhraseQuery;
 class RankQuery;
 class TermQuery;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace search {
 
-class SubMatchCheckVisitor : public isearch::common::QueryVisitor
-{
+class SubMatchCheckVisitor : public isearch::common::QueryVisitor {
 public:
     SubMatchCheckVisitor();
     ~SubMatchCheckVisitor() {}
+
 private:
     SubMatchCheckVisitor(const SubMatchCheckVisitor &);
-    SubMatchCheckVisitor & operator=(const SubMatchCheckVisitor &);
+    SubMatchCheckVisitor &operator=(const SubMatchCheckVisitor &);
+
 public:
     void visitTermQuery(const isearch::common::TermQuery *query) override;
     void visitPhraseQuery(const isearch::common::PhraseQuery *query) override;
@@ -50,11 +51,14 @@ public:
     void visitRankQuery(const isearch::common::RankQuery *query) override;
     void visitNumberQuery(const isearch::common::NumberQuery *query) override;
     void visitMultiTermQuery(const isearch::common::MultiTermQuery *query) override;
-    bool needSubMatch() { return _needSubMatch; }
+    bool needSubMatch() {
+        return _needSubMatch;
+    }
+
 private:
     bool _needSubMatch;
     AUTIL_LOG_DECLARE();
 };
 
-} // namespace rank
+} // namespace search
 } // namespace isearch

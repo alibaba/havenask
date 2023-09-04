@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="match_expack">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT nid, brand FROM phone WHERE MATCHINDEX('phrase', '手机')
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"nid", "brand"</Resource>
+        <Resource name="column_types">uint64, multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+2, "Huawei"
+3, "Xiaomi"
+4, "OPPO"
+5, "Meizu"
+6, "Nokia"
+8, "Apple"
+9, "Apple"
+10, "Samsung"
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#2(type=api)
+    ExchangeOp#1(distribution={type:SINGLETON})
+        TableScanOp#0(catalog_name=default,db_name=phone,limit=100,output_fields=[$nid,$brand],push_down_ops=[{attrs:{condition:{op:MATCHINDEX,params:[phrase,手机],type:UDF},output_fields:[$nid,$brand]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

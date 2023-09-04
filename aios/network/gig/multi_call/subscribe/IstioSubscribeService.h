@@ -24,16 +24,18 @@
 
 namespace multi_call {
 
-class IstioSubscribeService : public SubscribeService {
+class IstioSubscribeService : public SubscribeService
+{
 public:
-    IstioSubscribeService(const IstioConfig &config,
-                          const IstioMetricReporterPtr reporter);
+    IstioSubscribeService(const IstioConfig &config, const IstioMetricReporterPtr reporter);
     ~IstioSubscribeService();
     IstioSubscribeService(const IstioSubscribeService &) = delete;
     IstioSubscribeService &operator=(const IstioSubscribeService &) = delete;
 
     bool init() override;
-    SubscribeType getType() override { return ST_ISTIO; }
+    SubscribeType getType() override {
+        return ST_ISTIO;
+    }
     bool clusterInfoNeedUpdate() override;
     bool getClusterInfoMap(TopoNodeVec &topoNodeVec, HeartbeatSpecVec &heartbeatSpecs) override;
     bool addSubscribe(const std::vector<std::string> &names) override;

@@ -34,7 +34,9 @@ AUTIL_LOG_SETUP(iquan, IquanEnv);
 static std::once_flag FLAG;
 static Status STATUS;
 
-static void doJvmSetup(JvmType jvmType, const std::vector<std::string> &classPaths, const std::string &jvmStartOps) {
+static void doJvmSetup(JvmType jvmType,
+                       const std::vector<std::string> &classPaths,
+                       const std::string &jvmStartOps) {
     std::call_once(FLAG, [&]() {
         try {
             STATUS = Jvm::setup(jvmType, classPaths, jvmStartOps);
@@ -52,10 +54,11 @@ static void doJvmSetup(JvmType jvmType, const std::vector<std::string> &classPat
                 std::string responseStr = JByteArrayToStdString(responseByteArray);
                 STATUS = ResponseHeader::check(responseStr);
                 if (!STATUS.ok()) {
-                return;
-            }
+                    return;
+                }
             } else {
-                STATUS = Status(IQUAN_RESPONSE_IS_NULL, "IquanEnv::initEnvResource() response is null");
+                STATUS = Status(IQUAN_RESPONSE_IS_NULL,
+                                "IquanEnv::initEnvResource() response is null");
                 return;
             }
         } catch (const JnippException &e) {
@@ -72,7 +75,9 @@ static void doJvmSetup(JvmType jvmType, const std::vector<std::string> &classPat
     });
 }
 
-Status IquanEnv::jvmSetup(JvmType jvmType, const std::vector<std::string> &classPaths, const std::string &jvmStartOps) {
+Status IquanEnv::jvmSetup(JvmType jvmType,
+                          const std::vector<std::string> &classPaths,
+                          const std::string &jvmStartOps) {
     std::thread t(doJvmSetup, jvmType, classPaths, jvmStartOps);
     t.join();
     return STATUS;
@@ -88,9 +93,11 @@ Status IquanEnv::startKmon(const KMonConfig &kmonConfig) {
         IQUAN_ENSURE_FUNC(Utils::toJson(kmonConfig, kmonConfigStr));
 
         LocalRef<JByteArray> kmonConfigByteArray = JByteArrayFromStdString(kmonConfigStr);
-        IQUAN_RETURN_ERROR_IF_NULL(kmonConfigByteArray, IQUAN_FAIL, "failed to create byte array for kmonConfig");
+        IQUAN_RETURN_ERROR_IF_NULL(
+            kmonConfigByteArray, IQUAN_FAIL, "failed to create byte array for kmonConfig");
 
-        LocalRef<JByteArray> responseByteArray = JIquanEnv::startKmon(INPUT_JSON_FORMAT, kmonConfigByteArray);
+        LocalRef<JByteArray> responseByteArray
+            = JIquanEnv::startKmon(INPUT_JSON_FORMAT, kmonConfigByteArray);
         if (responseByteArray.get()) {
             std::string responseStr = JByteArrayToStdString(responseByteArray);
             IQUAN_ENSURE_FUNC(ResponseHeader::check(responseStr));
@@ -99,9 +106,9 @@ Status IquanEnv::startKmon(const KMonConfig &kmonConfig) {
         }
     } catch (const JnippException &e) {
         return Status(IQUAN_JNI_EXCEPTION, e.what());
-    } catch (const IquanException &e) { return Status(e.code(), e.what()); } catch (const std::exception &e) {
-        return Status(IQUAN_FAIL, e.what());
-    }
+    } catch (const IquanException &e) {
+        return Status(e.code(), e.what());
+    } catch (const std::exception &e) { return Status(IQUAN_FAIL, e.what()); }
     return Status::OK();
 }
 
@@ -116,9 +123,9 @@ Status IquanEnv::stopKmon() {
         }
     } catch (const JnippException &e) {
         return Status(IQUAN_JNI_EXCEPTION, e.what());
-    } catch (const IquanException &e) { return Status(e.code(), e.what()); } catch (const std::exception &e) {
-        return Status(IQUAN_FAIL, e.what());
-    }
+    } catch (const IquanException &e) {
+        return Status(e.code(), e.what());
+    } catch (const std::exception &e) { return Status(IQUAN_FAIL, e.what()); }
     return Status::OK();
 }
 

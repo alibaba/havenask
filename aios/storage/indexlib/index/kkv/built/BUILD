@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=[':__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='kkv_disk_iterator',
     srcs=[],
     hdrs=[
@@ -24,7 +24,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='kkv_disk_reader',
     srcs=[],
     hdrs=['KKVBuiltSegmentReader.h'],
@@ -35,7 +35,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/kkv/config'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='kkv_disk_indexer',
     srcs=[],
     hdrs=['KKVDiskIndexer.h'],

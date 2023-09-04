@@ -114,11 +114,6 @@ std::unique_ptr<config::TabletSchema> TabletSchemaLoader::LoadSchema(const std::
             return nullptr;
         }
     }
-    auto status = TabletSchemaDelegation::Check(schemaResolver.get(), *schema);
-    if (!status.IsOK()) {
-        AUTIL_LOG(ERROR, "schema check failed, table_name[%s] table_type[%s]", tableName.c_str(), tableType.c_str());
-        return nullptr;
-    }
     return schema;
 }
 
@@ -142,8 +137,9 @@ std::unique_ptr<config::TabletSchema> TabletSchemaLoader::LoadSchema(const std::
 }
 
 Status TabletSchemaLoader::ResolveSchema(const std::shared_ptr<config::TabletOptions>& options,
-                                         const std::string& indexPath, config::TabletSchema* schema)
+                                         const std::string& indexPath, config::ITabletSchema* ischema)
 {
+    auto* schema = dynamic_cast<config::TabletSchema*>(ischema);
     if (!schema) {
         RETURN_IF_STATUS_ERROR(Status::InternalError(), "schema is nullptr");
     }
@@ -167,7 +163,9 @@ Status TabletSchemaLoader::ResolveSchema(const std::shared_ptr<config::TabletOpt
         RETURN_IF_STATUS_ERROR(Status::InternalError(), "create schema resolver failed, table_name[%s] table_type[%s]",
                                tableName.c_str(), tableType.c_str());
     }
-    return TabletSchemaDelegation::Resolve(schemaResolver.get(), indexPath, schema);
+    auto status = TabletSchemaDelegation::Resolve(schemaResolver.get(), indexPath, schema);
+    RETURN_IF_STATUS_ERROR(status, "schema resolve failed");
+    return TabletSchemaDelegation::Check(schemaResolver.get(), *schema);
 }
 
 schemaid_t TabletSchemaLoader::GetSchemaId(const std::string& schemaFileName)

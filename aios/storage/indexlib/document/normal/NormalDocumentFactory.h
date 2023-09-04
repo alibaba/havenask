@@ -30,7 +30,7 @@ public:
 public:
     std::unique_ptr<ExtendDocument> CreateExtendDocument() override;
 
-    std::unique_ptr<IDocumentParser> CreateDocumentParser(const std::shared_ptr<config::TabletSchema>& schema,
+    std::unique_ptr<IDocumentParser> CreateDocumentParser(const std::shared_ptr<config::ITabletSchema>& schema,
                                                           const std::shared_ptr<DocumentInitParam>& initParam) override;
 
 private:

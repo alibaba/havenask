@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include "aios/network/gig/multi_call/proto/NewHeartbeat.pb.h"
 #include "aios/network/gig/multi_call/common/WorkerNodeInfo.h"
+#include "aios/network/gig/multi_call/proto/NewHeartbeat.pb.h"
 
 namespace multi_call {
 
@@ -24,10 +24,12 @@ class SearchServiceProvider;
 class SearchServiceReplica;
 class HostHeartbeatStats;
 
-class ClientTopoInfo {
+class ClientTopoInfo
+{
 public:
     ClientTopoInfo(const std::shared_ptr<HostHeartbeatStats> &hostStats);
     ~ClientTopoInfo();
+
 public:
     bool init(const std::string &clusterName, bool enableClusterBizSearch, const Spec &spec,
               const GigMetaEnv &envDef, const BizTopoDef &topoDef, int64_t netLatencyUs);
@@ -44,14 +46,17 @@ public:
     std::shared_ptr<SearchServiceProvider> getProvider() const;
     void bind(const std::shared_ptr<SearchServiceReplica> &replica,
               const std::shared_ptr<SearchServiceProvider> &provider);
+    void unBind();
     void fillTopoRequest(TopoHeartbeatRequest &request) const;
     void disableProvider() const;
     void toString(std::string &debugStr, MetasSignatureMap &allMetas) const;
+
 private:
     void initMetas(SignatureTy sig, const BizMetasDef &metas);
     void initTags(SignatureTy sig, const BizTagsDef &tags);
     void updatePropagationStat(const PropagationStatDef &statDef, int64_t netLatencyUs);
     void flushUpdate();
+
 private:
     std::shared_ptr<HostHeartbeatStats> _hostStats;
     TopoNode _topoNode;
@@ -78,6 +83,7 @@ class ClientTopoInfoMap
 public:
     ClientTopoInfoMap(uint64_t clientId);
     ~ClientTopoInfoMap();
+
 public:
     bool init(const std::string &ip, const ClientTopoInfoMapPtr &oldMap,
               const NewHeartbeatResponse &response);
@@ -91,12 +97,14 @@ public:
     const std::shared_ptr<ServerId> &getServerId() const {
         return _serverId;
     }
+
 private:
     uint64_t _clientId;
     std::shared_ptr<ServerId> _serverId;
     std::map<SignatureTy, ClientTopoInfoPtr> _topoMap;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
-}
+} // namespace multi_call

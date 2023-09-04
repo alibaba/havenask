@@ -22,61 +22,41 @@
 
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, CommonTabletLoader);
+#define TABLET_LOG(level, format, args...) AUTIL_LOG(level, "[%s] [%p] " format, _tabletName.c_str(), this, ##args)
 
 Status CommonTabletLoader::DoPreLoad(const framework::TabletData& lastTabletData, Segments newOnDiskVersionSegments,
                                      const framework::Version& newOnDiskVersion)
 {
-    if (newOnDiskVersionSegments.size() != newOnDiskVersion.GetSegmentCount()) {
-        AUTIL_LOG(ERROR, "new segments count [%lu] is not equal to new version's segment count [%lu]",
-                  newOnDiskVersionSegments.size(), newOnDiskVersion.GetSegmentCount());
-        return Status::InvalidArgs();
-    }
-    size_t segmentIdx = 0;
-    for (auto [segId, _] : newOnDiskVersion) {
-        if (segId != newOnDiskVersionSegments[segmentIdx]->GetSegmentId()) {
-            AUTIL_LOG(ERROR, "version segment id[%d] and [%d] inconsistent", segId,
-                      newOnDiskVersionSegments[segmentIdx]->GetSegmentId());
-            return Status::InvalidArgs();
-        }
-        ++segmentIdx;
-    }
     _segmentIdsOnPreload.clear();
     _newVersion = newOnDiskVersion.Clone();
     auto locator = _newVersion.GetLocator();
     if (lastTabletData.GetLocator().IsValid() && !locator.IsSameSrc(lastTabletData.GetLocator(), true)) {
-        AUTIL_LOG(INFO, "tablet data locator [%s] src not equal new version locator [%s] src, will drop rt",
-                  lastTabletData.GetLocator().DebugString().c_str(), locator.DebugString().c_str());
+        TABLET_LOG(INFO, "tablet data locator [%s] src not equal new version locator [%s] src, will drop rt",
+                   lastTabletData.GetLocator().DebugString().c_str(), locator.DebugString().c_str());
         _newSegments = std::move(newOnDiskVersionSegments);
         _dropRt = true;
         return Status::OK();
     }
 
-    _tabletName = lastTabletData.GetTabletName();
-    if (_fenceName == newOnDiskVersion.GetFenceName()) {
-        std::vector<std::shared_ptr<framework::Segment>> allSegments;
-        allSegments.insert(allSegments.end(), newOnDiskVersionSegments.begin(), newOnDiskVersionSegments.end());
+    auto compareResult = lastTabletData.GetLocator().IsFasterThan(newOnDiskVersion.GetLocator(), true);
+    if (compareResult == framework::Locator::LocatorCompareResult::LCR_FULLY_FASTER &&
+        _fenceName == newOnDiskVersion.GetFenceName()) {
         auto slice = lastTabletData.CreateSlice();
-        for (auto oldSegment : slice) {
-            _segmentIdsOnPreload.insert(oldSegment->GetSegmentId());
-            if (_newVersion.HasSegment(oldSegment->GetSegmentId())) {
-                continue;
-            }
-            framework::Locator segLocator = oldSegment->GetSegmentInfo()->GetLocator();
-            if (!segLocator.IsSameSrc(locator, true)) {
-                AUTIL_LOG(INFO, "segment [%d] locator [%s] src not equal with version locator [%s] src",
-                          oldSegment->GetSegmentId(), segLocator.DebugString().c_str(), locator.DebugString().c_str());
-                continue;
-            }
-            auto compareResult = locator.IsFasterThan(segLocator, true);
-            if (compareResult != framework::Locator::LocatorCompareResult::LCR_FULLY_FASTER) {
-                AUTIL_LOG(WARN, "add segment [%d]", oldSegment->GetSegmentId());
-                allSegments.push_back(oldSegment);
-            }
+        for (const auto& segment : slice) {
+            _segmentIdsOnPreload.insert(segment->GetSegmentId());
+        }
+        auto [status, allSegments] = GetRemainSegments(lastTabletData, newOnDiskVersionSegments, newOnDiskVersion);
+        if (!status.IsOK()) {
+            TABLET_LOG(ERROR, "get remain segments failed, tablet data locator [%s], new version locator [%s]",
+                       lastTabletData.GetLocator().DebugString().c_str(), locator.DebugString().c_str());
+            return status;
         }
         _newSegments = std::move(allSegments);
         return Status::OK();
     } else {
         // drop realtime
+        TABLET_LOG(INFO, "drop rt, tablet data locator [%s] , new version locator [%s]",
+                   lastTabletData.GetLocator().DebugString().c_str(), locator.DebugString().c_str());
         _newSegments = std::move(newOnDiskVersionSegments);
         _dropRt = true;
         return Status::OK();
@@ -91,7 +71,7 @@ CommonTabletLoader::FinalLoad(const framework::TabletData& currentTabletData)
         for (auto segment : slice) {
             if (_segmentIdsOnPreload.find(segment->GetSegmentId()) == _segmentIdsOnPreload.end()) {
                 _newSegments.emplace_back(segment);
-                AUTIL_LOG(WARN, "add segment [%d]", segment->GetSegmentId());
+                TABLET_LOG(WARN, "add segment [%d]", segment->GetSegmentId());
             }
         }
     }

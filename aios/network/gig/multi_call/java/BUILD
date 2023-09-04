@@ -1,5 +1,4 @@
 package(default_visibility=['//aios/network/gig:__subpackages__'])
-load('//bazel:defs.bzl', 'cc_proto')
 jni_cpp_srcs = ['GigApi.h', 'GigApi.cpp']
 cc_library(
     name='java_headers',
@@ -21,9 +20,4 @@ cc_library(
         '//aios/autil:string_helper'
     ],
     alwayslink=True
-)
-cc_proto(
-    name='mock',
-    srcs=['test/proto/FakeRpcProto.proto'],
-    deps=['//aios/network/arpc:proto']
 )

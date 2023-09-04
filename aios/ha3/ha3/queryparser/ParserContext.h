@@ -23,19 +23,18 @@
 namespace isearch {
 namespace common {
 class Query;
-}  // namespace common
+} // namespace common
 namespace queryparser {
 class QueryExpr;
-}  // namespace queryparser
-}  // namespace isearch
+} // namespace queryparser
+} // namespace isearch
 
 namespace isearch {
 namespace queryparser {
 
 class QueryParser;
 
-class ParserContext
-{
+class ParserContext {
 public:
     enum Status {
         OK = 0,
@@ -43,14 +42,21 @@ public:
         EVALUATE_FAILED,
         SYNTAX_ERROR,
     };
+
 private:
     static const char *STATUS_MSGS[];
+
 public:
     ParserContext(QueryParser &queryParser);
     ~ParserContext();
+
 public:
-    Status getStatus() const {return _status;}
-    void setStatus(Status status) {_status = status;}
+    Status getStatus() const {
+        return _status;
+    }
+    void setStatus(Status status) {
+        _status = status;
+    }
 
     const std::string getStatusMsg() const;
     void setStatusMsg(const std::string &statusMsg) {
@@ -58,24 +64,31 @@ public:
     }
 
     void addQuery(common::Query *query);
-    const std::vector<common::Query*> &getQuerys() {return _rootQuerys;}
-    std::vector<common::Query*> stealQuerys();
+    const std::vector<common::Query *> &getQuerys() {
+        return _rootQuerys;
+    }
+    std::vector<common::Query *> stealQuerys();
 
     void addQueryExpr(QueryExpr *queryExpr);
-    std::vector<QueryExpr*> stealQueryExprs();
-    const std::vector<QueryExpr*> &getQueryExprs() {return _rootQueryExprs;}
+    std::vector<QueryExpr *> stealQueryExprs();
+    const std::vector<QueryExpr *> &getQueryExprs() {
+        return _rootQueryExprs;
+    }
 
-    QueryParser& getParser() {return _queryParser;}
+    QueryParser &getParser() {
+        return _queryParser;
+    }
+
 private:
     QueryParser &_queryParser;
-    std::vector<common::Query*> _rootQuerys;
-    std::vector<QueryExpr*> _rootQueryExprs;
+    std::vector<common::Query *> _rootQuerys;
+    std::vector<QueryExpr *> _rootQueryExprs;
     Status _status;
     std::string _statusMsg;
+
 private:
     AUTIL_LOG_DECLARE();
 };
 
 } // namespace queryparser
 } // namespace isearch
-

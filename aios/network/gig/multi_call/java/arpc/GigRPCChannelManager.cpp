@@ -23,24 +23,23 @@ namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, GigRPCChannelManager);
 
 GigRPCChannelManager::GigRPCChannelManager(Transport *transport)
-    : ANetRPCChannelManager(transport) {}
+    : ANetRPCChannelManager(transport) {
+}
 
-GigRPCChannelManager::~GigRPCChannelManager() {}
+GigRPCChannelManager::~GigRPCChannelManager() {
+}
 
-RPCChannel *GigRPCChannelManager::OpenChannel(const std::string &address,
-                                              bool block, size_t queueSize,
-                                              int timeout, bool autoReconn,
+RPCChannel *GigRPCChannelManager::OpenChannel(const std::string &address, bool block,
+                                              size_t queueSize, int timeout, bool autoReconn,
                                               anet::CONNPRIORITY prio) {
-    Connection *pConn =
-        Connect(address, block, queueSize, timeout, autoReconn, prio);
+    Connection *pConn = Connect(address, block, queueSize, timeout, autoReconn, prio);
 
     if (pConn == NULL) {
         AUTIL_LOG(ERROR, "connection is NULL, address: [%s]", address.c_str());
         return NULL;
     }
 
-    GigRPCMessageCodec *gigMessageCodec =
-        new GigRPCMessageCodec(_anetApp.GetPacketFactory());
+    GigRPCMessageCodec *gigMessageCodec = new GigRPCMessageCodec(_anetApp.GetPacketFactory());
     GigRPCChannel *pChannel = new GigRPCChannel(pConn, gigMessageCodec, block);
     return pChannel;
 }

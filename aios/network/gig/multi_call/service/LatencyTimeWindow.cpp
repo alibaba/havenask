@@ -9,10 +9,11 @@
 
 namespace multi_call {
 
-LatencyTimeWindow::LatencyTimeWindow(int64_t windowSize)
-    : _windowSize(windowSize) {}
+LatencyTimeWindow::LatencyTimeWindow(int64_t windowSize) : _windowSize(windowSize) {
+}
 
-LatencyTimeWindow::~LatencyTimeWindow() {}
+LatencyTimeWindow::~LatencyTimeWindow() {
+}
 
 /* 指数移动平均,变种的加权移动平均
  * EMA = (current - EMA) / window + EMA

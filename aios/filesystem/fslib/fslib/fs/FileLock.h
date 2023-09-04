@@ -22,19 +22,17 @@
 
 FSLIB_BEGIN_NAMESPACE(fs);
 
-class FileLock
-{
+class FileLock {
 public:
     virtual ~FileLock() {}
 
 public:
     virtual int lock(uint32_t timeout = 0) = 0;
     virtual int unlock() = 0;
-    
 };
 
 FSLIB_TYPEDEF_AUTO_PTR(FileLock);
 
 FSLIB_END_NAMESPACE(fs);
 
-#endif //FSLIB_FILELOCK_H
+#endif // FSLIB_FILELOCK_H

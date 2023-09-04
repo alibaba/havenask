@@ -55,7 +55,7 @@ public:
               std::shared_ptr<indexlib::util::MetricProvider> metricProvider = nullptr) override;
     // only return false when exception
     bool build(const std::shared_ptr<indexlibv2::document::IDocumentBatch>& batch) override;
-    bool merge() override { return true; };
+    bool merge() override;
     void stop(std::optional<int64_t> stopTimestamp, bool needSeal, bool immediately) override;
     void notifyStop() override;
     int64_t getIncVersionTimestamp() const override; // for realtime build

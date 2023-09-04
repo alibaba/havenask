@@ -23,8 +23,7 @@ using namespace std;
 
 namespace autil {
 
-int64_t NumberHashFunction::hashString(const string& str) const
-{
+int64_t NumberHashFunction::hashString(const string &str) const {
     int64_t num;
     if (StringUtil::fromString(str, num)) {
         return num;
@@ -33,13 +32,11 @@ int64_t NumberHashFunction::hashString(const string& str) const
     }
 }
 
-uint32_t NumberHashFunction::getHashId(const std::string& str) const
-{
+uint32_t NumberHashFunction::getHashId(const std::string &str) const {
     if (_hashSize == 0) {
         return 0;
     }
     return (uint32_t)((uint64_t)this->hashString(str) % _hashSize);
 }
 
-}
-
+} // namespace autil

@@ -16,18 +16,17 @@
 #include "ha3/common/RankQuery.h"
 
 #include <assert.h>
-#include <stdint.h>
-#include <sstream>
-#include <string>
 #include <memory>
+#include <sstream>
+#include <stdint.h>
+#include <string>
 #include <vector>
 
 #include "autil/DataBuffer.h"
-
+#include "autil/Log.h"
 #include "ha3/common/ModifyQueryVisitor.h"
 #include "ha3/common/Query.h"
 #include "ha3/common/QueryVisitor.h"
-#include "autil/Log.h"
 
 using namespace std;
 
@@ -35,37 +34,32 @@ namespace isearch {
 namespace common {
 AUTIL_LOG_SETUP(ha3, RankQuery);
 
-
 RankQuery::RankQuery(const std::string &label) {
     setQueryLabelBinary(label);
 }
 
 RankQuery::RankQuery(const RankQuery &other)
     : Query(other)
-    , _rankBoosts(other._rankBoosts)
-{
-}
+    , _rankBoosts(other._rankBoosts) {}
 
-RankQuery::~RankQuery() {
-}
+RankQuery::~RankQuery() {}
 
-bool RankQuery::operator == (const Query& query) const {
+bool RankQuery::operator==(const Query &query) const {
     if (&query == this) {
         return true;
     }
     if (query.getQueryName() != getQueryName()) {
         return false;
     }
-    const QueryVector &children2 = dynamic_cast<const RankQuery&>(query)._children;
+    const QueryVector &children2 = dynamic_cast<const RankQuery &>(query)._children;
 
     if (_children.size() != children2.size()) {
         return false;
     }
     QueryVector::const_iterator it1 = _children.begin();
     QueryVector::const_iterator it2 = children2.begin();
-    for (; it1 != _children.end(); it1++, it2++)
-    {
-        if (!( *(*it1) == *(*it2) )) {
+    for (; it1 != _children.end(); it1++, it2++) {
+        if (!(*(*it1) == *(*it2))) {
             return false;
         }
     }
@@ -104,14 +98,12 @@ uint32_t RankQuery::getRankBoost(uint32_t pos) const {
     return _rankBoosts[pos];
 }
 
-void RankQuery::serialize(autil::DataBuffer &dataBuffer) const
-{
+void RankQuery::serialize(autil::DataBuffer &dataBuffer) const {
     Query::serialize(dataBuffer);
     dataBuffer.write(_rankBoosts);
 }
 
-void RankQuery::deserialize(autil::DataBuffer &dataBuffer)
-{
+void RankQuery::deserialize(autil::DataBuffer &dataBuffer) {
     Query::deserialize(dataBuffer);
     dataBuffer.read(_rankBoosts);
 }

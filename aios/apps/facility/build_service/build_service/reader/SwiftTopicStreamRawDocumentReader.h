@@ -20,12 +20,14 @@
 #include <string>
 #include <vector>
 
+#include "build_service/reader/RawDocumentReader.h"
 #include "build_service/reader/SwiftRawDocumentReader.h"
 #include "build_service/util/Log.h"
 
 namespace swift::client {
 class SwiftReader;
-}
+class SwiftTopicStreamReader;
+} // namespace swift::client
 
 namespace build_service::reader {
 
@@ -37,11 +39,14 @@ public:
 
 public:
     bool init(const ReaderInitParam& params) override;
+    ErrorCode readDocStr(std::string& docStr, Checkpoint* checkpoint, DocInfo& docInfo) override;
+    bool seek(const Checkpoint& checkpoint) override;
 
 private:
     SwiftReaderWrapper* createSwiftReader(const ReaderInitParam& params) override;
 
 private:
+    swift::client::SwiftTopicStreamReader* _swiftTopicStreamReader;
     static const std::string TOPIC_LIST;
 
 private:

@@ -22,10 +22,12 @@
 
 namespace multi_call {
 
-class VersionSelectorFactory {
+class VersionSelectorFactory
+{
 public:
     VersionSelectorFactory(const SubscribeServiceManagerPtr &subscribeManager)
-        : _subscribeServiceManager(subscribeManager) {}
+        : _subscribeServiceManager(subscribeManager) {
+    }
     virtual ~VersionSelectorFactory() = default;
 
 public:

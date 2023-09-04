@@ -22,8 +22,7 @@ using namespace autil;
 
 namespace multi_call {
 
-bool VersionSelector::needCopy(size_t copyProviderCount,
-                               size_t normalProviderCount) {
+bool VersionSelector::needCopy(size_t copyProviderCount, size_t normalProviderCount) {
     if (0 == normalProviderCount) {
         return true;
     }

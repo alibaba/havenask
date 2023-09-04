@@ -172,9 +172,9 @@ void InvertedIndexConfigSerializer::Serialize(const indexlibv2::config::Inverted
     // truncate
     if (indexConfig.HasTruncate()) {
         json->Jsonize(indexlibv2::config::InvertedIndexConfig::HAS_TRUNCATE, indexConfig.HasTruncate());
-        if (indexConfig.HasTruncateProfile()) {
-            json->Jsonize(indexlibv2::config::InvertedIndexConfig::USE_TRUNCATE_PROFILES,
-                          indexConfig.GetAllTruncateProfile());
+        auto truncateProfilesStr = indexConfig.GetUseTruncateProfilesStr();
+        if (!truncateProfilesStr.empty()) {
+            json->Jsonize(indexlibv2::config::InvertedIndexConfig::USE_TRUNCATE_PROFILES, truncateProfilesStr);
         }
     }
 
@@ -222,7 +222,7 @@ void InvertedIndexConfigSerializer::DeserializeCommonFields(const autil::legacy:
         std::string useTruncateProfile;
         json.Jsonize(indexlibv2::config::InvertedIndexConfig::USE_TRUNCATE_PROFILES, useTruncateProfile,
                      useTruncateProfile);
-        indexConfig->SetUseTruncateProfiles(useTruncateProfile);
+        indexConfig->SetUseTruncateProfilesStr(useTruncateProfile);
     }
 
     JsonizeShortListVbyteCompress(json, indexConfig);
@@ -406,7 +406,7 @@ InvertedIndexConfigSerializer::DeserializeDictConfig(const autil::legacy::Jsoniz
     if (dictName.empty()) {
         return nullptr;
     }
-    auto dictionaries = resource.GetSetting<std::shared_ptr<std::vector<DictConfigType>>>(dictKey);
+    auto dictionaries = resource.GetRuntimeSetting<std::shared_ptr<std::vector<DictConfigType>>>(dictKey);
     if (!dictionaries || !*dictionaries) {
         INDEXLIB_FATAL_ERROR(Schema, "get [%s] from settings failed", dictKey.c_str());
     }

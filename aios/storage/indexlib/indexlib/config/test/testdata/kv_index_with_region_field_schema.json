@@ -1,0 +1,41 @@
+{
+    "table_name": "kv_table",
+    "table_type": "kv",
+    "regions" :
+    [
+	{
+	    "region_name" : "region1",
+	    "fields": [
+		{ "field_name": "nid", "field_type": "INT64" },
+		{ "field_name": "pidvid", "field_type": "INT64", "multi_value": true },
+		{ "field_name": "timestamp", "field_type": "INT64" }
+	    ],
+	    "indexs": [
+		{ "index_name": "nid", "index_fields": "nid", "index_type": "PRIMARY_KEY",
+		  "index_preference" : { "type" : "PERF" }
+		}
+	    ],
+	    "attributes": [ "nid", "pidvid", "timestamp" ],
+	    "enable_ttl" : false
+	},
+	{
+	    "region_name" : "region2",
+	    "fields": [
+		{ "field_name": "nid", "field_type": "INT32" },
+		{ "field_name": "pidvid", "field_type": "INT64" },
+		{ "field_name": "timestamp", "field_type": "INT64" }
+	    ],
+	    "indexs": [
+		{ "index_name": "ts", "index_fields": "timestamp", "index_type": "PRIMARY_KEY",
+		  "index_preference" : { "type" : "PERF" }
+		}
+	    ],
+	    "attributes": [ "nid", "pidvid" ],
+	    "default_ttl" : 3600
+	}
+    ],
+    "global_region_index_preference" :
+    {
+	"type" : "STORE"
+    }
+}

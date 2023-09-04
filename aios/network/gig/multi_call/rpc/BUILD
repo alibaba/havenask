@@ -27,7 +27,6 @@ cc_library(
         '//aios/network/gig/multi_call/interface:interface_headers',
         '//aios/network/gig/multi_call/service:service_headers',
         '//aios/network/gig/multi_call/stream:stream_headers',
-        '//aios/network/gig/multi_call/heartbeat:heartbeat_headers',
         '//aios/network/gig/multi_call/new_heartbeat:new_heartbeat_headers',
         '//aios/network/gig/multi_call/grpc:grpc',
         '//aios/network/gig/multi_call/arpc:arpc',

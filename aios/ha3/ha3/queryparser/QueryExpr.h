@@ -24,11 +24,11 @@ namespace queryparser {
 
 class QueryExprEvaluator;
 
-class QueryExpr
-{
+class QueryExpr {
 public:
     QueryExpr();
     virtual ~QueryExpr();
+
 public:
     virtual void evaluate(QueryExprEvaluator *qee) = 0;
     virtual void setLeafIndexName(const std::string &indexName) = 0;
@@ -38,8 +38,10 @@ public:
     virtual std::string getLabel() const {
         return _label;
     }
+
 private:
     std::string _label;
+
 private:
     AUTIL_LOG_DECLARE();
 };

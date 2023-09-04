@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <unistd.h>
-#include <stdint.h>
-#include <cstddef>
-
 #include "aios/network/arpc/arpc/RPCChannelBase.h"
-#include "aios/network/arpc/arpc/PacketArg.h"
+
+#include <cstddef>
+#include <stdint.h>
+#include <unistd.h>
+
 #include "aios/network/anet/advancepacket.h"
 #include "aios/network/anet/connection.h"
 #include "aios/network/anet/connectionpriority.h"
@@ -29,8 +29,9 @@
 #include "aios/network/arpc/arpc/ANetRPCController.h"
 #include "aios/network/arpc/arpc/CommonMacros.h"
 #include "aios/network/arpc/arpc/MessageCodec.h"
-#include "aios/network/arpc/arpc/anet/SharedClientPacketHandler.h"
+#include "aios/network/arpc/arpc/PacketArg.h"
 #include "aios/network/arpc/arpc/Tracer.h"
+#include "aios/network/arpc/arpc/anet/SharedClientPacketHandler.h"
 #include "aios/network/arpc/arpc/proto/rpc_extensions.pb.h"
 #include "aios/network/arpc/arpc/util/Log.h"
 
@@ -39,37 +40,30 @@ using namespace anet;
 ARPC_BEGIN_NAMESPACE(arpc);
 ARPC_DECLARE_AND_SETUP_LOGGER(RPCChannelBase);
 
-RPCChannelBase::RPCChannelBase()
-{
+RPCChannelBase::RPCChannelBase() {
     _version = ARPC_VERSION_CURRENT;
     _enableTrace = false;
 }
 
-RPCChannelBase::~RPCChannelBase()
-{
-}
+RPCChannelBase::~RPCChannelBase() {}
 
-void RPCChannelBase::SetError(ANetRPCController *pController,
-                              ErrorCode errorCode)
-{
+void RPCChannelBase::SetError(ANetRPCController *pController, ErrorCode errorCode) {
     pController->SetErrorCode(errorCode);
     pController->SetFailed(errorCodeToString(errorCode));
+    pController->GetTracer().EndCallMethod(errorCode);
     return;
 }
 
-void RPCChannelBase::RunClosure(RPCClosure *pClosure)
-{
+void RPCChannelBase::RunClosure(RPCClosure *pClosure) {
     if (pClosure != NULL) {
         pClosure->Run();
     }
 }
 
-void RPCChannelBase::SetTraceFlag(ANetRPCController *controller)
-{
+void RPCChannelBase::SetTraceFlag(ANetRPCController *controller) {
     if (GetTraceFlag() && controller) {
         controller->SetTraceFlag(true);
     }
 }
 
 ARPC_END_NAMESPACE(arpc);
-

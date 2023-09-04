@@ -17,7 +17,6 @@
 
 #include "indexlib/index/common/data_structure/AttributeCompressInfo.h"
 
-using namespace indexlib::config;
 using namespace indexlib::file_system;
 
 namespace indexlibv2::index {

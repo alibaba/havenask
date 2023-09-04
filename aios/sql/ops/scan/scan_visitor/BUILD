@@ -1,0 +1,32 @@
+package(default_visibility=['//aios/sql:__subpackages__'])
+cc_library(
+    name='sql_ops_scan_visitor',
+    srcs=glob(['*.cpp']),
+    hdrs=glob(['*.h', '*.hpp']),
+    include_prefix='sql/ops/scan',
+    visibility=['//visibility:public'],
+    deps=[
+        '//aios/ha3/ha3/queryparser:ha3_queryparser',
+        '//aios/ha3/ha3/rank/comparator:ha3_comparator',
+        '//aios/ha3/ha3/search/auxiliary_chain:ha3_auxiliary_chain',
+        '//aios/ha3/ha3/search/single_layer_searcher:ha3_single_layer_searcher',
+        '//aios/sql/common:sql_common', '//aios/sql/ops/scan:sql_ops_scan_r',
+        '//aios/sql/ops/scan/udf_to_query:sql_ops_udf_to_query',
+        '//aios/sql/ops/sort:sql_ops_sort_init_param',
+        '//aios/sql/resource:sql_resource'
+    ],
+    alwayslink=True
+)
+cc_test(
+    name='scan_visitor_test',
+    srcs=glob(['test/*.cpp']),
+    copts=['-fno-access-control'],
+    data=['//aios/sql:testdata'],
+    linkopts=['-Wl,--as-needed'],
+    shard_count=3,
+    deps=[
+        ':sql_ops_scan_visitor',
+        '//aios/ha3/ha3/search/query_executor:ha3_query_executor_testlib',
+        '//aios/sql/ops/scan:condition_test_util'
+    ]
+)

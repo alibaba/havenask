@@ -15,15 +15,15 @@
  */
 #pragma once
 
-#include <pthread.h>
-#include <stdlib.h>
-#include <time.h>
+#include <algorithm>
 #include <atomic>
 #include <cassert>
 #include <cstdint>
 #include <iostream>
-#include <algorithm>
 #include <limits>
+#include <pthread.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include "autil/CommonMacros.h"
 #include "autil/ThreadAnnotations.h"
@@ -204,8 +204,7 @@ private:
     ReadWriteLock &operator=(const ReadWriteLock &);
 
 public:
-    enum Mode
-    {
+    enum Mode {
         PREFER_READER,
         PREFER_WRITER
     };
@@ -318,10 +317,7 @@ public:
 
 public:
     Notifier(int accumulatedNotificationMax = std::numeric_limits<int>::max())
-        : _accumulatedNotification(0)
-        , _exitFlag(false)
-        , _accumulatedNotificationMax(accumulatedNotificationMax)
-    {}
+        : _accumulatedNotification(0), _exitFlag(false), _accumulatedNotificationMax(accumulatedNotificationMax) {}
 
     int notifyExit() {
         ScopedLock lock(_cond);

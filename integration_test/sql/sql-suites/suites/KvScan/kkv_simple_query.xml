@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="kkv_simple_query">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT company_id, company_name FROM kkv1 where company_id in (1,2)
+]]>
+</Element>
+        </Resource>
+        <Resource name="column_names">"company_id", "company_name"</Resource>
+        <Resource name="column_types">int32, multi_char</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="kvpair">databaseName:kv2;</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+1, "APPLE"
+2, "NOKIA"
+2, "NOKIA_2"
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#2(type=api)
+    ExchangeOp#1(distribution={type:SINGLETON})
+        TableScanOp#0(catalog_name=default,db_name=kv2,limit=100,output_fields=[$company_id,$company_name],push_down_ops=[{attrs:{condition:{op:IN,params:[$company_id,1,2],type:OTHER},output_fields:[$company_id,$company_name]},op_name:CalcOp}],table_name=kkv1,table_type=kkv,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

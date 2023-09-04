@@ -25,18 +25,21 @@ namespace indexlibv2::framework {
 class IndexOperationMetrics : public IMetrics
 {
 public:
-    IndexOperationMetrics(const std::shared_ptr<kmonitor::MetricsReporter>& metricsReporter);
+    IndexOperationMetrics(const std::shared_ptr<kmonitor::MetricsReporter>& metricsReporter,
+                          const kmonitor::MetricsTags& tags);
     ~IndexOperationMetrics();
 
 public:
-    void ReportMetrics() override {}
+    void ReportMetrics() override;
     void RegisterMetrics() override;
 
-    void ReportOpExecuteTime(const kmonitor::MetricsTags& tags, int64_t executeTimeInUs);
+    int64_t GetTimerDoneUs();
 
 private:
-    INDEXLIB_FM_DECLARE_NORMAL_METRIC(int64_t, operationExecuteTime);
+    INDEXLIB_FM_DECLARE_METRIC(operationExecuteTime);
     std::shared_ptr<kmonitor::MetricsReporter> _metricsReporter;
+    autil::ScopedTime2 _timer;
+    const kmonitor::MetricsTags _tags;
 
 private:
     AUTIL_LOG_DECLARE();

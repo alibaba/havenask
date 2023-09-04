@@ -110,7 +110,8 @@ std::pair<Status, std::shared_ptr<MergePlan>> SplitStrategy::CreateMergePlan(con
             auto groups = _segmentGroupConfig->GetGroups();
             for (size_t groupId = 0; groupId < groups.size(); ++groupId) {
                 int32_t targetSegmentDocCount = segmentGroupDocCounts[segmentId][groupId];
-                if (targetSegmentDocCount == 0) {
+                // 最后一个default group是空跳过，否则其他group没有数据dump空segment
+                if (targetSegmentDocCount == 0 && groupId + 1 == groups.size()) {
                     continue;
                 }
                 const auto& groupName = groups[groupId];
@@ -155,7 +156,7 @@ Status SplitStrategy::InitFromContext(const framework::IndexTaskContext* context
         return Status::InvalidArgs("hema is empty");
     }
     auto [status, segmentGroupConfig] =
-        schema->GetSetting<std::shared_ptr<SegmentGroupConfig>>(NORMAL_TABLE_GROUP_CONFIG_KEY);
+        schema->GetRuntimeSettings().GetValue<std::shared_ptr<SegmentGroupConfig>>(NORMAL_TABLE_GROUP_CONFIG_KEY);
     RETURN_IF_STATUS_ERROR(status, "get segment group config failed");
     assert(segmentGroupConfig);
     if (!segmentGroupConfig->IsGroupEnabled()) {
@@ -165,7 +166,7 @@ Status SplitStrategy::InitFromContext(const framework::IndexTaskContext* context
     _segmentGroupConfig = segmentGroupConfig;
     AUTIL_LOG(INFO, "init from context finished, segment group config:[%s]",
               autil::legacy::ToJsonString(*_segmentGroupConfig, true).c_str());
-    auto mergeConfig = context->GetTabletOptions()->GetOfflineConfig().GetMergeConfig();
+    auto mergeConfig = context->GetMergeConfig();
     auto outputLimitStr = mergeConfig.GetMergeStrategyParameter()._impl->outputLimitParam;
     if (!_outputLimits.FromString(outputLimitStr)) {
         AUTIL_LOG(ERROR, "init output limit from [%s] failed", outputLimitStr.c_str());

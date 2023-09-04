@@ -20,18 +20,17 @@
 
 FSLIB_PLUGIN_BEGIN_NAMESPACE(hdfs);
 
-class PanguMonitor
-{
+class PanguMonitor {
 public:
-    PanguMonitor(kmonitor_adapter::Monitor* monitor);
+    PanguMonitor(kmonitor_adapter::Monitor *monitor);
 
 public:
-    void init(kmonitor_adapter::Monitor* monitor);
+    void init(kmonitor_adapter::Monitor *monitor);
     bool valid() const { return _monitor != NULL; }
 
 private:
     friend class FileMonitor;
-    kmonitor_adapter::Monitor* _monitor = NULL;
+    kmonitor_adapter::Monitor *_monitor = NULL;
     kmonitor_adapter::MetricPtr _writeLatencyMetric;
     kmonitor_adapter::MetricPtr _writeSizeMetric;
     kmonitor_adapter::MetricPtr _writeSpeedMetric;
@@ -42,4 +41,3 @@ private:
 };
 
 FSLIB_PLUGIN_END_NAMESPACE(hdfs);
-

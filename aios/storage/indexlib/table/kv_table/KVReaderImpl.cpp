@@ -15,6 +15,7 @@
  */
 #include "indexlib/table/kv_table/KVReaderImpl.h"
 
+#include "autil/EnvUtil.h"
 #include "autil/Log.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/framework/Version.h"
@@ -45,8 +46,8 @@ Status KVReaderImpl::DoOpen(const std::shared_ptr<indexlibv2::config::KVIndexCon
     assert(_memoryShardReaders.empty());
     assert(_diskShardReaders.empty());
 
-    char* envParam = getenv("READ_REPORT_METRICS");
-    if (envParam && string(envParam) == "false") {
+    string envParam = autil::EnvUtil::getEnv("READ_REPORT_METRICS");
+    if (envParam == "false") {
         _kvReportMetrics = false;
     }
     _hasTTL = kvIndexConfig->TTLEnabled();

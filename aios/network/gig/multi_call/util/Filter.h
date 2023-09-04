@@ -23,7 +23,8 @@
 
 namespace multi_call {
 
-class Filter {
+class Filter
+{
 public:
     Filter(int32_t windowSize);
     ~Filter();
@@ -46,6 +47,7 @@ public:
     void reset();
     std::string toString() const;
     void setMinValue(float minValue);
+
 private:
     int32_t _windowSize;
     float _alpha;

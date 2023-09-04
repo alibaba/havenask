@@ -1,0 +1,22 @@
+{
+    "fields": [
+        {
+            "field_name": "id",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "title",
+            "field_type": "STRING"
+        }
+    ],
+    "indexs": [
+        {
+            "index_fields": "title",
+            "index_name": "key",
+            "index_type": "TRIE"
+        }
+    ],
+    "attributes": ["id", "title" ],
+    "table_name": "simple",
+    "table_type": "normal"
+}

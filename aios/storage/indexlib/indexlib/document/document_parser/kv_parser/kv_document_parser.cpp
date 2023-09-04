@@ -15,14 +15,15 @@
  */
 #include "indexlib/document/document_parser/kv_parser/kv_document_parser.h"
 
+#include "autil/EnvUtil.h"
 #include "indexlib/common/field_format/attribute/attribute_convertor_factory.h"
 #include "indexlib/config/index_partition_schema.h"
 #include "indexlib/document/builtin_parser_init_param.h"
 #include "indexlib/document/document_parser/kv_parser/multi_region_kv_key_extractor.h"
 #include "indexlib/document/document_parser/normal_parser/multi_region_extend_doc_fields_convertor.h"
-#include "indexlib/document/source_timestamp_parser.h"
 #include "indexlib/document/document_rewriter/multi_region_pack_attribute_appender.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
+#include "indexlib/document/source_timestamp_parser.h"
 #include "indexlib/index_define.h"
 #include "indexlib/misc/doc_tracer.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
@@ -79,8 +80,7 @@ bool KvDocumentParser::DoInit()
 void KvDocumentParser::InitStorePkey()
 {
     bool storePKey = false;
-    char* needStorePKeyValue = getenv(NEED_STORE_PKEY_VALUE);
-    if (needStorePKeyValue && autil::StringUtil::fromString(std::string(needStorePKeyValue), storePKey)) {
+    if (autil::EnvUtil::getEnvWithoutDefault(NEED_STORE_PKEY_VALUE, storePKey)) {
         mNeedStorePKeyValue = storePKey;
     }
     IE_LOG(INFO, "store pkey value = [%d]", mNeedStorePKeyValue);
@@ -232,7 +232,7 @@ DocumentPtr KvDocumentParser::Parse(const StringView& serializedData)
         kvIndexDoc->SetUserTimestamp(normalDoc->GetUserTimestamp());
         kvDoc->SetTimestamp(normalDoc->GetTimestamp());
         auto& tagValue = normalDoc->GetTag(SourceTimestampParser::SOURCE_TIMESTAMP_TAG_NAME);
-        if(!tagValue.empty()) {
+        if (!tagValue.empty()) {
             kvDoc->AddTag(SourceTimestampParser::SOURCE_TIMESTAMP_TAG_NAME, tagValue);
         }
         return kvDoc;

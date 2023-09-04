@@ -30,32 +30,36 @@ namespace common {
 class ModifyQueryVisitor;
 class QueryVisitor;
 struct RequiredFields;
-}  // namespace common
-}  // namespace isearch
+} // namespace common
+} // namespace isearch
 
 namespace isearch {
 namespace common {
 
-class NumberQuery : public Query
-{
+class NumberQuery : public Query {
 public:
-    NumberQuery(int64_t leftNumber, bool leftInclusive, int64_t rightNumber,
-                bool rightInclusive, const char *indexName,
+    NumberQuery(int64_t leftNumber,
+                bool leftInclusive,
+                int64_t rightNumber,
+                bool rightInclusive,
+                const char *indexName,
                 const RequiredFields &requiredFields,
                 const std::string &label,
                 int64_t boost = DEFAULT_BOOST_VALUE,
                 const std::string &truncateName = "");
-    NumberQuery(int64_t num, const char *indexName,
+    NumberQuery(int64_t num,
+                const char *indexName,
                 const RequiredFields &requiredFields,
                 const std::string &label,
                 int64_t boost = DEFAULT_BOOST_VALUE,
                 const std::string &truncateName = "");
-    NumberQuery(const NumberTerm& term, const std::string &label);
+    NumberQuery(const NumberTerm &term, const std::string &label);
     NumberQuery(const NumberQuery &other);
     ~NumberQuery();
+
 public:
-    void setTerm(const NumberTerm& term);
-    bool operator == (const Query& query) const override;
+    void setTerm(const NumberTerm &term);
+    bool operator==(const Query &query) const override;
     void accept(QueryVisitor *visitor) const override;
     void accept(ModifyQueryVisitor *visitor) override;
     Query *clone() const override;
@@ -63,10 +67,12 @@ public:
         assert(false);
     }
     bool removeQuery(const Query *query);
-    Query *rewriteQuery();//optimize query
-    const NumberTerm& getTerm() const;
-    NumberTerm& getTerm();
-    std::string getQueryName() const override { return "NumberQuery"; }
+    Query *rewriteQuery(); // optimize query
+    const NumberTerm &getTerm() const;
+    NumberTerm &getTerm();
+    std::string getQueryName() const override {
+        return "NumberQuery";
+    }
     std::string toString() const override;
 
     void serialize(autil::DataBuffer &dataBuffer) const override {
@@ -83,8 +89,10 @@ public:
     void setQueryLabelWithDefaultLevel(const std::string &label) override {
         setQueryLabelTerm(label);
     }
+
 private:
     NumberTerm _term;
+
 private:
     AUTIL_LOG_DECLARE();
 };

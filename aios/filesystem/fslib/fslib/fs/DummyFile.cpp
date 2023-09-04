@@ -20,30 +20,26 @@ FSLIB_BEGIN_NAMESPACE(fs);
 
 string DummyFile::_dummyFileName = "";
 
-DummyFile::DummyFile(ErrorCode ec) 
-    : File(_dummyFileName, ec)
-{  
-}
+DummyFile::DummyFile(ErrorCode ec) : File(_dummyFileName, ec) {}
 
-DummyFile::~DummyFile() { 
-}
+DummyFile::~DummyFile() {}
 
-ssize_t DummyFile::read(void* buffer, size_t length) {
+ssize_t DummyFile::read(void *buffer, size_t length) {
     _lastErrorCode = EC_NOTSUP;
     return -1;
 }
 
-ssize_t DummyFile::write(const void* buffer, size_t length) {
+ssize_t DummyFile::write(const void *buffer, size_t length) {
     _lastErrorCode = EC_NOTSUP;
     return -1;
 }
 
-ssize_t DummyFile::pread(void* buffer, size_t length, off_t offset) {
+ssize_t DummyFile::pread(void *buffer, size_t length, off_t offset) {
     _lastErrorCode = EC_NOTSUP;
     return -1;
 }
 
-ssize_t DummyFile::pwrite(const void* buffer, size_t length, off_t offset) {
+ssize_t DummyFile::pwrite(const void *buffer, size_t length, off_t offset) {
     _lastErrorCode = EC_NOTSUP;
     return -1;
 }
@@ -68,9 +64,7 @@ int64_t DummyFile::tell() {
     return -1;
 }
 
-bool DummyFile::isOpened() const {
-    return false;
-}
+bool DummyFile::isOpened() const { return false; }
 
 bool DummyFile::isEof() {
     _lastErrorCode = EC_NOTSUP;
@@ -78,4 +72,3 @@ bool DummyFile::isEof() {
 }
 
 FSLIB_END_NAMESPACE(fs);
-

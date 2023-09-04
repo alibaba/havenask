@@ -1,0 +1,59 @@
+#import(Log)
+#import(Tool)
+
+function graphDef()
+   local clusterNames = Graph.parameter["clusterNames"]
+   local skipBatchIds = Graph.parameter["skipBatchIds"]
+   local combinedBatchIds = Graph.parameter["combinedBatchIds"]
+   local targetClusterNames = Tool.jsonToList(clusterNames)
+   
+   -- if worker's version is old, @combinedBatchIds may be empty but @targetSkipBatchIds not, 
+   -- @needSkipBuilder should be true for legacy
+   local targetCombinedBatchIds = {}
+   local needSkipBuilder = true
+   if (combinedBatchIds ~= nil and combinedBatchIds ~= "") 
+   then 
+      targetCombinedBatchIds = Tool.jsonToList(combinedBatchIds)
+   else 
+      needSkipBuilder = false
+   end
+   
+   local targetSkipBatchIds = {}
+   if (skipBatchIds ~= nil and skipBatchIds ~= "")
+   then
+      targetSkipBatchIds = Tool.jsonToList(skipBatchIds)
+   end
+
+   for i, cluster in ipairs(targetClusterNames)
+   do
+      for idx, batchId in ipairs(targetSkipBatchIds)
+      do
+         local clusterParam = {}
+         clusterParam['batchId'] = batchId
+         clusterParam['clusterName'] = cluster
+         if (needSkipBuilder)
+         then
+            clusterParam['skipBuilder'] = "true"
+         end
+         local ret = Graph.loadSubGraph(cluster, "BatchBuild/SingleClusterSkip.graph", clusterParam)
+         if (not ret)
+         then
+            Log.log("ERROR", "skipBatch for "..cluster.." batch("..batchId..") failed")
+            return false
+         end
+      end
+      for idx, batchId in ipairs(targetCombinedBatchIds)
+      do 
+         local clusterParam = {}
+         clusterParam['batchId'] = batchId
+         clusterParam['clusterName'] = cluster
+         local ret = Graph.loadSubGraph(cluster, "BatchBuild/SingleClusterCombined.graph", clusterParam)
+         if (not ret)
+         then
+            Log.log("ERROR", "combineBatch for "..cluster.." into batch("..batchId..") failed")
+            return false
+         end
+      end
+   end
+   return true
+end

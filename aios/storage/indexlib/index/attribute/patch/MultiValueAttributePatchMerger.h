@@ -32,7 +32,7 @@ template <typename T>
 class MultiValueAttributePatchMerger : public AttributePatchMerger
 {
 public:
-    MultiValueAttributePatchMerger(const std::shared_ptr<config::AttributeConfig>& attrConfig,
+    MultiValueAttributePatchMerger(const std::shared_ptr<AttributeConfig>& attrConfig,
                                    const std::shared_ptr<SegmentUpdateBitmap>& segmentUpdateBitmap)
         : AttributePatchMerger(attrConfig, segmentUpdateBitmap)
     {

@@ -1,0 +1,39 @@
+{
+"build_step":
+  1,
+"checkpoint":
+  0,
+"config_path":
+  "config_path_to_replace",
+"current_data_description_id":
+  0,
+"data_descriptions":
+  [
+    {
+    "src":
+      "swift",
+    "type":
+      "swift"
+    }
+  ],
+"nodes_start_timestamp":
+  -1,
+"parallel_num":
+  1,
+"partition_count":
+  2,
+"processor_rule_config":
+  {
+  "parallel_num":
+    2,
+  "partition_count":
+    2
+  },
+"slow_node_detect":
+  false,
+"switch_timestamp":
+  9223372036854775807,
+"use_customize_processor_count":
+  false
+}
+

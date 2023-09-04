@@ -1,0 +1,46 @@
+{
+"attributes":
+  [
+    "field"
+  ],
+"fields":
+  [
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "pk_field",
+    "field_type":
+      "UINT32"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "field",
+    "field_type":
+      "LONG"
+    }
+  ],
+"indexs":
+  [
+    {
+    "has_primary_key_attribute":
+      false,
+    "index_fields":
+      "pk_field",
+    "index_name":
+      "pk_index",
+    "index_type":
+      "PRIMARYKEY64",
+    "pk_hash_type":
+      "default_hash",
+    "pk_storage_type":
+      "sort_array"
+    }
+  ],
+"table_name":
+  "simple",
+"table_type":
+  "normal"
+}

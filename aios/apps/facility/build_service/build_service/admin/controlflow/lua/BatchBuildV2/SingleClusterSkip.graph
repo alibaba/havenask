@@ -1,0 +1,35 @@
+#import(Log)
+#import(Tool)
+#import(BatchBuildV2/FlowIdTools)
+
+function graphDef()
+    local batchId = Graph.parameter["batchId"]
+    local clusterName = Graph.parameter["clusterName"]
+    local needSkipBuilder = Graph.parameter["skipBuilder"]
+
+    local builderTag = FlowIdTools.getBatchBuilder(batchId, clusterName)
+    local builderFlowId = Graph.getFlowIdByTag(builderTag)
+    if (table.getn(builderFlowId) == 0)
+    then 
+       Log.log("INFO", "toSkipBuilder tag ["..builderTag.."] flow not exist, ignore it.")
+       return true
+    end
+
+    local toSkipBuilder = Graph.getFlow(builderFlowId[1])
+    if (toSkipBuilder == nil) 
+    then 
+       Log.log("INFO", "get toSkipBuilder flow ("..builderFlowId[1]..") failed, flow not exist.")
+       return false
+    end
+    
+    toSkipBuilder:setProperty("skipMerger", "true")
+    Log.log("INFO", "set builder flow ("..builderFlowId[1]..") need skip merge.")    
+    if (needSkipBuilder ~= "true")
+    then 
+       Log.log("INFO", "no need skip builder flow ("..builderFlowId[1].."), maybe worker binary version is old")
+       return true
+    end
+    toSkipBuilder:setProperty("skipBuilder", "true")
+    Log.log("INFO", "set builder flow ("..builderFlowId[1]..") need skip.")
+    return true
+end

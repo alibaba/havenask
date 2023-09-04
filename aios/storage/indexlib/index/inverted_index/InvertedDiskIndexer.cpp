@@ -21,8 +21,7 @@
 #include "indexlib/framework/SegmentInfo.h"
 #include "indexlib/index/IIndexFactory.h"
 #include "indexlib/index/IndexFactoryCreator.h"
-#include "indexlib/index/attribute/MultiSliceAttributeDiskIndexer.h"
-#include "indexlib/index/attribute/MultiValueAttributeDiskIndexer.h"
+#include "indexlib/index/attribute/config/AttributeConfig.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/inverted_index/InvertedIndexUtil.h"
 #include "indexlib/index/inverted_index/builtin_index/bitmap/BitmapDiskIndexer.h"
@@ -33,6 +32,7 @@
 #include "indexlib/index/inverted_index/format/dictionary/DefaultTermDictionaryReader.h"
 #include "indexlib/index/inverted_index/format/dictionary/DictionaryCreator.h"
 #include "indexlib/index/inverted_index/patch/IndexUpdateTermIterator.h"
+#include "indexlib/index/inverted_index/section_attribute/SectionAttributeIndexFactory.h"
 
 namespace indexlib::index {
 namespace {
@@ -162,10 +162,10 @@ Status InvertedDiskIndexer::InitDynamicIndexer(const std::shared_ptr<file_system
     std::string dynamicTreeFileName = DynamicMemIndexer::GetDynamicTreeFileName(_indexConfig);
     auto [status, resourceFile] = indexDir->GetResourceFile(dynamicTreeFileName).StatusWith();
 
-    if (not status.IsNoEntry()) {
+    if (not status.IsNotFound()) {
         RETURN_IF_STATUS_ERROR(status, "get [%s] failed", dynamicTreeFileName.c_str());
     }
-    if (status.IsNoEntry() or not resourceFile or resourceFile->Empty()) {
+    if (status.IsNotFound() or not resourceFile or resourceFile->Empty()) {
         assert(!indexlibv2::framework::Segment::IsRtSegmentId(_indexerParam.segmentId));
         auto postingTable = new DynamicMemIndexer::DynamicPostingTable(HASHMAP_INIT_SIZE);
         if (_indexConfig->SupportNull()) {
@@ -195,26 +195,19 @@ InvertedDiskIndexer::OpenSectionAttrDiskIndexer(const std::shared_ptr<indexlibv2
             auto sectionAttrConf = packageIndexConfig->GetSectionAttributeConfig();
             assert(sectionAttrConf);
             auto attrConfig = sectionAttrConf->CreateAttributeConfig(packageIndexConfig->GetIndexName());
-            auto indexFactoryCreator = indexlibv2::index::IndexFactoryCreator::GetInstance();
-            auto [status, indexFactory] = indexFactoryCreator->Create(attrConfig->GetIndexType());
-            RETURN_IF_STATUS_ERROR(status, "get index factory for index type [%s] failed",
-                                   attrConfig->GetIndexType().c_str());
+            if (attrConfig == nullptr) {
+                auto status = Status::InternalError("create attribute config failed, index name[%s]",
+                                                    config->GetIndexName().c_str());
+                AUTIL_LOG(ERROR, "%s", status.ToString().c_str());
+                assert(false);
+                return status;
+            }
+            auto indexFactory = std::make_unique<SectionAttributeIndexFactory>();
             auto attrDiskIndexer = indexFactory->CreateDiskIndexer(attrConfig, _indexerParam);
-            status = attrDiskIndexer->Open(attrConfig, indexDir);
+            auto status = attrDiskIndexer->Open(attrConfig, indexDir);
             RETURN_IF_STATUS_ERROR(status, "section attribute disk indexer init failed, indexName[%s]",
                                    config->GetIndexName().c_str());
-            _multiSliceAttrDiskIndexer = attrDiskIndexer;
-            auto multiSliceIndexer =
-                std::dynamic_pointer_cast<indexlibv2::index::MultiSliceAttributeDiskIndexer>(attrDiskIndexer);
-            assert(multiSliceIndexer);
-            assert(multiSliceIndexer->GetSliceCount() == 1);
-            _sectionAttrDiskIndexer =
-                multiSliceIndexer->GetSliceIndexer<indexlibv2::index::MultiValueAttributeDiskIndexer<char>>(0);
-            if (_sectionAttrDiskIndexer == nullptr) {
-                AUTIL_LOG(ERROR, "cast to MultiValueAttributeDiskIndexer<char> failed, indexName[%s]",
-                          config->GetIndexName().c_str());
-                return Status::InvalidArgs();
-            }
+            _sectionAttrDiskIndexer = attrDiskIndexer;
         }
     }
     return Status::OK();
@@ -269,12 +262,12 @@ size_t InvertedDiskIndexer::EstimateSectionAttributeMemUse(
     auto sectionAttrConf = packageIndexConfig->GetSectionAttributeConfig();
     assert(sectionAttrConf);
     auto attrConfig = sectionAttrConf->CreateAttributeConfig(packageIndexConfig->GetIndexName());
-    auto indexFactoryCreator = indexlibv2::index::IndexFactoryCreator::GetInstance();
-    auto [status, indexFactory] = indexFactoryCreator->Create(attrConfig->GetIndexType());
-    if (!status.IsOK()) {
-        AUTIL_LOG(ERROR, "get index factory for index type [%s] failed", attrConfig->GetIndexType().c_str());
+    if (attrConfig == nullptr) {
+        AUTIL_LOG(ERROR, "create attr config failed, index name [%s]", invertedConfig->GetIndexName().c_str());
+        assert(false);
         return 0;
     }
+    auto indexFactory = std::make_unique<SectionAttributeIndexFactory>();
     auto attrDiskIndexer = indexFactory->CreateDiskIndexer(attrConfig, _indexerParam);
     assert(attrDiskIndexer);
     return attrDiskIndexer->EstimateMemUsed(attrConfig, indexDirectory);
@@ -294,6 +287,9 @@ size_t InvertedDiskIndexer::EvaluateCurrentMemUsed()
         }
         if (_sectionAttrDiskIndexer) {
             totalMemUse += _sectionAttrDiskIndexer->EvaluateCurrentMemUsed();
+        }
+        if (_dynamicPostingResource) {
+            totalMemUse += _dynamicPostingResource->GetMemoryUse();
         }
     } catch (util::NonExistException& e) {
         AUTIL_LOG(WARN, "inverted disk index estimate memory use failed, indexName[%s], file is not exist",

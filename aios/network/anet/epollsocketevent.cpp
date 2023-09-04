@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 #include "aios/network/anet/epollsocketevent.h"
-#include "aios/network/anet/log.h"
-#include "aios/network/anet/socket.h"
-#include <sys/epoll.h>
+
 #include <assert.h>
-#include "aios/network/anet/filecontrol.h"
 #include <errno.h>
+#include <sys/epoll.h>
 #include <unistd.h>
 
+#include "aios/network/anet/filecontrol.h"
 #include "aios/network/anet/ilogger.h"
+#include "aios/network/anet/log.h"
+#include "aios/network/anet/socket.h"
 #include "aios/network/anet/socketevent.h"
 
 namespace anet {
@@ -41,8 +42,8 @@ EPollSocketEvent::EPollSocketEvent() {
     FileControl::setCloseOnExec(_pipes[1]);
     struct epoll_event ev;
     ev.events = EPOLLET;
-    ev.data.ptr=this;
-    rc =  epoll_ctl(_iepfd, EPOLL_CTL_ADD, _pipes[1], &ev);
+    ev.data.ptr = this;
+    rc = epoll_ctl(_iepfd, EPOLL_CTL_ADD, _pipes[1], &ev);
     assert(rc == 0);
 }
 
@@ -68,8 +69,8 @@ bool EPollSocketEvent::addEvent(Socket *socket, bool enableRead, bool enableWrit
     struct epoll_event ev;
     ev.data.ptr = socket->getIOComponent();
     // 设置要处理的事件类型
-//    ev.events = EPOLLET;
-    ev.events = 0; //use level triggered to reduce call to epoll_ctl()
+    //    ev.events = EPOLLET;
+    ev.events = 0; // use level triggered to reduce call to epoll_ctl()
     if (enableRead) {
         ev.events |= EPOLLIN;
     }
@@ -80,10 +81,10 @@ bool EPollSocketEvent::addEvent(Socket *socket, bool enableRead, bool enableWrit
     //_mutex.lock();
     bool rc = (epoll_ctl(_iepfd, EPOLL_CTL_ADD, socket->getSocketHandle(), &ev) == 0);
     //_mutex.unlock();
-    if (!rc) ANET_LOG(ERROR, "epoll_ctl error, errno: %d", errno);
-    ANET_LOG(DEBUG, "read: %d, write: %d. (IOC:%p)", enableRead, 
-             enableWrite, ev.data.ptr);
-    
+    if (!rc)
+        ANET_LOG(ERROR, "epoll_ctl error, errno: %d", errno);
+    ANET_LOG(DEBUG, "read: %d, write: %d. (IOC:%p)", enableRead, enableWrite, ev.data.ptr);
+
     return rc;
 }
 
@@ -100,8 +101,8 @@ bool EPollSocketEvent::setEvent(Socket *socket, bool enableRead, bool enableWrit
     struct epoll_event ev;
     ev.data.ptr = socket->getIOComponent();
     // 设置要处理的事件类型
-//    ev.events = EPOLLET;
-    ev.events = 0; //use level triggered to reduce call to epoll_ctl()
+    //    ev.events = EPOLLET;
+    ev.events = 0; // use level triggered to reduce call to epoll_ctl()
     if (enableRead) {
         ev.events |= EPOLLIN;
     }
@@ -112,7 +113,8 @@ bool EPollSocketEvent::setEvent(Socket *socket, bool enableRead, bool enableWrit
     //_mutex.lock();
     bool rc = (epoll_ctl(_iepfd, EPOLL_CTL_MOD, socket->getSocketHandle(), &ev) == 0);
     //_mutex.unlock();
-    //ANET_LOG(ERROR, "EPOLL_CTL_MOD: %d => %d,%d, %d", socket->getSocketHandle(), enableRead, enableWrite, pthread_self());
+    // ANET_LOG(ERROR, "EPOLL_CTL_MOD: %d => %d,%d, %d", socket->getSocketHandle(), enableRead, enableWrite,
+    // pthread_self());
     return rc;
 }
 
@@ -131,7 +133,7 @@ bool EPollSocketEvent::removeEvent(Socket *socket) {
     //_mutex.lock();
     bool rc = (epoll_ctl(_iepfd, EPOLL_CTL_DEL, socket->getSocketHandle(), &ev) == 0);
     //_mutex.unlock();
-    //ANET_LOG(ERROR, "EPOLL_CTL_DEL: %d", socket->getSocketHandle());
+    // ANET_LOG(ERROR, "EPOLL_CTL_DEL: %d", socket->getSocketHandle());
     return rc;
 }
 
@@ -151,7 +153,7 @@ int EPollSocketEvent::getEvents(int timeout, IOEvent *ioevents, int cnt) {
         cnt = MAX_SOCKET_EVENTS;
     }
 
-    int res = epoll_wait(_iepfd, events, cnt , timeout);
+    int res = epoll_wait(_iepfd, events, cnt, timeout);
 
     // 把events的事件转化成IOEvent的事件
     int j = 0;
@@ -160,16 +162,10 @@ int EPollSocketEvent::getEvents(int timeout, IOEvent *ioevents, int cnt) {
             continue;
         }
 
-        ioevents[j]._ioc = (IOComponent*)events[i].data.ptr;
-        ioevents[j]._errorOccurred = events[i].events & (EPOLLERR | EPOLLHUP)
-                                     ? true
-                                     : false; 
-        ioevents[j]._readOccurred = events[i].events & EPOLLIN
-                                    ? true
-                                    : false;
-        ioevents[j]._writeOccurred = events[i].events & EPOLLOUT
-                                    ? true
-                                    : false;
+        ioevents[j]._ioc = (IOComponent *)events[i].data.ptr;
+        ioevents[j]._errorOccurred = events[i].events & (EPOLLERR | EPOLLHUP) ? true : false;
+        ioevents[j]._readOccurred = events[i].events & EPOLLIN ? true : false;
+        ioevents[j]._writeOccurred = events[i].events & EPOLLOUT ? true : false;
         j++;
     }
 
@@ -179,9 +175,9 @@ int EPollSocketEvent::getEvents(int timeout, IOEvent *ioevents, int cnt) {
 void EPollSocketEvent::wakeUp() {
     struct epoll_event ev;
     ev.events = EPOLLET | EPOLLOUT;
-    ev.data.ptr=this;
+    ev.data.ptr = this;
     int __attribute__((__unused__)) rc = 0;
-    rc =  epoll_ctl(_iepfd, EPOLL_CTL_MOD, _pipes[1], &ev);
+    rc = epoll_ctl(_iepfd, EPOLL_CTL_MOD, _pipes[1], &ev);
     assert(rc == 0);
 }
-}
+} // namespace anet

@@ -16,21 +16,23 @@
 #ifndef ISEARCH_MULTI_CALL_REPLYINFOCOLLECTOR_H
 #define ISEARCH_MULTI_CALL_REPLYINFOCOLLECTOR_H
 
-#include "aios/network/gig/multi_call/common/MetaEnv.h"
-#include "aios/network/gig/multi_call/common/common.h"
 #include <map>
 #include <set>
 
+#include "aios/network/gig/multi_call/common/MetaEnv.h"
+#include "aios/network/gig/multi_call/common/common.h"
+
 namespace multi_call {
 struct EtInfo {
-    EtInfo() : isET(false), latency(0) {}
+    EtInfo() : isET(false), latency(0) {
+    }
     bool isET;
     double latency;
 };
 
 struct RetryInfo {
-    RetryInfo()
-        : isRetry(false), latency(0), retryCallNum(0), retrySuccNum(0) {}
+    RetryInfo() : isRetry(false), latency(0), retryCallNum(0), retrySuccNum(0) {
+    }
     bool isRetry;
     double latency;
     uint32_t retryCallNum;
@@ -38,16 +40,25 @@ struct RetryInfo {
 };
 
 struct BizSizeInfo {
-    BizSizeInfo() : num(0), sumSize(0) {}
+    BizSizeInfo() : num(0), sumSize(0) {
+    }
     uint32_t num;
     size_t sumSize;
 };
 
 struct ReplyBizInfo {
     ReplyBizInfo()
-        : requestCount(0), errorRequestCount(0), timeoutRequestCount(0),
-          expectProviderCount(0), returnCount(0), probeCallNum(0),
-          copyCallNum(0), latency(0), rpcLatency(0), netLatency(0.0f) {}
+        : requestCount(0)
+        , errorRequestCount(0)
+        , timeoutRequestCount(0)
+        , expectProviderCount(0)
+        , returnCount(0)
+        , probeCallNum(0)
+        , copyCallNum(0)
+        , latency(0)
+        , rpcLatency(0)
+        , netLatency(0.0f) {
+    }
     RetryInfo retryInfo;
     EtInfo etInfo;
     uint32_t requestCount;
@@ -67,7 +78,8 @@ struct ReplyBizInfo {
 
 typedef std::map<std::string, ReplyBizInfo> ReplyBizInfoMap;
 
-class ReplyInfoCollector {
+class ReplyInfoCollector
+{
 public:
     ReplyInfoCollector(const std::vector<std::string> &bizNameVec);
     ~ReplyInfoCollector();
@@ -85,8 +97,8 @@ public:
     void addCopyCallNum(const std::string &bizName, uint32_t count);
     void addRetryCallNum(const std::string &bizName);
     void addRetrySuccessNum(const std::string &bizName);
-    void setBizLatency(const std::string &bizName, int64_t latency,
-                       int64_t rpcLatency, float netLatency);
+    void setBizLatency(const std::string &bizName, int64_t latency, int64_t rpcLatency,
+                       float netLatency);
     void addFailRequestCount(const std::string &bizName, uint32_t errorCount,
                              uint32_t timeoutCount);
     void addErrorCode(const std::string &bizName, MultiCallErrorCode ec);

@@ -42,7 +42,7 @@ inline void ThrowIfStatusError(indexlib::Status status)
         INDEXLIB_THROW(indexlib::util::RuntimeException, "%s", errMsg);
     } else if (status.IsOutOfRange()) {
         INDEXLIB_THROW(indexlib::util::OutOfRangeException, "%s", errMsg);
-    } else if (status.IsNoEntry()) {
+    } else if (status.IsNotFound()) {
         INDEXLIB_THROW(indexlib::util::ReachMaxResourceException, "%s", errMsg);
     } else if (status.IsNeedDump()) {
         INDEXLIB_THROW(indexlib::util::RuntimeException, "%s", errMsg);

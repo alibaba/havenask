@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 #include "aios/network/opentelemetry/core/eagleeye/EagleeyePropagator.h"
+
 #include <iostream>
 
 namespace opentelemetry {
 
-SpanContextPtr EagleeyePropagator::extract(const std::string& eagleeyeTraceId,
-                                           const std::string& eagleeyeRpcId,
-                                           const std::string& eagleeyeUserData,
+SpanContextPtr EagleeyePropagator::extract(const std::string &eagleeyeTraceId,
+                                           const std::string &eagleeyeRpcId,
+                                           const std::string &eagleeyeUserData,
                                            std::string traceparent,
-                                           std::string tracestate)
-{
+                                           std::string tracestate) {
     return nullptr;
 }
 
-void EagleeyePropagator::inject(const SpanContextPtr& context,
-                                std::string& eagleeyeTraceId,
-                                std::string& eagleeyeRpcId,
-                                std::map<std::string, std::string>& eagleeyeUserData,
-                                std::string& traceparent,
-                                std::string& tracestate)
-{
-}
+void EagleeyePropagator::inject(const SpanContextPtr &context,
+                                std::string &eagleeyeTraceId,
+                                std::string &eagleeyeRpcId,
+                                std::map<std::string, std::string> &eagleeyeUserData,
+                                std::string &traceparent,
+                                std::string &tracestate) {}
 
-}
+} // namespace opentelemetry

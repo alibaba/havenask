@@ -1,0 +1,20 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
+strict_cc_fast_test(
+    name='ComplexIndexTaskPlanCreatorTest',
+    srcs=['ComplexIndexTaskPlanCreatorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/table/index_task:ComplexIndexTaskPlanCreator',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='SimpleIndexTaskPlanCreatorTest',
+    srcs=['SimpleIndexTaskPlanCreatorTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/table/index_task:SimpleIndexTaskPlanCreator',
+        '//aios/unittest_framework'
+    ]
+)

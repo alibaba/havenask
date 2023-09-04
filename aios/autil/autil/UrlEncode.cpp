@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "autil/UrlEncode.h"
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
 
-#include "autil/UrlEncode.h"
-
 namespace autil {
 
 /* Converts a hex character to its integer value */
-char from_hex(char ch) {
-    return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
-}
+char from_hex(char ch) { return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10; }
 
 /* Converts an integer value to its hex character*/
 char to_hex(char code) {
@@ -40,7 +38,7 @@ int UrlEncode::encode(const char *str, const int strSize, char *buf, const int r
     const char *pstr = str;
     char *pbuf = buf;
     int count = 0;
-    while (pstr < str + strSize  && count < writeSize) {
+    while (pstr < str + strSize && count < writeSize) {
         if (isalnum(*pstr) || *pstr == '-' || *pstr == '_' || *pstr == '.' || *pstr == '~') {
             count++;
             *pbuf++ = *pstr;
@@ -111,4 +109,4 @@ std::string UrlEncode::encode(const std::string &s) {
     return res;
 }
 
-}
+} // namespace autil

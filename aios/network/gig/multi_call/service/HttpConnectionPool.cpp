@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/service/HttpConnectionPool.h"
+
 #include "aios/network/gig/multi_call/service/ConnectionFactory.h"
 #include "aios/network/gig/multi_call/service/HttpConnection.h"
 
@@ -23,16 +24,17 @@ using namespace autil;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, HttpConnectionPool);
 
-HttpConnectionPool::HttpConnectionPool() {}
+HttpConnectionPool::HttpConnectionPool() {
+}
 
-HttpConnectionPool::~HttpConnectionPool() {}
+HttpConnectionPool::~HttpConnectionPool() {
+}
 
 bool HttpConnectionPool::init(const ProtocolConfig &config) {
     if (!ConnectionPool::init(config)) {
         return false;
     }
-    _connectionFactory.reset(
-        new AnetConnectionFactory<HttpConnection>(_transport, _queueSize));
+    _connectionFactory.reset(new AnetConnectionFactory<HttpConnection>(_transport, _queueSize));
     return true;
 }
 

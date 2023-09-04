@@ -1,9 +1,0 @@
-package(default_visibility=['//aios/ha3:__subpackages__'])
-cc_library(
-    name='sql_ops_run_sql_graph_kernel',
-    srcs=glob(['*.cpp']),
-    hdrs=glob(['*.h']),
-    deps=['//aios/ha3/ha3/sql/ops/runSqlGraph:sql_ops_run_sql_graph'],
-    include_prefix='ha3/sql/ops/runSqlGraph',
-    alwayslink=True
-)

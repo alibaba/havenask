@@ -20,9 +20,7 @@ using namespace std;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, ArpcResponse);
 
-ArpcResponse::ArpcResponse(
-    const std::shared_ptr<google::protobuf::Arena> &arena)
-    : _message(NULL) {
+ArpcResponse::ArpcResponse(const std::shared_ptr<google::protobuf::Arena> &arena) : _message(NULL) {
     setProtobufArena(arena);
 }
 
@@ -45,7 +43,9 @@ void ArpcResponse::init(void *data) {
     }
 }
 
-google::protobuf::Message *ArpcResponse::getMessage() const { return _message; }
+google::protobuf::Message *ArpcResponse::getMessage() const {
+    return _message;
+}
 
 void ArpcResponse::fillSpan() {
     auto &span = getSpan();

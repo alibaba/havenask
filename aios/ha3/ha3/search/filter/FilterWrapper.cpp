@@ -32,9 +32,7 @@ FilterWrapper::FilterWrapper()
     : _joinFilter(NULL)
     , _subDocFilter(NULL)
     , _filter(NULL)
-    , _subExprFilter(NULL)
-{
-}
+    , _subExprFilter(NULL) {}
 
 FilterWrapper::~FilterWrapper() {
     POOL_DELETE_CLASS(_joinFilter);

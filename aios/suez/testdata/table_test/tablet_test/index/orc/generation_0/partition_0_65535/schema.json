@@ -1,0 +1,62 @@
+{
+"attributes":
+  [
+    "nid",
+    "user_id",
+    "category"
+  ],
+"enable_temperature_layer":
+  false,
+"fields":
+  [
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "nid",
+    "field_type":
+      "LONG"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "user_id",
+    "field_type":
+      "STRING"
+    },
+    {
+    "binary_field":
+      false,
+    "field_name":
+      "category",
+    "field_type":
+      "INT16",
+    "multi_value":
+      true
+    }
+  ],
+"indexs":
+  [
+    {
+    "format_version_id":
+      0,
+    "index_fields":
+      "nid",
+    "index_name":
+      "nid",
+    "index_type":
+      "PRIMARYKEY64",
+    "pk_data_block_size":
+      4096,
+    "pk_hash_type":
+      "default_hash",
+    "pk_storage_type":
+      "sort_array"
+    }
+  ],
+"table_name":
+  "orc",
+"table_type":
+  "orc"
+}

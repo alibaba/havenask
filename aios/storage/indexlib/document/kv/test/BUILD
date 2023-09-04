@@ -1,0 +1,30 @@
+load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
+strict_cc_fast_test(
+    name='kv_document_parser_test',
+    srcs=['KVDocumentParserTest.cpp'],
+    copts=['-fno-access-control'],
+    data=['testdata/document_parser_kv_schema.json'],
+    deps=[
+        '//aios/storage/indexlib/document/kv:KVDocumentParser',
+        '//aios/storage/indexlib/table/kv_table:table',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='kv_document_test',
+    srcs=['KVDocumentTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/document/kv:KVDocument',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='kv_document_batch_test',
+    srcs=['KVDocumentBatchTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/document/kv:kv_document',
+        '//aios/unittest_framework'
+    ]
+)

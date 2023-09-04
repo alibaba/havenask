@@ -33,30 +33,26 @@ namespace search {
 
 AUTIL_LOG_SETUP(ha3, TermQueryExecutor);
 
-TermQueryExecutor::TermQueryExecutor(PostingIterator *iter,
-                                     const common::Term &term)
+TermQueryExecutor::TermQueryExecutor(PostingIterator *iter, const common::Term &term)
     : QueryExecutor()
     , _iter(iter)
     , _backupIter(NULL)
     , _term(term)
     , _LeafId(0)
-    , _indexPartReaderWrapper(NULL)
-{
+    , _indexPartReaderWrapper(NULL) {
     if (_iter) {
         _mainChainDF = _iter->GetTermMeta()->GetDocFreq();
     }
     _hasSubDocExecutor = false;
 }
 
-TermQueryExecutor::~TermQueryExecutor() {
-}
+TermQueryExecutor::~TermQueryExecutor() {}
 
 void TermQueryExecutor::accept(ExecutorVisitor *visitor) const {
     visitor->visitTermExecutor(this);
 }
 
-indexlib::index::ErrorCode TermQueryExecutor::doSeek(docid_t id, docid_t& result)
-{
+indexlib::index::ErrorCode TermQueryExecutor::doSeek(docid_t id, docid_t &result) {
     docid_t tempDocId = INVALID_DOCID;
     auto ec = _iter->SeekDocWithErrorCode(id, tempDocId);
     IE_RETURN_CODE_IF_ERROR(ec);
@@ -68,9 +64,8 @@ indexlib::index::ErrorCode TermQueryExecutor::doSeek(docid_t id, docid_t& result
     return indexlib::index::ErrorCode::OK;
 }
 
-indexlib::index::ErrorCode TermQueryExecutor::seekSubDoc(docid_t docId, docid_t subDocId,
-                       docid_t subDocEnd, bool needSubMatchdata, docid_t& result)
-{
+indexlib::index::ErrorCode TermQueryExecutor::seekSubDoc(
+    docid_t docId, docid_t subDocId, docid_t subDocEnd, bool needSubMatchdata, docid_t &result) {
     assert(getDocId() >= docId);
     if (getDocId() == docId && subDocId < subDocEnd) {
         result = subDocId;
@@ -84,10 +79,8 @@ void TermQueryExecutor::getMetaInfo(rank::MetaInfo *metaInfo) const {
     rank::TermMetaInfo termMetaInfo;
     termMetaInfo.setMatchDataLevel(MDL_TERM);
     termMetaInfo.setQueryLabel(_queryLabel);
-    termMetaInfo.setTermInfo(_term.getToken(),
-                             _term.getIndexName(),
-                             _term.getBoost(),
-                             _term.getTruncateName());
+    termMetaInfo.setTermInfo(
+        _term.getToken(), _term.getIndexName(), _term.getBoost(), _term.getTruncateName());
     if (_iter) {
         termMetaInfo.setTermMeta(_iter->GetTermMeta());
     }
@@ -109,7 +102,7 @@ df_t TermQueryExecutor::getDF(GetDFType type) const {
 
 void TermQueryExecutor::reset() {
     QueryExecutor::reset();
-//    assert(!_backupIter);
+    //    assert(!_backupIter);
     _backupIter = _iter;
     if (_backupIter) {
         _iter = _backupIter->Clone();

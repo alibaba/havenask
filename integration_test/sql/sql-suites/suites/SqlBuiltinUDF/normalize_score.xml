@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Root>
+    <TestCase name="normalize_score">
+        <Resource name="sqls">
+            <Element>
+<![CDATA[
+SELECT nid, normalizescore(price, 0) as price FROM phone where nid > 8
+]]>
+</Element>
+        </Resource>
+        <Resource name="kvpair">databaseName:phone;</Resource>
+        <Resource name="column_names">"nid", "price"</Resource>
+        <Resource name="column_types">uint64, double</Resource>
+        <Resource name="seq_required">false</Resource>
+        <Resource name="expect_data">
+<![CDATA[
+9, 4298
+10, 5688
+]]>
+</Resource>
+<Resource name="plan">
+<![CDATA[
+SinkOp#2(type=api)
+    ExchangeOp#1(distribution={type:SINGLETON})
+        TableScanOp#0(catalog_name=default,db_name=phone,limit=100,output_fields=[$nid,$price],push_down_ops=[{attrs:{condition:{op:>,params:[$nid,8],type:OTHER},output_field_exprs:{$price:{op:normalizescore,params:[$price,0],type:UDF}},output_fields:[$nid,$price]},op_name:CalcOp}],table_name=phone,table_type=normal,use_nest_table=false)
+]]>
+</Resource>
+</TestCase>
+</Root>

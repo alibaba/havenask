@@ -1,0 +1,73 @@
+{
+    "table_name": "auction",
+    "fields": 
+    [
+	{"field_name":"title",        "field_type":"TEXT",    "analyzer":"taobao_analyzer", "enable_null":true},
+	{"field_name":"user_id",      "field_type":"INTEGER"},
+	{"field_name":"price",        "field_type":"INTEGER"  },
+	{"field_name":"product_id",   "field_type":"LONG" },
+	{"field_name":"body",         "field_type":"TEXT",    "analyzer":"taobao_analyzer"}
+    ],
+    "indexs": 
+    [
+   	// {
+	//     "index_name": "phrase",
+        //     "index_type" : "EXPACK",
+	//     "term_payload_flag" : 1,
+	//     "doc_payload_flag" : 1,
+	//     "position_payload_flag" : 0,
+	//     "position_list_flag" : 0,
+	//     "term_frequency_bitmap": 0,
+        //     "index_analyzer" : "taobao_analyzer",
+	//     "index_fields": 
+	//     [
+        // 	{"field_name":"title", "boost":1000}, 
+	//         {"field_name":"body", "boost":10}
+	//     ],
+	//     "has_truncate" : true,
+	//     "use_truncate_profiles" : "desc_price;asc_user_id"
+	// },
+  	// {
+	//     "index_name": "phrase_pos",
+        //     "index_type" : "EXPACK",
+	//     "term_payload_flag" : 1,
+	//     "doc_payload_flag" : 1,
+	//     "position_payload_flag" : 1,
+	//     "position_list_flag" : 1,
+	//     "term_frequency_bitmap": 0,
+        //     "index_analyzer" : "taobao_analyzer",
+	//     "index_fields": 
+	//     [
+	// 	{"field_name":"title", "boost":1000}, 
+	// 	{"field_name":"body", "boost":10}
+	//     ],
+	//     "has_truncate" : true,
+	//     "use_truncate_profiles" : "desc_price;asc_user_id"
+	// },
+	{
+	    "index_name": "title",
+            "index_type": "TEXT",
+	    "term_payload_flag" :  1 ,
+	    "doc_payload_flag" :  1 ,
+	    "position_payload_flag" : 1,
+	    "position_list_flag" : 1,
+	    "term_frequency_bitmap": 0,
+	    "index_analyzer" : "taobao_analyzer",
+            "index_fields": "title",
+	    "has_truncate" : true,
+            "use_truncate_profiles" : "desc_price;asc_user_id"                        
+        },
+        {
+            "index_name": "pk_index",
+            "index_type" : "PRIMARYKEY64",
+            "index_fields": "product_id",
+            "has_primary_key_attribute": true
+        }        
+    ],
+    "attributes" : ["price", "user_id"],
+    "truncate_profiles" : [
+        {"truncate_profile_name": "asc_user_id", "sort_descriptions" : "+user_id" },
+        {"truncate_profile_name": "desc_price", "sort_descriptions" : "-price" }
+    ],
+    "auto_update_preference" : false
+}

@@ -16,21 +16,22 @@
 #ifndef ISEARCH_MULTI_CALL_GRPCSERVERSTREAMHANDLER_H
 #define ISEARCH_MULTI_CALL_GRPCSERVERSTREAMHANDLER_H
 
+#include <grpc++/generic/async_generic_service.h>
+
 #include "aios/network/gig/multi_call/common/common.h"
 #include "aios/network/gig/multi_call/grpc/server/GrpcServerWorker.h"
 #include "aios/network/gig/multi_call/proto/GigStreamHeader.pb.h"
 #include "aios/network/gig/multi_call/stream/GigStreamHandlerBase.h"
-#include <grpc++/generic/async_generic_service.h>
 
 namespace multi_call {
 
 class QueryInfo;
 class GrpcServerWorker;
 
-class GrpcServerStreamHandler : public GigStreamHandlerBase {
+class GrpcServerStreamHandler : public GigStreamHandlerBase
+{
 public:
-    GrpcServerStreamHandler(GrpcServerWorker *worker,
-                            const ServerCompletionQueueStatusPtr &cqs);
+    GrpcServerStreamHandler(GrpcServerWorker *worker, const ServerCompletionQueueStatusPtr &cqs);
     ~GrpcServerStreamHandler();
 
 private:
@@ -39,18 +40,19 @@ private:
 
 public:
     bool init() override;
+
 public:
     QueryInfoPtr getQueryInfo() const;
     std::string getPeer() const;
+
 private:
     void triggerNew();
     void initCallback(bool ok) override;
     bool receiveBeginQuery();
     bool receiveInitQuery();
-    bool getServerContextMetaValue(const std::string &key,
-                                   std::string &value) const;
+    bool getServerContextMetaValue(const std::string &key, std::string &value) const;
     GigStreamClosureBase *doSend(bool sendEof, grpc::ByteBuffer *message,
-                                 GigStreamClosureBase *closure) override;
+                                 GigStreamClosureBase *closure, bool &ok) override;
     GigStreamClosureBase *receiveNext() override;
     bool ignoreReceiveError() override;
     GigStreamClosureBase *finish() override;
@@ -67,6 +69,7 @@ private:
     grpc::GenericServerContext _serverContext;
     grpc::GenericServerAsyncReaderWriter _grpcStream;
     bool _triggered;
+    bool _finished;
     int64_t _beginTime;
     mutable autil::ThreadMutex _queryInfoLock;
     std::shared_ptr<QueryInfo> _queryInfo;

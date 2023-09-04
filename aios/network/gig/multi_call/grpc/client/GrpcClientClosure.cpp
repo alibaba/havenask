@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/grpc/client/GrpcClientClosure.h"
+
 #include "aios/network/gig/multi_call/service/SearchServiceResource.h"
 
 using namespace std;
@@ -26,11 +27,9 @@ void GrpcClientClosure::run(bool ok) {
         auto ec = MULTI_CALL_ERROR_NONE;
         if (!ok || !_status.ok()) {
             ec = MULTI_CALL_REPLY_ERROR_RESPONSE;
-            AUTIL_LOG(INFO,
-                      "grpc failed: ec: %d, msg: %s, peer: %s, timeout: %lu",
+            AUTIL_LOG(INFO, "grpc failed: ec: %d, msg: %s, peer: %s, timeout: %lu",
                       _status.error_code(), _status.error_message().c_str(),
-                      _context.peer().c_str(),
-                      _callBack->getResource()->getTimeout());
+                      _context.peer().c_str(), _callBack->getResource()->getTimeout());
         }
         const auto &serverMetaMap = _context.GetServerTrailingMetadata();
         auto it = serverMetaMap.find(GIG_GRPC_RESPONSE_INFO_KEY);

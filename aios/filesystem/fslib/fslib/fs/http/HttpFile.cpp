@@ -14,23 +14,28 @@
  * limitations under the License.
  */
 #include "fslib/fs/http/HttpFile.h"
-#include "fslib/fs/http/HttpFileSystem.h"
-#include "autil/Lock.h"
 
 #include <sstream>
+
+#include "autil/Lock.h"
+#include "fslib/fs/http/HttpFileSystem.h"
 
 using namespace std;
 using namespace autil;
 
 FSLIB_PLUGIN_BEGIN_NAMESPACE(http);
 AUTIL_DECLARE_AND_SETUP_LOGGER(http, HttpFile);
-HttpFile::HttpFile(const string& fileName, ErrorCode ec)
-    : File(fileName, ec), _isEof(true), _isOpened(false),
-      _url(fileName), _offset(0),
-      _buf(NULL), _buffered(false), _supportRange(false)
-{
+HttpFile::HttpFile(const string &fileName, ErrorCode ec)
+    : File(fileName, ec)
+    , _isEof(true)
+    , _isOpened(false)
+    , _url(fileName)
+    , _offset(0)
+    , _buf(NULL)
+    , _buffered(false)
+    , _supportRange(false) {
     memset((void *)&_fileMeta, 0, sizeof(FileMeta));
-    
+
     if (ec == EC_OK) {
         _curl = curl_easy_init();
         if (_curl) {
@@ -40,16 +45,13 @@ HttpFile::HttpFile(const string& fileName, ErrorCode ec)
                 _isEof = false;
                 _isOpened = true;
             } else {
-                AUTIL_LOG(ERROR, "error when open file: %s",
-                        curl_easy_strerror(res));
+                AUTIL_LOG(ERROR, "error when open file: %s", curl_easy_strerror(res));
             }
         }
     }
 }
 
-HttpFile::~HttpFile() {
-    close();
-}
+HttpFile::~HttpFile() { close(); }
 
 struct MemoryStruct {
     char *memory;
@@ -57,13 +59,12 @@ struct MemoryStruct {
     size_t maxSize;
 };
 
-static size_t throw_away(void *ptr, size_t size, size_t nmemb, void *data)
-{
-  (void)ptr;
-  (void)data;
-  /* we are not interested in the headers itself,
-     so we only return the size we would have saved ... */
-  return (size_t)(size * nmemb);
+static size_t throw_away(void *ptr, size_t size, size_t nmemb, void *data) {
+    (void)ptr;
+    (void)data;
+    /* we are not interested in the headers itself,
+       so we only return the size we would have saved ... */
+    return (size_t)(size * nmemb);
 }
 
 bool HttpFile::initFileInfo() {
@@ -74,22 +75,15 @@ bool HttpFile::initFileInfo() {
     bool exitStatus = true;
     CURLcode res;
     /* No download if the file */
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_NOBODY, 1L);
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_NOBODY, 1L);
     /* Ask for filetime */
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_FILETIME, 1L);
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_HEADERFUNCTION, throw_away);
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_HEADER, 0L);
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_FILETIME, 1L);
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_HEADERFUNCTION, throw_away);
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_HEADER, 0L);
 
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_TIMEOUT, 10L);
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_CONNECTTIMEOUT, 5L);
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_NOSIGNAL, 1L);    
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_TIMEOUT, 10L);
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_CONNECTTIMEOUT, 5L);
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_NOSIGNAL, 1L);
 
     res = curl_easy_perform(_curl);
 
@@ -104,8 +98,7 @@ bool HttpFile::initFileInfo() {
             exitStatus = false;
         }
     } else {
-        AUTIL_LOG(ERROR, "error when try get file info : [%s]",
-                  curl_easy_strerror(res));
+        AUTIL_LOG(ERROR, "error when try get file info : [%s]", curl_easy_strerror(res));
         exitStatus = false;
     }
     return exitStatus;
@@ -117,20 +110,17 @@ bool HttpFile::setFileMetaAfterPerf() {
     double fileSize = 0.0;
     res = curl_easy_getinfo(_curl, CURLINFO_FILETIME, &fileTime);
     if ((CURLE_OK == res) && (fileTime >= 0)) {
-        _fileMeta.createTime = (DateTime) fileTime;
-        _fileMeta.lastModifyTime = (DateTime) fileTime;
+        _fileMeta.createTime = (DateTime)fileTime;
+        _fileMeta.lastModifyTime = (DateTime)fileTime;
     } else {
         /* some http server don't support get file time */
-        AUTIL_LOG(WARN, "get file create time failed : [%s], filetime: %ld",
-                  curl_easy_strerror(res), fileTime);
+        AUTIL_LOG(WARN, "get file create time failed : [%s], filetime: %ld", curl_easy_strerror(res), fileTime);
     }
-    res = curl_easy_getinfo(_curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD,
-                            &fileSize);
+    res = curl_easy_getinfo(_curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &fileSize);
     if ((CURLE_OK == res) && (fileSize > 0.0)) {
-        _fileMeta.fileLength = (int64_t) fileSize;
+        _fileMeta.fileLength = (int64_t)fileSize;
     } else {
-        AUTIL_LOG(WARN, "get file size failed: [%s], fileSize: %f",
-                  curl_easy_strerror(res), fileSize);
+        AUTIL_LOG(WARN, "get file size failed: [%s], fileSize: %f", curl_easy_strerror(res), fileSize);
         return false;
     }
     return true;
@@ -138,22 +128,16 @@ bool HttpFile::setFileMetaAfterPerf() {
 
 bool HttpFile::checkRangeSupport() {
     CURLcode res;
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_NOBODY, 1L);
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_FILETIME, 1L);
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_HEADERFUNCTION, throw_away);
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_HEADER, 0L);
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_RANGE, "0-0");
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_NOBODY, 1L);
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_FILETIME, 1L);
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_HEADERFUNCTION, throw_away);
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_HEADER, 0L);
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_RANGE, "0-0");
     res = curl_easy_perform(_curl);
 
     if (CURLE_OK == res) {
         double fileSize = 0.0;
-        res = curl_easy_getinfo(_curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD,
-                                &fileSize);
+        res = curl_easy_getinfo(_curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &fileSize);
         if ((CURLE_OK == res) && (fileSize > 0.0)) {
             if (fileSize == 1) {
                 _supportRange = true;
@@ -162,19 +146,17 @@ bool HttpFile::checkRangeSupport() {
             }
             return true;
         } else {
-            AUTIL_LOG(WARN, "get file size for check range support failed : [%s]",
-                      curl_easy_strerror(res));
+            AUTIL_LOG(WARN, "get file size for check range support failed : [%s]", curl_easy_strerror(res));
             return false;
         }
-        
+
     } else {
-        AUTIL_LOG(ERROR, "can't get range support info from server: [%s]",
-                  curl_easy_strerror(res));
+        AUTIL_LOG(ERROR, "can't get range support info from server: [%s]", curl_easy_strerror(res));
         return false;
     }
 }
 
-ssize_t HttpFile::read(void* buffer, size_t length) {
+ssize_t HttpFile::read(void *buffer, size_t length) {
     ScopedLock lock(_mutex);
     if (_isEof) {
         AUTIL_LOG(INFO, "http file [%s] has reached end", _url.c_str());
@@ -188,33 +170,37 @@ ssize_t HttpFile::read(void* buffer, size_t length) {
 
     ssize_t ret = preadWithLock(buffer, length, _offset);
     if (EC_OK != seekWithLock(ret, FILE_SEEK_CUR)) {
-        AUTIL_LOG(ERROR, "move offset after read failed, curOffset: %ld, "
-                  "readLength: %ld, fileLength: %ld", _offset,
-                  ret, _fileMeta.fileLength);
+        AUTIL_LOG(ERROR,
+                  "move offset after read failed, curOffset: %ld, "
+                  "readLength: %ld, fileLength: %ld",
+                  _offset,
+                  ret,
+                  _fileMeta.fileLength);
         return -1;
     }
     return ret;
 }
 
-ssize_t HttpFile::write(const void* buffer, size_t length) {
+ssize_t HttpFile::write(const void *buffer, size_t length) {
     ScopedLock lock(_mutex);
     _lastErrorCode = EC_NOTSUP;
     return -1;
 }
 
-static size_t
-WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
-{
+static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
     MemoryStruct *mem = (MemoryStruct *)userp;
     if (realsize + mem->curSize > mem->maxSize) {
-        AUTIL_LOG(ERROR, "read content beyond buffer size, drop the content, "
-                  "realsize:%ld, cursize:%ld, maxsize:%ld", realsize, mem->curSize,
+        AUTIL_LOG(ERROR,
+                  "read content beyond buffer size, drop the content, "
+                  "realsize:%ld, cursize:%ld, maxsize:%ld",
+                  realsize,
+                  mem->curSize,
                   mem->maxSize);
         realsize = mem->maxSize - mem->curSize;
     }
 
-    if(mem->memory == NULL) {
+    if (mem->memory == NULL) {
         AUTIL_LOG(ERROR, "try write to a null buffer");
         return 0;
     }
@@ -225,49 +211,40 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
     return realsize;
 }
 
-
-
-ssize_t HttpFile::preadByRange(void* buffer, size_t length, off_t offset) {
+ssize_t HttpFile::preadByRange(void *buffer, size_t length, off_t offset) {
     MemoryStruct mem;
-    mem.memory = (char*)buffer;
+    mem.memory = (char *)buffer;
     mem.curSize = 0;
     mem.maxSize = length;
 
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_NOBODY, 0L);
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_WRITEDATA, (void *)&mem);
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_NOBODY, 0L);
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_WRITEDATA, (void *)&mem);
 
     int64_t timeout = length / (1024 * 1024);
     if (timeout < 10) {
         timeout = 10;
     }
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_TIMEOUT, timeout);
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_TIMEOUT, timeout);
     stringstream ss;
     ss << offset << "-" << length + offset - 1;
-    CALL_WITH_CHECK(curl_easy_setopt, _curl,
-                    CURLOPT_RANGE, ss.str().c_str());
+    CALL_WITH_CHECK(curl_easy_setopt, _curl, CURLOPT_RANGE, ss.str().c_str());
     AUTIL_LOG(INFO, "read [%s] %s bytes", _url.c_str(), ss.str().c_str());
     CURLcode res = curl_easy_perform(_curl);
     if (res != CURLE_OK) {
-        AUTIL_LOG(ERROR, "error when get data from server: [%s]",
-                  curl_easy_strerror(res));
+        AUTIL_LOG(ERROR, "error when get data from server: [%s]", curl_easy_strerror(res));
         return -1;
     }
     return mem.curSize;
 }
 
-ssize_t HttpFile::preadByCache(void* buffer, size_t length, off_t offset) {
+ssize_t HttpFile::preadByCache(void *buffer, size_t length, off_t offset) {
     if (!_buffered) {
         _buf = new char[_fileMeta.fileLength];
         memset(_buf, 0, _fileMeta.fileLength);
         ssize_t downloadSize = preadByRange(_buf, _fileMeta.fileLength, 0);
         if (downloadSize == -1 || downloadSize != _fileMeta.fileLength) {
-            AUTIL_LOG(ERROR, "buffer file failed!, filesize is %lu but get %ld",
-                      _fileMeta.fileLength, downloadSize);
+            AUTIL_LOG(ERROR, "buffer file failed!, filesize is %lu but get %ld", _fileMeta.fileLength, downloadSize);
             return -1;
         }
         _buffered = true;
@@ -276,10 +253,9 @@ ssize_t HttpFile::preadByCache(void* buffer, size_t length, off_t offset) {
     return length;
 }
 
-ssize_t HttpFile::preadWithLock(void* buffer, size_t length, off_t offset) {
+ssize_t HttpFile::preadWithLock(void *buffer, size_t length, off_t offset) {
     if (offset >= _fileMeta.fileLength) {
-        AUTIL_LOG(INFO, "offset %ld is larger than file length %ld",
-                  offset, _fileMeta.fileLength);
+        AUTIL_LOG(INFO, "offset %ld is larger than file length %ld", offset, _fileMeta.fileLength);
         return 0;
     }
     if ((off_t)length + offset > _fileMeta.fileLength) {
@@ -287,11 +263,10 @@ ssize_t HttpFile::preadWithLock(void* buffer, size_t length, off_t offset) {
         AUTIL_LOG(INFO, "adjust read length from %ld to %ld", length, realLength);
         length = realLength;
     }
-    return (_supportRange) ? preadByRange(buffer, length, offset):
-        preadByCache(buffer, length, offset);
+    return (_supportRange) ? preadByRange(buffer, length, offset) : preadByCache(buffer, length, offset);
 }
 
-ssize_t HttpFile::pread(void* buffer, size_t length, off_t offset) {
+ssize_t HttpFile::pread(void *buffer, size_t length, off_t offset) {
     ScopedLock lock(_mutex);
 
     if (!_isOpened) {
@@ -303,7 +278,7 @@ ssize_t HttpFile::pread(void* buffer, size_t length, off_t offset) {
     return preadWithLock(buffer, length, offset);
 }
 
-ssize_t HttpFile::pwrite(const void* buffer, size_t length, off_t offset) {
+ssize_t HttpFile::pwrite(const void *buffer, size_t length, off_t offset) {
     ScopedLock lock(_mutex);
     _lastErrorCode = EC_NOTSUP;
     return -1;
@@ -366,18 +341,10 @@ ErrorCode HttpFile::seekWithLock(int64_t offset, SeekFlag flag) {
     }
 }
 
-int64_t HttpFile::tell() {
-    return _offset;
-}
+int64_t HttpFile::tell() { return _offset; }
 
-bool HttpFile::isOpened() const {
-    return _isOpened;
-}
+bool HttpFile::isOpened() const { return _isOpened; }
 
-bool HttpFile::isEof() {
-    return _isEof;
-}
-
+bool HttpFile::isEof() { return _isEof; }
 
 FSLIB_PLUGIN_END_NAMESPACE(http);
-

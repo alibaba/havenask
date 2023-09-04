@@ -1,0 +1,41 @@
+{
+"fields":
+  [
+    {
+    "field_name":
+      "column1",
+    "field_type":
+      "INTEGER"
+    }
+  ],
+"indexes":
+  {
+  "primarykey":
+    [
+      {
+      "index_fields":
+          "column1",
+      "index_name":
+        "column1",
+      "index_params":
+        {
+        },
+      "index_type":
+        "PRIMARYKEY64"
+      }
+    ],
+      "orc":
+      [
+          {
+              "index_name": "orc",
+              "index_fields": [
+                  "column1"
+              ]
+          }
+      ]
+  },
+"table_name":
+  "table",
+"table_type":
+  "orc"
+}

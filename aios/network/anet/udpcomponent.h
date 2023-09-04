@@ -17,11 +17,11 @@
 #define ANET_UDPCOMPONENT_H_
 #include <tr1/unordered_map>
 
-#include "aios/network/anet/iocomponent.h"
 #include "aios/network/anet/common.h"
+#include "aios/network/anet/iocomponent.h"
 
 namespace anet {
-  class UDPConnection;
+class UDPConnection;
 
 class UDPComponent : public IOComponent {
 
@@ -42,10 +42,10 @@ public:
     ~UDPComponent();
 
     /*
-        * 初始化
-        * 
-        * @return 是否成功
-        */
+     * 初始化
+     *
+     * @return 是否成功
+     */
     bool init(bool isServer = false);
 
     /*
@@ -54,10 +54,10 @@ public:
     void close();
 
     /*
-        * 当有数据可写到时被Transport调用
-        * 
-        * @return 是否成功, true - 成功, false - 失败。
-        */
+     * 当有数据可写到时被Transport调用
+     *
+     * @return 是否成功, true - 成功, false - 失败。
+     */
     bool handleWriteEvent();
 
     /*
@@ -68,10 +68,10 @@ public:
     bool handleReadEvent();
 
 private:
-    std::tr1::unordered_map<int, UDPConnection*> _connections;  // UDP连接集合
-    IPacketStreamer *_streamer;                             // streamer
-    IServerAdapter *_serverAdapter;                         // serveradapter
+    std::tr1::unordered_map<int, UDPConnection *> _connections; // UDP连接集合
+    IPacketStreamer *_streamer;                                 // streamer
+    IServerAdapter *_serverAdapter;                             // serveradapter
 };
-}
+} // namespace anet
 
 #endif /*UDPCOMPONENT_H_*/

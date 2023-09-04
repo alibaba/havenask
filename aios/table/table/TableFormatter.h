@@ -17,24 +17,13 @@
 
 #include <string>
 
-#include "table/Common.h"
 #include "table/Table.h"
 
 namespace table {
 
-class TableFormatter
-{
-public:
-    TableFormatter();
-    ~TableFormatter();
-private:
-    TableFormatter(const TableFormatter &);
-    TableFormatter& operator=(const TableFormatter &);
+class TableFormatter {
 public:
     static std::string format(TablePtr &table, const std::string &type);
 };
 
-TABLE_TYPEDEF_PTR(TableFormatter);
-
-}
-
+} // namespace table

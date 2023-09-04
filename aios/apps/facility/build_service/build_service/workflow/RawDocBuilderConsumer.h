@@ -18,7 +18,6 @@
 
 #include "build_service/builder/Builder.h"
 #include "build_service/common_define.h"
-#include "build_service/processor/Processor.h"
 #include "build_service/util/Log.h"
 #include "build_service/workflow/Consumer.h"
 namespace build_service { namespace workflow {
@@ -26,7 +25,7 @@ namespace build_service { namespace workflow {
 class RawDocBuilderConsumer : public RawDocConsumer
 {
 public:
-    RawDocBuilderConsumer(builder::Builder* builder, processor::Processor* processor = nullptr);
+    RawDocBuilderConsumer(builder::Builder* builder);
     ~RawDocBuilderConsumer();
 
 private:
@@ -46,12 +45,7 @@ public:
     }
 
 private:
-    FlowError processAndBuildDoc(const document::RawDocumentPtr& item);
-    FlowError buildDoc(const document::RawDocumentPtr& item);
-
-private:
     builder::Builder* _builder;
-    processor::Processor* _processor;
     volatile int64_t _endTimestamp;
 
 private:

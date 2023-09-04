@@ -24,25 +24,30 @@ namespace iquan {
 
 class JMethodBase {
 public:
-    explicit operator bool() const noexcept { return _methodId != nullptr; }
-    jmethodID getId() const noexcept { return _methodId; }
+    explicit operator bool() const noexcept {
+        return _methodId != nullptr;
+    }
+    jmethodID getId() const noexcept {
+        return _methodId;
+    }
 
 protected:
-    explicit JMethodBase(jmethodID methodId = nullptr) noexcept : _methodId(methodId) {}
+    explicit JMethodBase(jmethodID methodId = nullptr) noexcept
+        : _methodId(methodId) {}
 
 private:
     jmethodID _methodId;
 };
 
-#define DEFINE_PRIMITIVE_METHOD_CLASS(TYPE)                                                                            \
-    template <typename... Params>                                                                                      \
-    class JMethod<TYPE(Params...)> : public JMethodBase {                                                              \
-    public:                                                                                                            \
-        using JMethodBase::JMethodBase;                                                                                \
-        JMethod() noexcept {}                                                                                          \
-        template <typename... Args>                                                                                    \
-        TYPE operator()(AliasRef<jobject> self, Args &&...args);                                                       \
-        friend class JClass;                                                                                           \
+#define DEFINE_PRIMITIVE_METHOD_CLASS(TYPE)                                                        \
+    template <typename... Params>                                                                  \
+    class JMethod<TYPE(Params...)> : public JMethodBase {                                          \
+    public:                                                                                        \
+        using JMethodBase::JMethodBase;                                                            \
+        JMethod() noexcept {}                                                                      \
+        template <typename... Args>                                                                \
+        TYPE operator()(AliasRef<jobject> self, Args &&...args);                                   \
+        friend class JClass;                                                                       \
     };
 
 DEFINE_PRIMITIVE_METHOD_CLASS(void)
@@ -78,21 +83,22 @@ public:
     using JMethod<F>::JMethod;
 
 private:
-    JConstructor(const JMethod<F> &other) : JMethod<F>(other.getId()) {}
+    JConstructor(const JMethod<F> &other)
+        : JMethod<F>(other.getId()) {}
     friend class JClass;
 };
 
-#define DEFINE_PRIMITIVE_STATIC_METHOD_CALSS(TYPE)                                                                     \
-    template <typename... Params>                                                                                      \
-    class JStaticMethod<TYPE(Params...)> : public JMethodBase {                                                        \
-    public:                                                                                                            \
-        using JMethodBase::JMethodBase;                                                                                \
-        JStaticMethod() noexcept = default;                                                                            \
-        JStaticMethod(const JStaticMethod &other) noexcept = default;                                                  \
-        JStaticMethod(JStaticMethod &&other) noexcept = default;                                                       \
-        template <typename... Args>                                                                                    \
-        TYPE operator()(AliasRef<jclass>, Args &&...args);                                                             \
-        friend class JClass;                                                                                           \
+#define DEFINE_PRIMITIVE_STATIC_METHOD_CALSS(TYPE)                                                 \
+    template <typename... Params>                                                                  \
+    class JStaticMethod<TYPE(Params...)> : public JMethodBase {                                    \
+    public:                                                                                        \
+        using JMethodBase::JMethodBase;                                                            \
+        JStaticMethod() noexcept = default;                                                        \
+        JStaticMethod(const JStaticMethod &other) noexcept = default;                              \
+        JStaticMethod(JStaticMethod &&other) noexcept = default;                                   \
+        template <typename... Args>                                                                \
+        TYPE operator()(AliasRef<jclass>, Args &&...args);                                         \
+        friend class JClass;                                                                       \
     };
 
 DEFINE_PRIMITIVE_STATIC_METHOD_CALSS(void)
@@ -121,17 +127,25 @@ public:
     LocalRef<cret> operator()(AliasRef<jclass> cls, Args &&...args);
 };
 
-#define DEFINE_PRIMITIVE_AND_ARRAY_TRAITS(TYPE, DSC)                                                                   \
-    template <>                                                                                                        \
-    struct JTypeTraits<TYPE> {                                                                                         \
-        static std::string descriptor() { return std::string {#DSC}; }                                                 \
-        static std::string baseName() { return descriptor(); }                                                         \
-    };                                                                                                                 \
-    template <>                                                                                                        \
-    struct JTypeTraits<TYPE##Array> {                                                                                  \
-        static std::string descriptor() { return std::string {"[" #DSC}; }                                             \
-        static std::string baseName() { return descriptor(); }                                                         \
-        using entry_type = TYPE;                                                                                       \
+#define DEFINE_PRIMITIVE_AND_ARRAY_TRAITS(TYPE, DSC)                                               \
+    template <>                                                                                    \
+    struct JTypeTraits<TYPE> {                                                                     \
+        static std::string descriptor() {                                                          \
+            return std::string {#DSC};                                                             \
+        }                                                                                          \
+        static std::string baseName() {                                                            \
+            return descriptor();                                                                   \
+        }                                                                                          \
+    };                                                                                             \
+    template <>                                                                                    \
+    struct JTypeTraits<TYPE##Array> {                                                              \
+        static std::string descriptor() {                                                          \
+            return std::string {"[" #DSC};                                                         \
+        }                                                                                          \
+        static std::string baseName() {                                                            \
+            return descriptor();                                                                   \
+        }                                                                                          \
+        using entry_type = TYPE;                                                                   \
     };
 
 DEFINE_PRIMITIVE_AND_ARRAY_TRAITS(jboolean, Z)
@@ -147,7 +161,9 @@ DEFINE_PRIMITIVE_AND_ARRAY_TRAITS(jdouble, D)
 
 template <>
 struct JTypeTraits<void> {
-    static std::string descriptor() { return std::string("V"); }
+    static std::string descriptor() {
+        return std::string("V");
+    }
 };
 
 template <typename T>

@@ -1,0 +1,9 @@
+#pragma once
+
+#include <string>
+constexpr char swift_client_version[] = "version=@SWIFT_CLIENT_VERSION@";
+constexpr char swift_client_version_str[] = "@SWIFT_CLIENT_VERSION@";
+constexpr char swift_admin_version[] = "version=@SWIFT_ADMIN_VERSION@";
+constexpr char swift_admin_version_str[] = "@SWIFT_ADMIN_VERSION@";
+constexpr char swift_broker_version[] = "version=@SWIFT_BROKER_VERSION@";
+constexpr char swift_broker_version_str[] = "@SWIFT_BROKER_VERSION@";

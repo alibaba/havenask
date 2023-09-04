@@ -21,9 +21,7 @@ struct ProcessCpuStat {
     jiffies_t cutime;
     jiffies_t cstime;
 
-    ProcessCpuStat() {
-        reset();
-    }
+    ProcessCpuStat() { reset(); }
     void reset() {
         utime = 0;
         stime = 0;
@@ -32,21 +30,24 @@ struct ProcessCpuStat {
     }
 };
 
-class ProcessCpu
-{
+class ProcessCpu {
 public:
     ProcessCpu();
     ~ProcessCpu();
+
 private:
     ProcessCpu(const ProcessCpu &);
-    ProcessCpu& operator = (const ProcessCpu &);
+    ProcessCpu &operator=(const ProcessCpu &);
+
 public:
     double getUsage();
+
 private:
     jiffies_t getProcessTime();
     void parseProcCPUStat(std::string line, jiffies_t &processCpuTotTime);
     void getProcessCpuStat();
     friend class ProcessCpuTest;
+
 private:
     Cpu _cpu;
     jiffies_t _curProcessCpuTotTime;
@@ -55,5 +56,5 @@ private:
 
 typedef std::shared_ptr<ProcessCpu> ProcessCpuPtr;
 
-}
-}
+} // namespace metric
+} // namespace autil

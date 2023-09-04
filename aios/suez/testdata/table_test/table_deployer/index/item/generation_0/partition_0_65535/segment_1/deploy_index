@@ -1,0 +1,12 @@
+segment_info
+index/
+deletionmap/
+attribute/
+index/item_pk/
+attribute/item_id/
+attribute/attr1/
+attribute/attr2/
+index/item_pk/data
+attribute/item_id/data
+attribute/attr1/data
+attribute/attr2/data

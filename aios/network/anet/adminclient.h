@@ -17,32 +17,28 @@
 #define ADMIN_CLIENT_H
 
 #include "aios/network/anet/anet.h"
-
 #include "aios/network/anet/defaultpacketstreamer.h"
 
 namespace anet {
 class IPacketHandler;
 class Transport;
-}  // namespace anet
+} // namespace anet
 
 #define MAX_CMD_BUF 1024
-namespace anet{
+namespace anet {
 
-class AdminClient
-{
+class AdminClient {
 public:
     AdminClient(Transport *transport, char *spec);
     ~AdminClient();
-    int start(IPacketHandler *handler, void *args, char *cmd, 
-              int paramCount, char **params);
+    int start(IPacketHandler *handler, void *args, char *cmd, int paramCount, char **params);
 
 private:
     char *_spec;
-    Transport * _transport;
-    AdvanceDefaultPacketFactory _factory ;
+    Transport *_transport;
+    AdvanceDefaultPacketFactory _factory;
     DefaultPacketStreamer _streamer;
 };
 
-
-}
+} // namespace anet
 #endif

@@ -108,10 +108,10 @@ uint32_t MergePartitionData::GetIndexShardingColumnNum(const IndexPartitionOptio
         return 1;
     }
 
-    uint32_t inSegColumnNum = SegmentInfo::INVALID_COLUMN_COUNT;
+    uint32_t inSegColumnNum = SegmentInfo::INVALID_SHARDING_COUNT;
     for (Iterator iter = Begin(); iter != End(); iter++) {
         const std::shared_ptr<const SegmentInfo>& segInfo = iter->GetSegmentInfo();
-        if (inSegColumnNum != SegmentInfo::INVALID_COLUMN_COUNT && inSegColumnNum != segInfo->shardCount) {
+        if (inSegColumnNum != SegmentInfo::INVALID_SHARDING_COUNT && inSegColumnNum != segInfo->shardCount) {
             INDEXLIB_FATAL_ERROR(InconsistentState, "segments with different shardCount for version[%d]!",
                                  GetOnDiskVersion().GetVersionId());
         }
@@ -119,7 +119,7 @@ uint32_t MergePartitionData::GetIndexShardingColumnNum(const IndexPartitionOptio
     }
 
     uint32_t inVersionColumnNum = GetOnDiskVersion().GetLevelInfo().GetShardCount();
-    if (inSegColumnNum != SegmentInfo::INVALID_COLUMN_COUNT && inSegColumnNum != inVersionColumnNum) {
+    if (inSegColumnNum != SegmentInfo::INVALID_SHARDING_COUNT && inSegColumnNum != inVersionColumnNum) {
         INDEXLIB_FATAL_ERROR(InconsistentState, "inSegColumnNum [%u] not equal with inVersionColumnNum [%u]!",
                              inSegColumnNum, inVersionColumnNum);
     }

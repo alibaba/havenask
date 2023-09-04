@@ -1,0 +1,102 @@
+{
+    "build_option_config":
+    {
+        "async_build" : true,
+        "async_queue_size": 6000,
+        "batch_build_size":1
+    },
+    "cluster_config" : {
+        "table_name" : "cluster1",
+        "builder_rule_config" : {
+            "build_parallel_num" : 3,
+            "inc_build_parallel_num" : 1,
+            "merge_parallel_num" : 2,
+            "partition_count" : 2
+            
+        },
+        "cluster_name": "cluster1",
+        "hash_mode": {
+            "hash_fields": ["id"],
+            "hash_function": "ROUTING_HASH",
+            "hash_params": {
+                "routing_ratio": "1.0"
+            }
+        },
+        "swift_topic_name" : "",
+        "swift_zookeeper_root" : ""
+        
+    },
+    "offline_index_config" : {
+        "build_config" : {
+            "enable_package_file" : false,
+            "keep_version_count" : 200,
+            "build_total_memory" : 15000,
+            "max_doc_count" : 1,
+            "dump_thread_count" : 1,
+            "enable_async_dump_segment": true,
+            "parameters": {
+                "khronos_delay_threshold_in_ms" : "1000000000000",
+                "khronos_future_threshold_in_ms" : "1000000000000"
+            }
+        },
+        "index_task_configs" : [
+            {
+                "task_type" : "merge",
+                "task_name" : "full_merge",
+                "trigger" : "period=1800",
+                "settings" : {       
+                    "merge_config": {
+                        "merge_strategy" : "",
+                        "merge_strategy_params" :
+                        {
+                            "output_limits" : "level1_time_stride_in_second=3;level2_time_stride_in_second=6"
+                        }
+                    }
+                }
+            },
+            {
+                "task_type" : "merge",
+                "task_name" : "inc",
+                "trigger" : "period=1",
+                "settings" : {       
+                    "merge_config": {
+                        "merge_strategy" : "",
+                        "merge_strategy_params" :
+                        {
+                            "output_limits" : "level1_time_stride_in_second=3;level2_time_stride_in_second=6;segment_TTL=315360000000"
+                        }
+                    }
+                }
+           }
+        ]
+    },
+    "merge_controller": {
+        "mode": "remote"
+    },
+    "swift_config" : {
+        "topic_full":{
+	    "partition_max_buffer_size":12288,
+	    "partition_count":8,
+	    "partition_resource":10
+	},
+	"topic_inc":{
+	    "partition_max_buffer_size":12288,
+	    "partition_count":8,
+	    "partition_resource":10
+	},
+        "reader_config":"oneRequestReadCount=50000;readBufferSize=50000;decompress=true;retryGetMsgInterval=1000000",
+	"writer_config":"functionChain=hashId2partId;compressMsg=true;compressThresholdInBytes=50;mode=async|safe;maxBufferSize=4294967296"
+    },
+    "slow_node_detect_config" : {
+        "max_kill_times" : 4,
+        "enable_slow_node_detect" : true,
+        "slow_time_threshold" : 1200,
+        "slow_node_handle_strategy" : "backup_node",
+        "enable_high_quality_slot" : true,
+        "enable_brutal_strategy" : true,
+        "enable_network_speed_strategy" : true
+    },
+    "background_task_config" : {
+        "merge_interval_ms" : 1000
+    }
+}

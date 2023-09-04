@@ -43,7 +43,7 @@ void KVSortDataCollector::Sort()
     std::sort(_records.begin(), _records.end(), std::move(cmp));
 }
 
-void KVSortDataCollector::UpdateMemoryUsage(MemoryUsage& memoryUsage) const
+void KVSortDataCollector::FillMemoryUsage(MemoryUsage& memoryUsage) const
 {
     memoryUsage.buildMemory = _pool.getTotalBytes();
 }

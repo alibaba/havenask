@@ -22,6 +22,7 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/document/kv/KVDocument.h"
 #include "indexlib/document/kv/KVDocumentBatch.h"
+#include "indexlib/index/common/field_format/pack_attribute/PackAttributeFormatter.h"
 #include "indexlib/index/kv/KVIndexReader.h"
 #include "indexlib/index/kv/KVTypeId.h"
 #include "indexlib/table/common/CommonTabletWriter.h"
@@ -43,7 +44,7 @@ namespace indexlibv2::table {
 class KVTabletWriter : public table::CommonTabletWriter
 {
 public:
-    KVTabletWriter(const std::shared_ptr<config::TabletSchema>& schema, const config::TabletOptions* options);
+    KVTabletWriter(const std::shared_ptr<config::ITabletSchema>& schema, const config::TabletOptions* options);
     ~KVTabletWriter() = default;
 
 protected:
@@ -53,13 +54,22 @@ protected:
 
 private:
     virtual std::shared_ptr<KVTabletReader> CreateKVTabletReader();
+
+private:
     void RegisterTableSepecificMetrics() override;
     void ReportTableSepecificMetrics(const kmonitor::MetricsTags& tags) override;
-    Status RewriteDocument(document::IDocumentBatch* batch);
+    Status CheckAndRewriteDocument(document::IDocumentBatch* batch);
     Status RewriteUpdateFieldDocument(document::KVDocumentBatch* kvDocBatch, document::KVDocument* doc, int64_t docIdx);
     Status RewriteFixedLenDocument(document::KVDocumentBatch* kvDocBatch, document::KVDocument* doc, int64_t docIdx);
-    Status RewriteMergeValue(autil::StringView currentValue, autil::StringView newValue, document::KVDocument* doc,
-                             const uint64_t indexNameHash);
+    Status RewriteMergeValue(const autil::StringView& currentValue, const autil::StringView& newValue,
+                             document::KVDocument* doc, const uint64_t indexNameHash);
+    Status FastRewriteDocument(document::KVDocumentBatch* kvDocBatch);
+    Status FastRewriteUpdateFieldDocument(document::KVDocumentBatch* kvDocBatch, document::KVDocument* doc,
+                                          int64_t docIdx);
+    Status RewriteUpdateFieldDocumentUseReader(document::KVDocumentBatch* kvDocBatch, document::KVDocument* doc,
+                                               int64_t docIdx);
+    bool FixedLenRewriteUpdateFieldDocument(document::KVDocumentBatch* kvDocBatch, document::KVDocument* doc,
+                                            int64_t docIdx, Status& status);
     Status OpenTabletReader();
     Status InitRawPKDocGenerator();
 
@@ -99,6 +109,7 @@ private:
 private:
     indexlib::util::SimplePool _simplePool;
     indexlib::util::MemBufferPtr _memBuffer;
+    schemaid_t _schemaId;
     std::set<uint64_t> _deleteSet;
     std::map<uint64_t, autil::StringView> _currentValue;
     std::shared_ptr<KVTabletReader> _tabletReader;

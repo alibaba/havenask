@@ -367,6 +367,7 @@ Status VersionCleaner::FillFencesToRemove()
         if (_reservedFences.count(fenceName) == 0) {
             auto [res, fenceMeta] = Fence::DecodePublicFence(fenceName);
             if (!res) {
+                AUTIL_LOG(ERROR, "decode fence [%s] failed", fenceName.c_str());
                 return Status::InternalError();
             }
             // TODO(yonghao.fyh) : consider clean up after full build fence

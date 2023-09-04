@@ -53,7 +53,7 @@ public:
                                           MultiValueAttributePatchComparator>;
 
 public:
-    MultiValueAttributePatchReader(const std::shared_ptr<config::AttributeConfig>& attrConfig);
+    MultiValueAttributePatchReader(const std::shared_ptr<AttributeConfig>& attrConfig);
     ~MultiValueAttributePatchReader();
 
 public:
@@ -98,8 +98,7 @@ AUTIL_LOG_SETUP_TEMPLATE(indexlib.index, MultiValueAttributePatchReader, T);
 
 /////////////////////////////////////////////////////
 template <typename T>
-MultiValueAttributePatchReader<T>::MultiValueAttributePatchReader(
-    const std::shared_ptr<config::AttributeConfig>& attrConfig)
+MultiValueAttributePatchReader<T>::MultiValueAttributePatchReader(const std::shared_ptr<AttributeConfig>& attrConfig)
     : AttributePatchReader(attrConfig)
     , _maxPatchValueLen(0)
     , _patchFileLength(0)

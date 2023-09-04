@@ -1,6 +1,6 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='KeyValueOptimizeMergeStrategy',
     deps=[
         '//aios/autil:log', '//aios/storage/indexlib/framework:LevelInfo',
@@ -13,7 +13,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVTableTaskPlanCreator',
     deps=[
         ':KVTableAlterTablePlanCreator', ':KVTableMergePlanCreator',
@@ -21,7 +21,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task:ComplexIndexTaskPlanCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVTableMergePlanCreator',
     deps=[
         ':KVTableMergeDescriptionCreator', ':KeyValueOptimizeMergeStrategy',
@@ -45,7 +45,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/kv_table/index_task:KVTableResourceCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVTableAlterTablePlanCreator',
     deps=[
         '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
@@ -57,28 +57,29 @@ indexlib_cc_library(
         '//aios/storage/indexlib/table/index_task/merger:MergedVersionCommitOperation'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVTableResourceCreator',
     deps=[
         '//aios/storage/indexlib/framework/index_task:IIndexTaskResourceCreator',
+        '//aios/storage/indexlib/table/index_task:VersionResource',
         '//aios/storage/indexlib/table/index_task/merger:MergePlan'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVTableTaskOperationCreator',
     deps=[
         ':KVIndexMergeOperation',
         '//aios/storage/indexlib/table/index_task/merger:CommonTaskOperationCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVIndexMergeOperation',
     deps=[
         '//aios/storage/indexlib/index/kv:merger',
         '//aios/storage/indexlib/table/index_task/merger:MultiShardIndexMergeOperation'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='KVTableMergeDescriptionCreator',
     deps=[
         '//aios/storage/indexlib/index/kv:constants',

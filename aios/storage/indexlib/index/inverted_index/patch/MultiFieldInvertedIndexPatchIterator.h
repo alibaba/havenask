@@ -51,6 +51,9 @@ public:
 
 private:
     void Log() const;
+    Status
+    AddSingleFieldPatchIterator(const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& invertedIndexConfig,
+                                const std::vector<std::shared_ptr<indexlibv2::framework::Segment>>& segments);
 
 private:
     std::shared_ptr<indexlibv2::config::ITabletSchema> _schema;

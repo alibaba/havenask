@@ -1,21 +1,21 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 load('//bazel:defs.bzl', 'gen_cpp_code')
 package(default_visibility=[':__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='factory',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':AttributeIndexFactory']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='reader',
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
     deps=[':AttributeReader']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='indexer',
     srcs=[],
     hdrs=[],
@@ -25,35 +25,35 @@ indexlib_cc_library(
         ':MultiSliceAttributeDiskIndexer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='merger',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=['//aios/storage/indexlib/index/attribute/merger:AttributeMerger']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='modifier',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':InplaceAttributeModifier', ':PatchAttributeModifier']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='constants',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':Common', ':Constant', ':RangeDescription']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='config',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=['//aios/storage/indexlib/index/attribute/config']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='patch',
     srcs=[],
     hdrs=[],
@@ -67,7 +67,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute/patch:PatchIteratorCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='util',
     srcs=[],
     hdrs=[],
@@ -77,11 +77,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute/merger:SegmentOutputMapper'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='attr_helper',
     srcs=['AttrHelper.cpp'],
     hdrs=['AttrHelper.h'],
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=[
+        '//aios/storage:indexlib_extensions',
+        '//aios/storage/indexlib:__subpackages__'
+    ],
     deps=[
         ':AttributeIteratorBase', '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/base/proto:querier_proto_base',
@@ -89,7 +92,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format/pack_attribute'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeIndexFactory',
     deps=[
         ':AttributeDiskIndexer', ':AttributeFactory', ':AttributeMemIndexer',
@@ -102,14 +105,14 @@ indexlib_cc_library(
     ],
     alwayslink=True
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeDiskIndexerCreator',
     deps=[
         ':AttributeDiskIndexer', ':AttributeFactory',
         '//aios/storage/indexlib/framework:Segment'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeMetrics',
     deps=[
         '//aios/storage/indexlib/framework:IMetrics',
@@ -208,26 +211,28 @@ gen_cpp_code(
     template_header=template_header_disk_indexer,
     template_tail=template_tail
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeFactory',
     srcs=[],
     hdrs=['AttributeFactory.h', 'AttributeFactoryRegister.h'],
     deps=['//aios/autil:NoCopyable', '//aios/autil:lock', '//aios/autil:log']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiSliceAttributeDiskIndexer',
     deps=[
         ':AttributeDiskIndexer', ':AttributeDiskIndexerCreator', ':SliceInfo'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeDiskIndexer',
-    srcs=(((([
+    srcs=([
         'AttributeDiskIndexer.cpp', 'AttributeDiskIndexerFactoryRegister.cpp'
-    ] + [':gen_simple_single_value_disk_indexer']) +
-            [':gen_simple_multi_value_disk_indexer']) +
-           [':gen_special_single_value_disk_indexer']) +
-          [':gen_special_multi_value_disk_indexer']),
+    ] + [
+        ':gen_simple_single_value_disk_indexer',
+        ':gen_simple_multi_value_disk_indexer',
+        ':gen_special_single_value_disk_indexer',
+        ':gen_special_multi_value_disk_indexer'
+    ]),
     hdrs=[
         'AttributeDiskIndexer.h', 'AttributeDiskIndexerCreator.h',
         'AttributeDiskIndexerFactoryRegister.h',
@@ -295,14 +300,15 @@ gen_cpp_code(
     template_header=template_header_mem_indexer,
     template_tail=template_tail
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeMemIndexer',
-    srcs=(((
-        (['AttributeMemIndexer.cpp', 'AttributeMemIndexerFactoryRegister.cpp'] +
-         [':gen_simple_single_value_mem_indexer']) +
-        [':gen_simple_multi_value_mem_indexer']
-    ) + [':gen_special_single_value_mem_indexer']) +
-          [':gen_special_multi_value_mem_indexer']),
+    srcs=(['AttributeMemIndexer.cpp', 'AttributeMemIndexerFactoryRegister.cpp']
+          + [
+              ':gen_simple_single_value_mem_indexer',
+              ':gen_simple_multi_value_mem_indexer',
+              ':gen_special_single_value_mem_indexer',
+              ':gen_special_multi_value_mem_indexer'
+          ]),
     hdrs=[
         'AttributeMemIndexer.h', 'AttributeMemIndexerCreator.h',
         'AttributeMemIndexerFactoryRegister.h',
@@ -315,6 +321,7 @@ indexlib_cc_library(
         '//aios/kmonitor:kmonitor_client_cpp',
         '//aios/storage/indexlib/base:NoExceptionWrapper',
         '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/document:DocumentBatch',
         '//aios/storage/indexlib/document/extractor:IDocumentInfoExtractorFactory',
         '//aios/storage/indexlib/framework:MetricsWrapper',
         '//aios/storage/indexlib/index:BuildingIndexMemoryUseUpdater',
@@ -327,13 +334,12 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:simple_pool'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeReader',
-    srcs=((((['AttributeReaderFactoryRegister.cpp', 'AttributeReader.cpp'] +
-             [':gen_simple_single_value_reader']) +
-            [':gen_special_single_value_reader']) +
-           [':gen_simple_multi_value_reader']) +
-          [':gen_special_multi_value_reader']),
+    srcs=(['AttributeReaderFactoryRegister.cpp', 'AttributeReader.cpp'] + [
+        ':gen_simple_single_value_reader', ':gen_special_single_value_reader',
+        ':gen_simple_multi_value_reader', ':gen_special_multi_value_reader'
+    ]),
     hdrs=[
         'AttributeReader.h', 'AttributeReaderCreator.h',
         'AttributeReaderFactoryRegister.h', 'MultiValueAttributeReader.h',
@@ -353,12 +359,12 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format/attribute:AttributeFieldPrinter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleValueAttributeReaderBase',
     srcs=[],
     deps=['//aios/autil:NoCopyable']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleValueAttributeCompressReader',
     srcs=[],
     deps=[
@@ -370,7 +376,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:data_structure'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleValueAttributeUnCompressReader',
     srcs=[],
     deps=[
@@ -382,7 +388,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:data_structure'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleValueAttributeMemReader',
     srcs=[],
     deps=[
@@ -394,8 +400,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format/pack_attribute:FloatCompressConvertor'
     ]
 )
-indexlib_cc_library(name='AttributeMemReader', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='AttributeMemReader', srcs=[])
+strict_cc_library(
     name='MultiValueAttributeMemReader',
     srcs=[],
     deps=[
@@ -407,11 +413,11 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format/pack_attribute:FloatCompressConvertor'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeDataInfo',
     deps=['//aios/autil:json', '//aios/storage/indexlib/file_system']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiValueAttributeDefragSliceArray',
     deps=[
         ':AttributeMetrics', ':MultiValueAttributeOffsetReader',
@@ -421,7 +427,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/attribute/format:MultiValueAttributeOffsetUpdatableFormatter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DefaultValueAttributeMemReader',
     deps=[
         '//aios/autil:NoCopyable', '//aios/autil:log',
@@ -431,7 +437,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format/attribute:AttributeConvertorFactory'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiValueAttributeCompressOffsetReader',
     deps=[
         ':AttributeMetrics', '//aios/autil:json',
@@ -441,7 +447,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format:attribute_field_format'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiValueAttributeUnCompressOffsetReader',
     deps=[
         '//aios/autil:json', '//aios/storage/indexlib/file_system',
@@ -449,7 +455,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format:attribute_field_format'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiValueAttributeOffsetReader',
     deps=[
         ':AttributeMetrics', ':MultiValueAttributeCompressOffsetReader',
@@ -460,7 +466,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format:attribute_field_format'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeIteratorBase',
     srcs=[],
     deps=[
@@ -468,7 +474,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:error_code'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeIteratorTyped',
     srcs=[],
     deps=[
@@ -477,18 +483,18 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format:attribute_field_format'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='UniqEncodeSequenceIteratorTyped',
     deps=[
         ':AttributeIteratorBase', ':AttributeReaderTraits', '//aios/autil:log'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SequenceIterator',
     srcs=[],
     deps=[':AttributeDiskIndexer', ':AttributeIteratorBase']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeReaderTraits',
     srcs=[],
     deps=[
@@ -497,8 +503,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format:attribute_field_format'
     ]
 )
-indexlib_cc_library(name='Common', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='Common', srcs=[])
+strict_cc_library(
     name='InplaceAttributeModifier',
     deps=[
         ':AttributeDiskIndexer', ':AttributeIndexerOrganizerUtil',
@@ -509,7 +515,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:IndexerOrganizerUtil'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeModifier',
     srcs=[],
     deps=[
@@ -520,11 +526,11 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework:TabletData'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PatchAttributeModifier',
     deps=[':AttributeModifier', ':AttributePatchWriter']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeUpdateBitmap',
     deps=[
         ':SegmentUpdateBitmap', '//aios/autil:NoCopyable', '//aios/autil:log',
@@ -535,7 +541,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:simple_pool'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentUpdateBitmap',
     deps=[
         '//aios/autil:NoCopyable', '//aios/storage/indexlib/base:Status',
@@ -543,7 +549,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:Bitmap'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributePatchWriter',
     deps=[
         '//aios/autil:log', '//aios/storage/indexlib/base:PathUtil',
@@ -554,7 +560,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/patch:PatchWriter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeFieldValue',
     deps=[
         ':Constant', '//aios/autil:NoCopyable',
@@ -563,7 +569,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:MemBuffer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='UpdateFieldExtractor',
     deps=[
         '//aios/autil:NoCopyable', '//aios/autil:log', '//aios/autil:span',
@@ -575,17 +581,17 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/primary_key/config:PrimaryKeyIndexConfig'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SliceInfo',
     deps=[
         '//aios/autil:NoCopyable', '//aios/autil:log',
         '//aios/storage/indexlib/base:Constant'
     ]
 )
-indexlib_cc_library(name='Constant', srcs=[], deps=[':Types'])
-indexlib_cc_library(name='Types', srcs=[])
-indexlib_cc_library(name='RangeDescription', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='Constant', srcs=[], deps=[':Types'])
+strict_cc_library(name='Types', srcs=[])
+strict_cc_library(name='RangeDescription', srcs=[])
+strict_cc_library(
     name='AttributeIndexerOrganizerUtil',
     deps=[
         ':AttributeDiskIndexer', ':AttributeMemIndexer',
@@ -597,7 +603,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common/field_format:attribute_field_format'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleAttributeBuilder',
     srcs=[],
     deps=[
@@ -611,12 +617,13 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework:TabletData'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AttributeBuildWorkItem',
     srcs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[
         ':SingleAttributeBuilder',
+        '//aios/storage/indexlib/document:DocumentBatch',
         '//aios/storage/indexlib/document/normal:NormalDocument',
         '//aios/storage/indexlib/index/common:BuildWorkItem'
     ]

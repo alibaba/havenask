@@ -1,13 +1,13 @@
-load('//aios/storage/indexlib:defs.bzl', 'indexlib_cc_library')
+load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
-indexlib_cc_library(
+strict_cc_library(
     name='factory',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':InvertedIndexFactory']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='merger',
     srcs=[],
     hdrs=[],
@@ -17,7 +17,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/builtin_index/number:NumberIndexMerger'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='executor',
     srcs=[],
     hdrs=[],
@@ -30,14 +30,14 @@ indexlib_cc_library(
         ':OrPostingExecutor', ':TermPostingExecutor'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='config',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=['//aios/storage/indexlib/index/inverted_index/config']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='patch',
     srcs=[],
     hdrs=[],
@@ -47,19 +47,19 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/patch:InvertedIndexPatchIteratorCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='constants',
     srcs=[],
     hdrs=[],
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':Common', ':Constant', ':MatchValue']
 )
-indexlib_cc_library(name='Common', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='Common', srcs=[])
+strict_cc_library(
     name='IndexQueryCondition', deps=['//aios/autil:json', '//aios/autil:log']
 )
-indexlib_cc_library(name='IInvertedDiskIndexer', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='IInvertedDiskIndexer', srcs=[])
+strict_cc_library(
     name='InvertedDiskIndexer',
     hdrs=['InvertedDiskIndexer.h'],
     deps=[
@@ -70,17 +70,18 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/builtin_index/bitmap:BitmapDiskIndexer',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/dynamic:DynamicMemIndexer',
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:DefaultTermDictionaryReader',
-        '//aios/storage/indexlib/index/inverted_index/patch:IndexUpdateTermIterator'
+        '//aios/storage/indexlib/index/inverted_index/patch:IndexUpdateTermIterator',
+        '//aios/storage/indexlib/index/inverted_index/section_attribute:factory'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiShardInvertedDiskIndexer',
     deps=[
         ':InvertedDiskIndexer', '//aios/storage/indexlib/index:IIndexFactory',
         '//aios/storage/indexlib/index/inverted_index/format:ShardingIndexHasher'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedLeafReader',
     deps=[
         ':Common', ':IndexSegmentReader', ':InvertedIndexSearchTracer',
@@ -92,7 +93,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:InMemDictionaryReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedLeafMemReader',
     deps=[
         ':Common', ':IndexSegmentReader', ':InvertedIndexSearchTracer',
@@ -104,7 +105,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:InMemDictionaryReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiFieldIndexReader',
     deps=[
         ':Common', ':IndexAccessoryReader', ':InvertedIndexReader',
@@ -113,7 +114,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:InMemDictionaryReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexReaderImpl',
     deps=[
         ':BufferedPostingIterator', ':BuildingIndexReader', ':Common',
@@ -126,7 +127,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/builtin_index/dynamic:DynamicIndexReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiShardInvertedIndexReader',
     deps=[
         ':InvertedIndexReaderImpl', ':MultiShardInvertedDiskIndexer',
@@ -134,7 +135,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index:IIndexFactory'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexSearchTracer',
     srcs=[],
     deps=[
@@ -142,21 +143,21 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util/cache'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexUtil',
     srcs=[],
     deps=[
         '//aios/storage/indexlib/index/inverted_index/config:InvertedIndexConfig'
     ]
 )
-indexlib_cc_library(name='IInvertedMemIndexer', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='IInvertedMemIndexer', srcs=[])
+strict_cc_library(
     name='InvertedMemIndexer',
     deps=[
         ':Common', ':IInvertedMemIndexer', ':IndexFormatWriterCreator',
         ':InvertedIndexMerger', ':InvertedIndexMetrics',
-        ':InvertedLeafMemReader', ':SectionAttributeMemIndexer',
-        '//aios/storage/indexlib/config:IIndexConfig',
+        ':InvertedLeafMemReader', '//aios/storage/indexlib/config:IIndexConfig',
+        '//aios/storage/indexlib/document/extractor:IDocumentInfoExtractor',
         '//aios/storage/indexlib/document/extractor/plain:DocumentInfoExtractorFactory',
         '//aios/storage/indexlib/index/common:FileCompressParamHelper',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/bitmap:BitmapIndexWriter',
@@ -164,10 +165,11 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/builtin_index/dynamic:DynamicPostingIterator',
         '//aios/storage/indexlib/index/inverted_index/format/skiplist:BufferedSkipListWriter',
         '//aios/storage/indexlib/index/inverted_index/merge:SimpleInvertedIndexMerger',
-        '//aios/storage/indexlib/index/inverted_index/patch:InvertedIndexPatchWriter'
+        '//aios/storage/indexlib/index/inverted_index/patch:InvertedIndexPatchWriter',
+        '//aios/storage/indexlib/index/inverted_index/section_attribute:SectionAttributeMemIndexer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexMerger',
     deps=[
         ':Common', ':IndexTermExtender', ':MultiSegmentPostingWriter',
@@ -187,7 +189,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/truncate:TruncateIndexWriterCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PostingMerger',
     srcs=[],
     deps=[
@@ -195,14 +197,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/framework/index_task:IndexTaskResource'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PostingMergerImpl',
     deps=[
         ':MultiSegmentPostingWriter', ':OneDocMerger', ':PostingMerger',
         '//aios/storage/indexlib/index:DocMapper'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexTermExtender',
     deps=[
         ':PostingMergerImpl',
@@ -212,7 +214,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/truncate:TruncatePostingIteratorCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiSegmentPostingWriter',
     deps=[
         ':BufferedPostingIterator', ':IndexOutputSegmentResource',
@@ -221,7 +223,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format:TermMetaDumper'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentTermInfoQueue',
     deps=[
         ':DefaultValueIndexIterator', ':IndexIterator',
@@ -233,7 +235,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/patch:InvertedIndexPatchFileFinder'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='OnDiskIndexIteratorCreator',
     srcs=[],
     deps=[
@@ -243,7 +245,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:DictionaryReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexMetrics',
     deps=[
         '//aios/storage/indexlib/config:IIndexConfig',
@@ -252,7 +254,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index:IndexerParameter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexFactory',
     deps=[
         ':InvertedDiskIndexer', ':InvertedIndexMetrics',
@@ -280,27 +282,19 @@ indexlib_cc_library(
     ],
     alwayslink=True
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiShardInvertedMemIndexer',
     deps=[
-        ':InvertedMemIndexer', ':SectionAttributeMemIndexer',
-        '//aios/autil:log', '//aios/storage/indexlib/index:IIndexFactory',
+        ':InvertedMemIndexer', '//aios/autil:log',
+        '//aios/storage/indexlib/document:DocumentBatch',
+        '//aios/storage/indexlib/index:IIndexFactory',
         '//aios/storage/indexlib/index:interface',
         '//aios/storage/indexlib/index/inverted_index/format:ShardingIndexHasher',
-        '//aios/storage/indexlib/index/inverted_index/patch:IndexUpdateTermIterator'
+        '//aios/storage/indexlib/index/inverted_index/patch:IndexUpdateTermIterator',
+        '//aios/storage/indexlib/index/inverted_index/section_attribute:SectionAttributeMemIndexer'
     ]
 )
-indexlib_cc_library(
-    name='SectionAttributeMemIndexer',
-    deps=[
-        '//aios/autil:log',
-        '//aios/storage/indexlib/document/normal:IndexDocument',
-        '//aios/storage/indexlib/index:interface',
-        '//aios/storage/indexlib/index/attribute:indexer',
-        '//aios/storage/indexlib/index/inverted_index/config:PackageIndexConfig'
-    ]
-)
-indexlib_cc_library(
+strict_cc_library(
     name='IndexAccessoryReader',
     deps=[
         ':Common', '//aios/autil:log', '//aios/storage/indexlib/base:Status',
@@ -311,7 +305,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/section_attribute:SectionAttributeReaderImpl'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentPosting',
     deps=[
         ':PostingWriter', '//aios/autil:mem_pool_base',
@@ -325,8 +319,8 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format:TermMetaLoader'
     ]
 )
-indexlib_cc_library(name='SegmentPostings', srcs=[], deps=[':SegmentPosting'])
-indexlib_cc_library(
+strict_cc_library(name='SegmentPostings', srcs=[], deps=[':SegmentPosting'])
+strict_cc_library(
     name='PostingWriter',
     srcs=[],
     deps=[
@@ -335,7 +329,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:simple_pool'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PostingWriterImpl',
     deps=[
         ':BufferedPostingIterator', ':PostingIterator', ':PostingWriter',
@@ -346,21 +340,21 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:object_pool'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PostingExecutor',
     srcs=[],
     deps=[':Constant', '//aios/storage/indexlib/base:constants']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='AndPostingExecutor', deps=[':PostingExecutor', '//aios/autil:log']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DocidRangePostingExecutor', srcs=[], deps=[':PostingExecutor']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='OrPostingExecutor', deps=[':PostingExecutor', '//aios/autil:log']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TermPostingExecutor',
     deps=[
         ':PostingExecutor', ':PostingIterator',
@@ -369,21 +363,21 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format:TermMetaLoader'
     ]
 )
-indexlib_cc_library(name='PostingDumper', srcs=[], deps=[':PostingWriter'])
-indexlib_cc_library(name='DocValueFilter', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='PostingDumper', srcs=[], deps=[':PostingWriter'])
+strict_cc_library(name='DocValueFilter', srcs=[])
+strict_cc_library(
     name='NumberDocValueFilterTyped',
     srcs=[],
     deps=['DocValueFilter', '//aios/storage/indexlib/index/attribute:reader']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='RangePostingIterator',
     deps=[
         ':PostingIteratorImpl', ':RangeSegmentPostingsIterator',
         ':SegmentPostings', ':TermMatchData'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='DefaultValueIndexIterator',
     deps=[
         ':IndexIterator',
@@ -391,14 +385,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:DefaultTermDictionaryReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiSegmentPostingIterator',
     deps=[
         ':PostingIteratorImpl',
         '//aios/storage/indexlib/index/inverted_index/format:TermMetaDumper'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BufferedPostingIterator',
     deps=[
         ':BufferedIndexDecoder', ':PostingIteratorImpl', ':SegmentPosting',
@@ -407,7 +401,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format:NormalInDoc'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PositionIteratorTyped',
     srcs=[],
     deps=[
@@ -415,7 +409,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/builtin_index/bitmap:SingleBitmapPostingIterator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='CompositePostingIterator',
     srcs=[],
     deps=[
@@ -423,7 +417,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/builtin_index/dynamic:DynamicPostingIterator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BufferedIndexDecoder',
     deps=[
         ':InDocStateKeeper', ':SegmentPosting',
@@ -435,7 +429,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format/skiplist:TriValueSkipListReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InDocStateKeeper',
     deps=[
         '//aios/storage/indexlib/index/inverted_index/format:InMemPositionListDecoder',
@@ -443,7 +437,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format/skiplist:PairValueSkipListReader'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PostingIteratorImpl',
     deps=[
         ':InvertedIndexSearchTracer', ':MultiSegmentTermMetaCalculator',
@@ -453,11 +447,11 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:object_pool'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SeekAndFilterIterator',
     deps=[':DocValueFilter', ':RangePostingIterator']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='RangeSegmentPostingsIterator',
     deps=[
         ':SegmentPosting', ':SegmentPostings',
@@ -472,19 +466,19 @@ indexlib_cc_library(
         '//aios/storage/indexlib/util:simple_heap'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='MultiSegmentTermMetaCalculator',
     srcs=[],
     deps=['//aios/storage/indexlib/index/inverted_index/format:TermMeta']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexIterator',
     srcs=[],
     deps=['//aios/storage/indexlib/index/common:DictKeyInfo']
 )
-indexlib_cc_library(name='KeyIterator', srcs=[])
-indexlib_cc_library(name='KeyIteratorTyped', srcs=[], deps=[':KeyIterator'])
-indexlib_cc_library(
+strict_cc_library(name='KeyIterator', srcs=[])
+strict_cc_library(name='KeyIteratorTyped', srcs=[], deps=[':KeyIterator'])
+strict_cc_library(
     name='OnDiskIndexIterator',
     srcs=[],
     deps=[
@@ -492,21 +486,21 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format:PostingFormatOption'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='BuildingIndexReader',
     deps=[
         ':IndexSegmentReader', ':InvertedIndexSearchTracer', ':SegmentPosting',
         '//aios/storage/indexlib/document/normal:ModifiedTokens'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexDataWriter',
     srcs=[],
     deps=[
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:TieredDictionaryWriter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexReader',
     deps=[
         ':PostingIterator',
@@ -519,7 +513,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format:PostingFormatOption'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PostingIterator',
     srcs=[],
     deps=[
@@ -527,12 +521,12 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format:TermMeta'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InDocPositionIterator',
     srcs=[],
     deps=['//aios/storage/indexlib/index/common:error_code']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InDocPositionState',
     srcs=[],
     deps=[
@@ -542,7 +536,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format:PositionListFormatOption'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='OneDocMerger',
     deps=[
         ':PostingWriterImpl', '//aios/autil:string_type',
@@ -552,13 +546,13 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/patch:SingleTermIndexSegmentPatchIterator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TermPostingInfo',
     deps=[
         '//aios/autil:log', '//aios/storage/indexlib/file_system:byte_slice_rw'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SegmentTermInfo',
     deps=[
         ':IndexIterator',
@@ -566,7 +560,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/patch:SingleTermIndexSegmentPatchIterator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexSegmentReader',
     srcs=[],
     deps=[
@@ -574,18 +568,18 @@ indexlib_cc_library(
         '//aios/storage/indexlib/document/normal:ModifiedTokens'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='TermMatchData',
     srcs=[],
     deps=[':InDocPositionIterator', ':InDocPositionState']
 )
-indexlib_cc_library(name='SectionAttributeReader', srcs=[])
-indexlib_cc_library(
+strict_cc_library(name='SectionAttributeReader', srcs=[])
+strict_cc_library(
     name='InDocSectionMeta',
     srcs=[],
     deps=[':Types', '//aios/storage/indexlib/base:Types']
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexFormatWriterCreator',
     deps=[
         ':PostingWriter', ':PostingWriterImpl',
@@ -594,7 +588,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:DictionaryCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='IndexOutputSegmentResource',
     deps=[
         ':IndexDataWriter', ':SegmentTermInfo',
@@ -602,7 +596,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:DictionaryCreator'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexerOrganizerUtil',
     deps=[
         ':InvertedDiskIndexer', ':InvertedIndexMetrics', ':InvertedMemIndexer',
@@ -616,14 +610,14 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:Types'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='SingleInvertedIndexBuilder',
     deps=[
         ':InvertedIndexerOrganizerUtil', ':MultiShardInvertedDiskIndexer',
         ':MultiShardInvertedMemIndexer'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexBuildWorkItem',
     visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[
@@ -631,7 +625,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:BuildWorkItem'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InvertedIndexModifier',
     srcs=[],
     hdrs=['InvertedIndexModifier.h'],
@@ -640,7 +634,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/document/normal:NormalDocument'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='InplaceInvertedIndexModifier',
     deps=[
         ':InvertedIndexModifier', ':InvertedIndexerOrganizerUtil',
@@ -648,7 +642,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:IndexerOrganizerUtil'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='PatchInvertedIndexModifier',
     deps=[
         ':InvertedIndexModifier', '//aios/storage/indexlib/base:Status',
@@ -656,7 +650,7 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/inverted_index/patch:InvertedIndexPatchWriter'
     ]
 )
-indexlib_cc_library(
+strict_cc_library(
     name='Constant',
     srcs=[],
     deps=[
@@ -664,5 +658,5 @@ indexlib_cc_library(
         '//aios/storage/indexlib/index/common:Types'
     ]
 )
-indexlib_cc_library(name='Types', srcs=[])
-indexlib_cc_library(name='MatchValue', srcs=[])
+strict_cc_library(name='Types', srcs=[])
+strict_cc_library(name='MatchValue', srcs=[])

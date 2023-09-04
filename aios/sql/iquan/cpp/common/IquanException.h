@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include <exception>
 #include <string>
 
 #include "iquan/common/Common.h"
@@ -23,11 +24,17 @@ namespace iquan {
 
 class IquanException : public std::exception {
 public:
-    IquanException(const std::string reason, int code = IQUAN_FAIL) : _reason(reason), _code(code) {}
+    IquanException(const std::string reason, int code = IQUAN_FAIL)
+        : _reason(reason)
+        , _code(code) {}
 
-    virtual const char *what() const throw() { return _reason.c_str(); }
+    virtual const char *what() const throw() {
+        return _reason.c_str();
+    }
 
-    int code() const { return _code; }
+    int code() const {
+        return _code;
+    }
 
 private:
     std::string _reason;

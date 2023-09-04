@@ -1,0 +1,26 @@
+{
+    "enable_package_file": true,
+    "enable_archive_file": true,
+    "package_file_tag_config": [
+        {
+            "file_patterns": [
+                "segment_[0-9]+_level_[0-9]+/index/.*vec_recall",
+                "segment_[0-9]+_level_[0-9]+/index/.*aitheta_recall"
+            ],
+            "tag": "AITHETA"
+        },
+        {
+            "file_patterns": [
+                "segment_[0-9]+_level_[0-9]+/index/.*.patch",
+                "_PATCH_"
+            ],
+            "tag": "PATCH"
+        },
+        {
+            "file_patterns": [
+                ".*"
+            ],
+            "tag": "MERGE"
+        }
+    ]
+}

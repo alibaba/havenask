@@ -19,17 +19,18 @@
  * Create time: 2014-01-05 16:57:51
  */
 
-#include <stddef.h>
-#include <stdint.h>
+#include "autil/codec/PinYinTrans.h"
+
 #include <fstream>
 #include <map>
 #include <memory>
+#include <stddef.h>
+#include <stdint.h>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "autil/Log.h"
-#include "autil/codec/PinYinTrans.h"
 #include "autil/codec/StringUtil.h"
 #include "autil/codec/UTF8Util.h"
 
@@ -112,7 +113,8 @@ int32_t PinYinTrans::getQuanPin(const std::string &str, std::vector<std::string>
         }
         start += word.length();
     }
-    if (start != str.length()) return -1;
+    if (start != str.length())
+        return -1;
     return 0;
 }
 
@@ -145,12 +147,15 @@ int32_t PinYinTrans::getJianPin(const std::string &str, std::vector<std::string>
         }
         start += word.length();
     }
-    if (start != str.length()) return -1;
+    if (start != str.length())
+        return -1;
     return 0;
 }
 
-int32_t PinYinTrans::getPinYin(const std::string &str, std::vector<std::string> &quanpin,
-                               std::vector<std::string> &jianpin, bool single) {
+int32_t PinYinTrans::getPinYin(const std::string &str,
+                               std::vector<std::string> &quanpin,
+                               std::vector<std::string> &jianpin,
+                               bool single) {
     if (str.empty()) {
         return -1;
     }
@@ -183,7 +188,8 @@ int32_t PinYinTrans::getPinYin(const std::string &str, std::vector<std::string> 
         }
         start += word.length();
     }
-    if (start != str.length()) return -1;
+    if (start != str.length())
+        return -1;
     return 0;
 }
 
@@ -194,5 +200,5 @@ uint64_t PinYinTrans::hashKey(const char *str, size_t len) {
     }
     return hash;
 }
-}
-}
+} // namespace codec
+} // namespace autil

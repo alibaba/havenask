@@ -150,12 +150,12 @@ extern const std::string ATTRIBUTE_EXTEND;
 extern const std::string ATTRIBUTE_EXTEND_SORT;
 extern const std::string SORT_BY_WEIGHT_TAG;
 extern const std::string ATTRIBUTE_NAME;
-extern const std::string PACK_ATTR_NAME_FIELD;
-extern const std::string PACK_ATTR_SUB_ATTR_FIELD;
+// extern const std::string PACK_ATTR_NAME_FIELD;
+// extern const std::string PACK_ATTR_SUB_ATTR_FIELD;
 // extern const std::string PACK_ATTR_COMPRESS_TYPE_FIELD;
-extern const std::string PACK_ATTR_VALUE_FORMAT;
-extern const std::string PACK_ATTR_VALUE_FORMAT_IMPACT;
-extern const std::string PACK_ATTR_VALUE_FORMAT_PLAIN;
+// extern const std::string PACK_ATTR_VALUE_FORMAT;
+// extern const std::string PACK_ATTR_VALUE_FORMAT_IMPACT;
+// extern const std::string PACK_ATTR_VALUE_FORMAT_PLAIN;
 
 extern const std::string SUMMARYS;
 extern const std::string SUMMARY_FIELDS;
@@ -248,7 +248,7 @@ extern const std::string CUSTOMIZED_DOCUMENT_CONFIG_PARSER;
 // topology string
 extern const std::string TOPOLOGY_SEQUENCE_STR;
 extern const std::string TOPOLOGY_HASH_MODE_STR;
-extern const std::string TOPOLOGY_HASH_RANGE_STR;
+extern const std::string TOPOLOGY_KEY_RANGE_STR;
 extern const std::string TOPOLOGY_DEFAULT_STR;
 
 // recover strategy type

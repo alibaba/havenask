@@ -51,8 +51,10 @@ public:
     versionid_t GetOldestIncVersionId() const;
     versionid_t GetLatestIncVersionId() const;
     int64_t GetLatestIncVersionTimestamp() const;
+    int64_t GetLatestIncVersionTaskLogTimestamp() const;
     std::vector<std::shared_ptr<TabletData>> GetTabletDatas() const;
-    void GetNeedKeepFilesAndSegmentIds(std::set<std::string>* keepFiles, std::set<segmentid_t>* keepSegments);
+    bool GetNeedKeepFiles(std::set<std::string>* keepFiles);
+    void GetNeedKeepSegments(std::set<segmentid_t>* keepSegments);
     versionid_t GetLatestPrivateVersion() const;
 
 public:

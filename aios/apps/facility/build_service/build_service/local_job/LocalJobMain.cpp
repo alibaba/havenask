@@ -57,6 +57,7 @@ int main(int argc, char* argv[])
     optionParser.addOption("-r", "--reducecount", "reduceCount", OptionParser::OPT_UINT32, true);
     optionParser.addOption("-p", "--jobparam", "jobParam", OptionParser::OPT_STRING, true);
     optionParser.addOption("-l", "--logConf", "logConf", OptionParser::OPT_STRING, false);
+    optionParser.addOption("-v2", "--v2", "v2Build", OptionParser::STORE_TRUE);
 
     if (!optionParser.parseArgs(argc, argv)) {
         cerr << "option parse failed." << endl;
@@ -69,12 +70,14 @@ int main(int argc, char* argv[])
     uint32_t reduceCount = 0;
     string jobParam;
     string logConfPath;
+    bool useV2Build = false;
 
     optionParser.getOptionValue("step", step);
     optionParser.getOptionValue("mapCount", mapCount);
     optionParser.getOptionValue("reduceCount", reduceCount);
     optionParser.getOptionValue("jobParam", jobParam);
     optionParser.getOptionValue("logConf", logConfPath);
+    optionParser.getOptionValue("v2Build", useV2Build);
     string logConfContent;
     if (!logConfPath.empty()) {
         if (!readConfig(logConfPath, logConfContent)) {
@@ -99,7 +102,7 @@ int main(int argc, char* argv[])
     }
 
     {
-        LocalJobWorker worker;
+        LocalJobWorker worker(useV2Build);
         if (!worker.run(step, mapCount, reduceCount, jobParam)) {
             return -1;
         }

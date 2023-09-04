@@ -1,0 +1,35 @@
+{
+    "table_name": "simple",
+    "table_type": "kv",
+    "fields": [
+        { "field_name": "nid", "field_type": "INT64" },
+        { "field_name": "musicid", "field_type": "INT64" },
+        { "field_name": "nick", "field_type": "STRING" },
+        { "field_name": "score", "field_type": "FLOAT",  "multi_value": true},
+        { "field_name": "age", "field_type": "UINT8" }
+    ],
+    "regions": [
+        {
+            "region_name" : "region1",
+            "indexs": [
+                {
+                    "index_name": "nid", "index_fields": "nid", "index_type": "PRIMARY_KEY",
+                    "index_preference" : { "type" : "PERF" }
+                }
+            ],
+            "attributes": [ "nid", "nick", "age" ],
+            "enable_ttl" : false
+        },
+        {
+            "region_name" : "region2",
+            "indexs": [
+                {
+                    "index_name": "musicid", "index_fields": "musicid", "index_type": "PRIMARY_KEY",
+                    "index_preference" : { "type" : "PERF" }
+                }
+            ],
+            "attributes": [ "musicid", "score", "nid" ],
+            "enable_ttl" : false
+        }
+    ]
+}

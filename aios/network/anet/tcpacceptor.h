@@ -15,8 +15,8 @@
  */
 #ifndef ANET_TCPACCEPTOR_H_
 #define ANET_TCPACCEPTOR_H_
-#include <stdint.h>
 #include <ostream>
+#include <stdint.h>
 
 #include "aios/network/anet/iocomponent.h"
 
@@ -31,9 +31,13 @@ public:
      * @param socket pointer of a socket object
      * @param timeout: set timeout in millisecond for server sending replies
      */
-    TCPAcceptor(Transport *owner, Socket *socket, IPacketStreamer *streamer,
-                IServerAdapter *serverAdapter, int timeout, 
-                int maxIdleTimeInMillseconds, int backlog);
+    TCPAcceptor(Transport *owner,
+                Socket *socket,
+                IPacketStreamer *streamer,
+                IServerAdapter *serverAdapter,
+                int timeout,
+                int maxIdleTimeInMillseconds,
+                int backlog);
 
     bool init(bool isServer = false);
 
@@ -41,11 +45,9 @@ public:
 
     bool handleReadEvent();
 
-    bool handleWriteEvent() {
-        return true;
-    }
+    bool handleWriteEvent() { return true; }
 
-    bool handleErrorEvent(); 
+    bool handleErrorEvent();
 
     bool checkTimeout(int64_t now);
 
@@ -59,13 +61,11 @@ public:
     }
 
     /* for UT purpose */
-    IOComponent *getLastAcceptedComponent() {
-        return _lastAcceptedComponent;
-    }
+    IOComponent *getLastAcceptedComponent() { return _lastAcceptedComponent; }
 
 private:
-    IPacketStreamer *_streamer;      
-    IServerAdapter  *_serverAdapter; 
+    IPacketStreamer *_streamer;
+    IServerAdapter *_serverAdapter;
     int _timeout;
     int _maxIdleTimeInMillseconds;
     int _backlog;
@@ -73,6 +73,6 @@ private:
     /* for testing purpose */
     IOComponent *_lastAcceptedComponent;
 };
-}
+} // namespace anet
 
 #endif /*TCPACCEPTOR_H_*/

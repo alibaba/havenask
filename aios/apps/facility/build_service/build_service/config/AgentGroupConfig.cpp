@@ -25,9 +25,11 @@ BS_LOG_SETUP(config, AgentGroupConfig);
 
 AgentConfig::AgentConfig()
     : agentNodeCount(0)
+    , flexibleIdleAgentCount(0)
     , inBlackListTimeout(DEFAULT_IN_BLACKLIST_TIMEOUT)
     , lazyAllocate(false)
     , dynamicRoleMapping(false)
+    , exclusive(false)
 {
 }
 
@@ -38,21 +40,35 @@ void AgentConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
     json.Jsonize("id", identifier);
     json.Jsonize("role_pattern", rolePattern);
     json.Jsonize("node_count", agentNodeCount);
+    json.Jsonize("flexible_idle_agent_count", flexibleIdleAgentCount, flexibleIdleAgentCount);
     json.Jsonize("in_blacklist_timeout", inBlackListTimeout, inBlackListTimeout);
     json.Jsonize("lazy_allocate", lazyAllocate, lazyAllocate);
     json.Jsonize("dynamic_role_mapping", dynamicRoleMapping, dynamicRoleMapping);
     json.Jsonize("resource_limits", resourceLimitParams, resourceLimitParams);
+    json.Jsonize("exclusive", exclusive, exclusive);
 }
 
 bool AgentConfig::check() const
 {
-    if (identifier.empty()) {
+    if (identifier.empty() || identifier.find(".") != string::npos) {
         string errorInfo = "invalid id [" + identifier + "] for agent config.";
         BS_INTERVAL_LOG(10, ERROR, "%s", errorInfo.c_str());
         return false;
     }
     if (agentNodeCount == 0) {
         string errorInfo = "invalid agentNodeCount [" + autil::StringUtil::toString(agentNodeCount) +
+                           "] for agent config, id [" + identifier + "]";
+        BS_INTERVAL_LOG(10, ERROR, "%s", errorInfo.c_str());
+        return false;
+    }
+    if (flexibleIdleAgentCount != 0 && !dynamicRoleMapping) {
+        string errorInfo = "invalid flexibleIdleAgentCount [" + autil::StringUtil::toString(flexibleIdleAgentCount) +
+                           "] with non dynamicRoleMapping for agent config, id [" + identifier + "]";
+        BS_INTERVAL_LOG(10, ERROR, "%s", errorInfo.c_str());
+        return false;
+    }
+    if (flexibleIdleAgentCount != 0 && flexibleIdleAgentCount > agentNodeCount) {
+        string errorInfo = "invalid flexibleIdleAgentCount [" + autil::StringUtil::toString(flexibleIdleAgentCount) +
                            "] for agent config, id [" + identifier + "]";
         BS_INTERVAL_LOG(10, ERROR, "%s", errorInfo.c_str());
         return false;
@@ -65,27 +81,46 @@ bool AgentConfig::check() const
     return true;
 }
 
-AgentGroupConfig::AgentGroupConfig() {}
+const std::string AgentGroupConfig::AGENT_CONFIG_GROUP_KEY = "agent_node_groups";
+
+AgentGroupConfig::AgentGroupConfig(bool defaultEnableGlobalAgent) : _enableGlobalAgentNodes(defaultEnableGlobalAgent) {}
 
 AgentGroupConfig::~AgentGroupConfig() {}
 
 void AgentGroupConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
 {
-    json.Jsonize("agent_node_groups", _agentConfigs);
+    json.Jsonize(AGENT_CONFIG_GROUP_KEY, _agentConfigs, _agentConfigs);
+    json.Jsonize("enable_global_agent_nodes", _enableGlobalAgentNodes, _enableGlobalAgentNodes);
+    json.Jsonize("target_global_agent_group_id", _targetGlobalAgentGroupName, _targetGlobalAgentGroupName);
+    if (!_targetGlobalAgentGroupName.empty() && _targetGlobalAgentGroupName.find(".") != string::npos) {
+        BS_LOG(INFO, "target_global_agent_group_id [%s] has invalid char '.', will use '-' instead.",
+               _targetGlobalAgentGroupName.c_str());
+        autil::StringUtil::replaceAll(_targetGlobalAgentGroupName, ".", "-");
+    }
 }
 
 bool AgentGroupConfig::check() const
 {
+    std::set<std::string> idSet;
     for (auto& config : _agentConfigs) {
         if (!config.check()) {
             return false;
         }
+        idSet.insert(config.identifier);
     }
-    return true;
+    return idSet.size() == _agentConfigs.size();
 }
 
 bool AgentGroupConfig::match(const string& roleName, size_t& idx) const
 {
+    int64_t currentTimeInSec = autil::TimeUtility::currentTimeInSeconds();
+    if (_cacheExpireTimestamp <= currentTimeInSec) {
+        _cacheExpireTimestamp = currentTimeInSec + DEFAULT_CACHE_EXPIRE_TIME;
+        // make cache expire, to retire useless role cache info
+        std::map<std::string, int32_t> emptyCache;
+        _roleMatchInfoCache.swap(emptyCache);
+    }
+
     auto iter = _roleMatchInfoCache.find(roleName);
     if (iter != _roleMatchInfoCache.end()) {
         if (iter->second < 0) {

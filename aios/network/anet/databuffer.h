@@ -15,12 +15,11 @@
  */
 #ifndef ANET_DATA_BUFFER_H_
 #define ANET_DATA_BUFFER_H_
-#include <stdlib.h>
 #include <assert.h>
-#include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 #include <string>
-
 
 namespace anet {
 
@@ -35,10 +34,7 @@ public:
     static constexpr uint32_t INITIAL_BUFFER_SIZE = 1024;
 
 public:
-
-    DataBuffer() {
-        _pend = _pfree = _pdata = _pstart = NULL;
-    }
+    DataBuffer() { _pend = _pfree = _pdata = _pstart = NULL; }
 
     ~DataBuffer() {
         if (_pstart) {
@@ -54,25 +50,17 @@ public:
         return _pend - _pstart;
     }
 
-    char *getData() {
-        return (char*)_pdata;
-    }
+    char *getData() { return (char *)_pdata; }
 
-    int getDataLen() {
-        return (_pfree - _pdata);
-    }
+    int getDataLen() { return (_pfree - _pdata); }
 
-    char *getFree() {
-        return (char*)_pfree;
-    }
+    char *getFree() { return (char *)_pfree; }
 
-    int getFreeLen() {
-        return (_pend - _pfree);
-    }
+    int getFreeLen() { return (_pend - _pfree); }
 
     void drainData(int len) {
         _pdata += len;
-        if (_pdata > _pfree) {//~Bug #95
+        if (_pdata > _pfree) { //~Bug #95
             _pdata = _pfree;
         }
 
@@ -91,9 +79,7 @@ public:
         _pfree -= len;
     }
 
-    void clear() {
-        _pdata = _pfree = _pstart;
-    }
+    void clear() { _pdata = _pfree = _pstart; }
 
     void shrink() {
         if (_pstart == NULL) {
@@ -104,22 +90,20 @@ public:
         assert(dlen >= 0);
 
         if (dlen > 0) {
-            unsigned char * newbuf = (unsigned char*)malloc(dlen);
+            unsigned char *newbuf = (unsigned char *)malloc(dlen);
             assert(newbuf != NULL);
             memcpy(newbuf, _pdata, dlen);
             free(_pstart);
             _pdata = _pstart = newbuf;
             _pfree = _pstart + dlen;
             _pend = _pstart + dlen;
-        }
-        else {
+        } else {
             free(_pstart);
             _pstart = _pend = _pdata = _pfree = NULL;
         }
 
         return;
     }
-
 
     void writeInt8(int8_t n) {
         expand(1);
@@ -182,9 +166,7 @@ public:
         dst[0] = (unsigned char)n;
     }
 
-    int8_t readInt8() {
-        return (*_pdata++);
-    }
+    int8_t readInt8() { return (*_pdata++); }
 
     int16_t readInt16() {
         // not portable!
@@ -233,14 +215,12 @@ public:
         _pdata += len;
     }
 
-    void ensureFree(int len) {
-        expand(len);
-    }
+    void ensureFree(int len) { expand(len); }
 
     int findBytes(const char *findstr, int len) {
         int dLen = _pfree - _pdata - len + 1;
-        for (int i=0; i<dLen; i++) {
-            if (_pdata[i] == findstr[0] && memcmp(_pdata+i, findstr, len) == 0) {
+        for (int i = 0; i < dLen; i++) {
+            if (_pdata[i] == findstr[0] && memcmp(_pdata + i, findstr, len) == 0) {
                 return i;
             }
         }
@@ -256,12 +236,14 @@ public:
     inline void write(const T &value) {
         writeBytes(&value, sizeof(value));
     }
+
 private:
     inline void expand(int need) {
         if (_pstart == NULL) {
             int len = INITIAL_BUFFER_SIZE;
-            while(len < need) len <<= 1;
-            _pfree = _pdata = _pstart = (unsigned char*)malloc(len);
+            while (len < need)
+                len <<= 1;
+            _pfree = _pdata = _pstart = (unsigned char *)malloc(len);
             assert(_pstart);
             _pend = _pstart + len;
         } else if (_pend - _pfree < need) { // not enough free space
@@ -291,35 +273,32 @@ private:
         }
     }
 
-
 private:
-    unsigned char *_pstart;      // buffer start address
-    unsigned char *_pend;        // buffer end address
-    unsigned char *_pfree;        // end of data
-    unsigned char *_pdata;        // begin of data
+    unsigned char *_pstart; // buffer start address
+    unsigned char *_pend;   // buffer end address
+    unsigned char *_pfree;  // end of data
+    unsigned char *_pdata;  // begin of data
 };
 
-
-
-#define SPECIALIZE_READ_WRITE_FOR_INT(w)                                \
-    template <>                                                         \
-    inline void DataBuffer::read(int##w##_t &value) {                   \
-        value = readInt##w();                                           \
-    }                                                                   \
-                                                                        \
-    template <>                                                         \
-    inline void DataBuffer::write(const int##w##_t &value) {            \
-        writeInt##w(value);                                             \
-    }                                                                   \
-                                                                        \
-    template <>                                                         \
-    inline void DataBuffer::read(uint##w##_t &value) {                  \
-        value = readInt##w();                                           \
-    }                                                                   \
-                                                                        \
-    template <>                                                         \
-    inline void DataBuffer::write(const uint##w##_t &value) {           \
-        writeInt##w(value);                                             \
+#define SPECIALIZE_READ_WRITE_FOR_INT(w)                                                                               \
+    template <>                                                                                                        \
+    inline void DataBuffer::read(int##w##_t &value) {                                                                  \
+        value = readInt##w();                                                                                          \
+    }                                                                                                                  \
+                                                                                                                       \
+    template <>                                                                                                        \
+    inline void DataBuffer::write(const int##w##_t &value) {                                                           \
+        writeInt##w(value);                                                                                            \
+    }                                                                                                                  \
+                                                                                                                       \
+    template <>                                                                                                        \
+    inline void DataBuffer::read(uint##w##_t &value) {                                                                 \
+        value = readInt##w();                                                                                          \
+    }                                                                                                                  \
+                                                                                                                       \
+    template <>                                                                                                        \
+    inline void DataBuffer::write(const uint##w##_t &value) {                                                          \
+        writeInt##w(value);                                                                                            \
     }
 
 SPECIALIZE_READ_WRITE_FOR_INT(8);
@@ -332,7 +311,6 @@ SPECIALIZE_READ_WRITE_FOR_INT(64);
 // template <> inline void DataBuffer::read(int32_t &value) {value = readInt32();}
 // template <> inline void DataBuffer::read(int64_t &value) {value = readInt64();}
 
-
 // template <> inline void DataBuffer::write(const int8_t &value) {writeInt8(value);}
 // template <> inline void DataBuffer::write(const int16_t &value) {writeInt16(value);}
 // template <> inline void DataBuffer::write(const int32_t &value) {writeInt32(value);}
@@ -342,7 +320,6 @@ SPECIALIZE_READ_WRITE_FOR_INT(64);
 // template <> inline void DataBuffer::read(uint16_t &value) {value = readInt16();}
 // template <> inline void DataBuffer::read(uint32_t &value) {value = readInt32();}
 // template <> inline void DataBuffer::read(uint64_t &value) {value = readInt64();}
-
 
 // template <> inline void DataBuffer::write(const uint8_t &value) {writeInt8(value);}
 // template <> inline void DataBuffer::write(const uint16_t &value) {writeInt16(value);}
@@ -360,9 +337,9 @@ inline void DataBuffer::read(std::string &value) {
 template <>
 inline void DataBuffer::write(const std::string &value) {
     write((int32_t)value.length()); // use int32_t lengh to be independant to arch
-    writeBytes((char*)(value.data()), value.length());
+    writeBytes((char *)(value.data()), value.length());
 }
 
-}
+} // namespace anet
 
 #endif /*DATABUFFER_H_*/

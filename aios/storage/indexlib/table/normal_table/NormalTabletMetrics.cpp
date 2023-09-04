@@ -19,6 +19,7 @@
 #include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/MetricsManager.h"
 #include "indexlib/index/attribute/Common.h"
+#include "indexlib/index/common/Constant.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
 #include "indexlib/util/counter/CounterMap.h"
@@ -49,10 +50,10 @@ void* NormalTabletMetrics::GetSchemaSignature() const { return schemaSignature; 
 void NormalTabletMetrics::Init(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     schemaSignature = schema.get();
-    for (const auto& attributeConfig : schema->GetIndexConfigs(index::ATTRIBUTE_INDEX_TYPE_STR)) {
+    for (const auto& attributeConfig : schema->GetIndexConfigs(indexlib::index::GENERAL_VALUE_INDEX_TYPE_STR)) {
         RegisterAttributeAccess(attributeConfig->GetIndexName());
     }
-    for (const auto& invertedConfig : schema->GetIndexConfigs(indexlib::index::INVERTED_INDEX_TYPE_STR)) {
+    for (const auto& invertedConfig : schema->GetIndexConfigs(indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR)) {
         RegisterInvertedAccess(invertedConfig->GetIndexName());
     }
 }

@@ -20,10 +20,8 @@
 #include "indexlib/index/attribute/AttributeIndexFactory.h"
 #include "indexlib/index/attribute/AttributeIteratorTyped.h"
 #include "indexlib/index/attribute/AttributeReader.h"
-namespace indexlibv2::config {
-class AttributeConfig;
-}
 namespace indexlibv2::index {
+class AttributeConfig;
 
 template <typename T>
 class AttributePrefetcher : private autil::NoCopyable
@@ -34,7 +32,7 @@ public:
     ~AttributePrefetcher() {}
 
 public:
-    Status Init(autil::mem_pool::Pool* pool, const std::shared_ptr<config::AttributeConfig>& attrConfig,
+    Status Init(autil::mem_pool::Pool* pool, const std::shared_ptr<AttributeConfig>& attrConfig,
                 std::vector<std::shared_ptr<framework::Segment>> segments);
     Status Prefetch(docid_t docId);
     T GetValue() const { return _currentValue.second; }
@@ -51,8 +49,7 @@ private:
 
 AUTIL_LOG_SETUP_TEMPLATE(indexlib.index, AttributePrefetcher, T);
 template <typename T>
-Status AttributePrefetcher<T>::Init(autil::mem_pool::Pool* pool,
-                                    const std::shared_ptr<config::AttributeConfig>& attrConfig,
+Status AttributePrefetcher<T>::Init(autil::mem_pool::Pool* pool, const std::shared_ptr<AttributeConfig>& attrConfig,
                                     std::vector<std::shared_ptr<framework::Segment>> segments)
 {
     index::AttributeIndexFactory indexFactory;

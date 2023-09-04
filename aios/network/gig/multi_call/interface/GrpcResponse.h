@@ -16,13 +16,15 @@
 #ifndef ISEARCH_MULTI_CALL_GRPCRESPONSE_H
 #define ISEARCH_MULTI_CALL_GRPCRESPONSE_H
 
-#include "aios/network/gig/multi_call/interface/Response.h"
 #include <grpc++/impl/codegen/byte_buffer.h>
 #include <grpc++/impl/codegen/proto_utils.h>
 
+#include "aios/network/gig/multi_call/interface/Response.h"
+
 namespace multi_call {
 
-class GrpcResponse : public Response {
+class GrpcResponse : public Response
+{
 public:
     GrpcResponse();
     ~GrpcResponse();

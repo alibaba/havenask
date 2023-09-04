@@ -1,0 +1,55 @@
+{
+    "attributes": [
+        "quantity",
+        "provcity",
+        "vip"
+    ],
+    "fields": [
+        { "field_name": "quantity", "field_type": "INTEGER" },
+        { "field_name": "provcity", "compress_type": "uniq|equal", "field_type": "STRING" },
+        { "field_name": "category", "field_type": "INTEGER" },
+        { "field_name": "nid", "field_type": "STRING" },
+        { "field_name": "zk_time", "field_type": "STRING" },
+        { "field_name": "title", "field_type": "STRING" },
+        { "field_name": "user", "field_type": "STRING" },
+        { "field_name": "user_id", "field_type": "STRING" },
+        { "field_name": "vip", "field_type": "STRING" },
+        { "field_name": "ends", "field_type": "STRING" },
+        { "field_name": "pid", "field_type": "STRING" },
+        { "field_name": "nick", "field_type": "STRING" }
+    ],
+    "indexs": [
+        {
+            "index_fields": "nid",
+            "index_name": "pk",
+            "index_type": "PRIMARYKEY64",
+            "pk_hash_type": "default_hash",
+            "pk_storage_type": "hash_table"
+        }
+    ],
+    "summarys": {
+        "compress": true,
+        "compress_block_size": 1,
+        "summary_fields": [ "nid", "title", "pid", "provcity", "category" ],
+        "summary_groups" : [
+            {
+                "group_name" : "mainse",
+                "compress": true,
+                "compress_block_size": 5,
+                "compress_type" : "zstd",
+                "summary_fields" : [ "quantity", "zk_time", "ends" ]
+            },
+            {
+                "group_name" : "inshop",
+                "compress": false,
+                "summary_fields" : [ "user", "user_id", "nick" ]
+            },
+            {
+                "group_name" : "vip",
+                "summary_fields" : [ "vip" ]
+            }
+        ]
+    },
+    "table_name": "mainse_summary",
+    "table_type": "normal"
+}

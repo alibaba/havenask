@@ -21,7 +21,9 @@
 #include "autil/LongHashValue.h"
 #include "autil/StringUtil.h"
 #include "autil/mem_pool/Pool.h"
+#include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocumentBatch.h"
+#include "indexlib/document/IDocumentIterator.h"
 #include "indexlib/document/extractor/IDocumentInfoExtractor.h"
 #include "indexlib/document/extractor/IDocumentInfoExtractorFactory.h"
 #include "indexlib/document/extractor/plain/DocumentInfoExtractorFactory.h"
@@ -35,7 +37,6 @@
 #include "indexlib/index/attribute/AttributeIndexFactory.h"
 #include "indexlib/index/attribute/SingleValueAttributeMemIndexer.h"
 #include "indexlib/index/common/KeyHasherWrapper.h"
-#include "indexlib/index/inverted_index/IndexSegmentReader.h"
 #include "indexlib/index/primary_key/Common.h"
 #include "indexlib/index/primary_key/Constant.h"
 #include "indexlib/index/primary_key/PrimaryKeyFileWriter.h"
@@ -263,19 +264,15 @@ Status PrimaryKeyWriter<Key>::Build(const indexlibv2::document::IIndexFields* in
 template <typename Key>
 Status PrimaryKeyWriter<Key>::Build(indexlibv2::document::IDocumentBatch* docBatch)
 {
-    for (size_t i = 0; i < docBatch->GetBatchSize(); ++i) {
-        // doc is dropped.
-        if (docBatch->IsDropped(i)) {
-            continue;
-        }
-        auto doc = (*docBatch)[i];
+    auto iter = indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(docBatch);
+    while (iter->HasNext()) {
+        std::shared_ptr<indexlibv2::document::IDocument> doc = iter->Next();
         auto docId = doc->GetDocId();
         if (doc->GetDocOperateType() != ADD_DOC) {
             AUTIL_LOG(DEBUG, "doc[%d] isn't add_doc", docId);
             continue;
         }
-
-        RETURN_STATUS_DIRECTLY_IF_ERROR(AddDocument((*docBatch)[i].get()));
+        RETURN_STATUS_DIRECTLY_IF_ERROR(AddDocument(doc.get()));
     }
     return Status::OK();
 }

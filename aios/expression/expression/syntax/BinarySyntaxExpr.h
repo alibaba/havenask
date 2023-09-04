@@ -24,7 +24,7 @@ namespace expression {
 class BinarySyntaxExpr : public SyntaxExpr
 {
 public:
-    BinarySyntaxExpr(SyntaxExpr *a, SyntaxExpr * b, 
+    BinarySyntaxExpr(SyntaxExpr *a, SyntaxExpr * b,
                      SyntaxExprType syntaxExprType,
                      autil::mem_pool::Pool* pool = NULL)
         : SyntaxExpr(syntaxExprType, pool)
@@ -33,9 +33,10 @@ public:
         _exprB = b;
         if (_exprA && _exprB) {
             setExprString(_exprA, _exprB, syntaxExprType);
+            _syntaxDepth = 1 + std::max(_exprA->getSyntaxDepth(), _exprB->getSyntaxDepth());
         }
     }
-    
+
     virtual ~BinarySyntaxExpr() {
         POOL_COMPATIBLE_DELETE_CLASS(_pool, _exprA);
         POOL_COMPATIBLE_DELETE_CLASS(_pool, _exprB);
@@ -50,7 +51,7 @@ public:
     void serialize(autil::DataBuffer &dataBuffer) const;
     void deserialize(autil::DataBuffer &dataBuffer);
 private:
-    void setExprString(SyntaxExpr *a, SyntaxExpr *b, 
+    void setExprString(SyntaxExpr *a, SyntaxExpr *b,
                        SyntaxExprType syntaxExprType);
 private:
     SyntaxExpr *_exprA;
@@ -67,9 +68,9 @@ public:
                   autil::mem_pool::Pool* pool = NULL)
         : BinarySyntaxExpr(a, b, SYNTAX_EXPR_TYPE_ADD, pool) {
     }
-    
-    /* override */ void accept(SyntaxExprVisitor *visitor) const { 
-        visitor->visitAddSyntaxExpr(this); 
+
+    /* override */ void accept(SyntaxExprVisitor *visitor) const {
+        visitor->visitAddSyntaxExpr(this);
     }
 private:
     AUTIL_LOG_DECLARE();
@@ -82,7 +83,7 @@ public:
                     autil::mem_pool::Pool* pool = NULL)
         : BinarySyntaxExpr(a, b, SYNTAX_EXPR_TYPE_MINUS, pool) {
     }
-    /* override */ void accept(SyntaxExprVisitor *visitor) const { 
+    /* override */ void accept(SyntaxExprVisitor *visitor) const {
         visitor->visitMinusSyntaxExpr(this);
     }
 private:
@@ -110,7 +111,7 @@ public:
                   autil::mem_pool::Pool* pool = NULL)
         : BinarySyntaxExpr(a, b, SYNTAX_EXPR_TYPE_DIV, pool) {
     }
-    
+
     /* override */ void accept(SyntaxExprVisitor *visitor) const {
         visitor->visitDivSyntaxExpr(this);
     }

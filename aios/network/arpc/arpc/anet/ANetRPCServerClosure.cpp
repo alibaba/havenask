@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "aios/network/arpc/arpc/anet/ANetRPCServerClosure.h"
+
 #include "aios/network/arpc/arpc/UtilFun.h"
 
 using namespace anet;
@@ -23,15 +24,12 @@ ARPC_BEGIN_NAMESPACE(arpc)
 ARPC_DECLARE_AND_SETUP_LOGGER(ANetRPCServerClosure);
 
 ANetRPCServerClosure::ANetRPCServerClosure(channelid_t chid,
-                                   Connection *connection,
-                                   RPCMessage *reqMsg,
-                                   RPCMessage *resMsg,
-                                   ANetRPCMessageCodec *messageCodec,
-                                   version_t version)
-        : RPCServerClosure(reqMsg, resMsg)
-        , _chid(chid)
-        , _connection(connection)
-{
+                                           Connection *connection,
+                                           RPCMessage *reqMsg,
+                                           RPCMessage *resMsg,
+                                           ANetRPCMessageCodec *messageCodec,
+                                           version_t version)
+    : RPCServerClosure(reqMsg, resMsg), _chid(chid), _connection(connection) {
     if (_connection != NULL) {
         _connection->addRef();
     }
@@ -39,8 +37,7 @@ ANetRPCServerClosure::ANetRPCServerClosure(channelid_t chid,
     _version = version;
 }
 
-ANetRPCServerClosure::~ANetRPCServerClosure()
-{
+ANetRPCServerClosure::~ANetRPCServerClosure() {
     if (_connection != NULL) {
         _connection->subRef();
     }
@@ -50,6 +47,9 @@ void ANetRPCServerClosure::doPostPacket() {
     Packet *packet = buildResponsePacket();
     if (packet == NULL) {
         return;
+    }
+    if (_tracer != nullptr) {
+        _tracer->EndEncodeResponse();
     }
 
     assert(_connection);
@@ -68,13 +68,12 @@ std::string ANetRPCServerClosure::getIpAndPortAddr() {
     return std::string(addr);
 }
 
-Packet *ANetRPCServerClosure::buildResponsePacket()
-{
+Packet *ANetRPCServerClosure::buildResponsePacket() {
     uint32_t pcode = ARPC_ERROR_NONE;
     Packet *packet = NULL;
 
     if (_controller.Failed()) {
-        ErrorCode err =  _controller.GetErrorCode();
+        ErrorCode err = _controller.GetErrorCode();
 
         /* We tell the difference of app error and ARPC error from the error code.
          * ARPC_ERROR_NONE means user does not set the error code while setting

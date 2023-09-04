@@ -22,17 +22,16 @@ using namespace autil::legacy;
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, FlowConfigSnapshot);
 
-static const std::string DEFAULT_FLOW_CONFIG_NAME =
-    "default_flow_control_strategy";
+static const std::string DEFAULT_FLOW_CONFIG_NAME = "default_flow_control_strategy";
 FlowConfigSnapshot::FlowConfigSnapshot() {
     _configMap.reset(new FlowControlConfigMap());
     _defaultConfig.reset(new FlowControlConfig());
 }
 
-FlowConfigSnapshot::~FlowConfigSnapshot() {}
+FlowConfigSnapshot::~FlowConfigSnapshot() {
+}
 
-void FlowConfigSnapshot::updateDefaultFlowConfig(
-    const FlowControlConfigPtr &flowControlConfig) {
+void FlowConfigSnapshot::updateDefaultFlowConfig(const FlowControlConfigPtr &flowControlConfig) {
     if (flowControlConfig) {
         _defaultConfig = flowControlConfig;
     } else {
@@ -40,9 +39,8 @@ void FlowConfigSnapshot::updateDefaultFlowConfig(
     }
 }
 
-void FlowConfigSnapshot::updateFlowConfig(
-    const std::string &strategy,
-    const FlowControlConfigPtr &flowControlConfig) {
+void FlowConfigSnapshot::updateFlowConfig(const std::string &strategy,
+                                          const FlowControlConfigPtr &flowControlConfig) {
     if (!flowControlConfig) {
         _configMap->erase(strategy);
     } else {
@@ -65,8 +63,7 @@ FlowConfigSnapshotPtr FlowConfigSnapshot::clone() {
     return snapshot;
 }
 
-FlowControlConfigPtr
-FlowConfigSnapshot::getFlowControlConfig(const std::string &strategy) const {
+FlowControlConfigPtr FlowConfigSnapshot::getFlowControlConfig(const std::string &strategy) const {
     FlowControlConfigPtr config;
     if (getFlowControlConfig(strategy, config)) {
         return config;
@@ -75,8 +72,8 @@ FlowConfigSnapshot::getFlowControlConfig(const std::string &strategy) const {
     }
 }
 
-bool FlowConfigSnapshot::getFlowControlConfig(
-    const std::string &strategy, FlowControlConfigPtr &config) const {
+bool FlowConfigSnapshot::getFlowControlConfig(const std::string &strategy,
+                                              FlowControlConfigPtr &config) const {
     auto it = _configMap->find(strategy);
     if (it != _configMap->end()) {
         config = it->second;
@@ -87,14 +84,12 @@ bool FlowConfigSnapshot::getFlowControlConfig(
 }
 
 void FlowConfigSnapshot::getFlowControlSwitch(const vector<string> &strategyVec,
-                                              bool &earlyTermination,
-                                              bool &retry,
+                                              bool &earlyTermination, bool &retry,
                                               bool &singleRetry) const {
     earlyTermination = false;
     retry = false;
     singleRetry = false;
-    for (vector<string>::const_iterator it = strategyVec.begin();
-         it != strategyVec.end(); ++it) {
+    for (vector<string>::const_iterator it = strategyVec.begin(); it != strategyVec.end(); ++it) {
         const auto &strategy = *it;
         const auto &configPtr = getFlowControlConfig(strategy);
         if (configPtr) {

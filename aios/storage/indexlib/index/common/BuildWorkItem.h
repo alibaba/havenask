@@ -43,7 +43,8 @@ public:
     };
 
 public:
-    BuildWorkItem(const std::string& name, BuildWorkItemType type, indexlibv2::document::IDocumentBatch* documentBatch);
+    BuildWorkItem(const std::string& name, BuildWorkItemType type,
+                  const indexlibv2::document::IDocumentBatch* documentBatch);
     virtual ~BuildWorkItem() {}
 
 public:
@@ -59,7 +60,7 @@ public:
 protected:
     std::string _name;
     BuildWorkItemType _type;
-    indexlibv2::document::IDocumentBatch* _documentBatch;
+    const indexlibv2::document::IDocumentBatch* _documentBatch;
     mutable autil::ThreadMutex _lock;
 
 private:

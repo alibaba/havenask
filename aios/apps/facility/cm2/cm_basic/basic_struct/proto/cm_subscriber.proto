@@ -1,0 +1,160 @@
+syntax = "proto2";
+import "proto/cm_common.proto";
+import "arpc/proto/rpc_extensions.proto";
+
+package cm_basic;
+option cc_generic_services = true;
+option py_generic_services = true;
+option cc_enable_arenas = true;
+
+option java_package = "com.taobao.cm.cm_basic";
+option java_generic_services = true;
+
+message ClusterVersion
+{
+    required string cluster_name    = 1;
+    required int64 cluster_version  = 2;
+}
+
+enum CompressType
+{
+    CT_NONE     = 0;
+    CT_SNAPPY   = 1;
+}
+
+message SubReqMsg
+{
+    enum SubType
+    {
+        ST_ALL  = 0;    // 订阅所有集群
+        ST_PART = 1;    // 订阅一部分集群，需要指定订阅的集群名
+        ST_BELONG = 2;  // 分组订阅，指定分组名
+    }
+    required SubType            sub_type            = 1;
+    repeated ClusterVersion     cluster_version_vec = 2;  // ST_PART 时需要指定订阅的集群名
+    optional CompressType       compress_type       = 3 [default=CT_NONE];
+    repeated string             used_clusters       = 4; // the used cluster names in previous N minutes
+    repeated string             belong_vec          = 5; // ST_BELONG时需要指定
+    optional int32              cli_ver             = 6;
+}
+
+message NodeStatusVec
+{
+    required OnlineStatus   cluster_status  = 1;
+    repeated NodeStatus     node_status_vec = 2;
+    repeated OnlineStatus   node_online_status = 3;
+    repeated string         node_cinfo_vec = 4;
+}
+
+message NodeLBInfoVec
+{
+    repeated NodeLBInfo lb_info_vec = 1;
+    repeated NodeMetaInfo meta_info_vec = 2;
+}
+
+message ClusterUpdateInfo
+{
+    enum MsgType
+    {
+        MT_UNKNOWN              = 0;
+        MT_NODE_STATUS          = 1;
+        MT_LB_INFO              = 2;
+        MT_NODE_STATUS_LB_INFO  = 3;
+        MT_CLUSTER_REINIT       = 4;
+        MT_CLUSTER_BUILDING     = 5;
+        MT_CLUSTER_DEL          = 6;
+        MT_CLUSTER_NOT_EXSIT    = 7;
+        MT_CLUSTER_FAILOVER     = 8;
+    }
+
+    required MsgType            msg_type        = 1 [default = MT_UNKNOWN];
+    required string             cluster_name    = 2;
+    required int64              cluster_version = 3;
+    optional NodeStatusVec      node_status_vec = 4;    // MT_NODE_STATE    时有效
+    optional NodeLBInfoVec      lb_info_vec     = 5;    // MT_LB_INFO       时有效
+    optional CMCluster          cm_cluster      = 6;    // MT_CLUSTER_REINIT  时有效
+}
+
+message SubRespMsg
+{
+    enum SubRespStatus
+    {
+        SRS_SUCCESS         = 0;
+        SRS_FAILED          = 1;
+        SRS_NOT_CM_LEADER   = 2;
+        SRS_INITING         = 3;
+    }
+    required SubRespStatus      status          = 1;
+    repeated bytes              update_info_vec = 2; // ClusterUpdateInfo 序列化后
+    optional bytes              error_msg       = 3;
+    optional CompressType       compress_type   = 4 [default=CT_NONE];
+}
+
+message SnapshotReqMsg
+{
+    required int64            watermark           = 1;
+    required string           server_id           = 2;
+    optional CompressType     compress_type       = 3 [default=CT_NONE];
+}
+
+// ClusterUpdateInfoDiff describes a update of a ClusterUpdateInfo (CUI). It includes two CUI 
+// *remove* and *add*, using *diff_type* to describe how to use *remove*/*add*.
+// Note: assuming data comes from full subscription data, and <CUI.cluster,CUI.msgType> pair is a unique.
+// User should use <CUI.cluster,CUI.msgType> as key to tracking the updates of CUI.
+// There is no field *clustername* on purpose, because user will process *remove* or *add* anyway, which has the field.
+message ClusterUpdateInfoDiff
+{
+    enum DiffType
+    {
+        REMOVE_ADD         = 0;   // first apply *remove* then apply *add*
+        DIRECT_DEL         = 1;   // directly delete the entire <remove.cluster,remove.msgType>
+        DIRECT_ADD         = 2;   // directly add a new CUI for <add.cluster,add.msgType> 
+        DIRECT_REPLACE     = 3;   // directly replace the <CUI.cluster,CUI.msgType> by the *add*
+    }
+    // server_id identifies a instance of the server, as the user may use the timestamp/version
+    // issued by this server which needs to be changed on server switch.
+    // required string             server_id       = 1;
+    required DiffType diff_type = 2 [default = REMOVE_ADD];
+
+    // we use bytes for *add* while struct for *remove*, because *add* is likely copied from a serialized string
+    // but the *remove* is likely constructed on the fly.
+    optional ClusterUpdateInfo remove = 3;   
+    optional bytes add = 4;   // ClusterUpdateInfo 序列化后
+}
+
+message SnapshotRespMsg
+{
+    enum SubRespStatus   // reused the name of SubRespStatus,because Snapshot is derived from Subs
+    {
+        SRS_SUCCESS         = 0;
+        SRS_FAILED          = 1;
+        SRS_NOT_CM_LEADER   = 2;
+        SRS_INITING         = 3;
+    }
+    required SubRespStatus      status          = 1;
+    required int64              watermark      = 2;
+    required string             server_id       = 3;
+    optional CompressType       compress_type   = 4 [default=CT_NONE];
+    repeated string             diff_vec_base64 = 5; // ClusterUpdateInfoDiff 序列化后
+    // if this field exists, the response is a full data (should ignore diff_vec_base64).
+    repeated string             full_update_info_base64 = 6; // ClusterUpdateInfo 序列化后
+    optional string             error_msg_base64       = 7;
+}
+
+// 定义service
+service SubscriberService
+{
+    // 用户必须制定service id, 该值不要超过 2<<16, 貌似该值不能重复
+    option (arpc.global_service_id) = 2301; //2300~2319 for clustermap2
+
+    rpc ProcSubMsg(SubReqMsg ) returns(SubRespMsg)
+    {
+        //用户必须制定method id, 该值不要超过 2<<16
+        option (arpc.local_method_id) = 1;
+    }
+    rpc ProcSnapshot(SnapshotReqMsg ) returns(SnapshotRespMsg)
+    {
+        //用户必须制定method id, 该值不要超过 2<<16
+        option (arpc.local_method_id) = 2;
+    }
+}

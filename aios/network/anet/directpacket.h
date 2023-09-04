@@ -16,17 +16,18 @@
 #ifndef ANET_DIRECTPACKET_H_
 #define ANET_DIRECTPACKET_H_
 
-#include "aios/network/anet/packet.h"
-#include "aios/network/anet/directplaceholder.h"
-#include "aios/network/anet/defaultpacket.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 
+#include "aios/network/anet/defaultpacket.h"
+#include "aios/network/anet/directplaceholder.h"
+#include "aios/network/anet/packet.h"
+
 namespace anet {
 class DataBuffer;
 
-constexpr uint32_t ANET_DIRECT_PACKET_FLAG = 0x494F5249;  // Magic: IORI
+constexpr uint32_t ANET_DIRECT_PACKET_FLAG = 0x494F5249; // Magic: IORI
 constexpr uint32_t ANET_DIRECT_PACKET_VER = 0x1;
 
 struct DirectPacketHeader {
@@ -41,8 +42,7 @@ struct DirectPacketHeader {
 static_assert(sizeof(DirectPacketHeader) == 28, "Direct Packet Header version 1 header length");
 
 /* ANET_PACKET_FLAG + DirectPacketHeader */
-constexpr int ANET_DIRECT_PACKET_INFO_LEN =
-    (int)(sizeof(int32_t) + sizeof(PacketHeader) + sizeof(DirectPacketHeader));
+constexpr int ANET_DIRECT_PACKET_INFO_LEN = (int)(sizeof(int32_t) + sizeof(PacketHeader) + sizeof(DirectPacketHeader));
 
 static_assert(ANET_DIRECT_PACKET_INFO_LEN == 44, "ANET_DIRECT_PACKET_INFO_LEN size");
 
@@ -91,6 +91,6 @@ private:
     bool _hasPlaceholder = false;
 };
 
-}  // namespace anet
+} // namespace anet
 
-#endif  // ANET_DIRECTPACKET_H_
+#endif // ANET_DIRECTPACKET_H_

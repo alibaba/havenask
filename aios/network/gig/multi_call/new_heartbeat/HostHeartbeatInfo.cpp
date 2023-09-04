@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 #include "aios/network/gig/multi_call/new_heartbeat/HostHeartbeatInfo.h"
-#include "aios/network/gig/multi_call/new_heartbeat/HeartbeatClientManager.h"
+
 #include "aios/network/gig/multi_call/interface/SearchService.h"
-#include "multi_call/new_heartbeat/HeartbeatClientStream.h"
+#include "aios/network/gig/multi_call/new_heartbeat/HeartbeatClientManager.h"
 #include "aios/network/gig/multi_call/proto/NewHeartbeat.pb.h"
+#include "multi_call/new_heartbeat/HeartbeatClientStream.h"
 
 namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, HostHeartbeatStats);
@@ -42,8 +43,7 @@ HostHeartbeatInfo::HostHeartbeatInfo()
     : _searchService(nullptr)
     , _skipCount(0)
     , _totalCount(0)
-    , _stats(std::make_shared<HostHeartbeatStats>())
-{
+    , _stats(std::make_shared<HostHeartbeatStats>()) {
 }
 
 HostHeartbeatInfo::~HostHeartbeatInfo() {
@@ -60,9 +60,7 @@ void HostHeartbeatInfo::stop() {
 
 bool HostHeartbeatInfo::init(const std::shared_ptr<HeartbeatClientManagerNotifier> &notifier,
                              const std::shared_ptr<SearchServiceSnapshot> &heartbeatSnapshot,
-                             SearchService *searchService,
-                             const HeartbeatSpec &spec)
-{
+                             SearchService *searchService, const HeartbeatSpec &spec) {
     if (getStream()) {
         return true;
     }
@@ -217,4 +215,4 @@ void HostHeartbeatInfo::toString(std::string &debugStr, MetasSignatureMap &allMe
     }
     debugStr += "\n";
 }
-}
+} // namespace multi_call

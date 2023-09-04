@@ -1,0 +1,20 @@
+{
+    "table_name" : "simple_table",
+    "cluster_config" : {
+	"builder_rule_config" : {
+	    "partition_count" : 1,
+	    "build_parallel_num" : 2
+	}
+    },
+    "offline_index_config" : {
+        "customized_merge_config" :
+        {
+            "full":
+            {
+                "merge_config" : {
+                },
+                "merge_sleep_time" : 10
+            }
+        }
+    }
+}

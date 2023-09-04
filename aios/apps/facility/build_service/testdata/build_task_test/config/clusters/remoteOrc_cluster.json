@@ -1,0 +1,36 @@
+{
+    "build_option_config": {
+        "max_recover_time": 1,
+        "sort_build": true,
+        "sort_queue_size" : 100000,
+	    "sort_descriptions" : [
+	        {
+	 	    "sort_field" : "cat_id",
+	 	    "sort_pattern" : "desc"
+	    }
+	    ]
+    },
+    "merge_controller" : {
+        "mode" : "remote"
+    },
+    "offline_index_config": {
+        "build_config": {
+            "max_doc_count": 2
+        }
+    },
+    "online_index_config": {
+        "build_config": {
+            "max_doc_count": 2
+        },
+        "need_read_remote_index": true,
+        "need_deploy_index": false
+    },
+    "cluster_config": {
+        "hash_mode": {
+            "hash_function": "HASH",
+            "hash_field": "nid"
+        },
+        "table_name": "remoteOrc"
+    },
+    "realtime": true
+}

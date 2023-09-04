@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 #include "aios/network/http_arpc/HTTPRPCServerClosure.h"
-#include "aios/network/http_arpc/ProtoJsonizer.h"
+
 #include "aios/network/anet/anet.h"
-#include "autil/ZlibCompressor.h"
 #include "aios/network/http_arpc/Log.h"
+#include "aios/network/http_arpc/ProtoJsonizer.h"
+#include "autil/ZlibCompressor.h"
 
 using namespace std;
 using namespace anet;
@@ -25,22 +26,20 @@ using namespace autil;
 
 namespace http_arpc {
 
-HTTPRPCServerClosure::HTTPRPCServerClosure(
-        Connection *connection,
-        RPCMessage *requestMessage,
-        RPCMessage *responseMessage,
-        bool keepAlive,
-        const string &encoding,
-        const ProtoJsonizerPtr &protoJsonizer,
-        const EagleInfo &eagleInfo)
-  : _connection(connection)
-  , _requestMessage(requestMessage)
-  , _responseMessage(responseMessage)
-  , _keepAlive(keepAlive)
-  , _encoding(encoding)
-  , _protoJsonizer(protoJsonizer)
-  , _eagleInfo(eagleInfo)
-{
+HTTPRPCServerClosure::HTTPRPCServerClosure(Connection *connection,
+                                           RPCMessage *requestMessage,
+                                           RPCMessage *responseMessage,
+                                           bool keepAlive,
+                                           const string &encoding,
+                                           const ProtoJsonizerPtr &protoJsonizer,
+                                           const EagleInfo &eagleInfo)
+    : _connection(connection)
+    , _requestMessage(requestMessage)
+    , _responseMessage(responseMessage)
+    , _keepAlive(keepAlive)
+    , _encoding(encoding)
+    , _protoJsonizer(protoJsonizer)
+    , _eagleInfo(eagleInfo) {
     if (_connection != NULL) {
         _connection->addRef();
     }
@@ -56,14 +55,13 @@ HTTPRPCServerClosure::~HTTPRPCServerClosure() {
     }
 }
 
-HTTPPacket* HTTPRPCServerClosure::buildPacket() {
+HTTPPacket *HTTPRPCServerClosure::buildPacket() {
     HTTPPacket *reply = new HTTPPacket();
     reply->setPacketType(HTTPPacket::PT_RESPONSE);
-    if(_httpController.Failed()) {
+    if (_httpController.Failed()) {
         HTTP_ARPC_LOG(WARN, "[%s]", _httpController.ErrorText().c_str());
         reply->setStatusCode(400);
-        reply->setBody(_httpController.ErrorText().c_str(),
-                       _httpController.ErrorText().size());
+        reply->setBody(_httpController.ErrorText().c_str(), _httpController.ErrorText().size());
     } else {
         string response = _protoJsonizer->toJson(*_responseMessage);
         int code = _protoJsonizer->getStatusCode(*_responseMessage);
@@ -90,7 +88,7 @@ HTTPPacket* HTTPRPCServerClosure::buildPacket() {
 
 void HTTPRPCServerClosure::Run() {
     if (_connection != NULL) {
-        HTTPPacket* reply = buildPacket();
+        HTTPPacket *reply = buildPacket();
         if (!reply->isKeepAlive()) {
             _connection->setWriteFinishClose(true);
         }
@@ -102,12 +100,8 @@ void HTTPRPCServerClosure::Run() {
 }
 
 // for case
-void HTTPRPCServerClosure::setProtoJsonizer(ProtoJsonizerPtr protoJsonizer) {
-    _protoJsonizer = protoJsonizer;
-}
+void HTTPRPCServerClosure::setProtoJsonizer(ProtoJsonizerPtr protoJsonizer) { _protoJsonizer = protoJsonizer; }
 
-ProtoJsonizerPtr HTTPRPCServerClosure::getProtoJsonizer() const {
-    return _protoJsonizer;
-}
+ProtoJsonizerPtr HTTPRPCServerClosure::getProtoJsonizer() const { return _protoJsonizer; }
 
-}
+} // namespace http_arpc

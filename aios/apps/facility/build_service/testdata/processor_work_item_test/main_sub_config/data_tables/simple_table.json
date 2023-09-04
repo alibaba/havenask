@@ -1,0 +1,39 @@
+{
+    "processor_chain_config": [ {
+        "chain_name": "chain1",
+        "clusters": [
+            "basic"
+        ],
+        "document_processor_chain": [{
+            "class_name" : "ModifiedFieldsDocumentProcessor",
+            "module_name": ""
+        }, {
+            "class_name": "TokenizeDocumentProcessor",
+            "module_name": "",
+            "parameters": {}
+        }]
+    }, {
+        "chain_name": "chain2",
+        "clusters": [
+            "main_sub"
+        ],
+        "document_processor_chain": [{
+            "class_name" : "ModifiedFieldsDocumentProcessor",
+            "module_name": ""
+        }, {
+            "class_name": "TokenizeDocumentProcessor",
+            "module_name": "",
+            "parameters": {}
+        }],
+        "sub_document_processor_chain": [{
+            "class_name": "TokenizeDocumentProcessor",
+            "module_name": "",
+            "parameters": {}
+        }]
+    }],
+    "processor_config" : {
+        "processor_queue_size" : 20,
+        "processor_thread_num" : 4,
+        "enable_rewrite_delete_sub_doc": true
+    }
+}

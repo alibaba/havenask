@@ -16,9 +16,10 @@
 #ifndef FSLIB_PLUGIN_HDFSCONNECTION_H
 #define FSLIB_PLUGIN_HDFSCONNECTION_H
 
-#include <memory>
-#include "autil/Log.h"
 #include <hdfs/hdfs.h>
+#include <memory>
+
+#include "autil/Log.h"
 #include "fslib/common.h"
 
 FSLIB_PLUGIN_BEGIN_NAMESPACE(hdfs);
@@ -28,16 +29,10 @@ public:
     HdfsConnection(hdfsFS fs);
     ~HdfsConnection();
 
-    hdfsFS getHdfsFs() {
-        return _fs;
-    }
-    void setError(bool hasError) {
-        _hasError = hasError;
-    }
-    bool hasError() {
-        return _hasError;
-    }
-    
+    hdfsFS getHdfsFs() { return _fs; }
+    void setError(bool hasError) { _hasError = hasError; }
+    bool hasError() { return _hasError; }
+
 private:
     hdfsFS _fs;
     bool _hasError;
@@ -47,4 +42,4 @@ typedef std::shared_ptr<HdfsConnection> HdfsConnectionPtr;
 
 FSLIB_PLUGIN_END_NAMESPACE(fs);
 
-#endif //FSLIB_PLUGIN_HDFSCONNECTION_H
+#endif // FSLIB_PLUGIN_HDFSCONNECTION_H

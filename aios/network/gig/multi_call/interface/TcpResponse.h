@@ -24,7 +24,8 @@ class DefaultPacket;
 
 namespace multi_call {
 
-class TcpResponse : public Response {
+class TcpResponse : public Response
+{
 public:
     TcpResponse();
     virtual ~TcpResponse();

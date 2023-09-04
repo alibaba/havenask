@@ -38,7 +38,7 @@ Status SegmentDumper::StoreSegmentInfo()
         return Status::InternalError("segment dir is empty");
     }
     TABLET_LOG(INFO, "begin store segment_info for segment[%d], segment info [%s]", GetSegmentId(),
-               autil::legacy::ToJsonString(segmentInfo).c_str());
+               autil::legacy::ToJsonString(segmentInfo, true).c_str());
     auto status = segmentInfo->Store(segmentDir->GetIDirectory());
     if (!status.IsOK()) {
         auto s =
@@ -75,7 +75,8 @@ Status SegmentDumper::Dump(future_lite::Executor* executor)
     if (_dumpingSegment->GetSegmentDirectory()) {
         _dumpingSegment->GetSegmentDirectory()->FlushPackage();
     }
-    TABLET_LOG(INFO, "dump segment[%d] success, time_used[%.3f]s", segId, scopeTime.GetTimer().done_sec());
+    TABLET_LOG(INFO, "dump segment[%d] success, docCount[%lu], time_used[%.3f]s", segId,
+               _dumpingSegment->GetSegmentInfo()->GetDocCount(), scopeTime.GetTimer().done_sec());
     return Status::OK();
 }
 

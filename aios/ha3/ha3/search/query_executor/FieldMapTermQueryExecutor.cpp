@@ -17,39 +17,34 @@
 
 #include <stdint.h>
 
+#include "autil/Log.h"
 #include "autil/StringUtil.h"
-#include "indexlib/index/inverted_index/BufferedPostingIterator.h"
-
 #include "ha3/common/Term.h"
 #include "ha3/isearch.h"
 #include "ha3/search/BufferedTermQueryExecutor.h"
-#include "autil/Log.h"
+#include "indexlib/index/inverted_index/BufferedPostingIterator.h"
 
 namespace indexlib {
 namespace index {
 class PostingIterator;
-}  // namespace index
-}  // namespace indexlib
+} // namespace index
+} // namespace indexlib
 
 namespace isearch {
 namespace search {
 AUTIL_LOG_SETUP(ha3, FieldMapTermQueryExecutor);
 
-FieldMapTermQueryExecutor::FieldMapTermQueryExecutor(
-        indexlib::index::PostingIterator *iter, 
-        const common::Term &term, fieldmap_t fieldMap, 
-        FieldMatchOperatorType opteratorType)
+FieldMapTermQueryExecutor::FieldMapTermQueryExecutor(indexlib::index::PostingIterator *iter,
+                                                     const common::Term &term,
+                                                     fieldmap_t fieldMap,
+                                                     FieldMatchOperatorType opteratorType)
     : BufferedTermQueryExecutor(iter, term)
     , _fieldMap(fieldMap)
-    , _opteratorType(opteratorType)
-{
-    
-}
+    , _opteratorType(opteratorType) {}
 
-FieldMapTermQueryExecutor::~FieldMapTermQueryExecutor() { 
-}
+FieldMapTermQueryExecutor::~FieldMapTermQueryExecutor() {}
 
-indexlib::index::ErrorCode FieldMapTermQueryExecutor::doSeek(docid_t id, docid_t& result) {
+indexlib::index::ErrorCode FieldMapTermQueryExecutor::doSeek(docid_t id, docid_t &result) {
     fieldmap_t targetFieldMap = _fieldMap;
     FieldMatchOperatorType opteratorType = _opteratorType;
     while (true) {
@@ -89,4 +84,3 @@ std::string FieldMapTermQueryExecutor::toString() const {
 
 } // namespace search
 } // namespace isearch
-

@@ -29,7 +29,9 @@ namespace iquan {
 
 class IquanEnv {
 public:
-    static Status jvmSetup(JvmType jvmType, const std::vector<std::string> &classPaths, const std::string &jvmStartOps);
+    static Status jvmSetup(JvmType jvmType,
+                           const std::vector<std::string> &classPaths,
+                           const std::string &jvmStartOps);
     static Status startKmon(const KMonConfig &kmonConfig);
     static Status stopKmon();
 

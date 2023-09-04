@@ -1,0 +1,58 @@
+CMD=add
+id=1
+title=Mobile 商务笔记本
+price=2
+
+CMD=add
+id=2
+title=Xiaomi 6
+price=2
+
+CMD=add
+id=3
+title=Mobile OPPO Mp3
+price=2
+
+CMD=add
+id=4
+title=Mp3
+price=2
+
+CMD=add
+id=5
+title=Mobile 诺基亚_5320
+price=2
+
+CMD=add
+id=6
+title=智能手机
+price=2
+
+CMD=add
+title=Mobile Phone
+price=1
+
+CMD=add
+title=Mobile Phone
+price=2
+
+CMD=add
+title=Mobile Phone
+price=3
+
+CMD=add
+title=Mobile Phone
+price=4
+
+CMD=add
+title=Mobile Phone
+price=5
+
+CMD=add
+title=Mobile Phone
+price=5
+
+CMD=add
+title=Mobile Phone
+price=5
+

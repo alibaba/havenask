@@ -20,15 +20,14 @@
 #include <limits.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include "fslib/util/FileUtil.h"
+
 #include "autil/StringTokenizer.h"
+#include "fslib/util/FileUtil.h"
 using namespace std;
 using namespace autil;
 namespace worker_framework {
 
-
 using namespace fslib::util;
-
 
 AUTIL_LOG_SETUP(worker_framework.common, PathUtil);
 
@@ -57,22 +56,14 @@ bool PathUtil::getCurrentPath(std::string &path) {
     return true;
 }
 
-string PathUtil::getParentDir(const string &currentDir) {
-    return FileUtil::getParentDir(currentDir);
-}
+string PathUtil::getParentDir(const string &currentDir) { return FileUtil::getParentDir(currentDir); }
 
-string PathUtil::joinPath(const string &path, const string &subPath) {
-    return FileUtil::joinFilePath(path, subPath);
-}
+string PathUtil::joinPath(const string &path, const string &subPath) { return FileUtil::joinFilePath(path, subPath); }
 
 // zkPath: zfs://127.0.0.1:2181/path
-string PathUtil::getHostFromZkPath(const std::string &zkPath) {
-    return FileUtil::getHostFromZkPath(zkPath);
-}
+string PathUtil::getHostFromZkPath(const std::string &zkPath) { return FileUtil::getHostFromZkPath(zkPath); }
 
-string PathUtil::getPathFromZkPath(const std::string &zkPath) {
-    return FileUtil::getPathFromZkPath(zkPath);
-}
+string PathUtil::getPathFromZkPath(const std::string &zkPath) { return FileUtil::getPathFromZkPath(zkPath); }
 
 bool PathUtil::resolveSymbolLink(const string &path, string &realPath) {
     if (path.empty()) {
@@ -219,12 +210,8 @@ string PathUtil::baseName(const string &path) {
     return basename(&path[0]);
 }
 
-std::string PathUtil::getLeaderInfoDir(const std::string &path) {
-    return joinPath(path, LEADER_INFO_DIR);
-}
+std::string PathUtil::getLeaderInfoDir(const std::string &path) { return joinPath(path, LEADER_INFO_DIR); }
 
-std::string PathUtil::getLeaderInfoFile(const std::string &path) {
-    return joinPath(path, LEADER_INFO_FILE);
-}
+std::string PathUtil::getLeaderInfoFile(const std::string &path) { return joinPath(path, LEADER_INFO_FILE); }
 
 }; // namespace worker_framework

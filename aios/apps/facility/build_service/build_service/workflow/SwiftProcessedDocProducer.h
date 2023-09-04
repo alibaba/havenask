@@ -55,7 +55,7 @@ public:
                                         bool isReportFastQueueSwiftReadDelay) = 0;
     virtual int64_t getStartTimestamp() const = 0;
     virtual bool needUpdateCommittedCheckpoint() const = 0;
-    virtual bool updateCommittedCheckpoint(int64_t checkpoint) = 0;
+    virtual bool updateCommittedCheckpoint(const indexlibv2::base::Progress::Offset& checkpoint) = 0;
 
     virtual bool getMaxTimestamp(int64_t& timestamp) = 0;
     virtual bool getLastReadTimestamp(int64_t& timestamp) = 0;

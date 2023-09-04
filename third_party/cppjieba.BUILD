@@ -16,3 +16,11 @@ cc_library(
     ]),
     strip_include_prefix = "limonp/include",
 )
+
+
+filegroup(
+    name = "cppjieba_dict",
+    srcs = glob([
+        "cppjieba/dict/**",
+    ])
+)

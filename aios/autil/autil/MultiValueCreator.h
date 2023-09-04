@@ -21,83 +21,66 @@
 #include <type_traits>
 #include <vector>
 
-#include "autil/MultiValueType.h"
 #include "autil/MultiValueFormatter.h"
-#include "autil/mem_pool/PoolBase.h"
+#include "autil/MultiValueType.h"
 #include "autil/Span.h"
+#include "autil/mem_pool/PoolBase.h"
 
 namespace autil {
 
-class MultiValueCreator
-{
+class MultiValueCreator {
 public:
-    MultiValueCreator() {};
-    ~MultiValueCreator() {};
+    MultiValueCreator(){};
+    ~MultiValueCreator(){};
+
 private:
     MultiValueCreator(const MultiValueCreator &);
-    MultiValueCreator& operator = (const MultiValueCreator &);
+    MultiValueCreator &operator=(const MultiValueCreator &);
+
 public:
-    static char* createMultiStringBuffer(const std::vector<std::string>& strVec,
-                                         mem_pool::PoolBase* pool = NULL);
+    static char *createMultiStringBuffer(const std::vector<std::string> &strVec, mem_pool::PoolBase *pool = NULL);
 
-    static char* createMultiStringBuffer(const std::vector<StringView>& strVec,
-                                         mem_pool::PoolBase* pool = NULL);
+    static char *createMultiStringBuffer(const std::vector<StringView> &strVec, mem_pool::PoolBase *pool = NULL);
 
     template <typename T>
-    static typename std::enable_if<MULTI_VALUE_FORMAT_SUPPORTED(T), char*>::type
-    createMultiValueBuffer(const std::vector<T>& values,
-            mem_pool::PoolBase* pool = NULL);
-    static char *createMultiValueBuffer(const std::vector<std::string> &data,
-            mem_pool::PoolBase* pool = NULL);
-    static char *createMultiValueBuffer(const std::vector<StringView> &data,
-            mem_pool::PoolBase* pool = NULL);
+    static typename std::enable_if<MULTI_VALUE_FORMAT_SUPPORTED(T), char *>::type
+    createMultiValueBuffer(const std::vector<T> &values, mem_pool::PoolBase *pool = NULL);
+    static char *createMultiValueBuffer(const std::vector<std::string> &data, mem_pool::PoolBase *pool = NULL);
+    static char *createMultiValueBuffer(const std::vector<StringView> &data, mem_pool::PoolBase *pool = NULL);
 
     template <typename T>
-    static typename std::enable_if<MULTI_VALUE_FORMAT_SUPPORTED(T), char*>::type
-    createMultiValueBuffer(const T* data, size_t size,
-                           mem_pool::PoolBase* pool = NULL);
+    static typename std::enable_if<MULTI_VALUE_FORMAT_SUPPORTED(T), char *>::type
+    createMultiValueBuffer(const T *data, size_t size, mem_pool::PoolBase *pool = NULL);
     template <typename T>
     static typename std::enable_if<MULTI_VALUE_FORMAT_SUPPORTED(T), char *>::type
     createMultiValueBufferSeg(size_t segNum, const T *data[], size_t size[], mem_pool::PoolBase *pool = NULL);
-    static char *createMultiValueBuffer(const std::string* data, size_t size,
-            mem_pool::PoolBase* pool = NULL);
-    static char *createMultiValueBuffer(const MultiChar* data, size_t size,
-            mem_pool::PoolBase* pool = NULL);
-    static char *createMultiValueBuffer(const StringView *data, size_t size,
-            mem_pool::PoolBase* pool = NULL);
+    static char *createMultiValueBuffer(const std::string *data, size_t size, mem_pool::PoolBase *pool = NULL);
+    static char *createMultiValueBuffer(const MultiChar *data, size_t size, mem_pool::PoolBase *pool = NULL);
+    static char *createMultiValueBuffer(const StringView *data, size_t size, mem_pool::PoolBase *pool = NULL);
 
-    static char* createNullMultiValueBuffer(mem_pool::PoolBase* pool = NULL);
+    static char *createNullMultiValueBuffer(mem_pool::PoolBase *pool = NULL);
 };
 
 template <typename T>
-inline typename std::enable_if<MULTI_VALUE_FORMAT_SUPPORTED(T), char*>::type
-MultiValueCreator::createMultiValueBuffer(
-        const std::vector<T>& values,
-        mem_pool::PoolBase* pool)
-{
+inline typename std::enable_if<MULTI_VALUE_FORMAT_SUPPORTED(T), char *>::type
+MultiValueCreator::createMultiValueBuffer(const std::vector<T> &values, mem_pool::PoolBase *pool) {
     return createMultiValueBuffer(values.data(), values.size(), pool);
 }
 
-inline char* MultiValueCreator::createMultiValueBuffer(
-        const std::vector<std::string>& values,
-        mem_pool::PoolBase* pool)
-{
+inline char *MultiValueCreator::createMultiValueBuffer(const std::vector<std::string> &values,
+                                                       mem_pool::PoolBase *pool) {
     return createMultiValueBuffer(values.data(), values.size(), pool);
 }
 
-inline char* MultiValueCreator::createMultiValueBuffer(
-        const std::vector<StringView>& values,
-        mem_pool::PoolBase* pool)
-{
+inline char *MultiValueCreator::createMultiValueBuffer(const std::vector<StringView> &values,
+                                                       mem_pool::PoolBase *pool) {
     return createMultiValueBuffer(values.data(), values.size(), pool);
 }
 
 template <typename T>
-inline typename std::enable_if<MULTI_VALUE_FORMAT_SUPPORTED(T), char*>::type
-MultiValueCreator::createMultiValueBuffer(const T* data, size_t size,
-        mem_pool::PoolBase* pool)
-{
-    const T* dataIn[1] = {data};
+inline typename std::enable_if<MULTI_VALUE_FORMAT_SUPPORTED(T), char *>::type
+MultiValueCreator::createMultiValueBuffer(const T *data, size_t size, mem_pool::PoolBase *pool) {
+    const T *dataIn[1] = {data};
     size_t sizeIn[1] = {size};
     return createMultiValueBufferSeg<T>(1, dataIn, sizeIn, pool);
 }
@@ -107,9 +90,9 @@ inline typename std::enable_if<MULTI_VALUE_FORMAT_SUPPORTED(T), char *>::type
 MultiValueCreator::createMultiValueBufferSeg(size_t segNum, const T *data[], size_t size[], mem_pool::PoolBase *pool) {
     size_t totalSize = std::accumulate(size, size + segNum, 0);
     size_t bufLen = MultiValueFormatter::calculateBufferLen(totalSize, sizeof(T));
-    char* buffer = POOL_COMPATIBLE_NEW_VECTOR(pool, char, bufLen);
+    char *buffer = POOL_COMPATIBLE_NEW_VECTOR(pool, char, bufLen);
     assert(buffer);
     MultiValueFormatter::formatToBufferSeg<T>(segNum, data, size, buffer, bufLen);
     return buffer;
 }
-}
+} // namespace autil

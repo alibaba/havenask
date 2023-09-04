@@ -20,6 +20,7 @@
 #include "indexlib/config/FieldConfig.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
 #include "indexlib/index/common/Constant.h"
+#include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/util/Exception.h"
 
 using namespace std;
@@ -31,6 +32,7 @@ AUTIL_LOG_SETUP(indexlib.config, SectionAttributeConfig);
 
 struct SectionAttributeConfig::Impl {
     std::shared_ptr<FileCompressConfig> compressConfig;
+    std::shared_ptr<FileCompressConfigV2> compressConfigV2;
     CompressTypeOption compressType;
     bool hasSectionWeight = true;
     bool hasFieldId = true;
@@ -97,18 +99,32 @@ bool SectionAttributeConfig::operator==(const SectionAttributeConfig& other) con
 
 bool SectionAttributeConfig::operator!=(const SectionAttributeConfig& other) const { return !(*this == other); }
 
-std::shared_ptr<AttributeConfig> SectionAttributeConfig::CreateAttributeConfig(const string& indexName) const
+std::shared_ptr<index::AttributeConfig> SectionAttributeConfig::CreateAttributeConfig(const string& indexName) const
 {
+    class AttributeConfig4Section final : public index::AttributeConfig
+    {
+        const std::string& GetIndexCommonPath() const override { return indexlib::index::INVERTED_INDEX_PATH; }
+    };
+
     string fieldName = IndexNameToSectionAttributeName(indexName);
     // single string attribute
     shared_ptr<FieldConfig> fieldConfig(new FieldConfig(fieldName, ft_string, false));
     fieldConfig->SetVirtual(true);
-    shared_ptr<AttributeConfig> attrConfig(new AttributeConfig(AttributeConfig::ct_section));
-
-    attrConfig->Init(fieldConfig);
+    auto attrConfig = std::make_shared<AttributeConfig4Section>();
+    auto status = attrConfig->Init(fieldConfig);
+    if (!status.IsOK()) {
+        AUTIL_LOG(ERROR, "attribute config init failed, indexName %s", indexName.c_str());
+        assert(false);
+        return nullptr;
+    }
     attrConfig->SetFileCompressConfig(_impl->compressConfig);
-    auto status = attrConfig->SetCompressType(_impl->compressType.GetCompressStr());
-    assert(status.IsOK());
+    attrConfig->SetFileCompressConfigV2(_impl->compressConfigV2);
+    status = attrConfig->SetCompressType(_impl->compressType.GetCompressStr());
+    if (!status.IsOK()) {
+        AUTIL_LOG(ERROR, "attribute config init failed, indexName %s", indexName.c_str());
+        assert(false);
+        return nullptr;
+    }
     return attrConfig;
 }
 
@@ -134,9 +150,19 @@ void SectionAttributeConfig::SetFileCompressConfig(const std::shared_ptr<FileCom
     _impl->compressConfig = compressConfig;
 }
 
+void SectionAttributeConfig::SetFileCompressConfigV2(const std::shared_ptr<FileCompressConfigV2>& compressConfigV2)
+{
+    _impl->compressConfigV2 = compressConfigV2;
+}
+
 std::shared_ptr<indexlib::config::FileCompressConfig> SectionAttributeConfig::GetFileCompressConfig() const
 {
     return _impl->compressConfig;
+}
+
+std::shared_ptr<config::FileCompressConfigV2> SectionAttributeConfig::GetFileCompressConfigV2() const
+{
+    return _impl->compressConfigV2;
 }
 indexlib::config::CompressTypeOption SectionAttributeConfig::GetCompressType() const { return _impl->compressType; }
 

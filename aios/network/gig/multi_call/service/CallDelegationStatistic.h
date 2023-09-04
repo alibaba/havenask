@@ -24,8 +24,13 @@ namespace multi_call {
 
 struct BizStatistic {
     BizStatistic()
-        : expectNum(0), resultNum(0), etThreshold(0), retryThreshold(0),
-          needRetry(false), needSingleRetry(false) {}
+        : expectNum(0)
+        , resultNum(0)
+        , etThreshold(0)
+        , retryThreshold(0)
+        , needRetry(false)
+        , needSingleRetry(false) {
+    }
 
     uint32_t expectNum;
     uint32_t resultNum;
@@ -52,10 +57,10 @@ struct BizStatistic {
     }
 };
 
-class CallDelegationStatistic {
+class CallDelegationStatistic
+{
 public:
-    typedef std::map<std::string, BizStatistic>
-        CallDelegationStatisticResultMap;
+    typedef std::map<std::string, BizStatistic> CallDelegationStatisticResultMap;
 
 public:
     CallDelegationStatistic();
@@ -72,8 +77,7 @@ public:
                stat.resultNum != stat.expectNum;
     }
     inline bool IsSingleResultNeedRetry(const BizStatistic &stat) const {
-        return stat.needSingleRetry && 1 == stat.expectNum &&
-               0 == stat.resultNum;
+        return stat.needSingleRetry && 1 == stat.expectNum && 0 == stat.resultNum;
     }
 
     uint32_t getClusterResultNum(const std::string &clusterName) const {
@@ -85,39 +89,40 @@ public:
     BizStatistic getBizStatistic(const std::string &clusterName) const {
         autil::ScopedReadLock lock(_lock);
         auto it = _callDelegationResultMap.find(clusterName);
-        return it == _callDelegationResultMap.end() ? BizStatistic()
-                                                    : it->second;
+        return it == _callDelegationResultMap.end() ? BizStatistic() : it->second;
     }
-    void addClusterResult(const std::string &clusterName,
-                          uint32_t resultNum = 1) {
+    void addClusterResult(const std::string &clusterName, uint32_t resultNum = 1) {
         auto it = _callDelegationResultMap.find(clusterName);
         assert(it != _callDelegationResultMap.end());
         autil::ScopedWriteLock lock(_lock);
         it->second.resultNum += resultNum;
-        AUTIL_LOG(DEBUG, "cluster %s, result %u, et %u, retry %u",
-                  clusterName.c_str(), it->second.resultNum,
-                  it->second.etThreshold, it->second.retryThreshold);
+        AUTIL_LOG(DEBUG, "cluster %s, result %u, et %u, retry %u", clusterName.c_str(),
+                  it->second.resultNum, it->second.etThreshold, it->second.retryThreshold);
     }
     void prepareCollectStatistic(const std::vector<std::string> &bizNameVec);
-    uint32_t getEtWaitTimeFactor() const { return _etWaitTimeFactor; }
+    uint32_t getEtWaitTimeFactor() const {
+        return _etWaitTimeFactor;
+    }
     int64_t getEtMinWaitTimeInMicroSeconds() const {
         return _etMinWaitTime * 1000;
     }
 
 private:
-    void collectProviderStatistic(const std::string &bizName,
-                                  size_t providerCount);
-    void
-    collectProviderStatistic(const SearchServiceProviderVector &providerVec,
-                             const std::string &bizName);
+    void collectProviderStatistic(const std::string &bizName, size_t providerCount);
+    void collectProviderStatistic(const SearchServiceProviderVector &providerVec,
+                                  const std::string &bizName);
 
 public:
     // for test
     CallDelegationStatisticResultMap &getStatisticResultMap() {
         return _callDelegationResultMap;
     }
-    void setEnableEt(bool flag) { _enableEt = flag; }
-    void setEtWaitTimeFactor(uint32_t factor) { _etWaitTimeFactor = factor; }
+    void setEnableEt(bool flag) {
+        _enableEt = flag;
+    }
+    void setEtWaitTimeFactor(uint32_t factor) {
+        _etWaitTimeFactor = factor;
+    }
 
 private:
     CallDelegationStatistic(const CallDelegationStatistic &);

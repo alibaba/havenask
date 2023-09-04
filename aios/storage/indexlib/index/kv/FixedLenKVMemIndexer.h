@@ -43,7 +43,7 @@ private:
     Status Delete(uint64_t key, uint32_t timestamp) override;
     Status DoDump(autil::mem_pool::PoolBase* pool,
                   const std::shared_ptr<indexlib::file_system::Directory>& directory) override;
-    void UpdateMemoryUsage(MemoryUsage& memoryUsage) const override;
+    void FillMemoryUsage(MemoryUsage& memoryUsage) const override;
     void DoFillStatistics(SegmentStatistics& stat) const override;
 
 private:

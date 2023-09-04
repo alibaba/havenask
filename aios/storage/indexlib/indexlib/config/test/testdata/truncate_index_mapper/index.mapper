@@ -1,0 +1,17 @@
+{
+    "truncate_index_name_mapper":
+    [
+       {
+           "index_name" : "index1",  
+           "truncate_index_names": ["index1_trunc1", "index1_trunc2"]
+       },
+       {
+           "index_name" : "index2",
+           "truncate_index_names" : ["index2_trunc1", "index2_trunc2", "index2_trunc3"] 
+       },
+       {
+           "index_name" : "index3",
+           "truncate_index_names" : ["index3_trunc1"]
+       }
+    ]
+}

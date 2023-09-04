@@ -32,9 +32,17 @@ public:
     virtual ~IDocument() {}
     struct DocInfo {
         DocInfo() {}
-        DocInfo(uint16_t hashId, int64_t timestamp) : hashId(hashId), timestamp(timestamp) {}
-        uint16_t hashId = 0;
+        // TODO(tianxiao) remove default param
+        DocInfo(uint16_t hashId, int64_t timestamp, uint32_t concurrentIdx = 0)
+            : timestamp(timestamp)
+            , concurrentIdx(concurrentIdx)
+            , hashId(hashId)
+        {
+        }
         int64_t timestamp = 0;
+        // 表示timestamp相同时的msg下标, timestamp相同时, concurrentIdx可能递增
+        uint32_t concurrentIdx = 0;
+        uint16_t hashId = 0;
     };
 
 public:

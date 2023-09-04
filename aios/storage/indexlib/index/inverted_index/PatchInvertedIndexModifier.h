@@ -17,7 +17,7 @@
 
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/index/inverted_index/InvertedIndexModifier.h"
 #include "indexlib/index/inverted_index/patch/InvertedIndexPatchWriter.h"
@@ -27,7 +27,7 @@ namespace indexlib::index {
 class PatchInvertedIndexModifier final : public InvertedIndexModifier
 {
 public:
-    PatchInvertedIndexModifier(const std::shared_ptr<indexlibv2::config::TabletSchema>& schema,
+    PatchInvertedIndexModifier(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                const std::shared_ptr<indexlib::file_system::IDirectory>& workDir);
     ~PatchInvertedIndexModifier() = default;
 

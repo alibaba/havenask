@@ -73,25 +73,25 @@ OperationFactory::CreateRemoveOperationCreator(const std::shared_ptr<OperationLo
 }
 
 OperationBase* OperationFactory::CreateUnInitializedOperation(OperationBase::SerializedOperationType opType,
-                                                              int64_t timestamp, uint16_t hashId,
+                                                              const indexlibv2::document::IDocument::DocInfo& docInfo,
                                                               autil::mem_pool::Pool* pool) const
 {
     OperationBase* operation = NULL;
 
     switch (opType) {
     case OperationBase::REMOVE_OP:
-        operation = (_mainPkType == it_primarykey64)
-                        ? static_cast<OperationBase*>(
-                              IE_POOL_COMPATIBLE_NEW_CLASS(pool, RemoveOperation<uint64_t>, timestamp, hashId))
-                        : static_cast<OperationBase*>(
-                              IE_POOL_COMPATIBLE_NEW_CLASS(pool, RemoveOperation<autil::uint128_t>, timestamp, hashId));
+        operation =
+            (_mainPkType == it_primarykey64)
+                ? static_cast<OperationBase*>(IE_POOL_COMPATIBLE_NEW_CLASS(pool, RemoveOperation<uint64_t>, docInfo))
+                : static_cast<OperationBase*>(
+                      IE_POOL_COMPATIBLE_NEW_CLASS(pool, RemoveOperation<autil::uint128_t>, docInfo));
         break;
     case OperationBase::UPDATE_FIELD_OP:
         operation = (_mainPkType == it_primarykey64)
                         ? static_cast<OperationBase*>(
-                              IE_POOL_COMPATIBLE_NEW_CLASS(pool, UpdateFieldOperation<uint64_t>, timestamp, hashId))
-                        : static_cast<OperationBase*>(IE_POOL_COMPATIBLE_NEW_CLASS(
-                              pool, UpdateFieldOperation<autil::uint128_t>, timestamp, hashId));
+                              IE_POOL_COMPATIBLE_NEW_CLASS(pool, UpdateFieldOperation<uint64_t>, docInfo))
+                        : static_cast<OperationBase*>(
+                              IE_POOL_COMPATIBLE_NEW_CLASS(pool, UpdateFieldOperation<autil::uint128_t>, docInfo));
         break;
     default:
         assert(false);
@@ -99,8 +99,9 @@ OperationBase* OperationFactory::CreateUnInitializedOperation(OperationBase::Ser
     return operation;
 }
 
-std::pair<Status, OperationBase*>
-OperationFactory::DeserializeOperation(const char* buffer, autil::mem_pool::Pool* pool, size_t& opSize) const
+std::pair<Status, OperationBase*> OperationFactory::DeserializeOperation(const char* buffer,
+                                                                         autil::mem_pool::Pool* pool, size_t& opSize,
+                                                                         bool hasConcurrentIdx) const
 {
     assert(buffer);
     char* baseAddr = const_cast<char*>(buffer);
@@ -111,7 +112,13 @@ OperationFactory::DeserializeOperation(const char* buffer, autil::mem_pool::Pool
     baseAddr += sizeof(timestamp);
     uint16_t hashId = *(uint16_t*)baseAddr;
     baseAddr += sizeof(hashId);
-    OperationBase* operation = CreateUnInitializedOperation(opType, timestamp, hashId, pool);
+    uint32_t concurrentIdx = 0;
+    if (hasConcurrentIdx) {
+        concurrentIdx = *(uint16_t*)baseAddr;
+        baseAddr += sizeof(concurrentIdx);
+    }
+    indexlibv2::document::IDocument::DocInfo docInfo = {hashId, timestamp, concurrentIdx};
+    OperationBase* operation = CreateUnInitializedOperation(opType, docInfo, pool);
     if (!operation) {
         AUTIL_LOG(ERROR, "deserialize operation type failed");
         return std::make_pair(

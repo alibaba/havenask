@@ -19,11 +19,10 @@
 #include <iosfwd>
 
 #include "autil/CommonMacros.h"
-
+#include "autil/Log.h"
 #include "ha3/isearch.h"
 #include "ha3/search/AndQueryExecutor.h"
 #include "ha3/search/QueryExecutorRestrictor.h"
-#include "autil/Log.h"
 
 using namespace std;
 
@@ -35,11 +34,11 @@ RestrictPhraseQueryExecutor::RestrictPhraseQueryExecutor(QueryExecutorRestrictor
     _restrictor = restrictor;
 }
 
-RestrictPhraseQueryExecutor::~RestrictPhraseQueryExecutor() { 
+RestrictPhraseQueryExecutor::~RestrictPhraseQueryExecutor() {
     DELETE_AND_SET_NULL(_restrictor);
 }
 
-indexlib::index::ErrorCode RestrictPhraseQueryExecutor::doSeek(docid_t id, docid_t& result) {
+indexlib::index::ErrorCode RestrictPhraseQueryExecutor::doSeek(docid_t id, docid_t &result) {
     if (unlikely(_hasSubDocExecutor)) {
         return AndQueryExecutor::doSeek(id, result);
     }
@@ -53,14 +52,14 @@ indexlib::index::ErrorCode RestrictPhraseQueryExecutor::doSeek(docid_t id, docid
         }
         if (tmpid == _lastMatchedDocId) {
             result = tmpid;
-            return indexlib::index::ErrorCode::OK;            
+            return indexlib::index::ErrorCode::OK;
         }
         docid_t restrictId = _restrictor->meetRestrict(tmpid);
-        assert (restrictId >= tmpid);
+        assert(restrictId >= tmpid);
         if (restrictId == END_DOCID) {
             result = END_DOCID;
             return indexlib::index::ErrorCode::OK;
-        } 
+        }
         if (restrictId == tmpid) {
             bool isPhraseFreq = false;
             ec = phraseFreq(isPhraseFreq);
@@ -75,8 +74,8 @@ indexlib::index::ErrorCode RestrictPhraseQueryExecutor::doSeek(docid_t id, docid
         } else {
             tmpid = restrictId;
         }
-    } while(true);
-    
+    } while (true);
+
     result = END_DOCID;
     return indexlib::index::ErrorCode::OK;
 }
@@ -88,4 +87,3 @@ void RestrictPhraseQueryExecutor::reset() {
 
 } // namespace search
 } // namespace isearch
-

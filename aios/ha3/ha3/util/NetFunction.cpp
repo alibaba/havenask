@@ -20,27 +20,25 @@
 #include <stddef.h>
 #include <sys/socket.h>
 //#include "iostream"
-#include <unistd.h>
 #include <type_traits>
+#include <unistd.h>
 
 #include "arpa/inet.h"
 #include "net/if.h"
 #include "sys/ioctl.h"
 #include "sys/socket.h"
 
-
 namespace isearch {
 namespace util {
 
-bool NetFunction::getAllIP(AllIPType & ips)
-{
-    int fd = socket (AF_INET, SOCK_STREAM, 0);
+bool NetFunction::getAllIP(AllIPType &ips) {
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
         return false;
     }
 
     /* A first estimate.  */
-    int rq_len = 3 * sizeof (struct ifreq);
+    int rq_len = 3 * sizeof(struct ifreq);
 
     struct ifconf ifc;
     ifc.ifc_buf = NULL;
@@ -52,96 +50,95 @@ bool NetFunction::getAllIP(AllIPType & ips)
         buffer.clear();
         buffer.resize(ifc.ifc_len = rq_len);
         ifc.ifc_buf = &*buffer.begin();
-        if (ifc.ifc_buf == NULL || ioctl (fd, SIOCGIFCONF, &ifc) < 0) {
-            close (fd);
+        if (ifc.ifc_buf == NULL || ioctl(fd, SIOCGIFCONF, &ifc) < 0) {
+            close(fd);
             return false;
         }
         rq_len *= 2;
     } while (ifc.ifc_len == (int)buffer.size());
 
-    for(struct ifreq * cur = (struct ifreq *) ifc.ifc_req;
-        (char *)cur < (char *)ifc.ifc_req + ifc.ifc_len;
-        ++cur)
-    {
+    for (struct ifreq *cur = (struct ifreq *)ifc.ifc_req;
+         (char *)cur < (char *)ifc.ifc_req + ifc.ifc_len;
+         ++cur) {
         if (cur->ifr_addr.sa_family == AF_INET) {
-            struct sockaddr_in * sa = (struct sockaddr_in *)&cur->ifr_addr;
+            struct sockaddr_in *sa = (struct sockaddr_in *)&cur->ifr_addr;
             ips.push_back(std::make_pair(cur->ifr_name, sa->sin_addr));
-//          std::cout << "inet " << cur->ifr_name << " " << inet_ntoa(sa->sin_addr) << std::endl;
+            //          std::cout << "inet " << cur->ifr_name << " " << inet_ntoa(sa->sin_addr) <<
+            //          std::endl;
         }
     }
 
-    close (fd);
+    close(fd);
     return true;
 }
 
-struct InnerIpListType
-{
-    const char * ip;
-    const char * mask;
+struct InnerIpListType {
+    const char *ip;
+    const char *mask;
 };
 
-static InnerIpListType innerIPList[] = {
-    {"255.255.255.255","255.255.255.255"},
-    {"240.0.0.0","240.0.0.0"},
-    {"224.0.0.0","240.0.0.0"},
-    {"192.88.99.0","255.255.255.255"},
-    {"127.0.0.0","255.0.0.0"},
-    {"169.254.0.0","255.255.0.0"},
-    {"192.168.0.0","255.255.0.0"},
-    {"172.16.0.0","255.240.0.0"},
-    {"10.0.0.0","255.0.0.0"}
-};
+static InnerIpListType innerIPList[] = {{"255.255.255.255", "255.255.255.255"},
+                                        {"240.0.0.0", "240.0.0.0"},
+                                        {"224.0.0.0", "240.0.0.0"},
+                                        {"192.88.99.0", "255.255.255.255"},
+                                        {"127.0.0.0", "255.0.0.0"},
+                                        {"169.254.0.0", "255.255.0.0"},
+                                        {"192.168.0.0", "255.255.0.0"},
+                                        {"172.16.0.0", "255.240.0.0"},
+                                        {"10.0.0.0", "255.0.0.0"}};
 
-class InnerIpContainer
-{
+class InnerIpContainer {
 private:
-    typedef std::vector< std::pair<in_addr, in_addr> > IpVectorType;
+    typedef std::vector<std::pair<in_addr, in_addr>> IpVectorType;
     InnerIpContainer() {
-        for(unsigned int j = 0; j < sizeof(innerIPList)/sizeof(innerIPList[0]); ++j) {
-            in_addr ip,mask;
-            if(!inet_aton(innerIPList[j].ip, &ip)) {
+        for (unsigned int j = 0; j < sizeof(innerIPList) / sizeof(innerIPList[0]); ++j) {
+            in_addr ip, mask;
+            if (!inet_aton(innerIPList[j].ip, &ip)) {
                 assert(0);
                 continue;
             }
-            if(!inet_aton(innerIPList[j].mask, &mask)) {
+            if (!inet_aton(innerIPList[j].mask, &mask)) {
                 assert(0);
                 continue;
             }
             _ipVector.push_back(std::make_pair(ip, mask));
         }
     }
+
 public:
-    static InnerIpContainer * getContainer() {
+    static InnerIpContainer *getContainer() {
         static InnerIpContainer me;
         return &me;
     }
     unsigned int getWeight(in_addr ip) const {
         unsigned int weight = 0;
-        for(IpVectorType::const_iterator i = _ipVector.begin(); i != _ipVector.end(); ++i, ++weight) {
-//            std::cout << std::hex << i->second.s_addr << " " << ip.s_addr << " " << i->first.s_addr << std::endl;
-            if((i->second.s_addr & ip.s_addr) == i->first.s_addr) {
+        for (IpVectorType::const_iterator i = _ipVector.begin(); i != _ipVector.end();
+             ++i, ++weight) {
+            //            std::cout << std::hex << i->second.s_addr << " " << ip.s_addr << " " <<
+            //            i->first.s_addr << std::endl;
+            if ((i->second.s_addr & ip.s_addr) == i->first.s_addr) {
                 // match
                 return weight;
             }
         }
         return weight;
     }
+
 private:
     IpVectorType _ipVector;
 };
 
-std::string NetFunction::chooseIP(const AllIPType & ips)
-{
+std::string NetFunction::chooseIP(const AllIPType &ips) {
     in_addr ip;
-    if(!inet_aton("127.0.0.1", &ip)) {
+    if (!inet_aton("127.0.0.1", &ip)) {
         assert(0);
         return "127.0.0.1";
     }
     unsigned int weight = InnerIpContainer::getContainer()->getWeight(ip);
-    
-    for(AllIPType::const_iterator i = ips.begin(); i != ips.end(); ++i) {
+
+    for (AllIPType::const_iterator i = ips.begin(); i != ips.end(); ++i) {
         unsigned int newWeight = InnerIpContainer::getContainer()->getWeight(i->second);
-        if(newWeight > weight) {
+        if (newWeight > weight) {
             ip = i->second;
             weight = newWeight;
         }
@@ -149,33 +146,27 @@ std::string NetFunction::chooseIP(const AllIPType & ips)
     return inet_ntoa(ip);
 }
 
-bool NetFunction::getPrimaryIP(std::string &ip)
-{
+bool NetFunction::getPrimaryIP(std::string &ip) {
     AllIPType ips;
-    if(getAllIP(ips)) {
+    if (getAllIP(ips)) {
         ip = chooseIP(ips);
         return true;
     }
     return false;
 }
 
-bool NetFunction::containIP(const std::string &msg, 
-                            const std::string &ip) 
-{
+bool NetFunction::containIP(const std::string &msg, const std::string &ip) {
     if (ip.empty()) {
         return true;
     }
 
     size_t pos = 0;
     size_t ipSz = ip.size();
-    while ((pos = msg.find(ip, pos)) 
-           != std::string::npos) 
-    {
+    while ((pos = msg.find(ip, pos)) != std::string::npos) {
         if ((pos == 0 || !isdigit(msg[pos - 1]))
-            && (pos + ipSz >= msg.size() || !isdigit(msg[pos + ipSz])))
-        {
+            && (pos + ipSz >= msg.size() || !isdigit(msg[pos + ipSz]))) {
             return true;
-        } 
+        }
 
         pos += ipSz;
     }
@@ -183,10 +174,9 @@ bool NetFunction::containIP(const std::string &msg,
     return false;
 }
 
-uint32_t NetFunction::encodeIp(const std::string& ip) {
+uint32_t NetFunction::encodeIp(const std::string &ip) {
     return ntohl(inet_addr(ip.c_str()));
 }
 
 } // namespace util
 } // namespace isearch
-

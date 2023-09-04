@@ -30,7 +30,7 @@ using namespace std;
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, CommonMergeDescriptionCreator);
 
-CommonMergeDescriptionCreator::CommonMergeDescriptionCreator(const std::shared_ptr<config::TabletSchema>& schema)
+CommonMergeDescriptionCreator::CommonMergeDescriptionCreator(const std::shared_ptr<config::ITabletSchema>& schema)
     : _schema(schema)
 {
 }

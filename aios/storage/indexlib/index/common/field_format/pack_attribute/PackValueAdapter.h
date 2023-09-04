@@ -27,7 +27,7 @@ public:
     class ValueState
     {
     public:
-        bool Init(const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& packAttr);
+        bool Init(const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& packAttr);
         void GetAttributesWithStoreOrder(std::vector<std::string>& attributes) const;
         bool GetStoreOrder(const std::string& attribute, size_t& idx) const;
         bool UnpackValues(const autil::StringView& packValue,
@@ -52,8 +52,8 @@ public:
     ~PackValueAdapter();
 
 public:
-    bool Init(const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& current,
-              const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& target,
+    bool Init(const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& current,
+              const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& target,
               const std::vector<std::string>& ignoreFieldsInCurrent = {});
 
     autil::StringView ConvertIndexPackValue(const autil::StringView& packValue, autil::mem_pool::Pool* pool);
@@ -63,12 +63,12 @@ public:
     void DisablePlainFormat();
 
 private:
-    bool CheckPackAttributeEqual(const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& current,
-                                 const std::shared_ptr<indexlibv2::config::PackAttributeConfig>& target,
+    bool CheckPackAttributeEqual(const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& current,
+                                 const std::shared_ptr<indexlibv2::index::PackAttributeConfig>& target,
                                  const std::vector<std::string>& ignoreFieldsInCurrent);
 
-    bool IsAttrEqual(const std::shared_ptr<indexlibv2::config::AttributeConfig>& current,
-                     const std::shared_ptr<indexlibv2::config::AttributeConfig>& target) const;
+    bool IsAttrEqual(const std::shared_ptr<indexlibv2::index::AttributeConfig>& current,
+                     const std::shared_ptr<indexlibv2::index::AttributeConfig>& target) const;
 
 private:
     bool _needConvert;

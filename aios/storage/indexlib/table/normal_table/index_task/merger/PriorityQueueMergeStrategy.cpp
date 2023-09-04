@@ -141,7 +141,7 @@ std::pair<Status, std::shared_ptr<MergePlan>>
 PriorityQueueMergeStrategy::CreateMergePlanForOneGroup(const framework::IndexTaskContext* context,
                                                        const std::vector<segmentid_t>& candidateSegmentIds)
 {
-    auto mergeConfig = context->GetTabletOptions()->GetOfflineConfig().GetMergeConfig();
+    auto mergeConfig = context->GetMergeConfig();
     if (mergeConfig.GetMergeStrategyStr() == GetName() or
         mergeConfig.GetMergeStrategyStr() == MergeStrategyDefine::COMBINED_MERGE_STRATEGY_NAME) {
         auto [status, params] = ExtractParams(mergeConfig.GetMergeStrategyParameter());
@@ -206,7 +206,7 @@ std::pair<Status, std::shared_ptr<MergePlan>>
 PriorityQueueMergeStrategy::DoCreateMergePlan(const framework::IndexTaskContext* context)
 {
     auto [status, segmentGroupConfig] =
-        context->GetTabletSchema()->GetSetting<SegmentGroupConfig>(NORMAL_TABLE_GROUP_CONFIG_KEY);
+        context->GetTabletSchema()->GetRuntimeSettings().GetValue<SegmentGroupConfig>(NORMAL_TABLE_GROUP_CONFIG_KEY);
     bool enableGroupConfig = false;
     if (!status.IsOK()) {
         if (!status.IsNotFound()) {
@@ -268,7 +268,7 @@ void PriorityQueueMergeStrategy::ExtractMergeSegmentsForOnePlan(
         auto result = NormalTableMergeStrategyUtil::GetDeleteDocCount(item.srcSegment.get());
         assert(result.first.IsOK());
         const int64_t deleteDocCount = result.second;
-        uint32_t mergeDocCount = GetMergedDocCount(item.srcSegment->GetSegmentInfo()->docCount, deleteDocCount);
+        uint32_t mergeDocCount = GetMergedDocCount(docCount, deleteDocCount);
         uint64_t validSegmentSize =
             GetValidSegmentSize(docCount, deleteDocCount, segmentSizeMap.at(item.srcSegment->GetSegmentId()));
         if (NeedSkipCurrentSegmentByDocCount(curTotalMergeDocCount, inPlanMergeDocCount, mergeDocCount) ||

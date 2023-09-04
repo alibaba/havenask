@@ -1,0 +1,27 @@
+{
+    "attributes": [
+		"pk",
+		"price"
+    ],
+    "fields": [
+		{
+	    	"field_name": "pk",
+	    	"field_type": "STRING"
+		},
+		{
+	    	"field_name": "price",
+	    	"field_type": "UINT32"
+		}
+    ],
+    "indexs": [
+		{
+	    	"has_primary_key_attribute": true,
+	    	"index_fields": "pk",
+	    	"index_name": "pk",
+	    	"index_type": "PRIMARYKEY64",
+			"pk_storage_type": "sort_array"
+		}
+    ],
+    "table_name": "noname"
+}
+

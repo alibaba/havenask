@@ -34,7 +34,9 @@ public:
     using jtype = JType<T>;
 
 #ifdef JNIPP_REFERENCE_LOGGING
-    StrongRef() noexcept { reference_logging("ctor", nullptr); }
+    StrongRef() noexcept {
+        reference_logging("ctor", nullptr);
+    }
 #else
     StrongRef() noexcept = default;
 #endif
@@ -53,7 +55,8 @@ public:
 
     template <typename U, typename OtherAlloc>
     StrongRef(const StrongRef<U, OtherAlloc> &other) {
-        static_assert(std::is_base_of<CType<T>, CType<U>>::value, "Ref holder jni type not compatible");
+        static_assert(std::is_base_of<CType<T>, CType<U>>::value,
+                      "Ref holder jni type not compatible");
         reference_logging("copy ctor", other.get());
         auto o = Alloc {}.ref(other.get());
         _cobj.set(static_cast<jtype>(o));
@@ -66,7 +69,8 @@ public:
 
     template <typename U>
     StrongRef(StrongRef<U, Alloc> &&other) {
-        static_assert(std::is_base_of<CType<T>, CType<U>>::value, "Ref holder jni type not compatible");
+        static_assert(std::is_base_of<CType<T>, CType<U>>::value,
+                      "Ref holder jni type not compatible");
         reference_logging("move ctor", other.get());
         _cobj.set(static_cast<jtype>(other.release()));
     }
@@ -75,7 +79,8 @@ public:
 
     template <typename U>
     StrongRef(const AliasRef<U> &other) {
-        static_assert(std::is_base_of<CType<T>, CType<U>>::value, "Ref holder jni type not compatible");
+        static_assert(std::is_base_of<CType<T>, CType<U>>::value,
+                      "Ref holder jni type not compatible");
         reference_logging("copy ctor from alias", other.get());
         auto o = Alloc {}.ref(other.get());
         _cobj.set(static_cast<jtype>(o));
@@ -92,7 +97,8 @@ public:
 
     template <typename U, typename OtherAlloc>
     StrongRef &operator=(const StrongRef<U, OtherAlloc> &other) {
-        static_assert(std::is_base_of<CType<T>, CType<U>>::value, "Ref holder jni type not compatible");
+        static_assert(std::is_base_of<CType<T>, CType<U>>::value,
+                      "Ref holder jni type not compatible");
         reference_logging("assign from", other.get());
         auto o = Alloc {}.ref(other.get());
         set(static_cast<jtype>(o));
@@ -110,7 +116,8 @@ public:
 
     template <typename U>
     StrongRef &operator=(StrongRef<U, Alloc> &&other) {
-        static_assert(std::is_base_of<CType<T>, CType<U>>::value, "Ref holder jni type not compatible");
+        static_assert(std::is_base_of<CType<T>, CType<U>>::value,
+                      "Ref holder jni type not compatible");
         reference_logging("assign move", other.get());
         set(static_cast<jtype>(other.release()));
         return *this;
@@ -120,7 +127,8 @@ public:
 
     template <typename U>
     StrongRef &operator=(const AliasRef<U> &other) {
-        static_assert(std::is_base_of<CType<T>, CType<U>>::value, "Ref holder jni type not compatible");
+        static_assert(std::is_base_of<CType<T>, CType<U>>::value,
+                      "Ref holder jni type not compatible");
         reference_logging("assign from alias", other.get());
         auto o = Alloc {}.ref(other.get());
         set(static_cast<jtype>(o));
@@ -134,7 +142,9 @@ public:
     }
 
     // simply get
-    jtype get() const noexcept { return _cobj.get(); }
+    jtype get() const noexcept {
+        return _cobj.get();
+    }
     // handover the underlying ref
     jtype release() noexcept {
         auto ref = get();
@@ -155,12 +165,22 @@ public:
         return old;
     }
     // set to null, unref prev if not null
-    void reset() noexcept { set(nullptr); }
+    void reset() noexcept {
+        set(nullptr);
+    }
 
-    ctype *operator->() noexcept { return &_cobj; }
-    const ctype *operator->() const noexcept { return &_cobj; }
-    ctype &operator*() noexcept { return _cobj; }
-    const ctype &operator*() const noexcept { return _cobj; }
+    ctype *operator->() noexcept {
+        return &_cobj;
+    }
+    const ctype *operator->() const noexcept {
+        return &_cobj;
+    }
+    ctype &operator*() noexcept {
+        return _cobj;
+    }
+    const ctype &operator*() const noexcept {
+        return _cobj;
+    }
 
 #ifdef JNIPP_REFERENCE_LOGGING
     void reference_logging(const std::string &name, jtype o) {
@@ -180,8 +200,12 @@ public:
     using jtype = JType<T>;
     using _jtype = typename std::remove_pointer<jtype>::type;
 #ifdef JNIPP_REFERENCE_LOGGING
-    AliasRef() noexcept { reference_logging("ctor", nullptr); }
-    ~AliasRef() noexcept { reference_logging("dtor", nullptr); }
+    AliasRef() noexcept {
+        reference_logging("ctor", nullptr);
+    }
+    ~AliasRef() noexcept {
+        reference_logging("dtor", nullptr);
+    }
 #else
     constexpr AliasRef() noexcept = default;
     ~AliasRef() noexcept = default;
@@ -228,19 +252,31 @@ public:
         return *this;
     }
 
-    jtype get() const noexcept { return _cobj.get(); }
-    void set(jtype o) noexcept { _cobj.set(o); }
+    jtype get() const noexcept {
+        return _cobj.get();
+    }
+    void set(jtype o) noexcept {
+        _cobj.set(o);
+    }
 
-    ctype *operator->() noexcept { return &_cobj; }
-    const ctype *operator->() const noexcept { return &_cobj; }
-    ctype &operator*() noexcept { return _cobj; }
-    const ctype &operator*() const noexcept { return _cobj; }
+    ctype *operator->() noexcept {
+        return &_cobj;
+    }
+    const ctype *operator->() const noexcept {
+        return &_cobj;
+    }
+    ctype &operator*() noexcept {
+        return _cobj;
+    }
+    const ctype &operator*() const noexcept {
+        return _cobj;
+    }
 
 private:
 #ifdef JNIPP_REFERENCE_LOGGING
     void reference_logging(const std::string &name, jtype o) {
-        std::cout << "alias ref " << name << ": " << static_cast<void *>(get()) << " <- " << static_cast<void *>(o)
-                  << std::endl;
+        std::cout << "alias ref " << name << ": " << static_cast<void *>(get()) << " <- "
+                  << static_cast<void *>(o) << std::endl;
     }
 #endif
 

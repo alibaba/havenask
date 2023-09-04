@@ -7,25 +7,26 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <memory>
 #include <sstream>
+#include <stdint.h>
 
 namespace autil {
 namespace metric {
 
-class ProcessMemory
-{
+class ProcessMemory {
 public:
     ProcessMemory();
     ~ProcessMemory();
+
 private:
     ProcessMemory(const ProcessMemory &);
-    ProcessMemory& operator = (const ProcessMemory &);
+    ProcessMemory &operator=(const ProcessMemory &);
+
 public:
     void update();
-    uint64_t getMemSize() {return _memSize;}
-    uint64_t getMemRss() {return _memRss;}
+    uint64_t getMemSize() { return _memSize; }
+    uint64_t getMemRss() { return _memRss; }
     double getMemRssRatio() {
         double ratio = 0;
         if (_machineMemSize != 0) {
@@ -33,8 +34,8 @@ public:
         }
         return ratio;
     }
-    uint64_t getMemSwap() {return _memSwap;}
-    uint64_t getMemUsed() {return _memRss + _memSwap;}
+    uint64_t getMemSwap() { return _memSwap; }
+    uint64_t getMemUsed() { return _memRss + _memSwap; }
     double getMemUsedRatio() {
         double ratio = 0;
         if (_machineMemSize != 0) {
@@ -57,5 +58,5 @@ private:
 
 typedef std::shared_ptr<ProcessMemory> ProcessMemoryPtr;
 
-}
-}
+} // namespace metric
+} // namespace autil

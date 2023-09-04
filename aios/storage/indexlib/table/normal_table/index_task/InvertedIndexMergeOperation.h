@@ -28,7 +28,7 @@ public:
     ~InvertedIndexMergeOperation() = default;
 
 protected:
-    Status Init(const std::shared_ptr<indexlibv2::config::TabletSchema> schema) override;
+    Status Init(const std::shared_ptr<indexlibv2::config::ITabletSchema> schema) override;
 
     Status Execute(const indexlibv2::framework::IndexTaskContext& context) override;
     std::string GetDebugString() const override;
