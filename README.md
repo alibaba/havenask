@@ -67,11 +67,11 @@ docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 
 * Insert data
 ```
-/ha3_install/sql_query.py --query "insert into in0 (createtime,hits,id,title,subject)values(1,2,4,'test', 'test')&&kvpair=databaseName:database"
+/ha3_install/sql_query.py --query "insert into in0 (createtime,hits,id,title,subject)values(1,2,4,'test', 'test')"
 ```
 * Query
 ```
-/ha3_install/sql_query.py --query "select * from in0 &&kvpair=databaseName:database;formatType:string"
+/ha3_install/sql_query.py --query "select * from in0"
 ```
 
 
@@ -143,11 +143,11 @@ docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 
 * 写入数据
 ```
-/ha3_install/sql_query.py --query "insert into in0 (createtime,hits,id,title,subject)values(1,2,4,'测试', '测试')&&kvpair=databaseName:database"
+/ha3_install/sql_query.py --query "insert into in0 (createtime,hits,id,title,subject)values(1,2,4,'测试', '测试')"
 ```
 * 查询数据
 ```
-/ha3_install/sql_query.py --query "select * from in0 &&kvpair=databaseName:database;formatType:string"
+/ha3_install/sql_query.py --query "select * from in0"
 ```
 
 ## 联系我们
