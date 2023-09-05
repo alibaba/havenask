@@ -210,7 +210,7 @@ EMBEDDING_SERVER_ENDPOINT=http://{ip}:8008/
 
 更换模型需要修改```.env```文件中的模型名称，并在llm_adapter中增加加载新模型的adapter，可以参考[local_chatglm.py](llm_adapter/local_chatglm.py)，远程部署参考[deploy_chatglm.py](script/deploy_chatglm.py)。
 
-因为不同的文本向量化模型生成的embedding维度不同，因此需要修改havenask配置中的维度信息，修改以下中```dimension```的值：
+因为不同的文本向量化模型生成的embedding维度不同，因此需要修改havenask配置中的维度信息，修改以下文件中```dimension```的值：
 ```
 /ha3_install/example/cases/llm/in0_schema.json
 ```
