@@ -8,7 +8,11 @@
 
 ### 准备环境
 * 最新的镜像为registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest，不同版本的镜像不同，可以参考[release页面](https://github.com/alibaba/havenask/releases)获取镜像版本，需要确保已经用docker拉取对应版本的镜像。
-* 确保本机能免密ssh登录自己
+* 确保本机能免密ssh登录自己，以下命令打通免密登录自己:
+```
+ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
+ssh-copy-id -i ~/.ssh/id_rsa `hostname -i`
+```
 
 ### 修改配置
 * 在默认情况下hape采用/ha3_install/hape_conf/default作为集群配置，无需修改
@@ -79,7 +83,7 @@ hape gs havenask
 
 * 查询表数据
 ```
-/ha3_install/sql_query.py --query "select * from in0" 
+/ha3_install/sql_query.py --query "select * from in0"
 ```
 
 * 如果想要查看text类型字段值，则需要联合查询[摘要索引](摘要索引)，命令如下
@@ -100,7 +104,7 @@ hape gs havenask
 hape gs swift
 
 ## 写入测试消息
-/ha3_install/swift_writer.py --zk <serviceZk> --topic in1 --count 1 --schema /ha3_install/example/cases/normal/in0_schema.json --file /ha3_install/example/data/rt.data 
+/ha3_install/swift_writer.py --zk <serviceZk> --topic in1 --count 1 --schema /ha3_install/example/cases/normal/in0_schema.json --file /ha3_install/example/data/rt.data
 ```
 
 ## 六. 集群清理
