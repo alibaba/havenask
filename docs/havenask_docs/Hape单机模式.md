@@ -64,15 +64,15 @@ hape gs table -t <table_name>
 hape delete table -t <table-name>
 ```
 
-## 4. 查看集群状态
+## 四. 查看集群状态
 * 在完成建表后，可以使用以下命令查看集群状态，判断集群是否已经准备好可以读写。状态含义见[Hape集群状态](Hape集群状态.md)
 ```
 ## 当返回的结果中，sqlClusterInfo的clusterStatus为READY时集群已经准备好
 hape gs havenask
 ```
 
-## 5. 读写数据
-* 直写表写入数据命令如下。
+## 五. 读写数据
+* 直写表写入数据命令如下
 ```
 /ha3_install/sql_query.py --query "insert into in0 (createtime,hits,id,title,subject)values(1,2,4,'测试', '测试')"
 ```
@@ -103,7 +103,7 @@ hape gs swift
 /ha3_install/swift_writer.py --zk <serviceZk> --topic in1 --count 1 --schema /ha3_install/example/cases/normal/in0_schema.json --file /ha3_install/example/data/rt.data 
 ```
 
-## 6. 集群清理
+## 六. 集群清理
 ```
 ## 清理havenask集群，删除容器、zk
 hape delete havenask
@@ -112,7 +112,7 @@ hape delete havenask
 hape delete swift
 ```
 
-## 7. 更多
+## 七. 更多
 * 更多集群子命令见[Hape子命令](HapeCmd-1.0.0.md)
 * 更多运维场景见[Hape运维场景](Hape运维场景.md)
 * 更多基于单机模式的例子见hape/example/README.md
