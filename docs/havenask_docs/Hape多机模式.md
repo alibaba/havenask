@@ -86,25 +86,16 @@ hape gs table -t <table_name> -c /ha3_install/hape_conf/remote
 hape delete table -t <table-name> -c /ha3_install/hape_conf/remote
 ```
 
-
-## 4. 读写数据
-* 直写表写入数据命令如下。如果是全量表，实时数据写入需要使用swift java sdk
+## 四. 查看集群状态
+* 在完成建表后，可以使用以下命令查看集群状态，判断集群是否已经准备好可以读写。状态含义见[Hape集群状态](Hape集群状态.md)
 ```
-/ha3_install/sql_query.py --query "insert into in0 (createtime,hits,id,title,subject)values(1,2,4,'测试', '测试')&&kvpair=databaseName:database"
-```
-
-
-* 查询表数据
-```
-/ha3_install/sql_query.py --query "select * from in0 &&kvpair=databaseName:database;formatType:string" 
+## 当返回的结果中，sqlClusterInfo的clusterStatus为READY时集群已经准备好
+hape gs havenask -c /ha3_install/hape_conf/remote
 ```
 
-* 如果想要查看text类型字段值，则需要联合查询[摘要索引](摘要索引)，命令如下
-```
-/ha3_install/sql_query.py --query "select in0_summary_.id, in0_summary_.title, in0_summary_.subject from in0 inner join in0_summary_ on in0.id=in0_summary_.id&&kvpair=databaseName:database;formatType:string"
-```
 
-## 5. 读写数据
+## 五. 读写数据
+
 * 直写表写入数据命令如下。
 ```
 ## 由于qrs可能在远端拉起，因此需要先用hape gs havenask子命令来获取qrs的地址
@@ -113,14 +104,13 @@ hape delete table -t <table-name> -c /ha3_install/hape_conf/remote
 
 * 查询表数据
 ```
-/ha3_install/sql_query.py --query "select * from in0" 
+/ha3_install/sql_query.py  --address  http://<qrs-ip>:45800 --query "select * from in0" 
 ```
 
 * 如果想要查看text类型字段值，则需要联合查询[摘要索引](摘要索引)，命令如下
 ```
 /ha3_install/sql_query.py --address  http://<qrs-ip>:45800 --query "select in0_summary_.id, in0_summary_.title, in0_summary_.subject from in0 inner join in0_summary_ on in0.id=in0_summary_.id"
 ```
-
 
 
 * 全量表写实时数据推送需要swift。目前推荐使用swift c++/java client。python只有写入测试工具，不推荐在生产使用，需要调用以下命令。其中swift python写入工具参数含义为：
@@ -137,7 +127,7 @@ hape gs swift
 /ha3_install/swift_writer.py --zk <serviceZk> --topic in1 --count 2 --schema /ha3_install/example/cases/normal/in0_schema.json --file /ha3_install/example/data/rt.data 
 ```
 
-## 6. 集群清理
+## 六. 集群清理
 ```
 ## 清理havenask集群，删除容器、zk
 hape delete havenask
@@ -146,7 +136,7 @@ hape delete havenask
 hape delete swift
 ```
 
-## 7. 更多
+## 七. 更多
 * 更多集群子命令见[Hape子命令](HapeCmd-1.0.0.md)
 * 更多运维场景见[Hape运维场景](Hape运维场景.md)
 * 更多基于单机模式的例子见hape/example/README.md
