@@ -33,7 +33,7 @@ git clone https://github.com/alibaba/havenask.git
 * 创建容器
 ```shell
 cd ~/havenask/docker
-./create_container.sh havenask registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:0.3.0
+./create_container.sh havenask registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ```
 
 * 登陆容器
@@ -129,22 +129,14 @@ python -m script.embed_files -f havenask.wiki -o ./llm.data -i .git,english
 
 如果从```Huggingface```自动下载模型失败，参考[从本地加载模型](README.md#本地加载模型)，手动下载模型。
 
-### 构建索引
-将上一步生成的数据文件```llm.data```拷贝到```~/havenask/example/data/llm.data```，构建索引。
-```shell
-cp ./llm.data ~/havenask/example/data/llm.data 
-cd ~/havenask/example/
-/usr/bin/python2.7 build_demo_data.py /ha3_install llm
-```
+### 构建索引并启动服务
+将上一步生成的数据文件```llm.data```拷贝到```/ha3_install/example/data/llm.data```，启动havenask服务，case脚本会将数据写入引擎。根据需要可以修改端口号，并将```.env```中配置的QRS端口一并修改。
 
+```shell
+cp ./llm.data /ha3_install/example/data/llm.data
+/ha3_install/example/common/case.py run --case llm
+```
 * Havenask服务目前需要python2.7启动任务
-
-### 启动服务
-索引构建结束后，启动havenask服务，根据需要可以修改端口号。并将```.env```中配置的QRS端口一并修改。
-```shell
-cd ~/havenask/example/
-/usr/bin/python2.7 start_demo_searcher.py /ha3_install llm 45800
-```
 
 ## 启动问答服务
 ### api部署
@@ -163,7 +155,7 @@ curl -H "Content-Type: application/json" http://127.0.0.1:8000/chat -d '{"query"
     "result":"havenask 是一个分布式数据库管理系统，由阿里巴巴开发。它支持 SQL 查询语句，并提供了内置的 UDF(User Defined Function)功能，允许客户以插件形式开发自己的 UDF。havenask 可以用于存储、处理和分析大规模数据，具有高可用性、可扩展性和高性能的特点。havenask 可以通过分布式运维工具进行部署，支持在物理机上拉起分布式集群，也可以在云平台上使用云原生架构进行部署。",
     "history":[
         [
-            "已知信息：\n                Content: NAME> havenask/ha3_runtime:0.3.0\n```\n\n* 登陆容器\n```\n./<CONTAINER_NAME>/sshme\n```\n\n* 运行测试 \n启动运行时容器后，构建测试数据索引以及查询引擎的方法见example\n\n## 集群模式\n集群模式需要通过Havenask的分布式运维工具部署，详细信息请参考Havenask分布式运维工具\n# 编译代码\n\n## 编译环境\n* 请确保编译的机器内存在15G以上，mac编译时需调整Docker容器资源上限（包括CPU、Memory、Swap等），具体路径：Docker Desktop->setting->Resources。\n* 请确保cpu位8core以上，不然编译比较慢。\n\n## 获取开发镜像\n\n```\ndocker pull havenask/ha3_dev:0.3.0\n```\n## 下载代码\n```\ncd ~\ngit clone git@github.com:alibaba/havenask.git\n```\n\n## 启动容器\n```\ncd ~/havenask/docker\n./\nContent: ### 简介\n\nhavenask SQL支持在查询语句中使用内置的UDF（User Defined Function)，也允许客户以插件形式开发自己的UDF。\nContent: # 介绍\nHavenask PE tools，简称hape，是havenask的简易分布式运维工具。用户可以利用hape在单台或者多台物理机上拉起分布式havenask集群，并进行基础的运维操作。\n\n# 名词解释\n* domain\n * 一个havenask集群被称为一个domain，一个hape工具可以管理多个domain\n* config\n * hape config：关于havenask集群部署计划的配置文件，一个domain有一个hape config\n * biz config：havenask引擎本身加载的配置，分为离线配置offline config和在线配置online config\n* hape cmd\n * hape命令行工具，负责向domain daemon提交用户请求\n* hape domain daemon\n * 每当用户使用hape cmd创建一个domain，hape cmd都会在所在机器后台启动一个domain daemon进程用于专门管理该domain。所有hape cmd命令都会在后台被domain daemon异步处理\n* hape worker & worker daemon\n * hape worker\n \n\n                根据上述已知信息，简洁和专业的来回答用户的问题。如果无法从中得到答案，请说不知道，不允许在答案中添加编造成分，答案请使用中文。\n                问题是：havenask是什么",
+            "已知信息：\n                Content: NAME> havenask/ha3_runtime:latest\n```\n\n* 登陆容器\n```\n./<CONTAINER_NAME>/sshme\n```\n\n* 运行测试 \n启动运行时容器后，构建测试数据索引以及查询引擎的方法见example\n\n## 集群模式\n集群模式需要通过Havenask的分布式运维工具部署，详细信息请参考Havenask分布式运维工具\n# 编译代码\n\n## 编译环境\n* 请确保编译的机器内存在15G以上，mac编译时需调整Docker容器资源上限（包括CPU、Memory、Swap等），具体路径：Docker Desktop->setting->Resources。\n* 请确保cpu位8core以上，不然编译比较慢。\n\n## 获取开发镜像\n\n```\ndocker pull havenask/ha3_dev:latest\n```\n## 下载代码\n```\ncd ~\ngit clone git@github.com:alibaba/havenask.git\n```\n\n## 启动容器\n```\ncd ~/havenask/docker\n./\nContent: ### 简介\n\nhavenask SQL支持在查询语句中使用内置的UDF（User Defined Function)，也允许客户以插件形式开发自己的UDF。\nContent: # 介绍\nHavenask PE tools，简称hape，是havenask的简易分布式运维工具。用户可以利用hape在单台或者多台物理机上拉起分布式havenask集群，并进行基础的运维操作。\n\n# 名词解释\n* domain\n * 一个havenask集群被称为一个domain，一个hape工具可以管理多个domain\n* config\n * hape config：关于havenask集群部署计划的配置文件，一个domain有一个hape config\n * biz config：havenask引擎本身加载的配置，分为离线配置offline config和在线配置online config\n* hape cmd\n * hape命令行工具，负责向domain daemon提交用户请求\n* hape domain daemon\n * 每当用户使用hape cmd创建一个domain，hape cmd都会在所在机器后台启动一个domain daemon进程用于专门管理该domain。所有hape cmd命令都会在后台被domain daemon异步处理\n* hape worker & worker daemon\n * hape worker\n \n\n                根据上述已知信息，简洁和专业的来回答用户的问题。如果无法从中得到答案，请说不知道，不允许在答案中添加编造成分，答案请使用中文。\n                问题是：havenask是什么",
             "havenask 是一个分布式数据库管理系统，由阿里巴巴开发。它支持 SQL 查询语句，并提供了内置的 UDF(User Defined Function)功能，允许客户以插件形式开发自己的 UDF。havenask 可以用于存储、处理和分析大规模数据，具有高可用性、可扩展性和高性能的特点。havenask 可以通过分布式运维工具进行部署，支持在物理机上拉起分布式集群，也可以在云平台上使用云原生架构进行部署。"
         ]
     ],
@@ -218,10 +210,9 @@ EMBEDDING_SERVER_ENDPOINT=http://{ip}:8008/
 
 更换模型需要修改```.env```文件中的模型名称，并在llm_adapter中增加加载新模型的adapter，可以参考[local_chatglm.py](llm_adapter/local_chatglm.py)，远程部署参考[deploy_chatglm.py](script/deploy_chatglm.py)。
 
-因为不同的文本向量化模型生成的embedding维度不同，因此需要修改havenask配置中的维度信息，修改以下两个文件中```dimension```的值：
+因为不同的文本向量化模型生成的embedding维度不同，因此需要修改havenask配置中的维度信息，修改以下中```dimension```的值：
 ```
-example/cases/llm/config/online_config/bizs/0/schemas/llm_schema.json
-example/cases/llm/config/offline_config/0/schemas/llm_schema.json
+/ha3_install/example/cases/llm/in0_schema.json
 ```
 
 ## 本地加载模型
