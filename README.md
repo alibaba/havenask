@@ -39,7 +39,7 @@ Havenask delivers the following benefits:
   * Runtime: cpu > 2 cores, memory > 4G, disk > 20G
   * Dev: cpu > 2 cores, memory > 10G, disk > 50G
   * Install and Start Docker
-  * Check that you can ssh to the localhost without a passphrase
+  * Check that you can ssh to the localhost without a passphrase, ref[passphraseless ssh](docs/havenask_docs/Hape单机模式.md)
 
 ## Start Havenask Service
 * Create the container
@@ -115,7 +115,7 @@ Havenask 的核心能力与优势，有以下几点：
    * 运行镜像：确保机器内存大于4G，cpu大于2核，磁盘大小大于20G。
    * 开发镜像：确保机器内存大于10G，cpu大于2核，磁盘大小大于50G。
    * 使用前确保设备已经安装和启动Docker服务。
-   * 单机模式需要确保本机能免密ssh登录自己
+   * 单机模式需要确保本机能免密ssh登录自己，详情参考[免密ssh](docs/havenask_docs/Hape单机模式.md)
 
 ## 启动服务
 
