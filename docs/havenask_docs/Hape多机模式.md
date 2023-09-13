@@ -107,7 +107,7 @@ hape gs havenask -c /ha3_install/hape_conf/remote
 /ha3_install/sql_query.py  --address  http://<qrs-ip>:45800 --query "select * from in0" 
 ```
 
-* 如果想要查看text类型字段值，则需要联合查询[摘要索引](摘要索引)，命令如下
+* 如果想要查看text类型字段值，则需要联合查询[摘要索引](摘要索引.md)，命令如下
 ```
 /ha3_install/sql_query.py --address  http://<qrs-ip>:45800 --query "select in0_summary_.id, in0_summary_.title, in0_summary_.subject from in0 inner join in0_summary_ on in0.id=in0_summary_.id"
 ```
