@@ -9,16 +9,19 @@ package(
 )
 selects.config_setting_group(name='ppu_mode', match_all=['//:ppu_mode'])
 selects.config_setting_group(
-    name='gpu_mode', match_all=['//:old_abi_mode', '//:gpu_mode']
+    name='gpu_mode', match_all=['//:old_abi_mode', '//:gpu_mode', '//:cpu_without_avx512']
 )
 selects.config_setting_group(
-    name='new_abi_gpu_mode', match_all=['//:new_abi_mode', '//:gpu_mode']
+    name='new_abi_gpu_mode', match_all=['//:new_abi_mode', '//:gpu_mode', '//:cpu_without_avx512']
 )
 selects.config_setting_group(
-    name='cpu_mode', match_all=['//:old_abi_mode', '//:cpu_mode']
+    name='cpu_mode', match_all=['//:old_abi_mode', '//:cpu_mode', '//:cpu_without_avx512']
 )
 selects.config_setting_group(
-    name='new_abi_cpu_mode', match_all=['//:new_abi_mode', '//:cpu_mode']
+    name='new_abi_cpu_mode', match_all=['//:new_abi_mode', '//:cpu_mode', '//:cpu_without_avx512']
+)
+selects.config_setting_group(
+    name='avx512_cpu_mode', match_all=['//:old_abi_mode', '//:cpu_mode', '//:cpu_with_avx512']
 )
 cc_proto(
     name='aitheta_query_proto',

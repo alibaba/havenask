@@ -101,4 +101,5 @@ build:havenask --test_tag_filters=-not_for_opensource
 build:havenask --define disable_catalog_mongodb=true
 test --test_tag_filters=-slow_case,-codegen_case,-one_box --test_env CHECK_CASE_TIMEOUT=false
 build:havenask --distdir=/external/__distdir__
+build:havenask --define cpu_avx512=false
 build --config=havenask
