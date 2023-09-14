@@ -18,6 +18,8 @@ if test $MODE = "fastbuild"; then
     OPTIONS="$OPTIONS"
 elif test $MODE = "opt"; then
     OPTIONS="$OPTIONS -c opt --copt=-g --strip=never"
+elif test $MODE = "opt-strip"; then
+    OPTIONS="$OPTIONS -c opt --strip=always"
 elif test $MODE = "dbg"; then
     OPTIONS="$OPTIONS -c dbg --strip=never"
 elif test $MODE = "asan"; then
@@ -29,6 +31,7 @@ else
     echo "$0 fastbuild"
     echo "$0 dbg"
     echo "$0 opt"
+    echo "$0 opt-strip"
     echo "$0 asan"
     exit -1
 fi
