@@ -2,18 +2,18 @@
 
 
 
-Item | Description
--- | --
-ttf | Abbreviation of the total term frequency. The total term frequency indicates the total number of times that the term appears in all documents.
-df | Abbreviation of the document frequency. The document frequency indicates the total number of documents that contain the term.
-tf | Abbreviation of the term frequency. The term frequency indicates the number of times that the term appears in the document.
-docid | Abbreviation of the document id. A document ID is a unique identifier of a document in the engine. You can use the document ID to obtain other information about the document that you query.
-fieldmap | Abbreviation of the field map. The field map is used to record the fields that contain the term.
-section information | You can divide some documents into sections and specify additional information for each section. The information can be retrieved for subsequent processing.
-position | You can record the positions of the term in the document.
-positionpayload | Abbreviation of the position payload. You can specify payload information for different positions in the document. The payload information can be retrieved for subsequent processing.
-docpayload | Abbreviation of the document payload. You can specify additional information for some documents. The information can be retrieved for subsequent processing.
-termpayload | Abbreviation of the term payload. You can specify additional information for some terms. The information can be retrieved for subsequent processing.
+| Item | Description |
+| -- | -- |
+| ttf | Abbreviation of the total term frequency. The total term frequency indicates the total number of times that the term appears in all documents. |
+| df | Abbreviation of the document frequency. The document frequency indicates the total number of documents that contain the term. |
+| tf | Abbreviation of the term frequency. The term frequency indicates the number of times that the term appears in the document. |
+| docid | Abbreviation of the document id. A document ID is a unique identifier of a document in the engine. You can use the document ID to obtain other information about the document that you query. |
+| fieldmap | Abbreviation of the field map. The field map is used to record the fields that contain the term. |
+| section information | You can divide some documents into sections and specify additional information for each section. The information can be retrieved for subsequent processing. |
+| position | You can record the positions of the term in the document. |
+| positionpayload | Abbreviation of the position payload. You can specify payload information for different positions in the document. The payload information can be retrieved for subsequent processing. |
+| docpayload | Abbreviation of the document payload. You can specify additional information for some documents. The information can be retrieved for subsequent processing. |
+| termpayload | Abbreviation of the term payload. You can specify additional information for some terms. The information can be retrieved for subsequent processing. |
 
 
 
