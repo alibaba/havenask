@@ -16,7 +16,7 @@ ssh-copy-id -i ~/.ssh/id_rsa `hostname -i`
 
 ### 修改配置
 * 在默认情况下hape采用/ha3_install/hape_conf/default作为集群配置，无需修改
-* 配置的具体各项含义可以参考[Hape集群配置](Hape集群配置.md)文档
+* 配置的具体各项含义可以参考[Hape配置详解](Hape配置详解.md)文档
 
 
 ## 二、创建havenask集群

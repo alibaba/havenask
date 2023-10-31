@@ -26,7 +26,7 @@
     * binaryPath：表示容器进程从哪里找到havenask binary包，一般默认为/ha3_install
     * dataStoreRoot: 表示havenask集群运行中产生的索引、配置、元信息文件地址。支持相对于hapeRoot的相对路径。多机模式下时必须为hdfs路径
     * hadoopHome：表示hadoop路径，地址必须在/home/\<user\>下（可以设置软链接），且必须在所有机器上都有对应hadoop。存在默认值/usr/local/hadoop/hadoop指向容器内默认路径
-    * javaHome: 表示java路径，地址必须在/home/\<user\>下（可以设置软链接），，且必须在所有机器上都有对应java。javaHome必须和hadoopHome匹配。存在默认值/opt/taobao/java指向容器内默认路径
+    * javaHome: 表示java路径，地址必须在/home/\<user\>下（可以设置软链接），且必须在所有机器上都有对应java。javaHome必须和hadoopHome匹配。存在默认值/opt/taobao/java指向容器内默认路径
 
 
 ### swift
@@ -98,3 +98,5 @@
         * envs：环境变量
 * swift.conf
      * 作用：swift集群参数
+     * 参数说明:
+       * data_root_path 用于存储swift数据的路径

@@ -10,28 +10,36 @@
 * 准备多台物理机
 * 最新的镜像为registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest，不同版本的镜像不同，可以参考[release页面](https://github.com/alibaba/havenask/releases)获取镜像版本，需要确保每台物理机已经用docker拉取对应版本的镜像。
 * 要求所有的机器上都有与hape执行时相同的用户，用户对于自己的home有充分的权限。不建议使用root用户
-* 准备hdfs，保证所有物理机都能访问
 * 确保机器之间已经ssh免密打通，机器也能免密ssh登录自己，如果没有打通可以通过下面的步骤打通：
   * 检查每个机器用户目录下是否有.ssh/id_rsa.pub文件，如果没有可以通过ssh-keygen生成
   * 使用ssh-copy-id将id_rsa.pub拷贝到其他机器
 
+
 ### 修改配置
-* 参考/ha3_install/hape_conf/remote修改，配置的具体各项含义可以参考[hape集群配置](HapeConfig-1.0.0.md)文档。其中global.conf必须要做修改
-    * common相关
-        * dataStoreRoot：修改为自己的hdfs路径
-            * 如果hdfs地址不是ip:port模式，需要设置自己的hadoopHome和javaHome。这两个地址必须在/home/\<user\>下（可以设置软链接），且必须在所有机器上都有对应hadoop和java
+* 修改/ha3_install/hape_conf/remote，配置的具体各项含义可以参考[Hape配置详解](Hape配置详解.md)文档
+#### hdfs配置
+* 由于多机模式的havenask集群需要在集群内部不同机器之间共享配置、索引等数据，因此需要搭建hdfs文件系统。当前版本的havenask引擎需要java8，用户可以下载java8对应任意版本hadoop并拉起hdfs服务。接下来做以下配置：
+  * 创建数据目录：
+    * 在hdfs下新建两个目录hdfs://xxx/havenask和hdfs://xxx/swift分别用于存储havenask和swift数据
+    * 使用hadoop fs -chmod 777命令对两个文件目录赋予权限
+  * 配置变量：
+    * global.conf文件的javaHome：指向对应java路径，需要能被容器访问，因此java目录需要在容器挂载的/home/\<user\>下的某个路径上。如果不在，可以使用软链接地址
+    * global.conf文件的hadoopHome：指向对应hadoop路径，需要能被容器访问，因此hadoop目录需要在容器挂载的/home/\<user\>下的某个路径上。如果不在，可以使用软链接地址
+    * global.conf文件的dataStoreRoot，对应上述的hdfs://xxx/havenask地址
+    * cluster_templates/swift/config/swift.conf文件的data_root_path，对应上述的hdfs/xxx/swift地址
+* 多机模式下的hdfs遇到问题可以进一步参考[多机模式下hdfs配置不成功](Hape常见问题与排查.md#多机模式下hdfs配置不成功)
+
+#### 可调度机器列表
+
+* 其中global.conf必须要做修改
     * swift相关：
         * 可用于调度的机器列表adminIpList & workerIpList
-        * data_root_path：修改为自己的hdfs路径
     * havenask相关：
         * 可用于调度的机器列表adminIpList & qrsIpList & searcherIpList
+        * 其中searcher的机器数要不小于后面建表的分片数
+        * 当前版本下qrs和searcher之间的机器不能复用。但是admin与qrs、searcher的机器可以复用
     * bs相关：
         * 可用于调度的机器列表adminIpList & workerIpList
-* 上述配置修改需要注意：
-    * 需要确保所有的admin机器都能免密登录worker列表（havenask的worker是qrs和searcher）
-    * searcher的机器数要不小于后面的表分片数
-    * 除了havenask部分由于worker端口冲突的问题，qrs&qrs, qrs&searcher, searcher&searcher的ip不能重复外，其他所有ip都能复用。比如swift worker的ip也可以使用在havenask admin中
-    * 违反以上原则会导致集群运维异常。排查方法见[Hape常见问题与排查.md](Hape常见问题与排查.md)
 
 
 ## 二、创建havenask集群
