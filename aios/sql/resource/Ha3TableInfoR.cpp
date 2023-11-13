@@ -103,8 +103,12 @@ bool Ha3TableInfoR::getTableSchemas(
         NAVI_KERNEL_LOG(ERROR, "empty index app map");
         return false;
     }
-    auto indexAppPtr = id2IndexAppMap.begin()->second;
-    indexAppPtr->GetTableSchemas(tableSchemas);
+    //auto indexAppPtr = id2IndexAppMap.begin()->second;
+    //indexAppPtr->GetTableSchemas(tableSchemas);
+    std::set<std::string>  tableNames;
+    for (const auto &pair : id2IndexAppMap) {
+        pair.second->GetTableSchemas(tableSchemas, tableNames);
+    }
     return true;
 }
 
