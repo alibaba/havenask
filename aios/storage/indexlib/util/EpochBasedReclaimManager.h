@@ -18,6 +18,7 @@
 #include <atomic>
 #include <deque>
 #include <memory>
+#include <utility>
 
 // #include "autil/CommonMacros.h"
 #include "autil/Log.h"

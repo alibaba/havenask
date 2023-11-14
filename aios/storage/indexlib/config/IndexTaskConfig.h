@@ -20,6 +20,8 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/config/MergeConfig.h"
 
+#include <optional>
+
 namespace indexlib { namespace legacy { namespace config {
 class OfflineMergeConfig;
 }}} // namespace indexlib::legacy::config

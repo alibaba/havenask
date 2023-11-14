@@ -15,6 +15,7 @@
  */
 #pragma once
 #include <memory>
+#include <optional>
 
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"

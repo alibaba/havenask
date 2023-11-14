@@ -17,6 +17,8 @@
 
 #include "autil/Log.h"
 
+#include <unordered_map>
+
 namespace indexlib::util {
 class CounterMap;
 class AccumulativeCounter;

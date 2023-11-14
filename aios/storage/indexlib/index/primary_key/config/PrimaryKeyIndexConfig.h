@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
 #include "indexlib/index/attribute/config/AttributeConfig.h"
 #include "indexlib/index/inverted_index/config/SingleFieldIndexConfig.h"
