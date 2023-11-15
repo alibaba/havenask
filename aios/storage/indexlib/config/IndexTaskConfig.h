@@ -15,6 +15,8 @@
  */
 #pragma once
 
+#include <optional>
+
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/base/Status.h"

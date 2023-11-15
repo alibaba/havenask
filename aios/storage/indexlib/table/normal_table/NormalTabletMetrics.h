@@ -15,6 +15,8 @@
  */
 #pragma once
 
+#include <unordered_map>
+
 #include "autil/Log.h"
 
 namespace indexlib::util {
