@@ -15,9 +15,9 @@
  */
 #pragma once
 
-#include "autil/Log.h"
-
 #include <unordered_map>
+
+#include "autil/Log.h"
 
 namespace indexlib::util {
 class CounterMap;

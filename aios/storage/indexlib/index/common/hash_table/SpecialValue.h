@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 #pragma once
+#include <limits>
+
 #include "autil/ConstString.h"
 
-#include <limits>
 
 namespace indexlibv2::index {
 
